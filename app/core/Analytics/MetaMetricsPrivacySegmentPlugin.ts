@@ -52,19 +52,24 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
     }
 
     // if the even has no userId, that can happen when the SDK storage is not yes in sync, we set it to our userId
-    if(event.userId === undefined) {
+    if (event.userId === undefined) {
       event.userId = this.userId;
     }
 
     // if the event anonymous id is not our default id, we update SDK anonymous id in storage
     // and update the current event anonymous id as stored value will only be available for next events
-    if(event.anonymousId !== METAMETRICS_ANONYMOUS_ID) {
-      await this.analytics?.userInfo.set({anonymousId: METAMETRICS_ANONYMOUS_ID});
+    if (event.anonymousId !== METAMETRICS_ANONYMOUS_ID) {
+      await this.analytics?.userInfo.set({
+        anonymousId: METAMETRICS_ANONYMOUS_ID,
+      });
       event.anonymousId = METAMETRICS_ANONYMOUS_ID;
     }
 
     // if the event is marked as anonymous, we replace the userId with our anonymous id
-    if (event.properties?.anonymous && event.userId !== METAMETRICS_ANONYMOUS_ID) {
+    if (
+      event.properties?.anonymous &&
+      event.userId !== METAMETRICS_ANONYMOUS_ID
+    ) {
       event.userId = METAMETRICS_ANONYMOUS_ID;
     }
 

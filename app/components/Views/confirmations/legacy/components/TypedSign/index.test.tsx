@@ -31,7 +31,9 @@ const mockMetrics = {
 
 jest.mock('../../../../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../../../../util/test/accountsControllerTestUtils');
+    jest.requireActual(
+      '../../../../../../util/test/accountsControllerTestUtils',
+    );
   return {
     acceptPendingApproval: jest.fn(),
     rejectPendingApproval: jest.fn(),

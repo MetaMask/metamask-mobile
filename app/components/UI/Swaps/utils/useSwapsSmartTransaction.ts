@@ -1,10 +1,16 @@
-import { TransactionParams, TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { decimalToHex } from '../../../../util/conversions';
 import { selectSwapsApprovalTransaction } from '../../../../reducers/swaps';
 import { Quote, TxParams } from '@metamask/swaps-controller/dist/types';
-import { selectEvmChainId, selectIsEIP1559Network } from '../../../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectIsEIP1559Network,
+} from '../../../../selectors/networkController';
 import { getGasFeeEstimatesForTransaction } from './gas';
 import { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -12,7 +18,7 @@ import Logger from '../../../../util/Logger';
 import { Fee } from '@metamask/smart-transactions-controller/dist/types';
 import {
   getGasIncludedTransactionFees,
-  type GasIncludedQuote
+  type GasIncludedQuote,
 } from '../../../../util/smart-transactions';
 
 interface TemporarySmartTransactionGasFees {
@@ -21,7 +27,10 @@ interface TemporarySmartTransactionGasFees {
 }
 
 const createSignedTransactions = async (
-  unsignedTransaction: Partial<TransactionParams> & { from: string; chainId: string },
+  unsignedTransaction: Partial<TransactionParams> & {
+    from: string;
+    chainId: string;
+  },
   fees: TemporarySmartTransactionGasFees[],
 ): Promise<string[]> => {
   const { TransactionController } = Engine.context;
@@ -36,12 +45,12 @@ const createSignedTransactions = async (
     };
     return unsignedTransactionWithFees;
   });
-  const signedTransactions = await TransactionController.approveTransactionsWithSameNonce(
-    unsignedTransactionsWithFees,
-  ) as string[]; // fees is an array, so we will get an array back
+  const signedTransactions =
+    (await TransactionController.approveTransactionsWithSameNonce(
+      unsignedTransactionsWithFees,
+    )) as string[]; // fees is an array, so we will get an array back
   return signedTransactions;
 };
-
 
 const submitSmartTransaction = async ({
   unsignedTransaction,
@@ -50,7 +59,10 @@ const submitSmartTransaction = async ({
   isEIP1559Network,
   gasEstimates,
 }: {
-  unsignedTransaction: Partial<TransactionParams> & { from: string; chainId: string };
+  unsignedTransaction: Partial<TransactionParams> & {
+    from: string;
+    chainId: string;
+  };
   smartTransactionFees: {
     fees?: Fee[];
     cancelFees?: Fee[];
@@ -65,7 +77,7 @@ const submitSmartTransaction = async ({
   const { SmartTransactionsController } = Engine.context;
 
   const gasFeeEstimates = await getGasFeeEstimatesForTransaction(
-    {...unsignedTransaction, chainId},
+    { ...unsignedTransaction, chainId },
     gasEstimates,
     { chainId, isEIP1559Network },
   );
@@ -84,13 +96,15 @@ const submitSmartTransaction = async ({
   );
 
   try {
-    const response = await SmartTransactionsController.submitSignedTransactions({
-      signedTransactions,
-      txParams: unsignedTransactionWithGasFeeEstimates,
-      // The "signedCanceledTransactions" parameter is still expected by the STX controller but is no longer used.
-      // So we are passing an empty array. The parameter may be deprecated in a future update.
-      signedCanceledTransactions: [],
-    });
+    const response = await SmartTransactionsController.submitSignedTransactions(
+      {
+        signedTransactions,
+        txParams: unsignedTransactionWithGasFeeEstimates,
+        // The "signedCanceledTransactions" parameter is still expected by the STX controller but is no longer used.
+        // So we are passing an empty array. The parameter may be deprecated in a future update.
+        signedCanceledTransactions: [],
+      },
+    );
     // Returns e.g.: { uuid: 'dP23W7c2kt4FK9TmXOkz1UM2F20' }
     return response.uuid;
   } catch (error) {
@@ -99,15 +113,21 @@ const submitSmartTransaction = async ({
   }
 };
 
-
-
-export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quote & Partial<GasIncludedQuote>, gasEstimates: {
-  gasPrice: string;
-  medium: string;
-} }) => {
+export const useSwapsSmartTransaction = ({
+  quote,
+  gasEstimates,
+}: {
+  quote?: Quote & Partial<GasIncludedQuote>;
+  gasEstimates: {
+    gasPrice: string;
+    medium: string;
+  };
+}) => {
   const chainId = useSelector(selectEvmChainId);
   const isEIP1559Network = useSelector(selectIsEIP1559Network);
-  const approvalTransaction: TxParams | null = useSelector(selectSwapsApprovalTransaction);
+  const approvalTransaction: TxParams | null = useSelector(
+    selectSwapsApprovalTransaction,
+  );
   const tradeTransaction = quote?.trade;
 
   // We don't need to await on the approval tx to be confirmed on chain. We can simply submit both the approval and trade tx at the same time.
@@ -118,17 +138,24 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
     // Calc fees
     let smartTransactionFees;
     if (quote?.isGasIncludedTrade) {
-      smartTransactionFees = getGasIncludedTransactionFees(quote as unknown as GasIncludedQuote);
+      smartTransactionFees = getGasIncludedTransactionFees(
+        quote as unknown as GasIncludedQuote,
+      );
     }
     if (!smartTransactionFees) {
-      smartTransactionFees = await SmartTransactionsController.getFees(tradeTransaction, approvalTransaction);
+      smartTransactionFees = await SmartTransactionsController.getFees(
+        tradeTransaction,
+        approvalTransaction,
+      );
     }
 
     // Approval transaction (if it exists)
     let approvalTxUuid: string | undefined;
     let tradeTxUuid: string | undefined;
     if (approvalTransaction && smartTransactionFees.approvalTxFees) {
-      const approvalGas = decimalToHex(smartTransactionFees.approvalTxFees.gasLimit).toString() || '0';
+      const approvalGas =
+        decimalToHex(smartTransactionFees.approvalTxFees.gasLimit).toString() ||
+        '0';
 
       approvalTxUuid = await submitSmartTransaction({
         unsignedTransaction: {
@@ -158,17 +185,19 @@ export const useSwapsSmartTransaction = ({ quote, gasEstimates }: { quote?: Quot
 
     // Trade transaction
     if (tradeTransaction) {
-      const tradeGas = decimalToHex(smartTransactionFees.tradeTxFees?.gasLimit || 0).toString();
+      const tradeGas = decimalToHex(
+        smartTransactionFees.tradeTxFees?.gasLimit || 0,
+      ).toString();
       tradeTxUuid = await submitSmartTransaction({
-        unsignedTransaction: {...tradeTransaction, chainId, gas: tradeGas},
-      smartTransactionFees: {
-        fees: smartTransactionFees.tradeTxFees?.fees,
-        cancelFees: [],
-      },
-      chainId,
-      isEIP1559Network,
-      gasEstimates,
-    });
+        unsignedTransaction: { ...tradeTransaction, chainId, gas: tradeGas },
+        smartTransactionFees: {
+          fees: smartTransactionFees.tradeTxFees?.fees,
+          cancelFees: [],
+        },
+        chainId,
+        isEIP1559Network,
+        gasEstimates,
+      });
 
       if (tradeTxUuid) {
         SmartTransactionsController.updateSmartTransaction({

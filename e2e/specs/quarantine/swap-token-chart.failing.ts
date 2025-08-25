@@ -1,61 +1,66 @@
 'use strict';
-import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import Onboarding from '../../pages/swaps/OnBoarding';
-import QuoteView from '../../pages/swaps/QuoteView';
-import SwapView from '../../pages/swaps/SwapView';
+import { Mockttp } from 'mockttp';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
+} from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { Regression } from '../../tags';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import Assertions from '../../utils/Assertions';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Tenderly from '../../tenderly';
+import Ganache from '../../../app/util/test/ganache';
+import { testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
+import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { startMockServer } from '../swaps/helpers/swap-mocks';
+import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(Regression('Swap from Token view'), (): void => {
-  const FIRST_ROW: number = 0;
-  const swapOnboarded: boolean = true; // TODO: Set it to false once we show the onboarding page again.
-  const wallet: ethers.Wallet = ethers.Wallet.createRandom();
+  let localNode: Ganache;
+  let mockServer: Mockttp;
 
   beforeAll(async (): Promise<void> => {
-    await Tenderly.addFunds(
-      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
-      wallet.address,
-    );
+    localNode = new Ganache();
+    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
+
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-      .build();
+    const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        mockServerPort: `${mockServerPort}`,
+      },
     });
     await loginToApp();
   });
 
   afterAll(async (): Promise<void> => {
     await stopFixtureServer(fixtureServer);
+    if (mockServer) await stopMockServer(mockServer);
+    if (localNode) await localNode.quit();
   });
 
   beforeEach(async (): Promise<void> => {
@@ -69,90 +74,39 @@ describe(Regression('Swap from Token view'), (): void => {
     await TabBarComponent.tapWallet();
   });
 
-  it('should be able to import account', async (): Promise<void> => {
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapImportAccount();
-    await Assertions.checkIfVisible(ImportAccountView.container);
-    await ImportAccountView.enterPrivateKey(wallet.privateKey);
-    await Assertions.checkIfVisible(SuccessImportAccountView.container);
-    await SuccessImportAccountView.tapCloseButton();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await Assertions.checkIfVisible(WalletView.container);
-  });
-
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
+    const FIRST_ROW: number = 0;
+    const quantity: string = '1';
     const sourceTokenSymbol: string = 'ETH';
     const destTokenSymbol: string = 'DAI';
 
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
-    await Assertions.checkIfVisible(TokenOverview.container);
+    await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(1000);
     await TokenOverview.tapSwapButton();
-    if (!swapOnboarded) await Onboarding.tapStartSwapping();
-    await Assertions.checkIfVisible(QuoteView.getQuotes);
-    await QuoteView.enterSwapAmount('.5');
-    await QuoteView.tapOnSelectDestToken();
-    await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(3000);
-    await QuoteView.selectToken(destTokenSymbol);
 
-    // This call is needed because otherwise the device never becomes idle
-    await device.disableSynchronization();
-
-    await QuoteView.tapOnGetQuotes();
-    
-    // Try to find either the fetching quotes state or the quote summary
-    try {
-      await Assertions.checkIfVisible(SwapView.fetchingQuotes, 5000);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log('Fetching quotes not found, trying quote summary:', e);
-      // If fetching quotes is not found, try to find the quote summary directly
-      try {
-        await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
-      } catch (e2) {
-        // eslint-disable-next-line no-console
-        console.log('Quote summary also not found:', e2);
-        // If neither is found, wait a bit more and try again
-        await Assertions.checkIfVisible(SwapView.quoteSummary, 5000);
-      }
-    }
-    
-    await Assertions.checkIfVisible(SwapView.gasFee);
-    await SwapView.tapIUnderstandPriceWarning();
-    await SwapView.tapSwapButton();
-    //Wait for Swap to complete
-    try {
-      await Assertions.checkIfTextIsDisplayed(
-        SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-        30000,
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Swap complete didn't pop up: ${e}`);
-    }
-    await device.enableSynchronization();
-    await TestHelpers.delay(10000);
+    // Submit the Swap
+    await submitSwapUnifiedUI(
+      quantity,
+      sourceTokenSymbol,
+      destTokenSymbol,
+      '0x1',
+    );
 
     // After the swap is complete, the DAI balance shouldn't be 0
-    await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
+    await Assertions.expectTextNotDisplayed('0 DAI', { timeout: 60000 });
 
     // Check the swap activity completed
-    await TabBarComponent.tapActivity();
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      120000,
     );
   });
 });

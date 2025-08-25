@@ -17,7 +17,6 @@ import {
   fromWei,
   fromTokenMinimalUnit,
 } from '../../../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { strings } from '../../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -36,7 +35,11 @@ import {
   generateTransferData,
 } from '../../../../../util/transactions';
 import Logger from '../../../../../util/Logger';
-import { getAddress, areAddressesEqual } from '../../../../../util/address';
+import {
+  getAddress,
+  areAddressesEqual,
+  toChecksumAddress,
+} from '../../../../../util/address';
 import { MAINNET } from '../../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';

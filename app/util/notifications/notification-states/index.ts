@@ -64,9 +64,9 @@ export const hasNotificationComponents = (
 ): t is keyof typeof NotificationComponentState =>
   t in NotificationComponentState;
 
-  export const hasNotificationModal = (t: TRIGGER_TYPES) => {
-    if (!hasNotificationComponents(t)) {
-      return false;
-    }
-    return !!NotificationComponentState[t]?.createModalDetails;
-  };
+export const hasNotificationModal = (t: TRIGGER_TYPES) => {
+  if (!hasNotificationComponents(t)) {
+    return false;
+  }
+  return !!NotificationComponentState[t]?.createModalDetails;
+};

@@ -1,8 +1,13 @@
-import React, { useState, useRef, forwardRef, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  forwardRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   TouchableWithoutFeedback,
   Platform,
-  StyleSheet,
   Modal,
   View,
   Button,
@@ -10,67 +15,26 @@ import {
   TextInputProps,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
 import DepositTextField from '../DepositTextField';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { Theme } from '../../../../../../util/theme/models';
 import I18n from '../../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
+import styleSheet from './DespostDateField.styles';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 
-const MAXIMUM_DATE = new Date(2025, 11, 31);
+const MAXIMUM_DATE = new Date(Date.now());
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
-const formatDate = (date: Date, locale = I18n.locale): string =>
-  new Intl.DateTimeFormat(locale, {
+const formatDateForDisplay = (date: Date, locale = I18n.locale): string =>
+  getIntlDateTimeFormatter(locale, {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
   }).format(date);
-
-const formatDateForValue = (date: Date): string => {
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  const year = date.getFullYear();
-  return `${month}/${day}/${year}`;
-};
-
-const getValidDate = (dateString: string): Date => {
-  const date = new Date(dateString);
-  return isNaN(date.getTime()) ? DEFAULT_DATE : date;
-};
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
-    calendarIcon: {
-      color: theme.colors.text.default,
-      marginRight: 8,
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      backgroundColor: theme.colors.overlay.default,
-    },
-    pickerContainer: {
-      backgroundColor: theme.colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 16,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      marginBottom: 8,
-    },
-    touchableArea: {
-      width: '100%',
-    },
-    dateTimePicker: {
-      backgroundColor: theme.colors.background.default,
-    },
-  });
-};
 
 interface DepositDateFieldProps {
   label: string;
@@ -80,6 +44,7 @@ interface DepositDateFieldProps {
   containerStyle?: object;
   onSubmitEditing?: () => void;
   textFieldProps?: TextInputProps;
+  handleOnPress?: () => void;
 }
 
 const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
@@ -92,51 +57,61 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
       containerStyle,
       onSubmitEditing,
       textFieldProps,
+      handleOnPress,
     },
     ref,
   ) => {
     const { styles, theme } = useStyles(styleSheet, {});
     const [showDatePicker, setShowDatePicker] = useState(false);
-    // staging state for iOS date selection
     const [pendingDateSelection, setPendingDateSelection] =
       useState<Date | null>(null);
     const fieldRef = useRef<TextInput>(null);
 
-    const handleClosePicker = () => {
+    const handleOpenPicker = useCallback(() => {
+      handleOnPress?.();
+      setShowDatePicker(true);
+    }, [handleOnPress]);
+
+    const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
       setPendingDateSelection(null);
-    };
+    }, []);
 
     const processSelectedDate = useCallback(
       (date?: Date | null) => {
         if (date) {
-          setShowDatePicker(false);
-          onChangeText(formatDateForValue(date));
-          onSubmitEditing?.();
+          onChangeText(date.getTime().toString());
         }
+        setShowDatePicker(false);
+        onSubmitEditing?.();
       },
       [onChangeText, onSubmitEditing],
     );
 
+    const valueAsDate = useMemo(() => {
+      if (!value || value.trim() === '') {
+        return null;
+      }
+      const dateValue = new Date(Number(value));
+      return isNaN(dateValue.getTime()) ? null : dateValue;
+    }, [value]);
+
     const preventModalDismissal = () => {
       // Prevents touch events from bubbling up to the outer TouchableWithoutFeedback
+      // This is a workaround to prevent the modal from being dismissed when the user taps on the date picker
     };
 
     return (
       <>
-        <TouchableWithoutFeedback onPress={() => setShowDatePicker(true)}>
+        <TouchableWithoutFeedback onPress={handleOpenPicker}>
           <View style={styles.touchableArea}>
             <DepositTextField
               startAccessory={
-                <IonicIcon
-                  name="calendar-outline"
-                  size={20}
-                  style={styles.calendarIcon}
-                />
+                <Icon name={IconName.Calendar} size={IconSize.Md} />
               }
               label={label}
-              placeholder={formatDate(DEFAULT_DATE)}
-              value={formatDate(getValidDate(value))}
+              placeholder={formatDateForDisplay(DEFAULT_DATE)}
+              value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
@@ -149,7 +124,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker
-            value={getValidDate(value)}
+            value={valueAsDate || DEFAULT_DATE}
             mode="date"
             display="default"
             onChange={(_, date) => processSelectedDate(date)}
@@ -177,14 +152,14 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                       <Button
                         title="Done"
-                        onPress={() => {
-                          processSelectedDate(pendingDateSelection);
-                        }}
+                        onPress={() =>
+                          processSelectedDate(pendingDateSelection)
+                        }
                         color={theme.colors.primary.default}
                       />
                     </View>
                     <DateTimePicker
-                      value={getValidDate(value)}
+                      value={valueAsDate || DEFAULT_DATE}
                       mode="date"
                       display="spinner"
                       onChange={(_, date) =>

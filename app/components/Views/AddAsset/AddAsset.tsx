@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
 import ScrollableTabView, {
@@ -156,21 +156,7 @@ const AddAsset = () => {
     setOpenNetworkFilter(false);
   };
 
-  const renderTabBar = (props: TabBarProps) => (
-    <View style={styles.base}>
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.alternative}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-        tabPadding={32}
-        style={styles.tabBar}
-        {...props}
-      />
-    </View>
-  );
+  const renderTabBar = (props: TabBarProps) => <TabBar {...props} />;
 
   const renderNetworkSelector = useCallback(
     () => (
@@ -241,43 +227,45 @@ const AddAsset = () => {
         </View>
       )}
       {assetType === 'token' ? (
-        <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
-          {isTokenDetectionSupported && (
-            <SearchTokenAutocomplete
+        <View style={styles.tabContainer}>
+          <ScrollableTabView key={chainId} renderTabBar={renderTabBar}>
+            {isTokenDetectionSupported && (
+              <SearchTokenAutocomplete
+                navigation={navigation}
+                tabLabel={strings('add_asset.search_token')}
+                onPress={() => setOpenNetworkFilter(!openNetworkFilter)}
+                isAllNetworksEnabled={
+                  isAllNetworksEnabled &&
+                  Object.keys(isAllNetworksEnabled).length > 1
+                }
+                allNetworksEnabled={allNetworksEnabled}
+              />
+            )}
+            <AddCustomToken
+              chainId={selectedNetwork}
+              networkName={networkName}
+              ticker={providerConfig.ticker}
+              type={providerConfig.type}
               navigation={navigation}
-              tabLabel={strings('add_asset.search_token')}
-              onPress={() => setOpenNetworkFilter(!openNetworkFilter)}
-              isAllNetworksEnabled={
-                isAllNetworksEnabled &&
-                Object.keys(isAllNetworksEnabled).length > 1
+              tabLabel={strings('add_asset.custom_token')}
+              isTokenDetectionSupported={isTokenDetectionSupported}
+              setOpenNetworkSelector={setOpenNetworkSelector}
+              selectedNetwork={
+                selectedNetwork
+                  ? networkConfigurations?.[selectedNetwork as Hex]?.name
+                  : null
               }
-              allNetworksEnabled={allNetworksEnabled}
+              networkClientId={
+                selectedNetwork
+                  ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
+                      networkConfigurations?.[selectedNetwork]
+                        ?.defaultRpcEndpointIndex
+                    ]?.networkClientId
+                  : null
+              }
             />
-          )}
-          <AddCustomToken
-            chainId={selectedNetwork}
-            networkName={networkName}
-            ticker={providerConfig.ticker}
-            type={providerConfig.type}
-            navigation={navigation}
-            tabLabel={strings('add_asset.custom_token')}
-            isTokenDetectionSupported={isTokenDetectionSupported}
-            setOpenNetworkSelector={setOpenNetworkSelector}
-            selectedNetwork={
-              selectedNetwork
-                ? networkConfigurations?.[selectedNetwork as Hex]?.name
-                : null
-            }
-            networkClientId={
-              selectedNetwork
-                ? networkConfigurations?.[selectedNetwork]?.rpcEndpoints[
-                    networkConfigurations?.[selectedNetwork]
-                      ?.defaultRpcEndpointIndex
-                  ]?.networkClientId
-                : null
-            }
-          />
-        </ScrollableTabView>
+          </ScrollableTabView>
+        </View>
       ) : (
         <AddCustomCollectible
           navigation={navigation}

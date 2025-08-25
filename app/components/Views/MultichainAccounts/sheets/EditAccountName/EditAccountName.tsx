@@ -74,6 +74,7 @@ export const EditAccountName = () => {
     label: strings('multichain_accounts.edit_account_name.save_button'),
     size: ButtonSize.Lg,
     onPress: handleAccountNameChange,
+    style: styles.saveButton,
     testID: EditAccountNameIds.SAVE_BUTTON,
   };
 

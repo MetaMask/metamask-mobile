@@ -65,10 +65,27 @@ const TurnOnBackupAndSync = () => {
   };
 
   const handleGoBack = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED)
+        .addProperties({
+          feature_name: 'Backup And Sync Carousel Modal',
+          action: 'Modal Dismissed',
+        })
+        .build(),
+    );
     navigation.goBack();
   };
 
   const handleEnableBackupAndSync = async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED)
+        .addProperties({
+          feature_name: 'Backup And Sync Carousel Modal',
+          action: 'Turned On',
+        })
+        .build(),
+    );
+
     if (!isBasicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC,

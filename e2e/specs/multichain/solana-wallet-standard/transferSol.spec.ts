@@ -1,9 +1,8 @@
-'use strict';
 import { SmokeNetworkExpansion } from '../../../tags';
 import SolanaTestDApp from '../../../pages/Browser/SolanaTestDApp';
 import { connectSolanaTestDapp, navigateToSolanaTestDApp } from './testHelpers';
 import { withSolanaAccountEnabled } from '../../../common-solana';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 
 describe(
   SmokeNetworkExpansion('Solana Wallet Standard E2E - Transfer SOL'),
@@ -38,7 +37,7 @@ describe(
         const sendSolTest = SolanaTestDApp.getSendSolTest();
         await sendSolTest.sendTransaction();
 
-        await Assertions.checkIfTextIsDisplayed('Transaction request');
+        await Assertions.expectTextDisplayed('Transaction request');
 
         await SolanaTestDApp.tapCancelButton();
       });

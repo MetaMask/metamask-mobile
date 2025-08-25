@@ -384,6 +384,9 @@ describe('BlockExplorersModal', () => {
             },
           },
         },
+        PerpsController: {
+          connectionStatus: 'disconnected' as const,
+        },
       },
     },
     settings: {

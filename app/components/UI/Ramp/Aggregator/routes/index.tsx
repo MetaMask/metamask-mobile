@@ -14,7 +14,10 @@ const Stack = createStackNavigator();
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED} headerMode="screen">
+    <Stack.Navigator
+      initialRouteName={Routes.RAMP.GET_STARTED}
+      headerMode="screen"
+    >
       <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
       <Stack.Screen
         name={Routes.RAMP.NETWORK_SWITCHER}

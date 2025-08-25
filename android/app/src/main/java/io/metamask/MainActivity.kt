@@ -42,11 +42,8 @@ class MainActivity : ReactActivity() {
          * To force a new session,
          * set intent extra, "branch_force_new_session", to true.
          */
-        if (intent.hasExtra("branch_force_new_session") &&
-            intent.getBooleanExtra("branch_force_new_session", false)
-        ) {
-            RNBranchModule.onNewIntent(intent)
-        }
+      intent.putExtra("branch_force_new_session", true)
+      RNBranchModule.onNewIntent(intent);
     }
 
     /**

@@ -19,11 +19,10 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
-import { passwordSet } from '../../../../actions/user';
+import { passwordSet, setExistingUser } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
-  EXISTING_USER,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -81,7 +80,6 @@ import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSetti
 import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
 import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
-import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
@@ -263,7 +261,8 @@ const Settings: React.FC = () => {
 
       await Engine.context.KeyringController.exportSeedPhrase(password);
 
-      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      // Mark user as existing when they set up authentication
+      dispatch(setExistingUser(true));
 
       if (!enabled) {
         setLoading(false);
@@ -584,7 +583,6 @@ const Settings: React.FC = () => {
           {strings('app_settings.transactions_subheading')}
         </Text>
         <BatchAccountBalanceSettings />
-        <IncomingTransactionsSettings />
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
         <Text

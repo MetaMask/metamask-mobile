@@ -1,7 +1,9 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -21,20 +23,24 @@ import {
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
 import { useDepositSDK } from '../../sdk';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
-import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface OtpCodeParams {
   quote: BuyQuote;
   email: string;
+  paymentMethodId: string;
+  cryptoCurrencyChainId: string;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -55,7 +61,7 @@ const ResendButton: FC<{
     <>
       <Text style={styles.resendButtonText}>{strings(text)}</Text>
       <TouchableOpacity onPress={onPress}>
-        <Text style={styles.contactSupportButton}>{strings(button)}</Text>
+        <Text style={styles.inlineLink}>{strings(button)}</Text>
       </TouchableOpacity>
     </>
   );
@@ -65,7 +71,21 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { quote, email } = useParams<OtpCodeParams>();
+  const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
+    useParams<OtpCodeParams>();
+  const trackEvent = useAnalytics();
+  const { selectedRegion } = useDepositSDK();
+
+  const [latestValueSubmitted, setLatestValueSubmitted] = useState<
+    string | null
+  >(null);
+
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport' | 'resendError'
   >('resend');
@@ -77,7 +97,7 @@ const OtpCode = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.otp_code.title') },
+        { title: strings('deposit.otp_code.navbar_title') },
         theme,
       ),
     );
@@ -86,17 +106,12 @@ const OtpCode = () => {
   const [value, setValue] = useState('');
 
   const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
-  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
-    value,
-    setValue,
-  });
 
-  const [{ error, isFetching: loading, data: response }, submitCode] =
-    useDepositSdkMethod(
-      { method: 'verifyUserOtp', onMount: false },
-      email,
-      value,
-    );
+  const [, submitCode] = useDepositSdkMethod(
+    { method: 'verifyUserOtp', onMount: false, throws: true },
+    email,
+    value,
+  );
 
   const [, resendOtp] = useDepositSdkMethod(
     { method: 'sendUserOtp', onMount: false },
@@ -106,24 +121,6 @@ const OtpCode = () => {
   useEffect(() => {
     inputRef.current?.focus();
   }, [inputRef]);
-
-  useEffect(() => {
-    const saveTokenAndNavigate = async () => {
-      if (response) {
-        try {
-          await setAuthToken(response);
-
-          // TODO: We should check KYC status here and navigate accordingly
-
-          navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
-        } catch (e) {
-          console.error('Failed to store auth token:', e);
-        }
-      }
-    };
-
-    saveTokenAndNavigate();
-  }, [response, setAuthToken, navigation, quote]);
 
   useEffect(() => {
     if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
@@ -143,6 +140,9 @@ const OtpCode = () => {
   }, [resendButtonState, cooldownSeconds]);
 
   const handleResend = useCallback(async () => {
+    setValue('');
+    setError(null);
+    inputRef.current?.focus();
     try {
       if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
         setResendButtonState('contactSupport');
@@ -151,33 +151,105 @@ const OtpCode = () => {
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
       await resendOtp();
+      trackEvent('RAMPS_OTP_RESENT', {
+        ramp_type: 'DEPOSIT',
+        region: selectedRegion?.isoCode || '',
+      });
     } catch (e) {
       setResendButtonState('resendError');
+      Logger.error(e as Error, 'Error resending OTP code');
     }
-  }, [resendOtp, resetAttemptCount]);
+  }, [
+    inputRef,
+    resendOtp,
+    resetAttemptCount,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
   const handleContactSupport = useCallback(() => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!loading && value.length === CELL_COUNT) {
-      await submitCode();
+    if (!isLoading && value.length === CELL_COUNT) {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await submitCode();
+        if (!response) {
+          throw new Error('No response from submitCode');
+        }
+        await setAuthToken(response);
+        trackEvent('RAMPS_OTP_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
+        await routeAfterAuthentication(quote);
+      } catch (e) {
+        trackEvent('RAMPS_OTP_FAILED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+        });
+        setError(
+          e instanceof Error && e.message
+            ? e.message
+            : strings('deposit.otp_code.error'),
+        );
+        Logger.error(
+          e as Error,
+          'Error submitting OTP code, setAuthToken, or routing after authentication',
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [loading, submitCode, value.length]);
+  }, [
+    isLoading,
+    quote,
+    routeAfterAuthentication,
+    setAuthToken,
+    submitCode,
+    value.length,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
+
+  const handleValueChange = useCallback((text: string) => {
+    setValue(text);
+    setError(null);
+    setLatestValueSubmitted(null);
+  }, []);
+
+  useEffect(() => {
+    if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
+      setLatestValueSubmitted(value);
+      handleSubmit();
+    }
+  }, [value, handleSubmit, latestValueSubmitted]);
+
+  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
+    value,
+    setValue: handleValueChange,
+  });
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={1} />
-          <Text>{strings('deposit.otp_code.description', { email })}</Text>
+          <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            {strings('deposit.otp_code.title')}
+          </Text>
+          <Text style={styles.description}>
+            {strings('deposit.otp_code.description', { email })}
+          </Text>
           <CodeField
             testID="otp-code-input"
             ref={inputRef as React.RefObject<TextInput>}
             {...props}
             value={value}
-            onChangeText={setValue}
+            onChangeText={handleValueChange}
             cellCount={CELL_COUNT}
             rootStyle={styles.codeFieldRoot}
             keyboardType="number-pad"
@@ -206,19 +278,22 @@ const OtpCode = () => {
                 text="deposit.otp_code.resend_code_description"
                 button="deposit.otp_code.resend_code_button"
               />
-            ) : resendButtonState === 'cooldown' ? (
+            ) : null}
+            {resendButtonState === 'cooldown' ? (
               <Text style={styles.resendButtonText}>
                 {strings('deposit.otp_code.resend_cooldown', {
                   seconds: cooldownSeconds,
                 })}
               </Text>
-            ) : resendButtonState === 'contactSupport' ? (
+            ) : null}
+            {resendButtonState === 'contactSupport' ? (
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.need_help"
                 button="deposit.otp_code.contact_support"
               />
-            ) : resendButtonState === 'resendError' ? (
+            ) : null}
+            {resendButtonState === 'resendError' ? (
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.resend_error"
@@ -237,8 +312,8 @@ const OtpCode = () => {
             label={strings('deposit.otp_code.submit_button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-            loading={loading}
-            isDisabled={loading || value.length !== CELL_COUNT}
+            loading={isLoading}
+            isDisabled={isLoading || value.length !== CELL_COUNT}
             testID="otp-code-submit-button"
           />
           <PoweredByTransak name="powered-by-transak-logo" />

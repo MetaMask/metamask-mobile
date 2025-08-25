@@ -1,4 +1,3 @@
-import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -16,6 +15,7 @@ import {
 import {
   getLabelTextByAddress,
   renderAccountName,
+  toChecksumAddress,
 } from '../../../util/address';
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';

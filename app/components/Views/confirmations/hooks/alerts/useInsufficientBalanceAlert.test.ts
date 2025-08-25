@@ -9,12 +9,22 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTransactionState } from '../../../../../reducers/transaction';
+import { useConfirmActions } from '../useConfirmActions';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn().mockImplementation((selector) => selector()),
 }));
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
@@ -29,6 +39,7 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionMetadataRequest,
   );
   const mockUseAccountNativeBalance = jest.mocked(useAccountNativeBalance);
+  const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
@@ -72,6 +83,10 @@ describe('useInsufficientBalanceAlert', () => {
     mockSelectTransactionState.mockReturnValue({
       maxValueMode: false,
     });
+    mockUseConfirmActions.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
+    });
   });
 
   it('return empty array when no transaction metadata is available', () => {
@@ -110,6 +125,20 @@ describe('useInsufficientBalanceAlert', () => {
         skipConfirmation: true,
       },
     ]);
+  });
+
+  it('onReject is called when callback is called', () => {
+    const onRejectMock = jest.fn();
+    mockUseConfirmActions.mockReturnValue({
+      onReject: onRejectMock,
+      onConfirm: jest.fn(),
+    });
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    const callback = result.current[0].action.callback;
+    callback();
+    expect(onRejectMock).toHaveBeenCalled();
+    expect(onRejectMock).toHaveBeenCalledWith(undefined, true);
   });
 
   it('return alert when balance is insufficient (with gasPrice)', () => {

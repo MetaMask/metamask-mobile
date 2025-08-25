@@ -6,14 +6,11 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  TextInput,
   SafeAreaView,
   StyleSheet,
   ScrollView,
-  Image,
   InteractionManager,
 } from 'react-native';
-import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
   TextColor,
@@ -23,24 +20,24 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
+  BIOMETRY_CHOICE,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
+  MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import {
@@ -51,13 +48,47 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import Label from '../../../component-library/components/Form/Label';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../../core/NavigationService';
 import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Checkbox from '../../../component-library/components/Checkbox';
+import fox from '../../../animations/Searching_Fox.json';
+import LottieView from 'lottie-react-native';
+import {
+  selectSeedlessOnboardingLoginFlow,
+  selectSeedlessOnboardingAuthConnection,
+} from '../../../selectors/seedlessOnboardingController';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+
+// Constants
+const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+const RESET_PASSWORD = 'reset_password';
+const CONFIRM_PASSWORD = 'confirm_password';
+
+// Common button props
+const getCommonButtonProps = () => ({
+  variant: ButtonVariants.Primary,
+  size: ButtonSize.Lg,
+  width: ButtonWidthTypes.Full,
+});
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -85,16 +116,15 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     confirm_label: {
-      textAlign: 'left',
-      ...fontStyles.normal,
+      marginBottom: 4,
     },
     wrapper: {
       flex: 1,
-      marginBottom: 10,
+      flexDirection: 'column',
     },
     scrollableWrapper: {
       flex: 1,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
     },
     keyboardScrollableWrapper: {
       flexGrow: 1,
@@ -117,7 +147,8 @@ const createStyles = (colors) =>
       height: 80,
     },
     passwordRequiredContent: {
-      marginBottom: 20,
+      flex: 1,
+      height: '100%',
     },
     content: {
       alignItems: 'flex-start',
@@ -141,18 +172,15 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     checkboxContainer: {
-      marginTop: 10,
-      marginHorizontal: 10,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
       flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      columnGap: 8,
+      marginTop: 8,
+      marginBottom: 16,
     },
     checkbox: {
-      width: 18,
-      height: 18,
-      margin: 10,
-      marginTop: -5,
+      alignItems: 'flex-start',
     },
     label: {
       ...fontStyles.normal,
@@ -165,8 +193,18 @@ const createStyles = (colors) =>
       textDecorationLine: 'underline',
       textDecorationColor: colors.primary.default,
     },
+    learnMoreTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      gap: 1,
+      flexWrap: 'wrap',
+      width: '90%',
+    },
     field: {
       position: 'relative',
+      flexDirection: 'column',
+      gap: 8,
     },
     input: {
       borderWidth: 1,
@@ -179,9 +217,15 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     ctaWrapper: {
-      flex: 1,
-      marginTop: 20,
-      paddingHorizontal: 10,
+      width: '100%',
+      flexDirection: 'column',
+      rowGap: 18,
+      marginTop: 'auto',
+      marginBottom: Platform.select({
+        ios: 16,
+        android: 24,
+        default: 16,
+      }),
     },
     biometrics: {
       position: 'relative',
@@ -227,12 +271,14 @@ const createStyles = (colors) =>
     },
     confirmPasswordWrapper: {
       flex: 1,
-      padding: 30,
-      paddingTop: 0,
+      padding: 16,
+      flexDirection: 'column',
+      rowGap: 32,
+      justifyContent: 'space-between',
+      height: '100%',
     },
     buttonWrapper: {
       flex: 1,
-      marginTop: 20,
       justifyContent: 'flex-end',
     },
     warningMessageText: {
@@ -242,12 +288,31 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'row',
       alignSelf: 'center',
+      height: '100%',
+    },
+    root: {
+      flex: 1,
+      height: '100%',
+    },
+    changePasswordContainer: {
+      flexDirection: 'column',
+      rowGap: 16,
+      flexGrow: 1,
+      paddingTop: 16,
+    },
+    passwordLabel: {
+      marginBottom: -4,
+    },
+    warningButtonsWrapper: {
+      flexDirection: 'row',
+      gap: 16,
+      width: '100%',
+      marginTop: 16,
+    },
+    warningButton: {
+      flex: 1,
     },
   });
-
-const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const RESET_PASSWORD = 'reset_password';
-const CONFIRM_PASSWORD = 'confirm_password';
 
 /**
  * View where users can set their password for the first time
@@ -276,6 +341,14 @@ class ResetPassword extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * A boolean representing if the user is in the seedless onboarding login flow
+     */
+    isSeedlessOnboardingLoginFlow: PropTypes.bool,
+    /**
+     * A string representing the auth connection type i.e. Apple or Google
+     */
+    authConnection: PropTypes.string,
   };
 
   state = {
@@ -292,15 +365,26 @@ class ResetPassword extends PureComponent {
     view: RESET_PASSWORD,
     originalPassword: null,
     ready: true,
+    showPasswordIndex: [0, 1],
+    showPasswordChangeWarning: false,
   };
 
   mounted = true;
 
   confirmPasswordInput = React.createRef();
 
+  // Helper method to get theme colors
+  getThemeColors = () => this.context.colors || mockTheme.colors;
+
+  // Helper method to get theme appearance
+  getThemeAppearance = () => this.context.themeAppearance || 'light';
+
+  // Helper method to get styles
+  getStyles = () => createStyles(this.getThemeColors());
+
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors = this.getThemeColors();
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('password_reset.change_password'),
@@ -309,6 +393,17 @@ class ResetPassword extends PureComponent {
         colors,
       ),
     );
+  };
+
+  unlockWithBiometrics = async () => {
+    // Try to use biometrics to unlock
+    const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
+    if (biometryChoice) {
+      const credentials = await Authentication.getPassword();
+      if (credentials) {
+        this.tryUnlockWithPassword(credentials.password);
+      }
+    }
   };
 
   async componentDidMount() {
@@ -329,11 +424,16 @@ class ResetPassword extends PureComponent {
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),
       });
-    else if (authData.availableBiometryType)
+    else if (authData.availableBiometryType) {
+      const biometryChoiceState = !(
+        previouslyDisabled && previouslyDisabled === TRUE
+      );
       this.setState({
         biometryType: authData.availableBiometryType,
-        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+        biometryChoice: biometryChoiceState,
       });
+      this.unlockWithBiometrics();
+    }
 
     this.setState(state);
 
@@ -366,12 +466,31 @@ class ResetPassword extends PureComponent {
     this.setState(() => ({ isSelected: !isSelected }));
   };
 
-  onPressCreate = async () => {
-    const { loading, isSelected, password, confirmPassword } = this.state;
-    const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
+  handleSeedlessPasswordOutdated = () => {
+    // show seedless password outdated modal and force user to lock app
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('login.seedless_password_outdated_modal_title'),
+        description: strings('login.seedless_password_outdated_modal_content'),
+        primaryButtonLabel: strings(
+          'login.seedless_password_outdated_modal_confirm',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        isInteractable: false,
+        onPrimaryButtonPress: async () => {
+          await Authentication.lockApp({ locked: true });
+          this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
+        },
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
 
-    if (!canSubmit) return;
+  onPressCreate = async () => {
+    const { loading, password, confirmPassword } = this.state;
+
     if (loading) return;
     if (!passwordRequirementsMet(password)) {
       Alert.alert('Error', strings('choose_password.password_length_error'));
@@ -381,9 +500,22 @@ class ResetPassword extends PureComponent {
       return;
     }
     try {
-      this.setState({ loading: true });
+      this.setState({ loading: true, showPasswordChangeWarning: false });
 
-      await this.recreateVault();
+      const isGlobalPasswordOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated();
+      if (isGlobalPasswordOutdated) {
+        this.handleSeedlessPasswordOutdated();
+        return;
+      }
+
+      try {
+        await this.recreateVault();
+      } catch (error) {
+        Logger.error(error);
+        throw error;
+      }
+
       // Set biometrics for new password
       await Authentication.resetPassword();
       try {
@@ -402,19 +534,17 @@ class ResetPassword extends PureComponent {
 
       // Track password changed event
       const { biometryChoice, passwordStrength } = this.state;
-      const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
       const eventBuilder = MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
         biometry_type: this.state.biometryType,
         biometrics_enabled: Boolean(biometryChoice),
-        password_strength: passwordStrengthWord,
       });
       MetaMetrics.getInstance().trackEvent(eventBuilder.build());
 
       this.setState({ loading: false });
+      this.props.navigation.navigate('SecuritySettings');
       InteractionManager.runAfterInteractions(() => {
-        this.props.navigation.navigate('SecuritySettings');
         NotificationManager.showSimpleNotification({
           status: 'success',
           duration: 5000,
@@ -430,6 +560,9 @@ class ResetPassword extends PureComponent {
           strings('choose_password.security_alert_message'),
         );
         this.setState({ loading: false });
+      } else if (error.message.includes('SeedlessOnboardingController')) {
+        // prompt sheet
+        Logger.info(error);
       } else {
         this.setState({ loading: false, error: error.toString() });
       }
@@ -443,7 +576,7 @@ class ResetPassword extends PureComponent {
   recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
     // Recreate keyring with password
-    await recreateVaultWithNewPassword(
+    await recreateVaultsWithNewPassword(
       originalPassword,
       newPassword,
       this.props.selectedAddress,
@@ -508,11 +641,11 @@ class ResetPassword extends PureComponent {
   onPasswordChange = (val) => {
     const passInfo = zxcvbn(val);
 
-    this.setState({ password: val, passwordStrength: passInfo.score });
-  };
-
-  toggleShowHide = () => {
-    this.setState((state) => ({ secureTextEntry: !state.secureTextEntry }));
+    this.setState((prevState) => ({
+      password: val,
+      passwordStrength: passInfo.score,
+      confirmPassword: val === '' ? '' : prevState.confirmPassword,
+    }));
   };
 
   learnMore = () => {
@@ -526,8 +659,7 @@ class ResetPassword extends PureComponent {
   };
 
   renderLoader = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     return (
       <View style={styles.loader}>
@@ -538,59 +670,129 @@ class ResetPassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
+  // Helper method to render password strength text
+  renderPasswordStrengthText = (password, passwordStrengthWord, styles) => {
+    if (!password) return null;
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return (
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('reset_password.must_be_at_least', {
+            number: MIN_PASSWORD_LENGTH,
+          })}
+        </Text>
+      );
+    }
+
+    return (
+      <Text
+        variant={TextVariant.BodySM}
+        color={TextColor.Alternative}
+        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+      >
+        {strings('reset_password.password_strength')}
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          style={styles[`strength_${passwordStrengthWord}`]}
+        >
+          {' '}
+          {strings(`reset_password.strength_${passwordStrengthWord}`)}
+        </Text>
+      </Text>
+    );
+  };
+
+  // Helper method to render error text
+  renderErrorText = () => {
+    if (!this.isError()) return null;
+
+    return (
+      <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+        {strings('choose_password.password_error')}
+      </Text>
+    );
+  };
+
+  // Helper method to render warning text
+  renderWarningText = (warningText, styles) => {
+    if (!warningText) return null;
+
+    return (
+      <Text color={TextColor.Error} style={styles.warningMessageText}>
+        {warningText}
+      </Text>
+    );
+  };
+
+  // Helper method to render loading state
+  renderLoadingState = (previousScreen, colors, styles) => (
+    <View style={styles.loadingWrapper}>
+      <View style={styles.foxWrapper}>
+        <LottieView
+          style={styles.image}
+          autoPlay
+          loop
+          source={fox}
+          resizeMode="contain"
+        />
+      </View>
+      <ActivityIndicator size="large" color={colors.icon.default} />
+      <Text variant={TextVariant.HeadingLG} style={styles.title}>
+        {strings('reset_password.changing_password')}
+      </Text>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
+        {strings('reset_password.changing_password_subtitle')}
+      </Text>
+    </View>
+  );
+
   renderConfirmPassword() {
     const { warningIncorrectPassword } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+    const colors = this.getThemeColors();
+    const themeAppearance = this.getThemeAppearance();
+    const styles = this.getStyles();
 
     return (
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
+        <KeyboardAwareScrollView
+          style={[baseStyles.flexGrow, styles.root]}
+          enableOnAndroid
+        >
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
-              <Text
-                variant={TextVariant.DisplayMD}
-                style={styles.confirm_title}
+              <Label
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.confirm_label}
               >
-                {strings('manual_backup_step_1.confirm_password')}
-              </Text>
-              <View style={styles.text}>
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  style={styles.confirm_label}
-                >
-                  {strings('manual_backup_step_1.before_continiuing')}
-                </Text>
-              </View>
-              <TextInput
-                style={styles.confirm_input}
+                {strings('manual_backup_step_1.enter_current_password')}
+              </Label>
+              <TextField
+                size={TextFieldSize.Lg}
                 placeholder={'Password'}
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
+                value={this.state.password}
                 onSubmitEditing={this.tryUnlock}
                 testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
+                autoComplete="current-password"
               />
-              {warningIncorrectPassword && (
-                <Text color={TextColor.Error} style={styles.warningMessageText}>
-                  {warningIncorrectPassword}
-                </Text>
-              )}
+              {this.renderWarningText(warningIncorrectPassword, styles)}
             </View>
             <View style={styles.buttonWrapper}>
-              <StyledButton
-                containerStyle={styles.button}
-                type={'confirm'}
+              <Button
+                {...getCommonButtonProps()}
+                label={strings('manual_backup_step_1.confirm')}
                 onPress={this.tryUnlock}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-              >
-                {strings('manual_backup_step_1.confirm')}
-              </StyledButton>
+                isDisabled={!this.state.password}
+              />
             </View>
           </View>
         </KeyboardAwareScrollView>
@@ -598,196 +800,230 @@ class ResetPassword extends PureComponent {
     );
   }
 
+  toggleShowPassword = (index) => {
+    this.setState((prevState) => ({
+      showPasswordIndex: prevState.showPasswordIndex.includes(index)
+        ? prevState.showPasswordIndex.filter((i) => i !== index)
+        : [...prevState.showPasswordIndex, index],
+    }));
+  };
+
+  handleConfirmAction = () => {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: {
+        title: strings('reset_password.warning_password_change_title'),
+        description: strings(
+          'reset_password.warning_password_change_description',
+        ),
+        type: 'error',
+        icon: IconName.Danger,
+        secondaryButtonLabel: strings(
+          'reset_password.warning_password_cancel_button',
+        ),
+        primaryButtonLabel: strings(
+          'reset_password.warning_password_change_button',
+        ),
+        onPrimaryButtonPress: this.onPressCreate,
+        closeOnPrimaryButtonPress: true,
+      },
+    });
+  };
+
+  isError = () => {
+    const { password, confirmPassword } = this.state;
+    return (
+      password !== '' && confirmPassword !== '' && password !== confirmPassword
+    );
+  };
+
   renderResetPassword() {
-    const {
-      isSelected,
-      inputWidth,
-      password,
-      passwordStrength,
-      confirmPassword,
-      secureTextEntry,
-      error,
-      loading,
-    } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
+    const { isSelected, password, passwordStrength, confirmPassword, loading } =
+      this.state;
+    const colors = this.getThemeColors();
+    const themeAppearance = this.getThemeAppearance();
+    const styles = this.getStyles();
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = passwordsMatch && isSelected;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+
+    const canSubmit =
+      passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
+
+    const isSrp =
+      this.props.authConnection !== AuthConnection.Apple &&
+      this.props.authConnection !== AuthConnection.Google;
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
-          <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <Image
-                source={require('../../../images/branding/fox.png')}
-                style={styles.image}
-                resizeMethod={'auto'}
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.icon.default} />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
-          </View>
+          this.renderLoadingState(previousScreen, colors, styles)
         ) : (
-          <View style={styles.wrapper}>
-            <KeyboardAwareScrollView
-              style={styles.scrollableWrapper}
-              contentContainerStyle={styles.keyboardScrollableWrapper}
-              resetScrollToCoords={{ x: 0, y: 0 }}
-            >
-              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
-                <View style={styles.content}>
-                  <Text variant={TextVariant.HeadingLG} style={styles.title}>
-                    {strings('reset_password.title')}
-                  </Text>
-                  <View style={styles.text}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      style={styles.subtitle}
-                    >
-                      {strings('reset_password.subtitle')}
-                    </Text>
-                  </View>
-                </View>
+          <KeyboardAwareScrollView
+            style={styles.scrollableWrapper}
+            contentContainerStyle={styles.keyboardScrollableWrapper}
+            resetScrollToCoords={{ x: 0, y: 0 }}
+          >
+            <View style={styles.wrapper}>
+              <View
+                testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
+                style={styles.changePasswordContainer}
+              >
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  {isSrp
+                    ? strings('choose_password.description')
+                    : strings('choose_password.description_social_login')}
+                </Text>
+
                 <View style={styles.field}>
-                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
-                    {strings('reset_password.password')}
-                  </Text>
-                  <Text
-                    onPress={this.toggleShowHide}
-                    variant={TextVariant.BodySM}
-                    style={styles.showPassword}
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.passwordLabel}
                   >
-                    {strings(
-                      `reset_password.${secureTextEntry ? 'show' : 'hide'}`,
-                    )}
-                  </Text>
-                  <TextInput
-                    style={[styles.input, inputWidth]}
+                    {strings('reset_password.password')}
+                  </Label>
+                  <TextField
+                    size={TextFieldSize.Lg}
                     value={password}
                     onChangeText={this.onPasswordChange}
-                    secureTextEntry={secureTextEntry}
-                    placeholder=""
+                    secureTextEntry={this.state.showPasswordIndex.includes(0)}
+                    placeholder={strings(
+                      'reset_password.new_password_placeholder',
+                    )}
                     placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
+                    autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
+                    endAccessory={
+                      <Icon
+                        name={
+                          this.state.showPasswordIndex.includes(0)
+                            ? IconName.Eye
+                            : IconName.EyeSlash
+                        }
+                        size={IconSize.Lg}
+                        color={colors.icon.alternative}
+                        onPress={() => this.toggleShowPassword(0)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                        }
+                      />
+                    }
                   />
-                  {(password !== '' && (
-                    <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
-                      {strings('reset_password.password_strength')}
-                      <Text
-                        variant={TextVariant.BodySM}
-                        style={styles[`strength_${passwordStrengthWord}`]}
-                      >
-                        {' '}
-                        {strings(
-                          `reset_password.strength_${passwordStrengthWord}`,
-                        )}
-                      </Text>
-                    </Text>
-                  )) || (
-                    <Text
-                      variant={TextVariant.BodySM}
-                      style={styles.hintLabel}
-                    />
+                  {this.renderPasswordStrengthText(
+                    password,
+                    passwordStrengthWord,
+                    styles,
                   )}
                 </View>
+
                 <View style={styles.field}>
-                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
+                  <Label
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Default}
+                    style={styles.passwordLabel}
+                  >
                     {strings('reset_password.confirm_password')}
-                  </Text>
-                  <TextInput
+                  </Label>
+                  <TextField
+                    size={TextFieldSize.Lg}
                     ref={this.confirmPasswordInput}
-                    style={[styles.input, inputWidth]}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
-                    secureTextEntry={secureTextEntry}
-                    placeholder={''}
+                    secureTextEntry={this.state.showPasswordIndex.includes(1)}
+                    placeholder={strings(
+                      'reset_password.confirm_password_placeholder',
+                    )}
                     placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
-                    zasdfasfasf
-                    onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
+                    autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
-                  />
-                  <View style={styles.showMatchingPasswords}>
-                    {passwordsMatch ? (
+                    endAccessory={
                       <Icon
-                        name="check"
-                        size={16}
-                        color={colors.success.default}
+                        name={
+                          this.state.showPasswordIndex.includes(1)
+                            ? IconName.Eye
+                            : IconName.EyeSlash
+                        }
+                        size={IconSize.Lg}
+                        color={colors.icon.alternative}
+                        onPress={() => this.toggleShowPassword(1)}
+                        testID={
+                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                        }
                       />
-                    ) : null}
-                  </View>
-                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
-                    {strings('reset_password.must_be_at_least', { number: 8 })}
-                  </Text>
-                </View>
-                <View>{this.renderSwitch()}</View>
-                <View style={styles.checkboxContainer}>
-                  <CheckBox
-                    value={isSelected}
-                    onValueChange={this.setSelection}
-                    style={styles.checkbox}
-                    tintColors={{
-                      true: colors.primary.default,
-                      false: colors.border.default,
-                    }}
-                    boxType="square"
-                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={styles.label}
-                    onPress={this.setSelection}
-                    testID={
-                      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID
                     }
-                  >
-                    {strings('reset_password.i_understand')}{' '}
-                    <Text
-                      color={TextColor.Info}
-                      onPress={this.learnMore}
-                      style={styles.learnMore}
-                    >
-                      {strings('reset_password.learn_more')}
-                    </Text>
-                  </Text>
+                  />
+                  {this.renderErrorText()}
                 </View>
 
-                {!!error && <Text color={TextColor.Error}>{error}</Text>}
-              </View>
+                <View style={styles.checkboxContainer}>
+                  <Checkbox
+                    onPress={this.setSelection}
+                    isChecked={isSelected}
+                    testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                    accessibilityLabel={
+                      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
+                    }
+                    style={styles.checkbox}
+                  />
+                  <Button
+                    variant={ButtonVariants.Link}
+                    onPress={this.setSelection}
+                    style={styles.learnMoreTextContainer}
+                    testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                    label={
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Default}
+                      >
+                        {isSrp
+                          ? strings('reset_password.i_understand')
+                          : strings('reset_password.checkbox_forgot_password')}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
+                      </Text>
+                    }
+                  />
+                </View>
 
-              <View style={styles.ctaWrapper}>
-                <StyledButton
-                  type={'blue'}
-                  onPress={this.onPressCreate}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                  disabled={!canSubmit}
-                >
-                  {strings('reset_password.reset_button')}
-                </StyledButton>
+                <View style={styles.ctaWrapper}>
+                  {this.renderSwitch()}
+                  <Button
+                    {...getCommonButtonProps()}
+                    label={strings('reset_password.confirm_btn')}
+                    onPress={() => {
+                      if (this.props.isSeedlessOnboardingLoginFlow) {
+                        this.handleConfirmAction();
+                      } else {
+                        this.onPressCreate();
+                      }
+                    }}
+                    testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+                    disabled={!canSubmit}
+                    isDisabled={!canSubmit}
+                  />
+                </View>
               </View>
-            </KeyboardAwareScrollView>
-          </View>
+            </View>
+          </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
     );
@@ -795,8 +1031,7 @@ class ResetPassword extends PureComponent {
 
   render() {
     const { view, ready } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
     return (
@@ -819,6 +1054,8 @@ ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  isSeedlessOnboardingLoginFlow: selectSeedlessOnboardingLoginFlow(state),
+  authConnection: selectSeedlessOnboardingAuthConnection(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

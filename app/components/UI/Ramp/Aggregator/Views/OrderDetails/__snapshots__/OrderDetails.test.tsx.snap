@@ -798,7 +798,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -813,6 +813,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -1956,7 +1957,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c7e33",
+                                              "color": "#457a39",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -2287,7 +2288,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -2302,6 +2303,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -3791,7 +3793,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -3806,6 +3808,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -5209,7 +5212,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -5224,6 +5227,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -6713,7 +6717,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -6728,6 +6732,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -9256,7 +9261,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -9271,6 +9276,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -10427,7 +10433,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c7e33",
+                                              "color": "#457a39",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -10785,7 +10791,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -10800,6 +10806,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -12308,7 +12315,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -12323,6 +12330,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />
@@ -13774,7 +13782,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               <View
                                                 style={
                                                   {
-                                                    "flex": -1,
+                                                    "flex": 1,
                                                   }
                                                 }
                                                 testID="listitemcolumn"
@@ -13789,6 +13797,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                       "fontSize": 14,
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
+                                                      "textAlign": "right",
                                                     }
                                                   }
                                                 />

@@ -34,4 +34,4 @@ export const BrowserViewSelectorsXPaths = {
 // Export types for the selector objects
 export type BrowserViewSelectorsIDsType = typeof BrowserViewSelectorsIDs;
 export type BrowserViewSelectorsTextType = typeof BrowserViewSelectorsText;
-export type BrowserViewSelectorsXPathsType = typeof BrowserViewSelectorsXPaths; 
+export type BrowserViewSelectorsXPathsType = typeof BrowserViewSelectorsXPaths;

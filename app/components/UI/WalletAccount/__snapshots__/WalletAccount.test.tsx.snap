@@ -65,7 +65,7 @@ exports[`WalletAccount renders correctly 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 8,
+                  "borderRadius": 4,
                   "height": 16,
                   "marginRight": 8,
                   "overflow": "hidden",
@@ -85,7 +85,9 @@ exports[`WalletAccount renders correctly 1`] = `
                       "height": 16,
                       "width": 16,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 4,
+                    },
                   ]
                 }
               >

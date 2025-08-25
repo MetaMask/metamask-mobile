@@ -1,6 +1,7 @@
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetId,
+  CaipChainId,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   Hex,
   isCaipChainId,
@@ -73,6 +74,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
+import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -189,7 +191,13 @@ export const TokenListItem = React.memo(
                     parseFloat(asset.balance),
                     oneHundredThousandths,
                     I18n.locale,
-                    { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+                    {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits:
+                        MULTICHAIN_NETWORK_DECIMAL_PLACES[
+                          chainId as CaipChainId
+                        ] || 5,
+                    },
                   )
                 : TOKEN_BALANCE_LOADING,
             },
@@ -200,6 +208,7 @@ export const TokenListItem = React.memo(
         tokenBalances,
         conversionRate,
         currentCurrency,
+        chainId,
       ],
     );
 
@@ -322,7 +331,7 @@ export const TokenListItem = React.memo(
             <AvatarToken
               name={asset.symbol}
               imageSource={CustomNetworkNativeImgMapping[chainId]}
-              size={AvatarSize.Md}
+              size={AvatarSize.Lg}
             />
           );
         }
@@ -343,7 +352,7 @@ export const TokenListItem = React.memo(
         <AvatarToken
           name={asset.symbol}
           imageSource={{ uri: asset.image }}
-          size={AvatarSize.Md}
+          size={AvatarSize.Lg}
         />
       );
     }, [asset, styles.ethLogo, chainId]);
@@ -388,7 +397,7 @@ export const TokenListItem = React.memo(
       >
         <BadgeWrapper
           style={styles.badge}
-          badgePosition={BadgePosition.TopRight}
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

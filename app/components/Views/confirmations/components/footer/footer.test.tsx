@@ -26,6 +26,16 @@ jest.mock('../../hooks/useConfirmActions', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
   addEventListener: jest.fn(),

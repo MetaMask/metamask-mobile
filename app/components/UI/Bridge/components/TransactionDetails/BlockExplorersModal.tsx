@@ -52,19 +52,22 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
+  const evmTxMeta = props.route.params.evmTxMeta;
+  const multiChainTx = props.route.params.multiChainTx;
+
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    evmTxMeta: props.route.params.evmTxMeta,
-    multiChainTx: props.route.params.multiChainTx,
+    evmTxMeta,
+    multiChainTx,
   });
 
   // Get source chain explorer data
   const srcExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.srcChainId,
-    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash,
+    txHash: bridgeTxHistoryItem?.status.srcChain?.txHash || evmTxMeta?.hash,
   });
 
   // Get destination chain explorer data
-  const destExplorerData = useMultichainBlockExplorerTxUrl({
+  const bridgeDestExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.destChainId,
     txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
@@ -120,7 +123,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
           />
         )}
 
-        {destExplorerData?.explorerTxUrl && (
+        {bridgeDestExplorerData?.explorerTxUrl && (
           <Button
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
@@ -132,11 +135,11 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               >
                 <Badge
                   variant={BadgeVariant.Network}
-                  name={destExplorerData.chainName}
-                  imageSource={destExplorerData.networkImageSource}
+                  name={bridgeDestExplorerData.chainName}
+                  imageSource={bridgeDestExplorerData.networkImageSource}
                 />
                 <Text variant={TextVariant.BodyMDMedium} style={styles.text}>
-                  {destExplorerData.explorerName}
+                  {bridgeDestExplorerData.explorerName}
                 </Text>
               </Box>
             }
@@ -144,7 +147,7 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               navigation.navigate(Routes.BROWSER.HOME, {
                 screen: Routes.BROWSER.VIEW,
                 params: {
-                  newTabUrl: destExplorerData.explorerTxUrl,
+                  newTabUrl: bridgeDestExplorerData.explorerTxUrl,
                   timestamp: Date.now(),
                 },
               });

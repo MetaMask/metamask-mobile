@@ -398,6 +398,30 @@ export const selectIsEvmSolanaBridge = createSelector(
   (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
 );
 
+export const selectIsBridge = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    destToken?.chainId &&
+    sourceToken.chainId !== destToken.chainId,
+);
+
+export const selectIsSwap = createSelector(
+  selectSourceToken,
+  selectDestToken,
+  (sourceToken, destToken) =>
+    sourceToken?.chainId &&
+    destToken?.chainId &&
+    sourceToken.chainId === destToken.chainId,
+);
+
+export const selectIsEvmSwap = createSelector(
+  selectIsSwap,
+  selectIsSolanaSwap,
+  (isSwap, isSolanaSwap) => isSwap && !isSolanaSwap,
+);
+
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
@@ -409,7 +433,8 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
   (bridgeFeatureFlags, chainId) => {
     if (
       isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
+      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
+        ?.isUnifiedUIEnabled
     ) {
       return true;
     }

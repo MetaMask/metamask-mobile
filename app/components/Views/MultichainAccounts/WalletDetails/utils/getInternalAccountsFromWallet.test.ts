@@ -1,6 +1,6 @@
 import { EthAccountType, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { getInternalAccountsFromWallet } from './getInternalAccountsFromWallet';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
@@ -85,7 +85,7 @@ describe('getInternalAccountsFromWallet', () => {
           accounts: [mockAccount1.id, mockAccount2.id],
         },
       },
-    } as unknown as AccountWallet;
+    } as unknown as AccountWalletObject;
 
     const result = getInternalAccountsFromWallet(mockWallet);
     expect(result).toEqual([mockAccount1, mockAccount2]);
@@ -101,7 +101,7 @@ describe('getInternalAccountsFromWallet', () => {
           accounts: [],
         },
       },
-    } as unknown as AccountWallet;
+    } as unknown as AccountWalletObject;
 
     const result = getInternalAccountsFromWallet(mockWallet);
     expect(result).toEqual([]);
@@ -119,7 +119,7 @@ describe('getInternalAccountsFromWallet', () => {
           accounts: [mockAccount2.id],
         },
       },
-    } as unknown as AccountWallet;
+    } as unknown as AccountWalletObject;
 
     const result = getInternalAccountsFromWallet(mockWallet);
     expect(result).toEqual([mockAccount1, mockAccount2]);
@@ -134,7 +134,7 @@ describe('getInternalAccountsFromWallet', () => {
           accounts: [mockAccount1.id, mockAccount3.id],
         },
       },
-    } as unknown as AccountWallet;
+    } as unknown as AccountWalletObject;
 
     const result = getInternalAccountsFromWallet(mockWallet);
     expect(result).toEqual([expect.objectContaining({ id: mockAccount1.id })]);
@@ -145,7 +145,7 @@ describe('getInternalAccountsFromWallet', () => {
       id: 'keyring:5',
       metadata: { name: 'No Groups Wallet' },
       groups: {},
-    } as unknown as AccountWallet;
+    } as unknown as AccountWalletObject;
 
     const result = getInternalAccountsFromWallet(mockWallet);
     expect(result).toEqual([]);
