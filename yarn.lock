@@ -4844,8 +4844,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@file:../metamask-core/packages/assets-controllers":
-  version "74.0.0"
+"@metamask/assets-controllers@^74.1.0":
+  version "74.1.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/assets-controllers/-/assets-controllers-74.1.0.tgz#4ebe1e96c4146a8782325bec3b10833196109a5e"
+  integrity sha512-L5C2iiyQto/IY+/lIMhPCdEd11S+qqGi3t5ludmwizJEZ1L7ofQCHX3DrfWOh50I8MtR9+JRzdqKduDkEoQGoA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
