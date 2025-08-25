@@ -1,38 +1,53 @@
-import { Connection } from '../types/connection';
 import { IConnectionStore } from '../types/connection-store';
+import { PersistedConnection } from '../types/persisted-connection';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * Placeholder implementation of the IConnectionStore.
- * For now, this class provides no-op implementations of the
- * required storage methods to satisfy the dependency requirements
- * of the ConnectionRegistry.
+ * An implementation of IConnectionStore to persist
+ * the metadata of established dApp connections.
  */
 export class ConnectionStore implements IConnectionStore {
-  save(_connection: Connection): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.save called but is not yet implemented.',
-    );
-    return Promise.resolve();
+  private readonly prefix: string;
+
+  constructor(prefix: string) {
+    this.prefix = prefix;
   }
 
-  get(_id: string): Promise<Connection | null> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.get called but is not yet implemented.',
-    );
-    return Promise.resolve(null);
+  private getKey(id: string): string {
+    return `${this.prefix}/${id}`;
   }
 
-  list(): Promise<Connection[]> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.list called but is not yet implemented.',
+  async save(connection: PersistedConnection): Promise<void> {
+    await AsyncStorage.setItem(
+      this.getKey(connection.id),
+      JSON.stringify(connection),
     );
-    return Promise.resolve([]);
   }
 
-  delete(_id: string): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] ConnectionStore.delete called but is not yet implemented.',
-    );
-    return Promise.resolve();
+  async get(id: string): Promise<PersistedConnection | null> {
+    const json = await AsyncStorage.getItem(this.getKey(id));
+    return json ? (JSON.parse(json) as PersistedConnection) : null;
+  }
+
+  async list(): Promise<PersistedConnection[]> {
+    const keys = await AsyncStorage.getAllKeys();
+    const connectionKeys = keys.filter((key) => key.startsWith(this.prefix));
+
+    if (connectionKeys.length === 0) {
+      return [];
+    }
+
+    const items = await AsyncStorage.multiGet(connectionKeys);
+    return items.reduce((acc, item) => {
+      // item is a [key, value] tuple
+      if (item[1]) {
+        acc.push(JSON.parse(item[1]) as PersistedConnection);
+      }
+      return acc;
+    }, [] as PersistedConnection[]);
+  }
+
+  async delete(id: string): Promise<void> {
+    await AsyncStorage.removeItem(this.getKey(id));
   }
 }

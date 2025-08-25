@@ -1,18 +1,23 @@
 import { ConnectionRegistry } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
+import { KeyManager } from './key-manager';
 
 describe('ConnectionRegistry', () => {
   let registry: ConnectionRegistry;
+  let hostapp: HostApplicationAdapter;
+  let store: ConnectionStore;
+  let keymanager: KeyManager;
+  const relayURL = 'https://test-relay.example.com';
 
   beforeEach(() => {
-    const hostapp = new HostApplicationAdapter();
-    const store = new ConnectionStore();
-    registry = new ConnectionRegistry(hostapp, store);
+    hostapp = new HostApplicationAdapter();
+    store = new ConnectionStore('test-connections');
+    keymanager = new KeyManager();
+    registry = new ConnectionRegistry(relayURL, keymanager, hostapp, store);
   });
 
-  it('dummy tests for scaffolding, will be replaced with real tests', () => {
+  it('should create an instance', () => {
     expect(registry).toBeDefined();
-    expect(() => registry.handleConnectDeeplink('test-deeplink')).not.toThrow();
   });
 });
