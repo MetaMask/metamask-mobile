@@ -28,7 +28,8 @@ export const useNonEvmPercentageAmount = () => {
   const { asset } = useSendContext();
 
   const getNonEvmPercentageAmount = useCallback(
-    (percentage: number) => getPercentageValueFn(percentage, asset),
+    (percentage: number) =>
+      getPercentageValueFn(percentage, asset as AssetType),
     [asset],
   );
 

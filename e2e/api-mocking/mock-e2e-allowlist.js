@@ -12,7 +12,7 @@ export const ALLOWLISTED_HOSTS = [
   '*.infura.io',
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
-  'on-ramp-cache.uat-api.cx.metamask.io',
+  'virtual.linea.rpc.tenderly.co',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -27,4 +27,5 @@ export const ALLOWLISTED_URLS = [
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/stETH.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/rETH.svg',
+  'https://cdn.contentful.com:443/spaces/jdkgyfmyd9sw/environments/dev/entries?content_type=promotionalBanner&fields.showInMobile=true',
 ];

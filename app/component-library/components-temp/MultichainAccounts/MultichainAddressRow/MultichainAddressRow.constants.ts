@@ -15,13 +15,6 @@ export const MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID =
 
 export const SAMPLE_ICONS = [
   {
-    name: IconName.Copy,
-    callback: () => {
-      // Do nothing
-    },
-    testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-  },
-  {
     name: IconName.QrCode,
     callback: () => {
       // Do nothing
