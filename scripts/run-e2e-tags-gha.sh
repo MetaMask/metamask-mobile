@@ -9,6 +9,14 @@ BASE_DIR="./e2e/specs"
 SPLIT_NUMBER=${SPLIT_NUMBER:-1}
 TOTAL_SPLITS=${TOTAL_SPLITS:-1}
 
+# Determine grep options based on environment - The GHA test suites have deterministic Tags
+if [[ "${GITHUB_CI}" == "true" || "${GITHUB_CI}" == "1" ]]; then
+    GREP_OPTS="-l -w -F"
+else
+    GREP_OPTS="-l"
+fi
+
+
 echo "Searching for tests with pattern: $TEST_SUITE_TAG"
 echo "Running split $SPLIT_NUMBER of $TOTAL_SPLITS"
 
@@ -20,7 +28,7 @@ while IFS= read -r file; do
     if [ -n "$file" ]; then
         matching_files+=("$file")
     fi
-done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
+done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l -w -F "$TEST_SUITE_TAG" {} \; | sort -u)
 
 # Check if any files were found
 if [ ${#matching_files[@]} -eq 0 ]; then
