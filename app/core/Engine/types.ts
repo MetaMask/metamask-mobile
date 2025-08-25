@@ -315,12 +315,18 @@ import {
 /**
  * Controllers that area always instantiated
  */
-type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+type RequiredControllers = Omit<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are sometimes not instantiated
  */
-type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+type OptionalControllers = Pick<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are defined with state.
