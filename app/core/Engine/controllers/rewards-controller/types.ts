@@ -199,6 +199,37 @@ export interface EstimatedPointsDto {
   bonusBips: number;
 }
 
+export interface SeasonTierDto {
+  id: string;
+  name: string;
+  // Add other tier properties as needed
+}
+
+export interface SeasonDto {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  tiers: SeasonTierDto[];
+}
+
+export interface SeasonStatusBalanceDto {
+  total: number;
+  refereePortion: number;
+  updatedAt: Date;
+}
+
+export interface SeasonStatusDto {
+  season: SeasonDto;
+  balance: SeasonStatusBalanceDto;
+  currentTierId: string;
+}
+
+export interface SubscriptionReferralDetailsDto {
+  referralCode: string;
+  totalReferees: number;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   lastAuthenticatedAccount: string | null;
