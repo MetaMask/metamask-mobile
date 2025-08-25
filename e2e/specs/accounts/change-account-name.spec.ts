@@ -11,11 +11,24 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
 const MAIN_ACCOUNT_INDEX = 0;
 const IMPORTED_ACCOUNT_INDEX = 1;
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  const { urlEndpoint, response } =
+    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
+};
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.
 describe(Regression('Change Account Name'), () => {
@@ -26,11 +39,7 @@ describe(Regression('Change Account Name'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -77,11 +86,7 @@ describe(Regression('Change Account Name'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
