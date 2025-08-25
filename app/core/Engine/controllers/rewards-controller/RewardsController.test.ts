@@ -3,7 +3,12 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  LoginResponseDto,
+  SubscriptionReferralDetailsDto,
+  SeasonStatusDto,
+} from './types';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
@@ -55,6 +60,36 @@ describe('RewardsController', () => {
     },
   };
 
+  const mockReferralDetailsResponse: SubscriptionReferralDetailsDto = {
+    referralCode: 'TEST123',
+    totalReferees: 5,
+  };
+
+  const mockSeasonStatusResponse: SeasonStatusDto = {
+    season: {
+      id: 'season-123',
+      name: 'Test Season',
+      startDate: new Date('2023-06-01T00:00:00Z'),
+      endDate: new Date('2023-08-31T23:59:59Z'),
+      tiers: [
+        {
+          id: 'tier-gold',
+          name: 'Gold Tier',
+        },
+        {
+          id: 'tier-silver',
+          name: 'Silver Tier',
+        },
+      ],
+    },
+    balance: {
+      total: 1000,
+      refereePortion: 500,
+      updatedAt: new Date('2023-12-01T10:00:00Z'),
+    },
+    currentTierId: 'tier-gold',
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -89,6 +124,12 @@ describe('RewardsController', () => {
         }
         if (actionType === 'RewardsDataService:login') {
           return Promise.resolve(mockLoginResponse);
+        }
+        if (actionType === 'RewardsDataService:getReferralDetails') {
+          return Promise.resolve(mockReferralDetailsResponse);
+        }
+        if (actionType === 'RewardsDataService:getSeasonStatus') {
+          return Promise.resolve(mockSeasonStatusResponse);
         }
         throw new Error(`Unexpected action: ${actionType}`);
       },
@@ -705,6 +746,117 @@ describe('RewardsController', () => {
       });
 
       expect(rewardsController.state).toEqual(initialState);
+    });
+  });
+
+  describe('authenticated API methods', () => {
+    beforeEach(() => {
+      rewardsController = new RewardsController({
+        messenger: mockMessenger,
+      });
+    });
+
+    describe('getSeasonStatus', () => {
+      it('should successfully get season status', async () => {
+        const seasonId = 'season-123';
+        const subscriptionId = 'subscription-456';
+
+        const result = await rewardsController.getSeasonStatus(
+          seasonId,
+          subscriptionId,
+        );
+
+        expect(result).toEqual(mockSeasonStatusResponse);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getSeasonStatus',
+          seasonId,
+          subscriptionId,
+        );
+      });
+
+      it('should handle errors from data service', async () => {
+        const seasonId = 'season-123';
+        const subscriptionId = 'subscription-456';
+        const error = new Error('Season not found');
+
+        (mockMessenger.call as jest.Mock).mockImplementation((actionType) => {
+          if (actionType === 'RewardsDataService:getSeasonStatus') {
+            return Promise.reject(error);
+          }
+          throw new Error(`Unexpected action: ${actionType}`);
+        });
+
+        await expect(
+          rewardsController.getSeasonStatus(seasonId, subscriptionId),
+        ).rejects.toThrow('Season not found');
+
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getSeasonStatus',
+          seasonId,
+          subscriptionId,
+        );
+      });
+
+      it('should pass both season ID and subscription ID correctly', async () => {
+        const seasonId = 'custom-season-789';
+        const subscriptionId = 'custom-subscription-321';
+
+        await rewardsController.getSeasonStatus(seasonId, subscriptionId);
+
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getSeasonStatus',
+          seasonId,
+          subscriptionId,
+        );
+      });
+    });
+
+    describe('getReferralDetails', () => {
+      it('should successfully get referral details', async () => {
+        const subscriptionId = 'test-subscription-123';
+
+        const result = await rewardsController.getReferralDetails(
+          subscriptionId,
+        );
+
+        expect(result).toEqual(mockReferralDetailsResponse);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getReferralDetails',
+          subscriptionId,
+        );
+      });
+
+      it('should handle errors from data service', async () => {
+        const subscriptionId = 'test-subscription-123';
+        const error = new Error('Network error');
+
+        (mockMessenger.call as jest.Mock).mockImplementation((actionType) => {
+          if (actionType === 'RewardsDataService:getReferralDetails') {
+            return Promise.reject(error);
+          }
+          throw new Error(`Unexpected action: ${actionType}`);
+        });
+
+        await expect(
+          rewardsController.getReferralDetails(subscriptionId),
+        ).rejects.toThrow('Network error');
+
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getReferralDetails',
+          subscriptionId,
+        );
+      });
+
+      it('should pass subscription ID correctly', async () => {
+        const subscriptionId = 'custom-subscription-456';
+
+        await rewardsController.getReferralDetails(subscriptionId);
+
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:getReferralDetails',
+          subscriptionId,
+        );
+      });
     });
   });
 });

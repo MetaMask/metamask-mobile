@@ -1,5 +1,10 @@
 import { BaseController } from '@metamask/base-controller';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  LoginResponseDto,
+  SeasonStatusDto,
+  SubscriptionReferralDetailsDto,
+} from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
@@ -93,6 +98,37 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     this.update(() => getRewardsControllerDefaultState());
+  }
+
+  /**
+   * Get season status for a specific season
+   * @param seasonId - The ID of the season to get status for
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The season status DTO
+   */
+  async getSeasonStatus(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SeasonStatusDto> {
+    return await this.messagingSystem.call(
+      'RewardsDataService:getSeasonStatus',
+      seasonId,
+      subscriptionId,
+    );
+  }
+
+  /**
+   * Get referral details for a specific subscription
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns The referral details DTO
+   */
+  async getReferralDetails(
+    subscriptionId: string,
+  ): Promise<SubscriptionReferralDetailsDto> {
+    return await this.messagingSystem.call(
+      'RewardsDataService:getReferralDetails',
+      subscriptionId,
+    );
   }
 
   /**

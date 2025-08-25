@@ -113,6 +113,8 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import RewardsView from '../../UI/Rewards/Views/RewardsView';
+import ReferralRewardsView from '../../UI/Rewards/Views/ReferralRewardsView';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -245,8 +247,20 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  // TODO: Return RewardsNavigator
-  return null;
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REFERRAL_REWARDS_VIEW}
+        component={ReferralRewardsView}
+        options={{ headerShown: true }}
+      />
+    </Stack.Navigator>
+  );
 };
 
 /* eslint-disable react/prop-types */
