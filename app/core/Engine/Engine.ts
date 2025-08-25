@@ -296,6 +296,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
    */
@@ -1218,8 +1219,8 @@ export class Engine {
     const perpsController = controllersByName.PerpsController;
     const rewardsController = controllersByName.RewardsController;
 
-    // Initialize RewardsDataService
-    new RewardsDataService({
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
       messenger: this.controllerMessenger.getRestricted({
         name: 'RewardsDataService',
         allowedActions: [],
