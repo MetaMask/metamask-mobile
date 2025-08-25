@@ -10,6 +10,9 @@ let marketDataCache: {
   timestamp: number;
 } | null = null;
 
+// Promise-based cache to prevent race conditions when multiple components request data simultaneously
+let fetchPromise: Promise<PerpsMarketData[]> | null = null;
+
 const CACHE_DURATION_MS = 5000; // 5 seconds
 
 export interface UsePerpsMarketsResult {
@@ -58,6 +61,14 @@ export interface UsePerpsMarketsOptions {
  * Uses the PerpsController to get data from the currently active protocol
  * (HyperLiquid, GMX, dYdX, etc.)
  */
+// Test helper to reset cache - only for testing
+export const resetMarketDataCache = () => {
+  if (process.env.NODE_ENV === 'test') {
+    marketDataCache = null;
+    fetchPromise = null;
+  }
+};
+
 export const usePerpsMarkets = (
   options: UsePerpsMarketsOptions = {},
 ): UsePerpsMarketsResult => {
@@ -88,6 +99,25 @@ export const usePerpsMarkets = (
         }
       }
 
+      // Check if a fetch is already in progress (for non-refresh requests)
+      if (!isRefresh && fetchPromise) {
+        DevLogger.log(
+          'Perps: Fetch already in progress, waiting for result...',
+        );
+        try {
+          const data = await fetchPromise;
+          setMarkets(data);
+          setIsLoading(false);
+          DevLogger.log('Perps: Using result from in-progress fetch', {
+            marketCount: data.length,
+          });
+          return;
+        } catch (err) {
+          // If the shared fetch failed, we'll try our own fetch
+          DevLogger.log('Perps: Shared fetch failed, will retry', err);
+        }
+      }
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -95,7 +125,8 @@ export const usePerpsMarkets = (
       }
       setError(null);
 
-      try {
+      // Create a new fetch promise that can be shared by other callers
+      const executeAndCacheFetch = async (): Promise<PerpsMarketData[]> => {
         DevLogger.log('Perps: Fetching market data from active provider...');
 
         // Get the active provider via PerpsController
@@ -140,8 +171,6 @@ export const usePerpsMarkets = (
           return volumeB - volumeA; // Descending order
         });
 
-        setMarkets(sortedMarkets);
-
         // Update cache with fresh data
         marketDataCache = {
           data: sortedMarkets,
@@ -152,9 +181,23 @@ export const usePerpsMarkets = (
           'Perps: Successfully fetched and transformed market data',
           {
             marketCount: marketDataWithPrices.length,
-            cached: true,
+            cached: false,
           },
         );
+
+        return sortedMarkets;
+      };
+
+      // Only store the promise for non-refresh fetches
+      if (!isRefresh) {
+        fetchPromise = executeAndCacheFetch();
+      }
+
+      try {
+        const data = isRefresh
+          ? await executeAndCacheFetch()
+          : await (fetchPromise || executeAndCacheFetch());
+        setMarkets(data);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
@@ -171,6 +214,10 @@ export const usePerpsMarkets = (
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
+        // Clear the promise after completion (success or failure)
+        if (!isRefresh) {
+          fetchPromise = null;
+        }
       }
     },
     [],

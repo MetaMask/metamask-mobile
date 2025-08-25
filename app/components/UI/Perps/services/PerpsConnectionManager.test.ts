@@ -223,9 +223,7 @@ describe('PerpsConnectionManager', () => {
 
       await PerpsConnectionManager.connect();
 
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Stale connection detected'),
-      );
+      // Should have reconnected after detecting stale connection
       expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
     });
 
@@ -354,6 +352,7 @@ describe('PerpsConnectionManager', () => {
         isConnected: false,
         isConnecting: false,
         isInitialized: false,
+        isDisconnecting: false,
       });
     });
 

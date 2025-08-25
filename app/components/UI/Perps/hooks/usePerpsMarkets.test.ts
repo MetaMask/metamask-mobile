@@ -2,7 +2,7 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarkets, resetMarketDataCache } from './usePerpsMarkets';
 import type { PerpsMarketData, IPerpsProvider } from '../controllers/types';
 
 // Mock dependencies
@@ -119,6 +119,9 @@ describe('usePerpsMarkets', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
 
+    // Reset cache between tests
+    resetMarketDataCache();
+
     // Set up default mocks
     mockPerpsController.getActiveProvider.mockReturnValue(
       mockProvider as IPerpsProvider,
@@ -176,7 +179,7 @@ describe('usePerpsMarkets', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',
-        { marketCount: 2 },
+        { marketCount: 2, cached: false },
       );
     });
 
