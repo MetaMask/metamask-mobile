@@ -7,10 +7,12 @@ import {
 } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { usePerpsDepositView } from './usePerpsDepositView';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 jest.mock('./usePerpsDepositInit');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 
 function runHook(
   props: Parameters<typeof usePerpsDepositView>[0],
@@ -45,6 +47,7 @@ function runHook(
 
 describe('usePerpsDepositView', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -52,6 +55,10 @@ describe('usePerpsDepositView', () => {
     useTokenAmountMock.mockReturnValue({
       amountUnformatted: '1',
     } as ReturnType<typeof useTokenAmount>);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
   });
 
   it('returns isFullView as true if keyboard hidden and amount is non-zero with quotes loading', () => {
@@ -108,5 +115,20 @@ describe('usePerpsDepositView', () => {
     );
 
     expect(result.current.isFullView).toBe(false);
+  });
+
+  it('returns isPayTokenSelected as false if payment token not selected', () => {
+    const { result } = runHook({ isKeyboardVisible: false });
+    expect(result.current.isPayTokenSelected).toBe(false);
+  });
+
+  it('returns isPayTokenSelected as true if payment token selected', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {},
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { result } = runHook({ isKeyboardVisible: false });
+
+    expect(result.current.isPayTokenSelected).toBe(true);
   });
 });
