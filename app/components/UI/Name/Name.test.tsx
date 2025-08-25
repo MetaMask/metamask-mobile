@@ -8,6 +8,7 @@ import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
@@ -27,7 +28,7 @@ const KNOWN_NAME_MOCK = 'Known name';
 describe('Name', () => {
   const mockStore = configureMockStore();
   const initialState = {
-    settings: { useBlockieIcon: true },
+    settings: { avatarStyle: AvatarAccountType.Maskicon },
   };
   const store = mockStore(initialState);
 

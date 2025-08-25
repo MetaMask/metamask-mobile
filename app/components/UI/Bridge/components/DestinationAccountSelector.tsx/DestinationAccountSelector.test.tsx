@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 // Test-specific state type for mock selectors
 interface MockState {
@@ -215,7 +216,7 @@ describe('DestinationAccountSelector', () => {
         destAddress: '0x1234567890123456789012345678901234567890',
       },
       settings: {
-        useBlockieIcon: false,
+        avatarStyle: AvatarAccountType.Maskicon,
       },
       ...storeState,
     });
@@ -254,7 +255,7 @@ describe('DestinationAccountSelector', () => {
   it('uses blockie icon when blockie setting is enabled', () => {
     const { getByTestId } = renderComponent({
       settings: {
-        useBlockieIcon: true,
+        avatarStyle: AvatarAccountType.Blockies,
       },
     });
     const avatar = getByTestId('cellbase-avatar');

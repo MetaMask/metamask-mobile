@@ -29,6 +29,7 @@ import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -546,7 +547,7 @@ describe('App', () => {
         userLoggedIn: true,
       },
       settings: {
-        useBlockieIcon: true,
+        avatarStyle: AvatarAccountType.Maskicon,
       },
       engine: {
         ...initialState.engine,
