@@ -27,6 +27,10 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 4,
       paddingHorizontal: 4,
     },
+    balanceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 };
 

@@ -100,11 +100,8 @@ const PerpsClosePositionBottomSheet: React.FC<
     : 1;
   const effectiveMargin = positionValue / leverage;
 
-  // Calculate P&L
-  const entryPrice = parseFloat(position.entryPrice);
-  const pnl = isLong
-    ? (currentPrice - entryPrice) * absSize
-    : (entryPrice - currentPrice) * absSize;
+  // Use unrealized PnL from position
+  const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
   const closingValue = positionValue * (closePercentage / 100);
@@ -327,7 +324,10 @@ const PerpsClosePositionBottomSheet: React.FC<
             style={styles.sizeAmount}
             testID="close-amount-usd"
           >
-            {formatPrice(closeAmountUSD)}
+            {formatPrice(closeAmountUSD, {
+              minimumDecimals: 2,
+              maximumDecimals: 2,
+            })}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
@@ -402,8 +402,11 @@ const PerpsClosePositionBottomSheet: React.FC<
               variant={TextVariant.BodyMDMedium}
               color={pnl >= 0 ? TextColor.Success : TextColor.Error}
             >
-              {pnl >= 0 ? '+' : ''}
-              {formatPrice(pnl * (closePercentage / 100))}
+              {pnl >= 0 ? '+' : '-'}
+              {formatPrice(Math.abs(pnl * (closePercentage / 100)), {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -416,7 +419,11 @@ const PerpsClosePositionBottomSheet: React.FC<
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
             >
-              -{formatPrice(feeResults.totalFee)}
+              -
+              {formatPrice(feeResults.totalFee, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -432,7 +439,10 @@ const PerpsClosePositionBottomSheet: React.FC<
                 variant={TextVariant.BodyLGMedium}
                 color={TextColor.Default}
               >
-                {formatPrice(receiveAmount)}
+                {formatPrice(receiveAmount, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                })}
               </Text>
             </View>
           </View>

@@ -17,6 +17,14 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
       marginRight: 16,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: colors.background.alternative,
+    },
+    tokenIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     leftSection: {
       flexDirection: 'row',

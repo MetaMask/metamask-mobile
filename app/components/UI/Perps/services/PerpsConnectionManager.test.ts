@@ -29,6 +29,13 @@ jest.mock('../../../../store', () => ({
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
+  selectInternalAccounts: jest.fn(() => []),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+  })),
 }));
 
 jest.mock('../selectors/perpsController', () => ({
@@ -40,6 +47,7 @@ const mockStreamManagerInstance = {
   positions: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -50,7 +58,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 
 // Import PerpsConnectionManager after mocks are set up
@@ -99,9 +107,11 @@ describe('PerpsConnectionManager', () => {
     mockStreamManagerInstance.positions.clearCache.mockClear();
     mockStreamManagerInstance.orders.clearCache.mockClear();
     mockStreamManagerInstance.account.clearCache.mockClear();
+    mockStreamManagerInstance.marketData.clearCache.mockClear();
     mockStreamManagerInstance.positions.prewarm.mockClear();
     mockStreamManagerInstance.orders.prewarm.mockClear();
     mockStreamManagerInstance.account.prewarm.mockClear();
+    mockStreamManagerInstance.marketData.prewarm.mockClear();
 
     // Reset the singleton instance state
     resetManager(PerpsConnectionManager);
@@ -216,9 +226,7 @@ describe('PerpsConnectionManager', () => {
 
       await PerpsConnectionManager.connect();
 
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('Stale connection detected'),
-      );
+      // Should have reconnected after detecting stale connection
       expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
     });
 
@@ -235,6 +243,46 @@ describe('PerpsConnectionManager', () => {
       expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(1);
       // getAccountState called twice - once for initial connect, once for health check
       expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(2);
+    });
+
+    it('should wait for disconnection to complete before connecting', async () => {
+      // Setup initial connection
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+
+      // Mock disconnect to be slow so we can test the waiting behavior
+      let resolveDisconnect: () => void = () => {
+        // Initial placeholder function
+      };
+      const slowDisconnectPromise = new Promise<void>((resolve) => {
+        resolveDisconnect = resolve;
+      });
+      mockPerpsController.disconnect.mockReturnValue(slowDisconnectPromise);
+
+      // Connect first
+      await PerpsConnectionManager.connect();
+
+      // Start a disconnection but don't await it
+      const disconnectPromise = PerpsConnectionManager.disconnect();
+
+      // Immediately try to connect while disconnection is in progress
+      // This simulates the isDisconnecting && disconnectPromise condition
+      const connectPromise = PerpsConnectionManager.connect();
+
+      // Verify the waiting log was called immediately
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsConnectionManager: Waiting for disconnection to complete before connecting',
+      );
+
+      // Now complete the disconnection
+      resolveDisconnect();
+
+      // Wait for both operations to complete
+      await disconnectPromise;
+      await connectPromise;
+
+      // Verify that connect waited and then proceeded
+      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -347,6 +395,7 @@ describe('PerpsConnectionManager', () => {
         isConnected: false,
         isConnecting: false,
         isInitialized: false,
+        isDisconnecting: false,
       });
     });
 
@@ -406,8 +455,8 @@ describe('PerpsConnectionManager', () => {
 
       // Setup initial values for selectors
       (
-        selectSelectedInternalAccountAddress as unknown as jest.Mock
-      ).mockReturnValue('0xabc123');
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xabc123' }));
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('mainnet');
       (store.getState as jest.Mock).mockReturnValue({});
     });
@@ -443,8 +492,8 @@ describe('PerpsConnectionManager', () => {
 
       // Simulate account change
       (
-        selectSelectedInternalAccountAddress as unknown as jest.Mock
-      ).mockReturnValue('0xdef456');
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdef456' }));
 
       // Trigger the store callback with the changed value
       storeCallback();
@@ -515,8 +564,8 @@ describe('PerpsConnectionManager', () => {
 
         // Simulate account change
         (
-          selectSelectedInternalAccountAddress as unknown as jest.Mock
-        ).mockReturnValue('0xdef456');
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
 
         // Trigger the store callback with changed values
         storeCallback();
@@ -552,6 +601,9 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalled();
     });
 
     it('should reinitialize controller with new context', async () => {

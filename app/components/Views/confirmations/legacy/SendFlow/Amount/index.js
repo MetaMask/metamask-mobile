@@ -85,7 +85,6 @@ import { selectContractBalances } from '../../../../../../selectors/tokenBalance
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { swapsLivenessSelector } from '../../../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
@@ -109,7 +108,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { isHardwareAccount } from '../../../../../../util/address';
+import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1593,7 +1592,7 @@ const mapStateToProps = (state, ownProps) => {
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
-    swapsIsLive: swapsLivenessSelector(state),
+    swapsIsLive: selectIsSwapsLive(state, globalChainId),
     globalChainId,
     globalNetworkClientId,
   };
