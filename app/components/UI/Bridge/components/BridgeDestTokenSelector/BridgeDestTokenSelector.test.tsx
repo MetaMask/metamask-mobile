@@ -12,6 +12,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { cloneDeep } from 'lodash';
 import { BridgeViewMode } from '../../types';
+import Engine from '../../../../../core/Engine';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -305,6 +306,42 @@ describe('BridgeDestTokenSelector', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+    });
+  });
+
+  describe('Unified SwapBridge Event Tracking', () => {
+    it('tracks UnifiedSwapBridgeEvent when info button is clicked', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeDestTokenSelector,
+        {
+          name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Wait for tokens to be visible
+      await waitFor(() => {
+        expect(getByText('HELLO')).toBeTruthy();
+        expect(getByText('TOKEN1')).toBeTruthy();
+      });
+
+      // Get the info button for the first token (HELLO)
+      const infoButton = getAllByTestId('token-info-button')[0];
+      fireEvent.press(infoButton);
+
+      // Verify the tracking event was called with correct parameters
+      expect(
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+      ).toHaveBeenCalledWith(
+        'Unified SwapBridge Asset Detail Tooltip Clicked',
+        {
+          token_name: 'Hello Token',
+          token_symbol: 'HELLO',
+          token_contract: ethToken2Address,
+          chain_name: 'Ethereum Mainnet',
+          chain_id: '0x1',
+        },
+      );
     });
   });
 });
