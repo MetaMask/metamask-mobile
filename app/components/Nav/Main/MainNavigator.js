@@ -102,6 +102,7 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -237,6 +238,16 @@ const TransactionsHome = () => (
     />
   </Stack.Navigator>
 );
+
+const RewardsHome = () => {
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
+  if (!isRewardsEnabled) {
+    return null;
+  }
+  // TODO: Return RewardsNavigator
+  return null;
+};
 
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
@@ -466,6 +477,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -523,6 +535,15 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
+    },
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
+        );
+      },
+      rootScreenName: Routes.REWARDS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -593,13 +614,21 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isRewardsEnabled ? (
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
     </Tab.Navigator>
   );
 };

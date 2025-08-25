@@ -307,6 +307,7 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  REWARDS_VIEW: 'RewardsView',
 };
 
 export default Routes;
