@@ -332,13 +332,14 @@ jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
+    useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
-    }),
-    useRoute: () => ({
+    })),
+    useRoute: jest.fn(() => ({
       params: {},
-    }),
+    })),
+    useFocusEffect: jest.fn(),
   };
 });
 
@@ -950,6 +951,54 @@ describe('Wallet', () => {
 
         expect(mockSelectNetwork).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Perps tab navigation', () => {
+    it('should handle Perps tab navigation params with useFocusEffect', () => {
+      const mockSetParams = jest.fn();
+
+      // Update the navigation mock to include setParams
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const reactNavigation = jest.requireMock('@react-navigation/native');
+      reactNavigation.useNavigation.mockReturnValue({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        setParams: mockSetParams,
+      });
+
+      // Mock route with shouldSelectPerpsTab param
+      reactNavigation.useRoute.mockReturnValue({
+        params: {
+          shouldSelectPerpsTab: true,
+        },
+      });
+
+      // Mock state with Perps enabled
+      const stateWithPerpsEnabled = {
+        ...mockInitialState,
+        tabs: [{}], // Non-empty tabs array means Perps is enabled
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(stateWithPerpsEnabled));
+
+      // Track if useFocusEffect was called with a callback
+      let focusEffectCalled = false;
+      reactNavigation.useFocusEffect.mockImplementation(
+        (callback: () => void) => {
+          focusEffectCalled = true;
+          // The callback should be a useCallback that depends on route.params and isPerpsEnabled
+          expect(typeof callback).toBe('function');
+        },
+      );
+
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+
+      // Verify useFocusEffect was called to handle the navigation params
+      expect(focusEffectCalled).toBe(true);
     });
   });
 });
