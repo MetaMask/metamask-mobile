@@ -58,6 +58,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       ]),
     },
+    BridgeController: {
+      trackUnifiedSwapBridgeEvent: jest.fn(),
+    },
   },
 }));
 
