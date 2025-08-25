@@ -26,4 +26,5 @@ export interface Nft {
   tokenId: string;
   accountId: string;
   networkBadgeSource: ImageSourcePropType;
+  balance?: string;
 }

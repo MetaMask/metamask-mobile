@@ -76,6 +76,9 @@ export function Nft({ asset, onPress }: NftProps) {
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
+              {asset.balance !== '0' &&
+                asset.balance !== undefined &&
+                `(${asset.balance}) `}
               {asset.name ? asset.name : `#${asset.tokenId}`}
             </Text>
           )}
