@@ -973,7 +973,7 @@ const AppFlow = () => {
           component={PayWithNetworkModal}
         />
         <Stack.Screen
-          name="OfflineMode"
+          name={Routes.OFFLINE_MODE}
           component={OfflineMode}
           options={OfflineMode.navigationOptions}
         />

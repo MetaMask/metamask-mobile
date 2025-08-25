@@ -491,13 +491,24 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
-    // check for no internet connection
-    const netState = await NetInfo.fetch();
-    if (!netState.isConnected || netState.isInternetReachable === false) {
-      this.props.navigation.navigate('OfflineMode');
-      return;
+    // check for internet connection
+    try {
+      // Add a timeout to prevent hanging
+      const netState = await Promise.race([
+        NetInfo.fetch(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Network check timeout')), 5000),
+        ),
+      ]);
+      if (!netState.isConnected || netState.isInternetReachable === false) {
+        this.props.navigation.navigate(Routes.OFFLINE_MODE);
+        return;
+      }
+    } catch (error) {
+      console.warn('Network check failed:', error);
     }
 
+    // Continue with the social login flow
     this.props.navigation.navigate('Onboarding');
 
     if (createWallet) {

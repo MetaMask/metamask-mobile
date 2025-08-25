@@ -58,10 +58,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
   const netinfo = NetInfo.useNetInfo();
 
   const tryAgain = () => {
-    if (
-      netinfo?.isConnected &&
-      (netinfo.isInternetReachable === null || netinfo.isInternetReachable)
-    ) {
+    if (netinfo?.isConnected) {
       navigation.goBack();
     }
   };
