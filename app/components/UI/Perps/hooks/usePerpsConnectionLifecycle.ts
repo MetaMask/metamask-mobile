@@ -51,19 +51,23 @@ export function usePerpsConnectionLifecycle({
 
   // Helper to schedule background disconnection
   const scheduleBackgroundDisconnection = useCallback(() => {
+    // Cancel any existing timer to prevent multiple timers
+    cancelBackgroundTimer();
+
     DevLogger.log(
       `usePerpsConnectionLifecycle: Scheduling disconnection in ${PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY}ms`,
     );
 
     if (Device.isIos()) {
-      // iOS requires starting/stopping BackgroundTimer
+      // iOS: Start background timer, schedule with setTimeout, then stop immediately
       BackgroundTimer.start();
       backgroundDisconnectTimer.current = setTimeout(() => {
         hasConnected.current = false;
         onDisconnect();
         backgroundDisconnectTimer.current = null;
-        BackgroundTimer.stop();
       }, PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY) as unknown as number;
+      // Stop immediately after scheduling (not in the callback)
+      BackgroundTimer.stop();
     } else if (Device.isAndroid()) {
       // Android uses BackgroundTimer.setTimeout directly
       backgroundDisconnectTimer.current = BackgroundTimer.setTimeout(() => {
@@ -72,7 +76,7 @@ export function usePerpsConnectionLifecycle({
         backgroundDisconnectTimer.current = null;
       }, PERPS_CONSTANTS.BACKGROUND_DISCONNECT_DELAY);
     }
-  }, [onDisconnect]);
+  }, [onDisconnect, cancelBackgroundTimer]);
 
   // Handle connection based on current state
   const handleConnection = useCallback(async () => {
