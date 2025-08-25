@@ -16,6 +16,7 @@ jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
+jest.mock('../../../hooks/useTokenAsset');
 
 describe('SelectedGasFeeToken', () => {
   const mockUseInsufficientBalanceAlert = jest.mocked(
