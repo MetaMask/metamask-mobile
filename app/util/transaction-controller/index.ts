@@ -170,6 +170,18 @@ export const getNetworkNonce = async (
   return nextNonce;
 };
 
+export function updateSelectedGasFeeToken(
+  transactionId: string,
+  selectedGasFeeToken?: Hex,
+) {
+  const { TransactionController } = Engine.context;
+
+  return TransactionController.updateSelectedGasFeeToken(
+    transactionId,
+    selectedGasFeeToken,
+  );
+}
+
 function sanitizeTransactionParamsGasValues(
   transactionId: string,
   requestedTransactionParamsToUpdate: Partial<TransactionParams>,

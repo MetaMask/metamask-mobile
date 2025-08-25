@@ -274,7 +274,9 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
+    ADDRESS_LIST: 'MultichainAddressList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
   SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',

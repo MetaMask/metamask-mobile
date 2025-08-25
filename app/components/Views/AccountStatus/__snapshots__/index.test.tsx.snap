@@ -44,13 +44,15 @@ exports[`AccountStatus Snapshots android renders correctly with accountName in r
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -215,13 +217,15 @@ exports[`AccountStatus Snapshots android renders correctly with type="found and 
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -386,13 +390,15 @@ exports[`AccountStatus Snapshots android renders correctly with type="not_exist"
             Wallet not found
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -557,13 +563,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with accountName in route
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -728,13 +736,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="found" 1`] = `
             Wallet already exists
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
@@ -899,13 +909,15 @@ exports[`AccountStatus Snapshots iOS renders correctly with type="not_exist" 1`]
             Wallet not found
           </Text>
           <Image
-            resizeMethod="auto"
+            resizeMode="contain"
             source={1}
             style={
               {
                 "alignSelf": "center",
+                "height": 302,
                 "marginHorizontal": "auto",
                 "marginVertical": 16,
+                "width": 343,
               }
             }
           />
