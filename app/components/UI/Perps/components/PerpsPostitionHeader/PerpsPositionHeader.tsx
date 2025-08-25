@@ -5,9 +5,8 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
   IconName,
-  IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
@@ -15,8 +14,7 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import type { Position, PriceUpdate } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsPositionHeader.styles';
 import {
   formatPnl,
@@ -37,7 +35,6 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
   priceData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(position.coin);
 
   // Calculate 24-hour fiat amount change
   const priceChange24hFiat =
@@ -67,11 +64,11 @@ const PerpsPositionHeader: React.FC<PerpsPositionHeaderProps> = ({
 
       {/* Icon Section */}
       <View style={styles.perpIcon}>
-        {assetUrl ? (
-          <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-        ) : (
-          <Icon name={IconName.Coin} size={IconSize.Lg} />
-        )}
+        <PerpsTokenLogo
+          symbol={position.coin}
+          size={40}
+          style={styles.tokenIcon}
+        />
       </View>
 
       {/* Left Section */}
