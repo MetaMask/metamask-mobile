@@ -234,6 +234,7 @@ export class WC2Manager {
     const keyringController = (
       Engine.context as { KeyringController: KeyringController }
     ).KeyringController;
+
     await waitForKeychainUnlocked({
       keyringController,
       context: 'WalletConnectV2::init',
