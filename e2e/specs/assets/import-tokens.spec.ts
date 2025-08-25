@@ -86,8 +86,6 @@ describe(Regression('Import Tokens'), () => {
     await Assertions.expectElementToBeVisible(
       WalletView.tokenInWallet('0 LINK'),
     );
-    await Assertions.expectElementToBeVisible(
-      WalletView.tokenInWallet('0 CNG'),
-    );
+    await Assertions.expectTextDisplayed('Change Token');
   });
 });

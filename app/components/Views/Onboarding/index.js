@@ -207,6 +207,15 @@ const createStyles = (colors) =>
       borderWidth: 1,
       color: colors.text.default,
     },
+    blackButton: {
+      backgroundColor: importedColors.btnBlack,
+    },
+    blackButtonText: {
+      color: importedColors.btnBlackText,
+    },
+    inverseBlackButton: {
+      backgroundColor: importedColors.btnBlackInverse,
+    },
   });
 
 /**
@@ -683,7 +692,9 @@ class Onboarding extends PureComponent {
         </View>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+          <Text style={styles.loadingText} color={importedColors.btnBlack}>
+            {this.props.loadingMsg}
+          </Text>
         </View>
       </View>
     );
@@ -720,9 +731,17 @@ class Onboarding extends PureComponent {
             variant={ButtonVariants.Primary}
             onPress={() => this.handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={strings('onboarding.start_exploring_now')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={importedColors.btnBlackText}
+              >
+                {strings('onboarding.start_exploring_now')}
+              </Text>
+            }
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            style={styles.blackButton}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -740,6 +759,7 @@ class Onboarding extends PureComponent {
                   : strings('onboarding.import_using_srp')}
               </Text>
             }
+            style={styles.inverseBlackButton}
           />
         </View>
       </View>
