@@ -103,8 +103,9 @@ export const useNetworkSelection = ({
 
   const selectAllPopularNetworks = useCallback(async () => {
     await enableAllPopularNetworks();
+    await resetCustomNetworks();
     navigation.navigate(Routes.WALLET.HOME);
-  }, [enableAllPopularNetworks, navigation]);
+  }, [enableAllPopularNetworks, navigation, resetCustomNetworks]);
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
