@@ -42,7 +42,6 @@ describe('AccountGroupBalance', () => {
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 123.45,
         userCurrency: 'usd',
-        formattedTotalBalanceInUserCurrency: '$123.45',
       }),
     );
 
@@ -52,10 +51,5 @@ describe('AccountGroupBalance', () => {
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeTruthy();
-    // Assert formatted string is rendered
-    // SensitiveText renders children as text
-    // Use a direct text query as behavior assertion
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(el.props.children).toBe('$123.45');
   });
 });

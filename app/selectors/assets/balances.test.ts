@@ -278,12 +278,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
       const selector = selectBalanceByAccountGroup('wallet-1/group-1');
       const result = selector(state);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 500,
         userCurrency: 'usd',
-        formattedTotalBalanceInUserCurrency: expect.any(String),
       });
     });
 
@@ -292,12 +291,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
       const selector = selectBalanceByAccountGroup('wallet-1/group-999');
       const result = selector(state);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-999',
         totalBalanceInUserCurrency: 0,
         userCurrency: 'usd',
-        formattedTotalBalanceInUserCurrency: expect.any(String),
       });
     });
   });
@@ -411,12 +409,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
       const state = makeState() as unknown as RootState;
       const result = selectBalanceBySelectedAccountGroup(state);
 
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         walletId: 'wallet-1',
         groupId: 'wallet-1/group-1',
         totalBalanceInUserCurrency: 500,
         userCurrency: 'usd',
-        formattedTotalBalanceInUserCurrency: expect.any(String),
       });
     });
 
@@ -426,12 +423,11 @@ describe('assets balance and balance change selectors (mobile)', () => {
         'keyring:wallet-1/group-999';
 
       const result = selectBalanceBySelectedAccountGroup(state);
-      expect(result).toMatchObject({
+      expect(result).toEqual({
         walletId: 'keyring:wallet-1',
         groupId: 'keyring:wallet-1/group-999',
         totalBalanceInUserCurrency: 0,
         userCurrency: 'usd',
-        formattedTotalBalanceInUserCurrency: expect.any(String),
       });
     });
 
