@@ -141,7 +141,7 @@ describe('AddAsset component', () => {
       selectPopularNetwork: jest.fn(),
       selectNetwork: mockSelectNetwork,
       deselectAll: jest.fn(),
-      toggleAll: jest.fn(),
+      selectAllPopularNetworks: jest.fn(),
       resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });

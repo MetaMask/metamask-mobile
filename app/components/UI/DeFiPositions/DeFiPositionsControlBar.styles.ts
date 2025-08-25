@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 /**
  *
@@ -15,21 +16,24 @@ const styleSheet = (params: { theme: Theme }) => {
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
+      marginVertical: 8,
     },
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
       opacity: 0.5,
     },
     controlButtonText: {
@@ -37,6 +41,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     controlIconButton: {
       backgroundColor: colors.background.default,
+    },
+    networkManagerWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 };

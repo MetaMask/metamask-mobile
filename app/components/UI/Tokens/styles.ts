@@ -6,6 +6,7 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -177,6 +178,7 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginVertical: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -191,16 +193,19 @@ const createStyles = (colors: Colors) =>
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
       opacity: 0.5,
     },
     controlButtonText: {
@@ -240,6 +245,12 @@ const createStyles = (colors: Colors) =>
     },
     badge: {
       marginTop: 8,
+    },
+    networkManagerWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 

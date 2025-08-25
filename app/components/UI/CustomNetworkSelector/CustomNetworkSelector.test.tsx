@@ -195,7 +195,7 @@ describe('CustomNetworkSelector', () => {
       selectPopularNetwork: jest.fn(),
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
-      toggleAll: jest.fn(),
+      selectAllPopularNetworks: jest.fn(),
       resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
