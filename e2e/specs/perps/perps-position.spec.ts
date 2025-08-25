@@ -42,7 +42,7 @@ describe(SmokePerps('Perps Position'), () => {
           .ensureSolanaModalSuppressed()
           .build(),
         restartDevice: true,
-        // testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
       async () => {
         await device.launchApp();

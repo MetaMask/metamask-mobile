@@ -52,81 +52,78 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
   </svg>`;
 
 /**
- * Create mock events for Arbitrum RPC endpoints
+ * TestSpecificMock function for Perps testing
+ * Sets up mocks to prevent live network requests to Arbitrum during E2E tests
  */
-export const createArbitrumRPCMocks = () => ({
-  POST: [
-    {
-      urlEndpoint: 'https://arb1.arbitrum.io/rpc',
-      response: (request) => {
-        try {
-          const body = JSON.parse(request.body);
-          console.log(
-            '[Perps E2E Mock] Intercepted Arbitrum RPC call:',
-            body.method,
-          );
+export const PERPS_ARBITRUM_MOCKS = async (mockServer) => {
+  const { setupMockRequest } = await import('../mockHelpers');
 
-          // Handle batch requests
-          if (Array.isArray(body)) {
-            return {
-              body: JSON.stringify(
-                body.map((req) => ({
-                  id: req.id,
-                  jsonrpc: '2.0',
-                  result: MOCK_RESPONSES[req.method] || '0x',
-                })),
-              ),
-            };
-          }
+  // Mock Arbitrum RPC endpoint
+  await setupMockRequest(mockServer, {
+    requestMethod: 'POST',
+    url: 'https://arb1.arbitrum.io/rpc',
+    response: (request) => {
+      try {
+        const body = JSON.parse(request.body);
+        console.log(
+          '[Perps E2E Mock] Intercepted Arbitrum RPC call:',
+          body.method,
+        );
 
-          // Handle single requests
-          const method = body.method;
-          const result = MOCK_RESPONSES[method] || '0x';
-
+        // Handle batch requests
+        if (Array.isArray(body)) {
           return {
-            body: JSON.stringify({
-              id: body.id,
-              jsonrpc: '2.0',
-              result,
-            }),
-          };
-        } catch (error) {
-          console.log('[Perps E2E Mock] Error parsing request body:', error);
-          return {
-            body: JSON.stringify({
-              id: 1,
-              jsonrpc: '2.0',
-              result: '0x',
-            }),
+            body: JSON.stringify(
+              body.map((req) => ({
+                id: req.id,
+                jsonrpc: '2.0',
+                result: MOCK_RESPONSES[req.method] || '0x',
+              })),
+            ),
           };
         }
-      },
-      responseCode: 200,
-    },
-  ],
-  GET: [
-    // Mock HyperLiquid coin image requests
-    {
-      urlEndpoint: /^https:\/\/app\.hyperliquid\.xyz\/coins\/.*\.svg$/,
-      response: () => {
-        console.log(
-          '[Perps E2E Mock] Intercepted HyperLiquid coin image request',
-        );
-        return {
-          body: MOCK_COIN_SVG,
-          headers: {
-            'Content-Type': 'image/svg+xml',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        };
-      },
-      responseCode: 200,
-    },
-  ],
-});
 
-/**
- * Mock events specifically for Perps testing
- * These prevent live network requests to Arbitrum during E2E tests
- */
-export const PERPS_ARBITRUM_MOCKS = createArbitrumRPCMocks();
+        // Handle single requests
+        const method = body.method;
+        const result = MOCK_RESPONSES[method] || '0x';
+
+        return {
+          body: JSON.stringify({
+            id: body.id,
+            jsonrpc: '2.0',
+            result,
+          }),
+        };
+      } catch (error) {
+        console.log('[Perps E2E Mock] Error parsing request body:', error);
+        return {
+          body: JSON.stringify({
+            id: 1,
+            jsonrpc: '2.0',
+            result: '0x',
+          }),
+        };
+      }
+    },
+    responseCode: 200,
+  });
+
+  // Mock HyperLiquid coin image requests
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/app\.hyperliquid\.xyz\/coins\/.*\.svg$/,
+    response: () => {
+      console.log(
+        '[Perps E2E Mock] Intercepted HyperLiquid coin image request',
+      );
+      return {
+        body: MOCK_COIN_SVG,
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      };
+    },
+    responseCode: 200,
+  });
+};
