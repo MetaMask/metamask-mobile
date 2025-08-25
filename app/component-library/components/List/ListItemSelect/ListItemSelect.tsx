@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity as RNTouchableOpacity,
   TouchableOpacityProps,
@@ -27,10 +27,22 @@ const TouchableOpacity = ({
   ...props
 }: TouchableOpacityProps & { children?: React.ReactNode }) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
+
+  // Timestamp-based coordination to prevent double firing:
+  // 1. User taps list item
+  // 2. GestureDetector fires first (records timestamp) - handles ScrollView conflicts
+  // 3. RNTouchableOpacity onPress checks timestamp and skips if recent
+  // 4. Accessibility tools (screen readers) can still use onPress without ScrollView conflicts
+  const lastGestureTime = useRef(0);
+  const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
+
   const tap = Gesture.Tap()
     .runOnJS(true)
     .onEnd((gestureEvent) => {
       if (onPress && !isDisabled) {
+        // Record when gesture handler fires to coordinate with accessibility onPress
+        lastGestureTime.current = Date.now();
+
         // Create a proper GestureResponderEvent-like object from gesture event
         const syntheticEvent = {
           nativeEvent: {
@@ -38,7 +50,7 @@ const TouchableOpacity = ({
             locationY: gestureEvent.y || 0,
             pageX: gestureEvent.absoluteX || 0,
             pageY: gestureEvent.absoluteY || 0,
-            timestamp: Date.now(),
+            timestamp: lastGestureTime.current,
           },
           persist: () => {
             /* no-op for synthetic event */
@@ -54,12 +66,25 @@ const TouchableOpacity = ({
       }
     });
 
+  // Accessibility-safe onPress that won't conflict with ScrollView
+  // Only fires if gesture handler didn't already handle the interaction
+  const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
+    const now = Date.now();
+    // Only fire if gesture handler didn't fire in the last COORDINATION_WINDOW ms
+    if (
+      onPress &&
+      !isDisabled &&
+      now - lastGestureTime.current > COORDINATION_WINDOW
+    ) {
+      onPress(pressEvent);
+    }
+  };
+
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        // Don't pass onPress here since gesture handler handles it
-        // This prevents double firing while maintaining accessibility
+        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
         {...props}
         // Ensure disabled prop is available to tests
         {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
