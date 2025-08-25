@@ -10,37 +10,39 @@ import useAccountTrackerPolling from './useAccountTrackerPolling';
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
-export const AssetPollingProvider = memo(({
-  chainId,
-  networkClientId,
-  address,
-}: {
-  chainId?: Hex;
-  networkClientId?: string;
-  address?: Hex;
-}) => {
-  const accountTrackerParams = useMemo(
-    () =>
-      networkClientId ? { networkClientIds: [networkClientId] } : undefined,
-    [networkClientId],
-  );
+export const AssetPollingProvider = memo(
+  ({
+    chainIds,
+    networkClientId,
+    address,
+  }: {
+    chainIds?: Hex[];
+    networkClientId?: string;
+    address?: Hex;
+  }) => {
+    const accountTrackerParams = useMemo(
+      () =>
+        networkClientId ? { networkClientIds: [networkClientId] } : undefined,
+      [networkClientId],
+    );
 
-  const chainParams = useMemo(
-    () => (chainId ? { chainIds: [chainId] } : undefined),
-    [chainId],
-  );
+    const chainParams = useMemo(
+      () => (chainIds ? { chainIds } : undefined),
+      [chainIds],
+    );
 
-  const tokenDetectionParams = useMemo(
-    () => (chainId && address ? { chainIds: [chainId], address } : undefined),
-    [chainId, address],
-  );
+    const tokenDetectionParams = useMemo(
+      () => (chainIds && address ? { chainIds, address } : undefined),
+      [chainIds, address],
+    );
 
-  useAccountTrackerPolling(accountTrackerParams);
-  useCurrencyRatePolling(chainParams);
-  useTokenRatesPolling(chainParams);
-  useTokenDetectionPolling(tokenDetectionParams);
-  useTokenListPolling(chainParams);
-  useTokenBalancesPolling(chainParams);
+    useAccountTrackerPolling(accountTrackerParams);
+    useCurrencyRatePolling(chainParams);
+    useTokenRatesPolling(chainParams);
+    useTokenDetectionPolling(tokenDetectionParams);
+    useTokenListPolling(chainParams);
+    useTokenBalancesPolling(chainParams);
 
-  return null;
-});
+    return null;
+  },
+);

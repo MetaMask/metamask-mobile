@@ -1,10 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './info-row-divider.styles';
+import styleSheet, { InfoRowDividerVariant } from './info-row-divider.styles';
 
-const InfoRowDivider = () => {
-  const { styles } = useStyles(styleSheet, {});
+const InfoRowDivider = ({
+  variant = InfoRowDividerVariant.Default,
+}: {
+  variant?: InfoRowDividerVariant;
+}) => {
+  const { styles } = useStyles(styleSheet, { variant });
 
   return <View style={styles.infoRowDivider} />;
 };

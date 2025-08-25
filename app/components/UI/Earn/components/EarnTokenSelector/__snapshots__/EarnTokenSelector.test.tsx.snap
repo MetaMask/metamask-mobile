@@ -244,7 +244,7 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontFamily": "Geist Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,

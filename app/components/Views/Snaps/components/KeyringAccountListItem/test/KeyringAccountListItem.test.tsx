@@ -3,15 +3,20 @@ import { render, fireEvent } from '@testing-library/react-native';
 import KeyringAccountListItem from '../KeyringAccountListItem';
 import { Linking } from 'react-native';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { KEYRING_ACCOUNT_LIST_ITEM, KEYRING_ACCOUNT_LIST_ITEM_BUTTON } from '../KeyringAccountListItem.constants';
-import { MOCK_ADDRESS_1, createMockSnapInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
+import {
+  KEYRING_ACCOUNT_LIST_ITEM,
+  KEYRING_ACCOUNT_LIST_ITEM_BUTTON,
+} from '../KeyringAccountListItem.constants';
+import {
+  MOCK_ADDRESS_1,
+  createMockSnapInternalAccount,
+} from '../../../../../../util/test/accountsControllerTestUtils';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
 
 describe('KeyringAccountListItem', () => {
-
   const mockInternalAccount = createMockSnapInternalAccount(
     MOCK_ADDRESS_1,
     'Snap Account 1',
@@ -21,7 +26,10 @@ describe('KeyringAccountListItem', () => {
 
   it('renders correctly', () => {
     const { getByTestId, getByText } = render(
-      <KeyringAccountListItem account={mockInternalAccount} blockExplorerUrl={mockBlockExplorerUrl} />,
+      <KeyringAccountListItem
+        account={mockInternalAccount}
+        blockExplorerUrl={mockBlockExplorerUrl}
+      />,
     );
 
     expect(getByTestId(KEYRING_ACCOUNT_LIST_ITEM)).toBeTruthy();
@@ -31,7 +39,10 @@ describe('KeyringAccountListItem', () => {
 
   it('opens snap URL when export button is pressed', () => {
     const { getByTestId } = render(
-      <KeyringAccountListItem account={mockInternalAccount} blockExplorerUrl={mockBlockExplorerUrl} />,
+      <KeyringAccountListItem
+        account={mockInternalAccount}
+        blockExplorerUrl={mockBlockExplorerUrl}
+      />,
     );
 
     const exportButton = getByTestId(KEYRING_ACCOUNT_LIST_ITEM_BUTTON);

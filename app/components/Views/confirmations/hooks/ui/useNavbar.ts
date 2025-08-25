@@ -25,7 +25,14 @@ const useNavbar = (title: string, addBackButton = true) => {
         }),
       );
     }
-  }, [addBackButton, isFullScreenConfirmation, navigation, onReject, theme, title]);
+  }, [
+    addBackButton,
+    isFullScreenConfirmation,
+    navigation,
+    onReject,
+    theme,
+    title,
+  ]);
 };
 
 export default useNavbar;

@@ -1,7 +1,6 @@
 /* eslint-disable react/display-name */
 // External dependencies.
-import { IconName, IconColor } from '../../Icons/Icon';
-import { AvatarSize } from '../../Avatars/Avatar';
+import { IconName } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { default as TabBarItemComponent } from './TabBarItem';
@@ -15,32 +14,23 @@ const TabBarItemMeta = {
       control: { type: 'text' },
       defaultValue: SAMPLE_TABBARITEM_PROPS.label,
     },
-    icon: {
+    iconName: {
       options: IconName,
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_TABBARITEM_PROPS.icon,
+      defaultValue: SAMPLE_TABBARITEM_PROPS.iconName,
     },
-    iconSize: {
-      options: AvatarSize,
-      control: {
-        type: 'select',
-      },
-      defaultValue: SAMPLE_TABBARITEM_PROPS.iconSize,
+    isActive: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.isActive,
     },
-    iconColor: {
-      options: IconColor,
-      control: {
-        type: 'select',
-      },
-      defaultValue: SAMPLE_TABBARITEM_PROPS.iconColor,
+    isTradeButton: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TABBARITEM_PROPS.isTradeButton,
     },
-    iconBackgroundColor: {
-      control: {
-        type: 'color',
-      },
-      defaultValue: SAMPLE_TABBARITEM_PROPS.iconBackgroundColor,
+    labelText: {
+      control: { type: 'text' },
     },
   },
 };

@@ -20,7 +20,12 @@ interface MockEvents {
  * @param {string | undefined} requestBody - The request body as string
  * @returns {Promise<{statusCode: number, body: string}>} Response object
  */
-const handleDirectFetch = async (url: string, method: string, headers: Headers, requestBody: string | undefined) => {
+const handleDirectFetch = async (
+  url: string,
+  method: string,
+  headers: Headers,
+  requestBody: string | undefined,
+) => {
   try {
     const response = await global.fetch(url, {
       method,
@@ -129,7 +134,8 @@ export const startMockServer = async (events: MockEvents, port: number) => {
           ? urlEndpoint.replace('localhost', '127.0.0.1')
           : urlEndpoint;
 
-      const requestBody = method === 'POST' ? await request.body.getText() : undefined;
+      const requestBody =
+        method === 'POST' ? await request.body.getText() : undefined;
       const headerEntries = Object.entries(request.headers)
         .filter((entry): entry is [string, string] => {
           const value = entry[1];
@@ -138,32 +144,25 @@ export const startMockServer = async (events: MockEvents, port: number) => {
         .map(([key, value]) => [key, value] as [string, string]);
       const headers = new Headers(headerEntries);
 
-      return handleDirectFetch(
-        updatedUrl,
-        method,
-        headers,
-        requestBody,
-      );
+      return handleDirectFetch(updatedUrl, method, headers, requestBody);
     });
 
   // In case any other requests are made, pass them through to the actual endpoint
-  await mockServer
-    .forUnmatchedRequest()
-    .thenCallback(async (request) => {
-      const headerEntries = Object.entries(request.headers)
-        .filter((entry): entry is [string, string] => {
-          const value = entry[1];
-          return value !== undefined && typeof value === 'string';
-        })
-        .map(([key, value]) => [key, value] as [string, string]);
-      const headers = new Headers(headerEntries);
-      return handleDirectFetch(
-        request.url,
-        request.method,
-        headers,
-        await request.body.getText(),
-      );
-    });
+  await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
+    const headerEntries = Object.entries(request.headers)
+      .filter((entry): entry is [string, string] => {
+        const value = entry[1];
+        return value !== undefined && typeof value === 'string';
+      })
+      .map(([key, value]) => [key, value] as [string, string]);
+    const headers = new Headers(headerEntries);
+    return handleDirectFetch(
+      request.url,
+      request.method,
+      headers,
+      await request.body.getText(),
+    );
+  });
 
   return mockServer;
 };

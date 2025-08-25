@@ -3,7 +3,6 @@ import {
   ConnectedAccountsSelectorsIDs,
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
-import TestHelpers from '../../helpers';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
@@ -46,6 +45,12 @@ class ConnectedAccountsModal {
   get disconnectAllAccountsAndNetworksButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+  }
+
+  get navigateToEditAccountsPermissionsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
     );
   }
 
@@ -108,69 +113,110 @@ class ConnectedAccountsModal {
   }
 
   async tapPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsButton);
+    await Gestures.waitAndTap(this.permissionsButton, {
+      elemDescription: 'Permissions button',
+    });
   }
 
   async tapNetworksPicker(): Promise<void> {
-    await Gestures.waitAndTap(this.networkPicker);
+    await Gestures.waitAndTap(this.networkPicker, {
+      elemDescription: 'Network picker',
+    });
   }
 
   async tapDisconnectAllButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllButton);
+    await Gestures.waitAndTap(this.disconnectAllButton, {
+      elemDescription: 'Disconnect all button',
+    });
   }
 
   async tapManagePermissionsButton(): Promise<void> {
-    await TestHelpers.delay(4000);
-    await Gestures.waitAndTap(this.managePermissionsButton);
+    await Gestures.waitAndTap(this.managePermissionsButton, {
+      elemDescription: 'Manage permissions button',
+    });
   }
 
   async tapPermissionsSummaryTab(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsSummaryTab);
+    await Gestures.waitAndTap(this.permissionsSummaryTab, {
+      elemDescription: 'Permissions summary tab',
+    });
   }
 
   async tapAccountsSummaryTab(): Promise<void> {
-    await TestHelpers.delay(1000);
-    await Gestures.waitAndTap(this.accountsSummaryTab);
+    await Gestures.waitAndTap(this.accountsSummaryTab, {
+      elemDescription: 'Accounts summary tab',
+    });
   }
 
   async tapAccountListBottomSheet(): Promise<void> {
-    await Gestures.waitAndTap(this.accountListBottomSheet);
+    await Gestures.waitAndTap(this.accountListBottomSheet, {
+      elemDescription: 'Account list bottom sheet',
+    });
   }
 
   async tapDisconnectButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectButton);
+    await Gestures.waitAndTap(this.disconnectButton, {
+      elemDescription: 'Disconnect button',
+    });
   }
 
   async tapDisconnectAllAccountsAndNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
+    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton, {
+      elemDescription: 'Disconnect all accounts and networks button',
+    });
+  }
+
+  async tapNavigateToEditAccountsPermissionsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.navigateToEditAccountsPermissionsButton, {
+      elemDescription: 'Navigate to edit accounts permissions button',
+    });
   }
 
   async tapNavigateToEditNetworksPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
+    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton, {
+      elemDescription: 'Navigate to edit networks permissions button',
+    });
   }
 
   async tapSelectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton);
+    await Gestures.waitAndTap(this.selectAllNetworksButton, {
+      elemDescription: 'Select all networks button',
+    });
   }
 
   async tapDeselectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton);
+    await Gestures.waitAndTap(this.selectAllNetworksButton, {
+      elemDescription: 'Deselect all networks button',
+    });
   }
 
   async tapDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectNetworksButton);
+    await Gestures.waitAndTap(this.disconnectNetworksButton, {
+      elemDescription: 'Disconnect networks button',
+    });
   }
 
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton);
+    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
+      elemDescription: 'Confirm disconnect networks button',
+    });
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', { speed: 'fast' });
+    await Gestures.swipe(
+      this.title as Promise<IndexableNativeElement>,
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Scroll to bottom of modal',
+      },
+    );
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.connectAccountsButton);
+    await Gestures.waitAndTap(this.connectAccountsButton, {
+      elemDescription: 'Connect more accounts button',
+    });
   }
 
   async getNetworkName(): Promise<string> {
@@ -208,4 +254,4 @@ class ConnectedAccountsModal {
   }
 }
 
-export default new ConnectedAccountsModal(); 
+export default new ConnectedAccountsModal();

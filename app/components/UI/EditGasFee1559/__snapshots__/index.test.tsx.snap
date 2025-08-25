@@ -264,7 +264,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9ca1af",
+                                "color": "#b7bbc8",
                               }
                             }
                           />
@@ -320,7 +320,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9ca1af",
+                                "color": "#b7bbc8",
                               }
                             }
                           />
@@ -397,7 +397,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               {
-                                "color": "#9ca1af",
+                                "color": "#b7bbc8",
                               }
                             }
                           />

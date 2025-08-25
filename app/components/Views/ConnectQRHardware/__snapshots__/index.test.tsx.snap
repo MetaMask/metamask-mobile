@@ -16,7 +16,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginTop": 50,
+          "marginTop": 0,
           "paddingHorizontal": 32,
           "width": "100%",
         }
@@ -48,6 +48,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
         
       </Text>
       <TouchableOpacity
+        onPress={[MockFunction]}
         style={
           {
             "flex": 1,
@@ -314,9 +315,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
       <View
         style={
           {
-            "alignItems": "center",
-            "height": 80,
-            "justifyContent": "space-between",
+            "marginBottom": 20,
           }
         }
       >

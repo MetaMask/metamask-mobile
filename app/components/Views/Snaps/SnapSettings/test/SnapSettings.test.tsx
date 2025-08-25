@@ -9,7 +9,7 @@ import {
   SubjectPermissions,
 } from '@metamask/permission-controller';
 import { SemVerVersion } from '@metamask/utils';
-import SNAP_SETTINGS_REMOVE_BUTTON from '../SnapSettings.constants';
+import { SNAP_SETTINGS_REMOVE_BUTTON } from '../SnapSettings.constants';
 import { SNAP_DETAILS_CELL } from '../../components/SnapDetails/SnapDetails.constants';
 import SNAP_PERMISSIONS from '../../components/SnapPermissions/SnapPermissions.contants';
 import { SNAP_PERMISSION_CELL } from '../../components/SnapPermissionCell/SnapPermissionCell.constants';
@@ -442,7 +442,6 @@ describe('SnapSettings with keyring snap', () => {
       KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
     );
     fireEvent.press(keyringSnapRemovalWarningContinueButton);
-
 
     // Step 3: Wait for the warning modal to appear and enter the snap name
     await waitFor(() => {

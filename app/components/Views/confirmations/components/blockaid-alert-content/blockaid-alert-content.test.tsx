@@ -2,11 +2,15 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import BlockaidAlertContent from './blockaid-alert-content';
 // TODO: Remove legacy import
-import { SecurityAlertResponse, Reason } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import {
+  SecurityAlertResponse,
+  Reason,
+} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { deflate } from 'react-native-gzip';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('react-native-gzip', () => ({
   deflate: jest.fn().mockResolvedValue('compressedData'),
@@ -43,11 +47,13 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     expect(getByText(DETAILS_ACCORDION_TITLE)).toBeDefined();
-    expect(getByText('If you approve this request, you might lose your assets.')).toBeDefined();
+    expect(
+      getByText('If you approve this request, you might lose your assets.'),
+    ).toBeDefined();
   });
 
   it('toggles accordion details on press', () => {
@@ -56,7 +62,7 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     const accordionTitle = getByText(DETAILS_ACCORDION_TITLE);
@@ -79,21 +85,23 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     await waitFor(() => {
-      expect(deflate).toHaveBeenCalledWith(JSON.stringify({
-        domain: REQUEST_MOCK.origin,
-        jsonRpcMethod: REQUEST_MOCK.method,
-        jsonRpcParams: '["param1","param2"]',
-        blockNumber: BLOCK_NUMBER_MOCK,
-        chain: BLOCKAID_SUPPORTED_NETWORK_NAMES['1'],
-        classification: Reason.other,
-        resultType: BlockaidResultType.Malicious,
-        reproduce: '["Detail 1","Detail 2"]',
-        blockaidVersion: BlockaidVersionInfo.BlockaidVersion,
-      }));
+      expect(deflate).toHaveBeenCalledWith(
+        JSON.stringify({
+          domain: REQUEST_MOCK.origin,
+          jsonRpcMethod: REQUEST_MOCK.method,
+          jsonRpcParams: '["param1","param2"]',
+          blockNumber: BLOCK_NUMBER_MOCK,
+          chain: BLOCKAID_SUPPORTED_NETWORK_NAMES['1'],
+          classification: Reason.other,
+          resultType: BlockaidResultType.Malicious,
+          reproduce: '["Detail 1","Detail 2"]',
+          blockaidVersion: BlockaidVersionInfo.BlockaidVersion,
+        }),
+      );
     });
   });
 
@@ -103,7 +111,7 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponse}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     const accordionTitle = getByText(DETAILS_ACCORDION_TITLE);
@@ -130,7 +138,7 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponseWithoutReq}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -147,11 +155,30 @@ describe('BlockaidAlertContent', () => {
         alertDetails={ALERT_DETAILS_MOCK}
         securityAlertResponse={mockSecurityAlertResponseWithoutChainId}
         onContactUsClicked={mockOnContactUsClicked}
-      />
+      />,
     );
 
     await waitFor(() => {
       expect(deflate).not.toHaveBeenCalled();
     });
+  });
+
+  it('renders generic reason message if reason not recognised', () => {
+    const mockSecurityAlertResponseWithUnknownReason: SecurityAlertResponse = {
+      ...mockSecurityAlertResponse,
+      reason: 'unknown_reason' as Reason,
+    };
+
+    const { getByText } = render(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={mockSecurityAlertResponseWithUnknownReason}
+        onContactUsClicked={mockOnContactUsClicked}
+      />,
+    );
+
+    expect(
+      getByText(strings('blockaid_banner.other_description')),
+    ).toBeDefined();
   });
 });

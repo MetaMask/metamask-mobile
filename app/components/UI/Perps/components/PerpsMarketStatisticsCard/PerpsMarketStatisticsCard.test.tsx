@@ -1,0 +1,263 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
+import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
+
+// Mock the strings function
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+// Mock the useStyles hook
+jest.mock('../../../../hooks/useStyles', () => ({
+  useStyles: jest.fn(() => ({
+    styles: {
+      statisticsGrid: { gap: 12 },
+      statisticsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 12,
+      },
+      statisticsItem: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+        padding: 16,
+        borderRadius: 8,
+      },
+      statisticsLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginBottom: 4,
+      },
+      statisticsValue: { fontSize: 16, fontWeight: '600' },
+      fundingRateContainer: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        gap: 4,
+      },
+      fundingCountdown: { marginLeft: 2 },
+    },
+  })),
+}));
+
+describe('PerpsMarketStatisticsCard', () => {
+  const mockMarketStats = {
+    high24h: '$50,000.00',
+    low24h: '$45,000.00',
+    volume24h: '$1,234,567.89',
+    openInterest: '$987,654.32',
+    fundingRate: '0.0125%',
+    fundingCountdown: '02:15:30',
+    currentPrice: 47500,
+    priceChange24h: 0.05,
+    isLoading: false,
+    refresh: jest.fn(),
+  };
+
+  const mockOnTooltipPress = jest.fn();
+
+  const defaultProps: PerpsMarketStatisticsCardProps = {
+    marketStats: mockMarketStats,
+    onTooltipPress: mockOnTooltipPress,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders all statistics rows correctly', () => {
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    // Check 24hr high/low row
+    expect(getByText('perps.market.24hr_high')).toBeOnTheScreen();
+    expect(getByText('perps.market.24hr_low')).toBeOnTheScreen();
+    expect(getByText('$50,000.00')).toBeOnTheScreen();
+    expect(getByText('$45,000.00')).toBeOnTheScreen();
+
+    // Check volume and open interest row
+    expect(getByText('perps.market.24h_volume')).toBeOnTheScreen();
+    expect(getByText('perps.market.open_interest')).toBeOnTheScreen();
+    expect(getByText('$1,234,567.89')).toBeOnTheScreen();
+    expect(getByText('$987,654.32')).toBeOnTheScreen();
+
+    // Check funding rate row
+    expect(getByText('perps.market.funding_rate')).toBeOnTheScreen();
+    expect(getByText('0.0125%')).toBeOnTheScreen();
+    expect(getByText('(02:15:30)')).toBeOnTheScreen();
+  });
+
+  it('displays positive funding rate in success color', () => {
+    const positiveFundingStats = {
+      ...mockMarketStats,
+      fundingRate: '0.0250%',
+    };
+
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={positiveFundingStats}
+      />,
+    );
+
+    const fundingRateText = getByText('0.0250%');
+    expect(fundingRateText).toBeOnTheScreen();
+  });
+
+  it('displays negative funding rate in error color', () => {
+    const negativeFundingStats = {
+      ...mockMarketStats,
+      fundingRate: '-0.0150%',
+    };
+
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={negativeFundingStats}
+      />,
+    );
+
+    const fundingRateText = getByText('-0.0150%');
+    expect(fundingRateText).toBeOnTheScreen();
+  });
+
+  it('displays zero funding rate in default color', () => {
+    const zeroFundingStats = {
+      ...mockMarketStats,
+      fundingRate: '0.0000%',
+    };
+
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={zeroFundingStats}
+      />,
+    );
+
+    const fundingRateText = getByText('0.0000%');
+    expect(fundingRateText).toBeOnTheScreen();
+  });
+
+  it('calls onTooltipPress with open_interest when info icon is pressed', () => {
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const openInterestInfoIcon = getByTestId(
+      'perps-market-details-open-interest-info-icon',
+    );
+    fireEvent.press(openInterestInfoIcon);
+
+    expect(mockOnTooltipPress).toHaveBeenCalledWith('open_interest');
+  });
+
+  it('calls onTooltipPress with funding_rate when info icon is pressed', () => {
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const fundingRateInfoIcon = getByTestId(
+      'perps-market-details-funding-rate-info-icon',
+    );
+    fireEvent.press(fundingRateInfoIcon);
+
+    expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');
+  });
+
+  it('renders with correct test IDs for all statistics', () => {
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    // Check all test IDs are present
+    expect(getByTestId('perps-statistics-high-24h')).toBeOnTheScreen();
+    expect(getByTestId('perps-statistics-low-24h')).toBeOnTheScreen();
+    expect(getByTestId('perps-statistics-volume-24h')).toBeOnTheScreen();
+    expect(getByTestId('perps-statistics-open-interest')).toBeOnTheScreen();
+    expect(getByTestId('perps-statistics-funding-rate')).toBeOnTheScreen();
+    expect(getByTestId('perps-statistics-funding-countdown')).toBeOnTheScreen();
+  });
+
+  it('handles edge case with very small funding rate values', () => {
+    const smallFundingStats = {
+      ...mockMarketStats,
+      fundingRate: '0.0001%',
+    };
+
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={smallFundingStats}
+      />,
+    );
+
+    expect(getByText('0.0001%')).toBeOnTheScreen();
+  });
+
+  it('handles edge case with very large funding rate values', () => {
+    const largeFundingStats = {
+      ...mockMarketStats,
+      fundingRate: '15.7500%',
+    };
+
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={largeFundingStats}
+      />,
+    );
+
+    expect(getByText('15.7500%')).toBeOnTheScreen();
+  });
+
+  it('renders funding countdown in parentheses', () => {
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    const countdownText = getByText('(02:15:30)');
+    expect(countdownText).toBeOnTheScreen();
+  });
+
+  it('displays all market statistics with proper formatting', () => {
+    const { getByText } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    // Verify all values are displayed
+    expect(getByText('$50,000.00')).toBeOnTheScreen(); // high24h
+    expect(getByText('$45,000.00')).toBeOnTheScreen(); // low24h
+    expect(getByText('$1,234,567.89')).toBeOnTheScreen(); // volume24h
+    expect(getByText('$987,654.32')).toBeOnTheScreen(); // openInterest
+    expect(getByText('0.0125%')).toBeOnTheScreen(); // fundingRate
+    expect(getByText('(02:15:30)')).toBeOnTheScreen(); // fundingCountdown
+  });
+
+  it('calls onTooltipPress only when info icons are pressed', () => {
+    const { getByTestId } = render(
+      <PerpsMarketStatisticsCard {...defaultProps} />,
+    );
+
+    // Initially no calls
+    expect(mockOnTooltipPress).not.toHaveBeenCalled();
+
+    // Press open interest info icon
+    const openInterestInfoIcon = getByTestId(
+      'perps-market-details-open-interest-info-icon',
+    );
+    fireEvent.press(openInterestInfoIcon);
+    expect(mockOnTooltipPress).toHaveBeenCalledWith('open_interest');
+
+    // Press funding rate info icon
+    const fundingRateInfoIcon = getByTestId(
+      'perps-market-details-funding-rate-info-icon',
+    );
+    fireEvent.press(fundingRateInfoIcon);
+    expect(mockOnTooltipPress).toHaveBeenCalledWith('funding_rate');
+
+    // Verify total calls
+    expect(mockOnTooltipPress).toHaveBeenCalledTimes(2);
+  });
+});

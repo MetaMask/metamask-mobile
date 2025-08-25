@@ -14,11 +14,13 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedAgg,
   fiatOrdersPaymentMethodSelectorAgg,
   fiatOrdersRegionSelectorAgg,
+  fiatOrdersRegionSelectorDeposit,
   getActivationKeys,
   getAuthenticationUrls,
   getCustomOrderIds,
   getHasOrders,
   getOrders,
+  getAllDepositOrders,
   getPendingOrders,
   getProviderName,
   getRampNetworks,
@@ -36,6 +38,7 @@ import fiatOrderReducer, {
   setFiatOrdersPaymentMethodAGG,
   fiatOrdersGetStartedDeposit,
   setFiatOrdersRegionAGG,
+  setFiatOrdersRegionDeposit,
   updateActivationKey,
   updateFiatCustomIdData,
   updateFiatOrder,
@@ -415,6 +418,37 @@ describe('fiatOrderReducer', () => {
 
     expect(stateWithSelectedRegion.selectedRegionAgg).toEqual(testRegion);
     expect(stateWithoutSelectedRegion.selectedRegionAgg).toEqual(null);
+  });
+
+  it('should set the selected deposit region', () => {
+    const testDepositRegion = {
+      isoCode: 'US',
+      flag: '🇺🇸',
+      name: 'United States',
+      phone: {
+        prefix: '+1',
+        placeholder: '123 456 7890',
+        template: 'XXX XXX XXXX',
+      },
+      currency: 'USD',
+      supported: true,
+      recommended: true,
+    };
+    const stateWithSelectedDepositRegion = fiatOrderReducer(
+      initialState,
+      setFiatOrdersRegionDeposit(testDepositRegion),
+    );
+    const stateWithoutSelectedDepositRegion = fiatOrderReducer(
+      stateWithSelectedDepositRegion,
+      setFiatOrdersRegionDeposit(null),
+    );
+
+    expect(stateWithSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      testDepositRegion,
+    );
+    expect(stateWithoutSelectedDepositRegion.selectedRegionDeposit).toEqual(
+      null,
+    );
   });
 
   it('should set the selected payment method', () => {
@@ -825,6 +859,41 @@ describe('selectors', () => {
     });
   });
 
+  describe('fiatOrdersRegionSelectorDeposit', () => {
+    it('should return the selected deposit region', () => {
+      const testDepositRegion = {
+        isoCode: 'US',
+        flag: '🇺🇸',
+        name: 'United States',
+        phone: {
+          prefix: '+1',
+          placeholder: '123 456 7890',
+          template: 'XXX XXX XXXX',
+        },
+        currency: 'USD',
+        supported: true,
+        recommended: true,
+      };
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: testDepositRegion,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(testDepositRegion);
+    });
+
+    it('should return null when no deposit region is selected', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          selectedRegionDeposit: null,
+        },
+      });
+
+      expect(fiatOrdersRegionSelectorDeposit(state)).toEqual(null);
+    });
+  });
+
   describe('fiatOrdersPaymentMethodSelectorAgg', () => {
     it('should return the selected payment method id', () => {
       const state = merge({}, initialRootState, {
@@ -1222,6 +1291,86 @@ describe('selectors', () => {
       });
 
       expect(getOrders(state)).toEqual([]);
+    });
+  });
+
+  describe('getAllDepositOrders', () => {
+    const mockDepositOrder1 = {
+      ...mockOrder1,
+      id: 'deposit-order-1',
+      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      state: 'CREATED' as FiatOrder['state'],
+      network: '1',
+      account: MOCK_ADDRESS_1,
+    };
+
+    const mockDepositOrder2 = {
+      ...mockOrder1,
+      id: 'deposit-order-2',
+      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      state: 'PENDING' as FiatOrder['state'],
+      network: '56',
+      account: MOCK_ADDRESS_2,
+    };
+
+    const mockAggregatorOrder = {
+      ...mockOrder1,
+      id: 'aggregator-order-1',
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: 'COMPLETED' as FiatOrder['state'],
+      network: '1',
+      account: MOCK_ADDRESS_1,
+    };
+
+    it('should return all deposit orders regardless of network or account', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {
+                mainnet: {
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  blockExplorerUrls: ['https://etherscan.com'],
+                  chainId: '0x1',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Ethereum network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      type: 'Custom',
+                      url: 'https://mainnet.infura.io/v3',
+                    },
+                  ],
+                },
+              },
+            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+          },
+        },
+        fiatOrders: {
+          orders: [mockDepositOrder1, mockDepositOrder2, mockAggregatorOrder],
+        },
+      });
+
+      const result = getAllDepositOrders(state);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((o) => o.id)).toEqual([
+        'deposit-order-1',
+        'deposit-order-2',
+      ]);
+      expect(
+        result.every(
+          (order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT,
+        ),
+      ).toBe(true);
     });
   });
 

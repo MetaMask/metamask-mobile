@@ -11,6 +11,7 @@ import {
 } from '../constants/storage';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
+import QuickCrypto from 'react-native-quick-crypto';
 
 jest.mock('../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -197,6 +198,126 @@ describe('SecureKeychain - setGenericPassword', () => {
             AUTHENTICATION_TYPE.BIOMETRIC,
         }),
       );
+    });
+  });
+});
+
+describe('SecureKeychain - Secure Item Methods', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    SecureKeychain.init('test_salt');
+  });
+
+  describe('setSecureItem', () => {
+    it('encrypts value and stores parameters correctly', async () => {
+      const key = 'test-key';
+      const value = 'plain-text-value';
+      const scopeOptions = {
+        service: 'com.metamask.test-service',
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      };
+
+      await SecureKeychain.setSecureItem(key, value, scopeOptions);
+
+      const storedKey = (Keychain.setGenericPassword as jest.Mock).mock
+        .calls[0][0];
+      const storedValue = (Keychain.setGenericPassword as jest.Mock).mock
+        .calls[0][1];
+      const storedScopeOptions = (Keychain.setGenericPassword as jest.Mock).mock
+        .calls[0][2];
+
+      expect(storedKey).toBe(key);
+
+      expect(typeof storedValue).toBe('string');
+      expect(storedValue).toMatch(/^{"cipher":/);
+
+      expect(storedScopeOptions).toEqual(scopeOptions);
+    });
+  });
+
+  describe('getSecureItem', () => {
+    it('retrieves and decrypts item successfully', async () => {
+      const key = 'test-key';
+      const originalValue = 'plain-text-value';
+      const scopeOptions = {
+        service: 'com.metamask.test-service',
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      };
+
+      jest.spyOn(QuickCrypto.subtle, 'decrypt').mockImplementation(() => {
+        const jsonString = JSON.stringify({ password: originalValue });
+        const encoder = new TextEncoder();
+        return Promise.resolve(encoder.encode(jsonString));
+      });
+
+      await SecureKeychain.setSecureItem(key, originalValue, scopeOptions);
+
+      const storedEncryptedValue = (Keychain.setGenericPassword as jest.Mock)
+        .mock.calls[0][1];
+
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
+        username: key,
+        password: storedEncryptedValue,
+        service: scopeOptions.service,
+      });
+
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
+
+      expect(result).toEqual({
+        key,
+        value: originalValue,
+      });
+
+      expect(Keychain.getGenericPassword).toHaveBeenCalledWith(scopeOptions);
+    });
+
+    it('returns null when no item is found', async () => {
+      const scopeOptions = { service: 'test-service' };
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue(false);
+
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when value field is missing', async () => {
+      const scopeOptions = { service: 'test-service' };
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
+        username: 'test-key',
+      });
+
+      const result = await SecureKeychain.getSecureItem(scopeOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('throws error when decryption fails', async () => {
+      const scopeOptions = { service: 'test-service' };
+
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue({
+        username: 'test-key',
+        password: 'invalid-encrypted-data',
+      });
+
+      await expect(
+        SecureKeychain.getSecureItem(scopeOptions),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('clearSecureScope', () => {
+    it('clears scope using scope options', async () => {
+      const scopeOptions = {
+        service: 'com.metamask.test-service',
+        accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+      };
+
+      (Keychain.resetGenericPassword as jest.Mock).mockResolvedValue(true);
+
+      const result = await SecureKeychain.clearSecureScope(scopeOptions);
+
+      expect(Keychain.resetGenericPassword).toHaveBeenCalledWith(scopeOptions);
+      expect(result).toBe(true);
     });
   });
 });

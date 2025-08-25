@@ -35,4 +35,5 @@ export interface AccountFromToInfoCardProps {
     icon: string;
   };
   url: string;
+  contextualChainId: string;
 }

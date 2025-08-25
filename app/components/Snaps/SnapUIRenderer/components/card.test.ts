@@ -53,7 +53,7 @@ describe('card component mapper', () => {
         "propComponents": {
           "title": {
             "element": "SnapUIAddress",
-            "key": "0caa499a957c70f5556068532809dd857caa5a3997d3796ebd592b0cd341dce2_1",
+            "key": "{"type":"Address","name":null,"children":null}_1",
             "props": {
               "address": "0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb",
               "avatar": undefined,

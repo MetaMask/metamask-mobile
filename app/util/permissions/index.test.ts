@@ -1,6 +1,14 @@
 import Engine from '../../core/Engine';
-import { CaveatSpecificationConstraint, ExtractPermission, PermissionSpecificationConstraint, SubjectPermissions } from '@metamask/permission-controller';
-import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import {
+  CaveatSpecificationConstraint,
+  ExtractPermission,
+  PermissionSpecificationConstraint,
+  SubjectPermissions,
+} from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 import { PermissionKeys } from '../../core/Permissions/specifications';
 import { pick } from 'lodash';
 import { CaveatTypes } from '../../core/Permissions/constants';
@@ -9,7 +17,7 @@ import {
   getChangedAuthorization,
   getRemovedAuthorization,
   rejectOriginApprovals,
-  requestPermittedChainsPermissionIncremental
+  requestPermittedChainsPermissionIncremental,
 } from '.';
 import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
@@ -23,8 +31,8 @@ jest.mock('../../core/Engine', () => ({
     ApprovalController: {
       reject: jest.fn(),
       state: {
-        pendingApprovals: {}
-      }
+        pendingApprovals: {},
+      },
     },
     PermissionController: {
       requestPermissionsIncremental: jest.fn(),
@@ -33,8 +41,10 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-const mockRequestPermissionsIncremental = Engine.context.PermissionController.requestPermissionsIncremental as jest.Mock;
-const mockGrantPermissionsIncremental = Engine.context.PermissionController.grantPermissionsIncremental as jest.Mock;
+const mockRequestPermissionsIncremental = Engine.context.PermissionController
+  .requestPermissionsIncremental as jest.Mock;
+const mockGrantPermissionsIncremental = Engine.context.PermissionController
+  .grantPermissionsIncremental as jest.Mock;
 const mockReject = Engine.context.ApprovalController.reject as jest.Mock;
 
 describe('Permission Utils', () => {
@@ -78,11 +88,10 @@ describe('Permission Utils', () => {
         ),
       };
 
-      mockRequestPermissionsIncremental.
-        mockResolvedValue([
-          subjectPermissions,
-          { id: 'id', origin: 'origin' },
-        ]);
+      mockRequestPermissionsIncremental.mockResolvedValue([
+        subjectPermissions,
+        { id: 'id', origin: 'origin' },
+      ]);
 
       await requestPermittedChainsPermissionIncremental({
         origin: 'test.com',
@@ -90,14 +99,16 @@ describe('Permission Utils', () => {
         autoApprove: false,
       });
 
-      expect(
-        mockRequestPermissionsIncremental,
-      ).toHaveBeenCalledWith({ origin: 'test.com' }, expectedCaip25Permission);
+      expect(mockRequestPermissionsIncremental).toHaveBeenCalledWith(
+        { origin: 'test.com' },
+        expectedCaip25Permission,
+      );
     });
 
     it('throws if permittedChains approval is rejected', async () => {
-      mockRequestPermissionsIncremental
-        .mockRejectedValue(new Error('approval rejected'));
+      mockRequestPermissionsIncremental.mockRejectedValue(
+        new Error('approval rejected'),
+      );
 
       await expect(() =>
         requestPermittedChainsPermissionIncremental({
@@ -143,8 +154,7 @@ describe('Permission Utils', () => {
         ),
       };
 
-      mockGrantPermissionsIncremental
-        .mockReturnValue(subjectPermissions);
+      mockGrantPermissionsIncremental.mockReturnValue(subjectPermissions);
 
       await requestPermittedChainsPermissionIncremental({
         origin: 'test.com',
@@ -152,9 +162,7 @@ describe('Permission Utils', () => {
         autoApprove: true,
       });
 
-      expect(
-        mockGrantPermissionsIncremental,
-      ).toHaveBeenCalledWith({
+      expect(mockGrantPermissionsIncremental).toHaveBeenCalledWith({
         subject: { origin: 'test.com' },
         approvedPermissions: expectedCaip25Permission,
       });
@@ -456,7 +464,7 @@ describe('Permission Utils', () => {
                   optionalScopes: {
                     'eip155:100': {
                       accounts: [
-                        'eip155:100:0x0000000000000000000000000000000000000001'
+                        'eip155:100:0x0000000000000000000000000000000000000001',
                       ],
                     },
                     'wallet:eip155': {
@@ -587,7 +595,9 @@ describe('Permission Utils', () => {
     const origin = 'https://example.com';
 
     beforeEach(() => {
-      Engine.context.ApprovalController.state.pendingApprovals = { [id]: { id, origin } as ApprovalRequest<Record<string, Json>> };
+      Engine.context.ApprovalController.state.pendingApprovals = {
+        [id]: { id, origin } as ApprovalRequest<Record<string, Json>>,
+      };
     });
 
     afterEach(() => {
@@ -618,10 +628,12 @@ describe('Permission Utils', () => {
         sessionProperties: {},
       };
 
-      expect(getChangedAuthorization(newAuth, undefined)).toStrictEqual(expect.objectContaining({
-        requiredScopes: { 'eip155:1': { accounts: [] } },
-        optionalScopes: {},
-      }));
+      expect(getChangedAuthorization(newAuth, undefined)).toStrictEqual(
+        expect.objectContaining({
+          requiredScopes: { 'eip155:1': { accounts: [] } },
+          optionalScopes: {},
+        }),
+      );
     });
 
     it('returns empty scopes if the new and previous values are the same', () => {
@@ -672,18 +684,20 @@ describe('Permission Utils', () => {
         sessionProperties: {},
       };
 
-      expect(getChangedAuthorization(newAuth, previousAuth)).toStrictEqual(expect.objectContaining({
-        requiredScopes: {
-          'eip155:1': {
-            accounts: ['eip155:1:0xbeef'],
+      expect(getChangedAuthorization(newAuth, previousAuth)).toStrictEqual(
+        expect.objectContaining({
+          requiredScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0xbeef'],
+            },
           },
-        },
-        optionalScopes: {
-          'eip155:5': {
-            accounts: ['eip155:5:0x123'],
+          optionalScopes: {
+            'eip155:5': {
+              accounts: ['eip155:5:0x123'],
+            },
           },
-        },
-      }));
+        }),
+      );
     });
   });
 
@@ -788,7 +802,7 @@ describe('Permission Utils', () => {
               accounts: [],
             },
           },
-        })
+        }),
       );
     });
   });

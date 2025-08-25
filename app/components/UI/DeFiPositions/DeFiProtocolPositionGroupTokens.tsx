@@ -13,11 +13,13 @@ import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiProtocolPositionGroupTokens.styles';
 import { PositionType } from './position-types';
 import { useStyles } from '../../hooks/useStyles';
+import { getTokenAvatarUrl } from './get-token-avatar-url';
 
 interface DeFiProtocolPositionGroupTokensProps {
   positionType: PositionType;
   tokens: {
     key: string;
+    address: string;
     name: string;
     symbol: string;
     iconUrl: string;
@@ -53,7 +55,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
             <DeFiAvatarWithBadge
               networkIconAvatar={networkIconAvatar}
               avatarName={token.name}
-              avatarIconUrl={token.iconUrl}
+              avatarIconUrl={getTokenAvatarUrl(token)}
             />
           </View>
 

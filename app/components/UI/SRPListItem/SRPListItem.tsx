@@ -10,6 +10,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
+  IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { getInternalAccountByAddress } from '../../../util/address';
@@ -32,6 +33,7 @@ const SRPListItem = ({
   keyring,
   onActionComplete,
   testID,
+  showArrowName = '',
 }: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -72,28 +74,62 @@ const SRPListItem = ({
     >
       <View style={styles.srpItem}>
         <View style={styles.srpItemContent}>
-          <Text variant={TextVariant.BodyMDMedium}>{name}</Text>
-          <Button
-            testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
-            variant={ButtonVariants.Link}
-            label={`${strings(
-              !showAccounts
-                ? 'accounts.show_accounts'
-                : 'accounts.hide_accounts',
-            )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
-            onPress={() => {
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
-                )
-                  .addProperties({
-                    button_type: 'details',
-                  })
-                  .build(),
-              );
-              setShowAccounts(!showAccounts);
-            }}
-          />
+          <View>
+            <View style={styles.srpItemIconContainer}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {name}
+              </Text>
+              <View style={styles.srpIconContainer}>
+                {Boolean(showArrowName) && (
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {showArrowName}
+                  </Text>
+                )}
+                <Icon
+                  name={IconName.ArrowRight}
+                  style={styles.srpItemIcon}
+                  color={IconColor.Alternative}
+                />
+              </View>
+            </View>
+
+            <Button
+              testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
+              variant={ButtonVariants.Link}
+              onPress={() => {
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+                  )
+                    .addProperties({
+                      button_type: 'details',
+                    })
+                    .build(),
+                );
+                setShowAccounts(!showAccounts);
+              }}
+              label={
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Primary}
+                >
+                  {`${strings(
+                    !showAccounts
+                      ? 'accounts.show_accounts'
+                      : 'accounts.hide_accounts',
+                  )} ${keyring.accounts.length} ${strings(
+                    'accounts.accounts',
+                  )}`}
+                </Text>
+              }
+            />
+          </View>
           {showAccounts && (
             <>
               <View style={styles.horizontalLine} />
@@ -133,7 +169,6 @@ const SRPListItem = ({
             </>
           )}
         </View>
-        <Icon name={IconName.ArrowRight} style={styles.srpItemIcon} />
       </View>
     </TouchableWithoutFeedback>
   );

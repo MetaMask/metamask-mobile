@@ -13,6 +13,8 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { merge } from 'lodash';
 import MetaMetrics from '../../core/Analytics/MetaMetrics';
+import Engine from '../../core/Engine';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -45,6 +47,9 @@ jest.mock('../../core/Engine', () => ({
         keyrings: ['keyring1', 'keyring2'],
         isUnlocked: true,
       },
+    },
+    SeedlessOnboardingController: {
+      state: {},
     },
   },
 }));
@@ -147,6 +152,127 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('appVersion')).toBe(true);
     expect(logs.includes('buildNumber')).toBe(true);
     expect(logs.includes('metaMetricsId')).toBe(true);
+  });
+
+  describe('Sanitized SeedlessOnboardingController State', () => {
+    it('Able to generate logs when SeedlessOnboardingController state is empty', () => {
+      const mockStateInput = {
+        appVersion: '1',
+        buildNumber: '123',
+        metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+      const logs = generateStateLogs(mockStateInput);
+
+      const logsObj = JSON.parse(logs);
+      const {
+        vault,
+        vaultEncryptionKey,
+        vaultEncryptionSalt,
+        encryptedSeedlessEncryptionKey,
+        encryptedKeyringEncryptionKey,
+        metadataAccessToken,
+        accessToken,
+        refreshToken,
+        revokeToken,
+      } = logsObj.engine.backgroundState.SeedlessOnboardingController;
+
+      expect(vault).toBe(false);
+      expect(vaultEncryptionKey).toBe(false);
+      expect(vaultEncryptionSalt).toBe(false);
+      expect(encryptedSeedlessEncryptionKey).toBe(false);
+      expect(encryptedKeyringEncryptionKey).toBe(false);
+      expect(metadataAccessToken).toBe(false);
+      expect(accessToken).toBe(false);
+      expect(refreshToken).toBe(false);
+      expect(revokeToken).toBe(false);
+    });
+
+    it('Able to generate logs with Sanitized SeedlessOnboardingController sensitive data', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        userId: 'userId',
+        isSeedlessOnboardingUserAuthenticated: true,
+        socialBackupsMetadata: [
+          {
+            type: SecretType.Mnemonic,
+            keyringId: 'keyring1',
+            hash: 'should not be in logs',
+          },
+          // @ts-expect-error - the test case is to test the input being not the expected
+          null,
+        ],
+        nodeAuthTokens: [
+          { nodeIndex: 1, authToken: 'authToken', nodePubKey: 'nodePubKey' },
+          { nodeIndex: 2, authToken: 'authToken', nodePubKey: 'nodePubKey' },
+          // @ts-expect-error - the test case is to test the input being not the expected
+          null,
+        ],
+
+        vault: 'should be a boolean',
+        vaultEncryptionKey: 'should be a boolean',
+        vaultEncryptionSalt: 'should be a boolean',
+        encryptedSeedlessEncryptionKey: 'should be a boolean',
+        encryptedKeyringEncryptionKey: 'should be a boolean',
+        metadataAccessToken: 'should be a boolean',
+        accessToken: 'should be a boolean',
+        refreshToken: 'should be a boolean',
+        revokeToken: 'should be a boolean',
+      };
+
+      const mockStateInput = {
+        appVersion: '1',
+        buildNumber: '123',
+        metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
+          },
+        },
+      };
+      const logs = generateStateLogs(mockStateInput);
+
+      const logsObj = JSON.parse(logs);
+      const {
+        vault,
+        vaultEncryptionKey,
+        vaultEncryptionSalt,
+        encryptedSeedlessEncryptionKey,
+        encryptedKeyringEncryptionKey,
+        metadataAccessToken,
+        accessToken,
+        refreshToken,
+        revokeToken,
+        nodeAuthTokens,
+        socialBackupsMetadata,
+      } = logsObj.engine.backgroundState.SeedlessOnboardingController;
+
+      expect(nodeAuthTokens[0].nodeIndex).toBe(1);
+      expect(nodeAuthTokens[0].authToken).toBe(undefined);
+
+      expect(socialBackupsMetadata[0].keyringId).toBe('keyring1');
+      expect(socialBackupsMetadata[0].hash).toBe(undefined);
+      expect(vault).toBe(true);
+      expect(vaultEncryptionKey).toBe(true);
+      expect(vaultEncryptionSalt).toBe(true);
+      expect(encryptedSeedlessEncryptionKey).toBe(true);
+      expect(encryptedKeyringEncryptionKey).toBe(true);
+      expect(metadataAccessToken).toBe(true);
+      expect(accessToken).toBe(true);
+      expect(refreshToken).toBe(true);
+      expect(revokeToken).toBe(true);
+
+      expect(JSON.parse(logs)).toMatchSnapshot();
+    });
   });
 });
 

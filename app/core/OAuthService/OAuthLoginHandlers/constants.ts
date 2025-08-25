@@ -1,4 +1,5 @@
-import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
@@ -28,13 +29,14 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
     return 'development';
   }
-  const IS_QA = process.env.METAMASK_ENVIRONMENT === 'qa';
 
   switch (buildType) {
+    case 'qa':
+      return 'main_uat';
     case 'main':
-      return isDev ? 'main_dev' : IS_QA ? 'main_uat' : 'main_prod';
+      return isQa ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
     case 'flask':
-      return isDev ? 'flask_dev' : IS_QA ? 'flask_uat' : 'flask_prod';
+      return isQa ? 'flask_uat' : isDev ? 'flask_dev' : 'flask_prod';
     default:
       return 'development';
   }
@@ -48,14 +50,15 @@ const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG[BuildType];
 
 export const web3AuthNetwork = CURRENT_OAUTH_CONFIG.WEB3AUTH_NETWORK;
 export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
-export const IosAppleClientId = CURRENT_OAUTH_CONFIG.IOS_APPLE_CLIENT_ID;
 
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
-export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
+// export const AppRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
+// use app deeplink for now, wait for applink to be updated
+export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
 export enum SupportedPlatforms {

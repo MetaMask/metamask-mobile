@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import useUserDetailsPolling, { KycStatus } from './useUserDetailsPolling';
+import useUserDetailsPolling from './useUserDetailsPolling';
 import {
   DepositSdkMethodState,
   useDepositSdkMethod,
@@ -9,7 +9,7 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '../constants';
+import { DepositRegion, KycStatus } from '../constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -50,7 +50,7 @@ describe('useUserDetailsPolling', () => {
       authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
-      clearAuthToken: jest.fn(),
+      logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
       selectedRegion: {

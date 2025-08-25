@@ -334,7 +334,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,8 +385,8 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -500,7 +500,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#9ca1af"
+                                  color="#b7bbc8"
                                   fill="currentColor"
                                   height={20}
                                   name="FaceId"
@@ -557,7 +557,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#9ca1af"
+                                  color="#b7bbc8"
                                   fill="currentColor"
                                   height={20}
                                   name="SecurityKey"
@@ -619,6 +619,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

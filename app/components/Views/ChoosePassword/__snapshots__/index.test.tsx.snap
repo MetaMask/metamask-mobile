@@ -179,12 +179,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
                   placeholder="Enter a strong password"
-                  placeholderTextColor="#9ca1af"
+                  placeholderTextColor="#b7bbc8"
                   returnKeyType="next"
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -197,6 +197,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "paddingVertical": 0,
                     }
                   }
+                  submitBehavior="submit"
                   testID="create-password-first-input-field"
                   value=""
                 />
@@ -286,12 +287,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
                   placeholder="Re-enter your password"
-                  placeholderTextColor="#9ca1af"
+                  placeholderTextColor="#b7bbc8"
                   returnKeyType="done"
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -515,19 +516,19 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#4459ff",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
                   "opacity": 0.5,
+                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }

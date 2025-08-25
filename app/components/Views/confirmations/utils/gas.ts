@@ -39,9 +39,7 @@ export function getFeesFromHex({
     };
   }
 
-  const nativeConversionRateInBN = new BigNumber(
-    nativeConversionRate,
-  );
+  const nativeConversionRateInBN = new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
   const nativeCurrencyFee = `${formatAmount(
     locale,
@@ -153,22 +151,26 @@ export function calculateGasEstimate({
   }
 
   const estimation = multiplyHexes(
-    shouldUseEIP1559FeeLogic
-      ? (minimumFeePerGas as Hex)
-      : (gasPrice as Hex),
+    shouldUseEIP1559FeeLogic ? (minimumFeePerGas as Hex) : (gasPrice as Hex),
     gas as Hex,
   );
 
   const hasLayer1GasFee = Boolean(layer1GasFee);
 
   if (hasLayer1GasFee && layer1GasFee) {
-    const estimatedTotalFeesForL2 = addHexes(
-      estimation,
-      layer1GasFee,
-    ) as Hex;
+    const estimatedTotalFeesForL2 = addHexes(estimation, layer1GasFee) as Hex;
 
     return getFeesFromHexFn(estimatedTotalFeesForL2);
   }
 
   return getFeesFromHexFn(estimation);
+}
+
+export function normalizeGasInput(value: string) {
+  return value.replace(',', '.');
+}
+
+export function convertGasInputToHexWEI(value: string) {
+  const normalizedValue = normalizeGasInput(value);
+  return add0x(decGWEIToHexWEI(normalizedValue) as Hex);
 }

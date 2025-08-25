@@ -8,7 +8,6 @@ const styleSheet = () =>
   StyleSheet.create({
     listItemWrapper: {
       flexDirection: 'row',
-      paddingHorizontal: 15,
       paddingVertical: 10,
       alignItems: 'flex-start',
     },

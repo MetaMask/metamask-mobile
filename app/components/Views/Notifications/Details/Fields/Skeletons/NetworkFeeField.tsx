@@ -9,9 +9,7 @@ interface SkeletonPlaceholderItem {
   marginTop: number;
 }
 
-
 export default function NetworkFeeFieldSkeleton() {
-
   const skeletonProps: SkeletonPlaceholderItem = {
     width: 32,
     height: 45,
@@ -21,13 +19,12 @@ export default function NetworkFeeFieldSkeleton() {
 
   return (
     <SkeletonPlaceholder>
-      <SkeletonPlaceholder.Item
-        flexDirection="row"
-        alignItems="center"
-        gap={8}
-      >
+      <SkeletonPlaceholder.Item flexDirection="row" alignItems="center" gap={8}>
         <SkeletonPlaceholder.Item {...skeletonProps} />
-        <SkeletonPlaceholder.Item {...skeletonProps} width={Dimensions.get('screen').width - 68} />
+        <SkeletonPlaceholder.Item
+          {...skeletonProps}
+          width={Dimensions.get('screen').width - 68}
+        />
       </SkeletonPlaceholder.Item>
     </SkeletonPlaceholder>
   );

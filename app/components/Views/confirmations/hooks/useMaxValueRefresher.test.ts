@@ -24,9 +24,9 @@ jest.mock('./gas/useFeeCalculations', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-    ...jest.requireActual('react-redux'),
-    useSelector: jest.fn(),
-  }));
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 describe('useMaxValueRefresher', () => {
   const mockUseFeeCalculations = jest.mocked(useFeeCalculations);
@@ -52,7 +52,7 @@ describe('useMaxValueRefresher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseFeeCalculations.mockReturnValue({
-      preciseNativeFeeInHex: '0x5',
+      maxFeeNativeHex: '0x5',
     } as unknown as ReturnType<typeof useFeeCalculations>);
 
     mockUseSelector.mockImplementation(

@@ -12,6 +12,7 @@ import {
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
+import { Keys } from '../../../Base/Keypad/constants';
 
 export interface InputHandlerParams {
   balance: string;
@@ -105,7 +106,7 @@ const useInputHandler = ({
       const isValueNaN = isNaN(parseFloat(value));
 
       if (
-        pressedKey === 'BACK' ||
+        pressedKey === Keys.Back ||
         isValueNaN ||
         (totalDigits <= MAX_DIGITS &&
           fraction.length <= MAX_FRACTION_DIGITS &&
@@ -114,9 +115,9 @@ const useInputHandler = ({
         if (isValueNaN) {
           if (
             pressedKey === digitsOnly[digitsOnly.length - 1] ||
-            pressedKey === 'PERIOD'
+            pressedKey === Keys.Period
           ) {
-            value = pressedKey === 'PERIOD' ? '0.' : pressedKey;
+            value = pressedKey === Keys.Period ? '0.' : pressedKey;
           } else {
             value = '0';
           }

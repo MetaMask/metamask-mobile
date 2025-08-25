@@ -21,8 +21,8 @@ describe('smartTransactions', () => {
       expect(allowedChainIds).toStrictEqual([
         NETWORKS_CHAIN_ID.MAINNET,
         NETWORKS_CHAIN_ID.SEPOLIA,
-        // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to development when ready
-        // NETWORKS_CHAIN_ID.LINEA_MAINNET, // TODO: Add linea mainnet to development when ready
+        NETWORKS_CHAIN_ID.BASE,
+        NETWORKS_CHAIN_ID.LINEA_MAINNET,
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
       ]);
@@ -33,8 +33,8 @@ describe('smartTransactions', () => {
       const allowedChainIds = getAllowedSmartTransactionsChainIds();
       expect(allowedChainIds).toStrictEqual([
         NETWORKS_CHAIN_ID.MAINNET,
-        // NETWORKS_CHAIN_ID.BASE, // TODO: Add base to production when ready
-        // NETWORKS_CHAIN_ID.LINEA_MAINNET, // TODO: Add linea mainnet to production when ready
+        NETWORKS_CHAIN_ID.BASE,
+        NETWORKS_CHAIN_ID.LINEA_MAINNET,
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
       ]);

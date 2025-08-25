@@ -49,7 +49,6 @@ describe('Splash', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('renders null if confirmation is not of type upgrade', async () => {

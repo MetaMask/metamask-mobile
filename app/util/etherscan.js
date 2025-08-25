@@ -1,5 +1,5 @@
 import {
-  BASE_MAINNET_BLOCK_EXPLORER_URL,
+  BASE_MAINNET_BLOCK_EXPLORER,
   LINEA_GOERLI_BLOCK_EXPLORER,
   LINEA_MAINNET_BLOCK_EXPLORER,
   LINEA_SEPOLIA_BLOCK_EXPLORER,
@@ -52,7 +52,7 @@ export function getEtherscanBaseUrl(networkType) {
   if (networkType === LINEA_GOERLI) return LINEA_GOERLI_BLOCK_EXPLORER;
   if (networkType === LINEA_SEPOLIA) return LINEA_SEPOLIA_BLOCK_EXPLORER;
   if (networkType === LINEA_MAINNET) return LINEA_MAINNET_BLOCK_EXPLORER;
-  if (networkType === BASE_MAINNET) return BASE_MAINNET_BLOCK_EXPLORER_URL;
+  if (networkType === BASE_MAINNET) return BASE_MAINNET_BLOCK_EXPLORER;
   if (networkType === SEPOLIA) return SEPOLIA_BLOCK_EXPLORER;
   const subdomain =
     networkType.toLowerCase() === MAINNET

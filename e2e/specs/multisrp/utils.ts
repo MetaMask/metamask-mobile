@@ -2,24 +2,24 @@ import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions.ts';
 import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.ts';
 
 const PASSWORD = '123123123';
 
 export const goToImportSrp = async () => {
   await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapAddAccountButton();
   await AddAccountBottomSheet.tapImportSrp();
-  await Assertions.checkIfVisible(ImportSrpView.container);
+  await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
 
 export const inputSrp = async (mnemonic: string) => {
@@ -45,19 +45,22 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
     PASSWORD,
   );
   await RevealSecretRecoveryPhrase.tapToReveal();
-  await Assertions.checkIfVisible(RevealSecretRecoveryPhrase.container);
-  await Assertions.checkIfTextIsDisplayed(
+  await Assertions.expectElementToBeVisible(
+    RevealSecretRecoveryPhrase.container,
+  );
+  await Assertions.expectTextDisplayed(
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );
-  await Assertions.checkIfTextIsDisplayed(expectedSrp);
+  await Assertions.expectTextDisplayed(expectedSrp);
+  await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };
 
 export const goToAccountActions = async (accountIndex: number) => {
   await WalletView.tapIdenticon();
-  await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
   await AccountListBottomSheet.tapEditAccountActionsAtIndex(accountIndex);
-  await AccountActionsBottomSheet.tapShowSRP();
+  await AccountDetails.tapExportSrpButton();
 };
 
 export const startExportForKeyring = async (keyringId: string) => {

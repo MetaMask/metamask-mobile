@@ -1,5 +1,7 @@
 import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Hex } from '@metamask/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -14,7 +16,10 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import Networks, { getNetworkImageSource } from '../../../../util/networks';
+import Networks, {
+  getNetworkImageSource,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import images from 'images/image-icons';
@@ -23,11 +28,16 @@ import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { useSelector } from 'react-redux';
 import { selectIsAllNetworks } from '../../../../selectors/networkController';
-import { PopularList } from '../../../../util/networks/customNetworks';
 import Engine from '../../../../core/Engine/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -56,7 +66,12 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   styles,
 }) => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
-
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
   const { navigate } = useNavigation();
 
   const onRpcSelect = useCallback(
@@ -97,11 +112,8 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   );
 
   const setTokenNetworkFilter = useCallback(
-    (chainId: string) => {
-      const isPopularNetwork =
-        chainId === CHAIN_IDS.MAINNET ||
-        chainId === CHAIN_IDS.LINEA_MAINNET ||
-        PopularList.some((network) => network.chainId === chainId);
+    (chainId: Hex) => {
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(chainId);
 
       const { PreferencesController } = Engine.context;
       if (!isAllNetwork && isPopularNetwork) {
@@ -109,8 +121,12 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
           [chainId]: true,
         });
       }
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        const caipChainId = formatChainIdToCaip(chainId);
+        selectNetwork(caipChainId);
+      }
     },
-    [isAllNetwork],
+    [isAllNetwork, selectNetwork],
   );
   const imageSource = useMemo(() => {
     switch (showMultiRpcSelectModal.chainId) {
@@ -124,6 +140,18 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
         });
     }
   }, [showMultiRpcSelectModal.chainId]);
+
+  const handleRpcSelect = useCallback(
+    (networkClientId: string, chainIdArg: `0x${string}`) => {
+      onRpcSelect(networkClientId, chainIdArg);
+      setTokenNetworkFilter(chainIdArg);
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        selectNetwork(chainIdArg);
+      }
+      closeRpcModal();
+    },
+    [onRpcSelect, setTokenNetworkFilter, closeRpcModal, selectNetwork],
+  );
 
   if (!showMultiRpcSelectModal.isVisible) return null;
 
@@ -178,11 +206,9 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
               }
               isDisabled={false}
               gap={8}
-              onPress={() => {
-                onRpcSelect(networkClientId, chainId as `0x${string}`);
-                setTokenNetworkFilter(chainId as `0x${string}`);
-                closeRpcModal();
-              }}
+              onPress={() =>
+                handleRpcSelect(networkClientId, chainId as `0x${string}`)
+              }
             >
               <View style={styles.rpcText}>
                 <Text style={styles.textCentred}>

@@ -46,7 +46,7 @@ export const createStyles = (theme: Theme) =>
       padding: 20,
     },
     tabContentContainer: {
-      minHeight: 320,
+      minHeight: Platform.OS === 'android' ? 320 : 0,
       flexGrow: 1,
       flexShrink: 0,
       marginBottom: Platform.OS === 'android' ? 20 : 0,
@@ -100,15 +100,14 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.text.default,
       ...fontStyles.bold,
     },
-    tabContent: {
-      padding: 20,
+    tabContainer: {
+      paddingHorizontal: 16,
     },
     qrCodeContainer: {
       padding: 8,
       backgroundColor: theme.colors.background.default,
     },
     qrCodeWrapper: {
-      marginTop: 20,
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,

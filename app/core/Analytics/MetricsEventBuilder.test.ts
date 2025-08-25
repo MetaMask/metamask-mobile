@@ -1,4 +1,4 @@
-import {MetricsEventBuilder} from './MetricsEventBuilder';
+import { MetricsEventBuilder } from './MetricsEventBuilder';
 import { IMetaMetricsEvent, JsonMap } from './MetaMetrics.types';
 
 describe('MetricsEventBuilder', () => {
@@ -86,17 +86,19 @@ describe('MetricsEventBuilder', () => {
     };
 
     const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
-        .addSensitiveProperties(newProps)
-        .build();
+      .addSensitiveProperties(newProps)
+      .build();
 
     const similarEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
-        .addSensitiveProperties(newProps)
-        .build();
+      .addSensitiveProperties(newProps)
+      .build();
     expect(similarEvent).toEqual(event);
 
-    const differentEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
-        .addProperties(newProps)
-        .build();
+    const differentEvent = MetricsEventBuilder.createEventBuilder(
+      mockLegacyEvent,
+    )
+      .addProperties(newProps)
+      .build();
     expect(differentEvent).not.toEqual(event);
   });
 

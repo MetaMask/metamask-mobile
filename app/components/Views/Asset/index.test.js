@@ -725,4 +725,238 @@ describe('Asset', () => {
       expect(toJSON()).toMatchSnapshot();
     });
   });
+
+  describe('Fund Button Visibility', () => {
+    it('should show fund button when only ramp is supported (ETH)', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        // No deposit support
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: false,
+            minimumVersion: '7.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should show fund button when only deposit is supported', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: false,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: false,
+            },
+          ],
+        },
+        // Deposit is supported
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should show fund button when both deposit and ramp are supported', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: true,
+            },
+          ],
+        },
+        // Both deposit and ramp are supported
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should hide fund button when neither deposit nor ramp are supported', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: false,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: false,
+            },
+          ],
+        },
+        // No deposit support
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: false,
+            minimumVersion: '7.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'ETH',
+              address: 'something',
+              isETH: true,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should show fund button for non-ETH tokens when ramp is supported', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: true,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: false,
+            },
+          ],
+        },
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: false,
+            minimumVersion: '7.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'USDC',
+              address: '0xa0b86a33e6776a1a1b6e6bdb9b3b5e6b2e6f6d8e',
+              isETH: false,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should show fund button for non-ETH tokens when deposit is supported', () => {
+      const state = {
+        ...mockInitialState,
+        fiatOrders: {
+          networks: [
+            {
+              active: false,
+              chainId: '1',
+              chainName: 'Ethereum Mainnet',
+              nativeTokenSupported: false,
+            },
+          ],
+        },
+        remoteFeatureFlags: {
+          depositConfig: {
+            active: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { toJSON } = renderWithProvider(
+        <Asset
+          navigation={{ setOptions: jest.fn() }}
+          route={{
+            params: {
+              symbol: 'USDC',
+              address: '0xa0b86a33e6776a1a1b6e6bdb9b3b5e6b2e6f6d8e',
+              isETH: false,
+              chainId: '0x1',
+            },
+          }}
+        />,
+        { state },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
 });

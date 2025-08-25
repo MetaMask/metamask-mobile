@@ -11,15 +11,37 @@ Write a short description of the changes included in this pull request, also inc
 2. What is the improvement/solution?
 -->
 
+## **Changelog**
+
+<!--
+If this PR is not End-User-Facing and should not show up in the CHANGELOG, you can choose to either:
+1. Write `CHANGELOG entry: null`
+2. Label with `no-changelog`
+
+If this PR is End-User-Facing, please write a short User-Facing description in the past tense like:
+`CHANGELOG entry: Added a new tab for users to see their NFTs`
+`CHANGELOG entry: Fixed a bug that was causing some NFTs to flicker`
+
+(This helps the Release Engineer do their job more quickly and accurately)
+-->
+
+CHANGELOG entry:
+
 ## **Related issues**
 
 Fixes:
 
 ## **Manual testing steps**
 
-1. Go to this page...
-2.
-3.
+```gherkin
+Feature: my feature name
+
+  Scenario: user [verb for user action]
+    Given [describe expected initial app state]
+
+    When user [verb for user action]
+    Then [describe expected outcome]
+```
 
 ## **Screenshots/Recordings**
 

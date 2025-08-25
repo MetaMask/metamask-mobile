@@ -58,7 +58,8 @@ const expectedState = {
             rawTx: '0x6',
             error: {
               name: 'SmartTransactionCancelled',
-              message: 'Smart transaction cancelled. Previous status: submitted',
+              message:
+                'Smart transaction cancelled. Previous status: submitted',
             },
           },
           {

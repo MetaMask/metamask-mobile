@@ -7,12 +7,22 @@ readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 
 PLATFORM=$1
 MODE=$2
-TARGET=$3
+ENVIRONMENT=$3
 RUN_DEVICE=false
 PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
+
+echo "PLATFORM = $PLATFORM"
+echo "MODE = $MODE"
+echo "ENVIRONMENT = $ENVIRONMENT"
+
+# Enable Sentry to auto upload source maps and debug symbols
+export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+export METAMASK_BUILD_TYPE=${MODE:-"$METAMASK_BUILD_TYPE"}
+export METAMASK_ENVIRONMENT=${ENVIRONMENT:-"$METAMASK_ENVIRONMENT"}
+export EXPO_NO_TYPESCRIPT_SETUP=1
 
 envFileMissing() {
 	FILE="$1"
@@ -47,7 +57,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM in $MODE mode $TARGET" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM in $MODE mode $ENVIRONMENT" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -140,7 +150,41 @@ remapEnvVariableQA() {
 	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableRelease() {
+# Mapping for environmental values in the e2e environment. 
+# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
+remapEnvVariableE2E() {
+  	echo "Remapping E2E env variable names to match E2E values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+# Mapping for environmental values in the test environment. 
+# This is the same as the QA mapping since e2e used QA values before. Subject to change as build configs are updated.
+remapEnvVariableTest() {
+  	echo "Remapping test env variable names to match test values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+remapEnvVariableProduction() {
   	echo "Remapping release env variable names to match production values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
   	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
@@ -168,20 +212,18 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "FLASK_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
-remapEnvVariableProduction() {
-  	echo "Remapping Production env variable names to match Production values"
-  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
-    remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
-    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
-    remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
-}
-
 remapEnvVariableBeta() {
   	echo "Remapping Beta env variable names to match Beta values"
   	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 remapEnvVariableReleaseCandidate() {
@@ -190,6 +232,28 @@ remapEnvVariableReleaseCandidate() {
     remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
     remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
     remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_PROD" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_PROD" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_PROD" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_PROD" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_PROD" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
+}
+
+# Mapping for environmental values in the experimental environment
+remapEnvVariableExperimental() {
+  	echo "Remapping Experimental env variable names to match Experimental values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+    remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+	remapEnvVariable "MAIN_WEB3AUTH_NETWORK_PROD" "WEB3AUTH_NETWORK"
+
+	remapEnvVariable "MAIN_IOS_GOOGLE_CLIENT_ID_UAT" "IOS_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_IOS_GOOGLE_REDIRECT_URI_UAT" "IOS_GOOGLE_REDIRECT_URI"
+	remapEnvVariable "MAIN_ANDROID_APPLE_CLIENT_ID_UAT" "ANDROID_APPLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT" "ANDROID_GOOGLE_CLIENT_ID"
+	remapEnvVariable "MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT" "ANDROID_GOOGLE_SERVER_CLIENT_ID"
 }
 
 loadJSEnv(){
@@ -200,9 +264,6 @@ loadJSEnv(){
 			source $JS_ENV_FILE
 		fi
 	fi
-	# Disable auto Sentry file upload by default
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
@@ -240,17 +301,17 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
-  #Create google-services.json file to be used by the Firebase services.
-  # Check if GOOGLE_SERVICES_B64_ANDROID is set
-  if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
-    echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
-    echo "google-services.json has been created successfully."
-    # Ensure the file has read and write permissions
-    chmod 664 ./android/app/google-services.json
-  else
-    echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
-    exit 1
-  fi
+	#Create google-services.json file to be used by the Firebase services.
+	# Check if GOOGLE_SERVICES_B64_ANDROID is set
+	if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
+		echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
+		echo "google-services.json has been created successfully."
+		# Ensure the file has read and write permissions
+		chmod 664 ./android/app/google-services.json
+	else
+		echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
+		exit 1
+	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
@@ -267,13 +328,28 @@ buildAndroidRun(){
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-buildAndroidDevBuild(){
+# Builds the Main APK for local development
+buildAndroidMainLocal(){
 	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleProdDebug assembleProdDebugAndroidTest -DtestBuildType=debug --build-cache --parallel && cd ..
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the Flask APK for local development
+buildAndroidFlaskLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
+}
+
+# Builds the QA APK for local development
+buildAndroidQaLocal(){
+	prebuild_android
+
+	# Generate both APK (for development) and test APK (for E2E testing)
+	cd android && ./gradlew app:assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -289,38 +365,14 @@ buildAndroidRunFlask(){
 	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
 }
 
-buildIosDevBuild(){
-	remapEnvVariableLocal
-	prebuild_ios
-
-
-	echo "Setting up env vars...";
-	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-	echo "Build started..."
-	brew install watchman
-	cd ios
-
-	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
-	scheme="MetaMask"
-
-	echo "exportOptionsPlist: $exportOptionsPlist"
-  	echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-	echo "Generating ipa for $scheme"
-	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
-	cd ..
-}
-
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
+	device_args=()
 	if [ -n "$IOS_SIMULATOR" ]; then
-		SIM_OPTION="--device \"$IOS_SIMULATOR\""
-	else
-		SIM_OPTION=""
+		device_args=(--device "$IOS_SIMULATOR")
 	fi
-	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT $SIM_OPTION
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
 }
 
 buildIosSimulatorQA(){
@@ -372,71 +424,52 @@ buildIosDeviceFlask(){
 	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
-generateArchivePackages() {
-  scheme="$1"
+# Generates the iOS binary for the given scheme and configuration
+generateIosBinary() {
+	scheme="$1"
+	configuration="${CONFIGURATION:-"Release"}"
 
-  if [ "$scheme" = "MetaMask-QA" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
-  elif [ "$scheme" = "MetaMask-Flask" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
-  else
-    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
-  fi
-
-  echo "exportOptionsPlist: $exportOptionsPlist"
-  echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-  echo "Generating ipa for $scheme"
-  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
-}
-
-buildIosRelease(){
-  if [ "$MODE" != "main" ]; then
-    # For main Mode variables are already remapped
-  	remapEnvVariableRelease
-  fi
-
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-
-	prebuild_ios
-
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+	if [ "$scheme" = "MetaMask" ] ; then
+		# Main target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
+		else
+			# Release configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
-	fi
-}
-
-buildIosFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
-
-	prebuild_ios
-
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateArchivePackages "MetaMask-Flask"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+	elif [ "$scheme" = "MetaMask-QA" ] ; then
+		# QA target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
+		else
+			# Release configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
 		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
+	elif [ "$scheme" = "MetaMask-Flask" ] ; then
+		# Flask target
+		if [ "$configuration" = "Debug" ] ; then
+			# Debug configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskDevelopment.plist"
+		else
+			# Release configuration
+			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
+		fi
 	fi
+
+	echo "exportOptionsPlist: $exportOptionsPlist"
+	echo "Generating archive packages for $scheme in $configuration configuration"
+	if [ "$IS_SIM_BUILD" = "true" ]; then
+    	echo "Binary build type: Simulator"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+	else
+		echo "Binary build type: Device"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+		echo "Generating ipa for $scheme"
+		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	fi
+
 }
 
 buildIosReleaseE2E(){
@@ -449,7 +482,7 @@ buildIosReleaseE2E(){
 		echo "Pre-release E2E Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask"
+		generateIosBinary "MetaMask"
 	else
 		echo "Release E2E Build started..."
 		if [ ! -f "ios/release.xcconfig" ] ; then
@@ -474,7 +507,7 @@ buildIosQA(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages "MetaMask-QA"
+		generateIosBinary "MetaMask-QA"
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -484,93 +517,56 @@ buildIosQA(){
 	fi
 }
 
-
-buildAndroidQA(){
-	echo "Start Android QA build..."
-
-  	remapEnvVariableQA
-
-	# if [ "$PRE_RELEASE" = false ] ; then
-	# 	adb uninstall io.metamask.qa
-	# fi
-
+# Builds the Main APK for production
+buildAndroidMainProduction(){
 	prebuild_android
 
-	# Generate APK
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	# Generate APK for production
+	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleQaRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:qa
-	fi
+	# Generate checksum
+	yarn build:android:checksum
 
-	#  if [ "$PRE_RELEASE" = false ] ; then
-	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	#  fi
+	# Change directory back out
+	cd ..
 }
 
-buildAndroidRelease(){
-    if [ "$MODE" != "main" ]; then
-      # For main Mode variables are already remapped
-    	remapEnvVariableRelease
-    fi
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask || true
-	fi
-
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+# Builds the Flask APK for production
+buildAndroidFlaskProduction(){
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleProdRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleFlaskRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum
-	fi
+	# Generate checksum
+	yarn build:android:checksum:flask
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
-buildAndroidFlaskRelease(){
-	# remap flask env variables to match what the app expects
-	remapFlaskEnvVariables
-
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.flask || true
-	fi
+# Builds the QA APK for production
+buildAndroidQaProduction(){
+	# Builds the QA APK for production
 	prebuild_android
 
-	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+	# Generate APK for production
+	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
 
-	# GENERATE BUNDLE
-	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleFlaskRelease
-	fi
+	# Generate AAB bundle for production
+	./gradlew bundleQaRelease
 
-	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate checksum
-		yarn build:android:checksum:flask
-	fi
+	# Generate checksum
+	yarn build:android:checksum:qa
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/flask/release/app-flask-release.apk
-	fi
+	# Change directory back out
+	cd ..
 }
 
 buildAndroidReleaseE2E(){
@@ -578,30 +574,33 @@ buildAndroidReleaseE2E(){
 	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
-buildAndroidQAE2E(){
-	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
-}
-
 buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		buildAndroidRelease
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidMainLocal
+		else
+			buildAndroidMainProduction
+		fi
 	elif [ "$MODE" == "flask" ] ; then
-		buildAndroidFlaskRelease
-	elif [ "$MODE" == "QA" ] ; then
-		buildAndroidQA
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidFlaskLocal
+		else
+			buildAndroidFlaskProduction
+		fi
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$METAMASK_ENVIRONMENT" == "local" ] ; then
+			buildAndroidQaLocal
+		else
+			buildAndroidQaProduction
+		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
-	elif [ "$MODE" == "QAE2E" ] ; then
-		buildAndroidQAE2E
-  elif [ "$MODE" == "debugE2E" ] ; then
+  	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidDevBuild
 	else
 		buildAndroidRun
 	fi
@@ -620,9 +619,19 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		buildIosRelease
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask"
 	elif [ "$MODE" == "flask" ] ; then
-		buildIosFlaskRelease
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-Flask"
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
@@ -631,8 +640,13 @@ buildIos() {
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] ; then
-		buildIosQA
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		# Prepare iOS dependencies
+		prebuild_ios
+		# Go to ios directory
+		cd ios
+		# Generate iOS binary
+		generateIosBinary "MetaMask-QA"
 	elif [ "$MODE" == "qaDebug" ] ; then
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDeviceQA
@@ -645,8 +659,6 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
-	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosDevBuild
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
@@ -698,25 +710,40 @@ checkParameters "$@"
 printTitle
 loadJSEnv
 
-echo "PLATFORM = $PLATFORM"
-echo "MODE = $MODE"
-echo "TARGET = $TARGET"
-
-if [ "$MODE" == "main" ] && { [ "$TARGET" == "production" ] || [ "$TARGET" == "beta" ] || [ "$TARGET" == "rc" ]; }; then
-  export METAMASK_BUILD_TYPE="$MODE"
-  export METAMASK_ENVIRONMENT="$TARGET"
-  export GENERATE_BUNDLE=true # Used only for Android
-  export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
-  if [ "$TARGET" == "production" ]; then
-    remapEnvVariableProduction
-  elif [ "$TARGET" == "beta" ]; then
-    remapEnvVariableBeta
-  elif [ "$TARGET" == "rc" ]; then
-    remapEnvVariableReleaseCandidate
-  fi
+# Map environment variables based on mode.
+# TODO: MODE should be renamed to TARGET
+if [ "$MODE" == "main" ]; then
+	export GENERATE_BUNDLE=true # Used only for Android
+	export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
+	if [ "$ENVIRONMENT" == "production" ]; then
+		remapEnvVariableProduction
+	elif [ "$ENVIRONMENT" == "beta" ]; then
+		remapEnvVariableBeta
+	elif [ "$ENVIRONMENT" == "rc" ]; then
+		remapEnvVariableReleaseCandidate
+	elif [ "$ENVIRONMENT" == "exp" ]; then
+		remapEnvVariableExperimental
+	elif [ "$ENVIRONMENT" == "test" ]; then
+		remapEnvVariableTest
+	elif [ "$ENVIRONMENT" == "e2e" ]; then
+		remapEnvVariableE2E
+	fi
+elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+	# TODO: Map environment variables based on environment
+	remapFlaskEnvVariables
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
+	# TODO: Map environment variables based on environment
+	remapEnvVariableQA
 fi
 
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
+if [ "$ENVIRONMENT" == "e2e" ]; then
+	# Build for simulator
+	export IS_SIM_BUILD="true"
+	# Ignore Boxlogs for E2E builds
+	export IGNORE_BOXLOGS_DEVELOPMENT="true"
+fi
+
+if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"

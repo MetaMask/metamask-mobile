@@ -278,8 +278,8 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "transparent",
-        "borderColor": "#4459ff",
+        "backgroundColor": "#3c4d9d0f",
+        "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -287,6 +287,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
         "justifyContent": "center",
         "marginHorizontal": 16,
         "marginTop": 16,
+        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }
@@ -296,7 +297,7 @@ exports[`NetworkPermissionsConnected renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#4459ff",
+          "color": "#121314",
           "fontFamily": "Geist Medium",
           "fontSize": 16,
           "letterSpacing": 0,

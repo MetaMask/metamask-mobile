@@ -1,6 +1,10 @@
 import mockedEngine from '../../core/__mocks__/MockedEngine';
 import { selectRemoteFeatureFlagControllerState } from '.';
-import { mockedEmptyFlagsState, mockedState, mockedUndefinedFlagsState } from './mocks';
+import {
+  mockedEmptyFlagsState,
+  mockedState,
+  mockedUndefinedFlagsState,
+} from './mocks';
 
 jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
@@ -17,12 +21,16 @@ describe('featureFlagController selector', () => {
   });
 
   it('returns feature flag empty state', () => {
-    const result = selectRemoteFeatureFlagControllerState(mockedEmptyFlagsState);
+    const result = selectRemoteFeatureFlagControllerState(
+      mockedEmptyFlagsState,
+    );
     expect(result?.remoteFeatureFlags).toBeDefined();
   });
 
   it('returns feature flag undefined state', () => {
-    const result = selectRemoteFeatureFlagControllerState(mockedUndefinedFlagsState);
+    const result = selectRemoteFeatureFlagControllerState(
+      mockedUndefinedFlagsState,
+    );
     expect(result).toBeUndefined();
   });
 });

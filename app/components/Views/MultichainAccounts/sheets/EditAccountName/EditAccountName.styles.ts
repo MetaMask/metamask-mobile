@@ -20,6 +20,11 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 40,
       color: colors.text.default,
     },
+    saveButton: {
+      flex: 1,
+      marginLeft: 8,
+      marginRight: 8,
+    },
     footer: {
       paddingLeft: 16,
       paddingRight: 16,
