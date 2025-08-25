@@ -172,6 +172,7 @@ const DeleteWalletModal: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMDBold}
                   color={TextColor.Default}
+                  style={styles.bold}
                 >
                   {strings('login.forgot_password_point_1_bold')}
                 </Text>{' '}
@@ -193,6 +194,7 @@ const DeleteWalletModal: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMDBold}
                   color={TextColor.Default}
+                  style={styles.bold}
                 >
                   {strings('login.forgot_password_point_2_bold')}{' '}
                 </Text>
