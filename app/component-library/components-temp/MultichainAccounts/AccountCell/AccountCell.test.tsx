@@ -6,7 +6,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { createMockAccountGroup } from '../test-utils';
 
 // Configurable mock balance for selector
-const mockBalance: { value: number; currency: string } = {
+const mockBalance: { value: number; currency: string; formatted?: string } = {
   value: 0,
   currency: 'usd',
 };
@@ -21,6 +21,7 @@ jest.mock('../../../../selectors/assets/balances', () => {
       groupId,
       totalBalanceInUserCurrency: mockBalance.value,
       userCurrency: mockBalance.currency,
+      formattedTotalBalanceInUserCurrency: mockBalance.formatted ?? '',
     }),
   };
 });
@@ -65,6 +66,7 @@ describe('AccountCell', () => {
     jest.clearAllMocks();
     mockBalance.value = 0;
     mockBalance.currency = 'usd';
+    mockBalance.formatted = '';
   });
 
   it('displays account name', () => {
@@ -83,6 +85,7 @@ describe('AccountCell', () => {
   ])('displays correct formatted balances', ({ currency, value, expected }) => {
     mockBalance.value = value;
     mockBalance.currency = currency;
+    mockBalance.formatted = expected;
     const { getByText } = renderAccountCell();
     expect(getByText(expected)).toBeTruthy();
   });

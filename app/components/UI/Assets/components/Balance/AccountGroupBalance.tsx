@@ -14,8 +14,6 @@ import SensitiveText, {
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { formatWithThreshold } from '../../../../../util/assets';
-import I18n from '../../../../../../locales/i18n';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 
 const AccountGroupBalance = () => {
@@ -35,15 +33,7 @@ const AccountGroupBalance = () => {
     [PreferencesController],
   );
 
-  const displayBalance = (() => {
-    if (!groupBalance) return undefined;
-    const value = groupBalance.totalBalanceInUserCurrency;
-    const currency = groupBalance.userCurrency;
-    return formatWithThreshold(value, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
-  })();
+  const displayBalance = groupBalance?.formattedTotalBalanceInUserCurrency;
 
   return (
     <View style={styles.accountGroupBalance}>

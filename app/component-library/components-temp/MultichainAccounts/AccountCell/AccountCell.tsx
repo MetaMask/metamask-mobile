@@ -15,8 +15,6 @@ import {
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 
 interface AccountCellProps {
@@ -39,17 +37,7 @@ const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
     [accountGroup.id],
   );
   const groupBalance = useSelector(selectBalanceForGroup);
-  const displayBalance = useMemo(() => {
-    if (!groupBalance) {
-      return undefined;
-    }
-    const value = groupBalance.totalBalanceInUserCurrency;
-    const currency = groupBalance.userCurrency;
-    return formatWithThreshold(value, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: currency.toUpperCase(),
-    });
-  }, [groupBalance]);
+  const displayBalance = groupBalance?.formattedTotalBalanceInUserCurrency;
 
   return (
     <Box

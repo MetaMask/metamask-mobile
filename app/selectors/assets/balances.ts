@@ -14,6 +14,8 @@ import {
 } from '@metamask/assets-controllers';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import { formatWithThreshold } from '../../util/assets';
+import I18n from '../../../locales/i18n';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -156,14 +158,30 @@ export const selectBalanceByAccountGroup = (groupId: string) =>
     const wallet = allBalances.wallets[walletId] ?? null;
     const { userCurrency } = allBalances;
     if (!wallet?.groups[groupId]) {
+      const totalBalanceInUserCurrency = 0;
       return {
         walletId,
         groupId,
-        totalBalanceInUserCurrency: 0,
+        totalBalanceInUserCurrency,
         userCurrency,
+        formattedTotalBalanceInUserCurrency: formatWithThreshold(
+          totalBalanceInUserCurrency,
+          0.01,
+          I18n.locale,
+          { style: 'currency', currency: userCurrency.toUpperCase() },
+        ),
       };
     }
-    return wallet.groups[groupId];
+    const group = wallet.groups[groupId];
+    return {
+      ...group,
+      formattedTotalBalanceInUserCurrency: formatWithThreshold(
+        group.totalBalanceInUserCurrency,
+        0.01,
+        I18n.locale,
+        { style: 'currency', currency: userCurrency.toUpperCase() },
+      ),
+    };
   });
 export const selectBalanceByWallet = (walletId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
@@ -197,14 +215,30 @@ export const selectBalanceBySelectedAccountGroup = createSelector(
     const wallet = allBalances.wallets[walletId] ?? null;
     const { userCurrency } = allBalances;
     if (!wallet?.groups[selectedGroupId]) {
+      const totalBalanceInUserCurrency = 0;
       return {
         walletId,
         groupId: selectedGroupId,
-        totalBalanceInUserCurrency: 0,
+        totalBalanceInUserCurrency,
         userCurrency,
+        formattedTotalBalanceInUserCurrency: formatWithThreshold(
+          totalBalanceInUserCurrency,
+          0.01,
+          I18n.locale,
+          { style: 'currency', currency: userCurrency.toUpperCase() },
+        ),
       };
     }
-    return wallet.groups[selectedGroupId];
+    const group = wallet.groups[selectedGroupId];
+    return {
+      ...group,
+      formattedTotalBalanceInUserCurrency: formatWithThreshold(
+        group.totalBalanceInUserCurrency,
+        0.01,
+        I18n.locale,
+        { style: 'currency', currency: userCurrency.toUpperCase() },
+      ),
+    };
   },
 );
 
