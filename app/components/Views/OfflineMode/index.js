@@ -59,7 +59,7 @@ const OfflineMode = ({ navigation, infuraBlocked }) => {
 
   const tryAgain = () => {
     if (netinfo?.isConnected) {
-      navigation.pop();
+      navigation.goBack();
     }
   };
 
