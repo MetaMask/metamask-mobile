@@ -46,15 +46,16 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
-    );
+    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
+    });
 
-    // Assert formatted string is rendered via text query using the same render
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toBeTruthy();
-    expect(getByText('$123.45')).toBeTruthy();
+    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    expect(el).toBeTruthy();
+    // Assert formatted string is rendered
+    // SensitiveText renders children as text
+    // Use a direct text query as behavior assertion
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(el.props.children).toBe('$123.45');
   });
 });
