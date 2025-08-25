@@ -265,12 +265,7 @@ export const BaseWalletDetails = ({
           onSwipeComplete={handleCloseAddAccountModal}
           backdropOpacity={0.5}
         >
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: colors.background.default },
-            ]}
-          >
+          <View style={styles.modalContent}>
             <WalletAddAccountActions
               keyringId={keyringId}
               onBack={handleCloseAddAccountModal}

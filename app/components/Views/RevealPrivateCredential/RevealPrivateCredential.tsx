@@ -423,7 +423,6 @@ const RevealPrivateCredential = ({
       >
         <CustomTabView
           tabLabel={strings(`reveal_credential.text`)}
-          style={styles.tabContent}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
           <Text style={styles.boldText}>
@@ -459,7 +458,6 @@ const RevealPrivateCredential = ({
         </CustomTabView>
         <CustomTabView
           tabLabel={strings(`reveal_credential.qr_code`)}
-          style={styles.tabContent}
           testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
         >
           <View
@@ -635,7 +633,7 @@ const RevealPrivateCredential = ({
 
   return (
     <View
-      style={[styles.wrapper]}
+      style={styles.wrapper}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <ActionView
@@ -658,7 +656,6 @@ const RevealPrivateCredential = ({
         scrollViewTestID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
-        contentContainerStyle={styles.stretch}
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
         enableOnAndroid
@@ -666,7 +663,7 @@ const RevealPrivateCredential = ({
         extraScrollHeight={40}
         showsVerticalScrollIndicator={false}
       >
-        <ScrollView>
+        <View>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -695,7 +692,7 @@ const RevealPrivateCredential = ({
               {renderPasswordEntry()}
             </View>
           )}
-        </ScrollView>
+        </View>
       </ActionView>
       {renderModal(isPrivateKey)}
 
