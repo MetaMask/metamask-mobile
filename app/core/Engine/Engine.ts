@@ -85,14 +85,16 @@ import {
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
+
 import {
-  renderFromTokenMinimalUnit,
-  balanceToFiatNumber,
+  hexToBigInt,
+  renderFromWei,
   weiToFiatNumber,
   toHexadecimal,
-  hexToBN,
-  renderFromWei,
-} from '../../util/number';
+  balanceToFiatNumber,
+  renderFromTokenMinimalUnit,
+} from '../../util/number/bigInt';
+
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
@@ -1889,12 +1891,12 @@ export class Engine {
         ];
       if (accountData) {
         const balanceHex = accountData.balance;
-        const balanceBN = hexToBN(balanceHex);
+        const balanceBN = hexToBigInt(balanceHex);
 
-        const stakedBalanceBN = hexToBN(accountData.stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN
-          .add(stakedBalanceBN)
-          .toString('hex');
+        const stakedBalanceBN = hexToBigInt(
+          accountData.stakedBalance || '0x00',
+        );
+        const totalAccountBalance = balanceBN + stakedBalanceBN;
 
         const chainEthFiat = weiToFiatNumber(
           totalAccountBalance,
