@@ -13,10 +13,14 @@ import {
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
 }));
 
 jest.mock('../../../../util/address', () => ({
@@ -280,5 +284,20 @@ describe('AccountGroupDetails', () => {
     expect(
       getByTestId2(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
+  });
+
+  it.only('navigates to Address List when Networks link is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+    fireEvent.press(networksLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
+      groupId: mockAccountGroup.id,
+      title: `Addresses / ${mockAccountGroup.metadata.name}`,
+    });
   });
 });

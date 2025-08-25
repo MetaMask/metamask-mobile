@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
@@ -83,6 +83,17 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     [account],
   );
 
+  const navigateToAddressList = useCallback(() => {
+    navigation.navigate(
+      ...createAddressListNavigationDetails({
+        groupId: id,
+        title: `${strings('multichain_accounts.address_list.addresses')} / ${
+          metadata.name
+        }`,
+      }),
+    );
+  }, [id, metadata.name, navigation]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
@@ -134,16 +145,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.networks}
           testID={AccountDetailsIds.NETWORKS_LINK}
-          onPress={() => {
-            navigation.navigate(
-              ...createAddressListNavigationDetails({
-                groupId: id,
-                title: `${strings(
-                  'multichain_accounts.address_list.addresses',
-                )} / ${metadata.name}`,
-              }),
-            );
-          }}
+          onPress={navigateToAddressList}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.networks')}
