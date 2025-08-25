@@ -22,14 +22,18 @@ const ContractTag = ({
   // A set of addresses for the Aave V3 pool contracts
   const avaeAddresses = useMemo(
     () =>
-      new Set<string>(Object.values(CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS)),
+      new Set<string>(
+        Object.values(CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS).map(
+          (address) => address.toLowerCase(),
+        ),
+      ),
     [],
   );
 
   return (
     <TagBase
       startAccessory={
-        avaeAddresses.has(contractAddress) ? (
+        avaeAddresses.has(contractAddress.toLowerCase()) ? (
           <Avatar
             variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
