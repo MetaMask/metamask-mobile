@@ -158,7 +158,8 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { AddressList as AccountAddressList } from '../../Views/MultichainAccounts/AddressList';
+import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
+import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
@@ -746,7 +747,21 @@ const MultichainAddressList = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={AccountAddressList}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const MultichainPrivateKeyList = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator screenOptions={clearStackNavigatorOptions} mode={'modal'}>
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+        component={MultichainAccountPrivateKeyList}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -897,6 +912,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+          component={MultichainPrivateKeyList}
         />
         <Stack.Screen
           name={Routes.SOLANA_NEW_FEATURE_CONTENT}
