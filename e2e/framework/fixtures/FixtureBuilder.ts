@@ -1,5 +1,10 @@
-import { getGanachePort, getTestDappLocalUrl } from './FixtureUtils';
+import {
+  getGanachePort,
+  getMockServerPort,
+  getTestDappLocalUrlByDappCounter,
+} from './FixtureUtils';
 import { merge } from 'lodash';
+import { encryptVault } from './FixtureHelper';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
@@ -18,8 +23,13 @@ import {
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
 
-export const DEFAULT_FIXTURE_ACCOUNT =
+export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+
+export const DEFAULT_FIXTURE_ACCOUNT =
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase() as Lowercase<
+    typeof DEFAULT_FIXTURE_ACCOUNT_CHECKSUM
+  >;
 
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
@@ -91,7 +101,6 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
-      '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
@@ -128,12 +137,12 @@ class FixtureBuilder {
             AccountTrackerController: {
               accountsByChainId: {
                 64: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
                 1: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
@@ -504,7 +513,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://google.com',
+              url: `http://localhost:${getMockServerPort()}/health-check`,
               id: 1692550481062,
             },
           ],
@@ -549,9 +558,6 @@ class FixtureBuilder {
           initialScreen: '',
           appTheme: 'os',
           existingUser: true,
-        },
-        wizard: {
-          step: 0,
         },
         onboarding: {
           events: [],
@@ -724,7 +730,6 @@ class FixtureBuilder {
       asyncState: {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:OptinMetaMetricsUISeen': 'true',
-        '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',
@@ -818,7 +823,7 @@ class FixtureBuilder {
     const permittedEthAccounts =
       incomingEthAccounts.length > 0
         ? incomingEthAccounts
-        : [DEFAULT_FIXTURE_ACCOUNT];
+        : [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM];
 
     // Cast addresses to the required 0x${string} format
     const typedAddresses = permittedEthAccounts.map(
@@ -932,7 +937,7 @@ class FixtureBuilder {
     );
     const caip25CaveatValueWithDefaultAccount = setEthAccounts(
       caip25CaveatValueWithChains,
-      [DEFAULT_FIXTURE_ACCOUNT],
+      [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM],
     );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
@@ -1091,7 +1096,7 @@ class FixtureBuilder {
       CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
       CHAIN_IDS.BASE, // Base
       CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
-      CHAIN_IDS.SEI, // Sei Network
+      CHAIN_IDS.SEI, // Sei Mainnet
     ];
 
     // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
@@ -1347,6 +1352,55 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Merges provided data into the KeyringController's state with a random imported account.
+   * and also includes the default HD Key Tree fixture account.
+   *
+   * @param {Object} account - ethers.Wallet object containing address and privateKey.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRandomImportedAccountKeyringController(
+    address: string,
+    privateKey: string,
+  ) {
+    // mnemonics belonging to the DEFAULT_FIXTURE_ACCOUNT
+    const vault = encryptVault([
+      {
+        type: 'HD Key Tree',
+        data: {
+          mnemonic: [
+            100, 114, 105, 118, 101, 32, 109, 97, 110, 97, 103, 101, 32, 99,
+            108, 111, 115, 101, 32, 114, 97, 118, 101, 110, 32, 116, 97, 112,
+            101, 32, 97, 118, 101, 114, 97, 103, 101, 32, 115, 97, 117, 115, 97,
+            103, 101, 32, 112, 108, 101, 100, 103, 101, 32, 114, 105, 111, 116,
+            32, 102, 117, 114, 110, 97, 99, 101, 32, 97, 117, 103, 117, 115,
+            116, 32, 116, 105, 112,
+          ],
+          numberOfAccounts: 1,
+          hdPath: "m/44'/60'/0'/0",
+        },
+      },
+      {
+        type: 'Simple Key Pair',
+        data: [privateKey],
+      },
+    ]);
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: [address],
+        },
+      ],
+      vault,
+    });
+    return this;
+  }
+
   withKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
@@ -1591,11 +1645,15 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens: Record<string, unknown>[]) {
+  withTokens(
+    tokens: Record<string, unknown>[],
+    chainId: string = CHAIN_IDS.MAINNET,
+    account: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
-        [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        [chainId]: {
+          [account]: tokens,
         },
       },
     });
@@ -1679,7 +1737,7 @@ class FixtureBuilder {
     // We start at 1 to easily identify the tab across all tests
     for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getTestDappLocalUrl(i),
+        url: getTestDappLocalUrlByDappCounter(i),
         id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });

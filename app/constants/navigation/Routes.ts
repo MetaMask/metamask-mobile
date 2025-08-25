@@ -74,6 +74,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    FUND_ACTION_MENU: 'FundActionMenu',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -149,6 +150,7 @@ const Routes = {
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
+    NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
     ONBOARDING_SHEET: 'OnboardingSheet',
@@ -191,6 +193,7 @@ const Routes = {
   SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
+    BRIDGE_VIEW: 'BridgeView',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
@@ -202,6 +205,7 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
+      PRICE_IMPACT_WARNING_MODAL: 'PriceImpactWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -209,18 +213,19 @@ const Routes = {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
     ORDER: 'PerpsOrder',
-    DEPOSIT: 'PerpsDeposit',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
-    POSITION_DETAILS: 'PerpsPositionDetails',
+    TUTORIAL: 'PerpsTutorial',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+      BALANCE_MODAL: 'PerpsBalanceModal',
     },
-    ORDER_HISTORY: 'PerpsOrderHistory',
-    ORDER_DETAILS: 'PerpsOrderDetails',
+    POSITION_TRANSACTION: 'PerpsPositionTransaction',
+    ORDER_TRANSACTION: 'PerpsOrderTransaction',
+    FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
@@ -269,7 +274,11 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
+    ADDRESS_LIST: 'MultichainAddressList',
+    PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
+    ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
   SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -288,9 +297,15 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  CARD: {
+    ROOT: 'CardScreens',
+    HOME: 'CardHome',
+  },
   SEND: {
+    RECIPIENT: 'Recipient',
+    ASSET: 'Asset',
+    AMOUNT: 'Amount',
     DEFAULT: 'Send',
-    ROOT: 'Root',
   },
 };
 

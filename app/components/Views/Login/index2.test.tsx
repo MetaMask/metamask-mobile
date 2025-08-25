@@ -23,10 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
-import {
-  ONBOARDING_WIZARD,
-  OPTIN_META_METRICS_UI_SEEN,
-} from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { EndTraceRequest, TraceName } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
@@ -338,7 +335,7 @@ describe('Login test suite 2', () => {
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:1s',
+        'Too many attempts. Please try again in 0:00:01',
       );
     });
 
@@ -364,7 +361,7 @@ describe('Login test suite 2', () => {
       let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:3s',
+        'Too many attempts. Please try again in 0:00:03',
       );
 
       expect(passwordInput.props.editable).toBe(false);
@@ -375,7 +372,7 @@ describe('Login test suite 2', () => {
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:2s',
+        'Too many attempts. Please try again in 0:00:02',
       );
 
       await act(async () => {
@@ -384,7 +381,7 @@ describe('Login test suite 2', () => {
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:1s',
+        'Too many attempts. Please try again in 0:00:01',
       );
 
       await act(async () => {
@@ -679,7 +676,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });
@@ -738,7 +734,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
         return null;
       });
@@ -799,7 +794,7 @@ describe('Login test suite 2', () => {
       mockIsEnabled.mockReturnValue(true);
     });
 
-    it('should replace navigation when non-OAuth login with existing onboarding wizard', async () => {
+    it('should replace navigation when non-OAuth login ', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -807,7 +802,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });

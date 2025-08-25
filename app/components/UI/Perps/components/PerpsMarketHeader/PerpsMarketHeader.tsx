@@ -16,19 +16,12 @@ import { useStyles } from '../../../../../component-library/hooks';
 import RemoteImage from '../../../../Base/RemoteImage';
 import type { PerpsMarketData } from '../../controllers/types';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import {
-  formatPercentage,
-  formatPnl,
-  formatPrice,
-  parseCurrencyString,
-  parsePercentageString,
-} from '../../utils/formatUtils';
 import { styleSheet } from './PerpsMarketHeader.styles';
+import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
-  currentPrice?: number;
-  priceChange24h?: number;
   onBackPress?: () => void;
   onMorePress?: () => void;
   testID?: string;
@@ -36,22 +29,12 @@ interface PerpsMarketHeaderProps {
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   market,
-  currentPrice,
-  priceChange24h,
   onBackPress,
   onMorePress,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
-
-  const displayPrice = currentPrice || parseCurrencyString(market.price || '0');
-  const displayChange =
-    priceChange24h ?? parsePercentageString(market.change24hPercent);
-  const isPositiveChange = displayChange >= 0;
-
-  // Calculate fiat change amount
-  const changeAmount = (displayChange / 100) * displayPrice;
 
   return (
     <View style={styles.container} testID={testID}>
@@ -63,6 +46,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
+            testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
           />
         </View>
       )}
@@ -91,21 +75,14 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           </Text>
         </View>
         <View style={styles.positionValueRow}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.positionValue}
-          >
-            {formatPrice(displayPrice)}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={isPositiveChange ? TextColor.Success : TextColor.Error}
-            style={styles.priceChange24h}
-          >
-            {formatPnl(changeAmount)} (
-            {formatPercentage(displayChange.toString())})
-          </Text>
+          <LivePriceHeader
+            symbol={market.symbol}
+            fallbackPrice={market.price || '0'}
+            fallbackChange={market.change24hPercent || '0'}
+            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+            throttleMs={1000}
+          />
         </View>
       </View>
 

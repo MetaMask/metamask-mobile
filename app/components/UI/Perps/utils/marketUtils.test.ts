@@ -1,5 +1,6 @@
 import { calculateFundingCountdown, calculate24hHighLow } from './marketUtils';
 import type { CandleData } from '../types';
+import { CandlePeriod } from '../constants/chartConfig';
 
 describe('marketUtils', () => {
   describe('calculateFundingCountdown', () => {
@@ -64,6 +65,91 @@ describe('marketUtils', () => {
       const result = calculateFundingCountdown();
       expect(result).toBe('00:01:05'); // 1 minute 5 seconds until 8:00
     });
+
+    it('should use specific next funding time when provided', () => {
+      const mockDate = new Date('2024-01-01T12:00:00.000Z');
+      jest.setSystemTime(mockDate);
+
+      // Next funding time is in 2 hours 30 minutes
+      const nextFundingTime = mockDate.getTime() + (2 * 60 + 30) * 60 * 1000;
+
+      const result = calculateFundingCountdown({ nextFundingTime });
+      expect(result).toBe('02:30:00');
+    });
+
+    it('should use specific next funding time with seconds', () => {
+      const mockDate = new Date('2024-01-01T12:00:00.000Z');
+      jest.setSystemTime(mockDate);
+
+      // Next funding time is in 1 hour 15 minutes 45 seconds
+      const nextFundingTime =
+        mockDate.getTime() + (1 * 60 * 60 + 15 * 60 + 45) * 1000;
+
+      const result = calculateFundingCountdown({ nextFundingTime });
+      expect(result).toBe('01:15:45');
+    });
+
+    it('should handle expired specific funding time', () => {
+      const mockDate = new Date('2024-01-01T12:00:00.000Z');
+      jest.setSystemTime(mockDate);
+
+      // Next funding time is in the past
+      const nextFundingTime = mockDate.getTime() - 1000;
+
+      const result = calculateFundingCountdown({ nextFundingTime });
+      // Falls back to default calculation when specific time is expired
+      expect(result).toBe('04:00:00'); // 4 hours until 16:00
+    });
+
+    it('should handle edge case at 59 seconds', () => {
+      // Set time to 07:59:01 UTC (59 seconds before funding)
+      const mockDate = new Date('2024-01-01T07:59:01.000Z');
+      jest.setSystemTime(mockDate);
+
+      const result = calculateFundingCountdown();
+      expect(result).toBe('00:00:59');
+    });
+
+    it('should handle edge case with 60 seconds exactly', () => {
+      // Set time to 07:59:00 UTC (60 seconds before funding)
+      const mockDate = new Date('2024-01-01T07:59:00.000Z');
+      jest.setSystemTime(mockDate);
+
+      const result = calculateFundingCountdown();
+      expect(result).toBe('00:01:00');
+    });
+
+    it('should handle different UTC hours correctly', () => {
+      // Test each hour of the day
+      const testCases = [
+        { hour: 0, expected: '08:00:00' }, // 00:00 -> 08:00
+        { hour: 4, expected: '04:00:00' }, // 04:00 -> 08:00
+        { hour: 8, expected: '08:00:00' }, // 08:00 -> 16:00
+        { hour: 12, expected: '04:00:00' }, // 12:00 -> 16:00
+        { hour: 16, expected: '08:00:00' }, // 16:00 -> 00:00 (next day)
+        { hour: 20, expected: '04:00:00' }, // 20:00 -> 00:00 (next day)
+      ];
+
+      testCases.forEach(({ hour, expected }) => {
+        const mockDate = new Date(
+          `2024-01-01T${hour.toString().padStart(2, '0')}:00:00.000Z`,
+        );
+        jest.setSystemTime(mockDate);
+
+        const result = calculateFundingCountdown();
+        expect(result).toBe(expected);
+      });
+    });
+
+    it('should handle time with custom funding interval', () => {
+      const mockDate = new Date('2024-01-01T10:00:00.000Z');
+      jest.setSystemTime(mockDate);
+
+      // Custom 4 hour funding interval (not used in default calculation)
+      const result = calculateFundingCountdown({ fundingIntervalHours: 4 });
+      // Still uses default calculation when no nextFundingTime provided
+      expect(result).toBe('06:00:00'); // 6 hours until 16:00
+    });
   });
 
   describe('calculate24hHighLow', () => {
@@ -75,7 +161,7 @@ describe('marketUtils', () => {
 
     const mockCandleData: CandleData = {
       coin: 'BTC',
-      interval: '1h',
+      interval: CandlePeriod.ONE_HOUR,
       candles: [
         {
           time: fortyEightHoursAgo,
@@ -128,7 +214,7 @@ describe('marketUtils', () => {
     it('should handle empty candles array', () => {
       const emptyData: CandleData = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [],
       };
       const result = calculate24hHighLow(emptyData);
@@ -138,7 +224,7 @@ describe('marketUtils', () => {
     it('should use all candles if none are within 24h', () => {
       const oldCandleData: CandleData = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: fortyEightHoursAgo,
@@ -157,7 +243,7 @@ describe('marketUtils', () => {
     it('should handle candles with string values', () => {
       const stringCandleData: CandleData = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: oneHourAgo,
@@ -176,7 +262,7 @@ describe('marketUtils', () => {
     it('should handle single candle within 24h', () => {
       const singleCandleData: CandleData = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: oneHourAgo,

@@ -1,6 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { SmokeWalletPlatform } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -10,7 +9,9 @@ import FixtureBuilder, {
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { MockApiEndpoint } from '../../framework/types';
+import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -67,7 +68,7 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750&sortDirection=ASC`,
+    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC`,
     response: {
       data:
         transactions.length > 0
@@ -82,10 +83,23 @@ function mockAccountsApi(
   };
 }
 
+function createAccountsTestSpecificMock(
+  transactions: Record<string, unknown>[] = [],
+): TestSpecificMock {
+  return async (mockServer: Mockttp) => {
+    const mock = mockAccountsApi(transactions);
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mock.urlEndpoint,
+      response: mock.response,
+      responseCode: mock.responseCode,
+    });
+  };
+}
+
 describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('displays standard incoming transaction', async () => {
@@ -93,15 +107,13 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture: new FixtureBuilder().withPrivacyModePreferences(false).build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockAccountsApi()],
-        },
+        testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Received ETH');
+        await Assertions.expectTextDisplayed('Received ETH');
       },
     );
   });
@@ -122,9 +134,9 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           .withPrivacyModePreferences(false)
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockAccountsApi([RESPONSE_TOKEN_TRANSFER_MOCK])],
-        },
+        testSpecificMock: createAccountsTestSpecificMock([
+          RESPONSE_TOKEN_TRANSFER_MOCK,
+        ]),
       },
       async () => {
         await loginToApp();
@@ -140,15 +152,15 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture: new FixtureBuilder().withPrivacyModePreferences(false).build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockAccountsApi([RESPONSE_OUTGOING_TRANSACTION_MOCK])],
-        },
+        testSpecificMock: createAccountsTestSpecificMock([
+          RESPONSE_OUTGOING_TRANSACTION_MOCK,
+        ]),
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Sent ETH');
+        await Assertions.expectTextDisplayed('Sent ETH');
       },
     );
   });
@@ -158,7 +170,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture: new FixtureBuilder().withPrivacyModePreferences(true).build(),
         restartDevice: true,
-        testSpecificMock: { GET: [mockAccountsApi()] },
+        testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();
@@ -184,7 +196,9 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock: { GET: [mockAccountsApi([RESPONSE_STANDARD_MOCK])] },
+        testSpecificMock: createAccountsTestSpecificMock([
+          RESPONSE_STANDARD_MOCK,
+        ]),
       },
       async () => {
         await loginToApp();
@@ -200,7 +214,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: { GET: [mockAccountsApi()] },
+        testSpecificMock: createAccountsTestSpecificMock(),
       },
       async () => {
         await loginToApp();

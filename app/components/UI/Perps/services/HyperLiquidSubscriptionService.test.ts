@@ -30,6 +30,22 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     averagePrice: '50000',
     markPrice: '52000',
   })),
+  adaptOrderFromSDK: jest.fn((order: any) => ({
+    orderId: order.oid.toString(),
+    symbol: order.coin,
+    side: order.side === 'B' ? 'buy' : 'sell',
+    orderType: 'limit',
+    size: order.sz,
+    originalSize: order.sz,
+    price: order.limitPx || '0',
+    filledSize: '0',
+    remainingSize: order.sz,
+    status: 'open',
+    timestamp: Date.now(),
+    detailedOrderType: order.orderType || 'Limit',
+    isTrigger: false,
+    reduceOnly: false,
+  })),
 }));
 
 // Mock DevLogger
@@ -37,6 +53,25 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
+}));
+
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsMarketDataUpdate: 'Perps Market Data Update',
+    PerpsWebSocketConnected: 'Perps WebSocket Connected',
+    PerpsWebSocketDisconnected: 'Perps WebSocket Disconnected',
+  },
+  TraceOperation: {
+    PerpsMarketData: 'perps.market_data',
+  },
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
 }));
 
 describe('HyperLiquidSubscriptionService', () => {
@@ -84,7 +119,8 @@ describe('HyperLiquidSubscriptionService', () => {
         return Promise.resolve(mockSubscription);
       }),
       webData2: jest.fn((_params: any, callback: any) => {
-        // Simulate position data
+        // Simulate position and order data
+        // First callback immediately
         setTimeout(() => {
           callback({
             clearinghouseState: {
@@ -95,8 +131,51 @@ describe('HyperLiquidSubscriptionService', () => {
                 },
               ],
             },
+            openOrders: [
+              {
+                oid: 12345,
+                coin: 'BTC',
+                side: 'B',
+                sz: '0.5',
+                origSz: '1.0',
+                limitPx: '50000',
+                orderType: 'Limit',
+                timestamp: 1234567890000,
+                isTrigger: false,
+                reduceOnly: false,
+              },
+            ],
           });
         }, 0);
+
+        // Second callback with changed data to ensure updates are triggered
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [
+                {
+                  position: { szi: '0.2' }, // Changed position size
+                  coin: 'BTC',
+                },
+              ],
+            },
+            openOrders: [
+              {
+                oid: 12346, // Changed order ID
+                coin: 'BTC',
+                side: 'S',
+                sz: '0.3',
+                origSz: '0.5',
+                limitPx: '51000',
+                orderType: 'Limit',
+                timestamp: 1234567890001,
+                isTrigger: false,
+                reduceOnly: false,
+              },
+            ],
+          });
+        }, 10);
+
         return Promise.resolve(mockSubscription);
       }),
       userFills: jest.fn((_params: any, callback: any) => {
@@ -129,6 +208,7 @@ describe('HyperLiquidSubscriptionService', () => {
     mockClientService = {
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
+      isTestnetMode: jest.fn(() => false),
     } as any;
 
     // Mock wallet service
@@ -418,6 +498,145 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
+  describe('Shared WebData2 Subscription', () => {
+    it('should share webData2 subscription between positions and orders', async () => {
+      const positionCallback = jest.fn();
+      const orderCallback = jest.fn();
+
+      // Mock getUserAddressWithDefault to return immediately
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0x123' as Hex,
+      );
+
+      // Subscribe to positions first
+      const unsubscribePositions = service.subscribeToPositions({
+        callback: positionCallback,
+      });
+
+      // Wait for subscription to be established and initial callback
+      // This will trigger the first webData2 callback which caches both positions and orders
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Verify position callback was called
+      expect(positionCallback).toHaveBeenCalled();
+
+      // Subscribe to orders - should reuse same webData2 subscription
+      // and immediately get cached data
+      const unsubscribeOrders = service.subscribeToOrders({
+        callback: orderCallback,
+      });
+
+      // Orders should get cached data immediately (synchronously)
+      // or after the second webData2 update with changed data
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Should only call webData2 once for shared subscription
+      expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
+
+      // Both callbacks should be called with their respective data
+      expect(positionCallback).toHaveBeenCalled();
+      expect(orderCallback).toHaveBeenCalled();
+
+      // Cleanup
+      unsubscribePositions();
+      unsubscribeOrders();
+    });
+
+    it('should maintain subscription when one subscriber unsubscribes', async () => {
+      const positionCallback1 = jest.fn();
+      const positionCallback2 = jest.fn();
+
+      // Subscribe two position callbacks
+      const unsubscribe1 = service.subscribeToPositions({
+        callback: positionCallback1,
+      });
+
+      const unsubscribe2 = service.subscribeToPositions({
+        callback: positionCallback2,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Unsubscribe first callback
+      unsubscribe1();
+
+      // Second callback should still receive updates
+      mockSubscriptionClient.webData2.mock.calls[0][1]({
+        clearinghouseState: {
+          assetPositions: [
+            {
+              position: { coin: 'BTC', szi: '1.0' },
+            },
+          ],
+        },
+        openOrders: [],
+      });
+
+      expect(positionCallback2).toHaveBeenCalled();
+
+      unsubscribe2();
+    });
+
+    it('should cache positions and orders data', async () => {
+      const positionCallback = jest.fn();
+
+      // Setup webData2 mock to call callback with data
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_addr: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
+                {
+                  oid: 123,
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.5',
+                  origSz: '0.5',
+                  limitPx: '50000',
+                  orderType: 'Limit',
+                  timestamp: Date.now(),
+                  isTrigger: false,
+                  reduceOnly: false,
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: positionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should receive cached data on new subscription
+      const newCallback = jest.fn();
+      const unsubscribe2 = service.subscribeToPositions({
+        callback: newCallback,
+      });
+
+      // New subscriber should get cached data immediately
+      expect(newCallback).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ coin: 'BTC' })]),
+      );
+
+      unsubscribe();
+      unsubscribe2();
+    });
+  });
+
   describe('Subscription Lifecycle', () => {
     it('should unsubscribe from position updates successfully', async () => {
       const mockCallback = jest.fn();
@@ -554,6 +773,69 @@ describe('HyperLiquidSubscriptionService', () => {
     });
   });
 
+  describe('WebSocket Monitoring', () => {
+    it('should track WebSocket connection and performance', async () => {
+      const mockCallback = jest.fn();
+
+      service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait for subscription to be established
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify WebSocket connection tracking
+      const traceModule = jest.requireMock('../../../../util/trace');
+      expect(traceModule.trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps WebSocket Connected',
+          op: 'perps.market_data',
+        }),
+      );
+
+      // Verify performance measurements
+    });
+
+    it('should calculate subscription duration correctly using performance.now()', async () => {
+      const mockCallback = jest.fn();
+      const traceModule = jest.requireMock('../../../../util/trace');
+
+      // Clear previous calls
+      traceModule.endTrace.mockClear();
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait a bit to simulate subscription time
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Unsubscribe to trigger endTrace
+      unsubscribe();
+
+      // Verify endTrace was called with correct duration calculation
+      expect(traceModule.endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Market Data Update',
+          data: expect.objectContaining({
+            subscription_duration_ms: expect.any(Number),
+            symbols_count: 1,
+          }),
+        }),
+      );
+
+      // The duration should be a positive number (not negative from Date.now() - performance.now())
+      const endTraceCall = traceModule.endTrace.mock.calls[0][0];
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThan(0);
+      // Should be at least 50ms since we waited that long
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThanOrEqual(
+        40,
+      ); // Allow some margin
+    });
+  });
+
   describe('Cleanup and Error Handling', () => {
     it('should clear all subscriptions and cache', () => {
       service.clearAll();
@@ -658,8 +940,9 @@ describe('HyperLiquidSubscriptionService', () => {
           setTimeout(() => {
             callback({
               clearinghouseState: {
-                // No assetPositions
+                assetPositions: [], // Empty array instead of undefined
               },
+              openOrders: [], // Also need openOrders array
             });
           }, 0);
           return Promise.resolve({
@@ -991,6 +1274,88 @@ describe('HyperLiquidSubscriptionService', () => {
       );
 
       unsubscribe();
+    });
+  });
+
+  describe('Race condition prevention', () => {
+    it('should prevent duplicate allMids subscriptions when multiple subscribeToPrices calls happen simultaneously', async () => {
+      const callbacks = [jest.fn(), jest.fn(), jest.fn()];
+      const unsubscribes: (() => void)[] = [];
+
+      // Call subscribeToPrices multiple times simultaneously
+      const subscribePromises = callbacks.map((callback) => {
+        const unsubscribe = service.subscribeToPrices({
+          symbols: ['BTC'],
+          callback,
+        });
+        unsubscribes.push(unsubscribe);
+        return new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Wait for all subscriptions to complete
+      await Promise.all(subscribePromises);
+
+      // Should only create one allMids subscription despite multiple simultaneous calls
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(1);
+
+      // All callbacks should still work
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      callbacks.forEach((callback) => {
+        expect(callback).toHaveBeenCalled();
+      });
+
+      // Cleanup
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    });
+
+    it('should retry allMids subscription if initial attempt fails', async () => {
+      const callback = jest.fn();
+      const mockUnsubscribeFn = jest.fn();
+      const mockSubscriptionObj = {
+        unsubscribe: mockUnsubscribeFn,
+      };
+
+      // Make first attempt fail
+      mockSubscriptionClient.allMids.mockImplementationOnce(() =>
+        Promise.reject(new Error('Connection failed')),
+      );
+
+      // Second attempt succeeds
+      mockSubscriptionClient.allMids.mockImplementationOnce((cb: any) => {
+        setTimeout(() => {
+          cb({
+            mids: {
+              BTC: '50000',
+            },
+          });
+        }, 10);
+        return Promise.resolve(mockSubscriptionObj);
+      });
+
+      // First subscription attempt
+      const unsubscribe1 = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      // Wait for first attempt to fail
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second subscription attempt should retry
+      const unsubscribe2 = service.subscribeToPrices({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      // Wait for second attempt to succeed
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Should have tried twice total
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
+
+      // Cleanup
+      unsubscribe1();
+      unsubscribe2();
     });
   });
 });

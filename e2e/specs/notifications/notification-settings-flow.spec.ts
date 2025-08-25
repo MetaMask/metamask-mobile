@@ -1,26 +1,17 @@
-import type { Mockttp } from 'mockttp';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { mockNotificationServices } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
-  let mockServer: Mockttp;
-
   beforeAll(async () => {
     jest.setTimeout(170000);
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer({}, mockServerPort);
-    await mockNotificationServices(mockServer);
   });
 
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
@@ -28,7 +19,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
         permissions: {
           notifications: 'YES',
         },
@@ -66,11 +56,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
 
         // Test account notifications toggle functionality
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'off',
         );
         await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT,
+          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
           'on',
         );
 

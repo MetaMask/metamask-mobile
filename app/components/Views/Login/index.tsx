@@ -26,9 +26,8 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -38,7 +37,6 @@ import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
@@ -157,9 +155,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const dispatch = useDispatch();
-  const setOnboardingWizardStep = (step: number) =>
-    dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -297,13 +292,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const navigateToHome = async () => {
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } else {
-      setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    }
+    navigation.replace(Routes.ONBOARDING.HOME_NAV);
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
@@ -344,18 +333,32 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [],
   );
 
-  const tooManyAttemptsError = async (remainingTime: number) => {
+  const tooManyAttemptsError = async (initialRemainingTime: number) => {
+    const lockEnd = Date.now() + initialRemainingTime * 1000;
+
     setDisabledInput(true);
-    for (let i = remainingTime; i > 0; i--) {
+    while (Date.now() < lockEnd) {
+      const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
+      if (remainingTime <= 0) {
+        break;
+      }
+
       if (!isMountedRef.current) {
         setError(null);
         setDisabledInput(false);
         return; // Exit early if component unmounted
       }
 
+      const remainingHours = Math.floor(remainingTime / 3600);
+      const remainingMinutes = Math.floor((remainingTime % 3600) / 60);
+      const remainingSeconds = remainingTime % 60;
+      const displayRemainingTime = `${remainingHours}:${remainingMinutes
+        .toString()
+        .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
       setError(
         strings('login.too_many_attempts', {
-          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+          remainingTime: displayRemainingTime,
         }),
       );
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -703,14 +706,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <View style={styles.labelContainer}>
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('login.password')}
-                </Label>
-              </View>
+              <Label
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.label}
+              >
+                {strings('login.password')}
+              </Label>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
@@ -769,6 +771,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               )}
             </View>
@@ -781,6 +785,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
+                  loading={loading}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               </View>
             )}

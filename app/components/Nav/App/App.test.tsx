@@ -12,7 +12,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   OPTIN_META_METRICS_UI_SEEN,
   EXISTING_USER,
-  ONBOARDING_WIZARD,
 } from '../../../constants/storage';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -50,6 +49,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
+jest.mock('expo-sensors', () => ({
+  Accelerometer: {
+    setUpdateInterval: jest.fn(),
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+  },
+}));
+
 jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   init: jest.fn(),
   parse: jest.fn(),
@@ -70,6 +77,14 @@ jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
   },
 }));
 
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: () => ({
+    isEnabled: jest.fn().mockReturnValue(false),
+    getMetaMetricsId: jest.fn(),
+  }),
+}));
+
 import WC2ManagerMock from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { DevLogger as DevLoggerMock } from '../../../../app/core/SDKConnect/utils/DevLogger';
 
@@ -79,15 +94,6 @@ jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
   getLatestReferringParams: jest.fn(),
 }));
-
-// Mock the PerpsCandlestickChart component that uses react-native-wagmi-charts
-jest.mock(
-  '../../../components/UI/Perps/components/PerpsCandlestickChart/PerpsCandlectickChart',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
 
 jest.mock('../../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -202,6 +208,7 @@ jest.mock('react-native-branch', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({
@@ -653,9 +660,7 @@ describe('App', () => {
         if (key === OPTIN_META_METRICS_UI_SEEN) {
           return true; // OptinMetrics UI has been seen
         }
-        if (key === ONBOARDING_WIZARD) {
-          return true;
-        }
+
         return null; // Default for other keys
       });
 

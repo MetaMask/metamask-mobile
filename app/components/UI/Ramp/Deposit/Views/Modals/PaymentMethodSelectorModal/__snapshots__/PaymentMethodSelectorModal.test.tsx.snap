@@ -385,8 +385,8 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -435,6 +435,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -458,7 +459,6 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >

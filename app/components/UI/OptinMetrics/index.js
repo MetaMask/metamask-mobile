@@ -13,15 +13,10 @@ import {
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import {
-  ONBOARDING_WIZARD,
-  OPTIN_META_METRICS_UI_SEEN,
-  TRUE,
-} from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -66,6 +61,7 @@ const createStyles = ({ colors }) =>
       backgroundColor: colors.background.default,
       paddingTop:
         Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
+      paddingBottom: 16,
     },
     checkbox: {
       display: 'flex',
@@ -88,6 +84,7 @@ const createStyles = ({ colors }) =>
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
+      paddingBottom: 80, // Space for fixed action buttons at bottom
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -133,10 +130,6 @@ class OptinMetrics extends PureComponent {
     /* navigation object required to push and pop other views
     */
     navigation: PropTypes.object,
-    /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
     /**
      * Onboarding events array created in previous onboarding views
      */
@@ -245,18 +238,9 @@ class OptinMetrics extends PureComponent {
       return onContinue();
     }
 
-    // Get onboarding wizard state
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      this.props.navigation.reset({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-    } else {
-      this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-    }
+    this.props.navigation.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   };
 
   /**
@@ -464,19 +448,17 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <View>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('privacy_policy.fine_print_1') + ' '}
-            <Text
-              color={TextColor.Primary}
-              variant={TextVariant.BodySM}
-              onPress={this.openPrivacyPolicy}
-            >
-              {strings('privacy_policy.privacy_policy_button')}
-            </Text>
-            {' ' + strings('privacy_policy.fine_print_2')}
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('privacy_policy.fine_print_1') + ' '}
+          <Text
+            color={TextColor.Primary}
+            variant={TextVariant.BodySM}
+            onPress={this.openPrivacyPolicy}
+          >
+            {strings('privacy_policy.privacy_policy_button')}
           </Text>
-        </View>
+          {' ' + strings('privacy_policy.fine_print_2')}
+        </Text>
       );
     }
 
@@ -680,7 +662,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),

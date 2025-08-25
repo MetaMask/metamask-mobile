@@ -8,23 +8,34 @@ import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../fixtures/utils';
+import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
+import { setupMockRequest } from '../../../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
   const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
 
-  const testSpecificMock = {
-    POST: [],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {

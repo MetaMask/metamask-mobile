@@ -18,9 +18,10 @@ import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
-import { getGanachePort } from '../fixtures/utils';
+import { getGanachePort } from '../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../framework/Constants';
+import { setupMockRequest } from '../api-mocking/mockHelpers';
 
 const port = getGanachePort(8545, process.pid);
 const chainId = 1337;
@@ -155,8 +156,15 @@ const main = async () => {
   const server = mockServer(port, openrpcDocument);
   server.start();
 
-  const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+  const testSpecificMock = async (mockServer) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   await withFixtures(

@@ -7,17 +7,30 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
-const testSpecificMock = {
-  GET: [
-    mockEvents.GET.suggestedGasFeesApiGanache,
-    mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-  ],
+const testSpecificMock = async (mockServer: Mockttp) => {
+  const { urlEndpoint, response } =
+    mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+  const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
+    mockEvents.GET.suggestedGasFeesApiGanache;
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: gasUrlEndpoint,
+    response: gasResponse,
+    responseCode: 200,
+  });
 };
 
 describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
@@ -35,8 +48,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         //Tap send Icon
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();
