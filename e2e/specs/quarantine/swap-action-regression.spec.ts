@@ -1,7 +1,6 @@
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
@@ -18,30 +17,33 @@ import {
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
-import Ganache from '../../../app/util/test/ganache';
-import { testSpecificMock } from './helpers/constants';
+import { submitSwapUnifiedUI } from '../swaps/helpers/swap-unified-ui';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import { swapSpecificMock } from '../swaps/helpers/constants';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startSwapsMockServer } from './helpers/swap-mocks';
-import { defaultGanacheOptions } from '../../framework/Constants';
+import { startSwapsMockServer } from '../swaps/helpers/swap-mocks';
+import WalletView from '../../pages/wallet/WalletView';
 
 const fixtureServer = new FixtureServer();
 
 // eslint-disable-next-line jest/no-disabled-tests
-describe.skip(Regression('Multiple Swaps from Actions'), () => {
+describe(Regression('Multiple Swaps from Actions'), () => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
   let mockServer: Mockttp;
-  let localNode: Ganache;
+  let localNode = new AnvilManager();
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
 
-    localNode = new Ganache();
-    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
+    localNode = new AnvilManager();
+    await localNode.start({
+      chainId: 1,
+      forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
+    });
 
     const mockServerPort = getMockServerPort();
-    mockServer = await startSwapsMockServer(testSpecificMock, mockServerPort);
+    mockServer = await startSwapsMockServer(swapSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -74,9 +76,9 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on chainID='$chainId",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, chainId }) => {
-      await TabBarComponent.tapActions();
-      await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-      await WalletActionsBottomSheet.tapSwapButton();
+      await device.disableSynchronization();
+      await TabBarComponent.tapWallet();
+      await WalletView.tapWalletSwapButton();
 
       // Submit the Swap
       await submitSwapUnifiedUI(
@@ -87,27 +89,29 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
       );
 
       // Check the swap activity completed
-      await Assertions.checkIfVisible(ActivitiesView.title);
-      await Assertions.checkIfVisible(
+      await Assertions.expectElementToBeVisible(ActivitiesView.title);
+      await Assertions.expectElementToBeVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfElementToHaveText(
+      await Assertions.expectElementToHaveText(
         ActivitiesView.transactionStatus(FIRST_ROW),
         ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        60000,
+        { timeout: 60000 },
       );
 
       // Check the token approval completed
       if (type === 'unapproved') {
-        await Assertions.checkIfVisible(
-          ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.approveActivity,
         );
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(SECOND_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          60000,
+          { timeout: 60000 },
         );
       }
+      // Waiting toast to clear
+      await TestHelpers.delay(10000);
     },
   );
 });

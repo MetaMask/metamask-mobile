@@ -100,12 +100,36 @@ export const startSwapsMockServer = async (
         };
       }
 
+      // Mocking the getTxStatus on the destination transaction
+      if (urlEndpoint.includes('getTxStatus')) {
+        const urlObj = new URL(urlEndpoint);
+        const txHash = urlObj.searchParams.get('srcTxHash');
+        const srcChainId = urlObj.searchParams.get('srcChainId');
+        const destChainId = urlObj.searchParams.get('destChainId');
+        return {
+          statusCode: 200,
+          json: {
+            status: 'COMPLETE',
+            isExpectedToken: true,
+            bridge: 'mayan',
+            srcChain: {
+              chainId: srcChainId,
+              txHash,
+            },
+            destChain: {
+              chainId: destChainId,
+              txHash,
+            },
+          },
+        };
+      }
       // Needed in order to get a quote for locahost
       if (urlEndpoint.includes('getQuote')) {
         urlEndpoint = urlEndpoint.replace(
           'insufficientBal=false',
           'insufficientBal=true',
         );
+        console.log(urlEndpoint);
       }
       // If no matching mock found, pass through to actual endpoint
       const updatedUrl =

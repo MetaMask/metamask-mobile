@@ -18,13 +18,15 @@ import {
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
-import QuoteView from '../../pages/Bridge/QuoteView.ts';
+import QuoteView from '../../pages/swaps/QuoteView';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
 import { startSwapsMockServer } from '../swaps/helpers/swap-mocks.ts';
-import { testSpecificMock } from '../swaps/helpers/constants.ts';
-import { localNodeOptions } from '../bridge/constants.ts';
+import {
+  swapSpecificMock,
+  localNodeOptions,
+} from '../swaps/helpers/constants.ts';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
@@ -44,7 +46,7 @@ describe(
       await localNode.start(localNodeOptions);
 
       const mockServerPort = getMockServerPort();
-      mockServer = await startSwapsMockServer(testSpecificMock, mockServerPort);
+      mockServer = await startSwapsMockServer(swapSpecificMock, mockServerPort);
 
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder()

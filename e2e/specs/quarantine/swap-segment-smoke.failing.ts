@@ -80,17 +80,14 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
-
-    await QuoteView.tapOnSelectDestToken();
+    await QuoteView.tapDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
     await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
-    await QuoteView.enterSwapAmount('0.01');
+    await QuoteView.enterAmount('0.01');
     // This is to ensure we tap cancel before quotes are fetched - the cancel event is only sent if the quotes are not fetched
     await device.disableSynchronization();
-    await QuoteView.tapOnGetQuotes();
     await TestHelpers.delay(1000);
     await QuoteView.tapOnCancelButton();
     await device.enableSynchronization();
@@ -102,14 +99,12 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
-    await QuoteView.tapOnSelectDestToken();
+    await QuoteView.tapSearchToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
     await TestHelpers.delay(3000);
     await QuoteView.selectToken('DAI');
-    await QuoteView.enterSwapAmount('0.01');
-    await QuoteView.tapOnGetQuotes();
+    await QuoteView.enterAmount('0.01');
     await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
     await SwapView.tapIUnderstandPriceWarning();
     await device.disableSynchronization();
