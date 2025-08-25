@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -13,12 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import PerpsTokenLogo from '../PerpsTokenLogo';
 import type { PerpsMarketData } from '../../controllers/types';
-import { styleSheet } from './PerpsMarketHeader.styles';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import { styleSheet } from './PerpsMarketHeader.styles';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -34,8 +33,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-
-  DevLogger.log('PerpsMarketHeader: market', market.symbol);
 
   return (
     <View style={styles.container} testID={testID}>
