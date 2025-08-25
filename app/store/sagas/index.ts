@@ -31,6 +31,7 @@ import {
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -151,7 +152,7 @@ export function* initializeSDKServices() {
 export function* handleDeeplinkSaga() {
   // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
   // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  let hasInitializedSDKServices = false;
+  const hasInitializedSDKServices = false;
 
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
@@ -209,6 +210,9 @@ export function* startAppServices() {
 
   // Start Engine service
   yield call(EngineService.start);
+
+  // Start DeeplinkManager and process branch deeplinks
+  DeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
