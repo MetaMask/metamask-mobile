@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
@@ -10,14 +11,13 @@ import {
 } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
-import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 const Root = () => {
   const navigation = useNavigation();
+  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, getStarted, isAuthenticated } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
-  const wasUnauthenticated = useRef(false);
 
   const handleRouting = useCallback(async () => {
     if (!getStarted) return;
@@ -30,7 +30,6 @@ const Root = () => {
 
     if (createdOrder) {
       if (!isAuthenticated) {
-        wasUnauthenticated.current = true;
         const [routeName, params] = createEnterEmailNavDetails({});
         navigation.reset({
           index: 0,
@@ -51,22 +50,12 @@ const Root = () => {
         ],
       });
     } else {
-      // If user was unauthenticated and now is authenticated, they just logged in
-      // Route to BuildQuote with shouldRouteImmediately to continue their flow
-      const shouldRouteImmediately =
-        wasUnauthenticated.current && isAuthenticated;
-      wasUnauthenticated.current = false;
-      const [routeName, params] = createBuildQuoteNavDetails({
-        shouldRouteImmediately,
-      });
       navigation.reset({
         index: 0,
-        routes: [
-          { name: routeName, params: { ...params, animationEnabled: false } },
-        ],
+        routes: [{ name: initialRoute, params: { animationEnabled: false } }],
       });
     }
-  }, [getStarted, isAuthenticated, orders, navigation]);
+  }, [getStarted, isAuthenticated, orders, navigation, initialRoute]);
 
   useEffect(() => {
     const initializeFlow = async () => {
