@@ -1,5 +1,7 @@
 import { Connection } from './connection';
 
+export type PersistedConnection = Omit<Connection, 'client' | 'bridge'>;
+
 /**
  * Defines the contract for the persistence layer that will act as the
  * single source of truth for all SDKConnectV2 connections.
@@ -14,20 +16,20 @@ export interface IConnectionStore {
    * @param connection The connection object to save.
    * @returns A promise that resolves when the save operation is complete.
    */
-  save(connection: Connection): Promise<void>;
+  save(connection: PersistedConnection): Promise<void>;
 
   /**
    * Retrieves a single connection by its unique ID.
    * @param id The ID of the connection to retrieve.
    * @returns A promise that resolves with the Connection object, or null if not found.
    */
-  get(id: string): Promise<Connection | null>;
+  get(id: string): Promise<PersistedConnection | null>;
 
   /**
    * Retrieves a list of all persisted connections.
    * @returns A promise that resolves with an array of all Connection objects.
    */
-  list(): Promise<Connection[]>;
+  list(): Promise<PersistedConnection[]>;
 
   /**
    * Deletes a connection from storage by its unique ID.
