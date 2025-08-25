@@ -10,6 +10,7 @@ import {
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import ReduxService from '../../../core/redux';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
@@ -312,6 +313,18 @@ describe('ErrorBoundary', () => {
     });
 
     it('calls captureExceptionForced and navigates to onboarding when Send report is pressed in onboarding mode', async () => {
+      // Mock ReduxService.store getter to return a minimal Redux store shape
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn().mockReturnValue({
+          user: {
+            existingUser: false,
+          },
+        }),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
+      });
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },
@@ -335,6 +348,18 @@ describe('ErrorBoundary', () => {
     });
 
     it('navigates to onboarding when Try again is pressed in onboarding mode', () => {
+      // Mock ReduxService.store getter to return a minimal Redux store shape
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn().mockReturnValue({
+          user: {
+            existingUser: false,
+          },
+        }),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
+      });
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },
@@ -345,6 +370,32 @@ describe('ErrorBoundary', () => {
 
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],
+      });
+    });
+
+    it('navigates to Login when Try again is pressed for existing user', () => {
+      // Mock ReduxService.store getter to return a minimal Redux store shape
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn().mockReturnValue({
+          user: {
+            existingUser: true,
+          },
+        }),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
+      });
+      const { getByText } = renderWithProvider(
+        <Fallback {...onboardingProps} />,
+        { state: initialState },
+      );
+
+      const tryAgainButton = getByText('Try again');
+      fireEvent.press(tryAgainButton);
+
+      expect(mockNavigation.reset).toHaveBeenCalledWith({
+        routes: [{ name: 'Login' }],
       });
     });
   });
