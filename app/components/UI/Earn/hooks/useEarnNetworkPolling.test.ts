@@ -38,7 +38,6 @@ import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
-import useAccountTrackerPolling from '../../../hooks/AssetPolling/useAccountTrackerPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
 import Engine from '../../../../core/Engine';
 
@@ -57,7 +56,6 @@ describe('useEarnNetworkPolling', () => {
   const mockUseTokenBalancesPolling = jest.mocked(useTokenBalancesPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
-  const mockUseAccountTrackerPolling = jest.mocked(useAccountTrackerPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
 
   const mockFindNetworkClientIdByChainId = jest.mocked(
@@ -138,9 +136,6 @@ describe('useEarnNetworkPolling', () => {
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
       chainIds: expect.any(Array),
     });
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: expect.any(Array),
-    });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
       chainIds: expect.any(Array),
       address: mockSelectedAccount.address,
@@ -164,9 +159,6 @@ describe('useEarnNetworkPolling', () => {
     });
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
       chainIds: [],
-    });
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: [],
     });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
       chainIds: [],
@@ -380,7 +372,6 @@ describe('useEarnNetworkPolling', () => {
     expect(mockUseTokenBalancesPolling).toHaveBeenCalled();
     expect(mockUseCurrencyRatePolling).toHaveBeenCalled();
     expect(mockUseTokenRatesPolling).toHaveBeenCalled();
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalled();
     expect(mockUseTokenDetectionPolling).toHaveBeenCalled();
   });
 });
