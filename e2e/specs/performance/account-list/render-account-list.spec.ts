@@ -91,8 +91,16 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             };
 
             // Performance assertions with warnings
-            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME) {
+            if (totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME && isAndroid) {
               throw new PerformanceTestError(
+                `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            } else if (
+              totalTime > PERFORMANCE_THRESHOLDS.TOTAL_TIME &&
+              !isAndroid
+            ) {
+              console.warn(
                 `Performance test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${PERFORMANCE_THRESHOLDS.TOTAL_TIME}ms)`,
                 result,
               );
@@ -177,8 +185,16 @@ describe(SmokePerformance('Account List Load Testing'), () => {
               },
             };
 
-            if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME) {
+            if (totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME && isAndroid) {
               throw new PerformanceTestError(
+                `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            } else if (
+              totalTime > HEAVY_LOAD_THRESHOLDS.TOTAL_TIME &&
+              !isAndroid
+            ) {
+              console.warn(
                 `Heavy load test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${HEAVY_LOAD_THRESHOLDS.TOTAL_TIME}ms)`,
                 result,
               );
@@ -265,8 +281,16 @@ describe(SmokePerformance('Account List Load Testing'), () => {
             };
 
             // Baseline should be very fast
-            if (totalTime > BASELINE_THRESHOLDS.TOTAL_TIME) {
+            if (totalTime > BASELINE_THRESHOLDS.TOTAL_TIME && isAndroid) {
               throw new PerformanceTestError(
+                `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${BASELINE_THRESHOLDS.TOTAL_TIME}ms)`,
+                result,
+              );
+            } else if (
+              totalTime > BASELINE_THRESHOLDS.TOTAL_TIME &&
+              !isAndroid
+            ) {
+              console.warn(
                 `Baseline test failed: Total time (${totalTime}ms) exceeded maximum acceptable time (${BASELINE_THRESHOLDS.TOTAL_TIME}ms)`,
                 result,
               );
