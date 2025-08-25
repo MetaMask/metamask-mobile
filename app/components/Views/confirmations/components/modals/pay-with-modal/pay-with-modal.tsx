@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
+import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -38,8 +39,8 @@ export function PayWithModal() {
 
   const filteredTokensList = useMemo(
     () =>
-      tokensList.filter(
-        (token) => (token.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0),
+      tokensList.filter((token) =>
+        isTokenSupported(token, tokensList, minimumFiatBalance ?? 0),
       ),
     [tokensList, minimumFiatBalance],
   );
@@ -115,4 +116,21 @@ export function PayWithModal() {
       title={strings('pay_with_modal.title')}
     />
   );
+}
+
+function isTokenSupported(
+  token: BridgeToken,
+  tokens: BridgeToken[],
+  requiredBalance: number,
+): boolean {
+  const nativeToken = tokens.find(
+    (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+  );
+
+  const isTokenBalanceSufficient =
+    (token?.tokenFiatAmount ?? 0) >= requiredBalance;
+
+  const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
+
+  return isTokenBalanceSufficient && hasNativeBalance;
 }
