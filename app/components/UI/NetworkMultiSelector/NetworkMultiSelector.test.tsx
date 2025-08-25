@@ -164,7 +164,7 @@ describe('NetworkMultiSelector', () => {
       networkEnablementController: {} as NetworkEnablementController,
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
-      toggleNetwork: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
     });
@@ -183,7 +183,7 @@ describe('NetworkMultiSelector', () => {
       selectCustomNetwork: jest.fn(),
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
-      toggleAll: mockToggleAll,
+      selectAllPopularNetworks: mockToggleAll,
       resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
@@ -283,7 +283,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });
@@ -317,7 +317,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });
@@ -374,7 +374,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });
