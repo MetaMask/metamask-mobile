@@ -9,10 +9,11 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import { SmokeTrade } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
 import { LocalNodeType } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 // Anvil configuration for local blockchain node
 const anvilLocalNodeOptions = {
@@ -22,8 +23,7 @@ const anvilLocalNodeOptions = {
   chainId: 1,
 };
 
-// Get ramps API mocks from the dedicated mock file
-const rampsApiMocks = getRampsApiMocks();
+const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
 
 const setupRampsAccountSwitchTest = async (
   testFunction: () => Promise<void>,
@@ -32,7 +32,7 @@ const setupRampsAccountSwitchTest = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+        .withRampsSelectedRegion(selectedRegion)
         .build(),
       restartDevice: true,
       localNodeOptions: [
@@ -41,7 +41,9 @@ const setupRampsAccountSwitchTest = async (
           options: anvilLocalNodeOptions,
         },
       ],
-      testSpecificMock: rampsApiMocks,
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+      },
     },
     async () => {
       await loginToApp();
