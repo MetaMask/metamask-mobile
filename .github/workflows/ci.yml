@@ -172,6 +172,7 @@ jobs:
     secrets: inherit
 
   e2e-smoke-tests-android:
+    name: "E2E Smoke Tests (Android)"
     permissions:
       contents: read
       id-token: write

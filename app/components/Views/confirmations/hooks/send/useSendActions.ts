@@ -9,6 +9,7 @@ import { submitEvmTransaction } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 import { useSendExitMetrics } from './metrics/useSendExitMetrics';
+import { AssetType } from '../../types/token';
 
 export const useSendActions = () => {
   const { asset, chainId, fromAccount, from, to, value } = useSendContext();
@@ -27,7 +28,7 @@ export const useSendActions = () => {
 
       if (isEvmSendType) {
         submitEvmTransaction({
-          asset,
+          asset: asset as AssetType,
           chainId: chainId as Hex,
           from: from as Hex,
           to: toAddress as Hex,
