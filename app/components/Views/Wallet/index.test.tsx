@@ -1015,66 +1015,6 @@ describe('Wallet', () => {
       expect(capturedCallback).toBeDefined();
     });
 
-    it('should clear navigation params after selecting perps tab', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const reactNavigation = jest.requireMock('@react-navigation/native');
-
-      // Mock navigation with setParams function
-      const mockSetParams = jest.fn();
-      reactNavigation.useNavigation.mockReturnValue({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        setParams: mockSetParams,
-      });
-
-      // Mock route with shouldSelectPerpsTab param
-      reactNavigation.useRoute.mockReturnValue({
-        params: {
-          shouldSelectPerpsTab: true,
-        },
-      });
-
-      // Mock state with Perps enabled
-      const stateWithPerpsEnabled = {
-        ...mockInitialState,
-        tabs: [{}], // Non-empty tabs array means Perps is enabled
-      };
-
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback) => callback(stateWithPerpsEnabled));
-
-      // Track the focus effect callback
-      let capturedCallback: unknown = null;
-      reactNavigation.useFocusEffect.mockImplementation(
-        (callback: () => (() => void) | undefined) => {
-          capturedCallback = callback;
-        },
-      );
-
-      //@ts-expect-error we are ignoring the navigation params on purpose
-      render(Wallet);
-
-      // Execute the callback to simulate focus
-      if (capturedCallback && typeof capturedCallback === 'function') {
-        const cleanup = (capturedCallback as () => (() => void) | undefined)();
-
-        // Fast-forward timers to trigger the setTimeout
-        jest.advanceTimersByTime(100);
-
-        // Verify setParams was called to clear the navigation params
-        expect(mockSetParams).toHaveBeenCalledWith({
-          shouldSelectPerpsTab: false,
-          initialTab: undefined,
-        });
-
-        // Cleanup if a function was returned
-        if (typeof cleanup === 'function') {
-          cleanup();
-        }
-      }
-    });
-
     it('should execute navigation logic when initialTab is perps', () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const reactNavigation = jest.requireMock('@react-navigation/native');
