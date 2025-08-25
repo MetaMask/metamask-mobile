@@ -6,7 +6,7 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
-import { logger } from '../../framework/logger.js';
+import { logger } from '../../framework/logger';
 
 class SwapView {
   get quoteSummary(): DetoxElement {

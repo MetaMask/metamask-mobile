@@ -11,15 +11,15 @@ import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
 
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { AssetType } from '../../types/token';
+import { AssetType, Nft } from '../../types/token';
 
 export interface SendContextType {
-  asset?: AssetType;
+  asset?: AssetType | Nft;
   chainId?: string;
   fromAccount?: InternalAccount;
   from?: string;
   to?: string;
-  updateAsset: (asset?: AssetType) => void;
+  updateAsset: (asset?: AssetType | Nft) => void;
   updateTo: (to: string) => void;
   updateValue: (value: string) => void;
   value?: string;
@@ -40,14 +40,14 @@ export const SendContext = createContext<SendContextType>({
 export const SendContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
-  const [asset, updateAsset] = useState<AssetType>();
+  const [asset, updateAsset] = useState<AssetType | Nft>();
   const [to, updateTo] = useState<string>();
   const [value, updateValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
   const accounts = useSelector(selectInternalAccountsById);
 
   const handleUpdateAsset = useCallback(
-    (updatedAsset?: AssetType) => {
+    (updatedAsset?: AssetType | Nft) => {
       updateAsset(updatedAsset);
       if (
         updatedAsset?.accountId &&

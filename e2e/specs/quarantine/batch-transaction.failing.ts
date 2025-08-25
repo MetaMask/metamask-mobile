@@ -20,6 +20,8 @@ import { SmokeConfirmationsRedesigned } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
 import { AnvilNodeOptions, LocalNodeType } from '../../framework';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const LOCAL_CHAIN_NAME = 'Localhost';
 
@@ -65,14 +67,22 @@ async function connectTestDappToLocalhost() {
 }
 
 describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
-  const testSpecificMock = {
-    POST: [],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
-
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });

@@ -86,7 +86,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
             iconName={IconName.Money}
             label={strings('asset_overview.fund_button')}
             onPress={handleFundPress}
-            isDisabled={!canSignTransactions || !isFundingAvailable}
+            isDisabled={!isFundingAvailable}
             testID={fundButtonActionID}
           />
         </View>

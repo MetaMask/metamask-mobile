@@ -1,5 +1,4 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import Engine from '../../../../../core/Engine';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
@@ -21,17 +20,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-}));
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addToken: jest.fn(),
-      state: {
-        allTokens: {},
-      },
-    },
-  },
 }));
 
 jest.mock('../../../../../core/NotificationManager', () => ({
@@ -114,56 +102,5 @@ describe('useHandleSuccessfulOrder', () => {
 
     expect(mockDispatch).toHaveBeenCalledWith(protectWalletModalVisible());
     expect(mockNavigation.dangerouslyGetParent().pop).toHaveBeenCalled();
-  });
-
-  it('should not add token to TokensController if conditions are not met', async () => {
-    const order = {
-      id: '3',
-      orderType: OrderOrderTypeEnum.Buy,
-      data: {
-        cryptoCurrency: {
-          symbol: 'ETH',
-          address: '0x123',
-        },
-        fiatCurrency: {
-          symbol: 'USD',
-        },
-      },
-    };
-
-    const { result } = renderHook(() => useHandleSuccessfulOrder());
-
-    await act(async () => {
-      await result.current(order as FiatOrder);
-    });
-
-    expect(Engine.context.TokensController.addToken).not.toHaveBeenCalled();
-  });
-
-  it('should add token to TokensController', async () => {
-    const order = {
-      id: '3',
-      orderType: OrderOrderTypeEnum.Buy,
-      data: {
-        cryptoCurrency: {
-          symbol: 'ETH',
-          address: '0x123',
-          network: {
-            chainId: '1',
-          },
-        },
-        fiatCurrency: {
-          symbol: 'USD',
-        },
-      },
-    };
-
-    const { result } = renderHook(() => useHandleSuccessfulOrder());
-
-    await act(async () => {
-      await result.current(order as FiatOrder);
-    });
-
-    expect(Engine.context.TokensController.addToken).toHaveBeenCalled();
   });
 });

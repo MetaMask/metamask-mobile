@@ -157,7 +157,6 @@ describe('useAccounts', () => {
         {
           name: 'Group 1',
           address: '0x1234567890123456789012345678901234567890',
-          fiatValue: '$1,000.00',
         },
       ]);
     });
@@ -214,7 +213,6 @@ describe('useAccounts', () => {
         {
           name: 'Group 2',
           address: 'Sol1234567890123456789012345678901234567890',
-          fiatValue: '$1,000.00',
         },
       ]);
     });
@@ -410,12 +408,10 @@ describe('useAccounts', () => {
           {
             name: 'Group 1',
             address: '0x1234567890123456789012345678901234567890',
-            fiatValue: '$1,000.00',
           },
           {
             name: 'Group 3',
             address: '0x9876543210987654321098765432109876543210',
-            fiatValue: '$1,000.00',
           },
         ]),
       );

@@ -22,6 +22,7 @@ const checkCredentials = async () => {
   await Assertions.expectElementToBeVisible(
     RevealPrivateKey.revealCredentialQRCodeImage,
   );
+  await RevealPrivateKey.scrollToDone();
   await RevealPrivateKey.tapDoneButton();
 };
 

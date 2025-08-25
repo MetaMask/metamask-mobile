@@ -57,7 +57,7 @@ export const useNonEvmAmountValidation = () => {
     async () =>
       await validateAmountFn({
         amount: value,
-        asset,
+        asset: asset as AssetType,
         fromAccount: fromAccount as InternalAccount,
       }),
     [asset, fromAccount, value],

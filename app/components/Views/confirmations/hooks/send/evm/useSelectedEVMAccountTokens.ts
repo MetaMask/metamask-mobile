@@ -176,6 +176,6 @@ export function useSelectedEVMAccountTokens() {
   const { asset } = useSendContext();
 
   return useSelector((state: RootState) =>
-    selectSelectedEVMAccountTokens(state, asset),
+    selectSelectedEVMAccountTokens(state, asset as AssetType),
   );
 }

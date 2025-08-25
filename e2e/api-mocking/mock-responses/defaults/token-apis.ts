@@ -1,4 +1,4 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockEventsObject } from '../../../framework';
 import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses';
 
 /**
@@ -9,7 +9,7 @@ import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses';
 const tokenListRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/tokens\/\d+\?.*$/;
 
-export const TOKEN_API_MOCKS: TestSpecificMock = {
+export const TOKEN_API_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint: tokenListRegex,

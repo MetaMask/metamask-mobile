@@ -1,4 +1,4 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockEventsObject } from '../../../framework';
 
 const response = {
   nodeDetails: {
@@ -63,7 +63,7 @@ const response = {
  * Returns basic node details to prevent API failures.
  * For specific Web3Auth tests, add detailed mocks in the test files.
  */
-export const WEB_3_AUTH_MOCKS: TestSpecificMock = {
+export const WEB_3_AUTH_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:

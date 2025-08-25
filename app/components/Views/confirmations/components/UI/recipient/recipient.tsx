@@ -17,7 +17,6 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 export interface RecipientType {
   name: string;
   address: string;
-  fiatValue?: string;
 }
 
 interface RecipientProps {
@@ -68,17 +67,6 @@ export function Recipient({
           </Text>
         </Box>
       </Box>
-      {recipient.fiatValue && (
-        <Box twClassName="h-12 justify-center items-end">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            numberOfLines={1}
-          >
-            {recipient.fiatValue}
-          </Text>
-        </Box>
-      )}
     </Pressable>
   );
 }

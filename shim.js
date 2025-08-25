@@ -134,6 +134,7 @@ if (enableApiCallLogs || isTest) {
     )
       .then((res) => res.ok)
       .catch(() => false);
+
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) =>
       isMockServerAvailable
@@ -142,5 +143,63 @@ if (enableApiCallLogs || isTest) {
             options,
           ).catch(() => originalFetch(url, options))
         : originalFetch(url, options);
+
+    if (isMockServerAvailable) {
+      // Patch XMLHttpRequest for Axios and other libraries
+      const OriginalXHR = global.XMLHttpRequest;
+
+      if (OriginalXHR) {
+        global.XMLHttpRequest = function (...args) {
+          const xhr = new OriginalXHR(...args);
+          const originalOpen = xhr.open;
+
+          xhr.open = function (method, url, ...openArgs) {
+            try {
+              // Route external URLs through mock server proxy
+              if (
+                typeof url === 'string' &&
+                (url.startsWith('http://') || url.startsWith('https://'))
+              ) {
+                if (
+                  !url.includes(`localhost:${mockServerPort}`) &&
+                  !url.includes('/proxy')
+                ) {
+                  const originalUrl = url;
+                  url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
+                }
+              }
+              return originalOpen.call(this, method, url, ...openArgs);
+            } catch (error) {
+              return originalOpen.call(this, method, url, ...openArgs);
+            }
+          };
+
+          return xhr;
+        };
+
+        // Copy static properties and prototype chain
+        try {
+          Object.setPrototypeOf(global.XMLHttpRequest, OriginalXHR);
+          Object.assign(global.XMLHttpRequest, OriginalXHR);
+
+          // Store reference to verify patching worked
+          global.__MOCK_XHR_PATCHED = true;
+          global.__ORIGINAL_XHR = OriginalXHR;
+
+          // eslint-disable-next-line no-console
+          console.log(
+            '[XHR Patch] Successfully patched XMLHttpRequest for E2E testing',
+          );
+        } catch (error) {
+          console.warn('[XHR Patch] Failed to copy XHR properties:', error);
+          // Restore original if copying failed
+          global.XMLHttpRequest = OriginalXHR;
+        }
+      } else {
+        console.warn(
+          '[XHR Patch] XMLHttpRequest not available, skipping patch',
+        );
+      }
+    }
   })();
 }

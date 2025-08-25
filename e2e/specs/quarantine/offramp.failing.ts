@@ -5,35 +5,19 @@ import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import QuotesView from '../../pages/Ramps/QuotesView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
-
-let mockServer: Mockttp;
-let mockServerPort: number;
 
 describe(SmokeTrade('Off-Ramp'), () => {
   let shouldCheckProviderSelectedEvents = true;
   const eventsToCheck: EventPayload[] = [];
-
-  beforeAll(async () => {
-    const segmentMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    };
-
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
-  });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
@@ -48,9 +32,8 @@ describe(SmokeTrade('Off-Ramp'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },

@@ -8,6 +8,8 @@ import { SmokeAccounts } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeAccounts('Account Rename UI Flows'), () => {
   const ORIGINAL_ACCOUNT_NAME = 'Account 1';
@@ -26,10 +28,15 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -83,10 +90,15 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {

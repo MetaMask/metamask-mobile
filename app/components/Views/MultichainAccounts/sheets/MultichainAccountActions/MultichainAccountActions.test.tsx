@@ -115,9 +115,9 @@ describe('MultichainAccountActions', () => {
     accountDetailsButton.props.onPress();
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
       {
-        account: mockInternalAccount,
+        accountGroup: mockAccountGroup,
       },
     );
   });

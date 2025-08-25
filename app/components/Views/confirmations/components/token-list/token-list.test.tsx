@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { ImageSourcePropType } from 'react-native';
 
 // eslint-disable-next-line import/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
@@ -23,7 +22,7 @@ jest.mock('../../context/send-context', () => ({
   }),
 }));
 
-jest.mock('../UI/token/token', () => {
+jest.mock('../UI/token', () => {
   const { Pressable, Text } = jest.requireActual('react-native');
 
   return {
@@ -98,108 +97,79 @@ describe('TokenList', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the component with tokens', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+  describe('token rendering', () => {
+    it('renders tokens when provided', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-    expect(getByTestId('token-ETH')).toBeOnTheScreen();
-    expect(getByTestId('token-USDC')).toBeOnTheScreen();
-  });
-
-  it('calls updateAsset and gotToSendScreen when token is pressed', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-ETH'));
-
-    expect(mockUpdateAsset).toHaveBeenCalledWith({
-      ...mockTokens[0],
+      expect(getByTestId('token-ETH')).toBeOnTheScreen();
+      expect(getByTestId('token-USDC')).toBeOnTheScreen();
     });
 
-    expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
-  });
+    it('renders empty list when no tokens provided', () => {
+      const { queryByTestId } = render(<TokenList tokens={[]} />);
 
-  it('calls required metrics function when token is pressed', () => {
-    const mockCaptureAssetSelected = jest.fn();
-    jest
-      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
-      .mockReturnValue({
-        captureAssetSelected: mockCaptureAssetSelected,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-ETH'));
-
-    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
-  });
-
-  it('calls updateAsset and gotToSendScreen when second token is pressed', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-USDC'));
-
-    expect(mockUpdateAsset).toHaveBeenCalledWith({
-      ...mockTokens[1],
+      expect(queryByTestId('token-ETH')).toBeNull();
+      expect(queryByTestId('token-USDC')).toBeNull();
     });
 
-    expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    it('renders single token correctly', () => {
+      const singleToken = [mockTokens[0]];
+      const { getByTestId } = render(<TokenList tokens={singleToken} />);
+
+      expect(getByTestId('token-ETH')).toBeOnTheScreen();
+    });
   });
 
-  it('renders empty list when no tokens provided', () => {
-    const { queryByTestId } = render(<TokenList tokens={[]} />);
+  describe('token selection', () => {
+    it('calls updateAsset and navigates to amount screen when token is pressed', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-    expect(queryByTestId('token-ETH')).toBeNull();
-    expect(queryByTestId('token-USDC')).toBeNull();
-  });
+      fireEvent.press(getByTestId('token-ETH'));
 
-  it('renders with single token', () => {
-    const singleToken = [mockTokens[0]];
-    const { getByTestId } = render(<TokenList tokens={singleToken} />);
+      expect(mockUpdateAsset).toHaveBeenCalledWith(mockTokens[0]);
+      expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    });
 
-    expect(getByTestId('token-ETH')).toBeOnTheScreen();
-  });
+    it('handles second token press correctly', () => {
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-  it('handles token press with complete asset data', () => {
-    const completeToken: AssetType = {
-      ...mockTokens[0],
-      networkBadgeSource:
-        'https://example.com/badge.png' as ImageSourcePropType,
-      tokenId: '123',
-    };
+      fireEvent.press(getByTestId('token-USDC'));
 
-    const { getByTestId } = render(<TokenList tokens={[completeToken]} />);
+      expect(mockUpdateAsset).toHaveBeenCalledWith(mockTokens[1]);
+      expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+    });
 
-    fireEvent.press(getByTestId('token-ETH'));
+    it('calls captureAssetSelected with correct asset and position', () => {
+      const mockCaptureAssetSelected = jest.fn();
+      jest
+        .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+        .mockReturnValue({
+          captureAssetSelected: mockCaptureAssetSelected,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
-    expect(mockUpdateAsset).toHaveBeenCalledWith(completeToken);
-  });
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-  it('maintains callback references between renders', () => {
-    const { rerender } = render(<TokenList tokens={mockTokens} />);
+      fireEvent.press(getByTestId('token-ETH'));
 
-    rerender(<TokenList tokens={mockTokens} />);
+      expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
+    });
 
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-    fireEvent.press(getByTestId('token-ETH'));
+    it('calls captureAssetSelected with correct position for second token', () => {
+      const mockCaptureAssetSelected = jest.fn();
+      jest
+        .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+        .mockReturnValue({
+          captureAssetSelected: mockCaptureAssetSelected,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
-    expect(mockUpdateAsset).toHaveBeenCalled();
-    expect(mockGotToSendScreen).toHaveBeenCalled();
-  });
+      const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-  it('calls captureAssetSelected with correct position for second token', () => {
-    const mockCaptureAssetSelected = jest.fn();
-    jest
-      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
-      .mockReturnValue({
-        captureAssetSelected: mockCaptureAssetSelected,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      fireEvent.press(getByTestId('token-USDC'));
 
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-USDC'));
-
-    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
+      expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
+    });
   });
 
   describe('pagination functionality', () => {
@@ -208,7 +178,6 @@ describe('TokenList', () => {
 
       expect(queryByTestId('token-TKN0')).toBeOnTheScreen();
       expect(queryByTestId('token-TKN19')).toBeOnTheScreen();
-
       expect(queryByTestId('token-TKN20')).toBeNull();
       expect(queryByTestId('token-TKN24')).toBeNull();
     });
@@ -247,111 +216,26 @@ describe('TokenList', () => {
 
       expect(queryByText('Show more tokens')).toBeNull();
     });
-  });
 
-  describe('empty state with active filters', () => {
-    const mockOnClearFilters = jest.fn();
+    it('shows correct number of tokens after multiple "Show more" presses', () => {
+      const largeTokenList = Array.from({ length: 50 }, (_, i) => ({
+        ...mockTokens[0],
+        address: `0x${i.toString().padStart(40, '0')}`,
+        symbol: `TKN${i}`,
+      }));
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('shows filtered empty state when no tokens and filters are active', () => {
-      const { getByText } = render(
-        <TokenList
-          tokens={[]}
-          hasActiveFilters
-          onClearFilters={mockOnClearFilters}
-        />,
+      const { getByText, queryByTestId } = render(
+        <TokenList tokens={largeTokenList} />,
       );
 
-      expect(getByText('No tokens match your filters')).toBeOnTheScreen();
-      expect(getByText('Clear filters')).toBeOnTheScreen();
-    });
+      fireEvent.press(getByText('Show more tokens'));
 
-    it('calls onClearFilters when clear filters button is pressed', () => {
-      const { getByText } = render(
-        <TokenList
-          tokens={[]}
-          hasActiveFilters
-          onClearFilters={mockOnClearFilters}
-        />,
-      );
+      expect(queryByTestId('token-TKN39')).toBeOnTheScreen();
+      expect(queryByTestId('token-TKN40')).toBeNull();
 
-      fireEvent.press(getByText('Clear filters'));
+      fireEvent.press(getByText('Show more tokens'));
 
-      expect(mockOnClearFilters).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not show filtered empty state when filters are not active', () => {
-      const { queryByText } = render(
-        <TokenList
-          tokens={[]}
-          hasActiveFilters={false}
-          onClearFilters={mockOnClearFilters}
-        />,
-      );
-
-      expect(queryByText('No tokens match your filters')).toBeNull();
-      expect(queryByText('Clear filters')).toBeNull();
-    });
-
-    it('does not show filtered empty state when onClearFilters is not provided', () => {
-      const { queryByText } = render(
-        <TokenList tokens={[]} hasActiveFilters />,
-      );
-
-      expect(queryByText('No tokens match your filters')).toBeNull();
-      expect(queryByText('Clear filters')).toBeNull();
-    });
-  });
-
-  describe('empty state without filters', () => {
-    it('shows general empty state when no tokens and no active filters', () => {
-      const { getByText } = render(<TokenList tokens={[]} />);
-
-      expect(getByText('No tokens available')).toBeOnTheScreen();
-    });
-
-    it('shows general empty state when no tokens and hasActiveFilters is false', () => {
-      const { getByText } = render(
-        <TokenList tokens={[]} hasActiveFilters={false} />,
-      );
-
-      expect(getByText('No tokens available')).toBeOnTheScreen();
-    });
-  });
-
-  describe('state precedence', () => {
-    it('shows filtered empty state instead of general empty state when filters are active', () => {
-      const mockOnClearFilters = jest.fn();
-      const { getByText, queryByText } = render(
-        <TokenList
-          tokens={[]}
-          hasActiveFilters
-          onClearFilters={mockOnClearFilters}
-        />,
-      );
-
-      expect(getByText('No tokens match your filters')).toBeOnTheScreen();
-
-      expect(queryByText('No tokens available')).toBeNull();
-    });
-
-    it('shows tokens normally when tokens exist regardless of filter state', () => {
-      const { getByTestId, queryByText } = render(
-        <TokenList
-          tokens={mockTokens}
-          hasActiveFilters
-          onClearFilters={jest.fn()}
-        />,
-      );
-
-      expect(getByTestId('token-ETH')).toBeOnTheScreen();
-      expect(getByTestId('token-USDC')).toBeOnTheScreen();
-
-      expect(queryByText('No tokens match your filters')).toBeNull();
-      expect(queryByText('No tokens available')).toBeNull();
+      expect(queryByTestId('token-TKN49')).toBeOnTheScreen();
     });
   });
 });

@@ -1,29 +1,48 @@
-/* eslint-disable no-console */
-/* eslint-disable import/no-nodejs-modules */
-import { getLocal } from 'mockttp';
-import portfinder from 'portfinder';
-import _ from 'lodash';
-import { device } from 'detox';
+import { getLocal, Headers, Mockttp } from 'mockttp';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
+import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
+import {
+  MockApiEndpoint,
+  MockEventsObject,
+  TestSpecificMock,
+} from '../framework/index';
 
 const logger = createLogger({
   name: 'MockServer',
 });
 
+interface LiveRequest {
+  url: string;
+  method: string;
+  timestamp: string;
+}
+
+interface MockServer extends Mockttp {
+  _liveRequests?: LiveRequest[];
+}
+
 /**
  * Utility function to handle direct fetch requests
- * @param {string} url - The URL to fetch from
- * @param {string} method - The HTTP method
- * @param {Headers} headers - Request headers
- * @param {Object} requestBody - The request body object
- * @returns {Promise<{statusCode: number, body: string}>} Response object
  */
-const handleDirectFetch = async (url, method, headers, requestBody) => {
+const handleDirectFetch = async (
+  url: string,
+  method: string,
+  headers: Headers,
+  requestBody?: string,
+): Promise<{ statusCode: number; body: string }> => {
   try {
+    // Convert mockttp headers to satisfy fetch API requirements
+    const fetchHeaders: HeadersInit = {};
+    for (const [key, value] of Object.entries(headers)) {
+      if (value) {
+        fetchHeaders[key] = Array.isArray(value) ? value[0] : value;
+      }
+    }
+
     const response = await global.fetch(url, {
       method,
-      headers,
+      headers: fetchHeaders,
       body: ['POST', 'PUT', 'PATCH'].includes(method) ? requestBody : undefined,
     });
 
@@ -34,7 +53,7 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
       body: responseBody,
     };
   } catch (error) {
-    logger.error('Error forwarding request:', url);
+    logger.error('Error forwarding request:', url, error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
@@ -44,10 +63,8 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
 
 /**
  * Utility function to check if a URL is allowed
- * @param {string} url - The URL to check
- * @returns {boolean} True if the URL is allowed, false otherwise
  */
-const isUrlAllowed = (url) => {
+const isUrlAllowed = (url: string): boolean => {
   try {
     // First check if the exact URL is in the allowed URLs list
     if (ALLOWLISTED_URLS.includes(url)) {
@@ -76,17 +93,16 @@ const isUrlAllowed = (url) => {
 
 /**
  * Starts the mock server and sets up mock events.
- *
- * @param {Object} events - The events to mock, organised by method.
- * @param {number} [port] - Optional port number. If not provided, a free port will be used.
- * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port) => {
-  const mockServer = getLocal();
-  port = port || (await portfinder.getPortPromise());
+export const startMockServer = async (
+  events: MockEventsObject,
+  port: number,
+  testSpecificMock?: TestSpecificMock,
+): Promise<MockServer> => {
+  const mockServer = getLocal() as MockServer;
 
   // Track live requests
-  const liveRequests = [];
+  const liveRequests: LiveRequest[] = [];
   mockServer._liveRequests = liveRequests;
 
   try {
@@ -96,6 +112,7 @@ export const startMockServer = async (events, port) => {
     logger.error(`Failed to start mock server on port ${port}: ${error}`);
     throw new Error(`Failed to start mock server on port ${port}: ${error}`);
   }
+
   logger.info(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
@@ -108,23 +125,37 @@ export const startMockServer = async (events, port) => {
     )
     .thenReply(200, 'favicon.ico');
 
-  // Handle all /proxy requests
+  // Apply test-specific mocks first (takes precedence)
+  if (testSpecificMock) {
+    logger.info('Applying testSpecificMock function (takes precedence)');
+    await testSpecificMock(mockServer);
+  }
+
+  // Set up the main proxy handler (fallback logic)
   await mockServer
     .forAnyRequest()
     .matching((request) => request.path.startsWith('/proxy'))
     .thenCallback(async (request) => {
       const urlEndpoint = new URL(request.url).searchParams.get('url');
+      if (!urlEndpoint) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Missing url parameter' }),
+        };
+      }
       const method = request.method;
       // Read the body ONCE for POST requests to avoid stream exhaustion
-      let requestBodyText;
-      let requestBodyJson;
+      let requestBodyText: string | undefined;
+      let requestBodyJson: unknown;
       if (method === 'POST') {
         try {
           requestBodyText = await request.body.getText();
-          try {
-            requestBodyJson = JSON.parse(requestBodyText);
-          } catch (e) {
-            requestBodyJson = undefined;
+          if (requestBodyText) {
+            try {
+              requestBodyJson = JSON.parse(requestBodyText);
+            } catch (e) {
+              requestBodyJson = undefined;
+            }
           }
         } catch (e) {
           requestBodyText = undefined;
@@ -133,38 +164,27 @@ export const startMockServer = async (events, port) => {
 
       // Find matching mock event
       const methodEvents = events[method] || [];
-      const candidateEvents = methodEvents.filter((event) => {
+      const candidateEvents = methodEvents.filter((event: MockApiEndpoint) => {
         const eventUrl = event.urlEndpoint;
-        if (!eventUrl || !urlEndpoint) return false;
+        if (!eventUrl) return false;
         if (event.urlEndpoint instanceof RegExp) {
           return event.urlEndpoint.test(urlEndpoint);
         }
         // Support exact match and prefix (partial) match to avoid leaking keys in tests
-
-        return urlEndpoint === eventUrl || urlEndpoint.startsWith(eventUrl);
+        const eventUrlStr = String(eventUrl);
+        return (
+          urlEndpoint === eventUrlStr || urlEndpoint.startsWith(eventUrlStr)
+        );
       });
 
-      let matchingEvent;
+      let matchingEvent: MockApiEndpoint | undefined;
 
       if (candidateEvents.length > 0) {
         if (method === 'POST') {
-          // Prefer events whose requestBody matches (respecting ignoreFields)
-          matchingEvent = candidateEvents.find((event) => {
-            if (!event.requestBody || !requestBodyJson) return false;
-            const requestToCheck = _.cloneDeep(requestBodyJson);
-            const expectedRequest = _.cloneDeep(event.requestBody);
-            const ignoreFields = event.ignoreFields || [];
-            ignoreFields.forEach((field) => {
-              _.unset(requestToCheck, field);
-              _.unset(expectedRequest, field);
-            });
-            return _.isMatch(requestToCheck, expectedRequest);
-          });
-
-          // Fallback to an event without a requestBody matcher
-          if (!matchingEvent) {
-            matchingEvent = candidateEvents.find((event) => !event.requestBody);
-          }
+          // Use the extracted logic for POST request matching
+          matchingEvent =
+            findMatchingPostEvent(candidateEvents, requestBodyJson) ||
+            undefined;
         } else {
           // Non-POST requests: first candidate by URL
           matchingEvent = candidateEvents[0];
@@ -177,57 +197,19 @@ export const startMockServer = async (events, port) => {
         logger.debug('Response:', matchingEvent.response);
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
-          const parsedRequestBodyJson = requestBodyJson;
+          const result = processPostRequestBody(
+            requestBodyText,
+            matchingEvent.requestBody,
+            { ignoreFields: matchingEvent.ignoreFields || [] },
+          );
 
-          // Ensure both objects exist before comparison
-          if (!parsedRequestBodyJson || !matchingEvent.requestBody) {
-            console.log('Request body validation failed: Missing request body');
+          if (!result.matches) {
             return {
-              statusCode: 400,
-              body: JSON.stringify({ error: 'Missing request body' }),
-            };
-          }
-
-          // Clone objects to avoid mutations
-          const requestToCheck = _.cloneDeep(parsedRequestBodyJson);
-          const expectedRequest = _.cloneDeep(matchingEvent.requestBody);
-
-          const ignoreFields = matchingEvent.ignoreFields || [];
-
-          // Remove ignored fields from both objects for comparison
-          ignoreFields.forEach((field) => {
-            _.unset(requestToCheck, field);
-            _.unset(expectedRequest, field);
-          });
-
-          const matches = _.isMatch(requestToCheck, expectedRequest);
-
-          if (!matches) {
-            logger.warn('Request body validation failed:');
-            logger.info(
-              'Expected:',
-              JSON.stringify(matchingEvent.requestBody, null, 2),
-            );
-            logger.info('Received:', JSON.stringify(requestBodyJson, null, 2));
-            logger.info(
-              'Differences:',
-              JSON.stringify(
-                _.differenceWith(
-                  [parsedRequestBodyJson],
-                  [matchingEvent.requestBody],
-                  _.isEqual,
-                ),
-                null,
-                2,
-              ),
-            );
-
-            return {
-              statusCode: 404,
+              statusCode: result.error === 'Missing request body' ? 400 : 404,
               body: JSON.stringify({
-                error: 'Request body validation failed',
+                error: result.error,
                 expected: matchingEvent.requestBody,
-                received: parsedRequestBodyJson,
+                received: result.requestBodyJson,
               }),
             };
           }
@@ -302,10 +284,8 @@ export const startMockServer = async (events, port) => {
 
 /**
  * Validates that no unexpected live requests were made
- * @param {import('mockttp').Mockttp} mockServer
- * @returns {void}
  */
-export const validateLiveRequests = (mockServer) => {
+export const validateLiveRequests = (mockServer: MockServer): void => {
   if (mockServer._liveRequests && mockServer._liveRequests.length > 0) {
     // Get unique requests by method + URL combination
     const uniqueRequests = Array.from(
@@ -336,9 +316,8 @@ export const validateLiveRequests = (mockServer) => {
 
 /**
  * Stops the mock server.
- * @param {import('mockttp').Mockttp} mockServer
  */
-export const stopMockServer = async (mockServer) => {
+export const stopMockServer = async (mockServer: Mockttp): Promise<void> => {
   console.log('Mock server shutting down');
   try {
     await mockServer.stop();

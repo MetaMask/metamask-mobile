@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import {
   useNavigation,
@@ -8,7 +8,6 @@ import {
 } from '@react-navigation/native';
 
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,7 +17,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 import styleSheet from './MultichainAccountActions.styles';
 import {
   MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
@@ -37,25 +35,13 @@ const MultichainAccountActions = () => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
 
-  // TODO: Update when Account Details for group is implemented. For the moment, we just get the first account from a group
-  const firstAccount = useMemo((): InternalAccount | null => {
-    const firstAccountId = accountGroup.accounts[0];
-    if (firstAccountId) {
-      const { AccountsController } = Engine.context;
-      return AccountsController.getAccount(firstAccountId) ?? null;
-    }
-    return null;
-  }, [accountGroup.accounts]);
-
   const goToAccountDetails = useCallback(() => {
-    if (!firstAccount) return;
-
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
-        account: firstAccount,
+      navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS, {
+        accountGroup,
       });
     });
-  }, [navigate, firstAccount]);
+  }, [navigate, accountGroup]);
 
   // const goToEditAccountName = useCallback(() => null, []); // TODO: To be implemented
 

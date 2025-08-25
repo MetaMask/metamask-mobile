@@ -11,7 +11,6 @@ describe('Recipient', () => {
   ): RecipientType => ({
     name: 'John Doe',
     address: '0x1234567890123456789012345678901234567890',
-    fiatValue: '$1,234.56',
     ...overrides,
   });
 
@@ -37,26 +36,8 @@ describe('Recipient', () => {
     expect(getByText('Alice Smith')).toBeOnTheScreen();
   });
 
-  it('displays fiat value when provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: '$2,500.00',
-    });
-
-    const { getByText } = renderWithProvider(
-      <Recipient
-        recipient={mockRecipient}
-        accountAvatarType={AvatarAccountType.Blockies}
-        onPress={mockOnPress}
-      />,
-    );
-
-    expect(getByText('$2,500.00')).toBeOnTheScreen();
-  });
-
   it('does not display fiat value when not provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: undefined,
-    });
+    const mockRecipient = createMockRecipient();
 
     const { queryByText } = renderWithProvider(
       <Recipient

@@ -7,6 +7,7 @@ import { UseAccountsParams } from '../../../components/hooks/useAccounts';
 export enum AccountSelectorScreens {
   AccountSelector = 'AccountSelector',
   AddAccountActions = 'AddAccountActions',
+  MultichainAddWalletActions = 'MultichainAddWalletActions',
 }
 
 export interface AccountSelectorParams {
@@ -42,7 +43,9 @@ export interface AccountSelectorParams {
   /**
    * Optional navigation screen to indicate if should navigate to add account actions sheet.
    */
-  navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
+  navigateToAddAccountActions?:
+    | AccountSelectorScreens.AddAccountActions
+    | AccountSelectorScreens.MultichainAddWalletActions;
   /**
    * Only show EVM accounts.
    */

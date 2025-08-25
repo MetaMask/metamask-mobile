@@ -1,13 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
-    nativeTokenIcon: {
-      backgroundColor: theme.colors.background.default,
+const styleSheet = () =>
+  StyleSheet.create({
+    badgeWrapper: {
+      marginRight: 4,
     },
   });
-};
 
 export default styleSheet;

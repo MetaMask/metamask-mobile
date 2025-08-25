@@ -27,6 +27,7 @@ import {
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../identity/utils/mocks';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -82,8 +83,17 @@ export async function mockNotificationServices(server: Mockttp) {
   // Trigger Config
   await new MockttpNotificationTriggerServer().setupServer(server);
 
+  const contentfulUrlRegex =
+    /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;
+
   // Notifications
   await mockAPICall(server, mockFeatureAnnouncementResponse);
+  await setupMockRequest(server, {
+    url: contentfulUrlRegex,
+    requestMethod: 'GET',
+    response: mockFeatureAnnouncementResponse.response,
+    responseCode: 200,
+  });
   await mockAPICall(server, mockListNotificationsResponse);
   await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
@@ -99,7 +109,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {

@@ -18,12 +18,15 @@ export const TestSnapViewSelectorWebIDS = {
   connectJsonRpcButton: 'connectjson-rpc',
   connectLifeCycleButton: 'connectlifecycle-hooks',
   connectImageButton: 'connectimages',
+  connectInteractiveButton: 'connectinteractive-ui',
   connectManageStateButton: 'connectmanage-state',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
   connectJsx: 'connectjsx',
   connectWasmButton: 'connectwasm',
+  createDialogButton: 'createDialogButton',
+  createDialogDisabledButton: 'createDisabledDialogButton',
   displayJsxButton: 'displayJsx',
   getBackgroundEventResultButton: 'getBackgroundEvents',
   getPreferencesButton: 'getPreferences',
@@ -99,6 +102,11 @@ export const EntropyDropDownSelectorWebIDS = {
   bip44EntropyDropDown: 'bip44-entropy-selector',
   getEntropyDropDown: 'get-entropy-entropy-selector',
   networkDropDown: 'select-chain',
+};
+
+export const NativeDropdownSelectorWebIDS = {
+  snapUISelector: 'snap-ui-renderer__selector',
+  snapUIDropdown: 'snap-ui-renderer__dropdown',
 };
 
 export const TestSnapResultSelectorWebIDS = {

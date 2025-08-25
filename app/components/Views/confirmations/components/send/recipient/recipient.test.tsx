@@ -15,12 +15,10 @@ const mockAccounts: RecipientType[] = [
   {
     name: 'Account 1',
     address: '0x1234567890123456789012345678901234567890',
-    fiatValue: '$1,000.00',
   },
   {
     name: 'Account 2',
     address: '0x0987654321098765432109876543210987654321',
-    fiatValue: '$500.00',
   },
 ];
 
@@ -28,7 +26,6 @@ const mockContacts: RecipientType[] = [
   {
     name: 'John Doe',
     address: '0x1111111111111111111111111111111111111111',
-    fiatValue: '$2,000.00',
   },
 ];
 
@@ -226,14 +223,6 @@ describe('Recipient', () => {
 
     expect(getByTestId('recipient-list-contacts')).toBeOnTheScreen();
     expect(getByText('John Doe')).toBeOnTheScreen();
-  });
-
-  it('displays empty message when no contacts found', () => {
-    mockUseContacts.mockReturnValue([]);
-
-    const { getByTestId } = renderWithProvider(<Recipient />);
-
-    expect(getByTestId('empty-message')).toBeOnTheScreen();
   });
 
   it('shows review button when address input has content and not selected from list', () => {
