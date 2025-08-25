@@ -287,6 +287,7 @@ const DeleteWalletModal: React.FC = () => {
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
+                isDisabled={isDeletingWallet}
               />
             </View>
           </View>

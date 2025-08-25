@@ -160,7 +160,7 @@
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
-    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "continue_with_srp": "Use Secret Recovery Phrase",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
     "sign_in_with_apple": "Sign in with Apple",
@@ -5286,7 +5286,6 @@
       "account_name": "Account Name",
       "networks": "Networks",
       "account_address": "Account Address",
-      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key",
       "private_keys": "Private keys",
@@ -5301,6 +5300,18 @@
       "addresses": "Addresses",
       "receiving_address": "Receiving address",
       "copied": "Address copied"
+    },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "copied": "Private key copied",
+      "continue": "Continue",
+      "cancel": "Cancel"
     },
     "accounts_list": {
       "details": "Details"
