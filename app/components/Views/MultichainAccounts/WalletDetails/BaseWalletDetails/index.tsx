@@ -24,9 +24,7 @@ import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { useWalletBalances } from '../hooks/useWalletBalances';
-import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
@@ -35,6 +33,7 @@ import WalletAddAccountActions from './components/WalletAddAccountActions';
 import AccountItem from './components/AccountItem';
 import AddAccountItem from './components/AddAccountItem';
 import { FlashList } from '@shopify/flash-list';
+import { selectAvatarStyle } from '../../../../../selectors/settings';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -50,11 +49,7 @@ export const BaseWalletDetails = ({
   const { colors } = theme;
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const { accounts, keyringId, srpIndex, isSRPBackedUp } =
     useWalletInfo(wallet);

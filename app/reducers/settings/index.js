@@ -1,10 +1,12 @@
 import AppConstants from '../../core/AppConstants';
+import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
+  avatarStyle: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
@@ -37,10 +39,10 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         hideZeroBalanceTokens: action.hideZeroBalanceTokens,
       };
-    case 'SET_USE_BLOCKIE_ICON':
+    case 'SET_AVATAR_STYLE':
       return {
         ...state,
-        useBlockieIcon: action.useBlockieIcon,
+        avatarStyle: action.avatarStyle,
       };
     case 'SET_PRIMARY_CURRENCY':
       return {

@@ -47,10 +47,10 @@ export function setPrimaryCurrency(primaryCurrency) {
   };
 }
 
-export function setUseBlockieIcon(useBlockieIcon) {
+export function setAvatarStyle(avatarStyle) {
   return {
-    type: 'SET_USE_BLOCKIE_ICON',
-    useBlockieIcon,
+    type: 'SET_AVATAR_STYLE',
+    avatarStyle,
   };
 }
 

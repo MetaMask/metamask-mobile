@@ -14,7 +14,7 @@ import Avatar, {
 const ContractTag = ({
   contractName,
   contractAddress,
-  useBlockieIcon = false,
+  avatarStyle = AvatarAccountType.Maskicon,
 }: ContractTagProps) => (
   <TagBase
     startAccessory={
@@ -22,11 +22,7 @@ const ContractTag = ({
         variant={AvatarVariant.Account}
         size={AvatarSize.Xs}
         accountAddress={contractAddress}
-        type={
-          useBlockieIcon
-            ? AvatarAccountType.Blockies
-            : AvatarAccountType.JazzIcon
-        }
+        type={avatarStyle}
       />
     }
     shape={TagShape.Pill}

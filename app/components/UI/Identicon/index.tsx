@@ -45,7 +45,7 @@ const Identicon: React.FC<IdenticonProps> = ({
   imageUri,
 }) => {
   const { colors } = useTheme();
-
+  // TODO: Figure out what to do with this file
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const useBlockieIcon =
     useSelector((state: RootState) => state.settings.useBlockieIcon) ?? true;
