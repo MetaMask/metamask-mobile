@@ -12,6 +12,8 @@ export const DIAMETERS: Record<string, number> = {
   lg: 40,
 };
 
+export const SNAP_UI_AVATAR_TEST_ID = 'snap-ui-avatar';
+
 export interface SnapUIAvatarProps {
   // The address must be a CAIP-10 string.
   address: string;
@@ -33,6 +35,7 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
       type={avatarStyle}
       accountAddress={parsed.address}
       size={size}
+      testID={SNAP_UI_AVATAR_TEST_ID}
     />
   );
 };
