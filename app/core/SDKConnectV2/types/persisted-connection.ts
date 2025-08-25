@@ -1,6 +1,6 @@
-import { DappMetadata } from "./dapp-metadata";
+import { DappMetadata } from './dapp-metadata';
 
 export interface PersistedConnection {
-	id: string;
-	dappMetadata: DappMetadata;
+  id: string;
+  dappMetadata: DappMetadata;
 }

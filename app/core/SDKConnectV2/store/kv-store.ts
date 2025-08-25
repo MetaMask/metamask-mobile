@@ -7,25 +7,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * to prevent collisions between different instances.
  */
 export class KVStore implements IKVStore {
-	private readonly prefix: string;
+  private readonly prefix: string;
 
-	constructor(prefix: string) {
-		this.prefix = prefix;
-	}
+  constructor(prefix: string) {
+    this.prefix = prefix;
+  }
 
-	private getKey(key: string): string {
-		return this.prefix + key;
-	}
+  private getKey(key: string): string {
+    return this.prefix + key;
+  }
 
-	async get(key: string): Promise<string | null> {
-		return AsyncStorage.getItem(this.getKey(key));
-	}
+  async get(key: string): Promise<string | null> {
+    return AsyncStorage.getItem(this.getKey(key));
+  }
 
-	async set(key: string, value: string): Promise<void> {
-		await AsyncStorage.setItem(this.getKey(key), value);
-	}
+  async set(key: string, value: string): Promise<void> {
+    await AsyncStorage.setItem(this.getKey(key), value);
+  }
 
-	async delete(key: string): Promise<void> {
-		await AsyncStorage.removeItem(this.getKey(key));
-	}
+  async delete(key: string): Promise<void> {
+    await AsyncStorage.removeItem(this.getKey(key));
+  }
 }

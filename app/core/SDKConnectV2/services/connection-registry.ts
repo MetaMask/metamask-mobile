@@ -16,7 +16,12 @@ export class ConnectionRegistry {
 
   private connections = new Map<string, Connection>();
 
-  constructor(relayURL: string, keymanager: IKeyManager, hostapp: IHostApplicationAdapter, store: IConnectionStore) {
+  constructor(
+    relayURL: string,
+    keymanager: IKeyManager,
+    hostapp: IHostApplicationAdapter,
+    store: IConnectionStore,
+  ) {
     this.RELAY_URL = relayURL;
     this.keymanager = keymanager;
     this.hostapp = hostapp;
@@ -38,7 +43,9 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save({ id: conn.id, dappMetadata: conn.dappMetadata });
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
-      console.warn(`[SDKConnectV2] Connection with ${connreq.dappMetadata.name} successfully established.`);
+      console.warn(
+        `[SDKConnectV2] Connection with ${connreq.dappMetadata.name} successfully established.`,
+      );
     } catch (error) {
       console.error('[SDKConnectV2] Connection handshake failed:', error);
       if (conn) await this.disconnect(conn.id);

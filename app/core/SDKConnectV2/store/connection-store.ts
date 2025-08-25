@@ -14,11 +14,14 @@ export class ConnectionStore implements IConnectionStore {
   }
 
   private getKey(id: string): string {
-    return this.prefix + id;
+    return `${this.prefix}/${id}`;
   }
 
   async save(connection: PersistedConnection): Promise<void> {
-    await AsyncStorage.setItem(this.getKey(connection.id), JSON.stringify(connection));
+    await AsyncStorage.setItem(
+      this.getKey(connection.id),
+      JSON.stringify(connection),
+    );
   }
 
   async get(id: string): Promise<PersistedConnection | null> {

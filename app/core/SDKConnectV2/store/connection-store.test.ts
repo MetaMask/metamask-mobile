@@ -66,7 +66,9 @@ describe('ConnectionStore', () => {
   it('should return null when connection not found', async () => {
     const result = await store.get('non-existent');
 
-    expect(AsyncStorage.getItem).toHaveBeenCalledWith('test-prefix/non-existent');
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith(
+      'test-prefix/non-existent',
+    );
     expect(result).toBeNull();
   });
 
