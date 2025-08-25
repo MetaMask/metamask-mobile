@@ -18,9 +18,11 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
   const nativeToken = tokens.find((t) => t.address === NATIVE_TOKEN_ADDRESS);
   const { tokenFiatAmount } = nativeToken ?? {};
 
-  const isInsufficient = new BigNumber(tokenFiatAmount ?? '0').isLessThan(
-    new BigNumber(quoteNetworkFee ?? '0'),
-  );
+  const isInsufficient =
+    payToken &&
+    new BigNumber(tokenFiatAmount ?? '0').isLessThan(
+      new BigNumber(quoteNetworkFee ?? '0'),
+    );
 
   return useMemo(() => {
     if (!isInsufficient) {
