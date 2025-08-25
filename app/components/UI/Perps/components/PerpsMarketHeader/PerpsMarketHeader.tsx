@@ -13,12 +13,12 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { styleSheet } from './PerpsMarketHeader.styles';
 import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -34,7 +34,8 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
+
+  DevLogger.log('PerpsMarketHeader: market', market.symbol);
 
   return (
     <View style={styles.container} testID={testID}>
@@ -53,11 +54,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
       {/* Icon Section */}
       <View style={styles.perpIcon}>
-        {assetUrl ? (
-          <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-        ) : (
-          <Icon name={IconName.Coin} size={IconSize.Lg} />
-        )}
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={40}
+          style={styles.tokenIcon}
+        />
       </View>
 
       {/* Left Section */}
