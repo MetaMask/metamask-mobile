@@ -112,7 +112,6 @@ describe('CardSDK', () => {
 
     cardSDK = new CardSDK({
       cardFeatureFlag: mockCardFeatureFlag,
-      rawChainId: '0xe708',
     });
   });
 
@@ -143,7 +142,6 @@ describe('CardSDK', () => {
 
       const disabledCardholderSDK = new CardSDK({
         cardFeatureFlag: disabledCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       expect(disabledCardholderSDK.isCardEnabled).toBe(false);
@@ -154,7 +152,6 @@ describe('CardSDK', () => {
 
       const noChainCardholderSDK = new CardSDK({
         cardFeatureFlag: emptyCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       expect(noChainCardholderSDK.isCardEnabled).toBe(false);
@@ -181,7 +178,6 @@ describe('CardSDK', () => {
 
       const disabledCardholderSDK = new CardSDK({
         cardFeatureFlag: disabledCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       expect(disabledCardholderSDK.supportedTokens).toEqual([]);
@@ -202,7 +198,6 @@ describe('CardSDK', () => {
 
       const noTokensCardSDK = new CardSDK({
         cardFeatureFlag: noTokensCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       expect(noTokensCardSDK.supportedTokens).toEqual([]);
@@ -226,7 +221,6 @@ describe('CardSDK', () => {
 
       const missingFoxConnectSDK = new CardSDK({
         cardFeatureFlag: missingFoxConnectFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       // This should throw an error when trying to access foxConnectAddresses
@@ -258,7 +252,6 @@ describe('CardSDK', () => {
 
       const missingBalanceScannerSDK = new CardSDK({
         cardFeatureFlag: missingBalanceScannerFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       // This should throw an error when trying to access balanceScannerAddress
@@ -304,7 +297,6 @@ describe('CardSDK', () => {
 
       const disabledCardholderSDK = new CardSDK({
         cardFeatureFlag: disabledCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       const result = await disabledCardholderSDK.isCardHolder([
@@ -469,7 +461,6 @@ describe('CardSDK', () => {
 
       const missingAccountsApiSDK = new CardSDK({
         cardFeatureFlag: missingAccountsApiFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       const result = await missingAccountsApiSDK.isCardHolder([
@@ -567,7 +558,6 @@ describe('CardSDK', () => {
 
       const disabledCardholderSDK = new CardSDK({
         cardFeatureFlag: disabledCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       await expect(
@@ -592,7 +582,6 @@ describe('CardSDK', () => {
 
       const emptyTokensCardSDK = new CardSDK({
         cardFeatureFlag: emptyTokensCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       const result = await emptyTokensCardSDK.getSupportedTokensAllowances(
@@ -645,7 +634,6 @@ describe('CardSDK', () => {
 
       const disabledCardholderSDK = new CardSDK({
         cardFeatureFlag: disabledCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       await expect(
@@ -780,7 +768,6 @@ describe('CardSDK', () => {
 
       const emptyCardholderSDK = new CardSDK({
         cardFeatureFlag: emptyCardFeatureFlag,
-        rawChainId: '0xe708',
       });
 
       mockProvider.getLogs.mockResolvedValue([]);

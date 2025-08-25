@@ -1,4 +1,3 @@
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
@@ -19,7 +18,6 @@ export const getCardholder = async ({
 
     const cardSDK = new CardSDK({
       cardFeatureFlag,
-      rawChainId: LINEA_CHAIN_ID,
     });
 
     const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
