@@ -38,6 +38,8 @@ import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
+import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+
 interface AccountGroupDetailsProps {
   route: {
     params: {
@@ -166,6 +168,16 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.privateKeys}
           testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
+          onPress={() => {
+            navigation.navigate(
+              ...createPrivateKeyListNavigationDetails({
+                groupId: id,
+                title: strings(
+                  'multichain_accounts.account_details.private_keys',
+                ),
+              }),
+            );
+          }}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.private_keys')}

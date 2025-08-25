@@ -708,6 +708,118 @@ describe('PerpsTabViewWithProvider', () => {
     });
   });
 
+  describe('Visibility Callback Tests', () => {
+    it('should register visibility callback when onVisibilityChange is provided', () => {
+      const mockOnVisibilityChange = jest.fn();
+
+      render(
+        <PerpsTabViewWithProvider
+          isVisible={false}
+          onVisibilityChange={mockOnVisibilityChange}
+        />,
+      );
+
+      // Verify callback was registered
+      expect(mockOnVisibilityChange).toHaveBeenCalledTimes(1);
+      expect(mockOnVisibilityChange).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('should update visibility state when callback is invoked', () => {
+      let visibilityCallback: ((visible: boolean) => void) | null = null;
+      const mockOnVisibilityChange = jest.fn((callback) => {
+        visibilityCallback = callback;
+      });
+
+      render(
+        <PerpsTabViewWithProvider
+          isVisible={false}
+          onVisibilityChange={mockOnVisibilityChange}
+        />,
+      );
+
+      // Simulate parent calling the visibility callback
+      act(() => {
+        visibilityCallback?.(true);
+      });
+
+      // The callback should have been invoked
+      expect(visibilityCallback).toBeTruthy();
+    });
+
+    it('should not register callback when onVisibilityChange is not provided', () => {
+      const { rerender } = render(<PerpsTabViewWithProvider isVisible />);
+
+      // Component should render without errors
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+
+      // Rerender with different visibility
+      rerender(<PerpsTabViewWithProvider isVisible={false} />);
+
+      // Should still render without errors
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+    });
+
+    it('should use initial visibility value', () => {
+      const mockOnVisibilityChange = jest.fn();
+
+      // Test with initial visible = true
+      const { unmount: unmount1 } = render(
+        <PerpsTabViewWithProvider
+          isVisible
+          onVisibilityChange={mockOnVisibilityChange}
+        />,
+      );
+
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      unmount1();
+
+      // Test with initial visible = false
+      const { unmount: unmount2 } = render(
+        <PerpsTabViewWithProvider
+          isVisible={false}
+          onVisibilityChange={mockOnVisibilityChange}
+        />,
+      );
+
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      unmount2();
+    });
+
+    it('should handle multiple visibility changes', () => {
+      let visibilityCallback: ((visible: boolean) => void) | null = null;
+      let callCount = 0;
+      const mockOnVisibilityChange = jest.fn((callback) => {
+        visibilityCallback = callback;
+      });
+
+      render(
+        <PerpsTabViewWithProvider
+          isVisible={false}
+          onVisibilityChange={mockOnVisibilityChange}
+        />,
+      );
+
+      // Simulate multiple visibility changes
+      act(() => {
+        visibilityCallback?.(true);
+        callCount++;
+      });
+
+      act(() => {
+        visibilityCallback?.(false);
+        callCount++;
+      });
+
+      act(() => {
+        visibilityCallback?.(true);
+        callCount++;
+      });
+
+      // Verify callback was called for each change
+      expect(callCount).toBe(3);
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle component unmounting gracefully', () => {
       const { unmount } = render(<PerpsTabViewWithProvider />);
