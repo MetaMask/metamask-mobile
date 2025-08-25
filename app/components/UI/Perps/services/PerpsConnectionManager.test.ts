@@ -241,6 +241,44 @@ describe('PerpsConnectionManager', () => {
       // getAccountState called twice - once for initial connect, once for health check
       expect(mockPerpsController.getAccountState).toHaveBeenCalledTimes(2);
     });
+
+    it('should wait for disconnection to complete before connecting', async () => {
+      // Setup initial connection
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+
+      // Mock disconnect to be slow so we can test the waiting behavior
+      let resolveDisconnect: () => void;
+      const slowDisconnectPromise = new Promise<void>((resolve) => {
+        resolveDisconnect = resolve;
+      });
+      mockPerpsController.disconnect.mockReturnValue(slowDisconnectPromise);
+
+      // Connect first
+      await PerpsConnectionManager.connect();
+
+      // Start a disconnection but don't await it
+      const disconnectPromise = PerpsConnectionManager.disconnect();
+
+      // Immediately try to connect while disconnection is in progress
+      // This simulates the isDisconnecting && disconnectPromise condition
+      const connectPromise = PerpsConnectionManager.connect();
+
+      // Verify the waiting log was called immediately
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsConnectionManager: Waiting for disconnection to complete before connecting',
+      );
+
+      // Now complete the disconnection
+      resolveDisconnect();
+
+      // Wait for both operations to complete
+      await disconnectPromise;
+      await connectPromise;
+
+      // Verify that connect waited and then proceeded
+      expect(mockPerpsController.initializeProviders).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('disconnect', () => {
