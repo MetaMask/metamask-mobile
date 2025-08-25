@@ -46,10 +46,12 @@ class QuoteView {
   }
 
   async enterAmount(amount: string): Promise<void> {
+    await device.disableSynchronization();
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
       await Gestures.waitAndTap(button, { delay: 500 });
     }
+    await device.enableSynchronization();
   }
 
   async tapSearchToken(): Promise<void> {

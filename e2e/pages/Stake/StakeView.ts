@@ -25,12 +25,14 @@ class StakeView {
   }
 
   async enterAmount(amount: string): Promise<void> {
+    await device.disableSynchronization();
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
       await Gestures.waitAndTap(button, {
         elemDescription: `Digit ${digit} in Stake Amount`,
       });
     }
+    await device.enableSynchronization();
   }
 
   async tapReview(): Promise<void> {

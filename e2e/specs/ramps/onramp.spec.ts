@@ -97,6 +97,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
         // We're ok catching this as there were not enough providers to select from
         shouldCheckProviderSelectedEvents = false;
         console.warn('No provider will be selected');
+      } finally {
+        await device.enableSynchronization();
       }
     });
   });
