@@ -524,6 +524,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveTP,
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
+                testID={`perps-tpsl-take-profit-percentage-button-${percentage}`}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Success}>
                   {actualDirection === 'short' ? '-' : '+'}
@@ -640,6 +641,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveSL,
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
+                testID={`perps-tpsl-stop-loss-percentage-button-${percentage}`}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {actualDirection === 'short' ? '+' : '-'}
@@ -755,13 +757,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
 
 // Enable WDYR tracking in development
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsTPSLBottomSheet as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsTPSLBottomSheet',
-  };
-}
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsTPSLBottomSheet as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsTPSLBottomSheet',
+//   };
+// }
 
 export default memo(
   PerpsTPSLBottomSheet,

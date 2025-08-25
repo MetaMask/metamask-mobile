@@ -195,11 +195,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ],
           iconName: IconName.CheckBold,
           iconColor: IconColor.Success,
-          hasNoTimeout: true,
+          hasNoTimeout: false,
           closeButtonOptions: {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
             onPress: () => toastRef?.current?.closeToast(),
+            testID: 'perps-order-success-toast-dismiss-button',
           },
         });
 
@@ -726,7 +727,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Take profit */}
           <View style={styles.detailItem}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={'perps-order-view-take-profit-button'}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -746,7 +750,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Stop loss */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={'perps-order-view-stop-loss-button'}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -900,6 +907,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
           <Button
+            testID={'perps-order-view-place-order-button'}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -1014,13 +1022,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
 };
 
 // Enable WDYR tracking BEFORE wrapping with React.memo
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsOrderViewContentBase as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsOrderViewContent',
-  };
-}
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsOrderViewContentBase as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsOrderViewContent',
+//   };
+// }
 
 // Now wrap with React.memo AFTER setting whyDidYouRender
 const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);

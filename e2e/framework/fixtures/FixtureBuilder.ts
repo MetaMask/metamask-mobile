@@ -501,6 +501,12 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
+            },
           },
         },
         privacy: {
