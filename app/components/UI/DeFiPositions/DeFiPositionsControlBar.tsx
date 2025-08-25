@@ -16,6 +16,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
   isTestNet,
   isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import styleSheet from './DeFiPositionsControlBar.styles';
 import { useNavigation } from '@react-navigation/native';
@@ -31,17 +32,31 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const DeFiPositionsControlBar: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
 
   const navigation = useNavigation();
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId) as Hex;
 
   const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
+  const { areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
@@ -56,6 +71,11 @@ const DeFiPositionsControlBar: React.FC = () => {
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+  // TODO: Placeholder variable for now until we update the network enablement controller
+  const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
+  const networkImageSource = getNetworkImageSource({
+    chainId: firstEnabledChainId,
+  });
 
   return (
     <View style={styles.actionBarWrapper}>
@@ -64,22 +84,32 @@ const DeFiPositionsControlBar: React.FC = () => {
         label={
           <>
             {isRemoveGlobalNetworkSelectorEnabled() ? (
-              <TextComponent
-                variant={TextVariant.BodyMDMedium}
-                style={styles.controlButtonText}
-                numberOfLines={1}
-              >
-                {enabledNetworks.length > 1
-                  ? strings('networks.enabled_networks')
-                  : currentNetworkName ?? strings('wallet.current_network')}
-              </TextComponent>
+              <View style={styles.networkManagerWrapper}>
+                {!areAllNetworksSelected && (
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Xs}
+                    name={networkName}
+                    imageSource={networkImageSource}
+                  />
+                )}
+                <TextComponent
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.controlButtonText}
+                  numberOfLines={1}
+                >
+                  {enabledNetworks.length > 1
+                    ? strings('networks.all_networks')
+                    : currentNetworkName ?? strings('wallet.current_network')}
+                </TextComponent>
+              </View>
             ) : (
               <TextComponent
                 variant={TextVariant.BodyMDMedium}
                 style={styles.controlButtonText}
                 numberOfLines={1}
               >
-                {isAllNetworks && isPopularNetwork
+                {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
                   ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
               </TextComponent>

@@ -38,7 +38,7 @@ export const useNetworkSelection = ({
     enableNetwork,
     disableNetwork,
     enabledNetworksByNamespace,
-    enablePopularNetworks,
+    enableAllPopularNetworks,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
@@ -97,8 +97,8 @@ export const useNetworkSelection = ({
   );
 
   const selectAllPopularNetworks = useCallback(() => {
-    enablePopularNetworks();
-  }, [enablePopularNetworks]);
+    enableAllPopularNetworks();
+  }, [enableAllPopularNetworks]);
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
@@ -139,25 +139,11 @@ export const useNetworkSelection = ({
     });
   }, [networks, disableNetwork]);
 
-  /** Toggles selection of all networks */
-  const toggleAll = useCallback(() => {
-    const areAllSelected = networks.every(({ isSelected }) => isSelected);
-    if (areAllSelected) {
-      deselectAll();
-    } else {
-      networks.forEach(({ caipChainId }) => {
-        enableNetwork(caipChainId);
-      });
-      resetCustomNetworks();
-    }
-  }, [networks, deselectAll, enableNetwork, resetCustomNetworks]);
-
   return {
     selectCustomNetwork,
     selectPopularNetwork,
     selectNetwork,
     deselectAll,
-    toggleAll,
     resetCustomNetworks,
     customNetworksToReset,
     selectAllPopularNetworks,

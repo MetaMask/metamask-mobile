@@ -15,13 +15,16 @@ import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
- * Provides methods to enable, disable, toggle networks, and select all popular networks.
+ * Provides methods to enable, disable, and select all popular networks.
  * @returns Network enablement methods and state
  * @example
  *
  * const { enableNetwork, toggleNetwork } = useNetworkEnablement();
  * enableNetwork('eip155:1'); // Enable Ethereum mainnet
- * toggleNetwork('eip155:137'); // Toggle Polygon
+ * enablePopularNetworks(); // Enable all popular networks
+ * disableNetwork('eip155:137'); // Disable Polygon
+ * isNetworkEnabled('eip155:137'); // Check if Polygon is enabled
+ * hasOneEnabledNetwork(); // Check if there is at least one enabled network
  *
  */
 export const useNetworkEnablement = () => {
@@ -51,7 +54,7 @@ export const useNetworkEnablement = () => {
     [networkEnablementController],
   );
 
-  const enablePopularNetworks = useMemo(
+  const enableAllPopularNetworks = useMemo(
     () => () => {
       networkEnablementController.enableAllPopularNetworks();
     },
@@ -88,19 +91,6 @@ export const useNetworkEnablement = () => {
     [enabledNetworksByNamespace],
   );
 
-  const toggleNetwork = useMemo(
-    () => (chainId: CaipChainId) => {
-      const networkEnabled = isNetworkEnabled(chainId);
-
-      if (networkEnabled) {
-        disableNetwork(chainId);
-      } else {
-        enableNetwork(chainId);
-      }
-    },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
-  );
-
   return {
     namespace,
     enabledNetworksByNamespace,
@@ -108,8 +98,7 @@ export const useNetworkEnablement = () => {
     networkEnablementController,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
-    enablePopularNetworks,
+    enableAllPopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
   };

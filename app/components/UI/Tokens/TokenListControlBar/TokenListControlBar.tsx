@@ -31,11 +31,14 @@ import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -59,6 +62,9 @@ export const TokenListControlBar = ({
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
     useCurrentNetworkInfo();
+  const { areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
@@ -95,19 +101,21 @@ export const TokenListControlBar = ({
             <>
               {isRemoveGlobalNetworkSelectorEnabled() ? (
                 <View style={styles.networkManagerWrapper}>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Xs}
-                    name={networkName}
-                    imageSource={networkImageSource}
-                  />
+                  {!areAllNetworksSelected && (
+                    <Avatar
+                      variant={AvatarVariant.Network}
+                      size={AvatarSize.Xs}
+                      name={networkName}
+                      imageSource={networkImageSource}
+                    />
+                  )}
                   <TextComponent
                     variant={TextVariant.BodyMDMedium}
                     style={styles.controlButtonText}
                     numberOfLines={1}
                   >
                     {enabledNetworks.length > 1
-                      ? strings('networks.enabled_networks')
+                      ? strings('networks.all_networks')
                       : currentNetworkName ?? strings('wallet.current_network')}
                   </TextComponent>
                 </View>

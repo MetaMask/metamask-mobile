@@ -6,6 +6,7 @@ import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -192,19 +193,20 @@ const createStyles = (colors: Colors) =>
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '60%',
-      paddingHorizontal: 8,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      borderWidth: 1,
-      borderRadius: 8,
       marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 12,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
+      opacity: 0.5,
     },
     controlButtonText: {
       color: colors.text.default,
