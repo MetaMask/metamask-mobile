@@ -44,6 +44,17 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 jest.mock('../../../../selectors/tokenBalancesController', () => ({
   selectSingleTokenBalance: jest.fn(),
 }));
+jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: jest.fn(() => []),
+}));
+jest.mock('../../../../selectors/networkController', () => ({
+  selectAllPopularNetworkConfigurations: jest.fn(() => ({
+    mainnet: { chainId: '0x1' },
+    polygon: { chainId: '0x89' },
+    optimism: { chainId: '0xa' },
+    arbitrum: { chainId: '0xa4b1' },
+  })),
+}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: { [key: string]: string } = {
@@ -117,6 +128,12 @@ describe('useAssetBalance', () => {
         showFiatOnTestnets: true,
         selectedAccount: { id: 'account1' },
         exchangeRates: { price: 2000 },
+        popularNetworks: {
+          mainnet: { chainId: '0x1' },
+          polygon: { chainId: '0x89' },
+          optimism: { chainId: '0xa' },
+          arbitrum: { chainId: '0xa4b1' },
+        },
         ...overrides,
       };
 
@@ -140,6 +157,8 @@ describe('useAssetBalance', () => {
         return overrides.tokenBalances;
       if (selector.toString().includes('selectCurrencyRateForChainId'))
         return overrides.conversionRate;
+      if (selector.toString().includes('selectAllPopularNetworkConfigurations'))
+        return defaults.popularNetworks;
 
       // This catches the dynamically created selectors from makeSelectAssetByAddressAndChainId
       // and makeSelectNonEvmAssetById
@@ -193,9 +212,20 @@ describe('useAssetBalance', () => {
           if (selector.toString().includes('selectSingleTokenPriceMarketData'))
             return { price: 2000 };
           if (selector.toString().includes('selectSingleTokenBalance'))
-            return {};
+            return undefined;
           if (selector.toString().includes('selectCurrencyRateForChainId'))
-            return 0;
+            return undefined;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // For null/undefined token, the selector should return undefined
           if (typeof selector === 'function') {
@@ -243,6 +273,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // When token is falsy, the evmAsset selector should return undefined
           if (typeof selector === 'function') {
@@ -344,6 +385,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // Handle the dynamic selector that should return the error asset
           if (typeof selector === 'function') {
@@ -390,6 +442,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // Return undefined for asset selector
           if (typeof selector === 'function') {
@@ -459,6 +522,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // Return undefined for both asset selectors to trigger mapped asset creation
           if (typeof selector === 'function') {
@@ -604,6 +678,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           if (typeof selector === 'function') {
             return stakedAsset;
@@ -816,6 +901,17 @@ describe('useAssetBalance', () => {
             return {};
           if (selector.toString().includes('selectCurrencyRateForChainId'))
             return 0;
+          if (
+            selector
+              .toString()
+              .includes('selectAllPopularNetworkConfigurations')
+          )
+            return {
+              mainnet: { chainId: '0x1' },
+              polygon: { chainId: '0x89' },
+              optimism: { chainId: '0xa' },
+              arbitrum: { chainId: '0xa4b1' },
+            };
 
           // Return undefined for nonEvmAsset when selectedAccount is null
           if (typeof selector === 'function') {

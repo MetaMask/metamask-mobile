@@ -108,7 +108,6 @@ describe('AddFundsBottomSheet', () => {
     sheetRef: mockSheetRef,
     priorityToken: mockPriorityToken,
     chainId: '0xe708',
-    cardholderAddresses: ['0xcardholder'],
     navigate: mockNavigate,
   };
 
@@ -221,7 +220,6 @@ describe('AddFundsBottomSheet', () => {
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       chainId: '0xe708',
-      cardholderAddress: '0xcardholder',
       beforeNavigate: expect.any(Function),
     });
   });

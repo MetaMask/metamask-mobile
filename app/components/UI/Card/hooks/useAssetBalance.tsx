@@ -40,9 +40,9 @@ export const useAssetBalance = (
     selectSelectedInternalAccountAddress,
   );
   const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
-  const chainIds = Object.entries(popularNetworks).map(
-    (network) => network[1].chainId,
-  );
+  const chainIds = Object.entries(popularNetworks || {})
+    .map((network) => network[1]?.chainId)
+    .filter(Boolean);
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
