@@ -70,8 +70,11 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
 
     const url = `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${upperSymbol}.svg`;
 
+    // Create an AbortController to cancel the fetch if the component unmounts or symbol changes
+    const abortController = new AbortController();
+
     // Fetch the actual SVG content
-    fetch(url)
+    fetch(url, { signal: abortController.signal })
       .then((response) => {
         if (response.ok) {
           return response.text();
@@ -99,11 +102,20 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
         setIsLoading(false);
         setHasError(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        // Don't update state if the request was aborted
+        if (error.name === 'AbortError') {
+          return;
+        }
         assetSvgCache.set(upperSymbol, { svgContent: null, valid: false });
         setIsLoading(false);
         setHasError(true);
       });
+
+    // Cleanup function to abort the fetch if the component unmounts or symbol changes
+    return () => {
+      abortController.abort();
+    };
   }, [symbol]);
 
   if (isLoading) {

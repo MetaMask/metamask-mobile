@@ -60,17 +60,23 @@ export function transformSvgForReactNative(svgText: string): string {
         // Remove clip-path properties as React Native SVG doesn't support them well
         classStyle = classStyle.replace(/clip-path:[^;]+;?/g, '');
 
+        // Escape special regex characters in className
+        const escapedClassName = className.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          '\\$&',
+        );
+
         // Only add style if there's something left after removing unsupported properties
         if (classStyle.trim()) {
           // Replace both class="className" and class='className'
           cleanedSvg = cleanedSvg.replace(
-            new RegExp(`class=["']${className}["']`, 'g'),
+            new RegExp(`class=["']${escapedClassName}["']`, 'g'),
             `style="${classStyle}"`,
           );
         } else {
           // Remove the class attribute entirely if no styles remain
           cleanedSvg = cleanedSvg.replace(
-            new RegExp(`class=["']${className}["']`, 'g'),
+            new RegExp(`class=["']${escapedClassName}["']`, 'g'),
             '',
           );
         }
