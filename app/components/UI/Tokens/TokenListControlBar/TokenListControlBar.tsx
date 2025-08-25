@@ -86,6 +86,7 @@ export const TokenListControlBar = ({
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+
   // TODO: Placeholder variable for now until we update the network enablement controller
   const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
   const networkImageSource = getNetworkImageSource({
