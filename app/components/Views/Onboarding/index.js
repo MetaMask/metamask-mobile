@@ -41,6 +41,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import LottieView from 'lottie-react-native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   TraceName,
   TraceOperation,
@@ -490,6 +491,13 @@ class Onboarding extends PureComponent {
   };
 
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
+    // check for no internet connection
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      this.props.navigation.navigate('OfflineMode');
+      return;
+    }
+
     this.props.navigation.navigate('Onboarding');
 
     if (createWallet) {
