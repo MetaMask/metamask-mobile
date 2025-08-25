@@ -136,7 +136,10 @@ const ListItemAmount: React.FC<ListItemTextProps> = ({ style, ...props }) => {
   return <Text style={[styles.amount, style]} {...props} />;
 };
 
-const ListItemFiatAmount: React.FC<ListItemTextProps> = ({ style, ...props }) => {
+const ListItemFiatAmount: React.FC<ListItemTextProps> = ({
+  style,
+  ...props
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <Text style={[styles.fiatAmount, style]} {...props} />;

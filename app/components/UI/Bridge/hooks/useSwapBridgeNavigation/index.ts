@@ -4,7 +4,7 @@ import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
@@ -19,7 +19,11 @@ import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscovery
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSource,
+  selectIsUnifiedSwapsEnabled,
+  setBridgeViewMode,
+} from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
 
@@ -44,6 +48,7 @@ export const useSwapBridgeNavigation = ({
   sourcePage: string;
   token?: BridgeToken;
 }) => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
@@ -51,6 +56,7 @@ export const useSwapBridgeNavigation = ({
   const isBridgeEnabledSource = useSelector((state: RootState) =>
     selectIsBridgeEnabledSource(state, selectedChainId),
   );
+  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Bridge
   const goToNativeBridge = useCallback(
@@ -85,20 +91,17 @@ export const useSwapBridgeNavigation = ({
       if (!bridgeToken) {
         return;
       }
+      dispatch(setBridgeViewMode(bridgeViewMode));
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
           token: bridgeToken,
           sourcePage,
-          bridgeViewMode,
         } as BridgeRouteParams,
       });
+
       trackEvent(
-        createEventBuilder(
-          bridgeViewMode === BridgeViewMode.Bridge
-            ? MetaMetricsEvents.BRIDGE_BUTTON_CLICKED
-            : MetaMetricsEvents.SWAP_BUTTON_CLICKED,
-        )
+        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
             location,
             chain_id_source: getDecimalChainId(bridgeToken.chainId),
@@ -121,6 +124,7 @@ export const useSwapBridgeNavigation = ({
       createEventBuilder,
       location,
       isBridgeEnabledSource,
+      dispatch,
     ],
   );
 
@@ -214,6 +218,11 @@ export const useSwapBridgeNavigation = ({
 
   const goToSwaps = useCallback(
     async (currentToken?: BridgeToken) => {
+      if (isUnifiedSwapsEnabled) {
+        goToBridge(BridgeViewMode.Unified);
+        return;
+      }
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (
         tokenBase?.chainId === SolScope.Mainnet ||
@@ -233,6 +242,7 @@ export const useSwapBridgeNavigation = ({
       goToBridge,
       ///: END:ONLY_INCLUDE_IF
       handleSwapsNavigation,
+      isUnifiedSwapsEnabled,
     ],
   );
 

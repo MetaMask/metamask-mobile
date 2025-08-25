@@ -31,17 +31,23 @@ const Routes = {
     BASIC_INFO: 'BasicInfo',
     ENTER_ADDRESS: 'EnterAddress',
     KYC_PROCESSING: 'KycProcessing',
-    KYC_WEBVIEW: 'KycWebview',
-    PROVIDER_WEBVIEW: 'ProviderWebview',
     ORDER_PROCESSING: 'OrderProcessing',
     ORDER_DETAILS: 'DepositOrderDetails',
     BANK_DETAILS: 'BankDetails',
+    ADDITIONAL_VERIFICATION: 'AdditionalVerification',
     MODALS: {
       ID: 'DepositModals',
       TOKEN_SELECTOR: 'DepositTokenSelectorModal',
       REGION_SELECTOR: 'DepositRegionSelectorModal',
       PAYMENT_METHOD_SELECTOR: 'DepositPaymentMethodSelectorModal',
       UNSUPPORTED_REGION: 'DepositUnsupportedRegionModal',
+      UNSUPPORTED_STATE: 'DepositUnsupportedStateModal',
+      STATE_SELECTOR: 'DepositStateSelectorModal',
+      WEBVIEW: 'DepositWebviewModal',
+      KYC_WEBVIEW: 'DepositKycWebviewModal',
+      INCOMPATIBLE_ACCOUNT_TOKEN: 'IncompatibleAccountTokenModal',
+      SSN_INFO: 'SsnInfoModal',
+      CONFIGURATION: 'DepositConfigurationModal',
     },
   },
   HW: {
@@ -72,6 +78,7 @@ const Routes = {
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
     DEEP_LINK_MODAL: 'DeepLinkModal',
+    MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -144,6 +151,7 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     SELECT_SRP: 'SelectSRP',
+    ONBOARDING_SHEET: 'OnboardingSheet',
     SEEDPHRASE_MODAL: 'SeedphraseModal',
     SKIP_ACCOUNT_SECURITY_MODAL: 'SkipAccountSecurityModal',
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
@@ -154,6 +162,7 @@ const Routes = {
       DELETE_ACCOUNT: 'DeleteAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
+      SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
     },
   },
   BROWSER: {
@@ -196,9 +205,29 @@ const Routes = {
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
+  PERPS: {
+    ROOT: 'Perps',
+    TRADING_VIEW: 'PerpsTradingView',
+    ORDER: 'PerpsOrder',
+    DEPOSIT: 'PerpsDeposit',
+    WITHDRAW: 'PerpsWithdraw',
+    POSITIONS: 'PerpsPositions',
+    MARKETS: 'PerpsMarketListView',
+    MARKET_DETAILS: 'PerpsMarketDetails',
+    POSITION_DETAILS: 'PerpsPositionDetails',
+    MODALS: {
+      ROOT: 'PerpsModals',
+      QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+    },
+    ORDER_HISTORY: 'PerpsOrderHistory',
+    ORDER_DETAILS: 'PerpsOrderDetails',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
+  CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
+  CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
+  SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -259,6 +288,10 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  SEND: {
+    DEFAULT: 'Send',
+    ROOT: 'Root',
+  },
 };
 
 export default Routes;

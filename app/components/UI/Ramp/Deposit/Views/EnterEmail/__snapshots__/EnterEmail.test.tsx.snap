@@ -54,15 +54,16 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -105,27 +106,134 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Enter Email
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -395,7 +503,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -415,7 +523,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -435,7 +543,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -446,38 +554,9 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                             </View>
                             <View
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "marginBottom": 20,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                We'll send a six-digit code to your email to check it's you.
-                              </Text>
-                            </View>
-                            <View
-                              style={
                                 {
-                                  "flex": 1,
-                                  "flexDirection": "column",
+                                  "gap": 16,
+                                  "marginTop": 24,
                                 }
                               }
                             >
@@ -486,16 +565,29 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "bold",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  }
+                                }
+                              >
+                                Enter your email
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginBottom": 6,
                                   }
                                 }
-                                testID="label"
                               >
-                                Email
+                                We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
                                 style={
@@ -522,18 +614,21 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 >
                                   <TextInput
                                     autoCapitalize="none"
+                                    autoComplete="email"
                                     autoFocus={false}
                                     editable={true}
                                     keyboardAppearance="light"
+                                    keyboardType="email-address"
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -580,11 +675,12 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -684,15 +780,16 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -735,27 +832,134 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Enter Email
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -872,7 +1076,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={6}
+              handlerTag={7}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -1025,7 +1229,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1045,7 +1249,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1065,7 +1269,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -1076,38 +1280,9 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                             </View>
                             <View
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "marginBottom": 20,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                We'll send a six-digit code to your email to check it's you.
-                              </Text>
-                            </View>
-                            <View
-                              style={
                                 {
-                                  "flex": 1,
-                                  "flexDirection": "column",
+                                  "gap": 16,
+                                  "marginTop": 24,
                                 }
                               }
                             >
@@ -1116,16 +1291,29 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "bold",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  }
+                                }
+                              >
+                                Enter your email
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginBottom": 6,
                                   }
                                 }
-                                testID="label"
                               >
-                                Email
+                                We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
                                 style={
@@ -1152,18 +1340,21 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 >
                                   <TextInput
                                     autoCapitalize="none"
+                                    autoComplete="email"
                                     autoFocus={false}
                                     editable={true}
                                     keyboardAppearance="light"
+                                    keyboardType="email-address"
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -1176,7 +1367,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "paddingVertical": 0,
                                       }
                                     }
-                                    value=""
+                                    value="test@example.com"
                                   />
                                 </View>
                               </View>
@@ -1224,11 +1415,12 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1328,15 +1520,16 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -1379,27 +1572,134 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Enter Email
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1669,7 +1969,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1689,7 +1989,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1709,7 +2009,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -1720,38 +2020,9 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                             </View>
                             <View
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "marginBottom": 20,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                We'll send a six-digit code to your email to check it's you.
-                              </Text>
-                            </View>
-                            <View
-                              style={
                                 {
-                                  "flex": 1,
-                                  "flexDirection": "column",
+                                  "gap": 16,
+                                  "marginTop": 24,
                                 }
                               }
                             >
@@ -1760,16 +2031,29 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "bold",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  }
+                                }
+                              >
+                                Enter your email
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginBottom": 6,
                                   }
                                 }
-                                testID="label"
                               >
-                                Email
+                                We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
                                 style={
@@ -1781,7 +2065,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
-                                    "opacity": 0.5,
+                                    "opacity": 1,
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -1796,18 +2080,21 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 >
                                   <TextInput
                                     autoCapitalize="none"
+                                    autoComplete="email"
                                     autoFocus={false}
-                                    editable={false}
+                                    editable={true}
                                     keyboardAppearance="light"
+                                    keyboardType="email-address"
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -1845,8 +2132,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               accessibilityRole="button"
                               accessible={true}
                               activeOpacity={1}
-                              disabled={true}
-                              loading={true}
+                              disabled={false}
+                              loading={false}
                               onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
@@ -1854,20 +2141,30 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
-                                  "opacity": 0.5,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
                             >
-                              <ActivityIndicator
-                                color="#ffffff"
-                                size="small"
-                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#ffffff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Send email
+                              </Text>
                             </TouchableOpacity>
                             <SvgMock
                               fill="currentColor"
@@ -1949,15 +2246,16 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
             collapsable={false}
             style={
               {
-                "backgroundColor": "rgb(255, 255, 255)",
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
                 "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
-                "shadowOpacity": 0.85,
+                "shadowOpacity": 0,
                 "shadowRadius": 0,
               }
             }
@@ -2000,27 +2298,134 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 16,
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
                   "opacity": 1,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
                 style={
                   {
-                    "color": "rgb(28, 28, 30)",
-                    "fontSize": 17,
-                    "fontWeight": "600",
+                    "alignItems": "center",
+                    "justifyContent": "center",
                   }
                 }
               >
-                Enter Email
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Bold",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Verify your identity
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={24}
+                    name="Close"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2137,7 +2542,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={5}
+              handlerTag={6}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2290,7 +2695,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -2310,7 +2715,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -2330,7 +2735,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -2341,38 +2746,9 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                             </View>
                             <View
                               style={
-                                [
-                                  {
-                                    "marginVertical": 8,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  {
-                                    "marginBottom": 20,
-                                  },
-                                ]
-                              }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                We'll send a six-digit code to your email to check it's you.
-                              </Text>
-                            </View>
-                            <View
-                              style={
                                 {
-                                  "flex": 1,
-                                  "flexDirection": "column",
+                                  "gap": 16,
+                                  "marginTop": 24,
                                 }
                               }
                             >
@@ -2381,16 +2757,29 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "color": "#121314",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "bold",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  }
+                                }
+                              >
+                                Enter your email
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
-                                    "marginBottom": 6,
                                   }
                                 }
-                                testID="label"
                               >
-                                Email
+                                We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
                                 style={
@@ -2417,18 +2806,21 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 >
                                   <TextInput
                                     autoCapitalize="none"
+                                    autoComplete="email"
                                     autoFocus={false}
                                     editable={true}
                                     keyboardAppearance="light"
+                                    keyboardType="email-address"
                                     onBlur={[Function]}
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
+                                    onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
@@ -2489,11 +2881,12 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

@@ -95,7 +95,9 @@ describe('AddAccountActions', () => {
 
     // Check for standard options
     expect(
-      screen.getByTestId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON),
+      screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+      ),
     ).toBeDefined();
     expect(
       screen.getByTestId(
@@ -106,7 +108,6 @@ describe('AddAccountActions', () => {
     // Check for multichain options
     expect(screen.getByText('Solana account')).toBeDefined();
     expect(screen.getByText('Bitcoin account')).toBeDefined();
-    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
@@ -124,7 +125,7 @@ describe('AddAccountActions', () => {
     );
 
     const addButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
     );
     fireEvent.press(addButton);
 
@@ -149,7 +150,7 @@ describe('AddAccountActions', () => {
     );
 
     const addButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
     );
     fireEvent.press(addButton);
 
@@ -239,12 +240,6 @@ describe('AddAccountActions', () => {
         clientType: WalletClientType.Bitcoin,
       },
       {
-        button:
-          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON,
-        scope: MultichainNetwork.BitcoinTestnet,
-        clientType: WalletClientType.Bitcoin,
-      },
-      {
         button: AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
         scope: MultichainNetwork.Solana,
         clientType: WalletClientType.Solana,
@@ -326,7 +321,7 @@ describe('AddAccountActions', () => {
       );
 
       const addAccountButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+        AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
       );
       await fireEvent.press(addAccountButton);
 

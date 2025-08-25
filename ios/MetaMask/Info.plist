@@ -61,8 +61,6 @@
 	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

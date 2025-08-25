@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -51,13 +52,20 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import {
+  updateCachedConsent,
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
+import { setupSentry } from '../../../util/sentry/utils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      paddingTop: 24,
+      paddingTop:
+        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
     },
     checkbox: {
       display: 'flex',
@@ -330,6 +338,9 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
+      await setupSentry(); // Re-setup Sentry with enabled: false
+      discardBufferedTraces();
+      updateCachedConsent(false);
     }, 200);
     this.continue();
   };
@@ -346,6 +357,10 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
+    await setupSentry(); // Re-setup Sentry with enabled: true
+    await flushBufferedTraces();
+    updateCachedConsent(true);
+
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&

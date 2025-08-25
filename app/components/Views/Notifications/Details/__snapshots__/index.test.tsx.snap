@@ -43,7 +43,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignSelf": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "overflow": "hidden",
               "width": 32,
@@ -62,7 +62,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
@@ -291,7 +293,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignSelf": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "overflow": "hidden",
               "width": 32,
@@ -310,7 +312,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
@@ -539,7 +543,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#1c7e331a",
+              "backgroundColor": "#457a391a",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -549,7 +553,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#1c7e33"
+            color="#457a39"
             fill="currentColor"
             height={20}
             name="Check"
@@ -978,7 +982,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#4459ff",
+            "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
             "bottom": 10,
@@ -986,6 +990,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             "height": 40,
             "justifyContent": "center",
             "margin": 16,
+            "overflow": "hidden",
             "paddingHorizontal": 16,
             "position": "absolute",
             "width": "90%",
@@ -996,7 +1001,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#4459ff",
+              "color": "#121314",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1007,7 +1012,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           View on block explorer
         </Text>
         <SvgMock
-          color="#4459ff"
+          color="#121314"
           fill="currentColor"
           height={16}
           name="Arrow2UpRight"

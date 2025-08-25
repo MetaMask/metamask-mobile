@@ -1,6 +1,5 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import confirmationReducer, { ConfirmationState } from './confirmation';
 import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
@@ -68,7 +67,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookmarks: any;
-  confirmation: ConfirmationState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   browser: any;
@@ -131,7 +129,6 @@ export interface RootState {
 const baseReducers = {
   legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
-  confirmation: confirmationReducer,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,

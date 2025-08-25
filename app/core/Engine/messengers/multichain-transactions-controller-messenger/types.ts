@@ -19,4 +19,4 @@ export type MultichainTransactionsControllerEvents =
       type: 'MultichainTransactionsController:stateChange';
       payload: [unknown];
     }
-  | MultichainTransactionsControllerTransactionConfirmedEvent
+  | MultichainTransactionsControllerTransactionConfirmedEvent;

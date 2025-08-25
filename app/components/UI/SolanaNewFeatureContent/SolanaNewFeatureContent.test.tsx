@@ -62,13 +62,19 @@ describe('SolanaNewFeatureContent', () => {
   });
 
   it('renders correctly with all main elements', async () => {
-    const { getByText, getByTestId } = renderWithProviders(<SolanaNewFeatureContent />);
+    const { getByText, getByTestId } = renderWithProviders(
+      <SolanaNewFeatureContent />,
+    );
 
     await waitFor(() => {
       expect(getByText('solana_new_feature_content.title')).toBeTruthy();
-      expect(getByText('solana_new_feature_content.title_description')).toBeTruthy();
+      expect(
+        getByText('solana_new_feature_content.title_description'),
+      ).toBeTruthy();
       expect(getByText('solana_new_feature_content.learn_more')).toBeTruthy();
-      expect(getByText('solana_new_feature_content.import_your_wallet')).toBeTruthy();
+      expect(
+        getByText('solana_new_feature_content.import_your_wallet'),
+      ).toBeTruthy();
       expect(getByText('solana_new_feature_content.not_now')).toBeTruthy();
       expect(getByTestId('solana-new-feature-sheet')).toBeTruthy();
     });
@@ -97,13 +103,16 @@ describe('SolanaNewFeatureContent', () => {
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      const importButton = getByText('solana_new_feature_content.import_your_wallet');
+      const importButton = getByText(
+        'solana_new_feature_content.import_your_wallet',
+      );
       fireEvent.press(importButton);
     });
 
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       SOLANA_FEATURE_MODAL_SHOWN,
       'true',
+      { emitEvent: false },
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -113,16 +122,22 @@ describe('SolanaNewFeatureContent', () => {
   });
 
   it('opens learn more URL when learn more button is pressed', async () => {
-    const mockOpenURL = jest.spyOn(Linking, 'openURL').mockImplementation(() => Promise.resolve(true));
-    
+    const mockOpenURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockImplementation(() => Promise.resolve(true));
+
     const { getByText } = renderWithProviders(<SolanaNewFeatureContent />);
 
     await waitFor(() => {
-      const learnMoreButton = getByText('solana_new_feature_content.learn_more');
+      const learnMoreButton = getByText(
+        'solana_new_feature_content.learn_more',
+      );
       fireEvent.press(learnMoreButton);
     });
 
-    expect(mockOpenURL).toHaveBeenCalledWith(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
+    expect(mockOpenURL).toHaveBeenCalledWith(
+      SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE,
+    );
 
     mockOpenURL.mockRestore();
   });

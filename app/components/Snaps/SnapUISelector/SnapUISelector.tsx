@@ -23,6 +23,7 @@ export interface SnapUISelectorProps {
   title: string;
   options: { key?: string; value: State; disabled: boolean }[];
   optionComponents: React.ReactNode[];
+  onSelect?: (value: State) => void;
   form?: string;
   label?: string;
   error?: string;
@@ -80,6 +81,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   label,
   error,
   disabled,
+  onSelect,
   style,
   compact = false,
 }) => {
@@ -94,8 +96,9 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   useEffect(() => {
     if (initialValue !== undefined && initialValue !== null) {
       setSelectedOption(initialValue);
+      onSelect?.(initialValue);
     }
-  }, [initialValue]);
+  }, [initialValue, onSelect]);
 
   const handleModalOpen = () => {
     setIsModalOpen(true);
@@ -105,6 +108,7 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
 
   const handleSelect = (value: State) => {
     setSelectedOption(value);
+    onSelect?.(value);
     handleInputChange(name, value, form);
     handleModalClose();
   };
@@ -124,10 +128,11 @@ export const SnapUISelector: React.FunctionComponent<SnapUISelectorProps> = ({
   const selectedOptionComponent = optionComponents[selectedOptionIndex];
 
   // We clone the selected option component so that we can pass the render context to it.
-  const inlineButtonLabel = selectedOptionComponent && React.cloneElement(
-    selectedOptionComponent as React.ReactElement,
-    { context: 'inline' },
-  );
+  const inlineButtonLabel =
+    selectedOptionComponent &&
+    React.cloneElement(selectedOptionComponent as React.ReactElement, {
+      context: 'inline',
+    });
 
   return (
     <>

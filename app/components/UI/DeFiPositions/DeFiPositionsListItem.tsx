@@ -23,6 +23,7 @@ import styleSheet from './DeFiPositionsListItem.styles';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { useStyles } from '../../hooks/useStyles';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { getTokenAvatarUrl } from './get-token-avatar-url';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -100,7 +101,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         variant: AvatarVariant.Token,
         name: token.name,
         imageSource: {
-          uri: token.iconUrl,
+          uri: getTokenAvatarUrl(token),
         },
       })),
       tokenNames: tokenStr(),

@@ -472,7 +472,6 @@ class ApproveTransactionReview extends PureComponent {
       },
     });
 
-
     this.setState(
       {
         host,

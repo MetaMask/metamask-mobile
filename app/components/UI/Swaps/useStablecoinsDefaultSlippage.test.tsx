@@ -1,5 +1,8 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { useStablecoinsDefaultSlippage, handleStablecoinSlippage } from './useStablecoinsDefaultSlippage';
+import {
+  useStablecoinsDefaultSlippage,
+  handleEvmStablecoinSlippage,
+} from './useStablecoinsDefaultSlippage';
 import { Hex } from '@metamask/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import AppConstants from '../../../core/AppConstants';
@@ -158,18 +161,20 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('sets stablecoin slippage when both tokens are stablecoins', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
       setSlippage: mockSetSlippage,
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+    expect(mockSetSlippage).toHaveBeenCalledWith(
+      AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS,
+    );
   });
 
   it('does not set slippage when source token is not on the list of stablecoins', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -180,7 +185,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('does not set slippage when destination token is not on the list of stablecoins', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0x123', // Non-stablecoin
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -191,7 +196,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('does not set slippage when chain ID is not supported', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: '0x9999' as Hex, // Unsupported chain ID
@@ -202,7 +207,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('does not set slippage when source token address is missing', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
       setSlippage: mockSetSlippage,
@@ -212,7 +217,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('does not set slippage when destination token address is missing', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
       setSlippage: mockSetSlippage,
@@ -222,7 +227,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('resets slippage to default when transitioning from stablecoin pair to non-stablecoin pair', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0x456', // Non-stablecoin
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -231,11 +236,13 @@ describe('handleStablecoinSlippage', () => {
       prevDestTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
+    expect(mockSetSlippage).toHaveBeenCalledWith(
+      AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+    );
   });
 
   it('does not reset slippage when transitioning from non-stablecoin pair to another non-stablecoin pair', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x6b175474e89094c44da98b954eedeac495271d0f', // DAI
       destTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -248,7 +255,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('sets default slippage when transitioning from non-stablecoin pair to stablecoin pair', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
       destTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -257,11 +264,13 @@ describe('handleStablecoinSlippage', () => {
       prevDestTokenAddress: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', // WBTC
     });
 
-    expect(mockSetSlippage).toHaveBeenCalledWith(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
+    expect(mockSetSlippage).toHaveBeenCalledWith(
+      AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS,
+    );
   });
 
   it('handles transition from stablecoin pair to missing token addresses', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: undefined,
       destTokenAddress: undefined,
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,
@@ -274,7 +283,7 @@ describe('handleStablecoinSlippage', () => {
   });
 
   it('does not reset slippage when previous token addresses are missing', () => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress: '0x123', // Non-stablecoin
       destTokenAddress: '0x456', // Non-stablecoin
       chainId: swapsUtils.ETH_CHAIN_ID as Hex,

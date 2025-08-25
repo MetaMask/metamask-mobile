@@ -443,7 +443,6 @@ describe('SnapSettings with keyring snap', () => {
     );
     fireEvent.press(keyringSnapRemovalWarningContinueButton);
 
-
     // Step 3: Wait for the warning modal to appear and enter the snap name
     await waitFor(() => {
       const inputField = getByTestId(KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT);

@@ -194,12 +194,10 @@ describe('requestEthereumAccountsHandler', () => {
       getAccounts.mockReturnValueOnce([]).mockReturnValueOnce(mockAccounts);
 
       await handler(baseRequest);
-      expect(trackDappViewedEvent).toHaveBeenCalledWith(
-        {
-          hostname: 'http://test.com',
-          numberOfConnectedAccounts: mockAccounts.length,
-        }
-      );
+      expect(trackDappViewedEvent).toHaveBeenCalledWith({
+        hostname: 'http://test.com',
+        numberOfConnectedAccounts: mockAccounts.length,
+      });
     });
   });
 });

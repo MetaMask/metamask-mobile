@@ -47,6 +47,7 @@ import {
   selectSourceToken,
   selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
+import BigNumber from 'bignumber.js';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -90,7 +91,7 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const { formattedQuoteData } = useBridgeQuoteData();
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
@@ -152,6 +153,10 @@ const QuoteDetailsCard = () => {
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
 
+  const hasFee = activeQuote
+    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
+    : false;
+
   return (
     <Box>
       <Box style={styles.container}>
@@ -197,20 +202,47 @@ const QuoteDetailsCard = () => {
         </Box>
 
         {/* Always visible content */}
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('bridge.network_fee') || 'Network fee',
-              variant: TextVariant.BodyMDMedium,
-            },
-          }}
-          value={{
-            label: {
-              text: networkFee,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
+        {activeQuote?.quote.gasIncluded ? (
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            justifyContent={JustifyContent.spaceBetween}
+          >
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('bridge.network_fee') || 'Network fee'}
+            </Text>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text variant={TextVariant.BodyMD}>
+                {strings('bridge.included') || 'Included'}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={styles.strikethroughText}
+              >
+                {networkFee}
+              </Text>
+            </Box>
+          </Box>
+        ) : (
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('bridge.network_fee') || 'Network fee',
+                variant: TextVariant.BodyMDMedium,
+              },
+            }}
+            value={{
+              label: {
+                text: networkFee,
+                variant: TextVariant.BodyMD,
+              },
+            }}
+          />
+        )}
 
         <KeyValueRow
           field={{
@@ -281,20 +313,22 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.price_impact') || 'Price Impact',
-                  variant: TextVariant.BodyMDMedium,
-                },
-              }}
-              value={{
-                label: {
-                  text: priceImpact,
-                  variant: TextVariant.BodyMD,
-                },
-              }}
-            />
+            {priceImpact && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.price_impact') || 'Price Impact',
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: {
+                    text: priceImpact,
+                    variant: TextVariant.BodyMD,
+                  },
+                }}
+              />
+            )}
 
             <KeyValueRow
               field={{
@@ -332,13 +366,15 @@ const QuoteDetailsCard = () => {
           </Box>
         )}
       </Box>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.disclaimerText}
-      >
-        {strings('bridge.fee_disclaimer')}
-      </Text>
+      {hasFee ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.disclaimerText}
+        >
+          {strings('bridge.fee_disclaimer')}
+        </Text>
+      ) : null}
     </Box>
   );
 };

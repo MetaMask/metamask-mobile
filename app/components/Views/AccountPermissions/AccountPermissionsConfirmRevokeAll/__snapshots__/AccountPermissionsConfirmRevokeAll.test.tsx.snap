@@ -23,7 +23,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -227,14 +227,15 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "transparent",
-                "borderColor": "#4459ff",
+                "backgroundColor": "#3c4d9d1a",
+                "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -244,7 +245,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#4459ff",
+                  "color": "#121314",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -272,6 +273,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

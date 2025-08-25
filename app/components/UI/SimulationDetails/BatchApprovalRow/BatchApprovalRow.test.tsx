@@ -64,7 +64,7 @@ describe('BatchApprovalRow', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
 
-    expect(getByTestId('edit-amount-button-icon')).toBeTruthy();
+    expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
   });
 
   it('displays alert if BatchedApprovals alert is present', () => {

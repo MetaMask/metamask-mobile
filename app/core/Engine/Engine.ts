@@ -154,6 +154,7 @@ import { setupCurrencyRateSync } from './controllers/RatesController/subscriptio
 import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
+import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
@@ -231,6 +232,8 @@ import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
+import { perpsControllerInit } from './controllers/perps-controller';
+import { selectUseTokenDetection } from '../../selectors/preferencesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -981,6 +984,8 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
+      // @ts-expect-error Controller uses string for names rather than enum
+      trace,
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1192,6 +1197,7 @@ export class Engine {
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'BridgeController:getBridgeERC20Allowance',
+          'BridgeController:stopPollingForQuotes',
           'BridgeController:trackUnifiedSwapBridgeEvent',
           'GasFeeController:getState',
           'AccountsController:getAccountByAddress',
@@ -1215,11 +1221,14 @@ export class Engine {
       estimateGasFeeFn: (
         ...args: Parameters<typeof this.transactionController.estimateGasFee>
       ) => this.transactionController.estimateGasFee(...args),
-      addUserOperationFromTransactionFn: (...args: unknown[]) =>
-        // @ts-expect-error - userOperationController will be made optional, it's only relevant for extension
-        this.userOperationController?.addUserOperationFromTransaction?.(
-          ...args,
-        ),
+      addTransactionBatchFn: (
+        ...args: Parameters<
+          typeof this.transactionController.addTransactionBatch
+        >
+      ) => this.transactionController.addTransactionBatch(...args),
+      updateTransactionFn: (
+        ...args: Parameters<typeof this.transactionController.updateTransaction>
+      ) => this.transactionController.updateTransaction(...args),
       traceFn: trace as TraceCallback,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
@@ -1266,8 +1275,10 @@ export class Engine {
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
+        MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
+        PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1283,6 +1294,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const perpsController = controllersByName.PerpsController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1314,6 +1326,7 @@ export class Engine {
       controllersByName.MultichainBalancesController;
     const multichainTransactionsController =
       controllersByName.MultichainTransactionsController;
+    const multichainAccountService = controllersByName.MultichainAccountService;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1359,6 +1372,7 @@ export class Engine {
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
+          'PhishingController:bulkScanUrls',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1443,6 +1457,8 @@ export class Engine {
             'TokensController:getState',
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
+            'TokensController:addTokens',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1476,6 +1492,8 @@ export class Engine {
         platform: 'mobile',
         useAccountsAPI: true,
         disabled: false,
+        useTokenDetection: () => selectUseTokenDetection(store.getState()),
+        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
       }),
       NftDetectionController: new NftDetectionController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1630,6 +1648,7 @@ export class Engine {
       MultichainAssetsController: multichainAssetsController,
       MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
+      MultichainAccountService: multichainAccountService,
       ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
@@ -1638,6 +1657,7 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
+      PerpsController: perpsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2358,6 +2378,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
     } = instance.datamodel.state;
@@ -2412,6 +2433,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       EarnController,
+      PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
     };

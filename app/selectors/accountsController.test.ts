@@ -15,8 +15,6 @@ import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
-  selectHasCreatedBtcMainnetAccount,
-  hasCreatedBtcTestnetAccount,
   selectCanSignTransactions,
   selectSolanaAccountAddress,
   selectSolanaAccount,
@@ -186,9 +184,6 @@ describe('Accounts Controller Selectors', () => {
   });
 });
 
-const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
-
 function getStateWithAccount(account: InternalAccount) {
   return {
     engine: {
@@ -206,46 +201,6 @@ function getStateWithAccount(account: InternalAccount) {
     },
   } as RootState;
 }
-
-const btcMainnetAccount = createMockInternalAccount(
-  MOCK_BTC_MAINNET_ADDRESS,
-  'Bitcoin Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-const btcTestnetAccount = createMockInternalAccount(
-  MOCK_BTC_TESTNET_ADDRESS,
-  'Bitcoin Testnet Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-describe('Bitcoin Account Selectors', () => {
-  describe('hasCreatedBtcMainnetAccount', () => {
-    it('returns true when a BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(false);
-    });
-  });
-
-  describe('hasCreatedBtcTestnetAccount', () => {
-    it('returns true when a BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
-    });
-  });
-});
 
 describe('Solana Account Selectors', () => {
   beforeEach(() => {

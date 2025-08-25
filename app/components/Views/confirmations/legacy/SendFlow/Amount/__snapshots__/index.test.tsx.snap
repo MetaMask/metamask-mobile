@@ -481,7 +481,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -1185,7 +1185,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -1906,7 +1906,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -2627,7 +2627,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -3331,7 +3331,7 @@ exports[`Amount displays correct balance 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -4034,7 +4034,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -5405,7 +5405,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -6104,7 +6104,7 @@ exports[`Amount proceeds if balance is sufficient while on Native primary curren
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -6879,7 +6879,7 @@ exports[`Amount renders correctly 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -7577,7 +7577,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",
@@ -8199,7 +8199,7 @@ exports[`Amount shows an error message if balance is insufficient 1`] = `
                                     keyboardType="numeric"
                                     onChangeText={[Function]}
                                     placeholder="0"
-                                    placeholderTextColor="#9ca1af"
+                                    placeholderTextColor="#b7bbc8"
                                     style={
                                       {
                                         "color": "#121314",

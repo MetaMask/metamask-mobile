@@ -38,9 +38,7 @@ export interface SRPQuizProps {
   };
 }
 
-const SRPQuiz = (
-  props: SRPQuizProps,
-) => {
+const SRPQuiz = (props: SRPQuizProps) => {
   // It has be destructured like this because of prettier
   // shifting the fence to the ending curly brace.
   const {
@@ -102,12 +100,7 @@ const SRPQuiz = (
       shouldUpdateNav: true,
       keyringId,
     });
-  }, [
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    keyringId,
-  ]);
+  }, [navigation, trackEvent, createEventBuilder, keyringId]);
 
   const introduction = useCallback(() => {
     trackEvent(

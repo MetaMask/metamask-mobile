@@ -1,15 +1,15 @@
 import TestHelpers from '../../helpers';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import FixtureServer from '../../fixtures/fixture-server';
-import Assertions from '../../utils/Assertions';
+} from '../../framework/fixtures/FixtureHelper';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
+import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
@@ -33,7 +33,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await TabBarComponent.tapBrowser();
     await TestSnaps.navigateToTestSnap();
     await TestHelpers.delay(3500); // Wait for page to load
-    await Assertions.checkIfVisible(BrowserView.browserScreenID);
+    await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   });
 
   afterAll(async () => {
@@ -93,7 +93,7 @@ describe(FlaskBuildTests('BIP-44 Snap Tests'), () => {
     await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
     await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
     await TestSnaps.tapButton('signMessageBip44Button');
-    await Assertions.checkIfTextIsDisplayed(
+    await Assertions.expectTextDisplayed(
       'Entropy source with ID "invalid" not found.',
     );
   });

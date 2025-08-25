@@ -84,7 +84,7 @@ jest.mock('../../../../../core/Engine', () => ({
               id: '01JNG7170V9X27V5NFDTY04PJ4',
               name: '',
             },
-          }
+          },
         ],
       },
       getOrAddQRKeyring: jest.fn(),
@@ -130,6 +130,7 @@ jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
+    subscribeOnceIf: jest.fn(),
   },
 }));
 
@@ -287,7 +288,6 @@ describe('Confirm', () => {
     });
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {
