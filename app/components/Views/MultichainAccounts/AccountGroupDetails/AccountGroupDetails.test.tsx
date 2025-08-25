@@ -286,7 +286,7 @@ describe('AccountGroupDetails', () => {
     ).toBeTruthy();
   });
 
-  it.only('navigates to Address List when Networks link is pressed', () => {
+  it('navigates to Address List when Networks link is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <AccountGroupDetails {...defaultProps} />,
       { state: mockState },
