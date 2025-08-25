@@ -80,7 +80,10 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { getDecimalChainId, isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
@@ -446,7 +449,10 @@ function SwapsAmountView({
    * Reset the state when account or chain changes
    */
   useEffect(() => {
-    if (selectedAddress !== previousSelectedAddress.current || chainId !== previousChainId.current) {
+    if (
+      selectedAddress !== previousSelectedAddress.current ||
+      chainId !== previousChainId.current
+    ) {
       setAmount('0');
       setSourceToken(
         swapsTokens?.find((token) =>
@@ -774,10 +780,10 @@ function SwapsAmountView({
               <Text style={styles.amountInvalid}>
                 {hasInvalidDecimals
                   ? strings('swaps.allows_up_to_decimals', {
-                    symbol: sourceToken.symbol,
-                    decimals: sourceToken.decimals,
-                    // eslint-disable-next-line no-mixed-spaces-and-tabs
-                  })
+                      symbol: sourceToken.symbol,
+                      decimals: sourceToken.decimals,
+                      // eslint-disable-next-line no-mixed-spaces-and-tabs
+                    })
                   : strings('swaps.not_enough', { symbol: sourceToken.symbol })}
               </Text>
             ) : isAmountZero ? (
@@ -845,7 +851,7 @@ function SwapsAmountView({
         </View>
         <View>
           {Boolean(destinationToken) &&
-            !isSwapsNativeAsset(destinationToken) ? (
+          !isSwapsNativeAsset(destinationToken) ? (
             destinationTokenHasEnoughOcurrances ? (
               <TouchableOpacity
                 onPress={explorer.isValid ? handleVerifyPress : undefined}
@@ -872,7 +878,7 @@ function SwapsAmountView({
               <ActionAlert
                 type={
                   !destinationToken.occurances ||
-                    isDynamicToken(destinationToken)
+                  isDynamicToken(destinationToken)
                     ? AlertType.Error
                     : AlertType.Warning
                 }
@@ -889,19 +895,19 @@ function SwapsAmountView({
                   >
                     <Text style={textStyle} bold centered>
                       {!destinationToken.occurrences ||
-                        isDynamicToken(destinationToken)
+                      isDynamicToken(destinationToken)
                         ? strings('swaps.added_manually', {
-                          symbol: destinationToken.symbol,
-                          // eslint-disable-next-line no-mixed-spaces-and-tabs
-                        })
+                            symbol: destinationToken.symbol,
+                            // eslint-disable-next-line no-mixed-spaces-and-tabs
+                          })
                         : strings('swaps.only_verified_on', {
-                          symbol: destinationToken.symbol,
-                          occurrences: destinationToken.occurrences,
-                          // eslint-disable-next-line no-mixed-spaces-and-tabs
-                        })}
+                            symbol: destinationToken.symbol,
+                            occurrences: destinationToken.occurrences,
+                            // eslint-disable-next-line no-mixed-spaces-and-tabs
+                          })}
                     </Text>
                     {!destinationToken.occurrences ||
-                      isDynamicToken(destinationToken) ? (
+                    isDynamicToken(destinationToken) ? (
                       <Text style={textStyle} centered>
                         {`${strings('swaps.verify_this_token_on')} `}
                         {explorer.isValid ? (
@@ -1090,8 +1096,13 @@ const mapStateToProps = (state) => ({
     state,
     selectEvmChainId(state),
   ),
-  networkName: selectEvmNetworkConfigurationsByChainId(state)?.[selectEvmChainId(state)]?.name || '',
-  networkImageSource: selectNetworkImageSourceByChainId(state, selectEvmChainId(state)),
+  networkName:
+    selectEvmNetworkConfigurationsByChainId(state)?.[selectEvmChainId(state)]
+      ?.name || '',
+  networkImageSource: selectNetworkImageSourceByChainId(
+    state,
+    selectEvmChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
