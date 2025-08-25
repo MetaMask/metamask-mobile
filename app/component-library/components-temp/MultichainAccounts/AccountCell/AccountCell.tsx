@@ -39,17 +39,18 @@ const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
     [accountGroup.id],
   );
   const groupBalance = useSelector(selectBalanceForGroup);
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const userCurrency = groupBalance?.userCurrency;
+
   const displayBalance = useMemo(() => {
-    if (!groupBalance) {
+    if (totalBalance == null || !userCurrency) {
       return undefined;
     }
-    const value = groupBalance.totalBalanceInUserCurrency;
-    const currency = groupBalance.userCurrency;
-    return formatWithThreshold(value, 0.01, I18n.locale, {
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
       style: 'currency',
-      currency: currency.toUpperCase(),
+      currency: userCurrency.toUpperCase(),
     });
-  }, [groupBalance]);
+  }, [totalBalance, userCurrency]);
 
   return (
     <Box

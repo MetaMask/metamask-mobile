@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
@@ -35,15 +35,16 @@ const AccountGroupBalance = () => {
     [PreferencesController],
   );
 
-  const displayBalance = (() => {
-    if (!groupBalance) return undefined;
-    const value = groupBalance.totalBalanceInUserCurrency;
-    const currency = groupBalance.userCurrency;
-    return formatWithThreshold(value, 0.01, I18n.locale, {
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const userCurrency = groupBalance?.userCurrency;
+
+  const displayBalance = useMemo(() => {
+    if (totalBalance == null || !userCurrency) return undefined;
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
       style: 'currency',
-      currency: currency.toUpperCase(),
+      currency: userCurrency.toUpperCase(),
     });
-  })();
+  }, [totalBalance, userCurrency]);
 
   return (
     <View style={styles.accountGroupBalance}>

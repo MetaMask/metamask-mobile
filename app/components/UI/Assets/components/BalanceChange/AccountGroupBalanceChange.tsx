@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import SensitiveText from '../../../../../component-library/components/Texts/SensitiveText';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
@@ -28,13 +28,16 @@ const AccountGroupBalanceChange = ({
   userCurrency,
 }: AccountGroupBalanceChangeProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const amountText = getFormattedAmountChange(
-    amountChangeInUserCurrency,
-    userCurrency,
+  const amountText = useMemo(
+    () => getFormattedAmountChange(amountChangeInUserCurrency, userCurrency),
+    [amountChangeInUserCurrency, userCurrency],
   );
 
   const privacyMode = useSelector(selectPrivacyMode);
-  const percentText = getFormattedPercentageChange(percentChange, 'en-US');
+  const percentText = useMemo(
+    () => getFormattedPercentageChange(percentChange, 'en-US'),
+    [percentChange],
+  );
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),
     percentChange,
