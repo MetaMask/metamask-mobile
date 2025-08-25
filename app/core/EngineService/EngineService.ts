@@ -24,7 +24,7 @@ import {
   password,
   seedPhrase,
   VAULT_INITIALIZED_KEY,
-} from '../../../generateSkipOnboardingState';
+} from '../../util/generateSkipOnboardingState';
 import storageWrapper from '../../store/storage-wrapper';
 
 export class EngineService {
@@ -83,26 +83,22 @@ export class EngineService {
       if (
         seedPhrase &&
         password &&
-        (await storageWrapper.getItem(VAULT_INITIALIZED_KEY))
+        !(await storageWrapper.getItem(VAULT_INITIALIZED_KEY))
       ) {
         // Check for vault initialization on first launch
-        const preConfiguredVault = await applyVaultInitialization(
+        const keyringControllerState = await applyVaultInitialization(
           ReduxService.store,
         );
-        let keyringState = null;
-        if (preConfiguredVault) {
+
+        if (keyringControllerState) {
           // If we have a pre-configured vault, use it to initialize the KeyringController
-          keyringState = {
-            keyrings: [],
-            vault: preConfiguredVault,
-            isUnlocked: false,
-          };
+
           Logger.log(
             `${LOG_TAG}: Using pre-configured vault for Engine initialization`,
           );
         }
 
-        Engine.init(state, keyringState, metaMetricsId);
+        Engine.init(state, keyringControllerState, metaMetricsId);
       } else {
         Engine.init(state, null, metaMetricsId);
       }

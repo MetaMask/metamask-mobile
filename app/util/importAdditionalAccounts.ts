@@ -11,7 +11,7 @@ import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
 
-const ZERO_BALANCE = '0x0';
+export const ZERO_BALANCE = '0x0';
 const MAX = 20;
 
 /**
@@ -19,7 +19,10 @@ const MAX = 20;
  * @param address - The account address
  * @param ethQuery - The EthQuery instance to use when asking the network
  */
-const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
+export const getBalance = async (
+  address: string,
+  ethQuery: EthQuery,
+): Promise<Hex> =>
   new Promise((resolve, reject) => {
     ethQuery.getBalance(address, (error: Error, balance: BN) => {
       if (error) {
