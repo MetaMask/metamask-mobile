@@ -17,6 +17,12 @@ import type {
   PriceUpdate,
   ClosePositionParams,
 } from '../../../app/components/UI/Perps/controllers/types';
+import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
+
+// Interface for controller with update method access
+interface ControllerWithUpdate {
+  update: (fn: (state: PerpsControllerState) => void) => void;
+}
 
 /**
  * E2E Controller Method Overrides
@@ -24,9 +30,9 @@ import type {
  */
 export class E2EControllerOverrides {
   private mockService = PerpsE2EMockService.getInstance();
-  private controller: any; // Reference to the actual controller for Redux updates
+  private controller: unknown; // Reference to the actual controller for Redux updates
 
-  constructor(controller: any) {
+  constructor(controller: unknown) {
     this.controller = controller;
   }
 
@@ -39,12 +45,14 @@ export class E2EControllerOverrides {
     const mockAccount = this.mockService.getMockAccountState();
     const mockPositions = this.mockService.getMockPositions();
 
-    this.controller.update((state: any) => {
-      state.accountState = mockAccount;
-      state.positions = mockPositions;
-      state.lastUpdateTimestamp = Date.now();
-      state.lastError = null;
-    });
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.positions = mockPositions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return result;
   }
@@ -55,11 +63,13 @@ export class E2EControllerOverrides {
     const mockAccount = this.mockService.getMockAccountState();
 
     // Update Redux state just like the real controller does
-    this.controller.update((state: any) => {
-      state.accountState = mockAccount;
-      state.lastUpdateTimestamp = Date.now();
-      state.lastError = null;
-    });
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return mockAccount;
   }
@@ -70,11 +80,13 @@ export class E2EControllerOverrides {
     const mockPositions = this.mockService.getMockPositions();
 
     // Update Redux state
-    this.controller.update((state: any) => {
-      state.positions = mockPositions;
-      state.lastUpdateTimestamp = Date.now();
-      state.lastError = null;
-    });
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.positions = mockPositions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return mockPositions;
   }
@@ -96,12 +108,14 @@ export class E2EControllerOverrides {
     const mockAccount = this.mockService.getMockAccountState();
     const mockPositions = this.mockService.getMockPositions();
 
-    this.controller.update((state: any) => {
-      state.accountState = mockAccount;
-      state.positions = mockPositions;
-      state.lastUpdateTimestamp = Date.now();
-      state.lastError = null;
-    });
+    (this.controller as ControllerWithUpdate).update(
+      (state: PerpsControllerState) => {
+        state.accountState = mockAccount;
+        state.positions = mockPositions;
+        state.lastUpdateTimestamp = Date.now();
+        state.lastError = null;
+      },
+    );
 
     return result;
   }
@@ -167,7 +181,7 @@ export class E2EControllerOverrides {
       .filter(Boolean);
 
     setTimeout(() => params.callback(filteredPrices), 0);
-    return () => {};
+    return () => undefined;
   }
 }
 
@@ -175,7 +189,7 @@ export class E2EControllerOverrides {
  * Apply E2E mocks to PerpsController
  * This function should be called during E2E test initialization
  */
-export function applyE2EPerpsControllerMocks(controller: any): void {
+export function applyE2EPerpsControllerMocks(controller: unknown): void {
   console.log('🎭 Applying E2E mocks to PerpsController...');
 
   const overrides = new E2EControllerOverrides(controller);
@@ -194,11 +208,20 @@ export function applyE2EPerpsControllerMocks(controller: any): void {
   ];
 
   methodsToOverride.forEach((method) => {
-    if (controller[method] && overrides[method]) {
+    if (
+      (controller as unknown as Record<string, unknown>)[method] &&
+      (overrides as unknown as Record<string, unknown>)[method]
+    ) {
       // Store original for potential restoration
-      controller[`_original_${method}`] = controller[method];
+      (controller as unknown as Record<string, unknown>)[
+        `_original_${method}`
+      ] = (controller as unknown as Record<string, unknown>)[method];
       // Apply mock override
-      controller[method] = overrides[method].bind(overrides);
+      (controller as unknown as Record<string, unknown>)[method] = (
+        (overrides as unknown as Record<string, unknown>)[method] as (
+          ...args: unknown[]
+        ) => unknown
+      ).bind(overrides);
       console.log(`🎭 Mocked ${method} method`);
     }
   });
@@ -214,7 +237,7 @@ export function applyE2EPerpsControllerMocks(controller: any): void {
     positionsCount: mockPositions.length,
   });
 
-  controller.update((state: any) => {
+  (controller as ControllerWithUpdate).update((state: PerpsControllerState) => {
     state.accountState = mockAccount;
     state.positions = mockPositions;
     state.lastUpdateTimestamp = Date.now();
@@ -229,7 +252,7 @@ export function applyE2EPerpsControllerMocks(controller: any): void {
 /**
  * Create E2E mock stream manager for PerpsStreamProvider
  */
-export function createE2EMockStreamManager(): any {
+export function createE2EMockStreamManager(): unknown {
   console.log('🎭 Creating E2E mock stream manager');
 
   // Use centralized E2E mock service for consistent state
@@ -259,7 +282,7 @@ export function createE2EMockStreamManager(): any {
       },
     },
     marketData: {
-      subscribe: (params: { callback: (data: any[]) => void }) => {
+      subscribe: (params: { callback: (data: unknown[]) => void }) => {
         console.log('🎭 E2E Mock: marketData.subscribe called');
         console.log(
           '🎭 E2E Mock: Providing markets:',

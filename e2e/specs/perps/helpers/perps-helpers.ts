@@ -8,6 +8,7 @@ import PerpsTabView from '../../../pages/Perps/PerpsTabView';
 import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -213,17 +214,20 @@ export class PerpsHelpers {
     isOutgoing?: boolean; // true for outgoing transfers, false for incoming
   }) {
     const { recipientAddress, amount, isOutgoing = false } = params;
-    const { adjustE2EMockBalance } = await import(
-      '../../../../app/components/UI/Perps/utils/e2eUtils'
-    );
+    // Mock balance adjustment for E2E testing
+    // const { adjustE2EMockBalance } = await import(
+    //   '../../../../app/components/UI/Perps/utils/e2eBridgePerps'
+    // );
 
     // Check if this transfer affects our test wallet
     if (recipientAddress === USER_ADDRESS && !isOutgoing) {
       // Incoming transfer to our wallet
-      adjustE2EMockBalance(amount);
+      DevLogger.log('E2E: Mock incoming transfer:', amount);
+      // adjustE2EMockBalance(amount); // TODO: Implement if needed
     } else if (recipientAddress === FUNDER_ADDRESS && isOutgoing) {
       // Outgoing transfer from our wallet
-      adjustE2EMockBalance(`-${amount}`);
+      DevLogger.log('E2E: Mock outgoing transfer:', amount);
+      // adjustE2EMockBalance(`-${amount}`); // TODO: Implement if needed
     }
   }
 

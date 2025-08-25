@@ -17,7 +17,6 @@ import type {
   PerpsMarketData,
   WithdrawParams,
   WithdrawResult,
-  GetFundingParams,
   Funding,
 } from '../../../app/components/UI/Perps/controllers/types';
 
@@ -40,8 +39,8 @@ export class PerpsE2EMockService {
   private fillIdCounter = 1;
 
   // Stream callbacks to notify about data changes
-  private positionCallbacks: Array<(positions: Position[]) => void> = [];
-  private accountCallbacks: Array<(account: AccountState) => void> = [];
+  private positionCallbacks: ((positions: Position[]) => void)[] = [];
+  private accountCallbacks: ((account: AccountState) => void)[] = [];
 
   private constructor() {
     this.reset();
@@ -100,7 +99,6 @@ export class PerpsE2EMockService {
   // Mock successful order placement
   public async mockPlaceOrder(params: OrderParams): Promise<OrderResult> {
     const orderId = `mock_order_${this.orderIdCounter++}`;
-    const fillId = `mock_fill_${this.fillIdCounter++}`;
 
     // Calculate mock values
     const notionalValue =
@@ -149,14 +147,16 @@ export class PerpsE2EMockService {
 
     // Create mock order fill
     const mockFill: OrderFill = {
-      fillId: fillId,
-      orderId: orderId,
-      coin: params.coin,
+      orderId,
+      symbol: params.coin,
       size: params.size,
       price: (params.currentPrice || 50000).toString(),
       timestamp: Date.now(),
       side: params.isBuy ? 'buy' : 'sell',
       fee: '2.50',
+      feeToken: 'USDC',
+      pnl: '0.00',
+      direction: params.isBuy ? 'long' : 'short',
     };
 
     this.mockOrderFills.push(mockFill);
@@ -167,8 +167,7 @@ export class PerpsE2EMockService {
 
     return {
       success: true,
-      orderId: orderId,
-      message: 'Order placed successfully (E2E Mock)',
+      orderId,
     };
   }
 
@@ -200,8 +199,9 @@ export class PerpsE2EMockService {
 
     return {
       success: true,
-      transactionId: `mock_withdrawal_${Date.now()}`,
-      message: 'Withdrawal initiated (E2E Mock)',
+      txHash: `0x${Math.random().toString(16).slice(2)}`,
+      withdrawalId: `mock_withdrawal_${Date.now()}`,
+      estimatedArrivalTime: Date.now() + 5 * 60 * 1000, // 5 minutes
     };
   }
 
@@ -253,7 +253,6 @@ export class PerpsE2EMockService {
     return {
       success: true,
       orderId: `mock_close_${this.orderIdCounter++}`,
-      message: `Position closed with ${pnl > 0 ? 'profit' : 'loss'} (E2E Mock)`,
     };
   }
 
@@ -380,9 +379,9 @@ export class PerpsE2EMockService {
         bestAsk: '45005.00',
         spread: '10.00',
         markPrice: '45000.00',
-        funding: '0.01',
-        openInterest: '50000000',
-        volume24h: '1000000',
+        funding: 0.01,
+        openInterest: 50000000,
+        volume24h: 1000000,
       },
       ETH: {
         coin: 'ETH',
@@ -393,19 +392,19 @@ export class PerpsE2EMockService {
         bestAsk: '2500.50',
         spread: '1.00',
         markPrice: '2500.00',
-        funding: '0.005',
-        openInterest: '25000000',
-        volume24h: '500000',
+        funding: 0.005,
+        openInterest: 25000000,
+        volume24h: 500000,
       },
     };
   }
 
-  public async mockGetFunding(params?: GetFundingParams): Promise<Funding[]> {
+  public async mockGetFunding(): Promise<Funding[]> {
     return [
       {
-        coin: 'BTC',
-        fundingRate: '0.0125',
-        nextFundingTime: Date.now() + 28800000,
+        symbol: 'BTC',
+        amountUsd: '1.50',
+        rate: '0.0125',
         timestamp: Date.now(),
       },
     ];
