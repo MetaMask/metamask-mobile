@@ -3,7 +3,6 @@ import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { isValidHexAddress } from '../../../../util/address';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 // Mock dependencies
 jest.mock('../sdk/CardSDK');
@@ -86,7 +85,6 @@ describe('getCardholder', () => {
       ]);
       expect(MockedCardSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
-        rawChainId: LINEA_CHAIN_ID,
       });
       expect(mockCardSDKInstance.isCardHolder).toHaveBeenCalledWith(
         mockFormattedAccounts,
