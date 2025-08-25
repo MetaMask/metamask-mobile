@@ -23,11 +23,13 @@ const renderAccountCell = (
   props: {
     accountGroup?: AccountGroupObject;
     isSelected?: boolean;
+    hideMenu?: boolean;
   } = {},
 ) => {
   const defaultProps = {
     accountGroup: mockAccountGroup,
     isSelected: false,
+    hideMenu: false,
     ...props,
   };
 
@@ -60,10 +62,14 @@ describe('AccountCell', () => {
     expect(getByText('$1234567890.00')).toBeTruthy();
   });
 
-  it('renders menu button', () => {
-    const { getByText } = renderAccountCell();
-    expect(getByText('Test Account Group')).toBeTruthy();
-    expect(getByText('$1234567890.00')).toBeTruthy();
+  it('renders menu button by default', () => {
+    const { getByTestId } = renderAccountCell();
+    expect(getByTestId('multichain-account-cell-menu')).toBeTruthy();
+  });
+
+  it('hides menu button when hideMenu is true', () => {
+    const { queryByTestId } = renderAccountCell({ hideMenu: true });
+    expect(queryByTestId('multichain-account-cell-menu')).toBeNull();
   });
 
   it('navigates to account actions when menu button is pressed', () => {

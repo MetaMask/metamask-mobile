@@ -50,6 +50,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     balance: {
       ...baseRowStyle,
+    },
+    srpSection: {
+      ...baseRowStyle,
       borderBottomLeftRadius: 8,
       borderBottomRightRadius: 8,
     },
@@ -72,21 +75,30 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountBox: {
       backgroundColor: colors.background.alternative,
+      paddingTop: 14,
+      paddingBottom: 14,
+      paddingLeft: 16,
+      paddingRight: 16,
+    },
+    accountGroupBox: {
+      backgroundColor: colors.background.alternative,
+      paddingLeft: 16,
+      paddingRight: 16,
+    },
+    addAccountBox: {
+      backgroundColor: colors.background.alternative,
       borderRadius: 8,
       padding: 16,
     },
     firstAccountBox: {
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-      marginBottom: 2,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     lastAccountBox: {
       borderTopLeftRadius: 0,
       borderTopRightRadius: 0,
-    },
-    middleAccountBox: {
-      marginBottom: 2,
-      borderRadius: 0,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
     },
     text: {
       color: colors.text.alternative,
