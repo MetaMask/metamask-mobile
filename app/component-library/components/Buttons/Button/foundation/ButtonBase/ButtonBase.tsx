@@ -122,6 +122,11 @@ const ButtonBase = ({
     isDisabled,
   });
 
+  // Timestamp tracking for non-Android platforms only
+  // Android coordination is handled entirely by the custom TouchableOpacity component
+  const lastPressTime = useRef(0);
+  const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
+
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
     process.env.IS_TEST === 'true' ||
@@ -133,14 +138,20 @@ const ButtonBase = ({
       : RNTouchableOpacity;
 
   // Handle disabled state properly in all environments
-  // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
-  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
-  const conditionalOnPress =
-    TouchableComponent === TouchableOpacity
-      ? onPress
-      : isDisabled
-      ? undefined
-      : onPress;
+  const conditionalOnPress = isDisabled
+    ? undefined
+    : Platform.OS === 'android' && !isE2ETest && !isUnitTest
+    ? onPress // On Android, let custom TouchableOpacity handle all coordination
+    : () => {
+        // On non-Android platforms, apply coordination logic to prevent double firing
+        const now = Date.now();
+        const timeSinceLastPress = now - lastPressTime.current;
+
+        if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
+          lastPressTime.current = now;
+          onPress();
+        }
+      };
 
   return (
     <TouchableComponent

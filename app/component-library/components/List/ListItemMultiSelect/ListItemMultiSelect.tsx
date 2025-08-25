@@ -107,7 +107,8 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
-  // Timestamp tracking for Checkbox coordination (separate from main TouchableComponent)
+  // Timestamp tracking for Checkbox coordination on non-Android platforms only
+  // Android coordination is handled entirely by the custom TouchableOpacity component
   const lastCheckboxGestureTime = useRef(0);
   const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
 
@@ -122,25 +123,20 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       : RNTouchableOpacity;
 
   // Handle disabled state properly in all environments
-  // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
-  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction AND coordinate with checkbox
-  const conditionalOnPress =
-    TouchableComponent === TouchableOpacity
-      ? onPress // Android: Custom TouchableOpacity handles coordination internally
-      : isDisabled
-      ? undefined
-      : (pressEvent: GestureResponderEvent) => {
-          // Non-Android: Coordinate between checkbox onPressIn and main component onPress
-          const now = Date.now();
-          const timeSinceLastPress = now - lastCheckboxGestureTime.current;
+  const conditionalOnPress = isDisabled
+    ? undefined
+    : Platform.OS === 'android' && !isE2ETest && !isUnitTest
+    ? onPress // On Android, let custom TouchableOpacity handle all coordination
+    : (pressEvent: GestureResponderEvent) => {
+        // On non-Android platforms, coordinate between checkbox and main component
+        const now = Date.now();
+        const timeSinceLastPress = now - lastCheckboxGestureTime.current;
 
-          // Only fire if enough time has passed since last interaction
-          // This prevents both checkbox->main double firing AND rapid repeated main calls
-          if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
-            lastCheckboxGestureTime.current = now; // Update timestamp for future coordination
-            onPress(pressEvent);
-          }
-        };
+        if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
+          lastCheckboxGestureTime.current = now;
+          onPress(pressEvent);
+        }
+      };
 
   // Checkbox onPressIn with timestamp coordination (non-Android only)
   // Event firing order:

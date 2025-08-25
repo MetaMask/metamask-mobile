@@ -517,7 +517,7 @@ describe('ButtonPrimary', () => {
       expect(getByTestId(BUTTONPRIMARY_TESTID)).toBeOnTheScreen();
     });
 
-    it('handles rapid press events', () => {
+    it('handles rapid press events with coordination', () => {
       // Arrange
       const { getByTestId } = render(
         <ButtonPrimary
@@ -528,13 +528,13 @@ describe('ButtonPrimary', () => {
         />,
       );
 
-      // Act
+      // Act - Fire multiple rapid presses (should be coordinated to prevent double-firing)
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
       fireEvent.press(getByTestId(BUTTONPRIMARY_TESTID));
 
-      // Assert
-      expect(mockOnPress).toHaveBeenCalledTimes(3);
+      // Assert - Only first press should register due to coordination logic
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
     it('handles loading state changes', () => {
