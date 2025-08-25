@@ -29,6 +29,8 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -135,6 +137,47 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* handleSDKInit() {
+  yield take([NavigationActionType.ON_NAVIGATION_READY]);
+
+  // Initialize SDKConnect
+  while (true) {
+    const action = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding: boolean;
+    if (action.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = action.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    const { KeyringController } = Engine.context;
+    const isUnlocked = KeyringController.isUnlocked();
+
+    if (
+      action.type === UserActionType.LOGIN ||
+      (completedOnboarding && isUnlocked)
+    ) {
+      try {
+        yield call(SDKConnect.init, { context: 'Nav/App' });
+      } catch (e) {
+        Logger.log('Failed to initialize SDKConnect', e);
+      }
+      break;
+    }
+  }
+
+  // Initialize WalletConnect V2
+  try {
+    yield call(WC2Manager.init, {});
+  } catch (e) {
+    Logger.log('Failed to initialize services', e);
+  }
+}
+
 export function* handleDeeplinkSaga() {
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
@@ -200,5 +243,6 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(handleSDKInit);
   yield fork(handleDeeplinkSaga);
 }

@@ -15,6 +15,7 @@ import {
   appLockStateMachine,
   lockKeyringAndApp,
   startAppServices,
+  handleSDKInit,
   handleDeeplinkSaga,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
@@ -23,6 +24,8 @@ import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
 import { setCompletedOnboarding } from '../../actions/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 const mockBioStateMachineId = '123';
 
@@ -82,6 +85,28 @@ jest.mock('../../core/AppStateEventListener', () => ({
     start: jest.fn(),
     pendingDeeplink: null,
     clearPendingDeeplink: jest.fn(),
+  },
+}));
+
+jest.mock('../../core/SDKConnect/SDKConnect', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({
+      postInit: jest.fn().mockResolvedValue(undefined),
+      state: {
+        _initialized: true,
+        _postInitialized: true,
+      },
+    }),
+  },
+}));
+
+jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -192,8 +217,12 @@ describe('startAppServices', () => {
     jest.clearAllMocks();
   });
 
-  it('should start app services', async () => {
+  it('should start app services when gates open', async () => {
     await expectSaga(startAppServices)
+      .withState({
+        onboarding: { completedOnboarding: false },
+        user: {},
+      })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
@@ -213,6 +242,8 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
   it('should not start app services if persisted data is not loaded', async () => {
@@ -224,6 +255,76 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+
+  // The SDKConnect init gating is now bundled within startAppServices
+});
+
+describe('handleSDKInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default to locked
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(false);
+  });
+
+  it('initializes SDKConnect on LOGIN after gates, then WalletConnect V2', async () => {
+    await expectSaga(handleSDKInit)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .dispatch({ type: UserActionType.LOGIN })
+      .run();
+
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+  });
+
+  it('initializes when onboarding completed is true and keyring is unlocked', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(handleSDKInit)
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .dispatch(setCompletedOnboarding(true))
+      .run();
+
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+  });
+
+  it('does not initialize when keyring is locked even if onboarding is complete', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(false);
+
+    await expectSaga(handleSDKInit)
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun(10);
+
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+  });
+
+  it('still initializes WalletConnect V2 if SDKConnect.init throws', async () => {
+    (SDKConnect.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+
+    await expectSaga(handleSDKInit)
+      .withState({ onboarding: { completedOnboarding: false } })
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .dispatch({ type: UserActionType.LOGIN })
+      .run();
+
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
   });
 });
 

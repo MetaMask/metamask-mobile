@@ -7,7 +7,7 @@ import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import { isE2E } from '../../../util/test/utils';
 
-async function postInit(instance: SDKConnect, callback?: () => void) {
+async function postInit(instance: SDKConnect) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
@@ -78,8 +78,6 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
 
   instance.state._postInitialized = true;
   DevLogger.log(`SDKConnect::postInit() - done`);
-
-  callback?.();
 }
 
 export default postInit;
