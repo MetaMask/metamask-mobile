@@ -50,6 +50,16 @@ jest.mock('../../../../core/Engine', () => ({
         metadata: { name: 'Test Account' },
       }),
     },
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:',
+          metadata: { name: 'Test Account' },
+        },
+      ]),
+    },
     NetworkController: {
       state: {
         selectedNetworkClientId: 'mainnet',
@@ -1107,7 +1117,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit transaction confirmation', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockTxHash = '0xtransaction123';
         const mockResultPromise = Promise.resolve(mockTxHash);
@@ -1153,7 +1163,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle user cancellation of deposit transaction', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('User denied transaction signature');
         const mockResultPromise = Promise.reject(mockError);
@@ -1196,7 +1206,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit transaction failure', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Insufficient balance');
         const mockResultPromise = Promise.reject(mockError);
@@ -1242,7 +1252,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit when TransactionController.addTransaction throws', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Network error');
 
@@ -1337,7 +1347,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle empty deposit routes', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
@@ -1355,7 +1365,7 @@ describe('PerpsController', () => {
     });
 
     it('should use correct transaction type for perps deposit', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockDepositRoute: AssetRoute = {
           assetId:

@@ -1552,7 +1552,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 onNewTabPress={onNewTabPress}
                 toggleOptionsIfNeeded={toggleOptionsIfNeeded}
                 activeUrl={resolvedUrlRef.current}
-                isHomepage={isHomepage}
                 getMaskedUrl={getMaskedUrl}
                 title={titleRef}
                 reload={reload}

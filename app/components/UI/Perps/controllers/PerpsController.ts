@@ -1,4 +1,3 @@
-import type { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
   type RestrictedMessenger,
@@ -273,9 +272,7 @@ export type PerpsControllerActions =
 /**
  * External actions the PerpsController can call
  */
-export type AllowedActions =
-  | AccountsControllerGetSelectedAccountAction['type']
-  | NetworkControllerGetStateAction['type'];
+export type AllowedActions = NetworkControllerGetStateAction['type'];
 
 /**
  * External events the PerpsController can subscribe to
@@ -619,7 +616,7 @@ export class PerpsController extends BaseController<
    * No complex state tracking - just sets a loading flag
    */
   async depositWithConfirmation() {
-    const { AccountsController, NetworkController, TransactionController } =
+    const { AccountTreeController, NetworkController, TransactionController } =
       Engine.context;
 
     try {
@@ -639,8 +636,17 @@ export class PerpsController extends BaseController<
         amount: '0x0',
       });
 
-      const selectedAccount = AccountsController.getSelectedAccount();
-      const accountAddress = selectedAccount.address as Hex;
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
+      if (!evmAccount) {
+        throw new Error(
+          'No EVM-compatible account found in selected account group',
+        );
+      }
+      const accountAddress = evmAccount.address as Hex;
 
       const parsedAsset = parseCaipAssetId(route.assetId);
       const assetChainId = toHex(parsedAsset.chainId.split(':')[1]);

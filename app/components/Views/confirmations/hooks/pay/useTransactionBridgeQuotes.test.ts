@@ -62,12 +62,13 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '123.456',
-      balanceHuman: '123.456',
-      decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
+        balance: '123.456',
+        balanceFiat: '123.456',
         chainId: CHAIN_ID_SOURCE_MOCK,
+        decimals: 4,
+        symbol: 'TST',
       },
       setPayToken: jest.fn(),
     });
