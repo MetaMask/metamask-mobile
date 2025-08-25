@@ -46,6 +46,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
 
   await WalletMainScreen.tapIdenticon();
   const performanceTracker = new PerformanceTracker();
-  timers.forEach(timer => performanceTracker.addTimer(timer));
+  timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });
