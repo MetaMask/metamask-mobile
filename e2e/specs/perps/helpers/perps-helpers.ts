@@ -9,6 +9,7 @@ import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
+import { PerpsGeneralSelectorsIDs } from '../../../selectors/Perps/Perps.selectors';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -156,13 +157,17 @@ export class PerpsHelpers {
 
     await device.disableSynchronization();
 
-    const doneButtonDeposit = Matchers.getElementByID('done-button');
+    const doneButtonDeposit = Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.DONE_BUTTON,
+    );
     await Gestures.waitAndTap(doneButtonDeposit, {
       elemDescription: 'Keypad - done',
       checkStability: false,
     });
 
-    const continueButtonDeposit = Matchers.getElementByID('continue-button');
+    const continueButtonDeposit = Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.CONTINUE_BUTTON,
+    );
     await Gestures.tap(continueButtonDeposit, {
       elemDescription: `Deposit - Continue Button`,
       checkStability: false,
@@ -179,13 +184,17 @@ export class PerpsHelpers {
 
     await device.disableSynchronization();
 
-    const doneButtonWithdraw = Matchers.getElementByID('done-button');
+    const doneButtonWithdraw = Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.DONE_BUTTON,
+    );
     await Gestures.waitAndTap(doneButtonWithdraw, {
       elemDescription: 'Keypad - done',
       checkStability: false,
     });
 
-    const continueButtonWithdraw = Matchers.getElementByID('continue-button');
+    const continueButtonWithdraw = Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.CONTINUE_BUTTON,
+    );
     await Gestures.tap(continueButtonWithdraw, {
       elemDescription: `Withdraw - Continue Button`,
       checkStability: false,

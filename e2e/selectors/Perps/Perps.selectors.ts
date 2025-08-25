@@ -352,6 +352,9 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  PLACE_ORDER_BUTTON: 'place-order-button',
+  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
+  PLACE_ORDER_VIEW_BUTTON: 'perps-order-view-place-order-button',
 };
 
 // ========================================
@@ -395,4 +398,38 @@ export const PerpsMarketTabsSelectorsIDs = {
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
+};
+
+// ========================================
+// PERPS TUTORIAL / ONBOARDING SELECTORS
+// ========================================
+
+export const PerpsTutorialSelectorsIDs = {
+  CONTINUE_BUTTON: 'perps-tutorial-continue-button',
+  SKIP_BUTTON: 'perps-tutorial-skip-button',
+};
+
+// ========================================
+// PERPS TAB VIEW SELECTORS
+// ========================================
+
+export const PerpsTabViewSelectorsIDs = {
+  BALANCE_BUTTON: 'perps-balance-button',
+  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-withdraw-button',
+  ONBOARDING_BUTTON: 'perps-onboarding-button',
+  BALANCE_VALUE: 'perps-balance-value',
+};
+
+// ========================================
+// PERPS GENERAL UI SELECTORS
+// ========================================
+
+export const PerpsGeneralSelectorsIDs = {
+  BOTTOM_SHEET_FOOTER_BUTTON: 'bottomsheetfooter-button',
+  CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
+  ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
+    'perps-order-success-toast-dismiss-button',
+  DONE_BUTTON: 'done-button',
+  CONTINUE_BUTTON: 'continue-button',
 };

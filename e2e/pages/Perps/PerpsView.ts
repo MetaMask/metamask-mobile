@@ -1,4 +1,8 @@
-import { PerpsPositionCardSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import {
+  PerpsPositionCardSelectorsIDs,
+  PerpsGeneralSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
@@ -8,19 +12,27 @@ class PerpsView {
   }
 
   get setTpslButton() {
-    return Matchers.getElementByID('bottomsheetfooter-button');
+    return Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
+    );
   }
 
   get closePositionBottomSheetButton() {
-    return Matchers.getElementByID('close-position-confirm-button');
+    return Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
   }
 
   get placeOrderButton() {
-    return Matchers.getElementByID('perps-order-view-place-order-button');
+    return Matchers.getElementByID(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_VIEW_BUTTON,
+    );
   }
 
   get orderSuccessToastDismissButton() {
-    return Matchers.getElementByID('perps-order-success-toast-dismiss-button');
+    return Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
+    );
   }
 
   async tapClosePositionButton() {

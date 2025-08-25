@@ -1,6 +1,7 @@
 import {
   PerpsMarketListViewSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
+  getPerpsMarketRowItemSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -39,7 +40,9 @@ class PerpsMarketListView {
   }
 
   get marketRowItemBTC() {
-    return Matchers.getElementByID('perps-market-row-item-BTC');
+    return Matchers.getElementByID(
+      getPerpsMarketRowItemSelector.rowItem('BTC'),
+    );
   }
 
   // Generic selector for first market row item (regardless of coin)

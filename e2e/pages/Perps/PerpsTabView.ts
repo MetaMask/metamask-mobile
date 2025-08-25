@@ -1,25 +1,26 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { PerpsTabViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 
 class PerpsTabView {
   get balanceButton(): DetoxElement {
-    return Matchers.getElementByID('perps-balance-button');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.BALANCE_BUTTON);
   }
 
   get addFundsButton(): DetoxElement {
-    return Matchers.getElementByID('perps-add-funds-button');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.ADD_FUNDS_BUTTON);
   }
 
   get withdrawButton(): DetoxElement {
-    return Matchers.getElementByID('perps-withdraw-button');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.WITHDRAW_BUTTON);
   }
 
   get onboardingButton(): DetoxElement {
-    return Matchers.getElementByID('perps-onboarding-button');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON);
   }
 
   get balanceValue(): DetoxElement {
-    return Matchers.getElementByID('perps-balance-value');
+    return Matchers.getElementByID(PerpsTabViewSelectorsIDs.BALANCE_VALUE);
   }
 
   async tapBalanceButton(): Promise<void> {
