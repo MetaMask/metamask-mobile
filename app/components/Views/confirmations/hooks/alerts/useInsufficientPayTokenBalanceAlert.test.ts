@@ -14,7 +14,7 @@ function runHook() {
   return renderHook(() => useInsufficientPayTokenBalanceAlert());
 }
 
-describe('useInsufficientPayTokenBalance', () => {
+describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionPayTokenAmountsMock = jest.mocked(
     useTransactionPayTokenAmounts,
   );

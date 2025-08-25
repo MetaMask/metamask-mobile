@@ -18,6 +18,7 @@ import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
 import { useConfirmActions } from '../useConfirmActions';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
 const HEX_ZERO = '0x0';
 
@@ -35,6 +36,7 @@ export const useInsufficientBalanceAlert = ({
   );
   const { maxValueMode } = useSelector(selectTransactionState);
   const { onReject } = useConfirmActions();
+  const { payToken } = useTransactionPayToken();
 
   return useMemo(() => {
     if (!transactionMetadata || maxValueMode) {
@@ -63,7 +65,9 @@ export const useInsufficientBalanceAlert = ({
     );
 
     const showAlert =
-      hasInsufficientBalance && (ignoreGasFeeToken || !selectedGasFeeToken);
+      hasInsufficientBalance &&
+      (ignoreGasFeeToken || !selectedGasFeeToken) &&
+      !payToken;
 
     if (!showAlert) {
       return [];
@@ -98,6 +102,7 @@ export const useInsufficientBalanceAlert = ({
     navigation,
     networkConfigurations,
     onReject,
+    payToken,
     transactionMetadata,
   ]);
 };
