@@ -8,7 +8,6 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -96,7 +95,7 @@ export const useNetworkSelection = ({
     async (chainId: CaipChainId) => {
       await enableNetwork(chainId);
       await resetCustomNetworks(chainId);
-      navigation.navigate(Routes.WALLET.HOME);
+      navigation.goBack();
     },
     [enableNetwork, resetCustomNetworks, navigation],
   );
@@ -104,7 +103,7 @@ export const useNetworkSelection = ({
   const selectAllPopularNetworks = useCallback(async () => {
     await enableAllPopularNetworks();
     await resetCustomNetworks();
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.goBack();
   }, [enableAllPopularNetworks, navigation, resetCustomNetworks]);
 
   /** Toggles a popular network and resets all custom networks */
@@ -112,7 +111,7 @@ export const useNetworkSelection = ({
     async (chainId: CaipChainId) => {
       await enableNetwork(chainId);
       await resetCustomNetworks();
-      navigation.navigate(Routes.WALLET.HOME);
+      navigation.goBack();
     },
     [enableNetwork, resetCustomNetworks, navigation],
   );
