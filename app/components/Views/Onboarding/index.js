@@ -493,7 +493,7 @@ class Onboarding extends PureComponent {
   onPressContinueWithSocialLogin = async (createWallet, provider) => {
     // check for no internet connection
     const netState = await NetInfo.fetch();
-    if (!netState.isConnected) {
+    if (!netState.isConnected || netState.isInternetReachable === false) {
       this.props.navigation.navigate('OfflineMode');
       return;
     }
