@@ -111,6 +111,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_pay_token_balance',
+  [AlertKeys.InsufficientPayTokenNative]: 'insufficient_pay_token_native',
   [AlertKeys.NoPayTokenQuotes]: 'no_pay_token_quotes',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'perps_deposit_minimum',
