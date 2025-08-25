@@ -65,6 +65,7 @@ const Tokens = memo(() => {
     sortedTokenKeys: sortedTokenKeys.length,
     sortedTokenKeysOld: sortedTokenKeysOld.length,
     sortedTokenKeysBip44: sortedTokenKeysBip44.length,
+    hasSolana: sortedTokenKeys.some((token) => token.chainId?.includes('solana')),
   });
 
   const showRemoveMenu = useCallback(

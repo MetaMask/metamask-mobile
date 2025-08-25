@@ -124,21 +124,29 @@ export const TokenListItemBip44 = React.memo(
     );
     ///: END:ONLY_INCLUDE_IF
 
-    const newAsset = useSelector((state: RootState) => selectAsset(state, {
-      address: assetKey.address,
-      chainId: assetKey.chainId ?? '',
-      isStaked: assetKey.isStaked,
-    }));
+    const newAsset = useSelector((state: RootState) =>
+      selectAsset(state, {
+        address: assetKey.address,
+        chainId: assetKey.chainId ?? '',
+        isStaked: assetKey.isStaked,
+      }),
+    );
 
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
-    // if (asset?.chainId === '0x1' && asset?.address === '0x0000000000000000000000000000000000000000') {
-    //   console.log('ASSET BIP44', {
-    //     assetKey,
-    //     asset,
-    //     newAsset,
-    //   });
-    // }
+    if (asset?.chainId?.startsWith('0x')) {
+      // console.log('ASSET BIP44', {
+      //   asset,
+      //   newAsset,
+      // });
+      if (newAsset?.name.includes('endle')) {
+        console.log('PENDLE', {
+          asset,
+          newAsset,
+        });
+      }
+      asset = newAsset;
+    }
 
     const chainId = asset?.chainId as Hex;
 

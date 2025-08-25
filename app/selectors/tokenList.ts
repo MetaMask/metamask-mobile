@@ -25,6 +25,8 @@ import {
 } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
+import { formatWithThreshold } from '../util/assets';
+import I18n from '../../locales/i18n';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -169,6 +171,7 @@ export const selectAsset = createDeepEqualSelector(
 );
 
 function assetToToken(asset: Asset): TokenI {
+  const minimumDisplayThreshold = 0.00001;
   return {
     address: asset.assetId,
     aggregators: [],
@@ -176,7 +179,12 @@ function assetToToken(asset: Asset): TokenI {
     image: asset.image,
     name: asset.name,
     symbol: asset.symbol,
-    balance: asset.balance,
+    balance: formatWithThreshold(
+      parseFloat(asset.balance),
+      minimumDisplayThreshold,
+      I18n.locale,
+      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+    ),
     balanceFiat: asset.fiat?.balance
       ? `$${asset.fiat.balance.toString()}` // TODO: Fix this
       : asset.balance,
