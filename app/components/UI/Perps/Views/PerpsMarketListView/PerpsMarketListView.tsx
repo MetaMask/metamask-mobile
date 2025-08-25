@@ -36,7 +36,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { isE2E } from '../../../../../util/test/utils';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -20,7 +20,6 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { isE2E } from '../../../../../util/test/utils';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
