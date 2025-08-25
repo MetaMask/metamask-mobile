@@ -306,8 +306,7 @@ export const validateLiveRequests = (mockServer: MockServer): void => {
 
     const totalCount = mockServer._liveRequests.length;
     const uniqueCount = uniqueRequests.length;
-    // This is temporary, we will remove this in the future when we expect no unknown live request to happen in a test
-    logger.warn(
+    throw new Error(
       `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
         "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.",
     );
