@@ -8,7 +8,7 @@ import PerpsTabView from '../../../pages/Perps/PerpsTabView';
 import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
