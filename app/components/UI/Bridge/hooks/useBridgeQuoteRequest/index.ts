@@ -72,6 +72,7 @@ export const useBridgeQuoteRequest = () => {
       destWalletAddress:
         isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
       gasIncluded: shouldUseSmartTransaction,
+      gasless7702: false,
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(

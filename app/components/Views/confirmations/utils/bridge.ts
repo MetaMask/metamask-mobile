@@ -78,6 +78,7 @@ async function getSingleBridgeQuote(
       srcTokenAddress: sourceTokenAddress,
       srcTokenAmount: sourceTokenAmount,
       walletAddress: from,
+      gasless7702: false,
     },
     abort.signal,
     FeatureId.PERPS,
