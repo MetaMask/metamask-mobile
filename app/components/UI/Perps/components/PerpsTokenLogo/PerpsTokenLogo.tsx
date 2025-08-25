@@ -8,6 +8,10 @@ import Avatar, {
 import { useTheme } from '../../../../../util/theme';
 import { PerpsTokenLogoProps } from './PerpsTokenLogo.types';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
+import {
+  transformSvgForReactNative,
+  isValidSvgContent,
+} from '../../utils/svgTransform';
 
 const assetSvgCache = new Map<
   string,
@@ -76,125 +80,12 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
       })
       .then((svgText) => {
         // Check if we actually got SVG content
-        if (!svgText.includes('<svg') && !svgText.includes('<?xml')) {
+        if (!isValidSvgContent(svgText)) {
           throw new Error('Invalid SVG content');
         }
 
-        // Clean and adjust the SVG content
-        let cleanedSvg = svgText;
-
-        // Convert display-p3 colors to standard RGB
-        if (cleanedSvg.includes('display-p3')) {
-          // Convert color(display-p3 r g b) to rgb(r, g, b)
-          cleanedSvg = cleanedSvg.replace(
-            /color\(display-p3\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\)/g,
-            (_match, r, g, b) => {
-              // Convert from 0-1 range to 0-255 range
-              const red = Math.round(parseFloat(r) * 255);
-              const green = Math.round(parseFloat(g) * 255);
-              const blue = Math.round(parseFloat(b) * 255);
-              return `rgb(${red}, ${green}, ${blue})`;
-            },
-          );
-        }
-
-        // Remove filter elements and references as they cause rendering issues
-        if (cleanedSvg.includes('filter')) {
-          // Remove filter definitions
-          cleanedSvg = cleanedSvg.replace(
-            /<filter[^>]*>[\s\S]*?<\/filter>/g,
-            '',
-          );
-          // Remove filter attributes
-          cleanedSvg = cleanedSvg.replace(/filter="[^"]*"/g, '');
-          // Remove filter style properties
-          cleanedSvg = cleanedSvg.replace(/filter:[^;]+;?/g, '');
-        }
-
-        // Remove mask elements and references
-        if (cleanedSvg.includes('mask')) {
-          // Remove mask definitions
-          cleanedSvg = cleanedSvg.replace(/<mask[^>]*>[\s\S]*?<\/mask>/g, '');
-          // Remove mask attributes
-          cleanedSvg = cleanedSvg.replace(/mask="[^"]*"/g, '');
-          // Remove mask style properties
-          cleanedSvg = cleanedSvg.replace(/mask:[^;]+;?/g, '');
-        }
-
-        // Fix SVGs with inline styles - React Native SVG doesn't handle CSS classes well
-        if (cleanedSvg.includes('<style')) {
-          const styleMatch = cleanedSvg.match(
-            /<style[^>]*>([\s\S]*?)<\/style>/,
-          );
-          if (styleMatch) {
-            const styles = styleMatch[1];
-
-            // Extract and inline class definitions (handle all class patterns)
-            const classRegex = /\.([a-zA-Z0-9\-_]+)\s*\{([^}]+)\}/g;
-            let classMatch;
-            while ((classMatch = classRegex.exec(styles)) !== null) {
-              const className = classMatch[1].trim();
-              let classStyle = classMatch[2].trim();
-
-              // Remove clip-path properties as React Native SVG doesn't support them well
-              classStyle = classStyle.replace(/clip-path:[^;]+;?/g, '');
-
-              // Only add style if there's something left after removing unsupported properties
-              if (classStyle.trim()) {
-                // Replace both class="className" and class='className'
-                cleanedSvg = cleanedSvg.replace(
-                  new RegExp(`class=["']${className}["']`, 'g'),
-                  `style="${classStyle}"`,
-                );
-              } else {
-                // Remove the class attribute entirely if no styles remain
-                cleanedSvg = cleanedSvg.replace(
-                  new RegExp(`class=["']${className}["']`, 'g'),
-                  '',
-                );
-              }
-            }
-
-            // Remove the style tag
-            cleanedSvg = cleanedSvg.replace(
-              /<style[^>]*>[\s\S]*?<\/style>/g,
-              '',
-            );
-          }
-        }
-
-        // Remove clipPath elements and references as they cause rendering issues
-        if (
-          cleanedSvg.includes('clipPath') ||
-          cleanedSvg.includes('clip-path')
-        ) {
-          // Remove clipPath definitions
-          cleanedSvg = cleanedSvg.replace(
-            /<clipPath[^>]*>[\s\S]*?<\/clipPath>/g,
-            '',
-          );
-          // Remove defs that only contain clipPath
-          cleanedSvg = cleanedSvg.replace(/<defs[^>]*>\s*<\/defs>/g, '');
-          // Remove clip-path attributes
-          cleanedSvg = cleanedSvg.replace(/clip-path="[^"]*"/g, '');
-          // Remove clip-path style properties
-          cleanedSvg = cleanedSvg.replace(/clip-path:[^;]+;?/g, '');
-        }
-
-        // Don't remove width/height - let SvgXml handle scaling with preserveAspectRatio
-        // Only ensure viewBox is present if missing (for proper scaling)
-        if (!cleanedSvg.includes('viewBox')) {
-          const widthMatch = svgText.match(/width="([^"]*)"/);
-          const heightMatch = svgText.match(/height="([^"]*)"/);
-          if (widthMatch && heightMatch) {
-            const width = parseFloat(widthMatch[1]);
-            const height = parseFloat(heightMatch[1]);
-            cleanedSvg = cleanedSvg.replace(
-              '<svg',
-              `<svg viewBox="0 0 ${width} ${height}"`,
-            );
-          }
-        }
+        // Transform SVG for React Native compatibility
+        const cleanedSvg = transformSvgForReactNative(svgText);
 
         // Implement simple FIFO cache eviction if cache is too large
         if (assetSvgCache.size >= MAX_CACHE_SIZE) {
