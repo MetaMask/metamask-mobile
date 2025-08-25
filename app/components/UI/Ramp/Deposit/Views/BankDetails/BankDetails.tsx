@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AxiosError } from 'axios';
 import {
   createNavigationDetails,
   useParams,
@@ -65,7 +66,7 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedRegion } = useDepositSDK();
+  const { sdk, selectedRegion, logoutFromProvider } = useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -103,6 +104,22 @@ const BankDetails = () => {
     },
     [dispatch],
   );
+
+  const handleLogoutError = useCallback(async () => {
+    try {
+      await logoutFromProvider(false);
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.DEPOSIT.ROOT,
+          },
+        ],
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'BankDetails: handleLogoutError');
+    }
+  }, [logoutFromProvider, navigation]);
 
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
@@ -171,12 +188,12 @@ const BankDetails = () => {
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!hasDepositOrderField(order?.data, 'paymentOptions')) return null;
+      if (!hasDepositOrderField(order?.data, 'paymentDetails')) return null;
 
-      if (!order.data.paymentOptions || order.data.paymentOptions.length === 0)
+      if (!order.data.paymentDetails || order.data.paymentDetails.length === 0)
         return null;
 
-      const field = order.data.paymentOptions[0].fields.find(
+      const field = order.data.paymentDetails[0].fields.find(
         (f) => f.name === fieldName,
       );
       if (!field?.value) return null;
@@ -249,20 +266,20 @@ const BankDetails = () => {
     if (isLoadingConfirmPayment || !order) return;
     try {
       setIsLoadingConfirmPayment(true);
-      if (!hasDepositOrderField(order?.data, 'paymentOptions')) {
-        console.error('Order or payment options not found');
+      if (!hasDepositOrderField(order?.data, 'paymentDetails')) {
+        console.error('Order or payment details not found');
         Logger.error(
-          new Error('Order or payment options not found'),
+          new Error('Order or payment details not found'),
           'BankDetails: handleBankTransferSent',
         );
         return;
       }
 
-      const paymentOptionId = order.data.paymentOptions?.[0]?.id;
-      if (!paymentOptionId) {
-        console.error('Payment options not found or empty');
+      const paymentMethod = order.data.paymentDetails?.[0]?.paymentMethod;
+      if (!paymentMethod) {
+        console.error('Payment method not found or empty');
         Logger.error(
-          new Error('Payment options not found or empty'),
+          new Error('Payment method not found or empty'),
           'BankDetails: handleBankTransferSent',
         );
         return;
@@ -272,7 +289,7 @@ const BankDetails = () => {
         order.data.cryptoCurrency,
         order.data.network,
       );
-      await confirmPayment(order.id, paymentOptionId);
+      await confirmPayment(order.id, paymentMethod);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
@@ -291,6 +308,10 @@ const BankDetails = () => {
 
       await handleOnRefresh();
     } catch (fetchError) {
+      if ((fetchError as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
       if (isString(fetchError)) {
         setConfirmPaymentError(fetchError);
@@ -309,6 +330,7 @@ const BankDetails = () => {
     selectedRegion?.isoCode,
     confirmPayment,
     handleOnRefresh,
+    handleLogoutError,
   ]);
 
   const handleCancelOrder = useCallback(async () => {
@@ -319,12 +341,16 @@ const BankDetails = () => {
       await cancelOrder();
       await handleOnRefresh();
     } catch (fetchError) {
+      if ((fetchError as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(fetchError as Error, 'BankDetails: handleCancelOrder');
       setCancelOrderError(fetchError as Error);
     } finally {
       setIsLoadingCancelOrder(false);
     }
-  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder]);
+  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder, handleLogoutError]);
 
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);

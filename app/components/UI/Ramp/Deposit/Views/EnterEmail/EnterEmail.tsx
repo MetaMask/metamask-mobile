@@ -74,13 +74,19 @@ const EnterEmail = () => {
 
       if (validateEmail(email)) {
         setValidationError(false);
-        await submitEmail();
+        const otpResponse = await submitEmail();
+
+        if (!otpResponse?.stateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
         trackEvent('RAMPS_EMAIL_SUBMITTED', {
           ramp_type: 'DEPOSIT',
         });
         navigation.navigate(
           ...createOtpCodeNavDetails({
             email,
+            stateToken: otpResponse.stateToken,
           }),
         );
       } else {
