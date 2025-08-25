@@ -17,7 +17,6 @@ import Text, {
 import {
   NavigationProp,
   ParamListBase,
-  useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
 import ButtonIcon, {
@@ -44,9 +43,6 @@ import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import CardImage from '../../components/CardImage';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
-import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
-import Logger from '../../../../../util/Logger';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
@@ -60,8 +56,6 @@ import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { useIsCardholder } from '../../hooks/useIsCardholder';
 
 /**
  * CardHome Component
@@ -75,10 +69,7 @@ import { useIsCardholder } from '../../hooks/useIsCardholder';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController, NetworkController, AccountsController } =
-    Engine.context;
-  const [error, setError] = useState<boolean>(false);
-  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
+  const { PreferencesController } = Engine.context;
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -91,68 +82,13 @@ const CardHome = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
-  const cardholderAddresses = useSelector(selectCardholderAccounts);
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const isCardholder = useIsCardholder();
-
-  // Handle network and account changes
-  useFocusEffect(
-    useCallback(() => {
-      const handleNetworkAndAccountChanges = async () => {
-        // Handle network change first
-        if (selectedChainId !== LINEA_CHAIN_ID) {
-          const networkClientId =
-            NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
-
-          try {
-            if (networkClientId) {
-              await NetworkController.setActiveNetwork(networkClientId);
-            }
-          } catch (err) {
-            const mappedError =
-              err instanceof Error ? err : new Error(String(err));
-            Logger.error(mappedError, 'CardHome::Error setting active network');
-            setError(true);
-            setIsLoadingNetworkChange(false);
-            return;
-          }
-        }
-
-        setIsLoadingNetworkChange(false);
-
-        // Handle account change after network is correct
-        if (!isCardholder) {
-          const account = AccountsController.getAccountByAddress(
-            cardholderAddresses?.[0],
-          );
-
-          if (!account) {
-            setError(true);
-          } else {
-            AccountsController.setSelectedAccount(account.id);
-          }
-        }
-      };
-
-      handleNetworkAndAccountChanges();
-    }, [
-      NetworkController,
-      AccountsController,
-      selectedChainId,
-      cardholderAddresses,
-      isCardholder,
-    ]),
-  );
 
   const {
     priorityToken,
     fetchPriorityToken,
     isLoading: isLoadingPriorityToken,
-    error: errorPriorityToken,
-  } = useGetPriorityCardToken(
-    selectedAccount?.address,
-    selectedChainId === LINEA_CHAIN_ID,
-  );
+    error,
+  } = useGetPriorityCardToken();
   const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
   const { openSwaps } = useOpenSwaps({
@@ -171,11 +107,6 @@ const CardHome = () => {
     [priorityToken],
   );
 
-  const hasError = useMemo(
-    () => error || errorPriorityToken,
-    [error, errorPriorityToken],
-  );
-
   const balanceAmount = useMemo(() => {
     if (!balanceFiat || balanceFiat === TOKEN_RATE_UNDEFINED) {
       return mainBalance;
@@ -191,7 +122,6 @@ const CardHome = () => {
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
         priorityToken={priorityToken ?? undefined}
         chainId={selectedChainId}
-        cardholderAddresses={cardholderAddresses}
         navigate={navigation.navigate}
       />
     ),
@@ -199,7 +129,6 @@ const CardHome = () => {
       sheetRef,
       setOpenAddFundsBottomSheet,
       priorityToken,
-      cardholderAddresses,
       selectedChainId,
       navigation,
     ],
@@ -218,7 +147,6 @@ const CardHome = () => {
     } else if (priorityToken) {
       openSwaps({
         chainId: selectedChainId,
-        cardholderAddress: cardholderAddresses?.[0],
       });
     }
   }, [
@@ -227,10 +155,9 @@ const CardHome = () => {
     priorityToken,
     openSwaps,
     selectedChainId,
-    cardholderAddresses,
   ]);
 
-  if (hasError) {
+  if (error) {
     return (
       <View style={styles.errorContainer}>
         <Icon
@@ -269,11 +196,7 @@ const CardHome = () => {
     );
   }
 
-  if (
-    isLoadingPriorityToken ||
-    isLoadingNetworkChange ||
-    (!priorityToken && !hasError)
-  ) {
+  if (isLoadingPriorityToken || (!priorityToken && !error)) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator

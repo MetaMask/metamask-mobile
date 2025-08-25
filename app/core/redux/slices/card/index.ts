@@ -60,7 +60,7 @@ export const selectCardholderAccounts = createSelector(
 );
 
 const selectedAccount = (rootState: RootState) =>
-  selectSelectedInternalAccountByScope(rootState)('eip155:59144');
+  selectSelectedInternalAccountByScope(rootState)('eip155:0');
 
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,

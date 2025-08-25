@@ -36,7 +36,6 @@ export interface AddFundsBottomSheetProps {
   sheetRef: React.RefObject<BottomSheetRef>;
   priorityToken?: CardTokenAllowance;
   chainId: string;
-  cardholderAddresses?: string[];
   navigate: (route: string) => void;
 }
 
@@ -45,7 +44,6 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   sheetRef,
   priorityToken,
   chainId,
-  cardholderAddresses,
   navigate,
 }) => {
   const { isDepositEnabled } = useDepositEnabled();
@@ -67,16 +65,9 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     if (!priorityToken) return;
     openSwaps({
       chainId,
-      cardholderAddress: cardholderAddresses?.[0],
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),
     });
-  }, [
-    priorityToken,
-    openSwaps,
-    chainId,
-    cardholderAddresses,
-    closeBottomSheetAndNavigate,
-  ]);
+  }, [priorityToken, openSwaps, chainId, closeBottomSheetAndNavigate]);
 
   const openDeposit = useCallback(() => {
     closeBottomSheetAndNavigate(() => {

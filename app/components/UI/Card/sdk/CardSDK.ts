@@ -268,7 +268,6 @@ export class CardSDK {
         supportedTokensAddresses,
         spenders,
       );
-    Logger.log('ALLOWANCES FETCHED');
 
     return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
@@ -294,17 +293,14 @@ export class CardSDK {
 
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
-      Logger.log('PRIORITY TOKEN FETCHED1 1');
       return this.getFirstSupportedTokenOrNull();
     }
 
     if (nonZeroBalanceTokens.length === 1) {
-      Logger.log('PRIORITY TOKEN FETCHED 2');
       return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
     }
 
     // Handle complex case with multiple tokens
-    Logger.log('PRIORITY TOKEN FETCHED 3');
     return this.findPriorityTokenFromApprovalLogs(
       address,
       nonZeroBalanceTokens,
