@@ -84,7 +84,7 @@ export const arrangeTestUtils = (
             clearInterval(ids.interval);
             reject(
               new Error(
-                `Timeout waiting for event ${event} to be emitted ${expectedNumber} times`,
+                `Timeout waiting for event ${event} to be emitted ${expectedNumber} times\n Actual: ${counter}`,
               ),
             );
           }, BASE_TIMEOUT);

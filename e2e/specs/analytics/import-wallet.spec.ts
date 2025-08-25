@@ -9,11 +9,6 @@ import {
   getEventsPayloads,
   onboardingEvents,
 } from './helpers';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import {
-  getBalanceMocks,
-  INFURA_MOCK_BALANCE_1_ETH,
-} from '../../api-mocking/mock-responses/balance-mocks';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
@@ -21,18 +16,6 @@ import {
 import SoftAssert from '../../utils/SoftAssert';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { TestSpecificMock } from '../../framework';
-
-const balanceMock = getBalanceMocks([
-  {
-    address: '0xAa4179E7f103701e904D27DF223a39Aa9c27405a',
-    balance: INFURA_MOCK_BALANCE_1_ETH,
-  },
-]);
-
-const testSpecificMock = {
-  POST: [...balanceMock, mockEvents.POST.segmentTrack],
-} as TestSpecificMock;
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
@@ -44,7 +27,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async ({ mockServer }) => {
         if (!mockServer) {
@@ -212,7 +194,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock,
       },
       async ({ mockServer }) => {
         if (!mockServer) {

@@ -8,6 +8,7 @@ import { useSendNavbar } from './useSendNavbar';
 
 const mockHandleCancelPress = jest.fn();
 const mockNavigate = jest.fn();
+const mockUseSendContext = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -24,6 +25,10 @@ jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
   }),
+}));
+
+jest.mock('../../context/send-context', () => ({
+  useSendContext: () => mockUseSendContext(),
 }));
 
 jest.mock('../../../../../util/theme', () => ({
@@ -84,6 +89,9 @@ describe('useSendNavbar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    mockUseSendContext.mockReturnValue({
+      asset: undefined,
+    });
   });
 
   it('returns navigation options for Amount, Asset, and Recipient routes', () => {
@@ -202,7 +210,11 @@ describe('useSendNavbar', () => {
       });
     });
 
-    it('navigates to Amount screen when back button is pressed', () => {
+    it('navigates to Amount screen when back button is pressed with ERC1155 asset', () => {
+      mockUseSendContext.mockReturnValue({
+        asset: { standard: 'ERC1155' },
+      });
+
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
 
@@ -214,6 +226,25 @@ describe('useSendNavbar', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.AMOUNT,
+      });
+    });
+
+    it('navigates to Asset screen when back button is pressed with non-ERC1155 asset', () => {
+      mockUseSendContext.mockReturnValue({
+        asset: { standard: 'ERC721' },
+      });
+
+      const { result } = renderHookWithProvider(() => useSendNavbar());
+      const { Recipient } = result.current;
+
+      const HeaderLeft = Recipient.headerLeft;
+      const { getByTestId } = render(<HeaderLeft />);
+      const backButton = getByTestId('send-navbar-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.ASSET,
       });
     });
 

@@ -29,7 +29,7 @@ export const getEvmBalance = ({
   contractBalances,
   from,
 }: GetEvmBalanceArgs) => {
-  if (!asset) {
+  if (!asset || !from) {
     return '0';
   }
   if (isNativeToken(asset)) {
@@ -69,8 +69,13 @@ export const useBalance = () => {
       return '0';
     }
     return isEvmSendType
-      ? getEvmBalance({ accounts, asset, contractBalances, from: from as Hex })
-      : getNonEvmBalance(asset);
+      ? getEvmBalance({
+          accounts,
+          asset: asset as AssetType,
+          contractBalances,
+          from: from as Hex,
+        })
+      : getNonEvmBalance(asset as AssetType);
   }, [accounts, asset, contractBalances, from, isEvmSendType]);
 
   return {
