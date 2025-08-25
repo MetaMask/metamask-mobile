@@ -38,14 +38,14 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const fadeAnim = useRef(new Animated.Value(isE2E ? 1 : 0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
   // Fade in animation when loading completes
   useEffect(() => {
-    if (!isLoadingPosition && !isE2E) {
+    if (!isLoadingPosition) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,

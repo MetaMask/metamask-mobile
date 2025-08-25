@@ -236,7 +236,7 @@ const PerpsMarketListView = ({
   }, [markets, track]);
   const renderMarketList = () => {
     // Skeleton List - show immediately while loading
-    if (isLoadingMarkets && !isE2E) {
+    if (isLoadingMarkets) {
       return (
         <View>
           <PerpsMarketListHeader />
