@@ -6,6 +6,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useTokens } from '../../../../../UI/Bridge/hooks/useTokens';
 import { Hex } from '@metamask/utils';
 import { BridgeToken } from '../../../../../UI/Bridge/types';
+import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
+import { cloneDeep } from 'lodash';
 
 jest.useFakeTimers();
 
@@ -70,6 +72,26 @@ const TOKENS_MOCK: BridgeToken[] = [
     balanceFiat: '$7.89',
     balance: '789',
     tokenFiatAmount: 7.89,
+  },
+  {
+    address: NATIVE_TOKEN_ADDRESS,
+    symbol: 'TST4',
+    name: 'Native Token 1',
+    decimals: 18,
+    chainId: CHAIN_ID_1_MOCK,
+    balanceFiat: '$1.00',
+    balance: '1',
+    tokenFiatAmount: 1,
+  },
+  {
+    address: NATIVE_TOKEN_ADDRESS,
+    symbol: 'TST5',
+    name: 'Native Token 2',
+    decimals: 18,
+    chainId: CHAIN_ID_2_MOCK,
+    balanceFiat: '$1.00',
+    balance: '1',
+    tokenFiatAmount: 1,
   },
 ];
 
@@ -137,6 +159,37 @@ describe('PayWithModal', () => {
 
     await waitFor(() => {
       expect(queryByText('Test Token 2')).toBeNull();
+    });
+  });
+
+  it('does not render tokens if no native balance on chain', async () => {
+    const tokens = cloneDeep(TOKENS_MOCK);
+
+    tokens[4].tokenFiatAmount = 0;
+
+    useTokensMock.mockReturnValue({
+      tokens,
+      pending: false,
+    });
+
+    const { getByText, queryByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('Test Token 1')).toBeDefined();
+      expect(getByText('123 TST1')).toBeDefined();
+      expect(getByText('$1.23')).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Test Token 2')).toBeNull();
+      expect(queryByText('456 TST2')).toBeNull();
+      expect(queryByText('$4.56')).toBeNull();
+    });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 3')).toBeDefined();
+      expect(getByText('789 TST3')).toBeDefined();
+      expect(getByText('$7.89')).toBeDefined();
     });
   });
 
