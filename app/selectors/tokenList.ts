@@ -180,15 +180,21 @@ function assetToToken(asset: Asset): TokenI {
     balanceFiat: asset.fiat?.balance
       ? `$${asset.fiat.balance.toString()}` // TODO: Fix this
       : asset.balance,
+    tokenFiatAmount: asset.fiat?.balance
+      ? `${asset.fiat.balance.toString()}` // TODO: Fix this
+      : undefined,
     logo:
-      asset.type === 'evm' && asset.isNative
+      asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
         : asset.image,
-    isETH: asset.type === 'evm' && asset.isNative && asset.symbol === 'ETH',
+    isETH:
+      asset.type.startsWith('eip155') &&
+      asset.isNative &&
+      asset.symbol === 'ETH',
     isStaked: false,
     nativeAsset: undefined,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
-  };
+  } as TokenI;
 }
