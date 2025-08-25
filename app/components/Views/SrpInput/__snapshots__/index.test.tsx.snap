@@ -20,9 +20,14 @@ exports[`SrpInput should render default settings correctly 1`] = `
   >
     <View
       style={
-        {
-          "backgroundColor": "inherit",
-        }
+        [
+          {
+            "backgroundColor": "inherit",
+          },
+          {
+            "flex": 1,
+          },
+        ]
       }
     >
       <ForwardRef

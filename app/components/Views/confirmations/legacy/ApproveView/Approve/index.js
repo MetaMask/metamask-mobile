@@ -349,8 +349,8 @@ class Approve extends PureComponent {
       chainIds: [chainId],
     });
     await Engine.context.TokenListController.fetchTokenList(chainId);
-    await Engine.context.TokenBalancesController.updateBalancesByChainId({
-      chainId,
+    await Engine.context.TokenBalancesController.updateBalances({
+      chainIds: [chainId],
     });
   };
 

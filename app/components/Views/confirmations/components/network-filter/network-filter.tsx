@@ -71,6 +71,7 @@ interface NetworkFilterProps {
   onFilteredTokensChange: (filteredTokens: AssetType[]) => void;
   onNetworkFilterStateChange?: (hasActiveFilter: boolean) => void;
   onExposeFilterControls?: (clearFilters: () => void) => void;
+  onNetworkFilterChange?: (networkFilter: string) => void;
 }
 
 export const NetworkFilter: React.FC<NetworkFilterProps> = ({
@@ -78,6 +79,7 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   onFilteredTokensChange,
   onNetworkFilterStateChange,
   onExposeFilterControls,
+  onNetworkFilterChange,
 }) => {
   const networks = useNetworks();
   const {
@@ -107,6 +109,10 @@ export const NetworkFilter: React.FC<NetworkFilterProps> = ({
   useEffect(() => {
     onFilteredTokensChange(filteredTokensByNetwork);
   }, [filteredTokensByNetwork, onFilteredTokensChange]);
+
+  useEffect(() => {
+    onNetworkFilterChange?.(selectedNetworkFilter);
+  }, [selectedNetworkFilter, onNetworkFilterChange]);
 
   const showNetworkFilter = networksWithTokens.length > 1;
 

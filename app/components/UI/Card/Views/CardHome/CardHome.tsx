@@ -61,7 +61,7 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { useIsCardholder } from '../../hooks/useIsCardholder';
 
 /**
  * CardHome Component
@@ -75,14 +75,10 @@ import { selectAccountToGroupMap } from '../../../../../selectors/multichainAcco
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const {
-    PreferencesController,
-    NetworkController,
-    AccountsController,
-    AccountTreeController,
-  } = Engine.context;
+  const { PreferencesController, NetworkController, AccountsController } =
+    Engine.context;
   const [error, setError] = useState<boolean>(false);
-  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(false);
+  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -97,22 +93,19 @@ const CardHome = () => {
   const selectedChainId = useSelector(selectChainId);
   const cardholderAddresses = useSelector(selectCardholderAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const accountGroupMap = useSelector(selectAccountToGroupMap);
+  const isCardholder = useIsCardholder();
 
+  // Handle network and account changes
   useFocusEffect(
     useCallback(() => {
-      const handleNetworkChange = async () => {
+      const handleNetworkAndAccountChanges = async () => {
+        // Handle network change first
         if (selectedChainId !== LINEA_CHAIN_ID) {
-          Logger.log('CardHome::handleNetworkChange - Not on LINEA chain');
           const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
 
           try {
             if (networkClientId) {
-              setIsLoadingNetworkChange(true);
-              Logger.log(
-                'CardHome::handleNetworkChange - Setting active network to LINEA',
-              );
               await NetworkController.setActiveNetwork(networkClientId);
             }
           } catch (err) {
@@ -120,44 +113,34 @@ const CardHome = () => {
               err instanceof Error ? err : new Error(String(err));
             Logger.error(mappedError, 'CardHome::Error setting active network');
             setError(true);
-            return;
-          } finally {
             setIsLoadingNetworkChange(false);
+            return;
           }
         }
 
-        if (
-          !cardholderAddresses.find(
-            (address) =>
-              address.toLowerCase() === selectedAccount?.address?.toLowerCase(),
-          )
-        ) {
-          const cardholderAccount = AccountsController.getAccountByAddress(
-            cardholderAddresses[0],
+        setIsLoadingNetworkChange(false);
+
+        // Handle account change after network is correct
+        if (!isCardholder) {
+          const account = AccountsController.getAccountByAddress(
+            cardholderAddresses?.[0],
           );
 
-          if (!cardholderAccount) {
+          if (!account) {
             setError(true);
-            return;
+          } else {
+            AccountsController.setSelectedAccount(account.id);
           }
-
-          const cardholderAccountGroup = accountGroupMap[cardholderAccount.id];
-
-          AccountTreeController.setSelectedAccountGroup(
-            cardholderAccountGroup.id,
-          );
         }
       };
 
-      handleNetworkChange();
+      handleNetworkAndAccountChanges();
     }, [
-      AccountTreeController,
-      AccountsController,
       NetworkController,
-      accountGroupMap,
-      cardholderAddresses,
-      selectedAccount,
+      AccountsController,
       selectedChainId,
+      cardholderAddresses,
+      isCardholder,
     ]),
   );
 
