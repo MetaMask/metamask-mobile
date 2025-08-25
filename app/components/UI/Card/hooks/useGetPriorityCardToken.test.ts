@@ -1,10 +1,14 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { CardToken, CardTokenAllowance, AllowanceState } from '../types';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+
+// Mock modules
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -13,6 +17,26 @@ jest.mock('../sdk', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+
+jest.mock('../../../../selectors/tokenBalancesController', () => ({
+  selectAllTokenBalances: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(),
+}));
+
+// Import the mocked selectors
+import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+
+// Create mock functions
+const mockSelectAllTokenBalances =
+  selectAllTokenBalances as jest.MockedFunction<typeof selectAllTokenBalances>;
+const mockSelectSelectedInternalAccountByScope =
+  selectSelectedInternalAccountByScope as jest.MockedFunction<
+    typeof selectSelectedInternalAccountByScope
+  >;
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -33,7 +57,6 @@ jest.mock('../../../../util/trace', () => ({
 describe('useGetPriorityCardToken', () => {
   const mockGetPriorityToken = jest.fn();
   const mockFetchAllowances = jest.fn();
-  const mockUseSelector = jest.fn();
   const mockTrace = jest.fn();
   const mockEndTrace = jest.fn();
   const mockSDK = {
@@ -108,7 +131,9 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockReset();
     mockTrace.mockReset();
     mockEndTrace.mockReset();
-    mockUseSelector.mockReturnValue({
+
+    // Setup direct selector mocks
+    const mockTokenBalances = {
       [mockAddress.toLowerCase()]: {
         '0x1': {
           '0xToken1': '1000000000000000000',
@@ -116,13 +141,42 @@ describe('useGetPriorityCardToken', () => {
           '0xToken3': '0',
         },
       },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockSelectAllTokenBalances.mockReturnValue(mockTokenBalances as any);
+
+    const mockAccountSelector = (scope: string) => {
+      if (scope === 'eip155:0') {
+        return {
+          address: mockAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+          scopes: [],
+        };
+      }
+      return undefined;
+    };
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockAccountSelector as any,
+    );
+
+    // Setup useSelector to handle both selectors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseSelector.mockImplementation((selector: any) => {
+      if (selector === mockSelectAllTokenBalances) {
+        return mockTokenBalances;
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
+        return mockAccountSelector;
+      }
+      return null;
     });
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
-
-    // Set up react-redux mock
-    const useSelector = jest.requireMock('react-redux').useSelector;
-    useSelector.mockImplementation(mockUseSelector);
     (strings as jest.Mock).mockReturnValue('Error occurred');
 
     // Mock trace utilities
@@ -134,7 +188,7 @@ describe('useGetPriorityCardToken', () => {
   it('should initialize with correct default state', async () => {
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -150,7 +204,7 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
     mockGetPriorityToken.mockResolvedValue(mockCardToken);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the useEffect to complete
     await act(async () => {
@@ -185,7 +239,7 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
     mockGetPriorityToken.mockResolvedValue(null);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the hook to complete its async operations
     await act(async () => {
@@ -209,7 +263,7 @@ describe('useGetPriorityCardToken', () => {
     const mockError = new Error('Failed to fetch priority token');
     mockFetchAllowances.mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the hook to complete its async operations
     await act(async () => {
@@ -229,23 +283,7 @@ describe('useGetPriorityCardToken', () => {
   it('should not fetch when SDK is not available', async () => {
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
-
-    // Wait for useEffect to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.priorityToken).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(false);
-    expect(mockGetPriorityToken).not.toHaveBeenCalled();
-  });
-
-  it('should not fetch when address is not provided', async () => {
-    const { result } = renderHook(() =>
-      useGetPriorityCardToken(undefined, false),
-    );
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for useEffect to complete
     await act(async () => {
@@ -261,7 +299,7 @@ describe('useGetPriorityCardToken', () => {
   it('should handle empty allowances array', async () => {
     mockFetchAllowances.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for useEffect to complete
     await act(async () => {
@@ -291,7 +329,7 @@ describe('useGetPriorityCardToken', () => {
       decimals: 18,
     });
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for automatic fetch from useEffect to complete
     await act(async () => {
@@ -340,7 +378,7 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
     mockGetPriorityToken.mockResolvedValue(mockCardToken);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the automatic fetch from useEffect
     await act(async () => {
@@ -410,19 +448,43 @@ describe('useGetPriorityCardToken', () => {
     };
 
     // Mock balances where suggested token has zero balance
-    mockUseSelector.mockReturnValue({
+    const customTokenBalances = {
       [mockAddress.toLowerCase()]: {
         '0x1': {
           '0xZeroBalance': '0', // Zero balance (exact case match with suggested token)
           '0xToken2': '500000000000000000', // Positive balance (exact case match with allowance)
         },
       },
+    };
+    const customAccountSelector = (scope: string) => {
+      if (scope === 'eip155:0') {
+        return {
+          address: mockAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+        };
+      }
+      return undefined;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseSelector.mockImplementation((selector: any) => {
+      if (selector === mockSelectAllTokenBalances) {
+        return customTokenBalances;
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
+        return customAccountSelector;
+      }
+      return null;
     });
 
     mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
     mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for useEffect to complete
     await act(async () => {
@@ -465,19 +527,43 @@ describe('useGetPriorityCardToken', () => {
     };
 
     // Mock balances where all tokens have zero balance
-    mockUseSelector.mockReturnValue({
+    const zeroBalanceTokens = {
       [mockAddress.toLowerCase()]: {
         '0x1': {
           '0xToken1': '0',
           '0xToken2': '0',
         },
       },
+    };
+    const zeroAccountSelector = (scope: string) => {
+      if (scope === 'eip155:0') {
+        return {
+          address: mockAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+        };
+      }
+      return undefined;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseSelector.mockImplementation((selector: any) => {
+      if (selector === mockSelectAllTokenBalances) {
+        return zeroBalanceTokens;
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
+        return zeroAccountSelector;
+      }
+      return null;
     });
 
     mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
     mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for useEffect to complete
     await act(async () => {
@@ -498,13 +584,38 @@ describe('useGetPriorityCardToken', () => {
   });
 
   it('should maintain loading state correctly during fetch', async () => {
-    // Start with no address to avoid automatic fetching
-    const { result, rerender } = renderHook(
-      ({ address }: { address?: string }) => useGetPriorityCardToken(address),
-      {
-        initialProps: { address: undefined as string | undefined },
-      },
-    );
+    // Start with no address to avoid automatic fetching. We control the
+    // selected-account selector dynamically so the hook sees no address on
+    // initial render, then we provide an account and rerender to trigger fetch.
+    type AccountLike =
+      | {
+          address: string;
+          id: string;
+          type: 'eip155:eoa';
+          options: Record<string, unknown>;
+          metadata: Record<string, unknown>;
+          methods: unknown[];
+        }
+      | undefined;
+
+    let currentAccountSelector: (scope: string) => AccountLike = (
+      _scope: string,
+    ) => undefined;
+
+    // Provide stable empty balances to avoid referential changes across renders
+    const emptyBalances: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseSelector.mockImplementation((selector: any) => {
+      if (selector === mockSelectAllTokenBalances) {
+        return emptyBalances; // stable empty object
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
+        return currentAccountSelector;
+      }
+      return null;
+    });
+
+    const { result, rerender } = renderHook(() => useGetPriorityCardToken());
 
     // Initially, loading should be false with no address
     expect(result.current.isLoading).toBe(false);
@@ -515,10 +626,27 @@ describe('useGetPriorityCardToken', () => {
     });
 
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
-    mockGetPriorityToken.mockReturnValue(mockPromise);
+    mockGetPriorityToken.mockReturnValue(
+      mockPromise as unknown as Promise<CardToken>,
+    );
 
     // Now provide an address which will trigger useEffect and start loading
-    rerender({ address: mockAddress });
+    currentAccountSelector = (_scope: string) => {
+      if (_scope === 'eip155:0') {
+        return {
+          address: mockAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+        };
+      }
+      return undefined;
+    };
+
+    // Rerender so hook will read the updated selector result
+    rerender();
 
     // Wait a tick for the useEffect to trigger and set loading to true
     await act(async () => {
@@ -542,7 +670,7 @@ describe('useGetPriorityCardToken', () => {
     mockGetPriorityToken.mockResolvedValue(mockCardToken);
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for initial mount with no SDK
     await act(async () => {
@@ -555,9 +683,7 @@ describe('useGetPriorityCardToken', () => {
     // Enable SDK and create a new hook instance to trigger fetch
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
 
-    const { result: result2 } = renderHook(() =>
-      useGetPriorityCardToken(mockAddress),
-    );
+    const { result: result2 } = renderHook(() => useGetPriorityCardToken());
 
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -598,8 +724,12 @@ describe('useGetPriorityCardToken', () => {
       decimals: 18,
     };
 
-    // Set up proper token balances for both addresses
-    mockUseSelector.mockReturnValue({
+    // Set up proper token balances for both addresses.
+    // Keep a single, stable balances object reference to avoid triggering
+    // useEffect repeatedly due to referential changes on every selector call.
+    let currentAddress = address1;
+
+    const dynamicTokenBalances = {
       [address1.toLowerCase()]: {
         '0x1': {
           '0xToken1': '1000000000000000000',
@@ -610,18 +740,38 @@ describe('useGetPriorityCardToken', () => {
           '0xToken2': '500000000000000000',
         },
       },
+    };
+
+    const accountSelector = (scope: string) => {
+      if (scope === 'eip155:0') {
+        return {
+          address: currentAddress,
+          id: 'test-account-id',
+          type: 'eip155:eoa' as const,
+          options: {},
+          metadata: {},
+          methods: [],
+        };
+      }
+      return undefined;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockUseSelector.mockImplementation((selector: any) => {
+      if (selector === mockSelectAllTokenBalances) {
+        return dynamicTokenBalances;
+      }
+      if (selector === mockSelectSelectedInternalAccountByScope) {
+        return (scope: string) => accountSelector(scope);
+      }
+      return null;
     });
 
     // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
     mockFetchAllowances.mockResolvedValue([mockSDKAllowance1]);
     mockGetPriorityToken.mockResolvedValue(mockToken1);
 
-    const { result, rerender } = renderHook(
-      ({ address }) => useGetPriorityCardToken(address),
-      {
-        initialProps: { address: address1 },
-      },
-    );
+    const { result, rerender } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the useEffect to trigger the fetch
     await act(async () => {
@@ -644,8 +794,10 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockResolvedValue([mockSDKAllowance2]);
     mockGetPriorityToken.mockResolvedValue(mockToken2);
 
-    // Change address and verify refetch
-    rerender({ address: address2 });
+    // Change the current address and rerender to trigger effect
+    currentAddress = address2;
+    rerender();
+
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
@@ -668,7 +820,7 @@ describe('useGetPriorityCardToken', () => {
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
     mockGetPriorityToken.mockResolvedValue(mockCardToken);
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the useEffect to trigger the fetch
     await act(async () => {
@@ -719,7 +871,7 @@ describe('useGetPriorityCardToken', () => {
       '500000000000',
     ); // Large allowance for enabled state
 
-    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+    const { result } = renderHook(() => useGetPriorityCardToken());
 
     // Wait for the automatic fetch from useEffect to complete
     await act(async () => {

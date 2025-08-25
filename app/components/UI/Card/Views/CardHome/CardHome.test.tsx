@@ -54,6 +54,10 @@ const mockPriorityToken = {
 
 const mockCurrentAddress = '0x789';
 
+const mockSelectedInternalAccount = {
+  address: mockCurrentAddress,
+};
+
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockNavigateToCardPage = jest.fn();
@@ -351,12 +355,8 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedInternalAccount;
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID - fallback for string matching
@@ -403,12 +403,8 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedInternalAccount;
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID - fallback
@@ -525,7 +521,6 @@ describe('CardHome Component', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
         chainId: '0xe708',
-        cardholderAddress: mockCurrentAddress,
       });
     });
   });
@@ -697,126 +692,6 @@ describe('CardHome Component', () => {
     expect(navigationOptions.headerTitle).toBeDefined();
   });
 
-  it('switches to Linea network on focus if not already on Linea', async () => {
-    // Override the mock to allow network switching for this test
-    mockFindNetworkClientIdByChainId.mockReturnValue('linea-network-id');
-
-    // Mock being on a different chain initially
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectChainId) {
-        return '0x1'; // Ethereum mainnet
-      }
-      if (selector === selectPrivacyMode) {
-        return false;
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0x1'; // Ethereum mainnet - fallback
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
-        return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['1000.00'];
-      }
-      return [];
-    });
-
-    // Mock useFocusEffect to call the callbacks when they're registered
-    const focusCallbacks: (() => void)[] = [];
-    jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallbacks.push(callback);
-    });
-
-    render();
-
-    // Execute all focus effect callbacks (network change first, then account change)
-    await waitFor(async () => {
-      for (const callback of focusCallbacks) {
-        callback();
-      }
-    });
-
-    await waitFor(() => {
-      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0xe708');
-      expect(mockSetActiveNetwork).toHaveBeenCalledWith('linea-network-id');
-    });
-  });
-
-  it('handles network switching errors gracefully', async () => {
-    // Override the mock to allow network switching for this test
-    mockFindNetworkClientIdByChainId.mockReturnValue('linea-network-id');
-    mockSetActiveNetwork.mockRejectedValueOnce(new Error('Network error'));
-
-    // Mock being on a different chain initially
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectChainId) {
-        return '0x1'; // Ethereum mainnet
-      }
-      if (selector === selectPrivacyMode) {
-        return false;
-      }
-      if (selector === selectDepositActiveFlag) {
-        return true;
-      }
-      if (selector === selectDepositMinimumVersionFlag) {
-        return '0.9.0';
-      }
-      if (selector === selectCardholderAccounts) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0x1'; // Ethereum mainnet - fallback
-      }
-      if (selector.toString().includes('selectPrivacyMode')) {
-        return false;
-      }
-      if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
-      }
-      if (selector.toString().includes('selectEvmTokens')) {
-        return [mockPriorityToken];
-      }
-      if (selector.toString().includes('selectEvmTokenFiatBalances')) {
-        return ['1000.00'];
-      }
-      return [];
-    });
-
-    // Mock useFocusEffect to call the callbacks when they're registered
-    const focusCallbacks: (() => void)[] = [];
-    jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallbacks.push(callback);
-    });
-
-    render();
-
-    // Execute all focus effect callbacks (network change first, then account change)
-    await waitFor(async () => {
-      for (const callback of focusCallbacks) {
-        callback();
-      }
-    });
-
-    await waitFor(() => {
-      expect(mockSetActiveNetwork).toHaveBeenCalled();
-    });
-  });
-
   it('dispatches bridge tokens when opening swaps with non-USDC token', async () => {
     // Reset useFocusEffect to default mock for this test
     jest.mocked(useFocusEffect).mockImplementation(jest.fn());
@@ -850,7 +725,6 @@ describe('CardHome Component', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
         chainId: '0xe708',
-        cardholderAddress: mockCurrentAddress,
       });
     });
   });

@@ -3,12 +3,12 @@ import {
   CardFeatureFlag,
   SupportedToken,
 } from '../../../../selectors/featureFlagController/card';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { getDecimalChainId } from '../../../../util/networks';
 import { LINEA_DEFAULT_RPC_URL } from '../../../../constants/urls';
 import { BALANCE_SCANNER_ABI } from '../constants';
 import Logger from '../../../../util/Logger';
 import { CardToken } from '../types';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 // The CardSDK class provides methods to interact with the Card feature
 // and check if an address is a card holder, get supported tokens, and more.
@@ -18,15 +18,9 @@ export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
 
-  constructor({
-    cardFeatureFlag,
-    rawChainId,
-  }: {
-    cardFeatureFlag: CardFeatureFlag;
-    rawChainId: `0x${string}` | SupportedCaipChainId;
-  }) {
+  constructor({ cardFeatureFlag }: { cardFeatureFlag: CardFeatureFlag }) {
     this.cardFeatureFlag = cardFeatureFlag;
-    this.chainId = getDecimalChainId(rawChainId);
+    this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
   }
 
   get isCardEnabled(): boolean {

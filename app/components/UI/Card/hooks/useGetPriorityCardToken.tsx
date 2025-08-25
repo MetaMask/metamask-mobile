@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -99,7 +100,6 @@ const fetchAllowances = async (
  * then validates against on-chain balances. If the suggested token has zero balance,
  * it falls back to the first token with both allowance and positive balance.
  *
- * @param {string} [address] - Ethereum address of the user whose card token priority is to be fetched.
  * @returns {{
  * fetchPriorityToken: (cardTokenAllowances: CardTokenAllowance[]) => Promise<CardTokenAllowance | null>,
  * isLoading: boolean,
@@ -110,10 +110,7 @@ const fetchAllowances = async (
  * - isLoading: indicates loading state during the fetch
  * - error: any error encountered while fetching
  */
-export const useGetPriorityCardToken = (
-  selectedAddress?: string,
-  shouldFetch: boolean = true,
-) => {
+export const useGetPriorityCardToken = () => {
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -123,6 +120,9 @@ export const useGetPriorityCardToken = (
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:0',
+  )?.address;
 
   // Helpers
   const filterNonZeroAllowances = (
@@ -257,13 +257,13 @@ export const useGetPriorityCardToken = (
     }, [sdk, selectedAddress, getBalancesForChain]);
 
   useEffect(() => {
-    if (selectedAddress && shouldFetch) {
+    if (selectedAddress) {
       setPriorityToken(null); // Reset priority token when address changes
       fetchPriorityToken().then((token) => {
         setPriorityToken(token);
       });
     }
-  }, [selectedAddress, fetchPriorityToken, shouldFetch]);
+  }, [selectedAddress, fetchPriorityToken]);
 
   return { fetchPriorityToken, isLoading, error, priorityToken };
 };
