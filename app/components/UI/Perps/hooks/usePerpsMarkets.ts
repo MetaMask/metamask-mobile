@@ -3,6 +3,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -66,40 +67,42 @@ export const usePerpsMarkets = (
 
   // Helper function to sort markets by volume
   const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]): PerpsMarketData[] =>
-      [...marketData].sort((a, b) => {
-        // Helper function to parse volume string and convert to number
-        const getVolumeNumber = (volumeStr: string | undefined): number => {
-          if (!volumeStr) return -1; // Put undefined at the end
+    (marketData: PerpsMarketData[]): PerpsMarketData[] => {
+      const parseVolume = (volumeStr: string | undefined): number => {
+        if (!volumeStr) return -1; // Put undefined at the end
 
-          // Handle special cases
-          if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
-          if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+        // Handle special cases
+        if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
+        if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
-          // Remove $ and commas, handle different suffixes
-          const cleaned = volumeStr.replace(/[$,]/g, '');
+        // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
+        const suffixMatch = volumeStr.match(/\$?([\d.,]+)([KMBT])?/);
+        if (suffixMatch) {
+          const [, numberPart, suffix] = suffixMatch;
+          const baseValue = parseFloat(numberPart.replace(/,/g, ''));
 
-          // Handle billion (B), million (M), thousand (K) suffixes
-          if (cleaned.includes('B')) {
-            return parseFloat(cleaned.replace('B', '')) * 1e9;
-          }
-          if (cleaned.includes('M')) {
-            return parseFloat(cleaned.replace('M', '')) * 1e6;
-          }
-          if (cleaned.includes('K')) {
-            return parseFloat(cleaned.replace('K', '')) * 1e3;
-          }
+          if (isNaN(baseValue)) return -1;
 
-          // Plain number without suffix (including 0)
-          const num = parseFloat(cleaned);
-          return isNaN(num) ? -1 : num;
-        };
+          const multipliers: Record<string, number> = {
+            K: 1e3,
+            M: 1e6,
+            B: 1e9,
+            T: 1e12,
+          };
 
-        const volumeA = getVolumeNumber(a.volume);
-        const volumeB = getVolumeNumber(b.volume);
+          return suffix ? baseValue * multipliers[suffix] : baseValue;
+        }
 
+        // Fallback to currency parser for regular values
+        return parseCurrencyString(volumeStr) || -1;
+      };
+
+      return [...marketData].sort((a, b) => {
+        const volumeA = parseVolume(a.volume);
+        const volumeB = parseVolume(b.volume);
         return volumeB - volumeA; // Descending order
-      }),
+      });
+    },
     [],
   );
 
