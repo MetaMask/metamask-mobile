@@ -19,10 +19,7 @@ const MAX = 20;
  * @param address - The account address
  * @param ethQuery - The EthQuery instance to use when asking the network
  */
-export const getBalance = async (
-  address: string,
-  ethQuery: EthQuery,
-): Promise<Hex> =>
+const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
   new Promise((resolve, reject) => {
     ethQuery.getBalance(address, (error: Error, balance: BN) => {
       if (error) {
