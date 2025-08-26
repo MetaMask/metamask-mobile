@@ -4753,7 +4753,7 @@
 
 "@metamask/abi-utils@^2.0.3":
   version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
+  resolved "https://registry.npmjs.org/@metamask/abi-utils/-/abi-utils-2.0.4.tgz#20908c1d910f7a17a89fdf5778a5c59d5cb8b8be"
   integrity sha512-StnIgUB75x7a7AgUhiaUZDpCsqGp7VkNnZh2XivXkJ6mPkE83U8ARGQj5MbRis7VJY8BC5V1AbB1fjdh0hupPQ==
   dependencies:
     "@metamask/superstruct" "^3.1.0"
@@ -4846,7 +4846,7 @@
 
 "@metamask/assets-controllers@^74.1.0":
   version "74.1.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/assets-controllers/-/assets-controllers-74.1.0.tgz#4ebe1e96c4146a8782325bec3b10833196109a5e"
+  resolved "https://registry.npmjs.org/@metamask/assets-controllers/-/assets-controllers-74.1.0.tgz#4ebe1e96c4146a8782325bec3b10833196109a5e"
   integrity sha512-L5C2iiyQto/IY+/lIMhPCdEd11S+qqGi3t5ludmwizJEZ1L7ofQCHX3DrfWOh50I8MtR9+JRzdqKduDkEoQGoA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
@@ -4912,7 +4912,7 @@
 
 "@metamask/base-controller@^8.2.0":
   version "8.2.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
+  resolved "https://registry.npmjs.org/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
   integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
   dependencies:
     "@metamask/messenger" "^0.1.0"
@@ -5030,7 +5030,7 @@
 
 "@metamask/contract-metadata@^2.4.0":
   version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
+  resolved "https://registry.npmjs.org/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
 "@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.10.0", "@metamask/controller-utils@^11.11.0", "@metamask/controller-utils@^11.12.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.9.0", "@metamask/controller-utils@npm:@metamask/controller-utils@^11.11.0":
@@ -5522,7 +5522,7 @@
 
 "@metamask/messenger@^0.1.0":
   version "0.1.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
+  resolved "https://registry.npmjs.org/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
   integrity sha512-UqYOFvPb8CvRML26h/ftrwFhiQiB0VENoRnUlM0Tl9QjGh17un2emyxpsib3c2rdzP5U/VskXH2KlzPBtfFLYw==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
@@ -25088,9 +25088,9 @@ multicodec@^1.0.0:
     varint "^5.0.0"
 
 multiformats@^13.1.0:
-  version "13.3.2"
-  resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-13.3.2.tgz#a77c2a09c490e90c73b3049551604e6e1a4854e0"
-  integrity sha512-qbB0CQDt3QKfiAzZ5ZYjLFOs+zW43vA4uyM8g27PeEuXZybUOFyjrVdP93HPBHMoglibwfkdVwbzfUq8qGcH6g==
+  version "13.4.0"
+  resolved "https://registry.npmjs.org/multiformats/-/multiformats-13.4.0.tgz#eada9b939650b69e3e9ac553c8cbffe6b3a57596"
+  integrity sha512-Mkb/QcclrJxKC+vrcIFl297h52QcKh2Az/9A5vbWytbQt4225UWWWmIuSsKksdww9NkIeYcA7DkfftyLuC/JSg==
 
 multiformats@^9.4.2:
   version "9.9.0"
@@ -29393,7 +29393,7 @@ simple-swizzle@^0.2.2:
 
 single-call-balance-checker-abi@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/single-call-balance-checker-abi/-/single-call-balance-checker-abi-1.0.0.tgz#b369009fd4cc6214968cdba650ad93986315d92d"
+  resolved "https://registry.npmjs.org/single-call-balance-checker-abi/-/single-call-balance-checker-abi-1.0.0.tgz#b369009fd4cc6214968cdba650ad93986315d92d"
   integrity sha512-T5fRBJHmGEMe76JFGB36gcZnOh1ip2S7Qsp7cwmwrfMRjadxTe02zJHtXERpnQf2yvSqNWRxvae5f6e8v4rhng==
 
 sisteransi@^1.0.5:
