@@ -168,7 +168,6 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
-import OfflineMode from '../../Views/OfflineMode';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -542,7 +541,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
     />
-    <Stack.Screen name={Routes.OFFLINE_MODE} component={OfflineMode} />
   </Stack.Navigator>
 );
 
@@ -991,11 +989,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
           component={PayWithNetworkModal}
-        />
-        <Stack.Screen
-          name={Routes.OFFLINE_MODE}
-          component={OfflineMode}
-          options={OfflineMode.navigationOptions}
         />
       </Stack.Navigator>
     </>

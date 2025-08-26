@@ -307,7 +307,6 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
-  OFFLINE_MODE: 'OfflineMode',
 };
 
 export default Routes;

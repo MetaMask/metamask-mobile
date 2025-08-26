@@ -24,6 +24,24 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 
+jest.mock('@react-native-community/netinfo', () => ({
+    __esModule: true,
+    default: {
+      fetch: jest.fn(),
+      addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
+    },
+    NetInfoStateType: {
+      none: 'none',
+      wifi: 'wifi',
+      cellular: 'cellular',
+      unknown: 'unknown',
+    },
+  }));
+
+import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
+
+const mockNetInfoFetch = NetInfo.fetch as jest.Mock;
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -75,14 +93,6 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
     accountName: 'test@example.com',
   }),
   resetOauthState: jest.fn(),
-}));
-
-const mockNetInfoFetch = jest.fn();
-jest.mock('@react-native-community/netinfo', () => ({
-  __esModule: true,
-  default: {
-    fetch: mockNetInfoFetch,
-  },
 }));
 
 jest.mock('../../../core/OAuthService/error', () => ({
@@ -312,6 +322,8 @@ describe('Onboarding', () => {
   describe('Create wallet flow', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
+      mockNavigate.mockReset();
+      mockNetInfoFetch.mockReset();
     });
 
     it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
@@ -381,15 +393,16 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to offline mode when social login is pressed with no internet connection', async () => {
-      // Mock NetInfo to return offline state
-      mockNetInfoFetch.mockResolvedValueOnce({
-        isConnected: false,
-        isInternetReachable: false,
-      });
-
+    it('should navigate to offline error sheet when there is no internet', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      mockNetInfoFetch.mockResolvedValue({
+        type: NetInfoStateType.none,
+        isConnected: false,
+        isInternetReachable: false,
+        details: null,
+      });
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -407,34 +420,38 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
+      await act(async () => {
+        await Promise.resolve();
+      });
+
       const navCall = mockNavigate.mock.calls.find(
         (call) =>
           call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
           call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
       );
 
-      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+      expect(navCall).toBeDefined();
+
+      const googleOAuthFunction =
+        navCall?.[1]?.params?.onPressContinueWithGoogle;
 
       await act(async () => {
         await googleOAuthFunction(true);
       });
 
-      expect(navCall[1].params.onPressContinueWithGoogle).toBeDefined();
-      expect(navCall[1].params.onPressContinueWithApple).toBeDefined();
-
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
-          screen: Routes.SHEET.ONBOARDING_SHEET,
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
-            createWallet: true,
-            onPressContinueWithGoogle: expect.any(Function),
-            onPressContinueWithApple: expect.any(Function),
+            title: strings('offline_mode.title'),
+            description: strings('offline_mode.text'),
+            descriptionAlign: 'center',
+            buttonLabel: strings('error_sheet.oauth_error_button'),
+            type: 'error',
           }),
         }),
       );
-
-      expect(Routes.OFFLINE_MODE).toBe('OfflineMode');
     });
   });
 

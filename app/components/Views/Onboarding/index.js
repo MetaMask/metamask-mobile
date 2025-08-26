@@ -504,7 +504,16 @@ class Onboarding extends PureComponent {
     try {
       const netState = await NetInfo.fetch();
       if (!netState.isConnected || netState.isInternetReachable === false) {
-        this.props.navigation.navigate(Routes.OFFLINE_MODE);
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`offline_mode.title`),
+            description: strings(`offline_mode.text`),
+            descriptionAlign: 'center',
+            buttonLabel: strings(`error_sheet.oauth_error_button`),
+            type: 'error',
+          },
+        });
         return;
       }
     } catch (error) {
