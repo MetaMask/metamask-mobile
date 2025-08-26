@@ -133,6 +133,12 @@ describe('ConnectionRegistry', () => {
   });
 
   describe('disconnect', () => {
+    it('should handle a non-existent connection', async () => {
+      await registry.disconnect('non-existent-id');
+      expect(mockStore.delete).toHaveBeenCalledWith('non-existent-id');
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+    });
+
     it('should disconnect a session, delete it from the store, and update the UI', async () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
