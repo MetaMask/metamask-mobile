@@ -19,6 +19,7 @@ import { Store } from 'redux';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
+// No balance SRP
 export const seedPhrase =
   'tip merge tell borrow disease fork lyrics base glance exotic woman sorry';
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
