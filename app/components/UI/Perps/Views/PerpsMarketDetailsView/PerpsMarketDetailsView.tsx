@@ -262,7 +262,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
-    navigation.navigate(Routes.PERPS.MARKETS);
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback to markets list if no previous screen
+      navigation.navigate(Routes.PERPS.MARKETS);
+    }
   };
 
   const handleLongPress = () => {

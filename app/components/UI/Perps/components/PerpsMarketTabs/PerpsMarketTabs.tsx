@@ -53,7 +53,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [isLoadingPosition, fadeAnim]);
 
-  // TAT-1410: Dynamic tab configuration - hide tabs when no data
   const tabs = React.useMemo(() => {
     const dynamicTabs = [];
 
@@ -177,7 +176,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }
 
-  // TAT-1410: If only statistics tab is available, show it without tab bar
   if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
