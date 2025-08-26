@@ -11,6 +11,7 @@ import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import { createUserStorageController } from '../utils/mocks.ts';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView.ts';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView.ts';
+import CommonView from '../../../pages/CommonView.ts';
 
 describe(SmokeIdentity('Contacts syncing - Settings'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -88,7 +89,7 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         await ContactsView.expectContactIsVisible(TEST_CONTACT_NAME);
 
         // Disable contact syncing
-        await navigateToSettings();
+        await CommonView.tapBackButton();
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
         );
@@ -106,7 +107,7 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
         );
 
         // Add second contact while sync is disabled
-        await navigateToSettings();
+        await CommonView.tapBackButton();
         await Assertions.expectElementToBeVisible(
           SettingsView.contactsSettingsButton,
         );
