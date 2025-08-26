@@ -570,10 +570,9 @@ class Onboarding extends PureComponent {
         });
         return;
       }
-        // unexpected oauth login error
-        this.handleOAuthLoginError(error);
-        return;
-
+      // unexpected oauth login error
+      this.handleOAuthLoginError(error);
+      return;
     }
 
     const errorMessage = 'oauth_error';
