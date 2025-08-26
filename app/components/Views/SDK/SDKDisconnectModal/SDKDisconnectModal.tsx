@@ -87,47 +87,52 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   }, [channelId, account]);
 
   const onConfirm = async () => {
-    // Case 1: Disconnect a single account from a session.
     if (account && channelId) {
-      // This permission-layer logic works for both V1 and V2.
       removePermittedAccounts(channelId, [toHex(account)]);
+    } else if (!account && channelId) {
+      SDKConnect.getInstance().removeChannel({
+        channelId,
+        sendTerminate: true,
+      });
+    }
 
+    DevLogger.log(
+      `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
+    );
+    if (account && accountsLength && accountsLength <= 1 && channelId) {
+      SDKConnect.getInstance().removeChannel({
+        channelId,
+        sendTerminate: true,
+      });
+    } else if (!account && !channelId) {
+      SDKConnect.getInstance().removeAll();
+    }
+
+    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
+  };
+
+  const onConfirmV2 = async () => {
+    // Case: Disconnect a single account from a V2 session.
+    if (account && channelId) {
+      removePermittedAccounts(channelId, [toHex(account)]);
       // If it's the last account, also terminate the entire session.
       if (accountsLength && accountsLength <= 1) {
-        if (isV2) {
-          await SDKConnectV2.disconnect(channelId);
-        } else {
-          SDKConnect.getInstance().removeChannel({
-            channelId,
-            sendTerminate: true,
-          });
-        }
-      }
-    }
-    // Case 2: Disconnect an entire dApp session.
-    else if (!account && channelId) {
-      if (isV2) {
         await SDKConnectV2.disconnect(channelId);
-      } else {
-        SDKConnect.getInstance().removeChannel({
-          channelId,
-          sendTerminate: true,
-        });
       }
     }
-    // Case 3: Disconnect ALL sessions globally.
+    // Case: Disconnect an entire dApp V2 session.
+    else if (!account && channelId) {
+      await SDKConnectV2.disconnect(channelId);
+    }
+    // Case: Global disconnect all from V2 context
     else if (!account && !channelId) {
-      // Disconnect all V1 sessions
-      SDKConnect.getInstance().removeAll();
-
-      // Disconnect all V2 sessions by iterating through the list from Redux
+      // Disconnect all V2 sessions
       const v2ConnectionIds = Object.keys(v2Connections || {});
       for (const connId of v2ConnectionIds) {
         await SDKConnectV2.disconnect(connId);
       }
     }
 
-    // Navigate back to the updated session manager list.
     navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
   };
 
@@ -148,7 +153,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
           label={strings('sdk_disconnect_modal.disconnect_confirm')}
           style={styles.btn}
           variant={ButtonVariants.Primary}
-          onPress={onConfirm}
+          onPress={isV2 ? onConfirmV2 : onConfirm}
         />
         <Button
           label={strings('sdk_disconnect_modal.cancel')}
