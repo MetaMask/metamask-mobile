@@ -594,9 +594,9 @@ class OptinMetrics extends PureComponent {
               <TouchableOpacity
                 style={styles.checkbox}
                 onPress={() =>
-                  this.setState({
-                    isCheckboxChecked: !this.state.isCheckboxChecked,
-                  })
+                  this.setState((prevState) => ({
+                    isCheckboxChecked: !prevState.isCheckboxChecked,
+                  }))
                 }
                 activeOpacity={1}
               >
@@ -605,9 +605,9 @@ class OptinMetrics extends PureComponent {
                   accessibilityRole={'checkbox'}
                   accessible
                   onPress={() =>
-                    this.setState({
-                      isCheckboxChecked: !this.state.isCheckboxChecked,
-                    })
+                    this.setState((prevState) => ({
+                      isCheckboxChecked: !prevState.isCheckboxChecked,
+                    }))
                   }
                 />
                 <Text
