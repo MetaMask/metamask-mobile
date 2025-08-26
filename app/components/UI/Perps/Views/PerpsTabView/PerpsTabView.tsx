@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -21,7 +21,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsErrorState, {
   PerpsErrorType,
@@ -31,7 +30,11 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import type {
+  PerpsNavigationParamList,
+  Order,
+  Position,
+} from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsConnection,
@@ -41,10 +44,140 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
+import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
+import RemoteImage from '../../../../Base/RemoteImage';
+import { formatPrice, formatPnl } from '../../utils/formatUtils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
+
+// Unified card component for displaying positions and orders
+const PerpsCard: React.FC<{
+  position?: Position;
+  order?: Order;
+  onPress?: () => void;
+}> = ({ position, order, onPress }) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  // Determine which type of data we have
+  const symbol = position?.coin || order?.symbol || '';
+  const { assetUrl } = usePerpsAssetMetadata(symbol);
+
+  // Calculate display values
+  let primaryText = '';
+  let secondaryText = '';
+  let valueText = '';
+  let labelText = '';
+
+  if (position) {
+    const leverage = position.leverage.value;
+    const isLong = parseFloat(position.size) > 0;
+    primaryText = `${position.coin} ${leverage}x ${isLong ? 'long' : 'short'}`;
+    secondaryText = `${Math.abs(parseFloat(position.size))} ${position.coin}`;
+
+    // Calculate PnL display
+    const pnlValue = parseFloat(position.unrealizedPnl);
+    const pnlColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
+    valueText = formatPnl(pnlValue); // formatPnl handles the sign display
+    const roeValue = parseFloat(position.returnOnEquity);
+    labelText = `${roeValue >= 0 ? '+' : ''}${roeValue.toFixed(2)}%`; // Show ROE as percentage
+
+    return (
+      <TouchableOpacity
+        style={styles.positionCard}
+        activeOpacity={0.7}
+        onPress={onPress}
+      >
+        <View style={styles.positionCardContent}>
+          {/* Left side: Icon and info */}
+          <View style={styles.positionLeft}>
+            {assetUrl && (
+              <RemoteImage
+                source={{ uri: assetUrl }}
+                style={styles.assetIcon}
+              />
+            )}
+            <View style={styles.positionInfo}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {primaryText}
+              </Text>
+              <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+                {secondaryText}
+              </Text>
+            </View>
+          </View>
+
+          {/* Right side: Value and label */}
+          <View style={styles.positionRight}>
+            <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
+              {valueText}
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+              {labelText}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  } else if (order) {
+    const leverage = 10; // Default leverage for orders
+    primaryText = `${order.symbol} ${leverage}x ${
+      order.side === 'buy' ? 'long' : 'short'
+    }`;
+    secondaryText = `${order.originalSize} ${order.symbol}`;
+    const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
+    valueText = formatPrice(orderValue);
+    labelText = strings('perps.order.limit');
+
+    return (
+      <TouchableOpacity
+        style={styles.positionCard}
+        activeOpacity={0.7}
+        onPress={onPress}
+      >
+        <View style={styles.positionCardContent}>
+          {/* Left side: Icon and info */}
+          <View style={styles.positionLeft}>
+            {assetUrl && (
+              <RemoteImage
+                source={{ uri: assetUrl }}
+                style={styles.assetIcon}
+              />
+            )}
+            <View style={styles.positionInfo}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                {primaryText}
+              </Text>
+              <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+                {secondaryText}
+              </Text>
+            </View>
+          </View>
+
+          {/* Right side: Value and label */}
+          <View style={styles.positionRight}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {valueText}
+            </Text>
+            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+              {labelText}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  return null;
+};
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -63,6 +196,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
+  });
+
+  // TAT-1400: Get live orders excluding TP/SL orders
+  const orders = usePerpsLiveOrders({
+    hideTpSl: true, // Filter out TP/SL orders
+    throttleMs: 1000, // Update orders every second
   });
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
@@ -138,6 +277,34 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     connect();
   }, [connect, resetError]);
 
+  const renderOrdersSection = () => {
+    // Only show orders section if there are active orders
+    if (!orders || orders.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+            {strings('perps.order.open_orders')}
+          </Text>
+        </View>
+        <View>
+          {orders.map((order) => (
+            <PerpsCard
+              key={order.orderId}
+              order={order}
+              onPress={() => {
+                // Navigate to order details if needed
+              }}
+            />
+          ))}
+        </View>
+      </>
+    );
+  };
+
   const renderPositionsSection = () => {
     if (isInitialLoading) {
       return (
@@ -211,11 +378,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => (
-            <PerpsPositionCard
+            <PerpsCard
               key={`${position.coin}-${index}`}
               position={position}
-              expanded={false}
-              showIcon
+              onPress={() => {
+                // Navigate to position details if needed
+              }}
             />
           ))}
         </View>
@@ -246,6 +414,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
           <ScrollView style={styles.content}>
             <View style={styles.section}>{renderPositionsSection()}</View>
+            <View style={styles.section}>{renderOrdersSection()}</View>
           </ScrollView>
         </>
       )}

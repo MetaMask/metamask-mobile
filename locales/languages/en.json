@@ -951,6 +951,7 @@
       "fees": "Fees",
       "market": "Market",
       "limit": "Limit",
+      "open_orders": "Orders",
       "max": "max",
       "cancel_order": "Cancel order",
       "filled": "filled",
