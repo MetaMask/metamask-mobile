@@ -1868,9 +1868,12 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       textAlign: 'center',
       flex: 1,
     },
+    rightSpacer: {
+      width: 48, // Same width as the back button to balance the header
+    },
   });
-  // Navigate to markets page for consistent navigation
-  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+  // Go back to transaction history view
+  const leftAction = () => navigation.goBack();
 
   return {
     headerTitle: () => (
@@ -1891,6 +1894,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
         <Icon name={IconName.Arrow2Left} />
       </TouchableOpacity>
     ),
+    headerRight: () => <View style={innerStyles.rightSpacer} />,
   };
 }
 
