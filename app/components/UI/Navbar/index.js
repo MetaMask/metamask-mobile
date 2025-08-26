@@ -1864,6 +1864,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const leftAction = () => navigation.pop();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         style={innerStyles.perpsTransactionsTitle}
