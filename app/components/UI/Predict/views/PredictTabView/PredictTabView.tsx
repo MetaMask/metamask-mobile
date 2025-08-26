@@ -51,15 +51,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
               setIsBottomSheetVisible(true);
             }}
           >
-            <PredictPosition
-              key={position.conditionId}
-              image={position.image}
-              title={position.title}
-              position={position.position}
-              price={position.price}
-              change={position.change}
-              outcome={position.outcome}
-            />
+            <PredictPosition key={position.conditionId} position={position} />
           </TouchableOpacity>
         ))}
       </View>
@@ -78,14 +70,6 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
             <Text variant={TextVariant.HeadingMD}>
               {strings('predict.sell_position')}
             </Text>
-            {/* note: hardcoded example */}
-            <PredictPosition
-              title={positions[0].title}
-              position={positions[0].currentValue}
-              price={positions[0].price}
-              change={positions[0].cashPnl}
-              outcome={positions[0].outcome}
-            />
           </BottomSheetHeader>
           <View style={styles.bottomSheetContent}>
             <Text

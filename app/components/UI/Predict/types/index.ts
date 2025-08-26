@@ -72,6 +72,9 @@ export type Position = {
   outcome: string;
   cashPnl: number;
   currentValue: number;
+  percentPnl: number;
+  initialValue: number;
+  avgPrice: number;
 };
 
 export interface IPredictProvider {

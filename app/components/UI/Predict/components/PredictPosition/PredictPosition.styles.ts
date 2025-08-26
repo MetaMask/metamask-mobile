@@ -1,24 +1,35 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     positionContainer: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      padding: 8,
+      gap: 16,
+      width: '100%',
+    },
+    positionDetails: {
       flexDirection: 'column',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       alignItems: 'flex-start',
       width: '100%',
-      padding: 8,
+      flex: 3,
+      gap: 4,
     },
-    positionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
+    positionImage: {
+      width: 44,
+      height: 44,
+      borderRadius: 100,
+      alignSelf: 'center',
     },
-    positionDetail: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+    positionPnl: {
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      alignItems: 'flex-end',
+      gap: 4,
       width: '100%',
+      flex: 1,
     },
     marketEntry: {
       flexDirection: 'column',
