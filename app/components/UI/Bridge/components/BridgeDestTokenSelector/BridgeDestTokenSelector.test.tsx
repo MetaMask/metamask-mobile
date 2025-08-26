@@ -4,7 +4,7 @@ import {
 } from '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import { BridgeDestTokenSelector } from '.';
+import { BridgeDestTokenSelector, getNetworkName } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectBridgeViewMode,
@@ -12,6 +12,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { cloneDeep } from 'lodash';
 import { BridgeViewMode } from '../../types';
+import Engine from '../../../../../core/Engine';
+import { toHex } from '@metamask/controller-utils';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -58,6 +62,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       ]),
     },
+    BridgeController: {
+      trackUnifiedSwapBridgeEvent: jest.fn(),
+    },
   },
 }));
 
@@ -82,6 +89,167 @@ jest.mock('@metamask/bridge-controller', () => ({
     },
   }),
 }));
+
+describe('getNetworkName', () => {
+  it('returns network name from network configurations when available', () => {
+    const chainId = toHex('1') as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {
+      [chainId]: {
+        name: 'Ethereum Mainnet',
+        chainId,
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [],
+        isEvm: true,
+        blockExplorerUrls: ['https://etherscan.io'],
+        defaultBlockExplorerUrlIndex: 0,
+      } as MultichainNetworkConfiguration,
+    };
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Ethereum Mainnet');
+  });
+
+  it('returns nickname from PopularList when network not in configurations', () => {
+    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Avalanche C-Chain');
+  });
+
+  it('returns nickname from PopularList for Arbitrum One', () => {
+    const chainId = toHex('42161') as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Arbitrum One');
+  });
+
+  it('returns nickname from PopularList for BNB Smart Chain', () => {
+    const chainId = toHex('56') as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('BNB Smart Chain Mainnet');
+  });
+
+  it('returns nickname from PopularList for Base', () => {
+    const chainId = toHex('8453') as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Base');
+  });
+
+  it('returns nickname from PopularList for OP Mainnet', () => {
+    const chainId = toHex('10') as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('OP Mainnet');
+  });
+
+  it('returns "Unknown Network" when network not found anywhere', () => {
+    const chainId = toHex('999999') as Hex; // Non-existent chain ID
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Unknown Network');
+  });
+
+  it('prioritizes network configurations over PopularList', () => {
+    const chainId = toHex('43114') as Hex; // Avalanche C-Chain
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {
+      [chainId]: {
+        name: 'Custom Avalanche Name',
+        chainId,
+        nativeCurrency: 'AVAX',
+        rpcEndpoints: [],
+        isEvm: true,
+        blockExplorerUrls: ['https://snowtrace.io'],
+        defaultBlockExplorerUrlIndex: 0,
+      } as MultichainNetworkConfiguration,
+    };
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Custom Avalanche Name');
+  });
+
+  it('handles undefined network configurations gracefully', () => {
+    const chainId = toHex('1') as Hex;
+    const networkConfigurations = undefined as unknown as Record<
+      string,
+      MultichainNetworkConfiguration
+    >;
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Unknown Network');
+  });
+
+  it('handles null network configurations gracefully', () => {
+    const chainId = toHex('1') as Hex;
+    const networkConfigurations = null as unknown as Record<
+      string,
+      MultichainNetworkConfiguration
+    >;
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Unknown Network');
+  });
+
+  it('handles empty string chainId', () => {
+    const chainId = '' as Hex;
+    const networkConfigurations: Record<
+      string,
+      MultichainNetworkConfiguration
+    > = {};
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Unknown Network');
+  });
+
+  it('handles network configuration without name property', () => {
+    const chainId = toHex('1') as Hex;
+    const networkConfigurations = {
+      [chainId]: {
+        chainId,
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [],
+        isEvm: true,
+        blockExplorerUrls: ['https://etherscan.io'],
+        defaultBlockExplorerUrlIndex: 0,
+        // name property is missing
+      } as unknown as MultichainNetworkConfiguration,
+    };
+
+    const result = getNetworkName(chainId, networkConfigurations);
+    expect(result).toBe('Unknown Network');
+  });
+});
 
 describe('BridgeDestTokenSelector', () => {
   // Fix ReferenceError: You are trying to access a property or method of the Jest environment after it has been torn down.
@@ -302,6 +470,42 @@ describe('BridgeDestTokenSelector', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+    });
+  });
+
+  describe('Unified SwapBridge Event Tracking', () => {
+    it('tracks UnifiedSwapBridgeEvent when info button is clicked', async () => {
+      const { getAllByTestId, getByText } = renderScreen(
+        BridgeDestTokenSelector,
+        {
+          name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+        },
+        { state: initialState },
+      );
+
+      // Wait for tokens to be visible
+      await waitFor(() => {
+        expect(getByText('HELLO')).toBeTruthy();
+        expect(getByText('TOKEN1')).toBeTruthy();
+      });
+
+      // Get the info button for the first token (HELLO)
+      const infoButton = getAllByTestId('token-info-button')[0];
+      fireEvent.press(infoButton);
+
+      // Verify the tracking event was called with correct parameters
+      expect(
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+      ).toHaveBeenCalledWith(
+        'Unified SwapBridge Asset Detail Tooltip Clicked',
+        {
+          token_name: 'Hello Token',
+          token_symbol: 'HELLO',
+          token_contract: ethToken2Address,
+          chain_name: 'Ethereum Mainnet',
+          chain_id: '0x1',
+        },
+      );
     });
   });
 });
