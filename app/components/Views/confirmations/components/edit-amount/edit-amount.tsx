@@ -41,7 +41,7 @@ export function EditAmount({
 
   const { payToken } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
-  const { balanceFiat } = payToken ?? {};
+  const { tokenFiatAmount } = payToken ?? {};
 
   const [amountHuman, setAmountHuman] = useState<string>(
     amountUnformatted ?? '0',
@@ -90,17 +90,17 @@ export function EditAmount({
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      if (!balanceFiat) {
+      if (!tokenFiatAmount) {
         return;
       }
 
-      const percentageValue = new BigNumber(balanceFiat)
+      const percentageValue = new BigNumber(tokenFiatAmount)
         .multipliedBy(percentage)
         .dividedBy(100);
 
       handleChange(percentageValue.toString(10));
     },
-    [balanceFiat, handleChange],
+    [handleChange, tokenFiatAmount],
   );
 
   const displayValue = `${prefix}${amountHuman}`;

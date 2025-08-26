@@ -141,7 +141,7 @@ describe('EditAmount', () => {
 
   it('updates token amount if percentage button pressed', async () => {
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balanceFiat: '1200.50' },
+      payToken: { tokenFiatAmount: 1200.5 },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
