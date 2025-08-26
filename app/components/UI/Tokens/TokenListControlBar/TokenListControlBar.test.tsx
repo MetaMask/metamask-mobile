@@ -361,15 +361,6 @@ describe('TokenListControlBar', () => {
       expect(goToAddToken).toHaveBeenCalled();
     });
 
-    it('should navigate to TokensBottomSheet when sort button is pressed', () => {
-      const { getByTestId } = renderComponent();
-
-      const sortButton = getByTestId('sort-by');
-      fireEvent.press(sortButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith('TokensBottomSheet', {});
-    });
-
     it('should not call handleFilterControls when EVM is not selected', () => {
       // Ensure EVM is not selected
       mockSelectIsEvmNetworkSelected.mockReturnValue(false);

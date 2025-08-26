@@ -116,10 +116,13 @@ import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroup
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import {
+  selectUseTokenDetection,
+  selectTokenNetworkFilter,
+} from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Carousel } from '../../UI/Carousel';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 
 import { cloneDeep } from 'lodash';
@@ -441,11 +444,16 @@ const Wallet = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
-  const enabledNetworksHasTestNet = useMemo(
-    () => enabledNetworks.some((network) => isTestNet(network)),
-    [enabledNetworks],
-  );
+  const enabledNetworksHasTestNet = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return enabledNetworks.some((network) => isTestNet(network));
+    }
+    return Object.keys(tokenNetworkFilter).some((network) =>
+      isTestNet(network),
+    );
+  }, [enabledNetworks, tokenNetworkFilter]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -758,13 +766,19 @@ const Wallet = ({
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
     // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
     if (
       isRemoveGlobalNetworkSelectorEnabled() &&
       enabledEVMNetworks.length === 0
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
     handleNetworkFilter();

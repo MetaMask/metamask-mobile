@@ -95,7 +95,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {listHeader && filteredPopularList.length > 0 && (
+      {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
           variant={TextVariant.BodyMDBold}
