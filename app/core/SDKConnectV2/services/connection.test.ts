@@ -39,6 +39,7 @@ describe('Connection', () => {
       dappPublicKey: 'dapp_pub_key',
       walletPublicKey: 'wallet_pub_key',
       channel: { type: 'websocket', id: 'channel-id' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     metadata: {
       dapp: { name: 'Test DApp', url: 'https://test.dapp' },
@@ -51,7 +52,9 @@ describe('Connection', () => {
 
     mockKeyManager = new KeyManager();
     mockWalletClientInstance = new MockedWalletClient({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       transport: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sessionstore: {} as any,
       keymanager: mockKeyManager,
     }) as jest.Mocked<WalletClient>;
@@ -60,6 +63,7 @@ describe('Connection', () => {
       () => mockWalletClientInstance as WalletClient,
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (MockedWebSocketTransport.create as jest.Mock).mockResolvedValue({} as any);
   });
 

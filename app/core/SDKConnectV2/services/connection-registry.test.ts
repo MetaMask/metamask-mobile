@@ -17,6 +17,7 @@ const mockConnectionRequest: ConnectionRequest = {
     dappPublicKey: 'dapp_pub_key',
     walletPublicKey: 'wallet_pub_key',
     channel: 'websocket-channel-id',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
   metadata: {
     dapp: {
@@ -57,6 +58,7 @@ describe('ConnectionRegistry', () => {
     mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
       metadata: mockConnectionRequest.metadata,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
