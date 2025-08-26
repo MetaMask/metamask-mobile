@@ -308,13 +308,8 @@ class OptinMetrics extends PureComponent {
    * Callback on press cancel
    */
   onCancel = async () => {
-    const { setDataCollectionForMarketing } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
-
-      if (this.state.isCheckboxChecked) {
-        setDataCollectionForMarketing(true);
-      }
 
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
@@ -339,9 +334,7 @@ class OptinMetrics extends PureComponent {
     await flushBufferedTraces();
     updateCachedConsent(true);
 
-    if (this.state.isCheckboxChecked) {
-      setDataCollectionForMarketing(true);
-    }
+    setDataCollectionForMarketing(this.state.isCheckboxChecked);
 
     // Track the analytics preference event first
     metrics.trackEvent(
