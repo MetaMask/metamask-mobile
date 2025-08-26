@@ -36,6 +36,7 @@ import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
+import { isE2E } from '../../../../../util/test/utils';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -314,7 +315,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                       source={PerpsOnboardingAnimation}
                       fit={Fit.Cover}
                       alignment={Alignment.Center}
-                      autoplay
+                      autoplay={!isE2E}
                     />
                   </View>
                 </View>
@@ -333,8 +334,17 @@ const PerpsTutorialCarousel: React.FC = () => {
             onPress={handleContinue}
             size={ButtonSize.Lg}
             style={styles.continueButton}
+            testID={
+              isLastScreen
+                ? 'perps-tutorial-add-funds-button'
+                : 'perps-tutorial-continue-button'
+            }
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+          <TouchableOpacity
+            onPress={handleSkip}
+            style={styles.skipButton}
+            testID="perps-tutorial-skip-button"
+          >
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}

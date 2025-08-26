@@ -1,9 +1,12 @@
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import { PerpsMarketListViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketListViewSelectorsIDs,
+  getPerpsMarketRowItemSelector,
+} from '../../selectors/Perps/Perps.selectors';
 
-class PerpsMarketListViewPO {
+class PerpsMarketListView {
   get container(): DetoxElement {
     // Use a stable element on the markets screen: the search button
     return Matchers.getElementByID(
@@ -41,10 +44,7 @@ class PerpsMarketListViewPO {
     const symbolsToTry = ['BTC', 'ETH', 'SOL', 'ARB'];
     for (const sym of symbolsToTry) {
       try {
-        const el = element(by.text(sym));
-        await Gestures.waitAndTap(el as unknown as DetoxElement, {
-          elemDescription: `Tap market row ${sym}`,
-        });
+        await this.tapMarketRowBySymbol(sym);
         return;
       } catch {
         // continue to next symbol
@@ -71,6 +71,31 @@ class PerpsMarketListViewPO {
       }
     }
   }
+
+  async tapMarketRowBySymbol(symbol: string): Promise<void> {
+    const id = getPerpsMarketRowItemSelector.rowItem(symbol);
+    const el = Matchers.getElementByID(id);
+    // Ensure visibility: scroll the FlashList if necessary
+    try {
+      await Assertions.expectElementToBeVisible(el, {
+        description: `Expect ${id} visible before tap`,
+      });
+    } catch {
+      await Gestures.scrollToElement(
+        el,
+        Promise.resolve(by.id(PerpsMarketListViewSelectorsIDs.LIST)),
+        {
+          elemDescription: `Scroll to ${id}`,
+          direction: 'down',
+          scrollAmount: 350,
+          delay: 200,
+        },
+      );
+    }
+    await Gestures.waitAndTap(el, {
+      elemDescription: `Tap perps market row ${symbol}`,
+    });
+  }
 }
 
-export default new PerpsMarketListViewPO();
+export default new PerpsMarketListView();

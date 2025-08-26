@@ -104,6 +104,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   CLOSE_BUTTON: 'perps-market-list-close-button',
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
+  LIST: 'perps-market-list-flashlist',
 };
 
 // ========================================
@@ -312,6 +313,25 @@ export const PerpsChartAdditionalSelectorsIDs = {
   CANDLESTICK_X_AXIS: 'chart-x-axis',
   CHART_GRID: 'chart-grid',
   CANDLESTICK_AUXILIARY_LINES: 'candlestick-auxiliary-lines',
+};
+// ========================================
+// PERPS HOME SELECTORS
+// ========================================
+
+export const PerpsHomeSelectorsIDs = {
+  START_TRADING_BUTTON: 'perps-home-start-trading-button',
+  FIRST_TIME_CONTAINER: 'perps-home-first-time-container',
+};
+
+// ========================================
+// PERPS TUTORIAL SELECTORS
+// ========================================
+
+export const PerpsTutorialSelectorsIDs = {
+  CONTINUE_BUTTON: 'perps-tutorial-continue-button',
+  ADD_FUNDS_BUTTON: 'perps-tutorial-add-funds-button',
+  SKIP_BUTTON: 'perps-tutorial-skip-button',
+  GOT_IT: 'perps-tutorial-got-it-button',
 };
 // ========================================
 // PERPS BOTTOM SHEET TOOLTIP SELECTORS

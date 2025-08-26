@@ -70,6 +70,10 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
 
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
   get nftTabContainer(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NFT_TAB_CONTAINER);
   }
@@ -205,6 +209,18 @@ class WalletView {
 
   async tapNftTab(): Promise<void> {
     await Gestures.waitAndTap(this.nftTab);
+  }
+
+  async tapPerpsTab(): Promise<void> {
+    await device.disableSynchronization();
+    await Gestures.waitAndTap(this.perpsTab, { delay: 300 });
+  }
+
+  async expectPerpsTabLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.perpsTab, {
+      description: 'Perps tab should be visible',
+      timeout: 7000,
+    });
   }
 
   async scrollDownOnNFTsTab(): Promise<void> {

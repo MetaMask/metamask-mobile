@@ -61,6 +61,7 @@ import type {
   WithdrawResult,
 } from './types';
 import { getEnvironment } from './utils';
+import { isE2E } from '../../../../util/test/utils';
 
 /**
  * Error codes for PerpsController
@@ -395,9 +396,7 @@ export class PerpsController extends BaseController<
     }
     this.providers.clear();
 
-    const useMock =
-      process.env.EXPO_PUBLIC_USE_MOCK_PERPS === 'true' ||
-      process.env.USE_MOCK_PERPS === 'true';
+    const useMock = isE2E;
 
     if (useMock) {
       this.providers.set('mock-perps', new MockPerpsProvider());

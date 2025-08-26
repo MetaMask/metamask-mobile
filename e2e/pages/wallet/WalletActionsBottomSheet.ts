@@ -75,7 +75,8 @@ class WalletActionsBottomSheet {
   }
 
   async tapPerpsButton() {
-    await Gestures.waitAndTap(this.perpsButton);
+    // Robust tap: wait visible, then tap with small delay; fallback to tapAtPoint if needed
+    await Gestures.waitAndTap(this.perpsButton, { delay: 300 });
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {

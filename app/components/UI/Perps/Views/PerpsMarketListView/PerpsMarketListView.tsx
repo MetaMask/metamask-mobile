@@ -282,6 +282,8 @@ const PerpsMarketListView = ({
             contentContainerStyle={styles.flashListContent}
             refreshing={isRefreshingMarkets}
             onRefresh={handleRefresh}
+            // Expose list testID for E2E scroll helpers
+            testID={PerpsMarketListViewSelectorsIDs.LIST}
           />
         </Animated.View>
       </>

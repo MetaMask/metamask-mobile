@@ -151,7 +151,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
     if (isFirstTimeUser) {
       return (
-        <View style={styles.firstTimeContainer}>
+        <View
+          style={styles.firstTimeContainer}
+          testID="perps-home-first-time-container"
+        >
           <Icon
             name={IconName.Details}
             color={IconColor.Muted}
@@ -179,6 +182,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             onPress={handleStartTrading}
             style={styles.startTradingButton}
             width={ButtonWidthTypes.Full}
+            testID="perps-home-start-trading-button"
           />
         </View>
       );

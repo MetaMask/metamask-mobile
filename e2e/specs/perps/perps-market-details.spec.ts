@@ -5,8 +5,7 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
-import Assertions from '../../framework/Assertions';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 
 describe(SmokeTrade('Perps - open market details from list'), () => {
   beforeEach(async () => {
@@ -19,31 +18,22 @@ describe(SmokeTrade('Perps - open market details from list'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withPerpsFeatureFlagEnabled()
+          .withPerpsMockBalance('1000')
           .build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
+        // Open actions sheet first, then tap Perps
         await TabBarComponent.tapActions();
+        await device.disableSynchronization();
         await WalletActionsBottomSheet.tapPerpsButton();
         await PerpsMarketListView.expectLoaded();
 
-        // Wait for and tap a known market row (poll for data to load)
-        await PerpsMarketListView.waitForAnyKnownMarket();
+        // Tap BTC row explicitly by testID
+        await PerpsMarketListView.tapMarketRowBySymbol('BTC');
 
-        // Validate critical elements on market details page
-        await Assertions.expectElementToBeVisible(
-          element(by.id(PerpsMarketDetailsViewSelectorsIDs.HEADER)),
-        );
-        await Assertions.expectElementToBeVisible(
-          element(by.id(PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON)),
-        );
-        await Assertions.expectElementToBeVisible(
-          element(by.id(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON)),
-        );
-        await Assertions.expectElementToBeVisible(
-          element(by.id(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON)),
-        );
+        await PerpsMarketDetailsView.expectLoaded();
       },
     );
   });
