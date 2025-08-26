@@ -38,6 +38,11 @@ describe('DepositDateField', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('render matches snapshot with empty value', () => {
+    const { toJSON } = render(<DepositDateField {...defaultProps} value="" />);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   describe('Platform specific rendering', () => {
     const originalPlatform = Platform.OS;
 

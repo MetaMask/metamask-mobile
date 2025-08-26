@@ -5,10 +5,13 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    subtitle: {
-      fontSize: 14,
+    textContainer: {
       marginTop: 24,
-      marginBottom: 20,
+      marginBottom: 16,
+      gap: 8,
+    },
+    subtitle: {
+      color: theme.colors.text.alternative,
     },
     nameInputRow: {
       flexDirection: 'row',
@@ -36,10 +39,8 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.muted,
       marginLeft: 4,
     },
-    error: {
-      color: theme.colors.error.default,
-      fontSize: 12,
-      marginTop: 4,
+    errorContainer: {
+      marginVertical: 8,
     },
     label: {
       fontSize: 14,

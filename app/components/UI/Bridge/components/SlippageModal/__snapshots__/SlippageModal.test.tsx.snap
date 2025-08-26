@@ -85,8 +85,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 8,
-              "borderTopRightRadius": 8,
+              "borderTopLeftRadius": 24,
+              "borderTopRightRadius": 24,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -135,6 +135,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -158,7 +159,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -484,7 +484,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,

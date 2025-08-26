@@ -85,8 +85,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 8,
-              "borderTopRightRadius": 8,
+              "borderTopLeftRadius": 24,
+              "borderTopRightRadius": 24,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -135,6 +135,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -145,20 +146,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
           <View
             style={
               {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -176,17 +165,6 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             >
               Select a token to deposit
             </Text>
-          </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
           </View>
         </View>
         <View
@@ -452,7 +430,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontFamily": "Geist Bold",
                         "fontSize": 32,
                         "letterSpacing": 0,
@@ -691,7 +669,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#1c7e33",
+                            "color": "#457a39",
                             "fontFamily": "Geist Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -897,7 +875,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#1c7e33",
+                            "color": "#457a39",
                             "fontFamily": "Geist Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,

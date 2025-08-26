@@ -6,7 +6,6 @@ import {
   View,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
@@ -41,6 +40,7 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   getNetworkImageSource,
   isPerDappSelectedNetworkEnabled,
@@ -362,7 +362,12 @@ const PermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditAccountsButtonPress}>
+      <TouchableOpacity
+        onPress={handleEditAccountsButtonPress}
+        testID={
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON
+        }
+      >
         <View
           style={styles.accountPermissionRequestInfoCard}
           testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
@@ -541,22 +546,9 @@ const PermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveUnderlineStyle={styles.tabUnderlineStyleInactive}
-          inactiveTextColor={colors.text.muted}
-          backgroundColor={colors.background.alternative}
-          tabStyle={styles.tabStyle}
-          textStyle={styles.textStyle}
-          tabPadding={16}
-          style={styles.tabBar}
-          {...props}
-        />
-      </View>
+      <TabBar backgroundColor={colors.background.alternative} {...props} />
     ),
-    [styles, colors],
+    [colors],
   );
 
   const filteredAccountAddresses = useMemo(

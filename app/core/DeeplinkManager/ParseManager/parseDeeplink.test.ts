@@ -76,6 +76,7 @@ describe('parseDeeplink', () => {
       urlObj,
       browserCallBack: browserCallBackMock,
       url,
+      source: 'testOrigin',
     });
   });
 
@@ -100,6 +101,7 @@ describe('parseDeeplink', () => {
       urlObj,
       browserCallBack: browserCallBackMock,
       url,
+      source: 'testOrigin',
     });
   });
 

@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -16,11 +18,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { createKycProcessingNavDetails } from '../KycProcessing/KycProcessing';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
+import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -30,20 +31,22 @@ import PrivacySection from '../../components/PrivacySection';
 import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
 import { useDepositRouting } from '../../hooks/useDepositRouting';
-import { getCryptoCurrencyFromTransakId } from '../../utils';
 import { VALIDATION_REGEX } from '../../constants/constants';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
+import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export interface EnterAddressParams {
-  formData: BasicInfoFormData;
+  previousFormData?: BasicInfoFormData & AddressFormData;
   quote: BuyQuote;
-  kycUrl?: string;
 }
 
 export const createEnterAddressNavDetails =
   createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
-interface AddressFormData {
+export interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -55,14 +58,11 @@ interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const {
-    formData: basicInfoFormData,
-    quote,
-    kycUrl,
-  } = useParams<EnterAddressParams>();
+  const { quote, previousFormData } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const trackEvent = useAnalytics();
 
   const addressLine1InputRef = useRef<TextInput>(null);
   const addressLine2InputRef = useRef<TextInput>(null);
@@ -70,20 +70,23 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
-  const { navigateToKycWebview } = useDepositRouting({
+  const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
 
   const initialFormData: AddressFormData = {
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    postCode: '',
-    countryCode: selectedRegion?.isoCode || '',
+    addressLine1: previousFormData?.addressLine1 || '',
+    addressLine2: previousFormData?.addressLine2 || '',
+    state: previousFormData?.state || '',
+    city: previousFormData?.city || '',
+    postCode: previousFormData?.postCode || '',
+    countryCode: previousFormData?.countryCode || selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {
@@ -173,26 +176,11 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitPurpose] = useDepositSdkMethod(
-    {
-      method: 'submitPurposeOfUsageForm',
-      onMount: false,
-      throws: true,
-    },
-    ['Buying/selling crypto for investments'],
-  );
-
-  const [, submitSsnDetails] = useDepositSdkMethod({
-    method: 'submitSsnDetails',
-    onMount: false,
-    throws: true,
-  });
-
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.enter_address.title') },
+        { title: strings('deposit.enter_address.navbar_title') },
         theme,
       ),
     );
@@ -201,26 +189,20 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
+    // Clear any previous errors when retrying
+    setError(null);
+
+    trackEvent('RAMPS_ADDRESS_ENTERED', {
+      region: selectedRegion?.isoCode || '',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
+    });
+
     try {
       setLoading(true);
-      const combinedFormData = {
-        ...basicInfoFormData,
-        ...formData,
-      };
+      await postKycForm(formData);
 
-      await postKycForm(combinedFormData);
-
-      if (basicInfoFormData.ssn) {
-        await submitSsnDetails(basicInfoFormData.ssn);
-      }
-
-      await submitPurpose();
-
-      if (kycUrl) {
-        navigateToKycWebview({ quote, kycUrl });
-      } else {
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-      }
+      await routeAfterAuthentication(quote);
     } catch (submissionError) {
       setLoading(false);
       setError(
@@ -237,15 +219,12 @@ const EnterAddress = (): JSX.Element => {
     }
   }, [
     validateFormData,
-    basicInfoFormData,
     formData,
     postKycForm,
-    submitPurpose,
-    navigation,
     quote,
-    kycUrl,
-    navigateToKycWebview,
-    submitSsnDetails,
+    routeAfterAuthentication,
+    selectedRegion?.isoCode,
+    trackEvent,
   ]);
 
   return (
@@ -257,9 +236,22 @@ const EnterAddress = (): JSX.Element => {
         >
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
-            <Text style={styles.subtitle}>
-              {strings('deposit.enter_address.subtitle')}
-            </Text>
+            <View style={styles.textContainer}>
+              <Text variant={TextVariant.HeadingLG}>
+                {strings('deposit.enter_address.title')}
+              </Text>
+              <Text style={styles.subtitle}>
+                {strings('deposit.enter_address.subtitle')}
+              </Text>
+            </View>
+            {error && (
+              <View style={styles.errorContainer}>
+                <BannerAlert
+                  description={error}
+                  severity={BannerAlertSeverity.Error}
+                />
+              </View>
+            )}
 
             <DepositTextField
               label={strings('deposit.enter_address.address_line_1')}
@@ -380,7 +372,6 @@ const EnterAddress = (): JSX.Element => {
                 }
               />
             </View>
-            {error && <Text style={styles.error}>{error}</Text>}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
         <ScreenLayout.Footer>

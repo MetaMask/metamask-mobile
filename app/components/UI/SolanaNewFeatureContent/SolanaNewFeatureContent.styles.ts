@@ -1,35 +1,39 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
+import Device from '../../../util/device';
 
 const createStyles = () =>
   StyleSheet.create({
     scroll: {
-      flex: 1,
+      flexGrow: 1,
+      minHeight: '100%',
     },
     wrapper: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 30,
+      paddingTop: 30,
+      minHeight: '100%',
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: 10,
     },
     title: {
       fontSize: 60,
       lineHeight: 60,
       textAlign: 'center',
-      paddingTop: 60,
-      fontFamily: 'MMPoly-Regular',
+      paddingTop: Device.isLargeDevice() ? 40 : 10,
+      fontFamily: 'MM Poly Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     titleDescription: {
       paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     foxImage: {
-      height: 350,
+      height: Device.isLargeDevice() ? 350 : 260,
     },
     ctas: {
       flex: 1,
@@ -38,11 +42,12 @@ const createStyles = () =>
       paddingHorizontal: 30,
     },
     createWrapper: {
-      flex: 1,
+      display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 5,
       marginBottom: 16,
+      paddingHorizontal: 30,
     },
     learnMoreButton: {
       textDecorationLine: 'underline',
@@ -55,11 +60,17 @@ const createStyles = () =>
       borderRadius: 12,
       backgroundColor: importedColors.gettingStartedTextColor,
     },
+    importWalletButtonText: {
+      color: importedColors.white,
+    },
     notNowButton: {
       borderRadius: 12,
       backgroundColor: importedColors.transparent,
       borderWidth: 1,
       borderColor: importedColors.transparent,
+    },
+    notNowButtonText: {
+      color: importedColors.gettingStartedTextColor,
     },
   });
 

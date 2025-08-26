@@ -1,22 +1,22 @@
 import { RequestPaymentViewSelectors } from '../../selectors/Receive/RequestPaymentView.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 
 class RequestPaymentView {
-  get backButton(): TappableElement {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(RequestPaymentViewSelectors.BACK_BUTTON_ID);
   }
 
-  get tokenSearchInput(): TypableElement {
+  get tokenSearchInput(): DetoxElement {
     return Matchers.getElementByID(
       RequestPaymentViewSelectors.TOKEN_SEARCH_INPUT_BOX,
-    ) as TypableElement;
+    );
   }
 
-  get requestAmountInput(): TypableElement {
+  get requestAmountInput(): DetoxElement {
     return Matchers.getElementByID(
       RequestPaymentViewSelectors.REQUEST_AMOUNT_INPUT_BOX_ID,
-    ) as TypableElement;
+    );
   }
 
   get requestPaymentContainer(): DetoxElement {
@@ -36,19 +36,24 @@ class RequestPaymentView {
   }
 
   async searchForToken(token: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.tokenSearchInput, token);
+    await Gestures.typeText(this.tokenSearchInput, token, {
+      elemDescription: 'Token Search Input',
+      hideKeyboard: true,
+    });
   }
 
   async tapOnToken(token: string) {
     const tokenElement = await Matchers.getElementByText(token, 0);
-    await Gestures.waitAndTap(Promise.resolve(tokenElement));
+    await Gestures.waitAndTap(Promise.resolve(tokenElement), {
+      elemDescription: `Token "${token}" in Request Payment View`,
+    });
   }
 
   async typeInTokenAmount(amount: number | string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(
-      this.requestAmountInput,
-      String(amount),
-    );
+    await Gestures.typeText(this.requestAmountInput, String(amount), {
+      elemDescription: 'Request Amount Input',
+      hideKeyboard: true,
+    });
   }
 }
 

@@ -2,12 +2,14 @@
 
 // Third party dependencies.
 import React, { useMemo } from 'react';
-import { Image } from 'react-native';
+import { Image as RNImage } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
 import { toDataUrl } from '../../../../../../util/blockies';
+import { Maskicon } from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
 import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';
@@ -24,25 +26,44 @@ const AvatarAccount = ({
   style,
   ...props
 }: AvatarAccountProps) => {
+  const { styles } = useStyles(stylesheet, {
+    style,
+    size,
+  });
+
   const avatar = useMemo(() => {
     switch (avatarType) {
       case AvatarAccountType.JazzIcon:
-        return <JazzIcon size={Number(size)} address={accountAddress} />;
+        return (
+          <JazzIcon
+            size={Number(size)}
+            address={accountAddress}
+            containerStyle={styles.artStyle}
+          />
+        );
       case AvatarAccountType.Blockies:
         return (
-          <Image
+          <RNImage
             source={{ uri: toDataUrl(accountAddress) }}
-            style={stylesheet.imageStyle}
+            style={[styles.imageStyle, styles.artStyle]}
+          />
+        );
+      case AvatarAccountType.Maskicon:
+        return (
+          <Maskicon
+            address={accountAddress}
+            size={Number(size)}
+            style={styles.artStyle}
           />
         );
       default:
         avatarType satisfies never;
         return null;
     }
-  }, [avatarType, accountAddress, size]);
+  }, [avatarType, accountAddress, size, styles.artStyle, styles.imageStyle]);
 
   return (
-    <AvatarBase size={size} style={style} {...props}>
+    <AvatarBase size={size} style={styles.avatarBase} {...props}>
       {avatar}
     </AvatarBase>
   );

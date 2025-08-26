@@ -177,7 +177,6 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',

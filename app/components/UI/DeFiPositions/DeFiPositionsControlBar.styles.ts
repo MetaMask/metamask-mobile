@@ -15,7 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
       alignItems: 'center',
     },
     controlButton: {

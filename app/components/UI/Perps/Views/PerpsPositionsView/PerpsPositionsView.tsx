@@ -1,43 +1,61 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { SafeAreaView, ScrollView, RefreshControl, View } from 'react-native';
 import {
   useNavigation,
-  useFocusEffect,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
-import { usePerpsAccount, usePerpsTrading } from '../../hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
+import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import type { Position } from '../../controllers/types';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  usePerpsAccount,
+  usePerpsLivePositions,
+  usePerpsTPSLUpdate,
+} from '../../hooks';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PerpsPositionsView: React.FC = () => {
-  const { styles, theme } = useStyles(createStyles, {});
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-  const { getPositions } = usePerpsTrading();
   const cachedAccountState = usePerpsAccount();
 
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
+    null,
+  );
+  const [isTPSLVisible, setIsTPSLVisible] = useState(false);
+
+  // Get real-time positions via WebSocket
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000, // Update every second
+  });
+
+  const error = null;
+
+  const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
+    onSuccess: () => {
+      // Positions update automatically via WebSocket
+      setIsTPSLVisible(false);
+      setSelectedPosition(null);
+    },
+  });
 
   // Memoize position count text to avoid recalculating on every render
   const positionCountText = useMemo(() => {
@@ -51,55 +69,6 @@ const PerpsPositionsView: React.FC = () => {
         });
   }, [positions]);
 
-  // Load positions data
-  const loadPositions = useCallback(
-    async (isRefresh = false) => {
-      try {
-        if (isRefresh) {
-          setIsRefreshing(true);
-        } else {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        // Get positions from controller
-        const positionsData = await getPositions();
-        setPositions(positionsData || []);
-
-        DevLogger.log('PerpsPositionsView: Loaded positions', {
-          count: positionsData?.length || 0,
-          positions: positionsData?.map((p) => ({
-            coin: p.coin,
-            size: p.size,
-            pnl: p.unrealizedPnl,
-          })),
-        });
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to load positions';
-        setError(errorMessage);
-        DevLogger.log('PerpsPositionsView: Error loading positions', err);
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [getPositions],
-  );
-
-  // Load positions on mount
-  useEffect(() => {
-    loadPositions();
-  }, [loadPositions]);
-
-  // Refresh positions when screen comes into focus (e.g., after closing a position)
-  useFocusEffect(
-    useCallback(() => {
-      // Refresh positions data when returning to this screen
-      loadPositions(true); // Use refresh mode to avoid showing loading spinner
-    }, [loadPositions]),
-  );
-
   // Calculate total unrealized PnL using utility function
   const totalUnrealizedPnl = calculateTotalPnL({ positions });
 
@@ -107,12 +76,8 @@ const PerpsPositionsView: React.FC = () => {
     navigation.goBack();
   };
 
-  const handleRefresh = () => {
-    loadPositions(true);
-  };
-
   const renderContent = () => {
-    if (isLoading) {
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
@@ -184,16 +149,7 @@ const PerpsPositionsView: React.FC = () => {
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.colors.primary.default}
-          />
-        }
-      >
+      <ScrollView style={styles.container}>
         {/* Account Summary */}
         <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
@@ -244,6 +200,31 @@ const PerpsPositionsView: React.FC = () => {
 
         {renderContent()}
       </ScrollView>
+
+      {/* TP/SL Bottom Sheet - Rendered outside ScrollView to fix layering issue */}
+      {isTPSLVisible && selectedPosition && (
+        <PerpsTPSLBottomSheet
+          isVisible
+          onClose={() => {
+            setIsTPSLVisible(false);
+            setSelectedPosition(null);
+          }}
+          onConfirm={async (takeProfitPrice, stopLossPrice) => {
+            await handleUpdateTPSL(
+              selectedPosition,
+              takeProfitPrice,
+              stopLossPrice,
+            );
+            setIsTPSLVisible(false);
+            setSelectedPosition(null);
+          }}
+          asset={selectedPosition.coin}
+          position={selectedPosition}
+          initialTakeProfitPrice={selectedPosition.takeProfitPrice}
+          initialStopLossPrice={selectedPosition.stopLossPrice}
+          isUpdating={isUpdating}
+        />
+      )}
     </SafeAreaView>
   );
 };

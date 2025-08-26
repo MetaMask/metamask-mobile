@@ -31,13 +31,20 @@ export const selectTokens = createDeepEqualSelector(
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
-  selectEvmChainId,
   selectSelectedInternalAccountAddress,
+  (_state, chainId: Hex) => chainId,
   (
     tokensControllerState: TokensControllerState,
-    chainId: Hex,
     selectedAddress: string | undefined,
-  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+    chainId: Hex,
+  ) =>
+    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex]?.reduce(
+      (tokensMap: { [address: string]: Token }, token: Token) => ({
+        ...tokensMap,
+        [token.address]: token,
+      }),
+      {},
+    ) ?? {},
 );
 
 export const selectTokensByAddress = createSelector(

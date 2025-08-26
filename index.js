@@ -5,6 +5,9 @@ import './shim.js';
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
 
+// why-did-you-render must run as early as possible (after gesture-handler) in dev
+import './wdyr';
+
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
@@ -16,6 +19,14 @@ import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
+
+import { enableFreeze } from 'react-native-screens';
+
+if (__DEV__) {
+  require('./ReactotronConfig');
+}
+
+enableFreeze(true);
 
 // Setup Sentry
 setupSentry();

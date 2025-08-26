@@ -8,9 +8,8 @@ import {
   type PublishBatchHookResult,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { hasProperty, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
-import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
@@ -18,7 +17,6 @@ import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confi
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
-import { getGlobalChainId as getGlobalChainIdSelector } from '../../../../util/networks/global-network';
 import {
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
@@ -41,19 +39,15 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
+import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
-  const {
-    controllerMessenger,
-    getState,
-    getGlobalChainId,
-    initMessenger,
-    persistedState,
-  } = request;
+  const { controllerMessenger, getState, initMessenger, persistedState } =
+    request;
 
   const {
     approvalController,
@@ -113,12 +107,7 @@ export const TransactionControllerInit: ControllerInitFunction<
             }),
         },
         incomingTransactions: {
-          isEnabled: () =>
-            isIncomingTransactionsEnabled(
-              preferencesController,
-              networkController,
-              getGlobalChainId,
-            ),
+          isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
         isSimulationEnabled: () =>
@@ -146,7 +135,7 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
-function publishHook({
+async function publishHook({
   transactionMeta,
   getState,
   transactionController,
@@ -164,8 +153,13 @@ function publishHook({
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
+
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
+
+  await new PayHook({
+    messenger: initMessenger,
+  }).getHook()(transactionMeta, signedTransactionInHex);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({
@@ -227,9 +221,7 @@ function publishBatchSmartTransactionHook({
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
 
   if (!shouldUseSmartTransaction) {
-    throw new Error(
-      'publishBatchSmartTransactionHook: Smart Transaction is required for batch submissions',
-    );
+    return Promise.resolve(undefined);
   }
 
   return submitBatchSmartTransactionHook({
@@ -247,19 +239,8 @@ function publishBatchSmartTransactionHook({
 
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
-  networkController: NetworkController,
-  getGlobalChainId: () => string,
 ): boolean {
-  const currentHexChainId = getGlobalChainIdSelector(networkController);
-  const showIncomingTransactions =
-    preferencesController.state?.showIncomingTransactions;
-  const currentChainId = getGlobalChainId();
-  return Boolean(
-    hasProperty(showIncomingTransactions, currentChainId) &&
-      showIncomingTransactions?.[
-        currentHexChainId as unknown as keyof typeof showIncomingTransactions
-      ],
-  );
+  return preferencesController.state?.privacyMode !== true;
 }
 
 function getControllers(

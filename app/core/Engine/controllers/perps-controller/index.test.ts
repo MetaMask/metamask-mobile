@@ -82,19 +82,19 @@ describe('perps controller init', () => {
       ],
       accountState: null,
       pendingOrders: [],
-      depositStatus: 'idle',
-      depositFlowType: null,
-      currentDepositTxHash: null,
-      depositError: null,
-      requiresModalDismissal: false,
-      depositSteps: {
-        totalSteps: 0,
-        currentStep: 0,
-        stepNames: [],
-        stepTxHashes: [],
-      },
+      depositInProgress: false,
+      lastDepositResult: null,
       lastError: null,
       lastUpdateTimestamp: Date.now(),
+      isEligible: false,
+      isFirstTimeUser: {
+        testnet: true,
+        mainnet: true,
+      },
+      hasPlacedFirstOrder: {
+        testnet: false,
+        mainnet: false,
+      },
     };
 
     initRequestMock.persistedState = {

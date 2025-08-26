@@ -74,8 +74,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -128,6 +128,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             "rowGap": 16,
           }
         }
+        testID="onboarding-sheet"
       >
         <Text
           accessibilityRole="text"
@@ -176,7 +177,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-create-new-wallet-button-id"
+            testID="onboarding-sheet-google-login-button-id"
           >
             <View
               style={
@@ -232,7 +233,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-apple-login-button-id"
           >
             <View
               style={
@@ -289,7 +290,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             accessibilityRole="text"
             style={
               {
-                "color": "#9ca1af",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -330,7 +331,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -341,7 +342,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
@@ -439,8 +440,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -493,6 +494,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             "rowGap": 16,
           }
         }
+        testID="onboarding-sheet"
       >
         <Text
           accessibilityRole="text"
@@ -541,7 +543,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-create-new-wallet-button-id"
+            testID="onboarding-sheet-google-login-button-id"
           >
             <View
               style={
@@ -597,7 +599,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-apple-login-button-id"
           >
             <View
               style={
@@ -654,7 +656,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
             accessibilityRole="text"
             style={
               {
-                "color": "#9ca1af",
+                "color": "#b7bbc8",
                 "fontFamily": "Geist Medium",
                 "fontSize": 18,
                 "letterSpacing": 0,
@@ -695,7 +697,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -706,7 +708,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 "paddingHorizontal": 16,
               }
             }
-            testID="wallet-setup-screen-import-from-seed-button-id"
+            testID="onboarding-sheet-import-seed-button-id"
           >
             <Text
               accessibilityRole="text"
@@ -720,7 +722,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 }
               }
             >
-              Continue with Secret Recovery Phrase
+              Use Secret Recovery Phrase
             </Text>
           </TouchableOpacity>
         </View>

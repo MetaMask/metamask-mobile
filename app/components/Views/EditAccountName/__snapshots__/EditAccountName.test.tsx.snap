@@ -72,7 +72,7 @@ exports[`EditAccountName should render correctly 1`] = `
             onFocus={[Function]}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -144,7 +144,7 @@ exports[`EditAccountName should render correctly 1`] = `
             placeholder="0x49a016E6736F9Ad381605c...72A6"
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -183,7 +183,7 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,

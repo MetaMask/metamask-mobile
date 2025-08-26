@@ -112,6 +112,7 @@ const createStyles = (colors) =>
     keypad: {
       flexGrow: 1,
       justifyContent: 'space-around',
+      paddingHorizontal: 16,
     },
     tokenButtonContainer: {
       flexDirection: 'row',
@@ -127,7 +128,7 @@ const createStyles = (colors) =>
       textAlignVertical: 'center',
       fontSize: Device.isIphone5() ? 30 : 40,
       height: Device.isIphone5() ? 40 : 50,
-      lineHeight: Device.isIphone5() ? 40 : 50,
+      lineHeight: Device.isIphone5() ? 33 : 44,
     },
     amountInvalid: {
       color: colors.error.default,

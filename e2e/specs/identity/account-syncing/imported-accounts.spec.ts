@@ -1,8 +1,8 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../../framework/Assertions.ts';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
@@ -11,9 +11,9 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import ImportAccountView from '../../../pages/importAccount/ImportAccountView.js';
-import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import ImportAccountView from '../../../pages/importAccount/ImportAccountView';
+import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView';
 import { IDENTITY_TEAM_IMPORTED_PRIVATE_KEY } from '../utils/constants.ts';
 import { createUserStorageController } from '../utils/mocks.ts';
 

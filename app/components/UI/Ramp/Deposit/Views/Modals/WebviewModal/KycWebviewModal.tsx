@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 import WebviewModal, { WebviewModalParams } from './WebviewModal';
-import useUserDetailsPolling from '../../../hooks/useUserDetailsPolling';
-import { KycStatus } from '../../../constants';
-import { createKycProcessingNavDetails } from '../../KycProcessing/KycProcessing';
+import useIdProofPolling from '../../../hooks/useIdProofPolling';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { useDepositRouting } from '../../../hooks/useDepositRouting';
+import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 interface KycWebviewModalParams extends WebviewModalParams {
   quote: BuyQuote;
+  kycWorkflowRunId: string;
+  cryptoCurrencyChainId: string;
+  paymentMethodId: string;
 }
 
 export const createKycWebviewModalNavigationDetails =
@@ -23,45 +25,37 @@ export const createKycWebviewModalNavigationDetails =
   );
 
 function KycWebviewModal() {
-  const navigation = useNavigation();
-  const { quote } = useParams<KycWebviewModalParams>();
+  const { quote, cryptoCurrencyChainId, paymentMethodId, kycWorkflowRunId } =
+    useParams<KycWebviewModalParams>();
 
-  const {
-    userDetails: userDetailsPolling,
-    startPolling,
-    stopPolling,
-  } = useUserDetailsPolling(5000, false, 0);
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
 
-  useEffect(() => {
-    startPolling();
-
-    return () => {
-      stopPolling();
-    };
-  }, [startPolling, stopPolling]);
+  const { idProofStatus } = useIdProofPolling(kycWorkflowRunId, 1000, true, 0);
 
   useEffect(() => {
-    const kycStatus = userDetailsPolling?.kyc?.l1?.status;
-    const kycType = userDetailsPolling?.kyc?.l1?.type;
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+    });
 
-    if (
-      kycStatus &&
-      kycStatus !== KycStatus.NOT_SUBMITTED &&
-      kycType !== null &&
-      kycType !== 'SIMPLE'
-    ) {
-      stopPolling();
-      if (quote) {
-        navigation.navigate(...createKycProcessingNavDetails({ quote }));
-      }
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+    });
+  }, []);
+
+  useEffect(() => {
+    if (idProofStatus === 'SUBMITTED' && quote) {
+      routeAfterAuthentication(quote);
     }
-  }, [
-    userDetailsPolling?.kyc?.l1?.status,
-    userDetailsPolling?.kyc?.l1?.type,
-    stopPolling,
-    navigation,
-    quote,
-  ]);
+  }, [idProofStatus, quote, routeAfterAuthentication]);
 
   return <WebviewModal />;
 }

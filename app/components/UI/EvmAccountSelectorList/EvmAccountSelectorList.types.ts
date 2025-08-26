@@ -4,7 +4,7 @@ import { FlashListProps } from '@shopify/flash-list';
 
 // External dependencies
 import { Account, UseAccounts } from '../../hooks/useAccounts';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 
 type FlattenedAccountListItem =
   | { type: 'header'; data: AccountSection; sectionIndex: number }
@@ -79,7 +79,7 @@ export interface EvmAccountSelectorListProps
 
 export interface AccountSection {
   title: string;
-  wallet?: AccountWallet;
+  wallet?: AccountWalletObject;
   data: Account[];
 }
 

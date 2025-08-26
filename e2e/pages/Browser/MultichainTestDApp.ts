@@ -1,26 +1,27 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
 import TestHelpers from '../../helpers';
-import { getLocalTestDappPort } from '../../fixtures/utils';
-import Matchers from '../../utils/Matchers';
+import { getLocalTestDappPort } from '../../framework/fixtures/FixtureUtils';
+import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
   MultichainTestDappViewSelectorsIDs,
   MULTICHAIN_TEST_TIMEOUTS,
 } from '../../selectors/Browser/MultichainTestDapp.selectors';
 import Browser from './BrowserView';
-import Gestures from '../../utils/Gestures';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import ConnectBottomSheet from './ConnectBottomSheet';
 import MultichainUtilities from '../../utils/MultichainUtilities';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
 export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
-  'https://metamask.github.io/multichain-test-dapp/';
+  'https://metamask.github.io/test-dapp-multichain/';
 
 /**
  * Get the multichain test dapp URL based on environment configuration
@@ -133,10 +134,16 @@ class MultichainTestDApp {
   /**
    * Common test setup: reverse port, login, navigate to browser, and open multichain dapp
    * @param urlParams - Optional URL parameters for the dapp (e.g., '?autoMode=true')
+   * @param skipLogin - Optional boolean value to determine if login should be skipped
    */
-  async setupAndNavigateToTestDapp(urlParams = ''): Promise<void> {
-    await TestHelpers.reverseServerPort();
-    await loginToApp();
+  async setupAndNavigateToTestDapp(
+    urlParams = '',
+    skipLogin?: boolean,
+  ): Promise<void> {
+    if (!skipLogin) {
+      await TestHelpers.reverseServerPort();
+      await loginToApp();
+    }
     await TabBarComponent.tapBrowser();
     await Assertions.checkIfVisible(Browser.browserScreenID);
     await this.navigateToMultichainTestDApp(urlParams);
@@ -158,7 +165,7 @@ class MultichainTestDApp {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async tapButton(elementId: any): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tapWebElement(elementId);
+    await Gestures.tap(elementId);
   }
 
   /**

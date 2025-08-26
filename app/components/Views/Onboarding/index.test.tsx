@@ -22,6 +22,7 @@ import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
+import Logger from '../../../util/Logger';
 
 const mockInitialState = {
   engine: {
@@ -59,6 +60,7 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   isAndroid: jest.fn(),
   isIos: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
@@ -80,7 +82,16 @@ jest.mock('../../../core/OAuthService/error', () => ({
     }
   },
   OAuthErrorType: {
+    UnknownError: 'unknown_error',
     UserCancelled: 'user_cancelled',
+    UserDismissed: 'user_dismissed',
+    LoginError: 'login_error',
+    InvalidProvider: 'invalid_provider',
+    UnsupportedPlatform: 'unsupported_platform',
+    LoginInProgress: 'login_in_progress',
+    AuthServerError: 'auth_server_error',
+    InvalidGetAuthTokenParams: 'invalid_get_auth_token_params',
+    InvalidOauthStateError: 'invalid_oauth_state_error',
   },
 }));
 
@@ -97,8 +108,19 @@ jest.mock('../../../core', () => ({
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
-  trace: jest.fn(),
+  trace: jest
+    .fn()
+    .mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
+}));
+
+const mockMetricsIsEnabled = jest.fn().mockReturnValue(false);
+const mockTrackEvent = jest.fn();
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
+  }),
 }));
 
 const mockSeedlessOnboardingEnabled = jest.fn();
@@ -201,6 +223,22 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should render correctly with medium device and android', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('should render correctly with android', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
@@ -239,7 +277,7 @@ describe('Onboarding', () => {
     fireEvent.press(createWalletButton);
   });
 
-  it('should click on import seed button', () => {
+  it('should click on have an existing wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
     (Device.isLargeDevice as jest.Mock).mockReturnValue(false);
@@ -254,7 +292,7 @@ describe('Onboarding', () => {
     );
 
     const importSeedButton = getByTestId(
-      OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+      OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
     fireEvent.press(importSeedButton);
   });
@@ -322,9 +360,13 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
   });
 
@@ -332,8 +374,7 @@ describe('Onboarding', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
     });
-
-    it('should navigate to onboarding sheet when import wallet is pressed for new user', async () => {
+    it('should navigate to onboarding sheet when have an existing wallet button is pressed for new user', async () => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -346,7 +387,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
 
       await act(async () => {
@@ -379,7 +420,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
 
       await act(async () => {
@@ -392,7 +433,10 @@ describe('Onboarding', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        { [PREVIOUS_SCREEN]: ONBOARDING },
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          onboardingTraceCtx: expect.any(Object),
+        }),
       );
     });
   });
@@ -578,10 +622,14 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('ChoosePassword', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should call Apple OAuth login for import wallet flow', async () => {
@@ -601,7 +649,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
       await act(async () => {
         fireEvent.press(importSeedButton);
@@ -623,13 +671,17 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
       );
-      expect(mockNavigate).toHaveBeenCalledWith('Rehydrate', {
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Rehydrate',
+        expect.objectContaining({
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
-    it('should handle OAuth login error with user cancellation', async () => {
+    it('should show error sheet for OAuth user cancellation', async () => {
       const cancelError = new OAuthError(OAuthErrorType.UserCancelled);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockRejectedValue(cancelError);
@@ -661,7 +713,7 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -676,10 +728,10 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should handle OAuth login error with general error', async () => {
-      const generalError = new OAuthError('general_error');
+    it('do not show error sheet for OAuth user dismissal', async () => {
+      const dismissError = new OAuthError(OAuthErrorType.UserDismissed);
       mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(generalError);
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -690,7 +742,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
       await act(async () => {
         fireEvent.press(importSeedButton);
@@ -708,7 +760,7 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -758,10 +810,14 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountAlreadyExists', {
-        accountName: 'existing@example.com',
-        oauthLoginSuccess: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.objectContaining({
+          accountName: 'existing@example.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
     });
 
     it('should navigate to AccountNotFound for new user in import wallet flow', async () => {
@@ -781,7 +837,7 @@ describe('Onboarding', () => {
       );
 
       const importSeedButton = getByTestId(
-        OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
       await act(async () => {
         fireEvent.press(importSeedButton);
@@ -799,10 +855,127 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith('AccountNotFound', {
-        accountName: 'newuser@icloud.com',
-        oauthLoginSuccess: true,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'AccountNotFound',
+        expect.objectContaining({
+          accountName: 'newuser@icloud.com',
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+    });
+  });
+
+  describe('ErrorBoundary Tests', () => {
+    const mockOAuthService = jest.requireMock(
+      '../../../core/OAuthService/OAuthService',
+    );
+    const mockCreateLoginHandler = jest.requireMock(
+      '../../../core/OAuthService/OAuthLoginHandlers',
+    ).createLoginHandler;
+    const { OAuthError, OAuthErrorType } = jest.requireMock(
+      '../../../core/OAuthService/error',
+    );
+
+    beforeEach(() => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      mockSeedlessOnboardingEnabled.mockReset();
+    });
+
+    it('should trigger ErrorBoundary for OAuth login failures when analytics disabled', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      mockMetricsIsEnabled.mockReturnValueOnce(false);
+      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
       });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      // Verify that the built-in ErrorBoundary caught the error and rendered its fallback UI
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'OAuth login failed: ',
+        }),
+        expect.objectContaining({
+          View: 'Onboarding',
+          ErrorBoundary: true,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+    });
+
+    it('should not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValue(true);
+      const dismissError = new OAuthError(OAuthErrorType.AuthServerError);
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(dismissError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
     });
   });
 });

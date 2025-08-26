@@ -174,7 +174,7 @@ const Settings = () => {
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp({ locked: true });
+    await Authentication.lockApp({ reset: false, locked: true });
   };
 
   const lock = () => {
@@ -281,6 +281,7 @@ const Settings = () => {
         title={strings('app_settings.snaps.title')}
         description={strings('app_settings.snaps.description')}
         onPress={onPressSnaps}
+        testID={SettingsViewSelectorsIDs.SNAPS}
       />
       {
         ///: END:ONLY_INCLUDE_IF

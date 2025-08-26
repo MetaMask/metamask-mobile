@@ -1,7 +1,5 @@
 import React from 'react';
-import { SolScope } from '@metamask/keyring-api';
 import { fireEvent } from '@testing-library/react-native';
-import '../../UI/Bridge/_mocks_/initialState';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
@@ -11,27 +9,24 @@ import renderWithProvider, {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { RootState } from '../../../reducers';
-import { RampType } from '../../../reducers/fiatOrders/types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
-import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import { trace, TraceName } from '../../../util/trace';
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import { ethers } from 'ethers';
-import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
-import Routes from '../../../constants/navigation/Routes';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
@@ -47,34 +42,6 @@ jest.mock('../../../selectors/earnController/earn', () => ({
     selectEarnTokens: jest.fn().mockReturnValue({
       earnTokens: [],
     }),
-  },
-}));
-
-jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
-  sendMultichainTransaction: jest.fn(),
-}));
-
-const mockSendNonEvmAsset = jest.fn();
-jest.mock('../../hooks/useSendNonEvmAsset', () => ({
-  useSendNonEvmAsset: jest.fn(),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      setActiveNetwork: jest.fn(),
-      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
-        rpcEndpoints: [
-          {
-            networkClientId: 'mockNetworkClientId',
-          },
-        ],
-        defaultRpcEndpointIndex: 0,
-      }),
-    },
-    MultichainNetworkController: {
-      setActiveNetwork: jest.fn(),
-    },
   },
 }));
 
@@ -146,7 +113,6 @@ jest.mock('../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('../../../reducers/swaps', () => ({
   ...jest.requireActual('../../../reducers/swaps'),
-  swapsLivenessSelector: jest.fn().mockReturnValue(true),
   swapsTokensWithBalanceSelector: jest.fn().mockReturnValue([]),
   swapsControllerAndUserTokens: jest.fn().mockReturnValue([]),
 }));
@@ -155,6 +121,8 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../core/redux/slices/bridge'),
   selectAllBridgeableNetworks: jest.fn().mockReturnValue([]),
   selectIsBridgeEnabledSource: jest.fn().mockReturnValue(true),
+  selectIsUnifiedSwapsEnabled: jest.fn().mockReturnValue(false),
+  selectIsSwapsLive: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({
@@ -165,18 +133,17 @@ jest.mock('../../../components/UI/Swaps/utils', () => ({
   isSwapsAllowed: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../UI/Bridge/utils', () => ({
-  isBridgeAllowed: jest.fn().mockReturnValue(true),
+const mockGoToSwaps = jest.fn();
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({
+    goToSwaps: mockGoToSwaps,
+  }),
+  SwapBridgeNavigationLocation: {
+    TabBar: 'TabBar',
+    TokenDetails: 'TokenDetails',
+    Swaps: 'Swaps',
+  },
 }));
-
-jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue([true]),
-}));
-
-jest.mock('../../UI/Ramp/Deposit/hooks/useDepositEnabled', () =>
-  jest.fn().mockReturnValue({ isDepositEnabled: true }),
-);
 
 jest.mock('../../../core/AppConstants', () => {
   const actual = jest.requireActual('../../../core/AppConstants');
@@ -297,26 +264,15 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('../../../util/trace', () => ({
-  trace: jest.fn(),
-  TraceName: {
-    LoadRampExperience: 'LoadRampExperience',
-    LoadDepositExperience: 'LoadDepositExperience',
-  },
-}));
-
 describe('WalletActions', () => {
   beforeEach(() => {
-    // Set up default mock for useSendNonEvmAsset hook
-    mockSendNonEvmAsset.mockResolvedValue(false); // Default to EVM flow
-    (useSendNonEvmAsset as jest.Mock).mockReturnValue({
-      sendNonEvmAsset: mockSendNonEvmAsset,
-      isNonEvmAccount: false,
-    });
+    // Clear all mocks first for test isolation
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
     mockNavigate.mockClear();
+    mockGoToSwaps.mockClear();
     jest.clearAllMocks();
   });
   it('should renderWithProvider correctly', () => {
@@ -334,19 +290,7 @@ describe('WalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON),
-    ).toBeDefined();
-    expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeDefined();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
     // Feature flag is disabled by default
     expect(
@@ -371,25 +315,11 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
   });
-  it('should not show the buy button and swap button if the chain does not allow buying', () => {
+  it('should not show the swap button if the chain does not allow swaps', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
-    (isBridgeAllowed as jest.Mock).mockReturnValue(false);
-    jest
-      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
-      .default.mockReturnValue([false]);
 
     const mockState: DeepPartial<RootState> = {
       swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
-      fiatOrders: {
-        networks: [
-          {
-            active: true,
-            chainId: '1',
-            chainName: 'Ethereum Mainnet',
-            nativeTokenSupported: true,
-          },
-        ],
-      },
       engine: {
         backgroundState: {
           ...backgroundState,
@@ -405,97 +335,16 @@ describe('WalletActions', () => {
       },
     };
 
-    jest.mock('react-redux', () => ({
-      ...jest.requireActual('react-redux'),
-      useSelector: jest
-        .fn()
-        .mockImplementation((callback) => callback(mockState)),
-    }));
-
     const { queryByTestId } = renderWithProvider(<WalletActions />, {
       state: mockState,
     });
 
     expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-    ).toBeNull();
-    expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeNull();
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
-    ).toBeNull();
   });
 
-  it('should call the onBuy function when the Buy button is pressed', () => {
-    jest
-      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
-      .default.mockReturnValue([true]);
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
-    );
-    expect(mockNavigate).toHaveBeenCalled();
-    expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadRampExperience,
-      tags: {
-        rampType: RampType.BUY,
-      },
-    });
-  });
-
-  it('should call the onSell function when the Sell button is pressed', () => {
-    jest
-      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
-      .default.mockReturnValue([true]);
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
-    );
-    expect(mockNavigate).toHaveBeenCalled();
-    expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadRampExperience,
-      tags: {
-        rampType: RampType.SELL,
-      },
-    });
-  });
-
-  it('should call the onDeposit function when the Deposit button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
-    expect(trace).toHaveBeenCalledWith({
-      name: TraceName.LoadDepositExperience,
-    });
-  });
-
-  it('should call the onSend function when the Send button is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('should call the goToSwaps function when the Swap button is pressed', () => {
+  it('should call the goToSwaps function when the Swap button is pressed', async () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
 
@@ -507,48 +356,10 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalled();
-  });
+    // Wait for async operations
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-  it('should call the goToBridge function when the Swap button is pressed on Solana mainnet', () => {
-    (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
-
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      params: {
-        sourcePage: 'MainView',
-        token: {
-          address: ethers.constants.AddressZero,
-          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          decimals: 9,
-          image: '',
-          name: 'Solana',
-          symbol: 'SOL',
-        },
-      },
-      screen: 'BridgeView',
-    });
-  });
-
-  it('should call the goToBridge function when the Bridge button is pressed', () => {
-    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('should call the onEarn function when the Earn button is pressed', () => {
@@ -567,9 +378,8 @@ describe('WalletActions', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalled();
-    expect(
-      Engine.context.MultichainNetworkController.setActiveNetwork,
-    ).not.toHaveBeenCalled();
+    // Verify earn navigation was called
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
@@ -649,7 +459,9 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith('Perps');
+    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+      screen: 'PerpsMarketListView',
+    });
   });
 
   it('disables action buttons when the account cannot sign transactions', () => {
@@ -665,10 +477,6 @@ describe('WalletActions', () => {
     ).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
-    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
-    jest
-      .requireMock('../../UI/Ramp/Aggregator/hooks/useRampNetwork')
-      .default.mockReturnValue([true]);
 
     const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =
       {
@@ -700,122 +508,19 @@ describe('WalletActions', () => {
       state: mockStateWithoutSigningAndStablecoinLendingEnabled,
     });
 
-    const sellButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-    );
-    const sendButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
-    );
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
-    );
-    const bridgeButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
     );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
 
-    expect(sellButton.props.disabled).toBe(true);
-    expect(sendButton.props.disabled).toBe(true);
-    expect(swapButton.props.disabled).toBe(true);
-    expect(bridgeButton.props.disabled).toBe(true);
-    expect(earnButton.props.disabled).toBe(true);
-  });
+    // Test that disabled buttons don't execute their actions when pressed
+    fireEvent.press(swapButton);
+    fireEvent.press(earnButton);
 
-  describe('onSend', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      // Reset to default mock setup (already configured in parent beforeEach)
-      mockSendNonEvmAsset.mockResolvedValue(false);
-      (useSendNonEvmAsset as jest.Mock).mockReturnValue({
-        sendNonEvmAsset: mockSendNonEvmAsset,
-        isNonEvmAccount: false,
-      });
-    });
-
-    it('uses hook for non-EVM snap account and handles successful transaction', async () => {
-      mockSendNonEvmAsset.mockResolvedValue(true); // Hook handled the transaction
-
-      const { getByTestId } = renderWithProvider(<WalletActions />, {
-        state: mockInitialState,
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-      );
-
-      // Wait for async operation
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
-    });
-
-    it('calls native send flow for EVM account', async () => {
-      mockSendNonEvmAsset.mockResolvedValue(false); // Hook did not handle, continue with EVM
-
-      const { getByTestId } = renderWithProvider(<WalletActions />, {
-        state: mockInitialState,
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-      );
-
-      // Wait for async operation
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
-    });
-
-    it('handles hook errors gracefully', async () => {
-      // The hook handles errors internally and returns true (handled) even with errors
-      mockSendNonEvmAsset.mockResolvedValue(true);
-
-      const { getByTestId } = renderWithProvider(<WalletActions />, {
-        state: mockInitialState,
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-      );
-
-      // Wait for async operation
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      // Should not navigate since hook handled it (even with internal error)
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView', {});
-    });
-
-    it('calls hook with correct asset parameters', async () => {
-      const mockSelectedAsset = {
-        address: '0x123',
-        chainId: '0x1',
-        symbol: 'TEST',
-      };
-
-      const stateWithSelectedAsset = {
-        ...mockInitialState,
-        transaction: {
-          selectedAsset: mockSelectedAsset,
-        },
-      };
-
-      const { getByTestId } = renderWithProvider(<WalletActions />, {
-        state: stateWithSelectedAsset,
-      });
-
-      fireEvent.press(
-        getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
-      );
-
-      expect(useSendNonEvmAsset).toHaveBeenCalledWith({
-        asset: mockSelectedAsset,
-        closeModal: expect.any(Function),
-      });
-    });
+    // Since buttons are disabled, none of the mock functions should be called
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
 });

@@ -37,7 +37,6 @@ const createStyles = (colors: Colors) =>
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 16,
       height: 64,
       alignItems: 'center',
     },
@@ -98,7 +97,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyMD
+                : TextVariant.BodyMDMedium
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}

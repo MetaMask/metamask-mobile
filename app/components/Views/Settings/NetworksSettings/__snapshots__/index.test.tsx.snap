@@ -116,40 +116,87 @@ exports[`NetworksSettings should render correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -607,6 +654,79 @@ exports[`NetworksSettings should render correctly 1`] = `
                           </View>
                           <View>
                             <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 0,
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Base Main Network
+                                  </Text>
+                                </View>
+                              </View>
+                              <Text
+                                allowFontScaling={false}
+                                selectable={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontSize": 20,
+                                    },
+                                    {
+                                      "marginLeft": 8,
+                                    },
+                                    {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
                               disabled={true}
                               onPress={[Function]}
                               style={
@@ -679,82 +799,6 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 
                               </Text>
                             </TouchableOpacity>
-                          </View>
-                          <View
-                            testID="custom-networks-list"
-                          >
-                            <Text
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
-                                  "fontSize": 14,
-                                  "fontWeight": "600",
-                                  "paddingVertical": 12,
-                                }
-                              }
-                            >
-                              Custom networks
-                            </Text>
-                            <View>
-                              <TouchableOpacity
-                                onLongPress={[Function]}
-                                onPress={[Function]}
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "flex": 1,
-                                      "flexDirection": "row",
-                                      "paddingVertical": 12,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 10,
-                                        "height": 20,
-                                        "justifyContent": "center",
-                                        "marginRight": 16,
-                                        "marginTop": 2,
-                                        "overflow": "hidden",
-                                        "width": 20,
-                                      }
-                                    }
-                                    variant="Network"
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                  <Text
-                                    style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 16,
-                                        "fontWeight": "400",
-                                      }
-                                    }
-                                  >
-                                    Base Mainnet
-                                  </Text>
-                                </View>
-                              </TouchableOpacity>
-                            </View>
                           </View>
                           <Text
                             style={
