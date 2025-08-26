@@ -27,20 +27,20 @@ jest.mock('../../../core/Permissions', () => ({
 }));
 
 const createMockConnection = (id: string, name: string): Connection =>
-({
-  id,
-  metadata: {
-    dapp: {
-      name: `${name} DApp`,
-      url: `https://testdapp${id}.com`,
-      icon: `https://testdapp${id}.com/icon.png`,
+  ({
+    id,
+    metadata: {
+      dapp: {
+        name: `${name} DApp`,
+        url: `https://testdapp${id}.com`,
+        icon: `https://testdapp${id}.com/icon.png`,
+      },
+      sdk: {
+        version: '2.1.0',
+        platform: 'JavaScript',
+      },
     },
-    sdk: {
-      version: '2.1.0',
-      platform: 'JavaScript',
-    },
-  },
-} as Connection);
+  } as Connection);
 
 describe('HostApplicationAdapter', () => {
   let adapter: HostApplicationAdapter;
@@ -156,7 +156,10 @@ describe('HostApplicationAdapter', () => {
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(connectionId, mockAccounts);
+      expect(removePermittedAccounts).toHaveBeenCalledWith(
+        connectionId,
+        mockAccounts,
+      );
     });
 
     it('should not call removePermittedAccounts when there are no permitted accounts', () => {
@@ -177,7 +180,10 @@ describe('HostApplicationAdapter', () => {
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(connectionId, mockAccount);
+      expect(removePermittedAccounts).toHaveBeenCalledWith(
+        connectionId,
+        mockAccount,
+      );
     });
 
     it('should handle multiple permitted accounts correctly', () => {
@@ -188,7 +194,10 @@ describe('HostApplicationAdapter', () => {
       adapter.revokePermissions(connectionId);
 
       expect(getPermittedAccounts).toHaveBeenCalledWith(connectionId);
-      expect(removePermittedAccounts).toHaveBeenCalledWith(connectionId, mockAccounts);
+      expect(removePermittedAccounts).toHaveBeenCalledWith(
+        connectionId,
+        mockAccounts,
+      );
     });
   });
 });
