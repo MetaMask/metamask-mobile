@@ -8,8 +8,34 @@ permissions:
   id-token: write
 
 jobs:
+  install-test-dependencies:
+    name: "Install Test Dependencies"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Restore Yarn and node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/yarn
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Restore Node.js Dependencies Cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: deps-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+  
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2, 3]
@@ -25,6 +51,7 @@ jobs:
 
   smoke-trade-android:
     name: "Trade Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -40,6 +67,7 @@ jobs:
 
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -55,6 +83,7 @@ jobs:
 
   smoke-identity-android:
     name: "Identity Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -70,6 +99,7 @@ jobs:
 
   smoke-accounts-android:
     name: "Accounts Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -85,6 +115,7 @@ jobs:
 
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -100,6 +131,7 @@ jobs:
 
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -115,6 +147,7 @@ jobs:
 
   smoke-performance-android:
     name: "Performance Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1, 2]
@@ -130,6 +163,7 @@ jobs:
 
   smoke-card-android:
     name: "Card Smoke (Android) - ${{ matrix.split }}"
+    needs: install-test-dependencies
     strategy:
       matrix:
         split: [1]
