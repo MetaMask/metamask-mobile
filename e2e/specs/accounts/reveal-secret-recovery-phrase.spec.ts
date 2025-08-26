@@ -1,6 +1,5 @@
 import { SmokeAccounts } from '../../tags.js';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
@@ -57,7 +56,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
         await SrpQuizModal.tapGetStartedButton();
@@ -109,7 +108,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.tapRevealSecretRecoveryPhraseButton();
         await SrpQuizModal.tapGetStartedButton();

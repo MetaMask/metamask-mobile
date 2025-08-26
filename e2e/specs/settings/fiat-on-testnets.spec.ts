@@ -1,7 +1,7 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
@@ -48,12 +48,12 @@ describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
           );
 
           // Enable fiat on testnets setting
-          await TabBarComponent.tapSettings();
+          await navigateToSettings();
           await SettingsView.tapAdvancedTitle();
           await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
           await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
           await FiatOnTestnetsBottomSheet.tapContinueButton();
-
+          await SettingsView.dismissModal();
           // Verify fiat values are displayed
           await TabBarComponent.tapWallet();
           await Assertions.expectElementToNotHaveText(

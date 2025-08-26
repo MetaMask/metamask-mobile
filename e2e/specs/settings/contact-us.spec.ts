@@ -1,8 +1,7 @@
 import { Regression } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
@@ -15,7 +14,7 @@ describe(Regression('Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.scrollToContactSupportButton();
         await SettingsView.tapContactSupport();
 

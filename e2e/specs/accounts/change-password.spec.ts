@@ -2,7 +2,7 @@ import { Regression } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -27,7 +27,7 @@ describe(Regression('change password'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToChangePassword();
         await SecurityAndPrivacy.tapChangePassword();
@@ -45,7 +45,7 @@ describe(Regression('change password'), () => {
         // github issue: https://github.com/MetaMask/metamask-mobile/issues/16758
         // TODO: remove this once the issue is fixed
         if (device.getPlatform() === 'ios' && process.env.CI) {
-          await TabBarComponent.tapWallet();
+          await SettingsView.dismissModal();
         }
 
         //wait for screen transitions after password change
@@ -81,7 +81,7 @@ describe(Regression('change password'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal();
 
         // Lock the app and verify again the accounts are still there
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
         await LoginView.enterPassword(NEWPASSWORD);

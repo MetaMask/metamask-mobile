@@ -1,5 +1,5 @@
 'use strict';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
@@ -72,10 +72,10 @@ describe(Regression('Swap from Token view'), (): void => {
   });
 
   it('should turn off stx', async (): Promise<void> => {
-    await TabBarComponent.tapSettings();
+    await navigateToSettings();
     await SettingsView.tapAdvancedTitle();
     await AdvancedSettingsView.tapSmartTransactionSwitch();
-    await TabBarComponent.tapWallet();
+    await SettingsView.dismissModal();
   });
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
