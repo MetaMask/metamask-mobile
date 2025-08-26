@@ -58,9 +58,6 @@ describe('useEarnNetworkPolling', () => {
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
 
-  const mockFindNetworkClientIdByChainId = jest.mocked(
-    Engine.context.NetworkController.findNetworkClientIdByChainId,
-  );
   const mockDetectTokens = jest.mocked(
     Engine.context.TokenDetectionController.detectTokens,
   );
@@ -110,11 +107,6 @@ describe('useEarnNetworkPolling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFindNetworkClientIdByChainId.mockImplementation((chainId: string) => {
-      if (chainId === '0x1') return 'mainnet';
-      if (chainId === '0x89') return 'polygon';
-      throw new Error(`Network client not found for chain ${chainId}`);
-    });
     mockDetectTokens.mockResolvedValue(undefined);
     mockAddTokens.mockResolvedValue(undefined);
   });
@@ -164,29 +156,6 @@ describe('useEarnNetworkPolling', () => {
       chainIds: [],
       address: mockSelectedAccount.address,
     });
-  });
-
-  it('should call NetworkController.findNetworkClientIdByChainId for each lending chain', () => {
-    renderHookWithProvider(() => useEarnNetworkPolling(), {
-      state: mockState,
-    });
-
-    // Should be called for each chain ID in LENDING_CHAIN_IDS
-    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalled();
-  });
-
-  it('should handle network client ID lookup errors gracefully', () => {
-    mockFindNetworkClientIdByChainId.mockImplementation((chainId: string) => {
-      throw new Error(`Network client not found for chain ${chainId}`);
-    });
-
-    expect(() => {
-      renderHookWithProvider(() => useEarnNetworkPolling(), {
-        state: mockState,
-      });
-    }).not.toThrow();
-
-    expect(console.warn).toHaveBeenCalled();
   });
 
   it('should call TokenDetectionController.detectTokens when component mounts', () => {
