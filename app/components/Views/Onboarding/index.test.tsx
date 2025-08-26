@@ -547,9 +547,6 @@ describe('Onboarding', () => {
     const mockCreateLoginHandler = jest.requireMock(
       '../../../core/OAuthService/OAuthLoginHandlers',
     ).createLoginHandler;
-    // const { OAuthError, OAuthErrorType } = jest.requireMock(
-    //   '../../../core/OAuthService/error',
-    // );
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);

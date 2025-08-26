@@ -28,9 +28,9 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.InvalidOauthStateError]: 'Invalid OAuth state',
   [OAuthErrorType.GoogleLoginError]: 'Google login error',
   [OAuthErrorType.AppleLoginError]: 'Apple login error',
-  [OAuthErrorType.GoogleLoginNoCredential]: 'Google login no credential',
+  [OAuthErrorType.GoogleLoginNoCredential]: 'Google login has no credential',
   [OAuthErrorType.GoogleLoginNoMatchingCredential]:
-    'Google login no matching credential',
+    'Google login has no matching credential',
 } as const;
 
 export class OAuthError extends Error {

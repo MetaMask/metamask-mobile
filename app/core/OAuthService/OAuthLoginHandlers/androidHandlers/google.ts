@@ -9,6 +9,12 @@ import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 import Logger from '../../../../util/Logger';
 
+const ACM_ERRORS_REGEX = {
+  CANCEL: /cancel/i,
+  NO_CREDENTIAL: /no credential/i,
+  NO_MATCHING_CREDENTIAL: /matching credential/i,
+};
+
 /**
  * AndroidGoogleLoginHandler is the login handler for the Google login on android.
  */
@@ -71,21 +77,21 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
-        if (error.message.toLowerCase().includes('cancel')) {
+        if (ACM_ERRORS_REGEX.CANCEL.test(error.message)) {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
           );
-        } else if (error.message.toLowerCase().includes('no credential')) {
+        } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
           throw new OAuthError(
-            'handleGoogleLogin: Google login no credential',
+            'handleGoogleLogin: Google login has no credential',
             OAuthErrorType.GoogleLoginNoCredential,
           );
         } else if (
-          error.message.toLowerCase().includes('matching credential')
+          ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
           throw new OAuthError(
-            'handleGoogleLogin: Google login no matching credential',
+            'handleGoogleLogin: Google login has no matching credential',
             OAuthErrorType.GoogleLoginNoMatchingCredential,
           );
         } else {
