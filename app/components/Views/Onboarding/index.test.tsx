@@ -69,14 +69,21 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
 }));
 
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  handleOAuthLogin: jest.fn(),
+  handleOAuthLogin: jest.fn().mockResolvedValue({
+    type: 'success',
+    existingUser: false,
+    accountName: 'test@example.com',
+  }),
   resetOauthState: jest.fn(),
 }));
 
 const mockNetInfoFetch = jest.fn();
-jest.mock('@react-native-community/netinfo', () => ({
-  fetch: mockNetInfoFetch,
-}));
+jest.mock('@react-native-community/netinfo', () => {
+  const NetInfo = {
+    fetch: mockNetInfoFetch,
+  };
+  return NetInfo;
+});
 
 jest.mock('../../../core/OAuthService/error', () => ({
   OAuthError: class OAuthError extends Error {
@@ -374,7 +381,8 @@ describe('Onboarding', () => {
       );
     });
 
-    it('should navigate to offline mode when create wallet is pressed with no internet connection', async () => {
+    it('should navigate to offline mode when social login is pressed with no internet connection', async () => {
+      // Mock NetInfo to return offline state
       mockNetInfoFetch.mockResolvedValueOnce({
         isConnected: false,
         isInternetReachable: false,
@@ -399,9 +407,31 @@ describe('Onboarding', () => {
         fireEvent.press(createWalletButton);
       });
 
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(navCall[1].params.onPressContinueWithGoogle).toBeDefined();
+      expect(navCall[1].params.onPressContinueWithApple).toBeDefined();
+
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
-        expect.any(Object),
+        expect.objectContaining({
+          screen: Routes.SHEET.ONBOARDING_SHEET,
+          params: expect.objectContaining({
+            createWallet: true,
+            onPressContinueWithGoogle: expect.any(Function),
+            onPressContinueWithApple: expect.any(Function),
+          }),
+        }),
       );
     });
   });
