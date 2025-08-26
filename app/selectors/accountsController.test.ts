@@ -362,14 +362,14 @@ describe('selectCanSignTransactions', () => {
     methods: [SolMethod.SignAndSendTransaction],
   };
 
-  const btcAccountWithSendBitcoin = {
+  const btcAccountWithSignPsbt = {
     ...createMockInternalAccount(
       'bc1q123',
       'BTC Account with Send',
       KeyringTypes.snap,
       BtcAccountType.P2wpkh,
     ),
-    methods: [BtcMethod.SendTransfer],
+    methods: [BtcMethod.SignPsbt],
   };
 
   const accountWithoutSigningMethods = {
@@ -408,7 +408,7 @@ describe('selectCanSignTransactions', () => {
   });
 
   it('returns true for BTC account with SendBitcoin method', () => {
-    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+    const state = getStateWithAccount(btcAccountWithSignPsbt);
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
