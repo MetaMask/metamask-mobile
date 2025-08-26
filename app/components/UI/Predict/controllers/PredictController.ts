@@ -56,7 +56,7 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
 };
 
 // UNKNOWN is the default/fallback in case the location API call fails
-const DEFAULT_GEO_BLOCKED_REGIONS = [
+export const DEFAULT_GEO_BLOCKED_REGIONS = [
   'US', // United States
   'GB', // United Kingdom
   'FR', // France

@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 
 import {
   getDefaultPredictControllerState,
   PredictController,
   type PredictControllerState,
+  DEFAULT_GEO_BLOCKED_REGIONS,
 } from './PredictController';
 import { PolymarketProvider } from '../providers/PolymarketProvider';
 
@@ -28,6 +30,16 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
     log: jest.fn(),
   },
 }));
+
+// Mock successfulFetch for geo location testing
+jest.mock('@metamask/controller-utils', () => {
+  const actual = jest.requireActual('@metamask/controller-utils');
+
+  return {
+    ...actual,
+    successfulFetch: jest.fn(),
+  };
+});
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UnrestrictedMessenger = Messenger<any, any>;
@@ -376,6 +388,144 @@ describe('PredictController', () => {
         );
 
         expect(controller.state).toEqual(initial);
+      });
+    });
+  });
+
+  describe('refreshEligibility', () => {
+    let mockSuccessfulFetch: jest.MockedFunction<typeof successfulFetch>;
+
+    beforeEach(() => {
+      // Get fresh reference to the mocked function
+      mockSuccessfulFetch = jest.mocked(successfulFetch);
+      mockSuccessfulFetch.mockClear();
+    });
+
+    // Test eligible regions (not in DEFAULT_GEO_BLOCKED_REGIONS)
+    const eligibleRegions = [
+      'DE', // Germany
+      'JP', // Japan
+      'NL', // Netherlands
+      'ES', // Spain
+      'IT', // Italy
+    ];
+
+    eligibleRegions.forEach((region) => {
+      it(`should set isEligible to true for eligible region (${region})`, async () => {
+        const mockResponse = {
+          text: jest.fn().mockResolvedValue(region),
+        };
+        mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+        await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+
+          expect(controller.state.isEligible).toBe(true);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        });
+      });
+    });
+
+    // Test all blocked regions from DEFAULT_GEO_BLOCKED_REGIONS
+    DEFAULT_GEO_BLOCKED_REGIONS.forEach((blockedRegion) => {
+      it(`should set isEligible to false for blocked region (${blockedRegion})`, async () => {
+        const mockResponse = {
+          text: jest.fn().mockResolvedValue(blockedRegion),
+        };
+        mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+        await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+
+          expect(controller.state.isEligible).toBe(false);
+          expect(mockSuccessfulFetch).toHaveBeenCalled();
+        });
+      });
+    });
+
+    it('should handle region prefix matching correctly', async () => {
+      // Test US state (should be blocked because it starts with 'US')
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('US-CA'), // US-California
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should set isEligible to false when API call fails (UNKNOWN fallback)', async () => {
+      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
+
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle custom blocked regions list', async () => {
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('DE'), // Germany - normally eligible
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      await withController(async ({ controller }) => {
+        // Test with custom blocked regions that includes DE
+        await controller.refreshEligibility(['DE', 'JP']);
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should use correct geo-blocking URL in test environment', async () => {
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('DE'),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        // In test environment, it should use DEV URL
+        expect(mockSuccessfulFetch).toHaveBeenCalledWith(
+          'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+        );
+      });
+    });
+
+    it('should handle malformed API response gracefully', async () => {
+      const mockResponse = {
+        text: jest.fn().mockRejectedValue(new Error('Invalid response format')),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+
+        expect(controller.state.isEligible).toBe(false);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
+      });
+    });
+
+    it('should refresh eligibility during controller initialization', async () => {
+      const mockResponse = {
+        text: jest.fn().mockResolvedValue('DE'),
+      };
+      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+
+      await withController(async ({ controller }) => {
+        // Wait for initialization to complete including eligibility refresh
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(controller.state.isEligible).toBe(true);
+        expect(mockSuccessfulFetch).toHaveBeenCalled();
       });
     });
   });
