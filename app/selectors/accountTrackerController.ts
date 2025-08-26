@@ -4,7 +4,6 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectEvmChainId } from './networkController';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
-import { selectSendFlowContextualChainId } from './sendFlow';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
@@ -39,10 +38,4 @@ export const selectAccountBalanceByChainId = createDeepEqualSelector(
       : undefined;
     return accountsBalance;
   },
-);
-
-export const selectAccountsByContextualChainId = createDeepEqualSelector(
-  [selectAccountsByChainId, selectSendFlowContextualChainId, selectEvmChainId],
-  (accountsByChainId, contextualChainId, chainId) =>
-    accountsByChainId?.[contextualChainId || chainId] || {},
 );

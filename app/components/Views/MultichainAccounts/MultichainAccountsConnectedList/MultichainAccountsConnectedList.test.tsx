@@ -50,6 +50,15 @@ const mockInitialState = {
   settings: {
     useBlockieIcon: false,
   },
+  engine: {
+    backgroundState: {
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+      },
+    },
+  },
 };
 
 const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
