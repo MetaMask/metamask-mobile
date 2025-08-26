@@ -5,10 +5,7 @@ import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
 import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
-import {
-  FIAT_ORDER_STATES,
-  FIAT_ORDER_PROVIDERS,
-} from '../../../../../../constants/on-ramp';
+import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
@@ -23,9 +20,7 @@ const Root = () => {
     if (!getStarted) return;
 
     const createdOrder = orders.find(
-      (order) =>
-        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
-        order.state === FIAT_ORDER_STATES.CREATED,
+      (order) => order.state === FIAT_ORDER_STATES.CREATED,
     );
 
     if (createdOrder) {

@@ -9,13 +9,13 @@ import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
 import { endTrace } from '../../../../../../util/trace';
+import { processFiatOrder } from '../../../index';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockReset = jest.fn();
 const mockDispatch = jest.fn();
-const mockProcessFiatOrder = jest.fn();
 
 const mockOrderData = {
   id: 'test-order-id',
@@ -118,7 +118,7 @@ jest.mock('../../sdk', () => ({
 }));
 
 jest.mock('../../../index', () => ({
-  processFiatOrder: mockProcessFiatOrder,
+  processFiatOrder: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/trace', () => ({
@@ -141,6 +141,10 @@ describe('BankDetails Component', () => {
     jest.clearAllMocks();
     mockConfirmPayment = jest.fn().mockResolvedValue(undefined);
     mockCancelOrder = jest.fn().mockResolvedValue(undefined);
+    (
+      processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+    ).mockResolvedValue(undefined);
+    mockOrderData.state = FIAT_ORDER_STATES.CREATED;
   });
 
   it('render matches snapshot', () => {
@@ -270,7 +274,9 @@ describe('BankDetails Component', () => {
   });
 
   it('calls Logger.error when handleOnRefresh fails', async () => {
-    mockProcessFiatOrder.mockRejectedValueOnce(new Error('Fetch error'));
+    (
+      processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+    ).mockRejectedValueOnce(new Error('Fetch error'));
 
     const mockLoggerError = jest.spyOn(Logger, 'error');
     render(BankDetails);
@@ -279,7 +285,9 @@ describe('BankDetails Component', () => {
       .getByTestId('bank-details-refresh-control-scrollview')
       .props.refreshControl.props.onRefresh();
 
-    expect(mockLoggerError).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalled();
+    });
   });
 
   it('calls Logger.error when handleBankTransferSent fails', async () => {
@@ -312,6 +320,9 @@ describe('BankDetails Component', () => {
   it('should call endTrace three times when component mounts', () => {
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
     mockEndTrace.mockClear();
+
+    // Mock order state to prevent automatic refresh on mount
+    mockOrderData.state = FIAT_ORDER_STATES.PENDING;
 
     render(BankDetails);
 
@@ -424,7 +435,9 @@ describe('BankDetails Component', () => {
       const axiosError = new Error('Unauthorized') as AxiosError;
       axiosError.status = 401;
 
-      mockProcessFiatOrder.mockRejectedValue(axiosError);
+      (
+        processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+      ).mockRejectedValue(axiosError);
 
       render(BankDetails);
 
@@ -447,7 +460,9 @@ describe('BankDetails Component', () => {
 
     it('handles non-401 errors normally in handleOnRefresh', async () => {
       const regularError = new Error('Network error');
-      mockProcessFiatOrder.mockRejectedValue(regularError);
+      (
+        processFiatOrder as jest.MockedFunction<typeof processFiatOrder>
+      ).mockRejectedValue(regularError);
 
       const mockLoggerError = jest.spyOn(Logger, 'error');
       render(BankDetails);
