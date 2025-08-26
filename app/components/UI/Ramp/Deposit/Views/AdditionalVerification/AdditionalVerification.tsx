@@ -26,7 +26,7 @@ import {
 interface AdditionalVerificationParams {
   quote: BuyQuote;
   kycUrl: string;
-  kycWorkflowRunId: string;
+  workFlowRunId: string;
   cryptoCurrencyChainId: string;
   paymentMethodId: string;
 }
@@ -41,7 +41,7 @@ const AdditionalVerification = () => {
   const {
     quote,
     kycUrl,
-    kycWorkflowRunId,
+    workFlowRunId,
     cryptoCurrencyChainId,
     paymentMethodId,
   } = useParams<AdditionalVerificationParams>();
@@ -64,8 +64,8 @@ const AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ quote, kycUrl, kycWorkflowRunId });
-  }, [navigateToKycWebview, quote, kycUrl, kycWorkflowRunId]);
+    navigateToKycWebview({ quote, kycUrl, workFlowRunId });
+  }, [navigateToKycWebview, quote, kycUrl, workFlowRunId]);
 
   return (
     <ScreenLayout>

@@ -135,6 +135,7 @@ export const DepositSDKProvider = ({
       const sdkInstance = new NativeRampsSdk(
         {
           apiKey: providerApiKey,
+          verbose: true,
         },
         environment,
       );
@@ -155,7 +156,12 @@ export const DepositSDKProvider = ({
   const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
-      if (tokenResponse.success && tokenResponse.token) {
+
+      if (
+        tokenResponse.success &&
+        tokenResponse.token &&
+        tokenResponse.token?.accessToken
+      ) {
         setAuthToken(tokenResponse.token);
         return true;
       }
