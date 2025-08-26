@@ -28,4 +28,11 @@ export const ALLOWLISTED_URLS = [
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/stETH.svg',
   'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/rETH.svg',
   'https://cdn.contentful.com:443/spaces/jdkgyfmyd9sw/environments/dev/entries?content_type=promotionalBanner&fields.showInMobile=true',
+  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=POL',
+  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=FTM',
+  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=AVAX',
+  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=LINEAETH',
+  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
+  'https://mainnet.era.zksync.io/',
+  'https://eth.llamarpc.com/',
 ];

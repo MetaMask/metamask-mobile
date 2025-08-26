@@ -16,6 +16,9 @@ import { DEFAULT_ACCOUNTS_MOCK } from './accounts';
 import { getAuthMocks } from '../auth-mocks';
 import { USER_STORAGE_MOCK } from './user-storage';
 import { DEFAULT_RAMPS_API_MOCKS } from './onramp-apis';
+import { DEFAULT_GAS_API_MOCKS } from './gas-api';
+import { DEFAULT_BRIDGE_API_MOCKS } from './bridge-api';
+import { DEFAULT_IPFS_GATEWAY_MOCKS } from './ipfs-api';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -33,13 +36,9 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_ACCOUNTS_MOCK.GET || []),
     ...(USER_STORAGE_MOCK.GET || []),
     ...(DEFAULT_RAMPS_API_MOCKS.GET || []),
-    // IPFS Mock
-    {
-      urlEndpoint:
-        /^https:\/\/dweb\.link\/ipfs\/[a-zA-Z0-9]+#x-ipfs-companion-no-redirect$/,
-      responseCode: 200,
-      response: 'Hello from IPFS Gateway Checker',
-    },
+    ...(DEFAULT_GAS_API_MOCKS.GET || []),
+    ...(DEFAULT_BRIDGE_API_MOCKS.GET || []),
+    ...(DEFAULT_IPFS_GATEWAY_MOCKS.GET || []),
     // Security Alerts Mock - Always responds with benign unless overridden by testSpecificMock
     {
       urlEndpoint:
