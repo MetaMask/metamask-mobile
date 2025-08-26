@@ -5277,17 +5277,17 @@
     "@metamask/eth-sig-util" "^8.2.0"
     hdkey "^2.1.0"
 
-"@metamask/eth-qr-keyring@npm:@metamask-previews/eth-qr-keyring@0.0.0-d2e6996":
-  version "0.0.0-d2e6996"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/eth-qr-keyring/-/eth-qr-keyring-0.0.0-d2e6996.tgz#0b51fa1af370cee94a7db1d99e7fea5d411e3dab"
-  integrity sha512-AkBh5uyM/IPxRS/2ZaUvAwtYi0t3IvvxVtACV4sP6LGdbvfgSCOJXty8ChSJp4EXRrsPSKXxaTyTUUU+FJCCpg==
+"@metamask/eth-qr-keyring@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-qr-keyring/-/eth-qr-keyring-1.0.0.tgz#f4c473e5b8d2e17a2c925f7762716ad6ec648e61"
+  integrity sha512-F4d2rlfBzk33gvrvXnXFTcX8fALEHZgdtA3kXqctMkgL3uuxrie8gdIqc++TUjwoRfXcOjLFVTU8kyRgXuun6Q==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^5.4.0"
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/bc-ur-registry-eth" "^0.19.1"
     "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/keyring-utils" "3.0.0"
+    "@metamask/keyring-utils" "^3.1.0"
     "@metamask/utils" "^11.1.0"
     async-mutex "^0.5.0"
     hdkey "^2.1.0"
@@ -5484,20 +5484,20 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@22.0.2-preview-d7c00b1":
-  version "22.0.2-preview-d7c00b1"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/keyring-controller/-/keyring-controller-22.0.2-preview-d7c00b1.tgz#ea42686bee4f7dd076f4dfa6cd547d40befce96c"
-  integrity sha512-Pbv+ry/6rAc039KEl1uovrk2VEJcng9vntZDNYxIycychP7KNAQ9Lvbq76gyQdt7/qNgjissB/qQkeLe9kT7KA==
+"@metamask/keyring-controller@^23.0.0":
+  version "23.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-23.0.0.tgz#80644b42a42eaeeef5870bca2892749adca3c91a"
+  integrity sha512-RG3XAtQbgBs+TgZ3LCDbPqSmreWRDqTnM9U4eBxa2FMeJhrvASkFGGwu1NYomIzAnBkI+N401/9vpqJBSL/hzw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/eth-hd-keyring" "^12.0.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/eth-simple-keyring" "^10.0.0"
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-internal-api" "^6.2.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
+    "@metamask/utils" "^11.4.2"
     async-mutex "^0.5.0"
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
@@ -5556,16 +5556,6 @@
     "@types/uuid" "^9.0.8"
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
-
-"@metamask/keyring-utils@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-utils/-/keyring-utils-3.0.0.tgz#37ad4b948e7306ef7d157ed074377073526ea143"
-  integrity sha512-bo6Bgmz2uJ+DI5r9qyZjp435VCrc0A4nES/awTPnRWETqpbOBfMDVlLeQxQE88exCrE8efK2hTJ1by5fw8+N2g==
-  dependencies:
-    "@ethereumjs/tx" "^5.4.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    bitcoin-address-validation "^2.2.3"
 
 "@metamask/keyring-utils@^3.0.0", "@metamask/keyring-utils@^3.1.0":
   version "3.1.0"
