@@ -3,8 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * An implementation of the IKVStore interface that uses AsyncStorage
- * for persistent key-value storage. A prefix is used to namespace keys
- * to prevent collisions between different instances.
+ * for persistent key-value storage.
  */
 export class KVStore implements IKVStore {
   private readonly prefix: string;
