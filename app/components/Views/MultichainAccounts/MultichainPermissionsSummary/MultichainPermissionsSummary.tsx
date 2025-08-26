@@ -364,6 +364,14 @@ const MultichainPermissionsSummary = ({
     });
   }, [networkAvatars, isAlreadyConnected]);
 
+  const selectedAccountGroups = useMemo(
+    () =>
+      accountGroups.filter((accountGroup) =>
+        selectedAccountGroupIds.includes(accountGroup.id),
+      ),
+    [accountGroups, selectedAccountGroupIds],
+  );
+
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
@@ -399,11 +407,13 @@ const MultichainPermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={accountGroups.map((accountGroup) => ({
-                    variant: AvatarVariant.Account,
-                    accountAddress: accountGroup.id,
-                    size: AvatarSize.Xs,
-                  }))}
+                  avatarPropsList={selectedAccountGroups.map(
+                    (accountGroup) => ({
+                      variant: AvatarVariant.Account,
+                      accountAddress: accountGroup.id,
+                      size: AvatarSize.Xs,
+                    }),
+                  )}
                 />
               </View>
             </View>
@@ -527,14 +537,6 @@ const MultichainPermissionsSummary = ({
     [colors],
   );
 
-  const selectedAccountGroups = useMemo(
-    () =>
-      accountGroups.filter((accountGroup) =>
-        selectedAccountGroupIds.includes(accountGroup.id),
-      ),
-    [accountGroups, selectedAccountGroupIds],
-  );
-
   const renderAccountsConnectedList = useCallback(
     (
       accountsConnectedTabKey: string,
@@ -656,7 +658,8 @@ const MultichainPermissionsSummary = ({
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
-                  (accountGroups.length === 0 || networkAvatars.length === 0)
+                  (selectedAccountGroupIds.length === 0 ||
+                    networkAvatars.length === 0)
                 }
                 containerStyle={[
                   styles.buttonPositioning,
