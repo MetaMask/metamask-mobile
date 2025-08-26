@@ -38,7 +38,7 @@ const ContractTag = ({
             variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
             name={contractName}
-            imageSource={imageIcons.AVAE as ImageSourcePropType}
+            imageSource={imageIcons.AAVE as ImageSourcePropType}
           />
         ) : (
           <Avatar
