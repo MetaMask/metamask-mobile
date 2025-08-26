@@ -35,22 +35,26 @@ export function PerpsDeposit() {
         onKeyboardHide={() => setIsKeyboardVisible(false)}
         onKeyboardDone={() => setInputChanged(true)}
       >
-        <Box gap={16}>
-          {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
-          <PayTokenAmount />
-        </Box>
-        {!isKeyboardVisible && (
-          <AlertBanner field={RowAlertKey.PayWith} inline />
-        )}
-        <InfoSection>
-          <PayWithRow />
-        </InfoSection>
-        {isFullView && (
-          <InfoSection>
-            <GasFeeFiatRow />
-            <BridgeTimeRow />
-            <TotalRow />
-          </InfoSection>
+        {(amountHuman) => (
+          <>
+            <Box gap={16}>
+              {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
+              <PayTokenAmount amountHuman={amountHuman} />
+            </Box>
+            {!isKeyboardVisible && (
+              <AlertBanner field={RowAlertKey.PayWith} inline />
+            )}
+            <InfoSection>
+              <PayWithRow />
+            </InfoSection>
+            {isFullView && (
+              <InfoSection>
+                <GasFeeFiatRow />
+                <BridgeTimeRow />
+                <TotalRow />
+              </InfoSection>
+            )}
+          </>
         )}
       </EditAmount>
     </>

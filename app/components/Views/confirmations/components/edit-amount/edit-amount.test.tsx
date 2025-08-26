@@ -76,7 +76,7 @@ describe('EditAmount', () => {
     );
   });
 
-  it('calls updateTokenAmount when input changes', async () => {
+  it('calls updateTokenAmount when done button pressed', async () => {
     const { getByTestId, getByText } = render();
 
     await act(async () => {
@@ -87,9 +87,17 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
+    await act(async () => {
+      fireEvent.press(getByText('3'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+    });
+
     await jest.runAllTimersAsync();
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '5');
+    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '53');
   });
 
   it('updates amount when input changes', async () => {
@@ -150,7 +158,6 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
     expect(input).toHaveProp('value', '600.25');
   });
 

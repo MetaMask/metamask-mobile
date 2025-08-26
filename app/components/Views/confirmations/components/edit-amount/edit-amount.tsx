@@ -1,10 +1,4 @@
-import React, {
-  createRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createRef, useCallback, useEffect, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -15,13 +9,10 @@ import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
-import { debounce } from 'lodash';
-
-const TOKEN_UPDATE_DEBOUNCE = 500;
 
 export interface EditAmountProps {
   autoKeyboard?: boolean;
-  children?: React.ReactNode;
+  children?: (amountHuman: string) => React.ReactNode;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
   onKeyboardDone?: () => void;
@@ -52,14 +43,6 @@ export function EditAmount({
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
   const { balanceFiat } = payToken ?? {};
 
-  const debouncedUpdateTokenAmount = useMemo(
-    () =>
-      debounce((amount: string) => {
-        updateTokenAmount(amount);
-      }, TOKEN_UPDATE_DEBOUNCE),
-    [updateTokenAmount],
-  );
-
   const [amountHuman, setAmountHuman] = useState<string>(
     amountUnformatted ?? '0',
   );
@@ -89,13 +72,21 @@ export function EditAmount({
   );
 
   const handleKeyboardDone = useCallback(() => {
+    updateTokenAmount(amountHuman);
     inputRef.current?.blur();
     setInputChanged(true);
     setShowKeyboard(false);
     setIsFooterVisible?.(true);
     onKeyboardHide?.();
     onKeyboardDone?.();
-  }, [inputRef, onKeyboardHide, setIsFooterVisible, onKeyboardDone]);
+  }, [
+    amountHuman,
+    inputRef,
+    onKeyboardDone,
+    onKeyboardHide,
+    setIsFooterVisible,
+    updateTokenAmount,
+  ]);
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
@@ -112,15 +103,6 @@ export function EditAmount({
     [balanceFiat, handleChange],
   );
 
-  const syncTokenAmount = useCallback(
-    () => debouncedUpdateTokenAmount(amountHuman),
-    [amountHuman, debouncedUpdateTokenAmount],
-  );
-
-  useEffect(() => {
-    syncTokenAmount();
-  }, [syncTokenAmount]);
-
   const displayValue = `${prefix}${amountHuman}`;
 
   return (
@@ -135,7 +117,7 @@ export function EditAmount({
           onPress={handleInputPress}
           onChangeText={handleChange}
         />
-        {children}
+        {children?.(amountHuman)}
       </View>
       {showKeyboard && (
         <DepositKeyboard

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -9,34 +8,38 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
-import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
 import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 
-export function PayTokenAmount() {
+export interface PayTokenAmountProps {
+  amountHuman: string;
+}
+
+export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
   const { styles } = useStyles(styleSheet, {});
-  const { amountUnformatted } = useTokenAmount();
-  const { asset } = useTokenAsset();
+  const { chainId, txParams } = useTransactionMetadataRequest() ?? {};
   const { payToken } = useTransactionPayToken();
+  const { to } = txParams ?? {};
 
   const fiatRequests = useMemo(
     () =>
-      payToken && asset
+      payToken && to
         ? [
             {
               chainId: payToken.chainId,
               address: payToken.address,
             },
             {
-              chainId: asset.chainId as Hex,
-              address: asset.address as Hex,
+              chainId: chainId as Hex,
+              address: to as Hex,
             },
           ]
         : [],
-    [asset, payToken],
+    [chainId, payToken, to],
   );
 
   const fiatRates = useTokenFiatRates(fiatRequests);
@@ -50,7 +53,7 @@ export function PayTokenAmount() {
     payTokenFiatRate,
   );
 
-  const payTokenAmount = new BigNumber(amountUnformatted || '0').multipliedBy(
+  const payTokenAmount = new BigNumber(amountHuman || '0').multipliedBy(
     assetToPayTokenRate,
   );
 
