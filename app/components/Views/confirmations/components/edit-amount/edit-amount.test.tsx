@@ -140,6 +140,11 @@ describe('EditAmount', () => {
   });
 
   it('updates token amount if percentage button pressed', async () => {
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '0',
+      updateTokenAmount: updateTokenAmountMock,
+    } as unknown as ReturnType<typeof useTokenAmount>);
+
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { tokenFiatAmount: 1200.5 },
     } as ReturnType<typeof useTransactionPayToken>);
@@ -165,6 +170,11 @@ describe('EditAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '0',
+      updateTokenAmount: updateTokenAmountMock,
+    } as unknown as ReturnType<typeof useTokenAmount>);
 
     const { getByTestId, getByText } = render();
 

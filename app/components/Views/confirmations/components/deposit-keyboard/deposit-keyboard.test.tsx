@@ -13,6 +13,7 @@ describe('DepositKeyboard', () => {
         onDonePress={noop}
         onPercentagePress={noop}
         value="0"
+        hasInput={false}
       />,
     );
 
@@ -21,45 +22,32 @@ describe('DepositKeyboard', () => {
     expect(onChangeMock).toHaveBeenCalledWith('1');
   });
 
-  it('hides done button', () => {
+  it('hides done button if hasInput is false', () => {
     const { queryByTestId } = render(
       <DepositKeyboard
         onChange={noop}
         onDonePress={noop}
         onPercentagePress={noop}
         value="0"
+        hasInput={false}
       />,
     );
 
     expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
   });
 
-  it('shows done button when digit pressed', () => {
+  it('shows done button if hasInput', () => {
     const { getByTestId, getByText } = render(
       <DepositKeyboard
         onChange={noop}
         onDonePress={noop}
         onPercentagePress={noop}
         value="0"
+        hasInput
       />,
     );
 
     fireEvent.press(getByText('1'));
-
-    expect(getByTestId('deposit-keyboard-done-button')).toBeDefined();
-  });
-
-  it('shows done button when percentage button pressed', () => {
-    const { getByTestId, getByText } = render(
-      <DepositKeyboard
-        onChange={noop}
-        onDonePress={noop}
-        onPercentagePress={noop}
-        value="0"
-      />,
-    );
-
-    fireEvent.press(getByText('50%'));
 
     expect(getByTestId('deposit-keyboard-done-button')).toBeDefined();
   });
@@ -67,16 +55,16 @@ describe('DepositKeyboard', () => {
   it('calls onDone when done button pressed', () => {
     const onDonePressMock = jest.fn();
 
-    const { getByText, getByTestId } = render(
+    const { getByTestId } = render(
       <DepositKeyboard
         onChange={noop}
         onDonePress={onDonePressMock}
         onPercentagePress={noop}
         value="0"
+        hasInput
       />,
     );
 
-    fireEvent.press(getByText('1'));
     fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
     expect(onDonePressMock).toHaveBeenCalled();
@@ -91,6 +79,7 @@ describe('DepositKeyboard', () => {
         onDonePress={noop}
         onPercentagePress={onPercentagePressMock}
         value="0"
+        hasInput={false}
       />,
     );
 

@@ -47,6 +47,8 @@ export function EditAmount({
     amountUnformatted ?? '0',
   );
 
+  const hasAmount = amountHuman !== '0';
+
   const handleInputPress = useCallback(() => {
     inputRef.current?.focus();
     setShowKeyboard(true);
@@ -122,6 +124,7 @@ export function EditAmount({
       {showKeyboard && (
         <DepositKeyboard
           value={amountHuman.toString()}
+          hasInput={hasAmount}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
           onPercentagePress={handlePercentagePress}

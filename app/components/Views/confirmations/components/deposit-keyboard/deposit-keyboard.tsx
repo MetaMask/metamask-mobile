@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './deposit-keyboard.styles';
@@ -30,6 +30,7 @@ const PERCENTAGE_BUTTONS = [
 ];
 
 export interface DepositKeyboardProps {
+  hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
@@ -37,20 +38,19 @@ export interface DepositKeyboardProps {
 }
 
 export function DepositKeyboard({
+  hasInput,
   onChange,
   onDonePress,
   onPercentagePress,
   value,
 }: DepositKeyboardProps) {
   const { styles } = useStyles(styleSheet, {});
-  const [hasInput, setHasInput] = useState<boolean>(false);
 
   const valueString = value.toString();
 
   const handleChange = useCallback(
     (data: KeypadChangeData) => {
       onChange(data.value);
-      setHasInput(true);
     },
     [onChange],
   );
@@ -58,7 +58,6 @@ export function DepositKeyboard({
   const handlePercentagePress = useCallback(
     (percentage: number) => {
       onPercentagePress(percentage);
-      setHasInput(true);
     },
     [onPercentagePress],
   );
