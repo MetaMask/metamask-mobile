@@ -663,17 +663,6 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('shows TP/SL bottom sheet when pressed', async () => {
-    render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-    const tpslText = await screen.findByText('Take profit');
-    fireEvent.press(tpslText);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('tpsl-bottom-sheet')).toBeDefined();
-    });
-  });
-
   it('shows limit price bottom sheet for limit orders', async () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 

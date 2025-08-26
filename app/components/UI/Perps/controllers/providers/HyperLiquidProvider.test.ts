@@ -2749,8 +2749,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
-        expect(result.feeAmount).toBe(45); // 100000 * 0.00045
+        expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(145); // 100000 * 0.00145
       });
 
       it('should calculate fees for limit orders as taker', async () => {
@@ -2760,8 +2760,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
-        expect(result.feeAmount).toBe(45);
+        expect(result.feeRate).toBe(0.00145); // 0.045% taker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
       it('should calculate fees for limit orders as maker', async () => {
@@ -2771,8 +2771,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result.feeRate).toBe(0.00015); // 0.015% maker fee
-        expect(result.feeAmount).toBeCloseTo(15, 10);
+        expect(result.feeRate).toBe(0.00115); // 0.015% maker + 0.1% MetaMask fee
+        expect(result.feeAmount).toBeCloseTo(115, 10); // Includes MetaMask fee
       });
 
       it('should handle zero amount', async () => {
@@ -2782,7 +2782,7 @@ describe('HyperLiquidProvider', () => {
           amount: '0',
         });
 
-        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
         expect(result.feeAmount).toBe(0);
       });
 
@@ -2792,7 +2792,7 @@ describe('HyperLiquidProvider', () => {
           isMaker: false,
         });
 
-        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
         expect(result.feeAmount).toBeUndefined();
       });
 
@@ -2820,8 +2820,8 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should use discounted rate from userFees mock
-        expect(result1.feeRate).toBe(0.0003); // 0.030% with discount
-        expect(result1.feeAmount).toBeCloseTo(30, 5); // 100000 * 0.00030
+        expect(result1.feeRate).toBe(0.0013); // 0.030% with discount + 0.1% MetaMask
+        expect(result1.feeAmount).toBeCloseTo(130, 5); // 100000 * 0.0013
         expect(
           mockClientService.getInfoClient().userFees,
         ).toHaveBeenCalledTimes(1);
@@ -2833,8 +2833,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result2.feeRate).toBe(0.0003);
-        expect(result2.feeAmount).toBeCloseTo(30, 5);
+        expect(result2.feeRate).toBe(0.0013); // Includes MetaMask fee
+        expect(result2.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
         // Should not call API again (cached)
         expect(
           mockClientService.getInfoClient().userFees,
@@ -2858,8 +2858,8 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should use base rates on failure
-        expect(result.feeRate).toBe(0.00045); // Base taker rate
-        expect(result.feeAmount).toBe(45);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee // Base taker rate
+        expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
       it('should handle non-numeric amount gracefully', async () => {
@@ -2869,7 +2869,7 @@ describe('HyperLiquidProvider', () => {
           amount: 'invalid',
         });
 
-        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee
         expect(result.feeAmount).toBe(0); // parseFloat('invalid') returns NaN, which * 0.00045 = NaN, but we expect 0
       });
 
@@ -2919,8 +2919,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result.feeRate).toBe(0.0003); // Discounted rate
-        expect(result.feeAmount).toBeCloseTo(30, 5);
+        expect(result.feeRate).toBe(0.0013); // Discounted rate + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
       });
 
       it('should cache user fee rates and reuse them', async () => {
@@ -2989,8 +2989,8 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should fall back to base rates due to validation failure
-        expect(result.feeRate).toBe(0.00045); // Base taker rate
-        expect(result.feeAmount).toBe(45);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee // Base taker rate
+        expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
       it('should fall back to base rates when API returns negative fee rates', async () => {
@@ -3018,8 +3018,8 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should fall back to base rates due to validation failure
-        expect(result.feeRate).toBe(0.00045); // Base taker rate
-        expect(result.feeAmount).toBe(45);
+        expect(result.feeRate).toBe(0.00145); // Includes 0.1% MetaMask fee // Base taker rate
+        expect(result.feeAmount).toBe(145); // Includes MetaMask fee
       });
 
       it('should always use taker rate for market orders regardless of isMaker', async () => {
@@ -3047,8 +3047,8 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should use taker rate even though isMaker is true
-        expect(result.feeRate).toBe(0.0003); // Taker rate, not maker rate (0.0001)
-        expect(result.feeAmount).toBeCloseTo(30, 5);
+        expect(result.feeRate).toBe(0.0013); // Taker rate + MetaMask, not maker rate
+        expect(result.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
       });
 
       describe('placeholder methods for future implementation', () => {
