@@ -1,6 +1,7 @@
 const tags = {
   regression: 'Regression:',
   smokeAccounts: 'SmokeAccounts:',
+  RegressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
   smokeConfirmations: 'SmokeConfirmations:',
   smokeConfirmationsRedesigned: 'SmokeConfirmationsRedesigned:',
@@ -24,6 +25,8 @@ const tags = {
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
 const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
+const RegressionAccounts = (testName) =>
+  `${tags.RegressionAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
 const SmokeConfirmations = (testName) =>
   `${tags.smokeConfirmations} ${testName}`;
@@ -60,6 +63,7 @@ export {
   FlaskBuildTests,
   Regression,
   SmokeAccounts,
+  RegressionAccounts,
   SmokeCore,
   SmokeConfirmations,
   SmokeConfirmationsRedesigned,
