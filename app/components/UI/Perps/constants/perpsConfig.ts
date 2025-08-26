@@ -27,18 +27,17 @@ export const WITHDRAWAL_CONSTANTS = {
  * These fees are protocol-agnostic and apply on top of protocol fees
  */
 export const METAMASK_FEE_CONFIG = {
-  // Trading fees (as decimal, e.g., 0.01 = 1%)
-  TRADING_FEE_RATE: 0, // 0% currently, will be fetched from API later
-
   // Deposit/withdrawal fees
   DEPOSIT_FEE: 0, // $0 currently
   WITHDRAWAL_FEE: 0, // $0 currently
 
-  // Future: These will be fetched from API based on:
-  // - User tier/volume
+  // Future: Fee configuration will be fetched from API based on:
+  // - User tier/volume (for MetaMask fee discounts)
   // - Promotional campaigns
   // - Protocol-specific agreements
   // - MetaMask points/rewards integration
+  // Note: Trading fees are now handled by each provider's calculateFees()
+  // which returns complete fee breakdown including MetaMask fees
 } as const;
 
 /**
