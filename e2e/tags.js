@@ -8,6 +8,7 @@ const tags = {
   SmokeRest: 'SmokeRest:',
   smokeAssets: 'smokeAssets:',
   smokeIdentity: 'SmokeIdentity:',
+  regressionIdentity: 'RegressionIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
   SmokeTrade: 'Trade:',
   SmokeNetworkAbstractions: 'NetworkAbstractions:',
@@ -33,6 +34,8 @@ const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
+const RegressionIdentity = (testName) =>
+  `${tags.regressionIdentity} ${testName}`;
 const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
 const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
@@ -67,6 +70,7 @@ export {
   SmokeStake,
   SmokeAssets,
   SmokeIdentity,
+  RegressionIdentity,
   SmokeMultiChainPermissions,
   SmokeTrade,
   SmokeNetworkAbstractions,
