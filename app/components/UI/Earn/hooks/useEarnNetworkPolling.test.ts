@@ -58,6 +58,9 @@ describe('useEarnNetworkPolling', () => {
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
 
+  const mockFindNetworkClientIdByChainId = jest.mocked(
+    Engine.context.NetworkController.findNetworkClientIdByChainId,
+  );
   const mockDetectTokens = jest.mocked(
     Engine.context.TokenDetectionController.detectTokens,
   );
@@ -107,6 +110,11 @@ describe('useEarnNetworkPolling', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFindNetworkClientIdByChainId.mockImplementation((chainId: string) => {
+      if (chainId === '0x1') return 'mainnet';
+      if (chainId === '0x89') return 'polygon';
+      throw new Error(`Network client not found for chain ${chainId}`);
+    });
     mockDetectTokens.mockResolvedValue(undefined);
     mockAddTokens.mockResolvedValue(undefined);
   });

@@ -71,11 +71,7 @@ export const useEarnNetworkPolling = () => {
     const validChainIds: Hex[] = [];
 
     LENDING_CHAIN_IDS.forEach((chainId) => {
-      try {
-        validChainIds.push(chainId);
-      } catch (error) {
-        console.warn(`Network client not found for chain ${chainId}:`, error);
-      }
+      validChainIds.push(chainId);
     });
 
     setLendingChainIds(validChainIds);
