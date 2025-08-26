@@ -19,12 +19,12 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-test
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
-    
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "🚀 Setting up project..."
           yarn setup:github-ci --no-build-ios
-          
+
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
