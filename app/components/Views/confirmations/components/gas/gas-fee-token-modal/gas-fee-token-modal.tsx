@@ -44,7 +44,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
           ? undefined
           : token.tokenAddress;
 
-      updateSelectedGasFeeToken(transactionId, selectedAddress);
+      await updateSelectedGasFeeToken(transactionId, selectedAddress);
 
       onClose?.();
     },

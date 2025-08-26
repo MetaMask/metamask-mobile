@@ -32,6 +32,7 @@ import {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
+import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -169,6 +170,7 @@ const GasFeesDetailsRow = ({
 }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+  useAutomaticGasFeeTokenSelect();
 
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
