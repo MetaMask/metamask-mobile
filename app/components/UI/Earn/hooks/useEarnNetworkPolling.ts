@@ -62,23 +62,17 @@ export const useEarnNetworkPolling = () => {
   useTokenBalancesPolling({ chainIds: lendingChainIds });
   useCurrencyRatePolling({ chainIds: lendingChainIds });
   useTokenRatesPolling({ chainIds: lendingChainIds });
-  // useAccountTrackerPolling({ networkClientIds: lendingNetworkClientIds });
   useTokenDetectionPolling({
     chainIds: useTokenDetection ? lendingChainIds : [],
     address: selectedAccount?.address as Hex,
   });
 
   useEffect(() => {
-    const { NetworkController } = Engine.context;
     const validChainIds: Hex[] = [];
-    const validNetworkClientIds: string[] = [];
 
     LENDING_CHAIN_IDS.forEach((chainId) => {
       try {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(chainId);
         validChainIds.push(chainId);
-        validNetworkClientIds.push(networkClientId);
       } catch (error) {
         console.warn(`Network client not found for chain ${chainId}:`, error);
       }

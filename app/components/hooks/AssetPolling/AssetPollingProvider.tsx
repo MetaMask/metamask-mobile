@@ -10,14 +10,7 @@ import useTokenBalancesPolling from './useTokenBalancesPolling';
 // Eventually, individual UI components will call the use*Polling hooks to
 // poll and return particular data. This polls globally in the meantime.
 export const AssetPollingProvider = memo(
-  ({
-    chainIds,
-    address,
-  }: {
-    chainIds?: Hex[];
-    networkClientId?: string;
-    address?: Hex;
-  }) => {
+  ({ chainIds, address }: { chainIds?: Hex[]; address?: Hex }) => {
     const chainParams = useMemo(
       () => (chainIds ? { chainIds } : undefined),
       [chainIds],
