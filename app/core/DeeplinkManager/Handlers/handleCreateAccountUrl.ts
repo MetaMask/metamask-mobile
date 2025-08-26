@@ -1,11 +1,14 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { CaipChainId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import ReduxService from '../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../selectors/multichain';
+import { selectLastSelectedNonEvmAccount } from '../../../selectors/accountsController';
 import { BridgeViewMode } from '../../../components/UI/Bridge/types';
 import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
+import Engine from '../../Engine';
 
 const getClientType = (chainId: string) => {
   let clientType: WalletClientType;
@@ -34,6 +37,15 @@ export function handleCreateAccountUrl({
   }
 
   const state = ReduxService.store.getState();
+  const lastSelectedNonEvmAccount = selectLastSelectedNonEvmAccount(state);
+
+  if (
+    lastSelectedNonEvmAccount?.scopes?.includes(chainId as CaipChainId)
+  ) {
+    // Switch to this account since it supports the requested chain
+    const { AccountsController } = Engine.context;
+    AccountsController.setSelectedAccount(lastSelectedNonEvmAccount.id);
+  }
 
   const accountsBalanceInScope = selectAccountsWithNativeBalanceByChainId(
     state,
