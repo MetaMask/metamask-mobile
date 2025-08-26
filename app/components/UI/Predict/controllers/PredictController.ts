@@ -9,6 +9,7 @@ import {
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
 } from '@metamask/transaction-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   IPredictProvider,
@@ -24,6 +25,14 @@ import { PolymarketProvider } from '../providers/PolymarketProvider';
 import Engine from '../../../../core/Engine';
 
 /**
+ * Get environment type for geo-blocking URLs
+ */
+const getEnvironment = (): 'DEV' | 'PROD' => {
+  const env = process.env.NODE_ENV ?? 'production';
+  return env === 'production' ? 'PROD' : 'DEV';
+};
+
+/**
  * Error codes for PredictController
  * These codes are returned to the UI layer for translation
  */
@@ -37,6 +46,29 @@ export const PREDICT_ERROR_CODES = {
 
 export type PredictErrorCode =
   (typeof PREDICT_ERROR_CODES)[keyof typeof PREDICT_ERROR_CODES];
+
+/**
+ * Geo-blocking
+ */
+const ON_RAMP_GEO_BLOCKING_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
+
+// UNKNOWN is the default/fallback in case the location API call fails
+const DEFAULT_GEO_BLOCKED_REGIONS = [
+  'US', // United States
+  'GB', // United Kingdom
+  'FR', // France
+  'CA-ON', // Ontario, Canada
+  'SG', // Singapore
+  'PL', // Poland
+  'TH', // Thailand
+  'AU', // Australia
+  'BE', // Belgium
+  'TW', // Taiwan
+  'UNKNOWN',
+];
 
 /**
  * State shape for PredictController
@@ -115,6 +147,10 @@ export type PredictControllerActions =
   | {
       type: 'PredictController:placeOrder';
       handler: PredictController['placeOrder'];
+    }
+  | {
+      type: 'PredictController:refreshEligibility';
+      handler: PredictController['refreshEligibility'];
     };
 
 /**
@@ -196,6 +232,16 @@ export class PredictController extends BaseController<
 
     this.initializeProviders().catch((error) => {
       DevLogger.log('PredictController: Error initializing providers', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
+    });
+
+    this.refreshEligibility().catch((error) => {
+      DevLogger.log('PredictController: Error refreshing eligibility', {
         error:
           error instanceof Error
             ? error.message
@@ -487,5 +533,70 @@ export class PredictController extends BaseController<
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Eligibility (Geo-Blocking)
+   * Users in blocked regions are not eligible for Predict markets:
+   * US, UK, France, Ontario (Canada), Singapore, Poland, Thailand, Australia, Belgium, Taiwan
+   */
+
+  /**
+   * Fetch geo location
+   *
+   * Returned in Country or Country-Region format
+   * Example: GB, FR, CA-ON, SG, PL
+   */
+  async #fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = getEnvironment();
+
+      const response = await successfulFetch(
+        ON_RAMP_GEO_BLOCKING_URLS[environment],
+      );
+
+      location = await response?.text();
+
+      return location;
+    } catch (e) {
+      DevLogger.log('PredictController: Failed to fetch geo location', {
+        error: e,
+      });
+      return location;
+    }
+  }
+
+  /**
+   * Refresh eligibility status
+   */
+  async refreshEligibility(
+    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
+  ): Promise<void> {
+    // Default to false in case of error.
+    let isEligible = false;
+
+    try {
+      DevLogger.log('PredictController: Refreshing eligibility');
+
+      const geoLocation = await this.#fetchGeoLocation();
+
+      isEligible = blockedLocations.every(
+        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
+      );
+    } catch (error) {
+      DevLogger.log('PredictController: Eligibility refresh failed', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      this.update((state) => {
+        state.isEligible = isEligible;
+      });
+    }
   }
 }
