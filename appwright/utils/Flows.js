@@ -11,12 +11,7 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
-  ? process.env.SEEDLESS_ONBOARDING_ENABLED
-  : true;
-const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
-  ? process.env.SOLANA_MODAL_ENABLED
-  : false;
+
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -38,9 +33,7 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await OnboardingScreen.tapHaveAnExistingWallet();
   await OnboardingSheet.isVisible();
-  if (SEEDLESS_ONBOARDING_ENABLED) {
-    await OnboardingSheet.tapImportSeedButton();
-  }
+  await OnboardingSheet.tapImportSeedButton();
   await ImportFromSeedScreen.isScreenTitleVisible();
 
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(srp, true);
@@ -61,10 +54,8 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  if (SOLANA_MODAL_ENABLED) {
-    await SolanaFeatureSheet.isVisible();
-    await SolanaFeatureSheet.tapNotNowButton();
-  }
+  // await SolanaFeatureSheet.isVisible();
+  // await SolanaFeatureSheet.tapNotNowButton();
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
