@@ -137,7 +137,7 @@ describe('ClaimBanner', () => {
           engine: {
             ...mockInitialState.engine,
             backgroundState: {
-              ...mockInitialState.engine!.backgroundState,
+              ...mockInitialState.engine?.backgroundState,
               NetworkController: {
                 ...mockNetworkState({
                   chainId: CHAIN_IDS.SEPOLIA,
