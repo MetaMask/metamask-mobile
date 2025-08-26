@@ -44,6 +44,11 @@ const MultichainAccountSelectorList = ({
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
 
+  const selectedIdSet = useMemo(
+    () => new Set(selectedAccountGroups.map((g) => g.id)),
+    [selectedAccountGroups],
+  );
+
   // Debounce search text with 200ms delay
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -137,12 +142,10 @@ const MultichainAccountSelectorList = ({
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroups.some((group) => group.id === accountGroup.id))
-        return;
+      if (selectedIdSet.has(accountGroup.id)) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroups],
+    [onSelectAccount, selectedIdSet],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -154,9 +157,7 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'cell': {
-            const isSelected = selectedAccountGroups.some(
-              (group) => group.id === item.data.id,
-            );
+            const isSelected = selectedIdSet.has(item.data.id);
             return (
               <AccountListCell
                 accountGroup={item.data}
@@ -174,7 +175,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedAccountGroups, handleSelectAccount],
+      [selectedIdSet, handleSelectAccount],
     );
 
   const keyExtractor = useCallback(
