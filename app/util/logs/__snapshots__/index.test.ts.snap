@@ -323,7 +323,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "NetworkEnablementController": {
         "enabledNetworkMap": {
-          "bip122": {},
           "eip155": {
             "0x1": true,
             "0x2105": true,
@@ -957,7 +956,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "NetworkEnablementController": {
         "enabledNetworkMap": {
-          "bip122": {},
           "eip155": {
             "0x1": true,
             "0x2105": true,
