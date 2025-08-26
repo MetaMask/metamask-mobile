@@ -11,6 +11,9 @@ import {
   Position,
 } from '../types';
 import { getPolymarketEndpoints } from '../utils/polymarketUtils';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
+const POLYMARKET_API_ENDPOINT = 'https://gamma-api.polymarket.com';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -36,8 +39,33 @@ export class PolymarketProvider implements IPredictProvider {
   }
 
   async getMarkets(): Promise<Market[]> {
-    // TODO: Implement polymarket getMarkets
-    return [];
+    try {
+      DevLogger.log('Getting markets via Polymarket API');
+      const response = await fetch(
+        `${POLYMARKET_API_ENDPOINT}/markets?limit=5&closed=false&active=true`,
+      );
+      const data = await response.json();
+      DevLogger.log('Polymarket response data:', data);
+
+      const markets = data.map((market: Market) => ({
+        id: market.id.toString(),
+        question: market.question || '',
+        outcomes: market.outcomes || '[]',
+        outcomePrices: market.outcomePrices,
+        image: market.image || '',
+        volume: market.volume,
+        providerId: 'polymarket',
+        status: market.status === 'closed' ? 'closed' : 'open',
+        image_url: market.image,
+        icon: market.icon,
+      }));
+
+      DevLogger.log('Processed markets:', markets);
+      return markets;
+    } catch (error) {
+      DevLogger.log('Error getting markets via Polymarket API:', error);
+      return [];
+    }
   }
 
   async getPositions({

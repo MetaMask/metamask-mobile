@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     marketFooter: {
       flexDirection: 'row',
-      justifyContent: 'flex-end',
+      justifyContent: 'space-between',
       alignItems: 'flex-end',
       width: '100%',
       marginTop: 8,

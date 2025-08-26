@@ -53,11 +53,16 @@ export type MarketStatus = 'open' | 'closed' | 'resolved';
 
 export type Market = {
   id: string;
-  providerId: string;
-  title: string;
-  description: string;
-  outcomes: MarketOutcome[];
-  status: MarketStatus;
+  question: string;
+  outcomes: string; // note: temporarily mirroring the return type from the Gamma Markets API
+  outcomePrices?: string;
+  image: string;
+  volume?: string | number;
+  providerId?: string;
+  title?: string;
+  status?: MarketStatus;
+  image_url?: string;
+  icon?: string;
 };
 
 export type Position = {
