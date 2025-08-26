@@ -266,6 +266,7 @@ describe('SDKDisconnectModal', () => {
       const { getByText } = render(
         <SDKDisconnectModal
           route={{
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             params: undefined as any,
           }}
         />,
