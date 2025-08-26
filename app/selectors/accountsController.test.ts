@@ -369,7 +369,7 @@ describe('selectCanSignTransactions', () => {
       KeyringTypes.snap,
       BtcAccountType.P2wpkh,
     ),
-    methods: [BtcMethod.SendBitcoin],
+    methods: [BtcMethod.SendTransfer],
   };
 
   const accountWithoutSigningMethods = {
