@@ -21,8 +21,7 @@ import { VaultBackupResult } from './types';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
 import {
   applyVaultInitialization,
-  password,
-  seedPhrase,
+  predefinedPassword,
   VAULT_INITIALIZED_KEY,
 } from '../../util/generateSkipOnboardingState';
 import storageWrapper from '../../store/storage-wrapper';
@@ -79,10 +78,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-
       if (
-        seedPhrase &&
-        password &&
+        predefinedPassword &&
         !(await storageWrapper.getItem(VAULT_INITIALIZED_KEY))
       ) {
         // Check for vault initialization on first launch

@@ -14,24 +14,16 @@ import {
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
-import { getGlobalEthQuery } from '../util/networks/global-network';
-import { getBalance, ZERO_BALANCE } from '../util/importAdditionalAccounts';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
-import {
-  getDefaultNetworkControllerState,
-  NetworkController,
-} from '@metamask/network-controller';
-import { INFURA_PROJECT_ID } from '../constants/network';
 import { storePrivacyPolicyClickedOrClosed } from '../reducers/legalNotices';
 import { Store } from 'redux';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
-// Only proceed if both SRP and password are provided
-export const seedPhrase = process.env.TEST_SRP;
-export const password = process.env.PASSWORD;
+export const seedPhrase =
+  'tip merge tell borrow disease fork lyrics base glance exotic woman sorry';
+export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
-const additionalSrps = [
+export const additionalSrps = [
   process.env.TEST_SRP_2,
   process.env.TEST_SRP_3,
   process.env.TEST_SRP_4,
@@ -59,20 +51,20 @@ const additionalSrps = [
  */
 async function initializeVaultOnFirstLaunch() {
   try {
-    if (!password || !seedPhrase) {
+    if (!predefinedPassword) {
       return null;
     }
 
-    const vaultAndAccount = await generateVaultAndAccount(seedPhrase, password);
+    const vaultAndAccount = await generateVaultAndAccount(
+      seedPhrase,
+      predefinedPassword,
+    );
 
     if (!vaultAndAccount) {
       return null;
     }
 
     const { keyringControllerState } = vaultAndAccount;
-
-    // Mark vault as initialized
-    await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
 
     return {
       keyringControllerState,
@@ -98,36 +90,9 @@ async function generateVaultAndAccount(
       keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
     });
 
-    // Now create KeyringController with the snap keyring builder
     const keyringController = new KeyringController({
       encryptor,
       messenger: keyringControllerMessenger,
-      //      keyringBuilders: [], -> We need it to add snap keyrings
-    });
-
-    const networkControllerMessenger = controllerMessenger.getRestricted({
-      name: 'NetworkController',
-      allowedEvents: [],
-      allowedActions: [],
-    });
-
-    const networkController = new NetworkController({
-      messenger: networkControllerMessenger,
-      infuraProjectId: INFURA_PROJECT_ID || '',
-      state: getDefaultNetworkControllerState(),
-      getBlockTrackerOptions: () => ({}),
-      getRpcServiceOptions: () => {
-        const commonOptions = {
-          // eslint-disable-next-line no-undef
-          fetch: globalThis.fetch.bind(globalThis),
-          // eslint-disable-next-line no-undef
-          btoa: globalThis.btoa.bind(globalThis),
-        };
-
-        return {
-          ...commonOptions,
-        };
-      },
     });
 
     const seedPhraseUint8Array = mnemonicPhraseToBytes(secretRecoveryPhrase);
@@ -138,71 +103,6 @@ async function generateVaultAndAccount(
       seedPhraseUint8Array,
     );
 
-    await keyringController.submitPassword(newPassword);
-    // Create a mapping of SRPs that can be processed at build time by Babel
-    for (const srp of additionalSrps) {
-      if (!srp) {
-        break;
-      }
-
-      await keyringController.addNewKeyring(ExtendedKeyringTypes.hd, {
-        mnemonic: srp, // Use the actual SRP, not the original seedPhrase
-        numberOfAccounts: 1,
-      });
-    }
-
-    networkController.initializeProvider();
-
-    const ethQuery = getGlobalEthQuery(networkController);
-
-    const allKeyrings = keyringController.getKeyringsByType(
-      ExtendedKeyringTypes.hd,
-    );
-
-    for (
-      let keyringIndex = 0;
-      keyringIndex < allKeyrings.length;
-      keyringIndex++
-    ) {
-      await keyringController.withKeyring(
-        { type: ExtendedKeyringTypes.hd, index: keyringIndex },
-        async ({ keyring }) => {
-          // First, check existing accounts in this keyring
-          const existingAccounts = await keyring.getAccounts();
-
-          for (const account of existingAccounts) {
-            try {
-              await getBalance(account, ethQuery);
-            } catch (err) {
-              //fail silently
-            }
-          }
-
-          for (let i = 0; i < 9999; i++) {
-            const [newAccount] = await keyring.addAccounts(1);
-            await keyring.getAccounts();
-
-            let newAccountBalance = ZERO_BALANCE;
-            try {
-              newAccountBalance = await getBalance(newAccount, ethQuery);
-            } catch (error) {
-              // Errors are gracefully handled so that `withKeyring`
-              // will not rollback the primary keyring, and accounts
-              // created in previous loop iterations will remain in place.
-            }
-
-            if (newAccountBalance === ZERO_BALANCE) {
-              // remove extra zero balance account we just added and break the loop
-
-              keyring.removeAccount?.(newAccount);
-              break;
-            }
-          }
-        },
-      );
-    }
-
-    // Extract vault
     const keyringControllerState = keyringController.state;
 
     return { keyringControllerState };
