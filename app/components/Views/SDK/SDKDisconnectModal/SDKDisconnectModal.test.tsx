@@ -275,4 +275,130 @@ describe('SDKDisconnectModal', () => {
       expect(getByText('sdk_disconnect_modal.disconnect_all')).toBeTruthy();
     });
   });
+
+  describe('Error Handling', () => {
+    it('handles V2 disconnect errors gracefully', async () => {
+      // Mock SDKConnectV2.disconnect to throw an error
+      (SDKConnectV2.disconnect as jest.Mock).mockRejectedValueOnce(
+        new Error('Disconnect failed'),
+      );
+
+      const { getByText } = render(
+        <SDKDisconnectModal
+          route={{
+            params: {
+              channelId: 'channel1',
+              isV2: true,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Should still navigate even on error
+      expect(mockNavigate).toHaveBeenCalledWith('SDK_SESSIONS_MANAGER', {
+        trigger: expect.any(Number),
+      });
+    });
+
+    it('handles V2 account disconnect with last account escalation', async () => {
+      const { getByText } = render(
+        <SDKDisconnectModal
+          route={{
+            params: {
+              account: '123',
+              channelId: 'channel1',
+              accountsLength: 1,
+              isV2: true,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(removePermittedAccounts).toHaveBeenCalledWith('channel1', [
+        '0x123',
+      ]);
+      expect(SDKConnectV2.disconnect).toHaveBeenCalledWith('channel1');
+    });
+
+    it('handles V2 account disconnect without escalation', async () => {
+      const { getByText } = render(
+        <SDKDisconnectModal
+          route={{
+            params: {
+              account: '123',
+              channelId: 'channel1',
+              accountsLength: 3, // More than 1 account
+              isV2: true,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(removePermittedAccounts).toHaveBeenCalledWith('channel1', [
+        '0x123',
+      ]);
+      expect(SDKConnectV2.disconnect).not.toHaveBeenCalled();
+    });
+
+    it('handles empty v2Connections gracefully', async () => {
+      (useSelector as jest.Mock).mockReturnValue({
+        v2Connections: {},
+      });
+
+      const { getByText } = render(
+        <SDKDisconnectModal
+          route={{
+            params: {
+              isV2: true,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(SDKConnectV2.disconnect).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('handles null v2Connections gracefully', async () => {
+      (useSelector as jest.Mock).mockReturnValue({
+        v2Connections: null,
+      });
+
+      const { getByText } = render(
+        <SDKDisconnectModal
+          route={{
+            params: {
+              isV2: true,
+            },
+          }}
+        />,
+      );
+
+      fireEvent.press(getByText('sdk_disconnect_modal.disconnect_confirm'));
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(SDKConnectV2.disconnect).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('SDK_SESSIONS_MANAGER', {
+        trigger: expect.any(Number),
+      });
+    });
+  });
 });
