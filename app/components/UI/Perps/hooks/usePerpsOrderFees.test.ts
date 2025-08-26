@@ -270,6 +270,8 @@ describe('usePerpsOrderFees', () => {
       deferred.resolve({
         feeRate: 0.00045,
         feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       });
 
       // Wait for loading to complete
@@ -284,10 +286,14 @@ describe('usePerpsOrderFees', () => {
       const mockMarketFeeResult: FeeCalculationResult = {
         feeRate: 0.00045,
         feeAmount: 45,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
       };
       const mockLimitFeeResult: FeeCalculationResult = {
         feeRate: 0.00015,
         feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
       };
 
       const updatedMockMarketFeeResult: FeeCalculationResult = {
