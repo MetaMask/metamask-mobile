@@ -13,6 +13,7 @@ const tags = {
   SmokeNetworkAbstractions: 'NetworkAbstractions:',
   SmokeWalletPlatform: 'WalletPlatform:',
   SmokeNetworkExpansion: 'NetworkExpansion:',
+  regressionNetworkExpansion: 'RegressionNetworkExpansion:',
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
@@ -50,6 +51,8 @@ const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
+const RegressionNetworkExpansion = (testName) =>
+  `${tags.regressionNetworkExpansion} ${testName}`;
 const SmokeCard = (testName) => `${tags.smokeCard} ${testName}`;
 
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
@@ -71,6 +74,7 @@ export {
   SmokeTrade,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
+  RegressionNetworkExpansion,
   SmokeWalletPlatform,
   SmokeRamps,
   SmokeNotifications,
