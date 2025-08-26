@@ -1041,7 +1041,9 @@
         "viewPositions": "View Positions",
         "placeAnother": "Place Another Order",
         "backToPerps": "Back to Perps"
-      }
+      },
+      "submitted": "Order Submitted",
+      "confirmed": "Order Confirmed"
     },
     "close_position": {
       "title": "Close position",

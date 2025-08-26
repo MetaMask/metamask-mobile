@@ -125,6 +125,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
+  // Ref to prevent double order submission (TAT-1424)
+  const isSubmittingRef = useRef(false);
+
   const cachedAccountState = usePerpsAccount();
 
   // Get real HyperLiquid USDC balance
@@ -180,11 +183,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
         });
 
+        // TAT-1414: Show "Order Confirmed" toast (navigation already happened)
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings('perps.order.success.title'),
+              label: strings('perps.order.confirmed'),
               isBold: true,
             },
             { label: ' - ', isBold: false },
@@ -200,14 +204,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
             onPress: () => toastRef?.current?.closeToast(),
-          },
-        });
-
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: navigationMarketData,
-            isNavigationFromOrderSuccess: true,
           },
         });
       },
@@ -528,60 +524,95 @@ const PerpsOrderViewContentBase: React.FC = () => {
   };
 
   const handlePlaceOrder = useCallback(async () => {
-    // Validation errors are shown in the UI
-    if (!orderValidation.isValid) {
-      const firstError = orderValidation.errors[0];
+    // TAT-1424: Prevent double submission on Android
+    if (isSubmittingRef.current) {
+      return;
+    }
+    isSubmittingRef.current = true;
+
+    try {
+      // Validation errors are shown in the UI
+      if (!orderValidation.isValid) {
+        const firstError = orderValidation.errors[0];
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('perps.order.validation.failed'), isBold: true },
+            { label: ': ', isBold: false },
+            { label: firstError, isBold: false },
+          ],
+          iconName: IconName.Warning,
+          iconColor: IconColor.Warning,
+          hasNoTimeout: true,
+        });
+
+        // Track validation failure as error encountered
+        track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
+          [PerpsEventProperties.ERROR_TYPE]:
+            PerpsEventValues.ERROR_TYPE.VALIDATION,
+          [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+        });
+
+        isSubmittingRef.current = false; // Reset flag on early return
+        return;
+      }
+
+      // Track trade transaction initiated
+      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED, {
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+        [PerpsEventProperties.ORDER_SIZE]: positionSize,
+        [PerpsEventProperties.MARGIN_USED]: marginRequired,
+      });
+
+      // Execute order using the new hook
+      const orderParams: OrderParams = {
+        coin: orderForm.asset,
+        isBuy: orderForm.direction === 'long',
+        size: positionSize,
+        orderType: orderForm.type,
+        takeProfitPrice: orderForm.takeProfitPrice,
+        stopLossPrice: orderForm.stopLossPrice,
+        currentPrice: assetData.price,
+        leverage: orderForm.leverage,
+        ...(orderForm.type === 'limit' && orderForm.limitPrice
+          ? { price: orderForm.limitPrice }
+          : {}),
+      };
+
+      // TAT-1414: Navigate immediately and show "Order Submitted" toast
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: navigationMarketData,
+          isNavigationFromOrderSuccess: false,
+        },
+      });
+
+      // Show "Order Submitted" toast immediately
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
-          { label: strings('perps.order.validation.failed'), isBold: true },
-          { label: ': ', isBold: false },
-          { label: firstError, isBold: false },
+          {
+            label: strings('perps.order.submitted'),
+            isBold: true,
+          },
+          { label: ' - ', isBold: false },
+          {
+            label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`,
+            isBold: true,
+          },
         ],
-        iconName: IconName.Warning,
-        iconColor: IconColor.Warning,
-        hasNoTimeout: true,
+        iconName: IconName.Clock,
+        iconColor: IconColor.Primary,
+        hasNoTimeout: false, // Auto-dismiss after a few seconds
       });
 
-      // Track validation failure as error encountered
-      track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
-        [PerpsEventProperties.ERROR_TYPE]:
-          PerpsEventValues.ERROR_TYPE.VALIDATION,
-        [PerpsEventProperties.ERROR_MESSAGE]: firstError,
-      });
-
-      return;
-    }
-
-    // Track trade transaction initiated
-    track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED, {
-      [PerpsEventProperties.ASSET]: orderForm.asset,
-      [PerpsEventProperties.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-      [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-      [PerpsEventProperties.ORDER_SIZE]: positionSize,
-      [PerpsEventProperties.MARGIN_USED]: marginRequired,
-    });
-
-    // Execute order using the new hook
-    const orderParams: OrderParams = {
-      coin: orderForm.asset,
-      isBuy: orderForm.direction === 'long',
-      size: positionSize,
-      orderType: orderForm.type,
-      takeProfitPrice: orderForm.takeProfitPrice,
-      stopLossPrice: orderForm.stopLossPrice,
-      currentPrice: assetData.price,
-      leverage: orderForm.leverage,
-      ...(orderForm.type === 'limit' && orderForm.limitPrice
-        ? { price: orderForm.limitPrice }
-        : {}),
-    };
-
-    try {
       // Track trade transaction submitted
       track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
         [PerpsEventProperties.ASSET]: orderForm.asset,
@@ -607,6 +638,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
           error instanceof Error ? error.message : 'Unknown error',
       });
       throw error;
+    } finally {
+      // Always reset submission flag
+      isSubmittingRef.current = false;
     }
   }, [
     orderValidation,
@@ -617,6 +651,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     executeOrder,
     track,
     marginRequired,
+    navigation,
+    navigationMarketData,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
