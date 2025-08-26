@@ -420,6 +420,29 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
+  // Calculate TP/SL display text with percentages
+  const tpSlDisplayText = useMemo(() => {
+    const price = parseFloat(currentPrice?.price || '0');
+    let tpDisplay = strings('perps.order.off');
+    let slDisplay = strings('perps.order.off');
+
+    if (orderForm.takeProfitPrice && price > 0) {
+      const tpPrice = parseFloat(orderForm.takeProfitPrice);
+      const tpPercentage = ((tpPrice - price) / price) * 100;
+      const absPercentage = Math.abs(tpPercentage);
+      tpDisplay = `${absPercentage.toFixed(0)}%`;
+    }
+
+    if (orderForm.stopLossPrice && price > 0) {
+      const slPrice = parseFloat(orderForm.stopLossPrice);
+      const slPercentage = ((price - slPrice) / price) * 100;
+      const absPercentage = Math.abs(slPercentage);
+      slDisplay = `${absPercentage.toFixed(0)}%`;
+    }
+
+    return `TP ${tpDisplay}, SL ${slDisplay}`;
+  }, [currentPrice?.price, orderForm.takeProfitPrice, orderForm.stopLossPrice]);
+
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
     orderForm,
@@ -760,40 +783,31 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
 
-          {/* Take profit */}
-          <View style={styles.detailItem}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
-              <ListItem>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {strings('perps.order.take_profit')}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {orderForm.takeProfitPrice
-                      ? formatPrice(orderForm.takeProfitPrice)
-                      : strings('perps.order.off')}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
-          </View>
-
-          {/* Stop loss */}
+          {/* Combined TP/SL row */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
             <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {strings('perps.order.stop_loss')}
-                  </Text>
+                  <View style={styles.detailLeft}>
+                    <Text variant={TextVariant.BodyLGMedium}>
+                      {strings('perps.order.tp_sl')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleTooltipPress('tp_sl')}
+                      style={styles.infoIcon}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Muted}
+                        testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
                   <Text variant={TextVariant.BodyLGMedium}>
-                    {orderForm.stopLossPrice
-                      ? formatPrice(orderForm.stopLossPrice)
-                      : strings('perps.order.off')}
+                    {tpSlDisplayText}
                   </Text>
                 </ListItemColumn>
               </ListItem>
@@ -1019,6 +1033,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         asset={orderForm.asset}
         limitPrice={orderForm.limitPrice}
         currentPrice={assetData.price}
+        direction={orderForm.direction}
       />
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
@@ -1029,6 +1044,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
           // Clear limit price when switching to market order
           if (type === 'market') {
             setLimitPrice(undefined);
+          } else if (type === 'limit' && !orderForm.limitPrice) {
+            // TAT-1368: Auto-open limit price bottom sheet when switching to limit order
+            setTimeout(() => {
+              setIsLimitPriceVisible(true);
+            }, 300); // Small delay to allow order type modal to close first
           }
           setIsOrderTypeVisible(false);
         }}

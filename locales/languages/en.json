@@ -990,6 +990,7 @@
       "margin": "Margin",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
+      "tp_sl": "TP/SL",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1247,6 +1248,10 @@
       "perps_geo_block": {
         "title": "Perps geo block",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "tp_sl": {
+        "title": "Take Profit & Stop Loss",
+        "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
       },
       "notifications": {
         "title": "Turn on notifications",
