@@ -36,13 +36,13 @@ import WalletAddAccountActions from './components/WalletAddAccountActions';
 import AddAccountItem from './components/AddAccountItem';
 import { FlashList } from '@shopify/flash-list';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
-import { selectAccountTreeControllerState } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountItem from './components/AccountItem';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { RootState } from '../../../../../reducers';
 
-export interface BaseWalletDetailsProps {
+interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
   children?: React.ReactNode;
 }
@@ -62,13 +62,12 @@ export const BaseWalletDetails = ({
     selectMultichainAccountsState2Enabled,
   );
 
-  const accountTreeState = useSelector(selectAccountTreeControllerState);
+  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
   const accountGroups = useMemo(
     () =>
-      Object.values(
-        accountTreeState.accountTree.wallets[wallet.id].groups,
-      ) as AccountGroupObject[],
-    [accountTreeState, wallet.id],
+      accountGroupsByWallet.find((section) => section.wallet.id === wallet.id)
+        ?.data ?? [],
+    [accountGroupsByWallet, wallet.id],
   );
 
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
