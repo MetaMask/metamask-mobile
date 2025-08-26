@@ -21,6 +21,12 @@ class FundActionMenu {
     );
   }
 
+  get perpsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
+    );
+  }
+
   async tapDepositButton(): Promise<void> {
     await Gestures.waitAndTap(this.depositButton);
   }
@@ -31,6 +37,10 @@ class FundActionMenu {
 
   async tapSellButton(): Promise<void> {
     await Gestures.waitAndTap(this.sellButton);
+  }
+
+  async tapPerpsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsButton);
   }
 }
 

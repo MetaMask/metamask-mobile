@@ -1353,6 +1353,40 @@ class FixtureBuilder {
   }
 
   /**
+   * Enable a remote feature flag in the background state
+   */
+  withRemoteFeatureFlag(flagKey: string, flagValue: Record<string, unknown>) {
+    if (
+      !this.fixture.state.engine.backgroundState.RemoteFeatureFlagController
+    ) {
+      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController = {
+        cacheTimestamp: Date.now(),
+        remoteFeatureFlags: {},
+      } as unknown as Record<string, unknown>;
+    }
+
+    const controller = this.fixture.state.engine.backgroundState
+      .RemoteFeatureFlagController as unknown as {
+      cacheTimestamp: number;
+      remoteFeatureFlags: Record<string, unknown>;
+    };
+
+    controller.remoteFeatureFlags = controller.remoteFeatureFlags || {};
+    controller.remoteFeatureFlags[flagKey] = flagValue;
+    return this;
+  }
+
+  /**
+   * Convenience: enable Perps feature flag
+   */
+  withPerpsFeatureFlagEnabled() {
+    return this.withRemoteFeatureFlag('perpsPerpTradingEnabled', {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    });
+  }
+
+  /**
    * Merges provided data into the KeyringController's state with a random imported account.
    * and also includes the default HD Key Tree fixture account.
    *
