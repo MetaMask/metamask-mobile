@@ -8,8 +8,34 @@ permissions:
   id-token: write
 
 jobs:
+  install-test-dependencies:
+    name: "Install Test Dependencies"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Restore Yarn and node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/yarn
+          key: yarn-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Restore Node.js Dependencies Cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: deps-${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-ios
@@ -19,6 +45,7 @@ jobs:
 
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
@@ -28,6 +55,7 @@ jobs:
 
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-ios
@@ -37,6 +65,7 @@ jobs:
 
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-ios
@@ -46,6 +75,7 @@ jobs:
 
   smoke-identity-ios:
     name: "Identity Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-ios
@@ -55,6 +85,7 @@ jobs:
 
   smoke-accounts-ios:
     name: "Accounts Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-ios
@@ -64,6 +95,7 @@ jobs:
 
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-ios
@@ -73,6 +105,7 @@ jobs:
 
   smoke-network-expansion-ios:
     name: "Network Expansion Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-ios
@@ -82,6 +115,7 @@ jobs:
 
   smoke-performance-ios:
     name: "Performance Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-performance-ios
@@ -91,6 +125,7 @@ jobs:
 
   smoke-card-ios:
     name: "Card Smoke (iOS)"
+    needs: install-test-dependencies
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-card-ios
