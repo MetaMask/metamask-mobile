@@ -112,16 +112,18 @@ new FixtureBuilder().build();
 
 #### Page Object Structure Example:
 ```typescript
+import { LoginPageSelectors } from './LoginPage.selectors';
+
 class LoginPage {
   // Getter pattern for elements
   get emailInput() {
-    return Matchers.getElementByID('email-input');
+    return Matchers.getElementByID(LoginPageSelectors.EMAIL_INPUT);
   }
   get passwordInput() {
-    return Matchers.getElementByID('password-input');
+    return Matchers.getElementByID(LoginPageSelectors.PASSWORD_INPUT);
   }
   get loginButton() {
-    return Matchers.getElementByID('login-button');
+    return Matchers.getElementByID(LoginPageSelectors.LOGIN_BUTTON);
   }
 
   // Public methods for actions
