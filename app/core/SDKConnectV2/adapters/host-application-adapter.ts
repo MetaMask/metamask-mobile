@@ -1,18 +1,7 @@
-import { Connection } from '../types/connection';
-import { DappMetadata } from '../types/dapp-metadata';
+import { Connection } from '../services/connection';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showConnectionApproval(
-    _connectionId: string,
-    _dappMetadata: DappMetadata,
-  ): Promise<void> {
-    console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.showConnectionApproval called but is not yet implemented.',
-    );
-    return Promise.resolve();
-  }
-
   showLoading(): void {
     console.warn(
       '[SDKConnectV2] HostApplicationAdapter.showLoading called but is not yet implemented.',
@@ -34,7 +23,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
 
   syncConnectionList(_connections: Connection[]): void {
     console.warn(
-      '[SDKConnectV2] HostApplicationAdapter.syncConnectionList called but is not yet implemented.',
+      '[SDKConnectV2] HostApplicationAdapter.syncConnectionList called but is not yet implemented in this PR.',
     );
   }
 }
