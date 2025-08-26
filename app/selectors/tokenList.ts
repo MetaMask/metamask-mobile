@@ -23,10 +23,11 @@ import {
   Asset,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
 } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 import { formatWithThreshold } from '../util/assets';
 import I18n from '../../locales/i18n';
+import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -134,7 +135,10 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     const enabledNetworks = Object.values(enabledNetworksByNamespace).flatMap(
       (network) =>
         Object.entries(network)
-          .filter(([_, enabled]) => enabled)
+          // TODO Temporary workaround to show solana until the network selector is updated
+          .filter(
+            ([networkId, enabled]) => enabled || !networkId.startsWith('0x'),
+          )
           .map(([networkId]) => networkId),
     );
 
@@ -143,8 +147,9 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
         ([networkId, _]) =>
           enabledNetworks.includes(networkId) || networkId.startsWith('0x'),
       )
-      .flatMap(([_, assets]) => assets);
+      .flatMap(([_, chainAssets]) => chainAssets);
 
+    // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
     // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
 
@@ -181,8 +186,10 @@ export const selectAsset = createDeepEqualSelector(
   },
 );
 
+const oneHundredThousandths = 0.00001;
+const oneHundredths = 0.01;
+
 function assetToToken(asset: Asset): TokenI {
-  const minimumDisplayThreshold = 0.00001;
   return {
     address: asset.assetId,
     aggregators: [],
@@ -192,17 +199,20 @@ function assetToToken(asset: Asset): TokenI {
     symbol: asset.symbol,
     balance: formatWithThreshold(
       parseFloat(asset.balance),
-      minimumDisplayThreshold,
+      oneHundredThousandths,
       I18n.locale,
-      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits:
+          MULTICHAIN_NETWORK_DECIMAL_PLACES[asset.chainId as CaipChainId] || 5,
+      },
     ),
-    balanceFiat: asset.fiat?.balance
-      ? `${asset.fiat.balance.toString()}` // TODO: Fix this
+    balanceFiat: asset.fiat
+      ? formatWithThreshold(asset.fiat.balance, oneHundredths, I18n.locale, {
+          style: 'currency',
+          currency: asset.fiat.currency,
+        })
       : undefined,
-    // This is an undocumented field, but it's used to sort the token list
-    tokenFiatAmount: asset.fiat?.balance
-      ? `$${asset.fiat.balance.toString()}`
-      : asset.balance,
     logo:
       asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
@@ -216,5 +226,5 @@ function assetToToken(asset: Asset): TokenI {
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,
-  } as TokenI;
+  };
 }
