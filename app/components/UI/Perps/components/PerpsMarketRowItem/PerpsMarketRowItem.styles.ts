@@ -16,11 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
     perpIcon: {
       marginRight: 16,
     },
-    tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-    },
     leftSection: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -55,9 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 2,
       paddingHorizontal: 4,
       borderRadius: 2,
-    },
-    networkAvatar: {
-      marginRight: 16,
     },
   });
 };
