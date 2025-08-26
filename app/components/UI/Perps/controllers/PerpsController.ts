@@ -24,6 +24,7 @@ import {
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import { MockPerpsProvider } from './providers/MockPerpsProvider';
 import type {
   AccountState,
   AssetRoute,
@@ -393,10 +394,25 @@ export class PerpsController extends BaseController<
       );
     }
     this.providers.clear();
-    this.providers.set(
-      'hyperliquid',
-      new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
-    );
+
+    const useMock =
+      process.env.EXPO_PUBLIC_USE_MOCK_PERPS === 'true' ||
+      process.env.USE_MOCK_PERPS === 'true';
+
+    if (useMock) {
+      this.providers.set('mock-perps', new MockPerpsProvider());
+      this.update((state) => {
+        state.activeProvider = 'mock-perps';
+      });
+    } else {
+      this.providers.set(
+        'hyperliquid',
+        new HyperLiquidProvider({ isTestnet: this.state.isTestnet }),
+      );
+      this.update((state) => {
+        state.activeProvider = 'hyperliquid';
+      });
+    }
 
     // Future providers can be added here with their own authentication patterns:
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
