@@ -564,7 +564,6 @@ export type Controllers = {
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
-  PredictController: PredictController;
 };
 
 /**
