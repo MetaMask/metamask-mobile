@@ -69,6 +69,11 @@ export const PERFORMANCE_CONFIG = {
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
 
+  // Navigation params delay (milliseconds)
+  // Required for React Navigation to complete state transitions before setting params
+  // This ensures navigation context is available when programmatically selecting tabs
+  NAVIGATION_PARAMS_DELAY_MS: 100,
+
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
   MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
