@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, RefreshControl } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -20,6 +20,8 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { useNavigation } from '@react-navigation/native';
 import PredictPosition from '../../components/PredictPosition';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
+import type { Position } from '../../types';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 
 interface PredictTabViewProps {}
 
@@ -28,9 +30,10 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const navigation = useNavigation();
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { positions } = usePredictPositions({
+  const { positions, isRefreshing, loadPositions } = usePredictPositions({
     loadOnMount: true,
   });
+  const listRef = useRef<FlashListRef<Position>>(null);
 
   const handleCloseBottomSheet = useCallback(() => {
     setIsBottomSheetVisible(false);
@@ -42,19 +45,30 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.marketListContainer}>
-        {positions.map((position) => (
+      <FlashList
+        ref={listRef}
+        data={positions}
+        renderItem={({ item }) => (
           <TouchableOpacity
-            key={position.conditionId}
+            key={item.conditionId}
             style={styles.marketEntry}
             onPress={() => {
               setIsBottomSheetVisible(true);
             }}
           >
-            <PredictPosition key={position.conditionId} position={position} />
+            <PredictPosition position={item} />
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
+        keyExtractor={(item) => item.conditionId}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => loadPositions({ isRefresh: true })}
+          />
+        }
+        removeClippedSubviews
+        decelerationRate={0}
+      />
       <View style={styles.viewAllMarkets}>
         <Button
           variant={ButtonVariants.Primary}
