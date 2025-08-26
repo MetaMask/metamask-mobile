@@ -202,12 +202,7 @@ export const selectBridgeFeatureFlags = createSelector(
       },
     });
 
-    if (
-      hasMinimumRequiredVersion(
-        featureFlags.minimumVersion,
-        process.env.MM_BRIDGE_ENABLED === 'true',
-      )
-    ) {
+    if (hasMinimumRequiredVersion(featureFlags.minimumVersion, true)) {
       return featureFlags;
     }
 
@@ -442,12 +437,8 @@ export const selectIsSubmittingTx = createSelector(
 export const selectIsUnifiedSwapsEnabled = createSelector(
   selectBridgeFeatureFlags,
   selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
+  () => {
+    if (isUnifiedSwapsEnvVarEnabled()) {
       return true;
     }
     return false;
