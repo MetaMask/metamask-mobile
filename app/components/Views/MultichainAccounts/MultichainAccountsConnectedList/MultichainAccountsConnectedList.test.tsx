@@ -9,6 +9,19 @@ import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Brow
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import { createMockAccountGroup } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
+jest.mock('../../../../selectors/assets/balances', () => {
+  const actual = jest.requireActual('../../../../selectors/assets/balances');
+  return {
+    ...actual,
+    selectBalanceByAccountGroup: (groupId: string) => () => ({
+      walletId: groupId.split('/')[0],
+      groupId,
+      totalBalanceInUserCurrency: 0,
+      userCurrency: 'usd',
+    }),
+  };
+});
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -49,6 +62,15 @@ const mockStore = configureStore([]);
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
+  },
+  engine: {
+    backgroundState: {
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+      },
+    },
   },
 };
 
