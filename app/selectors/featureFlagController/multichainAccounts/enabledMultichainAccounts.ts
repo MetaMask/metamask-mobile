@@ -18,7 +18,6 @@ const overrideRemoteFeatureFlags =
   process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true' && !isProduction();
 const enabledMultichainAccountsState2Local =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
-console.log('BIP 44 ENABLED', enabledMultichainAccountsState2Local);
 
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1 = '1';
 export const MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2 = '2';

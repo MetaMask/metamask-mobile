@@ -64,6 +64,19 @@ const _selectSortedTokenKeys = createSelector(
     }));
 
     const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
+    console.log('tokensSorted', {
+      tokensWithBalances: tokensWithBalances.map((token) => ({
+        symbol: token.symbol,
+        chainId: token.chainId,
+        tokenFiatAmount: token.tokenFiatAmount,
+      })),
+      tokensSorted: tokensSorted.map((token) => ({
+        symbol: token.symbol,
+        chainId: token.chainId,
+        tokenFiatAmount: token.tokenFiatAmount,
+      })),
+      tokenSortConfig,
+    });
 
     endTrace({ name: TraceName.Tokens });
 
