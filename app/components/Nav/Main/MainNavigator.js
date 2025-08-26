@@ -871,6 +871,11 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen
+        name={Routes.SETTINGS_VIEW}
+        component={SettingsFlow}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />

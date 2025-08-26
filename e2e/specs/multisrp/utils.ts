@@ -7,10 +7,10 @@ import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItem
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails.ts';
+import { navigateToSettings } from '../../viewHelper.ts';
 
 const PASSWORD = '123123123';
 
@@ -64,7 +64,7 @@ export const goToAccountActions = async (accountIndex: number) => {
 };
 
 export const startExportForKeyring = async (keyringId: string) => {
-  await TabBarComponent.tapSettings();
+  await navigateToSettings();
   await SettingsView.tapSecurityAndPrivacy();
   await SecurityAndPrivacyView.tapRevealSecretRecoveryPhraseButton();
   await SRPListItemComponent.tapListItem(keyringId);

@@ -12,7 +12,7 @@ import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
 import LoginView from '../../pages/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
@@ -61,7 +61,7 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await TestHelpers.delay(2000);
 
         //go to settings then security & privacy
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);

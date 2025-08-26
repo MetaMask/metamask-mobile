@@ -1,10 +1,11 @@
 import { RegressionWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
+import SettingsView from '../../pages/Settings/SettingsView';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
@@ -42,7 +43,8 @@ describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
           WalletView.totalBalance as DetoxElement,
           EXPECTED_HIDDEN_BALANCE,
         );
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
+        await SettingsView.dismissModal();
         await TabBarComponent.tapWallet();
         await Assertions.expectElementToBeVisible(WalletView.container);
         await Assertions.expectElementToBeVisible(WalletView.totalBalance);

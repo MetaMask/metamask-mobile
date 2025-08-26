@@ -11,9 +11,11 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import CommonView from '../../pages/CommonView';
 import WalletView from '../../pages/wallet/WalletView';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  navigateToSettings,
+} from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
@@ -49,7 +51,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
   });
 
   it('should go to the Privacy and settings view', async () => {
-    await TabBarComponent.tapSettings();
+    await navigateToSettings();
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToTurnOnRememberMe();
@@ -79,7 +81,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
   });
 
   it('should go to settings then networks', async () => {
-    await TabBarComponent.tapSettings();
+    await navigateToSettings();
     await SettingsView.tapNetworks();
 
     await Assertions.expectElementToBeVisible(NetworkView.networkContainer);

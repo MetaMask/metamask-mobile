@@ -1,7 +1,6 @@
 import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import AutoLockModal from '../../pages/Settings/SecurityAndPrivacy/AutoLockModal';
@@ -10,7 +9,7 @@ import LoginView from '../../pages/wallet/LoginView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 import { logger } from '../../framework/logger';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
 (isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {
@@ -41,12 +40,12 @@ const isIOS = device.getPlatform() === 'ios';
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToAutoLockSection();
         await SecurityAndPrivacy.tapAutoLock30Seconds();
         await AutoLockModal.tapAutoLockImmediately();
-        await TabBarComponent.tapWallet();
+        await SettingsView.dismissModal();
         await device.sendToHome();
         await TestHelpers.launchApp();
         await Assertions.expectElementToNotBeVisible(WalletView.container);

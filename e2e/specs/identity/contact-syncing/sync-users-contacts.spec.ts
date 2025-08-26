@@ -2,9 +2,11 @@ import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../utils/constants';
-import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
+import {
+  importWalletWithRecoveryPhrase,
+  navigateToSettings,
+} from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { SmokeIdentity } from '../../../tags';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
@@ -43,7 +45,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           password: IDENTITY_TEAM_PASSWORD,
         });
 
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await Assertions.expectElementToBeVisible(
           SettingsView.contactsSettingsButton,
         );
@@ -85,7 +87,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           password: IDENTITY_TEAM_PASSWORD,
         });
 
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await Assertions.expectElementToBeVisible(
           SettingsView.contactsSettingsButton,
         );

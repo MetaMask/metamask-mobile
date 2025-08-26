@@ -1,5 +1,5 @@
 import { FlaskBuildTests } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -33,11 +33,12 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         fixture: new FixtureBuilder().build(),
       },
       async () => {
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapSnaps();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
+        await SettingsView.dismissModal();
 
         await TabBarComponent.tapBrowser();
 
@@ -57,10 +58,11 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         fixture: new FixtureBuilder().build(),
       },
       async () => {
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
+        await SettingsView.dismissModal();
 
         await TabBarComponent.tapBrowser();
 
@@ -81,7 +83,7 @@ describe(FlaskBuildTests('Snap Management Tests'), () => {
         fixture: new FixtureBuilder().build(),
       },
       async () => {
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
 
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.removeSnap();
