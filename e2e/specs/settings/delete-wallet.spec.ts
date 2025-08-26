@@ -5,7 +5,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import ChangePasswordView from '../../pages/Settings/SecurityAndPrivacy/ChangePasswordView';
 import ForgotPasswordModal from '../../pages/Common/ForgotPasswordModalView';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -34,7 +34,7 @@ describe(
           await loginToApp();
 
           // should go to settings then security & privacy
-          await TabBarComponent.tapSettings();
+          await navigateToSettings();
           await SettingsView.tapSecurityAndPrivacy();
           await SecurityAndPrivacyView.scrollToChangePasswordView();
           await Assertions.expectElementToBeVisible(

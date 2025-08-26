@@ -4,8 +4,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
 
@@ -27,7 +26,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await loginToApp();
 
         // Navigate to notification settings
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapNotifications();
 
         // Verify initial state - notifications should be enabled

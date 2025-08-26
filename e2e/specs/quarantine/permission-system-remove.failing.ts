@@ -5,7 +5,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 
 import { PopularNetworksList } from '../../resources/networks.e2e';
@@ -57,13 +57,13 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
 
         // Remove network from settings
-        await TabBarComponent.tapSettings();
+        await navigateToSettings();
         await SettingsView.tapNetworks();
         await NetworksView.longPressToRemoveNetwork(
           PopularNetworksList.Polygon.providerConfig.nickname,
         );
         await NetworkEducationModal.tapGotItButton();
-
+        await SettingsView.dismissModal();
         // Verify permission cleanup
         await TabBarComponent.tapBrowser();
         await Assertions.expectElementToBeVisible(

@@ -5,8 +5,7 @@ import Assertions from '../../framework/Assertions';
 import { RegressionWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import CommonView from '../../pages/CommonView';
 import {
   EventPayload,
@@ -35,7 +34,7 @@ describe(
           await loginToApp();
 
           // Navigate to metametrics settings and disable it
-          await TabBarComponent.tapSettings();
+          await navigateToSettings();
           await SettingsView.tapSecurityAndPrivacy();
           await SecurityAndPrivacy.scrollToMetaMetrics();
 

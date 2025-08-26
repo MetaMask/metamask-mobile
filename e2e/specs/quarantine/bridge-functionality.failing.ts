@@ -1,4 +1,4 @@
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, navigateToSettings } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {
   loadFixture,
@@ -392,10 +392,11 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.expectElementToBeVisible(WalletView.container);
 
-    await TabBarComponent.tapSettings();
+    await navigateToSettings();
     await SettingsView.tapAdvancedTitle();
 
     await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await SettingsView.dismissModal();
     await TabBarComponent.tapWallet();
     await WalletView.tapWalletSwapButton();
     await QuoteView.tapSwapTo();
