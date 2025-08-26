@@ -155,6 +155,7 @@ app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
+app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
 app/components/UI/Collectibles @MetaMask/metamask-assets
 app/components/UI/CollectibleContractElement @MetaMask/metamask-assets

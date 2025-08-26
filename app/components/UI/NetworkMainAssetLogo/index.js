@@ -38,9 +38,9 @@ function NetworkMainAssetLogo({
   );
 }
 
-const mapStateToProps = (state, ownProps) => ({
-  chainId: ownProps.chainId || selectChainId(state),
-  ticker: ownProps.ticker || selectEvmTicker(state),
+const mapStateToProps = (state) => ({
+  chainId: selectChainId(state),
+  ticker: selectEvmTicker(state),
 });
 
 NetworkMainAssetLogo.propTypes = {

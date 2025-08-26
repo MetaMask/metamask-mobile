@@ -10,6 +10,7 @@ import { AllowanceState } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
+import { useIsCardholder } from '../../hooks/useIsCardholder';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
@@ -100,6 +101,10 @@ jest.mock('../../hooks/useAssetBalance', () => ({
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
   useNavigateToCardPage: () => mockUseNavigateToCardPage(),
+}));
+
+jest.mock('../../hooks/useIsCardholder', () => ({
+  useIsCardholder: jest.fn(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -332,6 +337,8 @@ describe('CardHome Component', () => {
       openSwaps: mockOpenSwaps,
     });
 
+    (useIsCardholder as jest.Mock).mockReturnValue(true);
+
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -441,9 +448,16 @@ describe('CardHome Component', () => {
     });
 
     render();
-    expect(screen.getByTestId(CardHomeSelectors.LOADER)).toBeTruthy();
-  });
 
+    // When loading, skeleton components should be visible with their specific testIDs
+    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
+    expect(
+      screen.getByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
+    ).toBeTruthy();
+  });
   it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
     render();
 
@@ -740,12 +754,11 @@ describe('CardHome Component', () => {
       secondaryBalance: '1000 USDC',
     });
 
-    const { getByText } = render();
+    render();
 
-    // When balance is TOKEN_BALANCE_LOADING, it should render a SkeletonText component
-    // instead of actual balance text. Since we can't access testID easily, we check
-    // that the loading constants are not rendered as text
-    expect(() => getByText(TOKEN_BALANCE_LOADING)).toThrow();
+    // When balance is TOKEN_BALANCE_LOADING, it should render a Skeleton component
+    // instead of actual balance text
+    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
   });
 
   it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING_UPPERCASE', () => {
@@ -759,11 +772,11 @@ describe('CardHome Component', () => {
       secondaryBalance: '1000 USDC',
     });
 
-    const { getByText } = render();
+    render();
 
-    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a SkeletonText component
+    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a Skeleton component
     // instead of actual balance text
-    expect(() => getByText(TOKEN_BALANCE_LOADING_UPPERCASE)).toThrow();
+    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
   });
 
   it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {
