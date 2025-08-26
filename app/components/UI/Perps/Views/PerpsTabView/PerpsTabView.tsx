@@ -125,10 +125,7 @@ const PerpsCard: React.FC<{
       </TouchableOpacity>
     );
   } else if (order) {
-    const leverage = 10; // Default leverage for orders
-    primaryText = `${order.symbol} ${leverage}x ${
-      order.side === 'buy' ? 'long' : 'short'
-    }`;
+    primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
     secondaryText = `${order.originalSize} ${order.symbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
     valueText = formatPrice(orderValue);
