@@ -6,6 +6,7 @@ import { isAddress } from 'ethers/lib/utils';
 
 import { AssetType, TokenStandard } from '../../types/token';
 import { useSendContext, SendContextProvider } from './send-context';
+import { useSelectedAccountScope } from '../../hooks/send/useSelectedAccountScope';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -16,8 +17,13 @@ jest.mock('ethers/lib/utils', () => ({
   isAddress: jest.fn(),
 }));
 
+jest.mock('../../hooks/send/useSelectedAccountScope', () => ({
+  useSelectedAccountScope: jest.fn(),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockIsEvmAddress = jest.mocked(isAddress);
+const mockUseSelectedAccountScope = jest.mocked(useSelectedAccountScope);
 
 describe('useSendContext', () => {
   const mockAccount1 = {
@@ -48,6 +54,18 @@ describe('useSendContext', () => {
     account1: mockAccount1,
     account2: mockAccount2,
   };
+
+  const mockSelectedAccount = {
+    id: 'selectedAccount',
+    address: '0x789',
+    type: 'eip155:eoa',
+    options: {},
+    methods: [],
+    metadata: {
+      name: 'Selected Account',
+      keyring: { type: 'HD Key Tree' },
+    },
+  } as unknown as InternalAccount;
 
   const mockAssetEvm: AssetType = {
     address: '0xtoken',
@@ -86,6 +104,11 @@ describe('useSendContext', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(mockAccounts);
     mockIsEvmAddress.mockReturnValue(false);
+    mockUseSelectedAccountScope.mockReturnValue({
+      account: mockSelectedAccount,
+      isEvm: true,
+      isSolana: false,
+    });
   });
 
   it('provides initial context values', () => {
@@ -145,20 +168,19 @@ describe('useSendContext', () => {
     expect(result.current.from).toBe('0x123');
   });
 
-  it('does not update fromAccount when asset has same accountId', () => {
+  it('uses selectedAccount when asset has same accountId', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
       result.current.updateAsset(mockAssetEvm);
     });
 
-    const currentFromAccount = result.current.fromAccount;
-
     act(() => {
       result.current.updateAsset({ ...mockAssetEvm, name: 'Updated Token' });
     });
 
-    expect(result.current.fromAccount).toBe(currentFromAccount);
+    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
+    expect(result.current.from).toBe('0x789');
   });
 
   it('computes chainId for EVM assets', () => {
@@ -197,7 +219,7 @@ describe('useSendContext', () => {
     expect(result.current.chainId).toBeUndefined();
   });
 
-  it('handles asset without accountId', () => {
+  it('uses selectedAccount when asset has no accountId', () => {
     const assetWithoutAccountId = { ...mockAssetEvm, accountId: undefined };
 
     const { result } = renderHook(() => useSendContext(), { wrapper });
@@ -206,8 +228,8 @@ describe('useSendContext', () => {
       result.current.updateAsset(assetWithoutAccountId);
     });
 
-    expect(result.current.fromAccount).toBeUndefined();
-    expect(result.current.from).toBeUndefined();
+    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
+    expect(result.current.from).toBe('0x789');
   });
 
   it('clears asset when updateAsset called with undefined', () => {
@@ -256,5 +278,23 @@ describe('useSendContext', () => {
 
     expect(result.current.fromAccount).toBeUndefined();
     expect(result.current.from).toBeUndefined();
+  });
+
+  it('uses selectedAccount when asset accountId matches current fromAccount', () => {
+    const { result } = renderHook(() => useSendContext(), { wrapper });
+
+    act(() => {
+      result.current.updateAsset(mockAssetEvm);
+    });
+
+    act(() => {
+      result.current.updateAsset({
+        ...mockAssetEvm,
+        name: 'Same Account Asset',
+      });
+    });
+
+    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
+    expect(result.current.from).toBe('0x789');
   });
 });

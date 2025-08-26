@@ -53,6 +53,10 @@ jest.mock('../../../hooks/send/useSendActions', () => ({
   useSendActions: jest.fn(),
 }));
 
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn(),
+}));
+
 jest.mock('./recipient.styles', () => ({
   styleSheet: jest.fn(() => ({
     container: { flex: 1 },
