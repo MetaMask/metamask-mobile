@@ -1651,7 +1651,12 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        translate={false}
+        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+      />
     ),
     headerLeft: () => <View />,
     headerRight: () => (
@@ -1868,6 +1873,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const leftAction = () => navigation.goBack();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         style={innerStyles.perpsTransactionsTitle}
