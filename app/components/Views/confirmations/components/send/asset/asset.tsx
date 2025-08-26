@@ -135,7 +135,7 @@ export const Asset = () => {
           <>
             {filteredTokens.length > 0 && (
               <Text
-                twClassName="m-4 mt-2"
+                twClassName="m-4 mt-4"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
