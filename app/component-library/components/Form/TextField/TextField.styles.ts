@@ -39,7 +39,6 @@ const styleSheet = (params: {
         borderWidth: 1,
         borderColor,
         opacity: isDisabled ? 0.5 : 1,
-        paddingHorizontal: 16,
         backgroundColor: theme.colors.background.default,
       },
       StyleSheet.flatten(style),
@@ -54,6 +53,8 @@ const styleSheet = (params: {
     // eslint-disable-next-line react-native/no-color-literals
     input: {
       backgroundColor: 'inherit',
+      paddingHorizontal: 16,
+      height: Number(size),
     },
     endAccessory: {
       marginLeft: 8,
