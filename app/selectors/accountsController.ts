@@ -36,7 +36,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-const selectAccountsControllerState = (state: RootState) =>
+export const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
@@ -158,14 +158,6 @@ export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
 export const selectLastSelectedEvmAccount = createSelector(
   selectOrderedInternalAccountsByLastSelected,
   (accounts) => accounts.find((account) => account.type === 'eip155:eoa'),
-);
-
-/**
- * A memoized selector that returns the last selected non-EVM account
- */
-export const selectLastSelectedNonEvmAccount = createSelector(
-  selectOrderedInternalAccountsByLastSelected,
-  (accounts) => accounts.find((account) => !isEvmAccountType(account.type)),
 );
 
 /**
