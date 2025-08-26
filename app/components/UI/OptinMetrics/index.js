@@ -317,6 +317,12 @@ class OptinMetrics extends PureComponent {
       ) {
         setDataCollectionForMarketing(false);
       }
+
+      // if users refuses tracking, get rid of the stored events
+      if (isDataCollectionForMarketingEnabled) {
+        setDataCollectionForMarketing(false);
+      }
+
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
