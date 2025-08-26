@@ -108,7 +108,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
 
   // Get real-time open orders via WebSocket
-  const ordersData = usePerpsLiveOrders(); // Instant updates (no debouncing)
+  // TAT-1384: Hide TP/SL orders from the orders tab using hideTpSl flag
+  const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
