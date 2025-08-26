@@ -767,7 +767,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={AccountBackupStep1.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
