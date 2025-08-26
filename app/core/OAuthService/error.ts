@@ -11,6 +11,8 @@ export enum OAuthErrorType {
   InvalidOauthStateError = 10010,
   GoogleLoginError = 10011,
   AppleLoginError = 10012,
+  GoogleLoginNoCredential = 10013,
+  GoogleLoginNoMatchingCredential = 10014,
 }
 
 export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
@@ -26,6 +28,9 @@ export const OAuthErrorMessages: Record<OAuthErrorType, string> = {
   [OAuthErrorType.InvalidOauthStateError]: 'Invalid OAuth state',
   [OAuthErrorType.GoogleLoginError]: 'Google login error',
   [OAuthErrorType.AppleLoginError]: 'Apple login error',
+  [OAuthErrorType.GoogleLoginNoCredential]: 'Google login no credential',
+  [OAuthErrorType.GoogleLoginNoMatchingCredential]:
+    'Google login no matching credential',
 } as const;
 
 export class OAuthError extends Error {

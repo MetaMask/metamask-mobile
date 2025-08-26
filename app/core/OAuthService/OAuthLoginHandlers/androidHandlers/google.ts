@@ -76,6 +76,18 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
           );
+        } else if (error.message.toLowerCase().includes('no credentials')) {
+          throw new OAuthError(
+            'handleGoogleLogin: Google login no credential',
+            OAuthErrorType.GoogleLoginNoCredential,
+          );
+        } else if (
+          error.message.toLowerCase().includes('matching credential')
+        ) {
+          throw new OAuthError(
+            'handleGoogleLogin: Google login no matching credential',
+            OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
         } else {
           throw new OAuthError(error, OAuthErrorType.UnknownError);
         }
