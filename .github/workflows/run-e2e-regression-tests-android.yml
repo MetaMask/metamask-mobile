@@ -38,16 +38,6 @@ on:
         required: false
         type: boolean
         default: false
-      performance-suite:
-        description: 'Performance Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      card-suite:
-        description: 'Card Regression Suite'
-        required: false
-        type: boolean
-        default: false
       assets-suite:
         description: 'Assets Regression Suite'
         required: false
@@ -94,16 +84,6 @@ on:
         default: false
       network-expansion-suite:
         description: 'Network Expansion Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      performance-suite:
-        description: 'Performance Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      card-suite:
-        description: 'Card Regression Suite'
         required: false
         type: boolean
         default: false
@@ -235,38 +215,6 @@ jobs:
       total_splits: 4
     secrets: inherit
 
-  regression-performance-android:
-    name: 'Performance Regression (Android) - ${{ matrix.split }}'
-    if: ${{ github.event_name == 'schedule' || inputs.performance-suite }}
-    strategy:
-      matrix:
-        split: [1, 2, 3, 4]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-performance-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'RegressionPerformance'
-      split_number: ${{ matrix.split }}
-      total_splits: 4
-    secrets: inherit
-
-  regression-card-android:
-    name: 'Card Regression (Android) - ${{ matrix.split }}'
-    if: ${{ github.event_name == 'schedule' || inputs.card-suite }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: regression-card-android-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'RegressionCard'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-    secrets: inherit
-  
   regression-assets-android:
     name: 'Assets Regression (Android) - ${{ matrix.split }}'
     if: ${{ github.event_name == 'schedule' || inputs.assets-suite }}
