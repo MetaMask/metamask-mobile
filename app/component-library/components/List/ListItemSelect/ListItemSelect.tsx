@@ -117,7 +117,6 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // Option 3C: Universal coordination system
   // All platforms use coordination logic to prevent double firing from any source
   const conditionalOnPress = isDisabled
     ? undefined

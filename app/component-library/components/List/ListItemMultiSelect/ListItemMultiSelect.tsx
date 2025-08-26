@@ -101,7 +101,6 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
-  // Option 3B: Platform-specific coordination strategy
   // Android: Custom TouchableOpacity handles ALL coordination, no checkbox interaction
   // iOS: Standard RNTouchableOpacity + checkbox coordination needed
   const lastCheckboxGestureTime = useRef(0);
@@ -117,7 +116,6 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // Option 3C: Shared coordination system for maximum reliability
   // Both custom TouchableOpacity and main component use the same timestamp reference
   const conditionalOnPress = isDisabled
     ? undefined
