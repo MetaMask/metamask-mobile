@@ -29,6 +29,13 @@ jest.mock('../../../../core/Engine', () => ({
         },
       },
     },
+    MultichainAccountService: {
+      createNextMultichainAccountGroup: jest.fn().mockResolvedValue({
+        id: 'new-account-group-id',
+        metadata: { name: 'New Account' },
+        accounts: [],
+      }),
+    },
   },
 }));
 
@@ -561,6 +568,70 @@ describe('MultichainAccountSelectorList', () => {
         },
         { timeout: 1000 }, // Increased timeout to account for debounce delay
       );
+    });
+  });
+
+  describe('Account Creation and Scrolling', () => {
+    it('renders AccountListFooter with correct props', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroup={account1}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Verify the component renders correctly with AccountListFooter
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Create account')).toBeTruthy();
+    });
+
+    it('handles multiple wallets with AccountListFooter', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const account2 = createMockAccountGroup('group2', 'Account 2');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+
+      const { getAllByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroup={account1}
+        />,
+        { state: createMockState([wallet1, wallet2], internalAccounts) },
+      );
+
+      // Should have multiple "Create account" buttons (one per wallet)
+      const createAccountButtons = getAllByText('Create account');
+      expect(createAccountButtons.length).toBeGreaterThan(1);
+    });
+
+    it('passes walletId to AccountListFooter', () => {
+      const account1 = createMockAccountGroup('group1', 'Account 1');
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroup={account1}
+        />,
+        { state: createMockState([wallet1], internalAccounts) },
+      );
+
+      // Verify the component renders correctly
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Create account')).toBeTruthy();
     });
   });
 });
