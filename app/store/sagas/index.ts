@@ -141,9 +141,17 @@ export function* basicFunctionalityToggle() {
 export function* initializeSDKServices() {
   try {
     // Initialize WalletConnect
-    yield call(WC2Manager.init, {});
+    yield call(() =>
+      (WC2Manager.init as unknown as (opts: any) => Promise<any>)({}),
+    );
     // Initialize SDKConnect
-    yield call(SDKConnect.init, { context: 'Nav/App' });
+    yield call(() =>
+      (
+        SDKConnect as unknown as {
+          init: (opts: { context: string }) => Promise<void>;
+        }
+      ).init({ context: 'Nav/App' }),
+    );
   } catch (e) {
     Logger.log('Failed to initialize services', e);
   }
@@ -212,13 +220,16 @@ export function* startAppServices() {
   yield call(EngineService.start);
 
   // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
+  (DeeplinkManager as unknown as { start: () => void }).start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
+
+  // Initialize SDK-related services now that navigation is ready (non-blocking)
+  yield fork(initializeSDKServices);
 }
 
 // Main generator function that initializes other sagas in parallel.
