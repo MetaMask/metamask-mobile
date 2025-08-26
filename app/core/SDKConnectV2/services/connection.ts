@@ -24,7 +24,9 @@ export class Connection {
     this.metadata = metadata;
     this.client = client;
 
-    this.client.on('message', this.handleMessage);
+    this.client.on('message', (payload) => {
+      console.warn(`[Connection:${this.id}] Received message:`, payload); // To be implemented in a future PR.
+    });
   }
 
   /**
@@ -63,28 +65,10 @@ export class Connection {
   }
 
   /**
-   * Resumes the connection to the dApp.
-   */
-  public async resume(): Promise<void> {
-    // NOTE: This will be implemented in a future PR.
-    console.warn(`[Connection:${this.id}] Resuming connection.`);
-  }
-
-  /**
    * Disconnects the connection from the dApp.
    */
   public async disconnect(): Promise<void> {
-    this.client.off('message', this.handleMessage);
     await this.client.disconnect();
     console.warn(`[Connection:${this.id}] Disconnected.`);
   }
-
-  /**
-   * Handles a message from the dApp.
-   * @param payload - The message payload.
-   */
-  private handleMessage = (payload: unknown) => {
-    // NOTE: This will be implemented in a future PR.
-    console.warn(`[Connection:${this.id}] Received message:`, payload);
-  };
 }
