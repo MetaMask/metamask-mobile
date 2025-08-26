@@ -222,7 +222,7 @@ describe('Vault', () => {
     jest.clearAllMocks();
   });
 
-  describe('recreateVaultWithNewPassword', () => {
+  describe('recreateVaultsWithNewPassword', () => {
     it('should submit old password, change password, and set selected address', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
