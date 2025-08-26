@@ -793,6 +793,13 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: standard
+  nightly_exp_build_workflow:
+    before_run:
+      - bump_version_code
+    after_run:
+      - build_ios_main_exp
+      - build_android_main_exp
+      - deploy_ios_to_store
   # CI Steps
   ci_test:
     before_run:
