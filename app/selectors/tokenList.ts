@@ -145,12 +145,23 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       )
       .flatMap(([_, assets]) => assets);
 
-    const tokensSorted = sortAssets(assets.map(assetToToken), tokenSortConfig);
+    // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
+    // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
 
-    return tokensSorted.map(({ address, chainId, isStaked }) => ({
-      address,
+    const tokensSorted = sortAssets(
+      assets.map((asset) => ({
+        ...asset,
+        tokenFiatAmount: asset.fiat?.balance
+          ? asset.fiat.balance.toString()
+          : asset.balance,
+      })),
+      tokenSortConfig,
+    );
+
+    return tokensSorted.map(({ assetId, chainId }) => ({
+      address: assetId,
       chainId,
-      isStaked,
+      isStaked: false, // TODO: Resolve this
     }));
   },
 );
@@ -190,7 +201,7 @@ function assetToToken(asset: Asset): TokenI {
       : undefined,
     // This is an undocumented field, but it's used to sort the token list
     tokenFiatAmount: asset.fiat?.balance
-      ? `${asset.fiat.balance.toString()}`
+      ? `$${asset.fiat.balance.toString()}`
       : asset.balance,
     logo:
       asset.type.startsWith('eip155') && asset.isNative
