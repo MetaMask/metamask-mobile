@@ -1,4 +1,3 @@
-import { MockttpServer } from 'mockttp';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../framework/types';
 import SoftAssert from '../../utils/SoftAssert';
@@ -7,17 +6,15 @@ import Assertions from '../../framework/Assertions';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import { testSpecificMock } from './helpers/constants';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { SmokeTrade } from '../../tags.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { startMockServer } from './helpers/swap-mocks';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger';
+import { testSpecificMock } from './helpers/swap-mocks';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
@@ -26,22 +23,10 @@ const EVENT_NAMES = {
   QUOTES_RECEIVED: 'Quotes Received',
 };
 
-// eslint-disable-next-line jest/no-disabled-tests
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  let mockServerPort: number;
   let capturedEvents: EventPayload[] = [];
-  let mockServer: MockttpServer;
-
-  beforeAll(async (): Promise<void> => {
-    mockServerPort = getMockServerPort();
-    mockServer = (await startMockServer(
-      testSpecificMock,
-      mockServerPort,
-    )) as MockttpServer;
-    logger.debug(`Test side Mock server started on port ${mockServerPort}`);
-  });
 
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(120000);
@@ -75,17 +60,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
               },
             },
           ],
-          mockServerInstance: mockServer,
+          testSpecificMock,
           restartDevice: true,
-          endTestfn: async ({ mockServer: mockServerInstance }) => {
+          endTestfn: async ({ mockServer }) => {
             try {
               // Capture all events without filtering.
               // When fixing the test skipped below the filter needs to be applied there.
-              capturedEvents = await getEventsPayloads(
-                mockServerInstance,
-                [],
-                30000,
-              );
+              capturedEvents = await getEventsPayloads(mockServer, [], 30000);
             } catch (error: unknown) {
               const errorMessage =
                 error instanceof Error ? error.message : String(error);

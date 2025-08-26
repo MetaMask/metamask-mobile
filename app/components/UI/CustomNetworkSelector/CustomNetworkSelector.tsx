@@ -1,6 +1,7 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import React, { useCallback } from 'react';
+import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -128,7 +129,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <FlashList
         data={networks}
         renderItem={renderNetworkItem}
@@ -140,7 +141,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
             safeAreaInsets.bottom + Device.getDeviceHeight() * 0.05,
         }}
       />
-    </View>
+    </ScrollView>
   );
 };
 

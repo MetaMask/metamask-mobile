@@ -49,6 +49,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
+jest.mock('expo-sensors', () => ({
+  Accelerometer: {
+    setUpdateInterval: jest.fn(),
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+  },
+}));
+
 jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   init: jest.fn(),
   parse: jest.fn(),
@@ -86,15 +94,6 @@ jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
   getLatestReferringParams: jest.fn(),
 }));
-
-// Mock the PerpsCandlestickChart component that uses react-native-wagmi-charts
-jest.mock(
-  '../../../components/UI/Perps/components/PerpsCandlestickChart/PerpsCandlectickChart',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
 
 jest.mock('../../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -209,6 +208,7 @@ jest.mock('react-native-branch', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({

@@ -101,7 +101,7 @@ export const useEvmPercentageAmount = () => {
     (percentage: number) =>
       getPercentageValueFn({
         accounts,
-        asset,
+        asset: asset as AssetType,
         contractBalances,
         from: from as Hex,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
