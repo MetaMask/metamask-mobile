@@ -1,5 +1,5 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -75,11 +75,14 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   );
 
   // Combine all connection sources into a single list for rendering
-  const connectionsList = [
-    ...Object.values(connections),
-    ...Object.values(dappConnections),
-    ...Object.values(v2Connections),
-  ];
+  const connectionsList = useMemo(
+    () => [
+      ...Object.values(connections),
+      ...Object.values(dappConnections),
+      ...Object.values(v2Connections),
+    ],
+    [connections, dappConnections, v2Connections],
+  );
 
   const { trigger } = route.params ?? { trigger: undefined };
   const { colors, typography } = useTheme();
