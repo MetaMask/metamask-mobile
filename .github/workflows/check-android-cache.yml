@@ -43,25 +43,28 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
 
-      - name: Install dependencies (if cache miss)
-        if: steps.node-cache.outputs.cache-hit != 'true'
-        run: yarn setup --node
-
       - name: Install fingerprint tool
-        run: npx expo install @expo/fingerprint
+        run: |
+          echo "📦 Installing @expo/fingerprint..."
+          npm install -g @expo/fingerprint
+          echo "✅ @expo/fingerprint installed"
 
       - name: Generate fingerprint hash
         id: fingerprint
         run: |
           echo "🔍 Generating fingerprint for build caching..."
           
-          if ! FINGERPRINT_HASH=$(npx @expo/fingerprint --silent 2>/dev/null); then
-            echo "Failed to generate fingerprint, will build without caching"
+          # Generate fingerprint JSON and create a stable hash from it
+          if ! FINGERPRINT_JSON=$(npx @expo/fingerprint); then
+            echo "❌ Failed to generate fingerprint, will build without caching"
             echo "cache-key=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           
-          echo "✅ Generated fingerprint: ${FINGERPRINT_HASH}"
+          # Convert the entire JSON to a stable hash using sha256
+          FINGERPRINT_HASH=$(echo "$FINGERPRINT_JSON" | sha256sum | cut -d' ' -f1)
+          
+          echo "✅ Generated fingerprint hash: ${FINGERPRINT_HASH}"
           
           # Use global cache key for maximum efficiency across PRs
           CACHE_KEY="android-apk-global-${FINGERPRINT_HASH}"
