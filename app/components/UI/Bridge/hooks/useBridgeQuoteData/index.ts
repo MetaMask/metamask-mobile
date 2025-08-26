@@ -146,7 +146,14 @@ export const useBridgeQuoteData = ({
 
     return {
       networkFee: getNetworkFee(),
-      estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
+      estimatedTime:
+        estimatedProcessingTimeInSeconds >= 60
+          ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
+          : `${
+              estimatedProcessingTimeInSeconds >= 1
+                ? `${estimatedProcessingTimeInSeconds} seconds`
+                : '< 1 second'
+            }`,
       rate,
       priceImpact: priceImpactPercentage,
       slippage: slippage ? `${slippage}%` : 'Auto',
