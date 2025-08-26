@@ -109,17 +109,19 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Nft, Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
 } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
-import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
-import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import { Carousel } from '../../UI/Carousel';
-import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { TokenI } from '../../UI/Tokens/types';
 
 import { cloneDeep } from 'lodash';
@@ -829,6 +831,10 @@ const Wallet = ({
 
   const isCardholder = useSelector(selectIsCardholder);
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -1074,7 +1080,11 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          <PortfolioBalance />
+          {isMultichainAccountsState2Enabled ? (
+            <AccountGroupBalance />
+          ) : (
+            <PortfolioBalance />
+          )}
           <AssetDetailsActions
             displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
@@ -1108,6 +1118,7 @@ const Wallet = ({
       basicFunctionalityEnabled,
       defiEnabled,
       isEvmSelected,
+      isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
