@@ -1,6 +1,9 @@
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
-import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
+import {
+  selectSwapsChainFeatureFlags,
+  swapsSmartTxFlagEnabled,
+} from '../reducers/swaps';
 import { areAddressesEqual, isHardwareAccount } from '../util/address';
 import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
@@ -12,6 +15,23 @@ import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTr
 import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
 import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
+import { getFeatureFlagDeviceKey } from '../reducers/swaps/utils';
+
+export const isSmartTransacitonEnabledWithNetworkFeatureFlag = (
+  swapsChainFeatureFlags,
+) => {
+  const featureFlagDeviceKey = getFeatureFlagDeviceKey(); // returns mobileActive, mobileActiveIOS or mobileActiveAndroid
+
+  // The API can return mobileActiveIos instead of mobileActiveIOS
+  if (
+    featureFlagDeviceKey === 'mobileActiveIOS' &&
+    !swapsChainFeatureFlags?.smartTransactions?.mobileActiveIOS
+  ) {
+    return swapsChainFeatureFlags?.smartTransactions?.mobileActiveIos;
+  }
+    return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
+
+};
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
@@ -21,6 +41,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     (state: RootState, chainId?: Hex) =>
       selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
     swapsSmartTxFlagEnabled,
+    selectSwapsChainFeatureFlags,
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
         .smartTransactionsState?.liveness,
@@ -31,6 +52,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
+    swapsChainFeatureFlags,
     smartTransactionsLiveness,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
@@ -39,10 +61,14 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       : false;
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
+    const isNetworkAllowedWithFeatureFlags =
+      isSmartTransacitonEnabledWithNetworkFeatureFlag(swapsChainFeatureFlags);
+
     return Boolean(
       isAllowedNetwork &&
         !addressIsHardwareAccount &&
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
+        isNetworkAllowedWithFeatureFlags &&
         smartTransactionsFeatureFlagEnabled &&
         smartTransactionsLiveness,
     );
