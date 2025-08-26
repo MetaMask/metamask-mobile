@@ -7,6 +7,7 @@ export const initialState: Readonly<SDKState> = {
   connections: {},
   approvedHosts: {},
   dappConnections: {},
+  v2Connections: {},
   wc2Metadata: undefined,
 };
 
@@ -109,6 +110,11 @@ const sdkReducer = (
       return {
         ...state,
         dappConnections: action.connections,
+      };
+    case ActionType.SET_SDK_V2_CONNECTIONS:
+      return {
+        ...state,
+        v2Connections: action.connections,
       };
     default:
       return state;
