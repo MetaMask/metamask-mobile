@@ -160,7 +160,7 @@
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
-    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "continue_with_srp": "Use Secret Recovery Phrase",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
     "sign_in_with_apple": "Sign in with Apple",
@@ -2503,6 +2503,15 @@
   "action_view": {
     "cancel": "Cancel",
     "confirm": "Confirm"
+  },
+  "gas_fee_token_modal": {
+    "title": "Select a token",
+    "title_pay_eth": "Pay with ETH",
+    "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
+    "list_balance": "Bal:",
+    "insufficient_balance": "Insufficient funds",
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
+    "title_pay_with_other_tokens": "Pay with other tokens"
   },
   "transaction": {
     "transaction_id": "Transaction ID",
@@ -5196,6 +5205,11 @@
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",
+  
+    "google_login_no_credential_title": "Google login failed",
+    "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
+    "google_login_no_credential_button": "Try again",
+
     "oauth_error_title": "Login failed",
     "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
     "oauth_error_button": "Try again"
@@ -5275,7 +5289,6 @@
       "account_name": "Account Name",
       "networks": "Networks",
       "account_address": "Account Address",
-      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key",
       "private_keys": "Private keys",
@@ -5290,6 +5303,18 @@
       "addresses": "Addresses",
       "receiving_address": "Receiving address",
       "copied": "Address copied"
+    },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "copied": "Private key copied",
+      "continue": "Continue",
+      "cancel": "Cancel"
     },
     "accounts_list": {
       "details": "Details"
