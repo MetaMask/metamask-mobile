@@ -1023,15 +1023,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Get permitted accounts for the target URL
         const permissionsControllerState =
           Engine.context.PermissionController.state;
-        let hostname = ''; // notifyAllConnections will return empty array if ''
+        let origin = ''; // notifyAllConnections will return empty array if ''
         try {
-          hostname = new URLParse(urlToCheck).hostname;
+          origin = new URLParse(urlToCheck).origin;
         } catch (err) {
           Logger.log('Error parsing WebView URL', err);
         }
         const permittedAcc = getPermittedEvmAddressesByHostname(
           permissionsControllerState,
-          hostname,
+          origin,
         );
 
         notifyAllConnections({
