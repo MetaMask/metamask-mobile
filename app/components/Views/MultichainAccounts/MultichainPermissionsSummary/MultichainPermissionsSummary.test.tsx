@@ -133,12 +133,33 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks', () => ({
+const mockOnChangeTab = jest.fn();
+jest.mock('react-native-scrollable-tab-view', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    onChangeTab,
+  }: {
+    children: React.ReactNode;
+    onChangeTab?: (tabInfo: { i: number; ref: unknown }) => void;
+  }) => {
+    // Store the onChangeTab callback so we can call it in tests
+    if (onChangeTab) {
+      mockOnChangeTab.mockImplementation(onChangeTab);
+    }
+    return <>{children}</>;
+  },
+  DefaultTabBar: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+}));
+
+jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'mock-network-image.png' })),
   isPerDappSelectedNetworkEnabled: jest.fn(() => true),
 }));
 
-jest.mock('../../../selectors/selectedNetworkController', () => ({
+jest.mock('../../../../selectors/selectedNetworkController', () => ({
   useNetworkInfo: jest.fn(() => ({
     networkName: 'Ethereum Mainnet',
     networkImageSource: { uri: 'mock-network-image.png' },

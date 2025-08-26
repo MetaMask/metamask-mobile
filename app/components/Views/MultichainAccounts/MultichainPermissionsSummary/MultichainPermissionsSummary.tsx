@@ -314,21 +314,27 @@ const MultichainPermissionsSummary = ({
   }, [onRevokeAllHandler, hostname, navigate]);
 
   const getAccountLabel = useCallback(() => {
+    const firstAccountGroup = accountGroups.find((accountGroup) =>
+      selectedAccountGroupIds.includes(accountGroup.id),
+    );
     if (isAlreadyConnected) {
-      if (accountGroups.length === 1) {
+      if (selectedAccountGroupIds.length === 1) {
         return `${strings('permissions.connected_to')} ${
-          accountGroups[0]?.metadata.name
+          firstAccountGroup?.metadata.name
         }`;
       }
 
-      return `${accountGroups.length} ${strings(
+      return `${selectedAccountGroupIds.length} ${strings(
         'accounts.accounts_connected',
       )}`;
     }
 
-    if (accountGroups.length === 1 && accountGroups.length >= 1) {
+    if (
+      selectedAccountGroupIds.length === 1 &&
+      selectedAccountGroupIds.length >= 1
+    ) {
       return `${strings('permissions.requesting_for')}${
-        accountGroups[0]?.metadata.name
+        firstAccountGroup?.metadata.name
       }`;
     }
 
