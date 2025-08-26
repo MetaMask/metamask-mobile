@@ -39,9 +39,7 @@ export function handleCreateAccountUrl({
   const state = ReduxService.store.getState();
   const lastSelectedNonEvmAccount = selectLastSelectedNonEvmAccount(state);
 
-  if (
-    lastSelectedNonEvmAccount?.scopes?.includes(chainId as CaipChainId)
-  ) {
+  if (lastSelectedNonEvmAccount?.scopes?.includes(chainId as CaipChainId)) {
     // Switch to this account since it supports the requested chain
     const { AccountsController } = Engine.context;
     AccountsController.setSelectedAccount(lastSelectedNonEvmAccount.id);
