@@ -5838,10 +5838,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/react-native-search-api/-/react-native-search-api-1.0.1.tgz#b3a2069ff851b88e1fe64b86f1fab7088a4daceb"
   integrity sha512-ceCzyRZDZM0lpQSNUiFpo16nysTDIMUhkdyUcvBbkpiSUnYV+SjVMxYVn2Q+h7P9tce8wrb6zoxdlfK5BXtbAQ==
 
-"@metamask/react-native-webview@^14.2.2":
-  version "14.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-webview/-/react-native-webview-14.2.2.tgz#74b254ad89850e04d01f4a49f60d2e6b4a4e7193"
-  integrity sha512-0TzfMKthMCffrYvKTnsyU8vJ2wecPfx6h6bWj9TL1BnQZ91o/tf8t9kB4AHNpvneIZtbKGxR938NcZLntpqOtw==
+"@metamask/react-native-webview@git+https://github.com/MetaMask/react-native-webview-mm.git#2-sec-delay":
+  version "14.5.0"
+  resolved "git+https://github.com/MetaMask/react-native-webview-mm.git#d1fff75f3fad8d1edcd09a999f9112159001d307"
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"

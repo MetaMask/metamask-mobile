@@ -114,7 +114,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Let’s get started!",
+    "title": "Kylan's Test Build 1",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -190,7 +190,7 @@
     "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
-    "title1": "Welcome to MetaMask",
+    "title1": "Kylan's test build 1",
     "title2": "Manage your digital assets",
     "title3": "Your gateway to web3",
     "subtitle1": "Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.",
