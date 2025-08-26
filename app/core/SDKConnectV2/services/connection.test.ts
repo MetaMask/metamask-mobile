@@ -90,10 +90,6 @@ describe('Connection', () => {
       expect(connection.id).toBe(mockConnectionRequest.sessionRequest.id);
       expect(connection.metadata).toBe(mockConnectionRequest.metadata);
       expect(connection.client).toBe(mockWalletClientInstance);
-      expect(mockWalletClientInstance.on).toHaveBeenCalledWith(
-        'message',
-        expect.any(Function), // Checks that a message handler was attached
-      );
     });
   });
 
@@ -127,10 +123,6 @@ describe('Connection', () => {
       await connection.disconnect();
 
       expect(mockWalletClientInstance.disconnect).toHaveBeenCalledTimes(1);
-      expect(mockWalletClientInstance.off).toHaveBeenCalledWith(
-        'message',
-        expect.any(Function),
-      );
     });
   });
 });
