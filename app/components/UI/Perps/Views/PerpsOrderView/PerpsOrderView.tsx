@@ -1032,7 +1032,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           marketData?.maxLeverage || PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE
         }
         currentPrice={assetData.price}
-        liquidationPrice={parseFloat(liquidationPrice)}
         direction={orderForm.direction}
         asset={orderForm.asset}
       />

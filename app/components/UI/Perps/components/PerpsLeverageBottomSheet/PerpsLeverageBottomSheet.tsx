@@ -56,6 +56,7 @@ import {
   getLeverageRiskLevel,
 } from '../../constants/leverageColors';
 import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
+import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -65,7 +66,6 @@ interface PerpsLeverageBottomSheetProps {
   minLeverage: number;
   maxLeverage: number;
   currentPrice: number;
-  liquidationPrice: number;
   direction: 'long' | 'short';
   asset?: string;
 }
@@ -263,7 +263,6 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   minLeverage,
   maxLeverage,
   currentPrice,
-  liquidationPrice,
   direction,
   asset = '',
 }) => {
@@ -274,6 +273,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const { track } = usePerpsEventTracking();
   const hasTrackedLeverageView = useRef(false);
+
+  // Dynamically calculate liquidation price based on tempLeverage
+  const { liquidationPrice: calculatedLiquidationPrice } =
+    usePerpsLiquidationPrice({
+      entryPrice: currentPrice,
+      leverage: tempLeverage,
+      direction,
+      asset,
+    });
+
+  // Use calculated liquidation price, converting from string to number
+  const dynamicLiquidationPrice = parseFloat(calculatedLiquidationPrice) || 0;
 
   // Track screen load performance
   usePerpsScreenTracking({
@@ -324,14 +335,14 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
    * For short positions: Shows how much price needs to rise to trigger liquidation
    */
   const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || liquidationPrice === 0) return 0;
+    if (currentPrice === 0 || dynamicLiquidationPrice === 0) return 0;
 
     // Calculate the percentage difference between current price and liquidation price
     const percentageDrop =
-      (Math.abs(currentPrice - liquidationPrice) / currentPrice) * 100;
+      (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
 
     return percentageDrop;
-  }, [currentPrice, liquidationPrice]);
+  }, [currentPrice, dynamicLiquidationPrice]);
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -487,7 +498,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                   variant={TextVariant.BodyMD}
                   style={{ color: warningStyles.priceColor }}
                 >
-                  {formatPrice(liquidationPrice)}
+                  {formatPrice(dynamicLiquidationPrice)}
                 </Text>
               </View>
             </View>

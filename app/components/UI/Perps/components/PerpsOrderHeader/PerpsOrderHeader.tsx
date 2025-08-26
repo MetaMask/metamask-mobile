@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../../../util/theme';
+import React, { useCallback, useMemo } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -10,16 +10,15 @@ import {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import TokenIcon from '../../../Swaps/components/TokenIcon';
-import { formatPrice, formatPercentage } from '../../utils/formatUtils';
-import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidConfig';
-import type { OrderType } from '../../controllers/types';
-import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { createStyles } from './PerpsOrderHeader.styles';
+import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import type { OrderType } from '../../controllers/types';
+import { formatPercentage, formatPrice } from '../../utils/formatUtils';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import { createStyles } from './PerpsOrderHeader.styles';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -57,12 +56,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     // Note: onOrderTypePress callback is now required
   }, [onOrderTypePress]);
 
-  // Get asset icon URL from Hyperliquid
-  const assetIconUrl = useMemo(
-    () => `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${asset.toLowerCase()}.png`,
-    [asset],
-  );
-
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
@@ -81,18 +74,14 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   return (
     <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
-        iconName={IconName.ArrowLeft}
+        iconName={IconName.Arrow2Left}
         onPress={handleBack}
         iconColor={IconColor.Default}
-        size={ButtonIconSizes.Sm}
+        size={ButtonIconSizes.Md}
       />
       <View style={styles.headerCenter}>
         <View style={styles.headerCenterRow}>
-          <TokenIcon
-            symbol={asset}
-            icon={assetIconUrl}
-            style={styles.tokenIcon}
-          />
+          <PerpsTokenLogo symbol={asset} size={40} style={styles.tokenIcon} />
           <Text
             variant={TextVariant.HeadingMD}
             style={styles.headerTitle}
