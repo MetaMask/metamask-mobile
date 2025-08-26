@@ -19,12 +19,6 @@ import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY, LOG_TAG } from './constants';
-import {
-  applyVaultInitialization,
-  predefinedPassword,
-  VAULT_INITIALIZED_KEY,
-} from '../../util/generateSkipOnboardingState';
-import storageWrapper from '../../store/storage-wrapper';
 
 export class EngineService {
   private engineInitialized = false;
@@ -78,27 +72,7 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
-      if (
-        predefinedPassword &&
-        !(await storageWrapper.getItem(VAULT_INITIALIZED_KEY))
-      ) {
-        // Check for vault initialization on first launch
-        const keyringControllerState = await applyVaultInitialization(
-          ReduxService.store,
-        );
-
-        if (keyringControllerState) {
-          // If we have a pre-configured vault, use it to initialize the KeyringController
-
-          Logger.log(
-            `${LOG_TAG}: Using pre-configured vault for Engine initialization`,
-          );
-        }
-
-        Engine.init(state, keyringControllerState, metaMetricsId);
-      } else {
-        Engine.init(state, null, metaMetricsId);
-      }
+      Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
     } catch (error) {

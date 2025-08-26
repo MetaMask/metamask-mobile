@@ -68,13 +68,6 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import {
-  additionalSrps,
-  predefinedPassword,
-  VAULT_INITIALIZED_KEY,
-} from '../../util/generateSkipOnboardingState';
-import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
-import importAdditionalAccounts from '../../util/importAdditionalAccounts';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -114,20 +107,6 @@ class AuthenticationService {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
 
-    if (
-      predefinedPassword &&
-      !(await StorageWrapper.getItem(VAULT_INITIALIZED_KEY))
-    ) {
-      for (const srp of additionalSrps) {
-        if (!srp) {
-          break;
-        }
-
-        await importNewSecretRecoveryPhrase(srp);
-      }
-      await importAdditionalAccounts(9999);
-      await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
-    }
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
       SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
