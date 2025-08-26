@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: [main]
   pull_request:
   merge_group:
     types: [checks_requested]
@@ -162,13 +162,24 @@ jobs:
             echo "No changes detected"
           fi
 
+  check-android-cache:
+    name: "Check Android APK Cache"
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check-android-cache.yml
+    secrets: inherit
+
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: ${{ github.event_name != 'merge_group' && needs.check-android-cache.outputs.should-build == 'true' }}
+    needs: check-android-cache
     permissions:
       contents: read
       id-token: write
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      cache_key: ${{ needs.check-android-cache.outputs.cache-key }}
     secrets: inherit
 
   e2e-smoke-tests-android:
@@ -176,7 +187,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs: [build-android-apks]
+    needs: [check-android-cache, build-android-apks]
+    if: always() && !cancelled() && (needs.check-android-cache.outputs.should-build == 'false' || needs.build-android-apks.result == 'success')
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     secrets: inherit
 

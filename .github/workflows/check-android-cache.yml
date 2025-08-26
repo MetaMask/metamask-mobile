@@ -1,0 +1,131 @@
+# Android APK Cache Check workflow - SIMPLE
+# Just checks if cache exists, returns should_build true/false
+
+name: Check Android APK Cache
+
+on:
+  workflow_call:
+    outputs:
+      should-build:
+        description: 'Whether APK build is needed'
+        value: ${{ jobs.check-cache.outputs.should-build }}
+      cache-key:
+        description: 'Cache key for APK storage'
+        value: ${{ jobs.check-cache.outputs.cache-key }}
+
+jobs:
+  check-cache:
+    name: Check Android APK Cache
+    runs-on: ubuntu-latest
+    outputs:
+      should-build: ${{ steps.cache-decision.outputs.should-build }}
+      cache-key: ${{ steps.fingerprint.outputs.cache-key }}
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Restore node_modules cache
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .yarn/cache
+            .yarn/install-state.gz
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Setup Node.js for fingerprint generation
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies (if cache miss)
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: yarn setup --node
+
+      - name: Install fingerprint tool
+        run: npx expo install @expo/fingerprint
+
+      - name: Generate fingerprint hash
+        id: fingerprint
+        run: |
+          echo "🔍 Generating fingerprint for build caching..."
+          
+          if ! FINGERPRINT_HASH=$(npx @expo/fingerprint --silent 2>/dev/null); then
+            echo "Failed to generate fingerprint, will build without caching"
+            echo "cache-key=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "✅ Generated fingerprint: $FINGERPRINT_HASH"
+          
+          # Use global cache key for maximum efficiency across PRs
+          CACHE_KEY="android-apk-global-${FINGERPRINT_HASH}"
+          echo "📦 Cache key: $CACHE_KEY"
+          
+          echo "cache-key=$CACHE_KEY" >> $GITHUB_OUTPUT
+          echo "fingerprint_hash=$FINGERPRINT_HASH" >> $GITHUB_OUTPUT
+
+      - name: Check for cached APKs
+        id: cache-check
+        if: steps.fingerprint.outputs.cache-key != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            cached-apks/app-prod-release.apk
+            cached-apks/app-prod-release-androidTest.apk
+            cached-apks/cache-metadata.json
+          key: ${{ steps.fingerprint.outputs.cache-key }}
+
+      - name: Prepare cached APKs for upload
+        if: steps.cache-check.outputs.cache-hit == 'true'
+        run: |
+          echo "🎯 Preparing cached APKs for upload..."
+          
+          # Show cache metadata
+          if [[ -f "cached-apks/cache-metadata.json" ]]; then
+            echo "📋 Cache originally created by:"
+            cat cached-apks/cache-metadata.json
+          fi
+          
+          # Prepare APKs for upload as artifacts
+          mkdir -p android/app/build/outputs/apk/prod/release/
+          mkdir -p android/app/build/outputs/apk/androidTest/prod/release/
+          
+          cp cached-apks/app-prod-release.apk android/app/build/outputs/apk/prod/release/
+          cp cached-apks/app-prod-release-androidTest.apk android/app/build/outputs/apk/androidTest/prod/release/
+          
+          echo "✅ Cached APKs ready for upload"
+
+      - name: Upload cached Android APK
+        if: steps.cache-check.outputs.cache-hit == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release.apk
+          path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload cached Android Test APK
+        if: steps.cache-check.outputs.cache-hit == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-prod-release-androidTest.apk
+          path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Determine if build is needed
+        id: cache-decision
+        run: |
+          if [[ "${{ steps.cache-check.outputs.cache-hit }}" == "true" ]]; then
+            echo "🎯 Cache hit! No build needed"
+            echo "should-build=false" >> $GITHUB_OUTPUT
+          else
+            echo "🏗️ Building APKs (cache miss or no fingerprint)"
+            echo "should-build=true" >> $GITHUB_OUTPUT
+          fi
