@@ -314,40 +314,60 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     return filtered;
   }, [maxLeverage]);
 
-  // Determine leverage risk level for text color
+  // Determine leverage risk level for text color - match gradient
   const getLeverageTextStyle = useCallback(() => {
     const percentage =
       (tempLeverage - minLeverage) / (maxLeverage - minLeverage);
 
-    if (percentage < 0.4) {
-      return styles.leverageTextLow;
-    } else if (percentage < 0.7) {
+    if (percentage < 0.33) {
+      return styles.leverageTextSafe;
+    } else if (percentage < 0.5) {
+      return styles.leverageTextCaution;
+    } else if (percentage < 0.75) {
       return styles.leverageTextMedium;
     }
     return styles.leverageTextHigh;
   }, [tempLeverage, minLeverage, maxLeverage, styles]);
 
-  // Determine warning text style and icon color based on leverage
+  // Determine warning text style, container style, icon color based on leverage
+  // Match the gradient colors: green -> yellow -> orange -> red
   const getWarningStyles = useCallback(() => {
     const percentage =
       (tempLeverage - minLeverage) / (maxLeverage - minLeverage);
 
-    if (percentage < 0.4) {
+    if (percentage < 0.33) {
+      // Green zone - safe
       return {
-        textStyle: styles.warningTextLow,
-        iconColor: IconColor.Warning,
+        textStyle: styles.warningTextSafe,
+        containerStyle: styles.warningContainerSafe,
+        iconColor: IconColor.Success,
+        priceColor: '#4CAF50',
       };
-    } else if (percentage < 0.7) {
+    } else if (percentage < 0.5) {
+      // Yellow zone - caution
+      return {
+        textStyle: styles.warningTextCaution,
+        containerStyle: styles.warningContainerCaution,
+        iconColor: IconColor.Warning,
+        priceColor: '#CDDC39',
+      };
+    } else if (percentage < 0.75) {
+      // Orange zone - warning
       return {
         textStyle: styles.warningTextMedium,
+        containerStyle: styles.warningContainerMedium,
         iconColor: IconColor.Warning,
+        priceColor: '#FF6B35',
       };
     }
+    // Red zone - danger
     return {
       textStyle: styles.warningTextHigh,
+      containerStyle: styles.warningContainerHigh,
       iconColor: IconColor.Error,
+      priceColor: colors.error.default,
     };
-  }, [tempLeverage, minLeverage, maxLeverage, styles]);
+  }, [tempLeverage, minLeverage, maxLeverage, styles, colors]);
 
   const warningStyles = getWarningStyles();
 
@@ -386,14 +406,17 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         </View>
 
         {/* Liquidation warning */}
-        <View style={styles.warningContainer}>
+        <View style={[styles.warningContainer, warningStyles.containerStyle]}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Sm}
             color={warningStyles.iconColor}
             style={styles.warningIcon}
           />
-          <Text variant={TextVariant.BodyMD} style={warningStyles.textStyle}>
+          <Text
+            variant={TextVariant.BodySM}
+            style={[warningStyles.textStyle, styles.warningText]}
+          >
             You will be liquidated if price{' '}
             {direction === 'long' ? 'drops' : 'rises'} by{' '}
             {liquidationDropPercentage.toFixed(1)}%
@@ -404,27 +427,33 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         {currentPrice ? (
           <View style={styles.priceInfoContainer}>
             <View style={styles.priceRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMD}
+                style={{ color: warningStyles.priceColor }}
+              >
                 {strings('perps.order.leverage_modal.liquidation_price')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPrice(liquidationPrice)}
-              </Text>
+              <View style={styles.priceValueContainer}>
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Xs}
+                  color={warningStyles.priceColor}
+                  style={styles.priceIcon}
+                />
+                <Text
+                  variant={TextVariant.BodyMD}
+                  style={{ color: warningStyles.priceColor }}
+                >
+                  {formatPrice(liquidationPrice)}
+                </Text>
+              </View>
             </View>
             <View style={styles.priceRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.leverage_modal.entry_price')}
+                {strings('perps.order.leverage_modal.current_price')}
               </Text>
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(currentPrice)}
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.leverage_modal.liquidation_distance')}
-              </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {liquidationDropPercentage.toFixed(2)}%
               </Text>
             </View>
           </View>
@@ -454,7 +483,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {minLeverage}x
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodySm} color={TextColor.Alternative}>
+              {Math.floor((minLeverage + maxLeverage) / 2)}x
+            </Text>
+            <Text variant={TextVariant.BodySm} color={TextColor.Alternative}>
               {maxLeverage}x
             </Text>
           </View>

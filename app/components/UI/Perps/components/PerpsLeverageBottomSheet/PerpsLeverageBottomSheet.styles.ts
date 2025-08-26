@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
@@ -11,46 +13,77 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       paddingTop: 16,
       paddingBottom: 24,
+      marginHorizontal: 12,
     },
     leverageText: {
       fontSize: 48,
       fontWeight: '600',
       lineHeight: 56,
     },
+    leverageTextSafe: {
+      color: '#4CAF50', // Green - safe leverage
+    },
+    leverageTextCaution: {
+      color: '#CDDC39', // Yellow - moderate leverage
+    },
     leverageTextLow: {
       color: colors.text.default,
     },
     leverageTextMedium: {
-      color: colors.warning.default,
+      color: '#FF6B35', // Orange - high leverage
     },
     leverageTextHigh: {
-      color: colors.error.default,
+      color: colors.error.default, // Red - dangerous leverage
     },
     warningContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 12,
-      backgroundColor: colors.background.alternative,
       borderRadius: 8,
       marginBottom: 24,
+      marginHorizontal: 12,
+    },
+    warningContainerSafe: {
+      backgroundColor: 'rgba(76, 175, 80, 0.1)', // Green background
+    },
+    warningContainerCaution: {
+      backgroundColor: 'rgba(205, 220, 57, 0.1)', // Yellow background
+    },
+    warningContainerMedium: {
+      backgroundColor: 'rgba(255, 107, 53, 0.1)', // Orange background
+    },
+    warningContainerHigh: {
+      backgroundColor: 'rgba(215, 44, 44, 0.1)', // Red background
     },
     warningIcon: {
       marginRight: 8,
+      flexShrink: 0,
+    },
+    warningText: {
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    warningTextSafe: {
+      color: '#4CAF50', // Green - matches gradient start
+    },
+    warningTextCaution: {
+      color: '#CDDC39', // Yellow - matches gradient middle
     },
     warningTextLow: {
       color: colors.text.alternative,
     },
     warningTextMedium: {
-      color: colors.warning.default,
+      color: '#FF6B35', // Orange - matches gradient
     },
     warningTextHigh: {
-      color: colors.error.default,
+      color: colors.error.default, // Red - matches gradient end
     },
     priceInfoContainer: {
       backgroundColor: colors.background.alternative,
       borderRadius: 8,
       padding: 16,
       marginBottom: 32,
+      marginHorizontal: 12,
     },
     priceRow: {
       flexDirection: 'row',
@@ -58,8 +91,16 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    priceValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    priceIcon: {
+      marginRight: 4,
+    },
     sliderContainer: {
       marginBottom: 16,
+      marginHorizontal: 12,
     },
     sliderLabels: {
       flexDirection: 'row',
@@ -71,6 +112,7 @@ export const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'space-between',
       marginTop: 24,
       marginBottom: 16,
+      marginHorizontal: 12,
     },
     quickSelectButton: {
       flex: 1,
