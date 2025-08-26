@@ -476,7 +476,7 @@ describe('OAuth login handlers', () => {
             OAuthErrorType.GoogleLoginNoCredential,
           );
           expect((error as OAuthError).message).toContain(
-            `Google login no credential - handleGoogleLogin: Google login no credential`,
+            `Google login no credential - handleGoogleLogin: Google login has no credential`,
           );
         }
       });
@@ -495,7 +495,7 @@ describe('OAuth login handlers', () => {
             OAuthErrorType.GoogleLoginNoMatchingCredential,
           );
           expect((error as OAuthError).message).toContain(
-            `Google login no matching credential - handleGoogleLogin: Google login no matching credential`,
+            `Google login no matching credential - handleGoogleLogin: Google login has no matching credential`,
           );
         }
       });
