@@ -22,9 +22,9 @@ export interface BluetoothInterface {
 }
 
 export interface ObservableEventType {
-  type: string,
-  descriptor: BluetoothDevice,
-  deviceModel: never,
+  type: string;
+  descriptor: BluetoothDevice;
+  deviceModel: never;
 }
 
 const useBluetoothDevices = (
@@ -56,18 +56,18 @@ const useBluetoothDevices = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasBluetoothPermissions, bluetoothOn]);
 
-  useEffect(() =>{
+  useEffect(() => {
     if (observableEvent?.descriptor) {
-        const btDevice = observableEvent.descriptor;
-        const deviceFound = devices[btDevice.id];
+      const btDevice = observableEvent.descriptor;
+      const deviceFound = devices[btDevice.id];
 
-        if (observableEvent.type === 'add' && !deviceFound) {
-          setDevices((prevValues) => ({
-              ...prevValues,
-              [btDevice.id]: btDevice,
-            }));
-          setDeviceScanError(false);
-        }
+      if (observableEvent.type === 'add' && !deviceFound) {
+        setDevices((prevValues) => ({
+          ...prevValues,
+          [btDevice.id]: btDevice,
+        }));
+        setDeviceScanError(false);
+      }
     }
   }, [observableEvent, devices]);
 

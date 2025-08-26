@@ -34,14 +34,13 @@ export function getFeesFromHex({
     return {
       currentCurrencyFee: null,
       nativeCurrencyFee: null,
+      preciseCurrentCurrencyFee: null,
       preciseNativeCurrencyFee: null,
       preciseNativeFeeInHex: null,
     };
   }
 
-  const nativeConversionRateInBN = new BigNumber(
-    nativeConversionRate,
-  );
+  const nativeConversionRateInBN = new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
   const nativeCurrencyFee = `${formatAmount(
     locale,
@@ -84,7 +83,7 @@ export function getFeesFromHex({
 
   // This is used to check if the fee is less than $0.01 - more precise than decimalCurrentCurrencyFee
   // Because decimalCurrentCurrencyFee is rounded to 2 decimal places
-  const preciseCurrentCurrencyFee = Number(
+  const preciseCurrentCurrencyFeeNum = Number(
     getValueFromWeiHex({
       value: hexFee,
       conversionRate: nativeConversionRateInBN,
@@ -96,7 +95,7 @@ export function getFeesFromHex({
   );
 
   let currentCurrencyFee;
-  if (preciseCurrentCurrencyFee < 0.01) {
+  if (preciseCurrentCurrencyFeeNum < 0.01) {
     currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
   } else {
     currentCurrencyFee = fiatFormatter(
@@ -108,9 +107,14 @@ export function getFeesFromHex({
     currentCurrencyFee = null;
   }
 
+  const preciseCurrentCurrencyFee = currentCurrencyFee
+    ? new BigNumber(preciseCurrentCurrencyFeeNum).toString(10)
+    : null;
+
   return {
     currentCurrencyFee,
     nativeCurrencyFee,
+    preciseCurrentCurrencyFee,
     preciseNativeCurrencyFee,
     preciseNativeFeeInHex: add0x(hexFee),
   };
@@ -136,6 +140,7 @@ export function calculateGasEstimate({
   getFeesFromHexFn: (hexFee: string) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
+    preciseCurrentCurrencyFee: string | null;
     preciseNativeCurrencyFee: string | null;
     preciseNativeFeeInHex: string | null;
   };
@@ -153,22 +158,26 @@ export function calculateGasEstimate({
   }
 
   const estimation = multiplyHexes(
-    shouldUseEIP1559FeeLogic
-      ? (minimumFeePerGas as Hex)
-      : (gasPrice as Hex),
+    shouldUseEIP1559FeeLogic ? (minimumFeePerGas as Hex) : (gasPrice as Hex),
     gas as Hex,
   );
 
   const hasLayer1GasFee = Boolean(layer1GasFee);
 
   if (hasLayer1GasFee && layer1GasFee) {
-    const estimatedTotalFeesForL2 = addHexes(
-      estimation,
-      layer1GasFee,
-    ) as Hex;
+    const estimatedTotalFeesForL2 = addHexes(estimation, layer1GasFee) as Hex;
 
     return getFeesFromHexFn(estimatedTotalFeesForL2);
   }
 
   return getFeesFromHexFn(estimation);
+}
+
+export function normalizeGasInput(value: string) {
+  return value.replace(',', '.');
+}
+
+export function convertGasInputToHexWEI(value: string) {
+  const normalizedValue = normalizeGasInput(value);
+  return add0x(decGWEIToHexWEI(normalizedValue) as Hex);
 }

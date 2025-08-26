@@ -6,6 +6,7 @@ import { TextProps as RNTextProps } from 'react-native';
  * Text component variants.
  */
 export enum TextVariant {
+  DisplayLG = 'sDisplayLG',
   DisplayMD = 'sDisplayMD',
   HeadingLG = 'sHeadingLG',
   HeadingMD = 'sHeadingMD',

@@ -1,64 +1,61 @@
-'use strict';
-
 import { SmokeConfirmations } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-
-import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import WalletView from '../../pages/wallet/WalletView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('Send to contract address'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
-  });
-
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 
-    const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
     };
 
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: HST_CONTRACT,
+        smartContracts: [HST_CONTRACT],
         testSpecificMock,
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const hstAddress = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry?.getContractAddress(
           HST_CONTRACT,
         );
         await loginToApp();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
 
         await SendView.inputAddress(hstAddress);
         await SendView.tapNextButton();
 
-        await Assertions.checkIfVisible(AmountView.title);
+        await Assertions.expectElementToBeVisible(AmountView.title);
 
         await AmountView.typeInTransactionAmount(AMOUNT);
         await AmountView.tapNextButton();
@@ -66,7 +63,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
         );
       },

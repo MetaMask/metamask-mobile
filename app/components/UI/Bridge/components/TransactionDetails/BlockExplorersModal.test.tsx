@@ -293,6 +293,25 @@ describe('BlockExplorersModal', () => {
             },
           },
         },
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: '' as const,
+            wallets: {
+              'keyring:default/1': {
+                id: 'keyring:default/1' as const,
+                groups: {
+                  'keyring:default/1': {
+                    id: 'keyring:default/1' as const,
+                    accounts: ['account1'],
+                    metadata: {
+                      name: 'Account 1',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         CurrencyRateController: {
           currentCurrency: 'USD',
           currencyRates: {
@@ -383,6 +402,9 @@ describe('BlockExplorersModal', () => {
               },
             },
           },
+        },
+        PerpsController: {
+          connectionStatus: 'disconnected' as const,
         },
       },
     },

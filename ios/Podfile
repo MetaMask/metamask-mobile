@@ -76,7 +76,7 @@ def common_target_logic
       'ios'
     ]
   end
-  
+
   config = use_native_modules!(config_command)
 
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
@@ -94,11 +94,10 @@ def common_target_logic
   pod 'GzipSwift'
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
-  pod 'OpenSSL-Universal', :modular_headers => true  
+  pod 'OpenSSL-Universal', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],
-    :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
@@ -147,17 +146,17 @@ post_install do |installer|
     begin
       # First try to make the file writable
       system "chmod +w #{file}"
-      
+
       contents = File.read(file)
       modified_contents = contents.gsub(/#define FOLLY_HAS_COROUTINES 1/, '#define FOLLY_HAS_COROUTINES 0')
-      
+
       # Try writing with elevated privileges if needed
       if !File.writable?(file)
         system "sudo chmod +w #{file}"
       end
-      
+
       File.write(file, modified_contents)
-      
+
       # Optionally restore original permissions
       system "chmod -w #{file}"
     rescue => e

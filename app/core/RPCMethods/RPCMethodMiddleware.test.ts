@@ -17,9 +17,7 @@ import {
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
-import {
-  getPermittedAccounts,
-} from '../Permissions';
+import { getPermittedAccounts } from '../Permissions';
 import {
   getRpcMethodMiddleware,
   getRpcMethodMiddlewareHooks,
@@ -52,14 +50,18 @@ import { ProviderConfig } from '../../selectors/networkController';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
-import {
-  getCaip25PermissionFromLegacyPermissions,
-  rejectOriginPendingApprovals,
-  requestPermittedChainsPermissionIncremental,
-} from '../../util/permissions';
+import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { toHex } from '@metamask/controller-utils';
+
+jest.mock('@metamask/chain-agnostic-permission', () => ({
+  ...jest.requireActual('@metamask/chain-agnostic-permission'),
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+}));
 
 jest.mock('../../util/metrics', () => ({
   trackDappViewedEvent: jest.fn(),
@@ -67,8 +69,6 @@ jest.mock('../../util/metrics', () => ({
 
 jest.mock('../../util/permissions', () => ({
   __esModule: true,
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-  requestPermittedChainsPermissionIncremental: jest.fn(),
   rejectOriginPendingApprovals: jest.fn(),
 }));
 
@@ -97,6 +97,8 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
+      grantPermissionsIncremental: jest.fn(),
+      requestPermissionsIncremental: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
@@ -110,8 +112,8 @@ jest.mock('../Engine', () => ({
       }),
     },
     KeyringController: {
-      isUnlocked: jest.fn().mockReturnValue(true)
-    }
+      isUnlocked: jest.fn().mockReturnValue(true),
+    },
   },
 }));
 const MockEngine = jest.mocked(Engine);
@@ -184,8 +186,6 @@ function getMinimalOptions() {
     // Show autocomplete
     fromHomepage: { current: false },
     toggleUrlModal: jest.fn(),
-    // Wizard
-    wizardScrollAdjusted: { current: false },
     // For the browser
     tabId: '' as const,
     // For WalletConnect
@@ -922,7 +922,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'eth_requestAccounts',
         params: [],
-        origin: 'example.metamask.io'
+        origin: 'example.metamask.io',
       };
 
       const response = await callMiddleware({ middleware, request });
@@ -942,32 +942,32 @@ describe('getRpcMethodMiddleware', () => {
         .mockReturnValueOnce([])
         .mockReturnValue([addressMock]);
 
-        const mockPermission = {
-          [Caip25EndowmentPermissionName]: {
-            parentCapability: PermissionKeys.eth_accounts,
-            id: 'id',
-            date: 1,
-            invoker: 'example.metamask.io',
-            caveats: [
-              {
-                type: Caip25CaveatType,
-                value: {
-                  requiredScopes: {},
-                  optionalScopes: {
-                    'wallet:eip155': {
-                      accounts: [],
-                    },
+      const mockPermission = {
+        [Caip25EndowmentPermissionName]: {
+          parentCapability: PermissionKeys.eth_accounts,
+          id: 'id',
+          date: 1,
+          invoker: 'example.metamask.io',
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'wallet:eip155': {
+                    accounts: [],
                   },
-                  sessionProperties: {},
-                  isMultichainOrigin: false,
                 },
+                sessionProperties: {},
+                isMultichainOrigin: false,
               },
-            ],
-          },
-        };
-        (getCaip25PermissionFromLegacyPermissions as jest.Mock).mockReturnValue(
-          mockPermission,
-        );
+            },
+          ],
+        },
+      };
+      (getCaip25PermissionFromLegacyPermissions as jest.Mock).mockReturnValue(
+        mockPermission,
+      );
 
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -979,7 +979,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 1,
         method: 'eth_requestAccounts',
         params: [],
-        origin: 'example.metamask.io'
+        origin: 'example.metamask.io',
       };
 
       const response = await callMiddleware({ middleware, request });
@@ -992,9 +992,9 @@ describe('getRpcMethodMiddleware', () => {
         mockPermission,
         {
           metadata: {
-            isEip1193Request: true
-          }
-        }
+            isEip1193Request: true,
+          },
+        },
       );
     });
   });
@@ -1806,6 +1806,10 @@ describe('getRpcMethodMiddlewareHooks', () => {
       ).toHaveBeenCalledWith({
         ...options,
         origin: testOrigin,
+        hooks: {
+          grantPermissionsIncremental: expect.any(Function),
+          requestPermissionsIncremental: expect.any(Function),
+        },
       });
     });
   });

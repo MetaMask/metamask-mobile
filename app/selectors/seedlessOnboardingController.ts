@@ -8,23 +8,30 @@ const selectSeedlessOnboardingControllerState = (state: RootState) =>
 export const selectSeedlessOnboardingUserId = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.userId || '',
+    seedlessOnboardingControllerState?.userId,
 );
 
 export const selectSeedlessOnboardingUserEmail = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.socialLoginEmail || '',
+    seedlessOnboardingControllerState?.socialLoginEmail,
 );
 
 export const selectSeedlessOnboardingAuthConnection = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.authConnection || '',
+    seedlessOnboardingControllerState?.authConnection,
 );
 
 export const selectSeedlessOnboardingLoginFlow = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    !!seedlessOnboardingControllerState?.vault,
+    seedlessOnboardingControllerState?.vault != null,
+);
+
+export const selectIsSeedlessPasswordOutdated = createSelector(
+  selectSeedlessOnboardingControllerState,
+  (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
+    seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
+    true,
 );

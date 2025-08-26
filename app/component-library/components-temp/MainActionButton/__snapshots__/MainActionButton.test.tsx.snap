@@ -47,13 +47,12 @@ exports[`MainActionButton should render correctly 1`] = `
       [
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 12,
           "justifyContent": "center",
-          "minHeight": 68,
-          "minWidth": 68,
           "opacity": 1,
-          "padding": 8,
+          "paddingHorizontal": 4,
+          "paddingVertical": 16,
         },
         false,
       ]
@@ -83,6 +82,7 @@ exports[`MainActionButton should render correctly 1`] = `
       />
       <Text
         accessibilityRole="text"
+        numberOfLines={1}
         style={
           {
             "color": "#121314",

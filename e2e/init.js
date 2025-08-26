@@ -1,3 +1,5 @@
+/* eslint-env jest */
+import { logger } from './framework';
 import Utilities from './utils/Utilities';
 
 /**

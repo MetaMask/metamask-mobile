@@ -17,7 +17,7 @@ import {
   stripArrayType,
   stripMultipleNewlines,
   stripOneLayerofNesting,
- } from '../../../../util/string';
+} from '../../../../util/string';
 import { TOKEN_ADDRESS } from '../constants/tokens';
 import BigNumber from 'bignumber.js';
 
@@ -40,24 +40,33 @@ interface ValueType {
 /**
  * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
  */
-export const isPermitDaiUnlimited = (tokenAddress: string, allowed?: number|string|boolean) => {
+export const isPermitDaiUnlimited = (
+  tokenAddress: string,
+  allowed?: number | string | boolean,
+) => {
   if (!tokenAddress) return false;
 
-  return tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
-    && Number(allowed) > 0;
+  return (
+    tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
+    Number(allowed) > 0
+  );
 };
 
-export const isPermitDaiRevoke = (tokenAddress: string, allowed?: number|string|boolean, value?: number|string|BigNumber) => {
+export const isPermitDaiRevoke = (
+  tokenAddress: string,
+  allowed?: number | string | boolean,
+  value?: number | string | BigNumber,
+) => {
   if (!tokenAddress) return false;
 
-  return tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase()
-    && (
-      allowed === 0
-      || allowed === false
-      || allowed === 'false'
-      || value === '0'
-      || (value instanceof BigNumber && value.eq(0))
-    );
+  return (
+    tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
+    (allowed === 0 ||
+      allowed === false ||
+      allowed === 'false' ||
+      value === '0' ||
+      (value instanceof BigNumber && value.eq(0)))
+  );
 };
 
 /**
@@ -101,7 +110,11 @@ export const sanitizeParsedMessage = (
     return {
       value: (message as string[]).map(
         (value: string): ValueType =>
-          sanitizeParsedMessage(value, stripOneLayerofNesting(primaryType), types),
+          sanitizeParsedMessage(
+            value,
+            stripOneLayerofNesting(primaryType),
+            types,
+          ),
       ),
       type: primaryType,
     };
@@ -133,21 +146,23 @@ export const sanitizeParsedMessage = (
       return;
     }
 
-    (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeParsedMessage(
-      (message as Record<string, string>)[msgKey],
-      definedType.type,
-      types,
-    );
+    (sanitizedStruct as Record<string, ValueType>)[msgKey] =
+      sanitizeParsedMessage(
+        (message as Record<string, string>)[msgKey],
+        definedType.type,
+        types,
+      );
   });
   return { value: sanitizedStruct, type: primaryType };
 };
-
 
 const REGEX_MESSAGE_VALUE_LARGE =
   /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
 
 /** Returns the value of the message if it is a digit greater than 15 digits */
-function extractLargeMessageValue(messageParamsData: string): string | undefined {
+function extractLargeMessageValue(
+  messageParamsData: string,
+): string | undefined {
   if (typeof messageParamsData !== 'string') {
     return undefined;
   }
@@ -180,7 +195,9 @@ export const parseAndNormalizeSignTypedData = (messageParamsData: string) => {
 };
 
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
-  if (!messageParamsData) { return {}; }
+  if (!messageParamsData) {
+    return {};
+  }
 
   const { domain, message, primaryType, types } = JSON.parse(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
@@ -188,10 +205,15 @@ export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   return { sanitizedMessage, primaryType, domain };
 };
 
-export const parseNormalizeAndSanitizeSignTypedData = (messageParamsData: string) => {
-  if (!messageParamsData) { return {}; }
+export const parseNormalizeAndSanitizeSignTypedData = (
+  messageParamsData: string,
+) => {
+  if (!messageParamsData) {
+    return {};
+  }
 
-  const { domain, message, primaryType, types } = parseAndNormalizeSignTypedData(messageParamsData);
+  const { domain, message, primaryType, types } =
+    parseAndNormalizeSignTypedData(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
 
   return { sanitizedMessage, primaryType, domain };
@@ -212,7 +234,8 @@ const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  const { primaryType } = parseAndNormalizeSignTypedDataFromSignatureRequest(request);
+  const { primaryType } =
+    parseAndNormalizeSignTypedDataFromSignatureRequest(request);
   return types.includes(primaryType);
 };
 

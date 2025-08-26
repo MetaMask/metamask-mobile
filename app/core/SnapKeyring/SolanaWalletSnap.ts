@@ -6,7 +6,8 @@ import { Json, JsonRpcRequest } from '@metamask/utils';
 import { handleSnapRequest } from '../Snaps/utils';
 import Engine from '../Engine';
 
-export const SOLANA_WALLET_SNAP_ID: SnapId = 'npm:@metamask/solana-wallet-snap' as SnapId;
+export const SOLANA_WALLET_SNAP_ID: SnapId =
+  'npm:@metamask/solana-wallet-snap' as SnapId;
 
 export const SOLANA_WALLET_NAME: string = 'Solana';
 

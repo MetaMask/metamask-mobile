@@ -8,15 +8,15 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -47,14 +47,21 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
-import { setMetaMetricsUISeen } from '../../../actions/user';
+import {
+  updateCachedConsent,
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
+import { setupSentry } from '../../../util/sentry/utils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      paddingTop: 24,
+      paddingTop:
+        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
+      paddingBottom: 16,
     },
     checkbox: {
       display: 'flex',
@@ -77,6 +84,7 @@ const createStyles = ({ colors }) =>
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
+      paddingBottom: 80, // Space for fixed action buttons at bottom
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -123,10 +131,6 @@ class OptinMetrics extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    /**
      * Onboarding events array created in previous onboarding views
      */
     events: PropTypes.array,
@@ -142,17 +146,9 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * Action to set meta metrics UI seen
-     */
-    setMetaMetricsUISeen: PropTypes.func,
   };
 
   state = {
-    /**
-     * Used to control the action buttons state.
-     */
-    isActionEnabled: false,
     /**
      * Tracks the scroll view's content height.
      */
@@ -235,20 +231,16 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
     }
 
-    // Get onboarding wizard state
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    } else {
-      this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    }
-    this.props.setMetaMetricsUISeen(true);
+    this.props.navigation.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   };
 
   /**
@@ -330,6 +322,9 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
+      await setupSentry(); // Re-setup Sentry with enabled: false
+      discardBufferedTraces();
+      updateCachedConsent(false);
     }, 200);
     this.continue();
   };
@@ -346,6 +341,9 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
+    await setupSentry(); // Re-setup Sentry with enabled: true
+    await flushBufferedTraces();
+    updateCachedConsent(true);
 
     // Handle null case for marketing consent
     if (
@@ -395,7 +393,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -451,19 +448,17 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <View>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('privacy_policy.fine_print_1') + ' '}
-            <Text
-              color={TextColor.Primary}
-              variant={TextVariant.BodySM}
-              onPress={this.openPrivacyPolicy}
-            >
-              {strings('privacy_policy.privacy_policy_button')}
-            </Text>
-            {' ' + strings('privacy_policy.fine_print_2')}
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('privacy_policy.fine_print_1') + ' '}
+          <Text
+            color={TextColor.Primary}
+            variant={TextVariant.BodySM}
+            onPress={this.openPrivacyPolicy}
+          >
+            {strings('privacy_policy.privacy_policy_button')}
           </Text>
-        </View>
+          {' ' + strings('privacy_policy.fine_print_2')}
+        </Text>
       );
     }
 
@@ -497,16 +492,10 @@ class OptinMetrics extends PureComponent {
   };
 
   renderActionButtons = () => {
-    const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -535,7 +524,6 @@ class OptinMetrics extends PureComponent {
    */
   onScrollEndReached = () => {
     this.setState({ isEndReached: true });
-    this.setState({ isActionEnabled: true });
   };
 
   /**
@@ -674,12 +662,9 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),
-  setMetaMetricsUISeen: (isMetaMetricsUISeen) =>
-    dispatch(setMetaMetricsUISeen(isMetaMetricsUISeen)),
 });
 
 export default connect(

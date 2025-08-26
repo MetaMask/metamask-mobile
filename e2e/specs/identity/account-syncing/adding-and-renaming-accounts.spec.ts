@@ -2,25 +2,22 @@ import {
   importWalletWithRecoveryPhrase,
   loginToApp,
 } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import Assertions from '../../../framework/Assertions.ts';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import {
-  withIdentityFixtures,
-  createSharedUserStorageController,
-} from '../utils/withIdentityFixtures';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet.js';
-import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import { defaultGanacheOptions } from '../../../fixtures/fixture-helper.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { defaultGanacheOptions } from '../../../framework/Constants';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
   SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
@@ -28,8 +25,7 @@ describe(
     let sharedUserStorageController: UserStorageMockttpController;
 
     beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-      sharedUserStorageController = createSharedUserStorageController();
+      sharedUserStorageController = createUserStorageController();
     });
 
     const DEFAULT_ACCOUNT_NAME = 'Account 1';
@@ -80,7 +76,7 @@ describe(
             );
 
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
           await waitUntilEventsEmittedNumberEquals(1);
 
           await Assertions.expectElementToBeVisible(
@@ -142,10 +138,10 @@ describe(
           await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
           await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
-          // Add another new EVM account
-          await WalletView.tapIdenticon();
+          // Bottom sheet remains open after renaming account
+          // await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
-          await AddAccountBottomSheet.tapCreateAccount();
+          await AddAccountBottomSheet.tapCreateEthereumAccount();
 
           await waitUntilEventsEmittedNumberEquals(2);
         },

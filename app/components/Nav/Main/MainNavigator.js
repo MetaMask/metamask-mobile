@@ -26,7 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/legacy/Send';
+import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -97,9 +97,21 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import {
+  PerpsScreenStack,
+  PerpsModalStack,
+  selectPerpsEnabledFlag,
+} from '../../UI/Perps';
+import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
+import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
+import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import WalletRecovery from '../../Views/WalletRecovery';
+import CardRoutes from '../../UI/Card/routes';
+import { Send } from '../../Views/confirmations/components/send';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -396,6 +408,11 @@ const SettingsFlow = () => (
       options={ResetPassword.navigationOptions}
     />
     <Stack.Screen
+      name="WalletRecovery"
+      component={WalletRecovery}
+      options={WalletRecovery.navigationOptions}
+    />
+    <Stack.Screen
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
@@ -560,9 +577,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
@@ -571,9 +588,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
 
@@ -602,8 +619,8 @@ const SendView = () => (
   <Stack.Navigator>
     <Stack.Screen
       name="Send"
-      component={Send}
-      options={Send.navigationOptions}
+      component={SendLegacy}
+      options={SendLegacy.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -780,129 +797,179 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const MainNavigator = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    mode={'modal'}
-    initialRouteName={'Home'}
-  >
-    <Stack.Screen
-      name="CollectiblesDetails"
-      component={CollectiblesDetails}
-      options={{
-        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-        cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
+const MainNavigator = () => {
+  // Get feature flag state for conditional Perps screen registration
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
       }}
-    />
-    <Stack.Screen
-      name={Routes.DEPRECATED_NETWORK_DETAILS}
-      component={DeprecatedNetworkDetails}
-      options={{
-        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-        cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
-      }}
-    />
-    <Stack.Screen name="Home" component={HomeTabs} />
-    <Stack.Screen name="Asset" component={AssetModalFlow} />
-    <Stack.Screen name="Webview" component={Webview} />
-    <Stack.Screen name="SendView" component={SendView} />
-    <Stack.Screen
-      name="SendFlowView"
-      component={SendFlowView}
-      //Disabling swipe down on IOS
-      options={{ gestureEnabled: false }}
-    />
-    <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
-    <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.VIEW}
-      component={NotificationsModeView}
-    />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-    <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
-    <Stack.Screen
-      name="NftDetailsFullImage"
-      component={NftDetailsFullImageModeView}
-    />
-    <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name={Routes.RAMP.BUY}>
-      {() => <RampRoutes rampType={RampType.BUY} />}
-    </Stack.Screen>
-    <Stack.Screen name={Routes.RAMP.SELL}>
-      {() => <RampRoutes rampType={RampType.SELL} />}
-    </Stack.Screen>
-    <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-    <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
-    <Stack.Screen
-      name={Routes.BRIDGE.MODALS.ROOT}
-      component={BridgeModalStack}
-      options={clearStackNavigatorOptions}
-    />
-    <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
-    <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
-    <Stack.Screen
-      name={Routes.EARN.MODALS.ROOT}
-      component={EarnModalStack}
-      options={clearStackNavigatorOptions}
-    />
-    <Stack.Screen
-      name="StakeModals"
-      component={StakeModalStack}
-      options={clearStackNavigatorOptions}
-    />
-    <Stack.Screen
-      name="SetPasswordFlow"
-      component={SetPasswordFlow}
-      headerTitle={() => (
-        <Image
-          style={styles.headerLogo}
-          source={require('../../../images/branding/metamask-name.png')}
-          resizeMode={'contain'}
-        />
+      mode={'modal'}
+      initialRouteName={'Home'}
+    >
+      <Stack.Screen
+        name="CollectiblesDetails"
+        component={CollectiblesDetails}
+        options={{
+          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+          cardStyle: { backgroundColor: importedColors.transparent },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+      />
+      <Stack.Screen
+        name={Routes.DEPRECATED_NETWORK_DETAILS}
+        component={DeprecatedNetworkDetails}
+        options={{
+          //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+          cardStyle: { backgroundColor: importedColors.transparent },
+          cardStyleInterpolator: () => ({
+            overlayStyle: {
+              opacity: 0,
+            },
+          }),
+        }}
+      />
+      <Stack.Screen name="Home" component={HomeTabs} />
+      <Stack.Screen name="Asset" component={AssetModalFlow} />
+      <Stack.Screen name="Webview" component={Webview} />
+      <Stack.Screen name="SendView" component={SendView} />
+      <Stack.Screen
+        name="Send"
+        component={Send}
+        //Disabling swipe down on IOS
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="SendFlowView"
+        component={isSendRedesignEnabled() ? Send : SendFlowView}
+        //Disabling swipe down on IOS
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
+      <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <Stack.Screen
+        name={Routes.NOTIFICATIONS.VIEW}
+        component={NotificationsModeView}
+      />
+      <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+      <Stack.Screen name="NftDetails" component={NftDetailsModeView} />
+      <Stack.Screen
+        name="NftDetailsFullImage"
+        component={NftDetailsFullImageModeView}
+      />
+      <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+      <Stack.Screen name={Routes.RAMP.BUY}>
+        {() => <RampRoutes rampType={RampType.BUY} />}
+      </Stack.Screen>
+      <Stack.Screen name={Routes.RAMP.SELL}>
+        {() => <RampRoutes rampType={RampType.SELL} />}
+      </Stack.Screen>
+      <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
+      <Stack.Screen name="Swaps" component={Swaps} />
+      <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+      <Stack.Screen
+        name={Routes.BRIDGE.MODALS.ROOT}
+        component={BridgeModalStack}
+        options={clearStackNavigatorOptions}
+      />
+      <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
+      <Stack.Screen name={Routes.EARN.ROOT} component={EarnScreenStack} />
+      <Stack.Screen
+        name={Routes.EARN.MODALS.ROOT}
+        component={EarnModalStack}
+        options={clearStackNavigatorOptions}
+      />
+      <Stack.Screen
+        name="StakeModals"
+        component={StakeModalStack}
+        options={clearStackNavigatorOptions}
+      />
+      {isPerpsEnabled && (
+        <>
+          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.MODALS.ROOT}
+            component={PerpsModalStack}
+            options={clearStackNavigatorOptions}
+          />
+        </>
       )}
-      // eslint-disable-next-line react-native/no-inline-styles
-      headerStyle={{ borderBottomWidth: 0 }}
-    />
-    {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
-    <Stack.Screen
-      name="GeneralSettings"
-      component={GeneralSettings}
-      options={{
-        headerShown: true,
-        ...GeneralSettings.navigationOptions,
-      }}
-    />
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN_STACK}
-      component={NotificationsOptInStack}
-      options={NotificationsOptInStack.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
-      component={TurnOnBackupAndSync}
-      options={TurnOnBackupAndSync.navigationOptions}
-    />
-    <Stack.Screen
-      name="DeFiProtocolPositionDetails"
-      component={DeFiProtocolPositionDetails}
-      options={{
-        headerShown: true,
-      }}
-    />
-  </Stack.Navigator>
-);
+      {isPerpsEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PERPS.POSITION_TRANSACTION}
+            component={PerpsPositionTransactionView}
+            options={{
+              title: 'Position Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_TRANSACTION}
+            component={PerpsOrderTransactionView}
+            options={{
+              title: 'Order Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.FUNDING_TRANSACTION}
+            component={PerpsFundingTransactionView}
+            options={{
+              title: 'Funding Transaction',
+              headerShown: true,
+            }}
+          />
+        </>
+      )}
+      <Stack.Screen
+        name="SetPasswordFlow"
+        component={SetPasswordFlow}
+        headerTitle={() => (
+          <Image
+            style={styles.headerLogo}
+            source={require('../../../images/branding/metamask-name.png')}
+            resizeMode={'contain'}
+          />
+        )}
+        // eslint-disable-next-line react-native/no-inline-styles
+        headerStyle={{ borderBottomWidth: 0 }}
+      />
+      {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
+      <Stack.Screen
+        name="GeneralSettings"
+        component={GeneralSettings}
+        options={{
+          headerShown: true,
+          ...GeneralSettings.navigationOptions,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.NOTIFICATIONS.OPT_IN_STACK}
+        component={NotificationsOptInStack}
+        options={NotificationsOptInStack.navigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
+        component={TurnOnBackupAndSync}
+        options={TurnOnBackupAndSync.navigationOptions}
+      />
+      <Stack.Screen
+        name="DeFiProtocolPositionDetails"
+        component={DeFiProtocolPositionDetails}
+        options={{
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+    </Stack.Navigator>
+  );
+};
 
 export default MainNavigator;

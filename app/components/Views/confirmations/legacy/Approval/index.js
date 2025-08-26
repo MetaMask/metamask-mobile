@@ -175,6 +175,10 @@ class Approval extends PureComponent {
       const { transactionHandled } = this.state;
       const { transaction, selectedAddress } = this.props;
 
+      const isLedgerAccount = isHardwareAccount(selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
       if (!transactionHandled) {
         if (isQRHardwareAccount(selectedAddress)) {
           Engine.getQrKeyringScanner().rejectPendingScan(
@@ -190,14 +194,15 @@ class Approval extends PureComponent {
             },
           );
         }
-
-        Engine.controllerMessenger.tryUnsubscribe(
-          'TransactionController:transactionFinished',
-          this.#transactionFinishedListener,
-        );
-
-        this.appStateListener?.remove();
       }
+
+      // Always perform cleanup operations regardless of account type
+      Engine.controllerMessenger.tryUnsubscribe(
+        'TransactionController:transactionFinished',
+        this.#transactionFinishedListener,
+      );
+
+      this.appStateListener?.remove();
 
       this.clear();
     } catch (e) {

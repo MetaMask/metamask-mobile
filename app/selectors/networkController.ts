@@ -1,4 +1,4 @@
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { createSelector, weakMapMemoize } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -11,6 +11,7 @@ import {
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../constants/popular-networks';
 import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
@@ -211,18 +212,28 @@ export const selectNetworkConfigurations = createDeepEqualSelector(
  */
 export const getNetworkConfigurationsByCaipChainId = (
   evmNetworkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
-  nonEvmNetworkConfigurationsByChainId: Record<Hex, MultichainNetworkConfiguration>,
-): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> => {
-  const networkConfigurationsByCaipChainId: Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> = {
-  };
+  nonEvmNetworkConfigurationsByChainId: Record<
+    Hex,
+    MultichainNetworkConfiguration
+  >,
+): Record<
+  CaipChainId,
+  EvmAndMultichainNetworkConfigurationsWithCaipChainId
+> => {
+  const networkConfigurationsByCaipChainId: Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  > = {};
 
-  Object.entries(evmNetworkConfigurationsByChainId).forEach(([chainId, networkConfiguration]) => {
-    const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
-    networkConfigurationsByCaipChainId[caipChainId] = {
-      ...networkConfiguration,
-      caipChainId
-    };
-  });
+  Object.entries(evmNetworkConfigurationsByChainId).forEach(
+    ([chainId, networkConfiguration]) => {
+      const caipChainId: CaipChainId = `eip155:${parseInt(chainId, 16)}`;
+      networkConfigurationsByCaipChainId[caipChainId] = {
+        ...networkConfiguration,
+        caipChainId,
+      };
+    },
+  );
 
   Object.entries(nonEvmNetworkConfigurationsByChainId || {}).forEach(
     ([_caipChainId, networkConfiguration]) => {
@@ -243,11 +254,34 @@ export const selectNetworkConfigurationsByCaipChainId = createSelector(
   (
     evmNetworkConfigurationsByChainId,
     nonEvmNetworkConfigurationsByChainId,
-  ): Record<CaipChainId, EvmAndMultichainNetworkConfigurationsWithCaipChainId> =>
+  ): Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  > =>
     getNetworkConfigurationsByCaipChainId(
       evmNetworkConfigurationsByChainId,
       nonEvmNetworkConfigurationsByChainId,
-    )
+    ),
+);
+
+export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
+  selectNetworkConfigurationsByCaipChainId,
+  (networkConfigurationsByChainId) =>
+    Object.values(networkConfigurationsByChainId).filter(
+      (networkConfiguration) =>
+        !POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
+        !networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+    ),
+);
+
+export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
+  selectNetworkConfigurationsByCaipChainId,
+  (networkConfigurationsByChainId) =>
+    Object.values(networkConfigurationsByChainId).filter(
+      (networkConfiguration) =>
+        POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
+        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+    ),
 );
 
 export const selectNativeNetworkCurrencies = createDeepEqualSelector(
@@ -308,6 +342,15 @@ export const selectIsPopularNetwork = createSelector(
     PopularList.some((network) => network.chainId === chainId),
 );
 
+export const selectIsAllPopularNetworks = createSelector(
+  selectChainId,
+  (chainId) =>
+    chainId === CHAIN_IDS.MAINNET ||
+    chainId === CHAIN_IDS.LINEA_MAINNET ||
+    PopularList.some((network) => network.chainId === chainId) ||
+    chainId.includes(KnownCaipNamespace.Solana),
+);
+
 export const selectIsAllNetworks = createSelector(
   selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
@@ -327,8 +370,8 @@ export const selectNetworkConfigurationByChainId = createSelector(
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
   {
     argsMemoize: weakMapMemoize,
-    memoize: weakMapMemoize
-  }
+    memoize: weakMapMemoize,
+  },
 );
 
 export const selectNativeCurrencyByChainId = createSelector(

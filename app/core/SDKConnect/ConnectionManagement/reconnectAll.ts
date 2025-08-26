@@ -17,10 +17,9 @@ async function reconnectAll(instance: SDKConnect) {
   channelIds.forEach((channelId) => {
     const connection = instance.state.connections[channelId];
     const connecting = instance.state.connecting[channelId];
-    const connected = instance.getConnected()?.[channelId]?.remote.isConnected() ?? false;
-    if (
-      !connecting && !connected
-    ) {
+    const connected =
+      instance.getConnected()?.[channelId]?.remote.isConnected() ?? false;
+    if (!connecting && !connected) {
       DevLogger.log(
         `SDKConnect::reconnectAll - reconnecting to ${channelId} origin=${connection.origin} relayPersistence=${connection.relayPersistence} protocolVersion=${connection.protocolVersion}`,
       );

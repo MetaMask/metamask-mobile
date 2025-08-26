@@ -1,4 +1,4 @@
-import { ACTIONS, PROTOCOLS } from '../../../constants/deeplinks';
+import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../constants/deeplinks';
 import AppConstants from '../../AppConstants';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import DeeplinkManager from '../DeeplinkManager';
@@ -28,6 +28,8 @@ enum SUPPORTED_ACTIONS {
   SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
+  SEND = ACTIONS.SEND,
+  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
 }
 
 async function handleUniversalLink({
@@ -36,14 +38,17 @@ async function handleUniversalLink({
   urlObj,
   browserCallBack,
   url,
+  source,
 }: {
   instance: DeeplinkManager;
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
   browserCallBack?: (url: string) => void;
   url: string;
+  source: string;
 }) {
   const validatedUrl = new URL(url);
+
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
@@ -65,7 +70,7 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   if (
-    !Object.keys(SUPPORTED_ACTIONS).includes(action.toUpperCase()) ||
+    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
     !isSupportedDomain
   ) {
     isInvalidLink = true;
@@ -110,8 +115,9 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: string =
-      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
+    const [, action] = validatedUrl.pathname.split('/');
+    const sanitizedAction = action?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
       linkType: linkType(),
@@ -127,42 +133,42 @@ async function handleUniversalLink({
   if (!shouldProceed) {
     return false;
   }
-
+  const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   if (
     action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
     action === SUPPORTED_ACTIONS.BUY
   ) {
-    const rampPath = urlObj.href
-      .replace(
-        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
-        '',
-      )
-      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
+    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
-    const rampPath = urlObj.href
-      .replace(
-        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL_CRYPTO}`,
-        '',
-      )
-      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL}`, '');
+    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
-    const swapPath = urlObj.href.replace(
-      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
-      '',
-    );
+    const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSwap(swapPath);
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
-    // Normal links (same as dapp)
-    instance._handleBrowserUrl(urlObj.href, browserCallBack);
+    const deeplinkUrl = urlObj.href.replace(
+      `${BASE_URL_ACTION}/`,
+      PREFIXES[ACTIONS.DAPP],
+    );
+    instance._handleBrowserUrl(deeplinkUrl, browserCallBack);
+  } else if (action === SUPPORTED_ACTIONS.SEND) {
+    const deeplinkUrl = urlObj.href
+      .replace(`${BASE_URL_ACTION}/`, PREFIXES[ACTIONS.SEND])
+      .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
+    // loops back to open the link with the right protocol
+    instance.parse(deeplinkUrl, { origin: source });
+    return;
+  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
+    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleCreateAccount(deeplinkUrl);
   }
 }
 

@@ -1,164 +1,157 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Linking, View } from 'react-native';
-import { SolScope } from '@metamask/keyring-api';
-import Text from '../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
+import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { Image, Linking, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
+import { strings } from '../../../../locales/i18n';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import FeatureItem from './FeatureItem';
-import { useTheme } from '../../../util/theme';
-import SolanaLogo from '../../../images/solana-logo-transparent.svg';
-import { strings } from '../../../../locales/i18n';
-import {
-  selectHasCreatedSolanaMainnetAccount,
-  selectLastSelectedSolanaAccount,
-} from '../../../selectors/accountsController';
-import createStyles from './SolanaNewFeatureContent.styles';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import Engine from '../../../core/Engine';
-import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
+import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
+import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import FoxVipers from '../../../images/Fox_Vipers.png';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import createStyles from './SolanaNewFeatureContent.styles';
 
 const SolanaNewFeatureContent = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-  const hasExistingSolanaAccount = useSelector(
-    selectHasCreatedSolanaMainnetAccount,
-  );
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
 
-  useEffect(() => {
-    const checkModalStatus = async () => {
-      const hasSeenModal = await StorageWrapper.getItem(
-        SOLANA_FEATURE_MODAL_SHOWN,
-      );
-      setIsVisible(hasSeenModal !== 'true');
-    };
-    checkModalStatus();
-  }, []);
+  const styles = createStyles();
 
-  /**
-   * Sheet close functionality (does not fire ref close to prevent infinite recursion)
-   */
-  const handleSheetClose = async () => {
-    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
-    setIsVisible(false);
-  };
-
-  /**
-   * Close Button, invokes both sheet closing and ref closing
-   */
   const handleClose = async () => {
-    await handleSheetClose();
-    sheetRef.current?.onCloseBottomSheet();
+    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
+        .addProperties({
+          ...generateDeviceAnalyticsMetaData(),
+          feature: 'solana-import-wallet',
+          action: 'decline',
+        })
+        .build(),
+    );
+
+    navigate(Routes.WALLET.HOME);
   };
 
-  const viewSolanaAccount = async () => {
-    if (lastSelectedSolanaAccount) {
-      await Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
-    }
-    await handleClose();
+  const importAccountWithSRP = async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
+        .addProperties({
+          ...generateDeviceAnalyticsMetaData(),
+          feature: 'solana-import-wallet',
+          action: 'engage',
+        })
+        .build(),
+    );
+
+    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true', {
+      // Not emitting event as solana import flow has not finished
+      // Prevents any confusion in areas that are listening for app open modals to close
+      emitEvent: false,
+    });
+    navigate(Routes.MULTI_SRP.IMPORT);
   };
 
-  const onLearnMoreClicked = () => {
+  const navigateToLearnMoreAboutSolanaAccounts = () => {
     Linking.openURL(SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE);
   };
 
-  const createSolanaAccount = async () => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: WalletClientType.Solana,
-        scope: SolScope.Mainnet,
-      },
-    });
-    await handleClose();
-  };
-
-  const features = [
-    {
-      title: strings('solana_new_feature_content.feature_1_title'),
-      description: strings('solana_new_feature_content.feature_1_description'),
-    },
-    {
-      title: strings('solana_new_feature_content.feature_2_title'),
-      description: strings('solana_new_feature_content.feature_2_description'),
-    },
-    {
-      title: strings('solana_new_feature_content.feature_3_title'),
-      description: strings('solana_new_feature_content.feature_3_description'),
-    },
-  ];
-
-  if (!isVisible) return null;
-
   return (
-    <BottomSheet
-      ref={sheetRef}
-      onClose={handleSheetClose}
-      shouldNavigateBack={false}
+    <View
+      style={[
+        baseStyles.flexGrow,
+        { backgroundColor: importedColors.gettingStartedPageBackgroundColor },
+      ]}
       testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET}
     >
-      <View style={styles.wrapper}>
-        <SolanaLogo name="solana-logo" height={65} />
-        <Text style={styles.title}>
-          {strings('solana_new_feature_content.title')}
-        </Text>
+      <ScrollView
+        style={baseStyles.flexGrow}
+        contentContainerStyle={styles.scroll}
+        bounces
+        scrollEnabled
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.wrapper}>
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
+            {strings('solana_new_feature_content.title')}
+          </Text>
+          <View style={styles.ctas}>
+            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
+              {strings('solana_new_feature_content.title_description')}
+            </Text>
 
-        <View style={styles.featureList}>
-          {features.map((feature, index) => (
-            <FeatureItem
-              key={index}
-              title={feature.title}
-              description={feature.description}
-            />
-          ))}
+            <Text
+              variant={TextVariant.BodyXS}
+              style={styles.learnMoreButton}
+              testID={
+                SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON
+              }
+              onPress={navigateToLearnMoreAboutSolanaAccounts}
+            >
+              {strings('solana_new_feature_content.learn_more')}
+            </Text>
+
+            <View style={styles.largeFoxWrapper}>
+              <Image
+                source={FoxVipers}
+                style={styles.foxImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
         </View>
+      </ScrollView>
 
-        <Button
-          style={styles.learnMore}
-          variant={ButtonVariants.Link}
-          label={strings('solana_new_feature_content.learn_more')}
-          onPress={onLearnMoreClicked}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings(
-            hasExistingSolanaAccount
-              ? 'solana_new_feature_content.view_solana_account'
-              : 'solana_new_feature_content.create_solana_account',
-          )}
-          onPress={
-            hasExistingSolanaAccount ? viewSolanaAccount : createSolanaAccount
+      <View style={styles.createWrapper}>
+        <ButtonBase
+          onPress={() => importAccountWithSRP()}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
           }
+          size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_CREATE_ACCOUNT_BUTTON}
+          style={styles.importWalletButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.importWalletButtonText}
+            >
+              {strings('solana_new_feature_content.import_your_wallet')}
+            </Text>
+          }
         />
-
         <Button
-          variant={ButtonVariants.Link}
-          label={strings('solana_new_feature_content.not_now')}
-          onPress={handleClose}
-          style={styles.cancelButton}
+          variant={ButtonVariants.Secondary}
+          onPress={() => handleClose()}
           testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.notNowButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.notNowButtonText}
+            >
+              {strings('solana_new_feature_content.not_now')}
+            </Text>
+          }
         />
       </View>
-    </BottomSheet>
+    </View>
   );
 };
 

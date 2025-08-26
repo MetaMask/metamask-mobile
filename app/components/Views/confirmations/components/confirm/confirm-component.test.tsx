@@ -16,6 +16,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
+import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 
 jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
@@ -129,11 +130,21 @@ jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
+    subscribeOnceIf: jest.fn(),
   },
 }));
 
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
+}));
+
+jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: () => [] as ReturnType<typeof useTokensWithBalance>,
+}));
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
 describe('Confirm', () => {
@@ -286,7 +297,6 @@ describe('Confirm', () => {
     });
 
     expect(getByText('Use smart account?')).toBeTruthy();
-    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('returns null if confirmation redesign is not enabled', () => {

@@ -7,11 +7,11 @@ import { FormState, SnapId } from '@metamask/snaps-sdk';
 import { SnapUIRenderer } from './SnapUIRenderer';
 import { act } from '@testing-library/react-native';
 
-
-export const MOCK_SNAP_ID = 'npm:@metamask/test-snap-bip44';
+export const MOCK_SNAP_ID = 'npm:@metamask/test-snap-bip44' as SnapId;
 export const MOCK_INTERFACE_ID = 'interfaceId';
 
 interface RenderInterfaceOptions {
+  snapId?: SnapId;
   useFooter?: boolean;
   onCancel?: () => void;
   contentBackgroundColor?: string;
@@ -24,12 +24,12 @@ const noOp = () => {
   // no-op
 };
 
-
 /**
  * Renders a Snap UI interface.
  *
  * @param content - The JSXElement to render.
  * @param options - The options for rendering the interface.
+ * @param options.snapId - The ID of the Snap.
  * @param options.useFooter - Whether to render the footer.
  * @param options.onCancel - The function to call when the interface is cancelled.
  * @param options.state - The state of the interface.
@@ -40,6 +40,7 @@ const noOp = () => {
 export function renderInterface(
   content: JSXElement | null,
   {
+    snapId = MOCK_SNAP_ID,
     useFooter = false,
     onCancel = noOp,
     state = {},
@@ -62,8 +63,8 @@ export function renderInterface(
         },
         SnapController: {
           snaps: {
-            [MOCK_SNAP_ID]: {
-              id: 'npm:@metamask/test-snap-bip44',
+            [snapId]: {
+              id: snapId,
               origin: 'npm:@metamask/test-snap-bip44',
               version: '5.1.2',
               iconUrl: null,
@@ -102,7 +103,7 @@ export function renderInterface(
         SnapInterfaceController: {
           interfaces: {
             [MOCK_INTERFACE_ID]: {
-              snapId: MOCK_SNAP_ID,
+              snapId,
               content,
               state,
               context: null,
@@ -111,19 +112,19 @@ export function renderInterface(
           },
         },
         KeyringController: {
-          keyrings: []
+          keyrings: [],
         },
         AccountsController: {
           internalAccounts: {
             accounts: {
-              'foo': {
+              foo: {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb',
                 metadata: {
                   name: 'My Account',
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
         AddressBookController: {
           addressBook: {
@@ -131,9 +132,9 @@ export function renderInterface(
               '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda': {
                 address: '0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcda',
                 name: 'Test Contact',
-              }
-            }
-          }
+              },
+            },
+          },
         },
         ...backgroundState,
       },
@@ -142,7 +143,7 @@ export function renderInterface(
 
   const result = renderWithProvider(
     <SnapUIRenderer
-      snapId={MOCK_SNAP_ID}
+      snapId={snapId}
       interfaceId={MOCK_INTERFACE_ID}
       useFooter={useFooter}
       onCancel={onCancel}
@@ -168,7 +169,7 @@ export function renderInterface(
             SnapInterfaceController: {
               interfaces: {
                 [MOCK_INTERFACE_ID]: {
-                  snapId: MOCK_SNAP_ID as SnapId,
+                  snapId: snapId as SnapId,
                   content: action.payload.content,
                   state: action.payload.state ?? state,
                   context: null,

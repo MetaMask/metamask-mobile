@@ -6,7 +6,11 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useSignatureMetrics } from './useSignatureMetrics';
-import { ResultType, Reason, SecurityAlertSource } from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
+import {
+  ResultType,
+  Reason,
+  SecurityAlertSource,
+} from '../../../../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 
 const mockTypedSignV4SignatureRequest = typedSignV4SignatureRequest;
 jest.mock('./useSignatureRequest', () => ({
@@ -120,7 +124,9 @@ describe('useSignatureMetrics', () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: { securityAlertResponse: securityAlertResponseLoading },
+        signatureRequest: {
+          securityAlertResponse: securityAlertResponseLoading,
+        },
       },
     });
 
@@ -142,7 +148,9 @@ describe('useSignatureMetrics', () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
       state: {
         ...typedSignV4ConfirmationState,
-        signatureRequest: { securityAlertResponse: securityAlertResponseUndefined },
+        signatureRequest: {
+          securityAlertResponse: securityAlertResponseUndefined,
+        },
       },
     });
 
@@ -152,11 +160,15 @@ describe('useSignatureMetrics', () => {
       MetaMetricsEvents.SIGNATURE_APPROVED,
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-    expect(mockAddProperties).toHaveBeenLastCalledWith(SignatureMetricsUndefined);
+    expect(mockAddProperties).toHaveBeenLastCalledWith(
+      SignatureMetricsUndefined,
+    );
     result?.current?.captureSignatureMetrics(
       MetaMetricsEvents.SIGNATURE_REJECTED,
     );
     expect(mockTrackEvent).toHaveBeenCalledTimes(3);
-    expect(mockAddProperties).toHaveBeenLastCalledWith(SignatureMetricsUndefined);
+    expect(mockAddProperties).toHaveBeenLastCalledWith(
+      SignatureMetricsUndefined,
+    );
   });
 });

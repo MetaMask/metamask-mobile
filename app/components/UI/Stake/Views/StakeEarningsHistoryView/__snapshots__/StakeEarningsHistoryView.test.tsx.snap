@@ -98,7 +98,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               onPressOut={[Function]}
               style={
                 {
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 32,
                   "paddingHorizontal": 14,
                   "paddingVertical": 7,
@@ -210,7 +210,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -485,9 +485,9 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              1867315,
+                              4553273,
                               1,
-                              438074931,
+                              440760889,
                             ]
                           }
                           gradientTransform={null}
@@ -514,7 +514,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -540,7 +540,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -566,7 +566,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -592,7 +592,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -618,7 +618,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -644,7 +644,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -670,7 +670,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -696,7 +696,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -722,7 +722,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -748,7 +748,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -774,7 +774,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -800,7 +800,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -927,7 +927,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#1c7e33",
+                        "color": "#457a39",
                         "fontFamily": "Geist Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,

@@ -1,7 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import useSelectedAccountMultichainBalances from './useSelectedAccountMultichainBalances';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE, MOCK_ACCOUNT_BIP122_P2WPKH } from '../../../util/test/accountsControllerTestUtils';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ACCOUNT_BIP122_P2WPKH,
+} from '../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../core/Engine';
 import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
@@ -30,6 +33,7 @@ const MOCK_STORE_STATE = {
           chainId: '0x1',
           ticker: 'ETH',
         },
+        selectedNetworkClientId: 'mainnet',
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
@@ -37,6 +41,14 @@ const MOCK_STORE_STATE = {
       },
       PreferencesController: {
         isTokenNetworkFilterEqualCurrentNetwork: true,
+      },
+      TokensController: {
+        allTokens: {},
+        allIgnoredTokens: {},
+        allDetectedTokens: {},
+      },
+      NetworkEnablementController: {
+        enabledNetworks: ['0x1', '0x89'],
       },
     },
   },
@@ -60,10 +72,16 @@ jest.mock('../useGetTotalFiatBalanceCrossChains', () => ({
   useGetTotalFiatBalanceCrossChains: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock(
+  '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  () => jest.fn().mockReturnValue(true),
+);
+
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   isTestNet: jest.fn().mockReturnValue(false),
   isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
 describe('useSelectedAccountMultichainBalances', () => {
@@ -281,14 +299,22 @@ describe('useSelectedAccountMultichainBalances', () => {
           AccountsController: {
             internalAccounts: {
               selectedAccount: MOCK_ACCOUNT_BIP122_P2WPKH.id,
-              accounts: { [MOCK_ACCOUNT_BIP122_P2WPKH.id]: MOCK_ACCOUNT_BIP122_P2WPKH },
+              accounts: {
+                [MOCK_ACCOUNT_BIP122_P2WPKH.id]: MOCK_ACCOUNT_BIP122_P2WPKH,
+              },
             },
           },
           MultichainBalancesController: { balances: {} },
           MultichainAssetsController: { accountsAssets: {} },
           MultichainAssetsRatesController: { conversionRates: {} },
-          MultichainNetworkController: { selectedMultichainNetworkChainId: 'bip122:000000000019d6689c085ae165831e93' },
-          PreferencesController: { ...MOCK_STORE_STATE.engine.backgroundState.PreferencesController, showFiatInTestnets: false },
+          MultichainNetworkController: {
+            selectedMultichainNetworkChainId:
+              'bip122:000000000019d6689c085ae165831e93',
+          },
+          PreferencesController: {
+            ...MOCK_STORE_STATE.engine.backgroundState.PreferencesController,
+            showFiatInTestnets: false,
+          },
         },
       },
     } as unknown as RootState;
@@ -297,7 +323,9 @@ describe('useSelectedAccountMultichainBalances', () => {
     let { result } = renderHook(() => useSelectedAccountMultichainBalances());
 
     // Condition 1: No balance data -> "0"
-    expect(result.current.selectedAccountMultichainBalance?.displayBalance).toBe('0');
+    expect(
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+    ).toBe('0');
 
     // Condition 2: With balance but no rates
     const stateWithBalance = {
@@ -309,21 +337,32 @@ describe('useSelectedAccountMultichainBalances', () => {
           MultichainBalancesController: {
             balances: {
               [MOCK_ACCOUNT_BIP122_P2WPKH.id]: {
-                'bip122:000000000019d6689c085ae165831e93/slip44:0': { amount: '0.5', unit: 'BTC' },
+                'bip122:000000000019d6689c085ae165831e93/slip44:0': {
+                  amount: '0.5',
+                  unit: 'BTC',
+                },
               },
             },
           },
           MultichainAssetsController: {
-            accountsAssets: { [MOCK_ACCOUNT_BIP122_P2WPKH.id]: ['bip122:000000000019d6689c085ae165831e93/slip44:0'] },
+            accountsAssets: {
+              [MOCK_ACCOUNT_BIP122_P2WPKH.id]: [
+                'bip122:000000000019d6689c085ae165831e93/slip44:0',
+              ],
+            },
           },
         },
       },
     } as unknown as RootState;
 
-    mockUseSelector.mockImplementation((selector) => selector(stateWithBalance));
+    mockUseSelector.mockImplementation((selector) =>
+      selector(stateWithBalance),
+    );
     ({ result } = renderHook(() => useSelectedAccountMultichainBalances()));
     // This should trigger the non-EVM balance display logic
-    expect(result.current.selectedAccountMultichainBalance?.displayBalance).toBe('0.5 BTC');
+    expect(
+      result.current.selectedAccountMultichainBalance?.displayBalance,
+    ).toBe('0.5 BTC');
 
     // Condition 3: With balance and rates -> should show fiat
     const stateWithFiatBalance = {
@@ -334,18 +373,27 @@ describe('useSelectedAccountMultichainBalances', () => {
           ...stateWithBalance.engine.backgroundState,
           MultichainAssetsRatesController: {
             conversionRates: {
-              'bip122:000000000019d6689c085ae165831e93/slip44:0': { rate: '50000', conversionTime: 0 },
+              'bip122:000000000019d6689c085ae165831e93/slip44:0': {
+                rate: '50000',
+                conversionTime: 0,
+              },
             },
           },
-          PreferencesController: { ...stateWithBalance.engine.backgroundState.PreferencesController, showFiatInTestnets: true },
+          PreferencesController: {
+            ...stateWithBalance.engine.backgroundState.PreferencesController,
+            showFiatInTestnets: true,
+          },
         },
       },
     } as unknown as RootState;
 
-    mockUseSelector.mockImplementation((selector) => selector(stateWithFiatBalance));
+    mockUseSelector.mockImplementation((selector) =>
+      selector(stateWithFiatBalance),
+    );
     ({ result } = renderHook(() => useSelectedAccountMultichainBalances()));
     // This should show a fiat value
-    const fiatBalance = result.current.selectedAccountMultichainBalance?.displayBalance;
+    const fiatBalance =
+      result.current.selectedAccountMultichainBalance?.displayBalance;
     expect(fiatBalance).toBeDefined();
     expect(fiatBalance).toBe('$25,000.00');
   });

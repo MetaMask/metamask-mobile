@@ -5,11 +5,7 @@ import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import {
-  getCaip25PermissionFromLegacyPermissions,
-  rejectOriginPendingApprovals,
-  requestPermittedChainsPermissionIncremental,
-} from '../../util/permissions';
+import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { Hex } from '@metamask/utils';
 import {
   getPermissionsHandler,
@@ -24,21 +20,25 @@ import {
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
+import {
+  blockTagParamIndex,
+  getAllNetworks,
+  isPerDappSelectedNetworkEnabled,
+} from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
-import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import {
-  getPermittedAccounts,
-} from '../Permissions';
+import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -53,6 +53,10 @@ import {
 } from '@metamask/signature-controller';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import requestEthereumAccounts from './eth-request-accounts';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
+} from '@metamask/chain-agnostic-permission';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,7 +99,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin?: string, networkClientId?: string,) => any;
+  getProviderState: (origin?: string, networkClientId?: string) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -107,8 +111,6 @@ export interface RPCMethodsMiddleParameters {
   // Show autocomplete
   fromHomepage: { current: boolean };
   toggleUrlModal: (shouldClearUrlInput: boolean) => void;
-  // Wizard
-  wizardScrollAdjusted: { current: boolean };
   // For the browser
   tabId: number | '' | false;
   // For WalletConnect
@@ -192,13 +194,9 @@ export const checkActiveAccountAndChainId = async ({
     let activeChainId;
 
     if (origin && isPerDappSelectedNetworkEnabled()) {
-      const perOriginChainId = selectPerOriginChainId(
-        store.getState(),
-        origin,
-      );
+      const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
 
       activeChainId = perOriginChainId;
-
     } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
@@ -347,6 +345,16 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     requestPermittedChainsPermissionIncremental({
       ...options,
       origin,
+      hooks: {
+        grantPermissionsIncremental:
+          Engine.context.PermissionController.grantPermissionsIncremental.bind(
+            Engine.context.PermissionController,
+          ),
+        requestPermissionsIncremental:
+          Engine.context.PermissionController.requestPermissionsIncremental.bind(
+            Engine.context.PermissionController,
+          ),
+      },
     }),
   hasApprovalRequestsForOrigin: () =>
     Engine.context.ApprovalController.has({ origin }),
@@ -389,8 +397,6 @@ export const getRpcMethodMiddleware = ({
   // Show autocomplete
   fromHomepage,
   toggleUrlModal,
-  // Wizard
-  wizardScrollAdjusted,
   // For the browser
   tabId,
   // For WalletConnect
@@ -534,17 +540,15 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (...args) =>
-                  getPermittedAccounts(origin, ...args),
+                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
-                    origin,
                     requestedPermissions,
-                  ),
-                  requestPermissionsForOrigin: (requestedPermissions) =>
-                    Engine.context.PermissionController.requestPermissions(
+                  ) as unknown as RequestedPermissions,
+                requestPermissionsForOrigin: (requestedPermissions) =>
+                  Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
                     requestedPermissions,
                     {
@@ -596,7 +600,10 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const networkProviderState = await getProviderState(origin, req.networkClientId);
+        const networkProviderState = await getProviderState(
+          origin,
+          req.networkClientId,
+        );
         res.result = networkProviderState.networkVersion;
       },
       eth_requestAccounts: async () =>
@@ -615,16 +622,17 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (opts?: { ignoreLock?: boolean; }) =>
+                getAccounts: (opts?: { ignoreLock?: boolean }) =>
                   getPermittedAccounts(origin, opts),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions: RequestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
-                    origin,
                     requestedPermissions,
                   ),
-                requestPermissionsForOrigin: (requestedPermissions: RequestedPermissions) =>
+                requestPermissionsForOrigin: (
+                  requestedPermissions: RequestedPermissions,
+                ) =>
                   Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
                     requestedPermissions,
@@ -634,29 +642,32 @@ export const getRpcMethodMiddleware = ({
                       },
                     },
                   ),
-                  getUnlockPromise: () => {
-                    if (Engine.context.KeyringController.isUnlocked()) {
-                      return Promise.resolve();
-                    }
-                    return new Promise((resolveUnlock) => {
-                      Engine.controllerMessenger.subscribeOnceIf(
-                        'KeyringController:unlock',
-                        resolveUnlock,
-                        () => true,
-                      );
-                    });
-                  },
+                getUnlockPromise: () => {
+                  if (Engine.context.KeyringController.isUnlocked()) {
+                    return Promise.resolve();
+                  }
+                  return new Promise((resolveUnlock) => {
+                    Engine.controllerMessenger.subscribeOnceIf(
+                      'KeyringController:unlock',
+                      resolveUnlock,
+                      () => true,
+                    );
+                  });
+                },
               },
             )
             ?.then(resolve)
             .catch(reject);
         }),
-        eth_accounts: getEthAccounts,
+      eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-
+        const transactionAnalytics = {
+          dapp_url: url.current,
+          request_source: getSource(),
+        };
         return RPCMethods.eth_sendTransaction({
           hostname,
           req,
@@ -678,6 +689,7 @@ export const getRpcMethodMiddleware = ({
               isWalletConnect,
             });
           },
+          analytics: transactionAnalytics,
         });
       },
 
@@ -953,20 +965,6 @@ export const getRpcMethodMiddleware = ({
             ],
           );
         });
-      },
-
-      metamask_showTutorial: async () => {
-        checkTabActive();
-        if (!isHomepage()) {
-          throw providerErrors.unauthorized('Forbidden.');
-        }
-        wizardScrollAdjusted.current = false;
-
-        store.dispatch(setOnboardingWizardStep(1));
-
-        navigation.navigate('WalletView');
-
-        res.result = true;
       },
 
       metamask_showAutocomplete: async () => {

@@ -31,11 +31,11 @@ export async function updateAtomicBatchData(batchData: {
 }
 
 export async function addTransactionBatch(
-...args: Parameters<BaseTransactionController['addTransactionBatch']>
+  ...args: Parameters<BaseTransactionController['addTransactionBatch']>
 ) {
   const { TransactionController } = Engine.context;
 
-  return await TransactionController.addTransactionBatch(...args)
+  return await TransactionController.addTransactionBatch(...args);
 }
 
 // Keeping this export as function to put more logic in the future
@@ -169,6 +169,18 @@ export const getNetworkNonce = async (
 
   return nextNonce;
 };
+
+export function updateSelectedGasFeeToken(
+  transactionId: string,
+  selectedGasFeeToken?: Hex,
+) {
+  const { TransactionController } = Engine.context;
+
+  return TransactionController.updateSelectedGasFeeToken(
+    transactionId,
+    selectedGasFeeToken,
+  );
+}
 
 function sanitizeTransactionParamsGasValues(
   transactionId: string,

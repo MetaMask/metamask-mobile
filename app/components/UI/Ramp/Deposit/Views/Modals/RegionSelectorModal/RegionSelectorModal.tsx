@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import {
+  FlatList,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -11,7 +14,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
@@ -24,6 +26,7 @@ import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useDepositSDK } from '../../../sdk';
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -37,12 +40,14 @@ function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegion, setSelectedRegion } = useDepositSDK();
+  const { selectedRegion, setSelectedRegion, isAuthenticated } =
+    useDepositSDK();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
+  const trackEvent = useAnalytics();
 
   const fuseData = useMemo(
     () =>
@@ -85,53 +90,82 @@ function RegionSelectorModal() {
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
       if (region.supported && setSelectedRegion) {
+        trackEvent('RAMPS_REGION_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: region.isoCode,
+          is_authenticated: isAuthenticated,
+        });
+
         setSelectedRegion(region);
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [setSelectedRegion],
+    [setSelectedRegion, isAuthenticated, trackEvent],
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: DepositRegion }) => (
-      <ListItemSelect
-        isSelected={selectedRegion?.isoCode === region.isoCode}
-        onPress={() => {
-          if (region.supported) {
-            handleOnRegionPressCallback(region);
-          }
-        }}
-        accessibilityRole="button"
-        accessible
-        disabled={!region.supported}
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.flag}
-              </Text>
-            </View>
-            <View>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.name}
-              </Text>
-            </View>
+    ({ item: region }: { item: DepositRegion }) => {
+      const isSelected = selectedRegion?.isoCode === region.isoCode;
+
+      return (
+        <TouchableWithoutFeedback
+          onPress={() => {
+            if (region.supported) {
+              handleOnRegionPressCallback(region);
+            }
+          }}
+          disabled={!region.supported}
+          accessibilityRole="button"
+          accessible
+        >
+          <View
+            style={[
+              styles.listItem,
+              isSelected && styles.selectedItem,
+              !region.supported && styles.disabledItem,
+            ]}
+          >
+            <ListItemColumn widthType={WidthType.Fill}>
+              <View style={styles.region}>
+                <View style={styles.emoji}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
+                    }
+                  >
+                    {region.flag}
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
+                    }
+                  >
+                    {region.name}
+                  </Text>
+                </View>
+              </View>
+            </ListItemColumn>
           </View>
-        </ListItemColumn>
-      </ListItemSelect>
-    ),
-    [handleOnRegionPressCallback, selectedRegion, styles.region, styles.emoji],
+        </TouchableWithoutFeedback>
+      );
+    },
+    [
+      handleOnRegionPressCallback,
+      selectedRegion?.isoCode,
+      styles.disabledItem,
+      styles.emoji,
+      styles.listItem,
+      styles.region,
+      styles.selectedItem,
+    ],
   );
 
   const renderEmptyList = useCallback(
@@ -187,6 +221,9 @@ function RegionSelectorModal() {
         ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
+        removeClippedSubviews={false}
+        scrollEnabled
+        nestedScrollEnabled
       />
     </BottomSheet>
   );

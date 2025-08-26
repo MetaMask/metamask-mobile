@@ -24,6 +24,10 @@ jest.mock('../../../sdk', () => ({
   useDepositSDK: jest.fn(),
 }));
 
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 jest.mock('../../../constants', () => ({
   DEPOSIT_REGIONS: [
     {
@@ -101,7 +105,10 @@ describe('RegionSelectorModal Component', () => {
         supported: true,
       },
       setSelectedRegion: mockSetSelectedRegion,
+      isAuthenticated: false,
     });
+    // Ensure trackEvent mock is reset
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -159,5 +166,27 @@ describe('RegionSelectorModal Component', () => {
     const { getAllByText } = renderWithProvider(RegionSelectorModal);
     const firstRegion = getAllByText('United States')[0];
     expect(firstRegion).toBeTruthy();
+  });
+
+  it('tracks RAMPS_REGION_SELECTED event when a supported region is selected', () => {
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+
+    const germanyRegion = getByText('Germany');
+    fireEvent.press(germanyRegion);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_REGION_SELECTED', {
+      ramp_type: 'DEPOSIT',
+      region: 'DE',
+      is_authenticated: false,
+    });
+  });
+
+  it('does not track analytics event when an unsupported region is selected', () => {
+    const { getByText } = renderWithProvider(RegionSelectorModal);
+
+    const canadaRegion = getByText('Canada');
+    fireEvent.press(canadaRegion);
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

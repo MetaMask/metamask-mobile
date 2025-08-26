@@ -454,7 +454,9 @@ const mapStateToProps = (state, ownProps) => {
     ({ id }) => id === ownProps?.currentNotification.transaction.id,
   );
 
-  const ticker = isPerDappSelectedNetworkEnabled() ? selectTickerByChainId(state, tx?.chainId) : selectEvmTicker(state);
+  const ticker = isPerDappSelectedNetworkEnabled()
+    ? selectTickerByChainId(state, tx?.chainId)
+    : selectEvmTicker(state);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

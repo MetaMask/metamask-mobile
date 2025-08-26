@@ -78,20 +78,24 @@ else if (document.selection) {document.selection.empty();}`;
 
 export const JS_POST_MESSAGE_TO_PROVIDER = (
   message: object,
-  origin: string
+  origin: string,
 ) => `(function () {
   try {
-    window.postMessage(${JSON.stringify(message)}, '${origin}');
+    // Only send message if origins match
+    if (window.location.origin === ${JSON.stringify(origin)}) {
+      window.postMessage(${JSON.stringify(message)}, ${JSON.stringify(origin)});
+    } else {
+      console.warn('MetaMask: Origin mismatch, blocking message');
+    }
   } catch (e) {
-    //Nothing to do
+    console.error('MetaMask postMessage error:', e);
   }
-})()`;
+})();`;
 
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,
-  _origin: string
-) =>
-  `(function () {})()`;
+  _origin: string,
+) => `(function () {})()`;
 /** Disable sending messages to iframes for now
  *
 `(function () {

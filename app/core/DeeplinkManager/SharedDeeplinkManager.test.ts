@@ -21,7 +21,6 @@ describe('SharedDeeplinkManager', () => {
   const mockStore = store as jest.Mocked<typeof store>;
   const mockNavigate = jest.fn() as unknown as NavigationProp<ParamListBase>;
 
-
   beforeEach(() => {
     const mockedState = {
       settings: { deepLinkModalDisabled: false },

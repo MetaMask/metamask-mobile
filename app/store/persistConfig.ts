@@ -135,7 +135,7 @@ const persistOnboardingTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics', 'alert'],
   storage: MigratedStorage,
   transforms: [
     persistTransform,
@@ -143,7 +143,9 @@ const persistConfig = {
     persistOnboardingTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, { debug: false }),
+  migrate: createMigrate(migrations, {
+    debug: false,
+  }),
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>

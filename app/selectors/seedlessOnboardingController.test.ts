@@ -40,7 +40,7 @@ describe('Seedless Onboarding Controller Selectors', () => {
 
       const result = selectSeedlessOnboardingUserId(mockState);
 
-      expect(result).toBe('');
+      expect(result).toBe(undefined);
     });
   });
 
@@ -61,7 +61,7 @@ describe('Seedless Onboarding Controller Selectors', () => {
 
       const result = selectSeedlessOnboardingUserEmail(mockState);
 
-      expect(result).toBe('');
+      expect(result).toBe(undefined);
     });
   });
 
@@ -82,7 +82,7 @@ describe('Seedless Onboarding Controller Selectors', () => {
 
       const result = selectSeedlessOnboardingAuthConnection(mockState);
 
-      expect(result).toBe('');
+      expect(result).toBe(undefined);
     });
   });
 

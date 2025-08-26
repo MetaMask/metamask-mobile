@@ -36,7 +36,6 @@ class SRPListItemComponent {
       index,
     );
     await Gestures.waitAndTap(srpSelector, {
-      checkEnabled: false,
       elemDescription: `SRP List Item at index ${index}`,
     });
   }

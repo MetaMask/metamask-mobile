@@ -29,12 +29,10 @@ describe('TransactionField', () => {
   const mockCopyToClipboard = jest.fn();
 
   beforeEach(() => {
-    jest
-      .spyOn(useMetricsModule, 'useMetrics')
-      .mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: MetricsEventBuilder.createEventBuilder,
-      } as unknown as useMetricsModule.IUseMetricsHook);
+    jest.spyOn(useMetricsModule, 'useMetrics').mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    } as unknown as useMetricsModule.IUseMetricsHook);
     jest
       .spyOn(useCopyClipboardModule, 'default')
       .mockReturnValue(mockCopyToClipboard);

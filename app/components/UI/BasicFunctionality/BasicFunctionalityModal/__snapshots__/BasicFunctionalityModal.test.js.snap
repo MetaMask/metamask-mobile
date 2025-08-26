@@ -74,8 +74,8 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -321,7 +321,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -361,7 +361,6 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={

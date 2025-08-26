@@ -92,8 +92,6 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
           >
             <Text
               accessibilityRole="text"
-              adjustsFontSizeToFit={true}
-              numberOfLines={1}
               style={
                 {
                   "color": "#121314",
@@ -379,8 +377,6 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
           >
             <Text
               accessibilityRole="text"
-              adjustsFontSizeToFit={true}
-              numberOfLines={1}
               style={
                 {
                   "color": "#121314",

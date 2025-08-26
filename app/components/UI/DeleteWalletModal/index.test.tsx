@@ -11,6 +11,9 @@ import { strings } from '../../../../locales/i18n';
 import { ForgotPasswordModalSelectorsIDs } from '../../../../e2e/selectors/Common/ForgotPasswordModal.selectors';
 import { SET_COMPLETED_ONBOARDING } from '../../../actions/onboarding';
 import { InteractionManager } from 'react-native';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
+import { clearHistory } from '../../../actions/browser';
 
 const mockInitialState = {
   engine: { backgroundState },
@@ -18,6 +21,12 @@ const mockInitialState = {
     dataCollectionForMarketing: false,
   },
 };
+
+jest.mock('../../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
 
 const mockUseDispatch = jest.fn();
 
@@ -48,6 +57,13 @@ jest.mock('@react-native-cookies/cookies', () => ({
   set: jest.fn(),
   get: jest.fn(),
   clearAll: jest.fn(),
+}));
+
+jest.mock('../../../actions/browser', () => ({
+  clearHistory: jest.fn(),
+  BrowserActionTypes: {
+    ADD_TO_VIEWED_DAPP: 'ADD_TO_VIEWED_DAPP',
+  },
 }));
 
 const mockSignOut = jest.fn();
@@ -137,6 +153,7 @@ describe('DeleteWalletModal', () => {
     });
 
     it('signs the user out when deleting the wallet', async () => {
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
@@ -147,9 +164,11 @@ describe('DeleteWalletModal', () => {
       );
 
       expect(mockSignOut).toHaveBeenCalled();
+      expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
     });
 
     it('sets completedOnboarding to false when deleting the wallet', async () => {
+      const removeItemSpy = jest.spyOn(StorageWrapper, 'removeItem');
       const { getByTestId } = renderComponent(mockInitialState);
 
       fireEvent.press(
@@ -165,6 +184,7 @@ describe('DeleteWalletModal', () => {
           completedOnboarding: false,
         }),
       );
+      expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
     });
   });
 
@@ -221,6 +241,42 @@ describe('DeleteWalletModal', () => {
         ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
       );
       expect(backButton).toBeTruthy();
+    });
+  });
+
+  describe('error handling', () => {
+    it('handles errors during wallet deletion and resets loading state', async () => {
+      // Arrange - Mock console.error to track error logging
+      const consoleSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      // Mock clearHistory to return a thunk that throws an error
+      const mockClearHistoryThunk = jest
+        .fn()
+        .mockRejectedValue(new Error('Test error'));
+      (clearHistory as jest.Mock).mockReturnValue(mockClearHistoryThunk);
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      // Act - Trigger the reset wallet flow and attempt deletion
+      fireEvent.press(
+        getByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
+      );
+
+      const deleteButton = getByTestId(
+        ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
+      );
+      fireEvent.press(deleteButton);
+
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // Assert - Verify error was logged and loading state was reset
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      consoleSpy.mockRestore();
     });
   });
 });

@@ -4,6 +4,7 @@ import {
   selectPrimaryCurrency,
   selectShowCustomNonce,
   selectShowFiatInTestnets,
+  selectUseBlockieIcon,
 } from './settings';
 
 describe('selectShowFiatInTestnets', () => {
@@ -39,5 +40,17 @@ describe('selectShowCustomNonce', () => {
     };
 
     expect(selectShowCustomNonce(mockState as RootState)).toBe(false);
+  });
+});
+
+describe('selectUseBlockieIcon', () => {
+  it('returns useBlockieIcon from state', () => {
+    const mockState = {
+      settings: {
+        useBlockieIcon: true,
+      },
+    };
+
+    expect(selectUseBlockieIcon(mockState as RootState)).toBe(true);
   });
 });

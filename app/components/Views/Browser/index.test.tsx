@@ -73,9 +73,6 @@ const mockInitialState = {
     primaryCurrency: 'ETH',
     basicFunctionalityEnabled: true,
   },
-  wizard: {
-    step: 1,
-  },
   browser: {
     tabs: mockTabs,
     activeTab: 1,
@@ -135,8 +132,10 @@ const mockNavigation = {
   goBack: jest.fn(),
 };
 
-const mockGetPermittedCaipAccountIdsByHostname = getPermittedCaipAccountIdsByHostname as jest.Mock;
-const mockSortMultichainAccountsByLastSelected = sortMultichainAccountsByLastSelected as jest.Mock;
+const mockGetPermittedCaipAccountIdsByHostname =
+  getPermittedCaipAccountIdsByHostname as jest.Mock;
+const mockSortMultichainAccountsByLastSelected =
+  sortMultichainAccountsByLastSelected as jest.Mock;
 
 describe('Browser', () => {
   it('should render correctly', () => {

@@ -339,13 +339,15 @@ const AccountActions = () => {
         return;
       }
 
-      await removeHardwareAccount();
+      sheetRef.current?.onCloseBottomSheet(async () => {
+        await removeHardwareAccount();
 
-      await selectFirstAccount();
+        await selectFirstAccount();
 
-      await forgetDeviceIfRequired();
+        await forgetDeviceIfRequired();
 
-      setBlockingModalVisible(false);
+        setBlockingModalVisible(false);
+      });
     }
   }, [
     blockingModalVisible,
@@ -436,6 +438,9 @@ const AccountActions = () => {
               actionTitle={strings('account_actions.switch_to_smart_account')}
               iconName={IconName.SwapHorizontal}
               onPress={goToSwitchAccountType}
+              testID={
+                AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT
+              }
             />
           )}
       </View>

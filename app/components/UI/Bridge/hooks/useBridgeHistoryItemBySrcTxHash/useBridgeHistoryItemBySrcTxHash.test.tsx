@@ -28,7 +28,9 @@ describe('useBridgeHistoryItemBySrcTxHash', () => {
     );
 
     expect(result.current.bridgeHistoryItemsBySrcTxHash['0x123']).toEqual(
-      initialState.engine.backgroundState.BridgeStatusController.txHistory['test-tx-id'],
+      initialState.engine.backgroundState.BridgeStatusController.txHistory[
+        'test-tx-id'
+      ],
     );
   });
 });

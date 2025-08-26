@@ -2,6 +2,7 @@ import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
 import { AssertionOptions } from './types';
 import Matchers from './Matchers';
+import { Json } from '@metamask/utils';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -11,7 +12,11 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -43,7 +48,11 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    detoxElement: DetoxElement | WebElement,
+    detoxElement:
+      | DetoxElement
+      | WebElement
+      | DetoxMatcher
+      | IndexableNativeElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -199,39 +208,76 @@ export default class Assertions {
   }
 
   /**
-   * Assert toggle state with auto-retry
+   * Assert element is enabled with auto-retry
    */
-  static async expectToggleState(
+  static async expectToggleToBeOn(
     detoxElement: DetoxElement,
-    expectedState: 'on' | 'off' | boolean,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout } = options;
-
-    const expectedStateBoolean =
-      expectedState === 'on' || expectedState === true;
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = 'element should be enabled',
+    } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        const attributes = await el.getAttributes();
-        const isToggled =
-          ('text' in attributes && attributes.text === 'true') ||
-          ('label' in attributes && attributes.label === 'true') ||
-          ('value' in attributes && attributes.value === 'true');
-        if (isToggled !== expectedStateBoolean) {
+        try {
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
+          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+          await (expect(el) as any).toHaveToggleValue(true);
+        } catch (error) {
+          // Log attributes for debugging
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
-              `   Expected: ${expectedStateBoolean ? 'on' : 'off'}`,
-              `   Actual:   ${isToggled}`,
+              `   Expected: on`,
+              `   Actual:   off`,
             ].join('\n'),
           );
         }
       },
       {
         timeout,
-        description: `Assert toggle is ${expectedState ? 'on' : 'off'}`,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  /**
+   * Assert element is disabled with auto-retry
+   */
+  static async expectToggleToBeOff(
+    detoxElement: DetoxElement,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const {
+      timeout = BASE_DEFAULTS.timeout,
+      description = 'element should be disabled',
+    } = options;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        try {
+          const el = (await Utilities.waitForReadyState(
+            detoxElement,
+          )) as Detox.IndexableNativeElement;
+          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+          await (expect(el) as any).toHaveToggleValue(false);
+        } catch (error) {
+          throw new Error(
+            [
+              '🔄 Toggle state mismatch detected',
+              `   Expected: off`,
+              `   Actual:   on`,
+            ].join('\n'),
+          );
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
       },
     );
   }
@@ -488,7 +534,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if an element has specific label
-   * @deprecated Use expectLabel() instead for better error handling and retry mechanisms
+   * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
     detoxElement: DetoxElement,
@@ -500,7 +546,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is displayed anywhere on screen
-   * @deprecated Use expectTextNotDisplayed() instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextDisplayed() instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsDisplayed(
     text: string,
@@ -511,7 +557,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is not displayed
-   * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextNotDisplayed() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsNotDisplayed(
     text: string,
@@ -573,7 +619,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if toggle is in "on" state
-   * @deprecated Use expectToggleState() instead for better error handling and retry mechanisms
+   * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
   static async checkIfToggleIsOn(detoxElement: DetoxElement): Promise<void> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
@@ -584,7 +630,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if toggle is in "off" state
-   * @deprecated Use expectToggleState() instead for better error handling and retry mechanisms
+   * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
   static async checkIfToggleIsOff(detoxElement: DetoxElement): Promise<void> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
@@ -631,5 +677,17 @@ export default class Assertions {
         description: `Label contains text "${text}"`,
       },
     );
+  }
+
+  static async checkIfJsonEqual(actual: Json, expected: Json): Promise<void> {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      throw new Error(
+        `Object equality check failed.\nExpected: ${JSON.stringify(
+          expected,
+          null,
+          2,
+        )}\nActual: ${JSON.stringify(actual, null, 2)}`,
+      );
+    }
   }
 }

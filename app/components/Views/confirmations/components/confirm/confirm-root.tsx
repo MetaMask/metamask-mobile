@@ -17,11 +17,7 @@ export const ConfirmRoot = () => {
       }
       navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
     }
-  }, [
-    isFullScreenConfirmation,
-    isRedesignedEnabled,
-    navigation,
-  ]);
+  }, [isFullScreenConfirmation, isRedesignedEnabled, navigation]);
 
   return null;
 };

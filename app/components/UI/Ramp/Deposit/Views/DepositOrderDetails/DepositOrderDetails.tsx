@@ -21,7 +21,7 @@ import { useTheme } from '../../../../../../util/theme';
 import Logger from '../../../../../../util/Logger';
 import { RootState } from '../../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import ErrorView from '../../../Aggregator/components/ErrorView';
+import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../../hooks/useInterval';
 import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
@@ -91,7 +91,11 @@ const DepositOrderDetails = () => {
             'FiatOrders::DepositOrderDetails error while processing order',
           order,
         });
-        setError((fetchError as Error).message || 'An error as occurred');
+        setError(
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
+            : strings('deposit.order_details.error_message'),
+        );
       } finally {
         if (fromInterval) {
           setIsRefreshingInterval(false);
@@ -142,9 +146,9 @@ const DepositOrderDetails = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
+            title={strings('deposit.order_details.error_title')}
             description={error}
             ctaOnPress={handleOnRefresh}
-            location="Order Details Screen"
           />
         </ScreenLayout.Body>
       </ScreenLayout>

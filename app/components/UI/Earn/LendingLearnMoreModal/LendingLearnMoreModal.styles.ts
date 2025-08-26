@@ -2,14 +2,12 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    scrollView: {
-      paddingHorizontal: 16,
-    },
     textContainer: {
       flex: 1,
     },
     bodyTextContainer: {
-      paddingBottom: 16,
+      paddingBottom: 8,
+      paddingHorizontal: 16,
     },
     row: {
       flexDirection: 'row',

@@ -1,32 +1,30 @@
-import { loginToApp } from '../../../viewHelper.js';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
-import WalletView from '../../../pages/wallet/WalletView.js';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../../framework/Assertions.ts';
+import WalletView from '../../../pages/wallet/WalletView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import {
-  withIdentityFixtures,
-  createSharedUserStorageController,
-} from '../utils/withIdentityFixtures.ts';
+import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { arrangeTestUtils } from '../utils/helpers.ts';
 import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import { goToImportSrp, inputSrp } from '../../multisrp/utils.ts';
-import ImportSrpView from '../../../pages/importSrp/ImportSrpView.js';
+import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants.ts';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
-import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
+import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    sharedUserStorageController = createSharedUserStorageController();
+    sharedUserStorageController = createUserStorageController();
   });
 
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
@@ -70,7 +68,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await waitUntilEventsEmittedNumberEquals(1);
 
         await Assertions.expectElementToBeVisible(
@@ -84,6 +82,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal(); // the next action taps on the identicon again
 
         // Add SRP 2
+        await device.disableSynchronization();
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
@@ -91,6 +90,10 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await waitUntilSyncedAccountsNumberEquals(3);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
+        const secretPhraseImportedText = 'Secret Recovery Phrase 2 imported';
+        // Waiting for toast notification to appear and disappear
+        await Assertions.expectTextDisplayed(secretPhraseImportedText);
+        await Assertions.expectTextNotDisplayed(secretPhraseImportedText);
 
         // Create second account for SRP 2
         await WalletView.tapIdenticon();
@@ -99,7 +102,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         );
 
         await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateAccount();
+        await AddAccountBottomSheet.tapCreateEthereumAccount();
         await AddNewHdAccountComponent.tapSrpSelector();
         await SRPListItemComponent.tapListItemByIndex(1);
         await AddNewHdAccountComponent.enterName(SRP_2_SECOND_ACCOUNT);
@@ -112,6 +115,8 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             description: `Account with name "${SRP_2_SECOND_ACCOUNT}" should be visible`,
           },
         );
+        await device.enableSynchronization();
+        await waitUntilEventsEmittedNumberEquals(6);
       },
     );
 
@@ -123,10 +128,12 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       async () => {
         await loginToApp();
         await goToImportSrp();
+        await device.disableSynchronization();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
         await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
+        await device.enableSynchronization();
         const visibleAccounts = [
           DEFAULT_ACCOUNT_NAME,
           SECOND_ACCOUNT_NAME,

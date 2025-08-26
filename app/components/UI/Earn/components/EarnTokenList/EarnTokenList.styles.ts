@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
+    flatList: {
       maxHeight: 552,
       paddingHorizontal: 16,
       gap: 12,

@@ -1,20 +1,27 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
-    subtitle: {
-      marginBottom: 20,
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
+    contentContainer: {
+      marginTop: 24,
+      gap: 16,
     },
-    label: {
-      marginBottom: 6,
+    title: {
+      fontWeight: 'bold',
     },
-    field: {
-      flex: 1,
-      flexDirection: 'column',
+    description: {
+      color: theme.colors.text.alternative,
+    },
+    error: {
+      color: theme.colors.error.default,
     },
     footerContent: {
       gap: 8,
     },
   });
+};
 
 export default styleSheet;

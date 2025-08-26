@@ -20,7 +20,6 @@ import {
   selectMultichainBalances,
 } from '../../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
-import { selectSelectedNonEvmNetworkChainId } from '../../../../selectors/multichainNetworkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipAssetType } from '@metamask/keyring-api';
 import { getCalculatedTokenAmount1dAgo } from './AggregatedPercentageCrossChains';
@@ -43,16 +42,18 @@ const NonEvmAggregatedPercentage = ({
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainAssets = useSelector(selectMultichainAssets);
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
 
   // refactor this to memoize
-  const nonEvmAccountBalance = useMemo(() => getMultichainNetworkAggregatedBalance(
-      account as InternalAccount,
-      multichainBalances,
-      multichainAssets,
-      multichainAssetsRates,
-      nonEvmChainId,
-    ), [account, multichainBalances, multichainAssets, multichainAssetsRates, nonEvmChainId]);
+  const nonEvmAccountBalance = useMemo(
+    () =>
+      getMultichainNetworkAggregatedBalance(
+        account as InternalAccount,
+        multichainBalances,
+        multichainAssets,
+        multichainAssetsRates,
+      ),
+    [account, multichainBalances, multichainAssets, multichainAssetsRates],
+  );
 
   const nonEvmFiatBalancesArray = useMemo(() => {
     if (!nonEvmAccountBalance?.fiatBalances) {
@@ -60,9 +61,10 @@ const NonEvmAggregatedPercentage = ({
     }
     return Object.entries(nonEvmAccountBalance.fiatBalances).map(
       ([id, amount]) => ({
-      id: id as CaipAssetType,
-      fiatAmount: Number(amount),
-    }));
+        id: id as CaipAssetType,
+        fiatAmount: Number(amount),
+      }),
+    );
   }, [nonEvmAccountBalance?.fiatBalances]);
 
   // memoize this
@@ -92,14 +94,16 @@ const NonEvmAggregatedPercentage = ({
   const totalNonEvmBalance1dAgo = getNonEvmTotalFiat1dAgo();
   const amountChange = totalNonEvmBalance - totalNonEvmBalance1dAgo;
 
-  const percentageChange = totalNonEvmBalance1dAgo === 0 ? 0 : ((amountChange) / totalNonEvmBalance1dAgo) *
-      100 || 0;
+  const percentageChange =
+    totalNonEvmBalance1dAgo === 0
+      ? 0
+      : (amountChange / totalNonEvmBalance1dAgo) * 100 || 0;
 
   let percentageTextColor = TextColor.Default;
 
   if (!privacyMode) {
     if (percentageChange === 0) {
-      percentageTextColor = TextColor.Default;
+      percentageTextColor = TextColor.Alternative;
     } else if (percentageChange > 0) {
       percentageTextColor = TextColor.Success;
     } else {

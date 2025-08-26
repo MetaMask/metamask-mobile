@@ -67,7 +67,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       fetchTokenList: jest.fn(),
     },
     TokenBalancesController: {
-      updateBalancesByChainId: jest.fn(),
+      updateBalances: jest.fn(),
     },
   },
 }));

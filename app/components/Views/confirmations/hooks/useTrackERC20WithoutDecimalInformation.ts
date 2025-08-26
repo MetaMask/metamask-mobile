@@ -28,23 +28,34 @@ const useTrackERC20WithoutDecimalInformation = (
     }
     const { decimals, standard } = tokenDetails || {};
 
-    if (standard !== TokenStandard.ERC20) { return; }
+    if (standard !== TokenStandard.ERC20) {
+      return;
+    }
 
     const parsedDecimals = parseTokenDetailDecimals(decimals);
 
     if (parsedDecimals === undefined) {
-      trackEvent(createEventBuilder(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED)
-        .addProperties({
-          token_decimals_available: false,
-          asset_address: tokenAddress,
-          asset_type: TokenStandard.ERC20,
-          chain_id: chainId,
-          location: metricLocation,
-          ui_customizations: ['redesigned_confirmation'],
-        })
-      .build());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED)
+          .addProperties({
+            token_decimals_available: false,
+            asset_address: tokenAddress,
+            asset_type: TokenStandard.ERC20,
+            chain_id: chainId,
+            location: metricLocation,
+            ui_customizations: ['redesigned_confirmation'],
+          })
+          .build(),
+      );
     }
-  }, [chainId, tokenAddress, tokenDetails, metricLocation, trackEvent, createEventBuilder]);
+  }, [
+    chainId,
+    tokenAddress,
+    tokenDetails,
+    metricLocation,
+    trackEvent,
+    createEventBuilder,
+  ]);
 };
 
 export default useTrackERC20WithoutDecimalInformation;

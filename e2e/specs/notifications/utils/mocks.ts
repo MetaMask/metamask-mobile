@@ -26,6 +26,8 @@ import {
 } from '@metamask/notification-services-controller/push-services/mocks';
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
+import { mockAuthServices } from '../../identity/utils/mocks';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -77,11 +79,21 @@ export function getMockFeatureAnnouncementItemId() {
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server: Mockttp) {
+  await mockAuthServices(server);
   // Trigger Config
   await new MockttpNotificationTriggerServer().setupServer(server);
 
+  const contentfulUrlRegex =
+    /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;
+
   // Notifications
   await mockAPICall(server, mockFeatureAnnouncementResponse);
+  await setupMockRequest(server, {
+    url: contentfulUrlRegex,
+    requestMethod: 'GET',
+    response: mockFeatureAnnouncementResponse.response,
+    responseCode: 200,
+  });
   await mockAPICall(server, mockListNotificationsResponse);
   await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
@@ -97,7 +109,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -121,8 +133,17 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
       const url = getDecodedProxiedURL(request.url);
       return url.includes(String(response.url));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: response.response,
-    }));
+    .asPriority(999)
+    .thenCallback((request) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Mocking ${request.method} request to: ${getDecodedProxiedURL(
+          request.url,
+        )}`,
+      );
+      return {
+        statusCode: 200,
+        json: response.response,
+      };
+    });
 }

@@ -2,7 +2,10 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress, areAddressesEqual } from '../../util/address';
 import { lte } from '../../util/lodash';
-import { selectEvmChainId } from '../../selectors/networkController';
+import {
+  selectChainId,
+  selectEvmChainId,
+} from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -14,8 +17,10 @@ import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
-import { invert } from 'lodash';
+import { invert, omit } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
+import { toHex } from '@metamask/controller-utils';
+import { SolScope } from '@metamask/keyring-api';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -96,20 +101,6 @@ function addMetadata(chainId, tokens, tokenList) {
 // * Selectors
 const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
-/**
- * Returns the swaps liveness state
- */
-
-export const swapsLivenessSelector = createSelector(
-  swapsStateSelector,
-  chainIdSelector,
-  (swapsState, chainId) => swapsState[chainId]?.isLive || false,
-);
-
-export const swapsLivenessMultichainSelector = createSelector(
-  [swapsStateSelector, (_state, chainId) => chainId],
-  (swapsState, chainId) => swapsState[chainId]?.isLive || false,
-);
 
 /**
  * Returns if smart transactions are enabled in feature flags
@@ -406,9 +397,15 @@ function swapsReducer(state = initialState, action) {
         },
       };
 
+      // Testnet has the same name as mainnet, but occurs later in the map,
+      // so we need to omit it from the mapping, otherwise it will override 0x1
+      const noTestnetChainIdToNameMap = omit(
+        CHAIN_ID_TO_NAME_MAP,
+        toHex('1337'),
+      );
       // Invert CHAIN_ID_TO_NAME_MAP to get chain name to ID mapping
       // It will be e.g. { 'ethereum': '0x1', 'bsc': '0x38' }
-      const chainNameToIdMap = invert(CHAIN_ID_TO_NAME_MAP);
+      const chainNameToIdMap = invert(noTestnetChainIdToNameMap);
 
       // Save chain-specific feature flags for each chain
       Object.keys(featureFlags).forEach((chainName) => {

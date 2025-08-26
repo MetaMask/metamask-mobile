@@ -33,7 +33,10 @@ const StakingCta = ({
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
-    trace({ name: TraceName.EarnFaq, data: { experience: EARN_EXPERIENCES.POOLED_STAKING } });
+    trace({
+      name: TraceName.EarnFaq,
+      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+    });
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: { chainId },

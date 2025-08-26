@@ -29,7 +29,8 @@ describe('useERC20TokenBalance', () => {
     contractAddress: string = MOCK_CONTRACT_ADDRESS,
     userAddress: string = MOCK_USER_ADDRESS,
     networkClientId: string = MOCK_NETWORK_CLIENT_ID,
-  ) => renderHook(() =>
+  ) =>
+    renderHook(() =>
       useERC20TokenBalance(contractAddress, userAddress, networkClientId),
     );
 

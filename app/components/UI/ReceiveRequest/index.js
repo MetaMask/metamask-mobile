@@ -34,6 +34,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
 
@@ -153,6 +154,10 @@ class ReceiveRequest extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if the evm network is selected
+     */
+    isEvmNetworkSelected: PropTypes.bool,
   };
 
   state = {
@@ -260,16 +265,18 @@ class ReceiveRequest extends PureComponent {
 
           <QRAccountDisplay accountAddress={this.props.selectedAddress} />
 
-          <View style={styles.actionRow}>
-            <StyledButton
-              type={'normal'}
-              onPress={this.onReceive}
-              containerStyle={styles.actionButton}
-              testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
-            >
-              {strings('receive_request.request_payment')}
-            </StyledButton>
-          </View>
+          {this.props.isEvmNetworkSelected && (
+            <View style={styles.actionRow}>
+              <StyledButton
+                type={'normal'}
+                onPress={this.onReceive}
+                containerStyle={styles.actionButton}
+                testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
+              >
+                {strings('receive_request.request_payment')}
+              </StyledButton>
+            </View>
+          )}
         </View>
 
         <GlobalAlert />
@@ -289,6 +296,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

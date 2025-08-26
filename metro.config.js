@@ -8,6 +8,27 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
+
+// eslint-disable-next-line import/no-nodejs-modules
+const { parseArgs } = require('node:util');
+
+const parsedArgs = parseArgs({
+  options: {
+    platform: {
+      type: 'string',
+    },
+  },
+  allowPositionals: true,
+  strict: false,
+});
+
+const getPolyfills = () => [
+  // eslint-disable-next-line import/no-extraneous-dependencies
+  ...require('@react-native/js-polyfills')(),
+  require.resolve('reflect-metadata'),
+];
+
 // We should replace path for react-native-fs
 // eslint-disable-next-line import/no-nodejs-modules
 const path = require('path');
@@ -24,11 +45,12 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        assetExts: assetExts.filter((ext) => ext !== 'svg'),
+        assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
+          'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),
           _stream_transform: require.resolve('readable-stream/transform'),
@@ -43,6 +65,11 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
+          'base64-js': 'react-native-quick-base64',
+          base64: 'react-native-quick-base64',
+          'js-base64': 'react-native-quick-base64',
+          buffer: '@craftzdog/react-native-buffer',
+          'node:buffer': '@craftzdog/react-native-buffer',
         },
       },
       transformer: {
@@ -65,6 +92,12 @@ module.exports = function (baseConfig) {
           },
         }),
       },
+      serializer: lockdownSerializer(
+        { hermesRuntime: true },
+        {
+          getPolyfills,
+        },
+      ),
       resetCache: true,
     }),
   );
