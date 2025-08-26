@@ -169,7 +169,8 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const SDKSessionItem = jest.requireActual('./SDKSessionItem').default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const SDKSessionItem = require('./SDKSessionItem').default;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<SDKSessionsManager navigation={mockNavigation as any} />);
@@ -198,7 +199,8 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const SDKSessionItem = jest.requireActual('./SDKSessionItem').default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const SDKSessionItem = require('./SDKSessionItem').default;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<SDKSessionsManager navigation={mockNavigation as any} />);
