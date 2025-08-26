@@ -6,7 +6,7 @@ import {
   AssetFilterMethod,
   useSendMetricsContext,
 } from '../../../context/send-context/send-metrics-context';
-import { AssetType } from '../../../types/token';
+import { AssetType, Nft } from '../../../types/token';
 
 const ASSET_TYPE = {
   NFT: 'nft',
@@ -33,11 +33,11 @@ export const useAssetSelectionMetrics = () => {
   }, [setAssetFilterMethod]);
 
   const captureAssetSelected = useCallback(
-    (sendAsset: AssetType, position: string) => {
+    (sendAsset: AssetType | Nft, position: string) => {
       let assetType = ASSET_TYPE.TOKEN;
       if (sendAsset?.tokenId) {
         assetType = ASSET_TYPE.NFT;
-      } else if (sendAsset?.isNative) {
+      } else if ('isNative' in sendAsset && sendAsset?.isNative) {
         assetType = ASSET_TYPE.NATIVE;
       }
       const isEvmSendType = isEvmAddress(sendAsset.address);
