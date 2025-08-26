@@ -14,6 +14,7 @@ export interface AssetType extends TokenI {
   isSelected?: boolean;
   standard?: TokenStandard;
   description?: string;
+  balanceInSelectedCurrency?: string;
 }
 
 export interface Nft {
