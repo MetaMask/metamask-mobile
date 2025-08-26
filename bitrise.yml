@@ -376,7 +376,7 @@ stages:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
       - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-  run_regression_e2e_ios_android_stage: # TODO: REGRESSION STUFF
+  run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
       - ios_run_regression_wallet_platform_tests: {}
@@ -384,9 +384,10 @@ stages:
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
       - ios_run_regression_performance_tests: {}
-      - ios_run_regression_card_tests: {}
       - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
       - android_run_regression_confirmations_tests: {}
       - android_run_regression_wallet_platform_tests: {}
       - android_run_regression_trade_tests: {}
@@ -397,7 +398,6 @@ stages:
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
-      - ios_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
@@ -406,9 +406,10 @@ stages:
       - ios_run_regression_network_abstraction_tests: {}
       - ios_run_regression_network_expansion_tests: {}
       - ios_run_regression_performance_tests: {}
-      - ios_run_regression_card_tests: {}
       - ios_run_regression_identity_tests: {}
       - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
       - android_run_regression_confirmations_tests: {}
       - android_run_regression_wallet_platform_tests: {}
       - android_run_regression_trade_tests: {}
@@ -418,6 +419,7 @@ stages:
       - android_run_regression_card_tests: {}
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -437,8 +439,6 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_card_ios: {}
       - run_tag_smoke_card_android: {}
-      - run_tag_smoke_ux_ios: {}
-      - run_tag_smoke_ux_android: {}
 
   report_results_stage:
     workflows:
