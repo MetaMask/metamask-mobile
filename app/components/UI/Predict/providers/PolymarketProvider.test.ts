@@ -1,11 +1,10 @@
 import { PolymarketProvider } from './PolymarketProvider';
-import type { Order, OrderParams } from '../types';
+import type { Order, OrderParams, Position } from '../types';
+import { getPolymarketEndpoints } from '../utils/polymarketUtils';
 
 describe('PolymarketProvider', () => {
   const createProvider = (overrides?: { isTestnet?: boolean }) =>
     new PolymarketProvider({
-      // Not used yet by implementation, but provide a stable mock
-      signTypedMessage: jest.fn().mockResolvedValue('0xsignature'),
       isTestnet: overrides?.isTestnet,
     });
 
@@ -16,6 +15,27 @@ describe('PolymarketProvider', () => {
     side: 'buy',
     size: 1,
   };
+
+  const makeApiPosition = (overrides?: Partial<Position>): Position => ({
+    providerId: 'external',
+    conditionId: 'cond-1',
+    icon: 'https://example.com/icon.png',
+    title: 'Some Market',
+    slug: 'some-market',
+    size: 2,
+    outcome: 'Yes',
+    outcomeIndex: 0,
+    cashPnl: 1.23,
+    curPrice: 0.45,
+    currentValue: 0.9,
+    percentPnl: 10,
+    initialValue: 0.82,
+    avgPrice: 0.41,
+    redeemable: false,
+    negativeRisk: false,
+    endDate: '2025-01-01T00:00:00Z',
+    ...overrides,
+  });
 
   it('exposes the correct providerId', () => {
     const provider = createProvider();
@@ -37,9 +57,113 @@ describe('PolymarketProvider', () => {
     await expect(provider.getMarkets()).resolves.toEqual([]);
   });
 
-  it('getPositions returns an empty array by default', async () => {
+  it('getPositions returns an empty array when API returns none', async () => {
     const provider = createProvider();
-    await expect(provider.getPositions()).resolves.toEqual([]);
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        json: jest.fn().mockResolvedValue([]),
+      });
+
+    await expect(
+      provider.getPositions({
+        address: '0x0000000000000000000000000000000000000000',
+      }),
+    ).resolves.toEqual([]);
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('getPositions maps providerId to polymarket on each returned position', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        json: jest
+          .fn()
+          .mockResolvedValue([
+            makeApiPosition({ conditionId: 'c-1', providerId: 'other' }),
+            makeApiPosition({ conditionId: 'c-2' }),
+          ]),
+      });
+
+    const result = await provider.getPositions({
+      address: '0x0000000000000000000000000000000000000000',
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result[0].providerId).toBe('polymarket');
+    expect(result[1].providerId).toBe('polymarket');
+    expect(result[0].conditionId).toBe('c-1');
+    expect(result[1].conditionId).toBe('c-2');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('getPositions uses default pagination and correct query params', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    const mockFetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue([]),
+    });
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
+
+    const userAddress = '0x1111111111111111111111111111111111111111';
+    await provider.getPositions({ address: userAddress });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const calledWithUrl = mockFetch.mock.calls[0][0] as string;
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints(false);
+    expect(calledWithUrl.startsWith(`${DATA_API_ENDPOINT}/positions?`)).toBe(
+      true,
+    );
+    expect(calledWithUrl).toContain('limit=10');
+    expect(calledWithUrl).toContain('offset=0');
+    expect(calledWithUrl).toContain(`user=${userAddress}`);
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('getPositions applies custom limit and offset in the request', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    const mockFetch = jest.fn().mockResolvedValue({
+      json: jest.fn().mockResolvedValue([]),
+    });
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = mockFetch;
+
+    const userAddress = '0x2222222222222222222222222222222222222222';
+    await provider.getPositions({ address: userAddress, limit: 5, offset: 15 });
+
+    const calledWithUrl = mockFetch.mock.calls[0][0] as string;
+    expect(calledWithUrl).toContain('limit=5');
+    expect(calledWithUrl).toContain('offset=15');
+    expect(calledWithUrl).toContain(`user=${userAddress}`);
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
+  });
+
+  it('getPositions rejects when the network request fails', async () => {
+    const provider = createProvider();
+    const originalFetch = globalThis.fetch as typeof fetch | undefined;
+    (globalThis as unknown as { fetch: jest.Mock }).fetch = jest
+      .fn()
+      .mockRejectedValue(new Error('network failure'));
+
+    await expect(
+      provider.getPositions({
+        address: '0x3333333333333333333333333333333333333333',
+      }),
+    ).rejects.toThrow('network failure');
+
+    (globalThis as unknown as { fetch: typeof fetch | undefined }).fetch =
+      originalFetch;
   });
 
   it('prepareOrder returns an error result and echoes params', async () => {

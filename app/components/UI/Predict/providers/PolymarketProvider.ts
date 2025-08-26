@@ -61,6 +61,9 @@ export class PolymarketProvider implements IPredictProvider {
       },
     );
     const positionsData = await response.json();
+    positionsData.forEach((position: Position) => {
+      position.providerId = this.providerId;
+    });
 
     return positionsData;
   }

@@ -75,10 +75,10 @@ export function usePredictPositions(
         DevLogger.log('usePredictPositions: Loaded positions', {
           count: validPositions.length,
           positions: validPositions.map((p) => ({
-            marketId: p.marketId,
-            outcomeId: p.outcomeId,
             size: p.size,
-            price: p.avgPrice,
+            conditionId: p.conditionId,
+            outcomeIndex: p.outcomeIndex,
+            price: p.curPrice,
           })),
         });
 

@@ -62,18 +62,22 @@ export type Market = {
 
 export type Position = {
   providerId: string;
-  marketId: string;
-  outcomeId: string;
-  size: number;
   conditionId: string;
   icon: string;
   title: string;
+  slug: string;
+  size: number;
   outcome: string;
+  outcomeIndex: number;
   cashPnl: number;
+  curPrice: number;
   currentValue: number;
   percentPnl: number;
   initialValue: number;
   avgPrice: number;
+  redeemable: boolean;
+  negativeRisk: boolean;
+  endDate: string;
 };
 
 export interface IPredictProvider {
