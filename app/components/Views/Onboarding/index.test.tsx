@@ -78,12 +78,12 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
 }));
 
 const mockNetInfoFetch = jest.fn();
-jest.mock('@react-native-community/netinfo', () => {
-  const NetInfo = {
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
     fetch: mockNetInfoFetch,
-  };
-  return NetInfo;
-});
+  },
+}));
 
 jest.mock('../../../core/OAuthService/error', () => ({
   OAuthError: class OAuthError extends Error {
@@ -433,6 +433,8 @@ describe('Onboarding', () => {
           }),
         }),
       );
+
+      expect(Routes.OFFLINE_MODE).toBe('OfflineMode');
     });
   });
 

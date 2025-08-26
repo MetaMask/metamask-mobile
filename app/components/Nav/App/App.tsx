@@ -542,6 +542,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.DEEP_LINK_MODAL}
       component={DeepLinkModal}
     />
+    <Stack.Screen name={Routes.OFFLINE_MODE} component={OfflineMode} />
   </Stack.Navigator>
 );
 
