@@ -192,7 +192,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
         });
 
-        // TAT-1414: Show "Order Confirmed" toast (navigation already happened)
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -564,7 +563,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   };
 
   const handlePlaceOrder = useCallback(async () => {
-    // TAT-1424: Prevent double submission on Android
     if (isSubmittingRef.current) {
       return;
     }
@@ -625,7 +623,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           : {}),
       };
 
-      // TAT-1414: Navigate immediately and show "Order Submitted" toast
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -1062,7 +1059,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           if (type === 'market') {
             setLimitPrice(undefined);
           } else if (type === 'limit' && !orderForm.limitPrice) {
-            // TAT-1368: Auto-open limit price bottom sheet when switching to limit order
             setTimeout(() => {
               setIsLimitPriceVisible(true);
             }, 300); // Small delay to allow order type modal to close first

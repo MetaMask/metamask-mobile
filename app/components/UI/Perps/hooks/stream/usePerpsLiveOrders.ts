@@ -48,7 +48,6 @@ export function usePerpsLiveOrders(
     if (!hideTpSl) {
       return orders;
     }
-    // TAT-1384: Filter out TP/SL orders - only show actual limit/market orders
     return orders.filter((order) => !isTPSLOrder(order.detailedOrderType));
   }, [orders, hideTpSl]);
 
