@@ -39,7 +39,7 @@ export function GasFeeTokenToast() {
   );
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast || !gasFeeToken) return;
     if (gasFeeToken.tokenAddress === prevRef.current) return;
 
     prevRef.current = gasFeeToken.tokenAddress;
