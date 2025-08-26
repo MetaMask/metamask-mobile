@@ -102,6 +102,8 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -116,6 +118,7 @@ import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
@@ -134,12 +137,14 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import AppConstants from '../../../core/AppConstants';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsSwapsLive,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../core/redux/slices/bridge';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -218,6 +223,7 @@ const WalletTokensTabView = React.memo(
   }) => {
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+    const [currentTabIndex, setCurrentTabIndex] = React.useState(0);
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -272,15 +278,60 @@ const WalletTokensTabView = React.memo(
       [navigation],
     );
 
+    const handleTabChange = useCallback(
+      (changeTabProperties: ChangeTabProperties) => {
+        const newIndex = changeTabProperties.i;
+        const tabLabel = changeTabProperties.ref?.props?.tabLabel;
+        DevLogger.log('WalletTabView: Tab changed', {
+          newIndex,
+          tabLabel,
+          isPerpsTab: tabLabel === strings('wallet.perps'),
+          previousIndex: currentTabIndex,
+        });
+        setCurrentTabIndex(newIndex);
+        onChangeTab(changeTabProperties);
+      },
+      [onChangeTab, currentTabIndex],
+    );
+
+    // Calculate Perps tab index dynamically based on what tabs are enabled
+    // Tokens is always index 0, Perps is index 1 if enabled
+    const perpsTabIndex = isPerpsEnabled ? 1 : -1;
+    const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
+
+    // Store the visibility update callback from PerpsTabView
+    const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
+      null,
+    );
+
+    // Update Perps visibility when tab changes
+    useEffect(() => {
+      if (isPerpsEnabled && perpsVisibilityCallback.current) {
+        DevLogger.log('WalletTabView: Updating Perps visibility', {
+          currentTabIndex,
+          perpsTabIndex,
+          isPerpsTabVisible,
+        });
+        perpsVisibilityCallback.current(isPerpsTabVisible);
+      }
+    }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
+
     return (
       <View style={styles.tabContainer}>
         <ScrollableTabView
           renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
+          onChangeTab={handleTabChange}
         >
           <Tokens {...tokensTabProps} key={tokensTabProps.key} />
           {isPerpsEnabled && (
-            <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
+            <PerpsTabView
+              {...perpsTabProps}
+              key={perpsTabProps.key}
+              isVisible={isPerpsTabVisible}
+              onVisibilityChange={(callback) => {
+                perpsVisibilityCallback.current = callback;
+              }}
+            />
           )}
           {defiEnabled && (
             <DeFiPositionsList
@@ -352,7 +403,9 @@ const Wallet = ({
   );
 
   const [isNetworkRampSupported] = useRampNetwork();
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
@@ -731,6 +784,10 @@ const Wallet = ({
 
   const isCardholder = useSelector(selectIsCardholder);
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -976,7 +1033,11 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          <PortfolioBalance />
+          {isMultichainAccountsState2Enabled ? (
+            <AccountGroupBalance />
+          ) : (
+            <PortfolioBalance />
+          )}
           <AssetDetailsActions
             displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
@@ -1009,6 +1070,7 @@ const Wallet = ({
       basicFunctionalityEnabled,
       defiEnabled,
       isEvmSelected,
+      isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,

@@ -53,8 +53,6 @@ export const useAccounts = (): RecipientType[] => {
         // We expect a single account in the account group as we already filtered out the incompatible accounts by blockchain type
         // There might be some edge cases for BTC as there are two accounts in the account group
         address: compatibleAccounts[0].address,
-        //Temporary fiat value
-        fiatValue: '$1,000.00',
       };
     },
     [isAccountCompatible, internalAccountsById],
