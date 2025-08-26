@@ -14,7 +14,7 @@ const styleSheet = () =>
       justifyContent: 'flex-start',
       alignItems: 'flex-start',
       width: '100%',
-      flex: 3,
+      flex: 5,
       gap: 4,
     },
     positionImage: {
@@ -29,7 +29,7 @@ const styleSheet = () =>
       alignItems: 'flex-end',
       gap: 4,
       width: '100%',
-      flex: 1,
+      flex: 2,
     },
     marketEntry: {
       flexDirection: 'column',

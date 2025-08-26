@@ -78,7 +78,7 @@ export function usePredictPositions(
             marketId: p.marketId,
             outcomeId: p.outcomeId,
             size: p.size,
-            price: p.price,
+            price: p.avgPrice,
           })),
         });
 

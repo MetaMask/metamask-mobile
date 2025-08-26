@@ -65,7 +65,6 @@ export type Position = {
   marketId: string;
   outcomeId: string;
   size: number;
-  price: number;
   conditionId: string;
   icon: string;
   title: string;
