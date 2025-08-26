@@ -309,8 +309,10 @@ class OptinMetrics extends PureComponent {
    */
   onCancel = async () => {
     setTimeout(async () => {
-      const { clearOnboardingEvents, metrics } = this.props;
-
+      const { clearOnboardingEvents, metrics, setDataCollectionForMarketing } =
+        this.props;
+      // Ensure marketing data collection is explicitly disabled when declining metrics
+      setDataCollectionForMarketing(false);
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
