@@ -1859,12 +1859,18 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
     perpsTransactionsBackButton: {
       marginTop: 0,
+      padding: 12,
+      marginLeft: -12,
+      marginRight: -12,
     },
     perpsTransactionsTitle: {
       fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
     },
   });
-  const leftAction = () => navigation.pop();
+  // Navigate to markets page for consistent navigation
+  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
 
   return {
     headerTitle: () => (
@@ -1881,6 +1887,45 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       <TouchableOpacity
         onPress={leftAction}
         style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
+      >
+        <Icon name={IconName.Arrow2Left} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
+export function getPerpsMarketDetailsNavbar(navigation, title) {
+  const innerStyles = StyleSheet.create({
+    perpsMarketDetailsBackButton: {
+      marginTop: 0,
+      padding: 12,
+      marginLeft: -12,
+      marginRight: -12,
+    },
+    perpsMarketDetailsTitle: {
+      fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
+    },
+  });
+  // Always navigate back to markets page for consistent navigation
+  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        style={innerStyles.perpsMarketDetailsTitle}
+        variant={TextVariant.HeadingMD}
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={leftAction}
+        style={[styles.backButton, innerStyles.perpsMarketDetailsBackButton]}
       >
         <Icon name={IconName.Arrow2Left} />
       </TouchableOpacity>

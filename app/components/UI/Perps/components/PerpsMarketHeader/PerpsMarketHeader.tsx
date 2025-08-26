@@ -42,7 +42,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.ArrowLeft}
+            iconName={IconName.Arrow2Left}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
