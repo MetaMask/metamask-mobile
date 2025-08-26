@@ -3,10 +3,6 @@ import { View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './pay-token-amount.styles';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
@@ -64,7 +60,6 @@ export function PayTokenAmount({ amountHuman }: PayTokenAmountProps) {
       <Text>
         {formattedAmount} {payToken?.symbol}
       </Text>
-      <Icon name={IconName.SwapVertical} size={IconSize.Md} />
     </View>
   );
 }
