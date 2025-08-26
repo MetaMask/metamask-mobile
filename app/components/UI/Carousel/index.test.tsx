@@ -10,7 +10,7 @@ import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 import { PREDEFINED_SLIDES } from './constants';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
@@ -108,42 +108,6 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
 }));
 
-// Mock image requires
-jest.mock('../../../images/banners/banner_image_card.png', () => ({
-  uri: 'card-image',
-}));
-jest.mock('../../../images/banners/banner_image_fund.png', () => ({
-  uri: 'fund-image',
-}));
-jest.mock('../../../images/banners/banner_image_cashout.png', () => ({
-  uri: 'cashout-image',
-}));
-jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
-  uri: 'aggregated-image',
-}));
-
-// Mock useMultichainBalances hook
-jest.mock('../../../components/hooks/useMultichainBalances', () => ({
-  useSelectedAccountMultichainBalances: jest.fn().mockReturnValue({
-    selectedAccountMultichainBalance: {
-      displayBalance: '$0.00',
-      displayCurrency: 'USD',
-      totalFiatBalance: 0,
-      totalNativeTokenBalance: '0',
-      nativeTokenUnit: 'ETH',
-      tokenFiatBalancesCrossChains: [],
-      shouldShowAggregatedPercentage: false,
-      isPortfolioVieEnabled: true,
-      aggregatedBalance: {
-        ethFiat: 0,
-        tokenFiat: 0,
-        tokenFiat1dAgo: 0,
-        ethFiat1dAgo: 0,
-      },
-    },
-  }),
-}));
-
 // Mock contentful slides
 jest.mock('./fetchCarouselSlidesFromContentful', () => ({
   ...jest.requireActual('./fetchCarouselSlidesFromContentful'),
@@ -233,49 +197,14 @@ describe('Carousel', () => {
     const slides = PREDEFINED_SLIDES.map((slide) =>
       getByTestId(CAROUSEL_SLIDE(slide.id)),
     );
-    const [
-      firstSlide,
-      secondSlide,
-      thirdSlide,
-      fourthSlide,
-      fifthSlide,
-      sixthSlide,
-      seventhSlide,
-      eighthSlide,
-    ] = slides;
+    const [firstSlide, fourthSlide] = slides;
 
     // Test solana banner
     fireEvent.press(firstSlide);
     expect(mockNavigate).toHaveBeenCalled();
 
-    // Test smart account
-    fireEvent.press(secondSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test card banner
-    fireEvent.press(thirdSlide);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://portfolio.metamask.io/card',
-    );
-
     // Test fund banner
     fireEvent.press(fourthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test cashout banner
-    fireEvent.press(fifthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test aggregated banner
-    fireEvent.press(sixthSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test multisrp banner
-    fireEvent.press(seventhSlide);
-    expect(mockNavigate).toHaveBeenCalled();
-
-    // Test backup and sync banner
-    fireEvent.press(eighthSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -341,54 +270,6 @@ describe('Carousel', () => {
     await userEvent.press(solanaBanner);
 
     expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SomeSolanaAddress');
-  });
-
-  it('smart account upgrade banner should not be shown if solana account is selected', async () => {
-    const { mockState } = setupMocks();
-    mockState.engine.backgroundState.AccountsController = {
-      internalAccounts: {
-        selectedAccount: '1',
-        accounts: {
-          '1': {
-            address: 'SomeSolanaAddress',
-            type: SolAccountType.DataAccount,
-          },
-          '2': {
-            address: '0xSomeAddress',
-            type: EthAccountType.Eoa,
-          },
-        },
-      },
-    } as unknown as AccountsControllerState;
-
-    const { queryByTestId } = render(<Carousel />);
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE('smartAccount')),
-    ).toBeNull();
-  });
-
-  it('smart account upgrade banner should be shown if EVM account is selected', async () => {
-    const { mockState } = setupMocks();
-    mockState.engine.backgroundState.AccountsController = {
-      internalAccounts: {
-        selectedAccount: '2',
-        accounts: {
-          '1': {
-            address: 'SomeSolanaAddress',
-            type: SolAccountType.DataAccount,
-          },
-          '2': {
-            address: '0xSomeAddress',
-            type: EthAccountType.Eoa,
-          },
-        },
-      },
-    } as unknown as AccountsControllerState;
-
-    const { getByTestId } = render(<Carousel />);
-    expect(
-      getByTestId(WalletViewSelectorsIDs.CAROUSEL_SLIDE('smartAccount')),
-    ).toBeTruthy();
   });
 });
 

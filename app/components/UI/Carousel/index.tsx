@@ -25,14 +25,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { selectDismissedBanners } from '../../../selectors/banner';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -41,8 +41,10 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import Routes from '../../../constants/navigation/Routes';
 
-const MAX_CAROUSEL_SLIDES = 15;
+const MAX_CAROUSEL_SLIDES = 8;
 
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -50,6 +52,31 @@ const BANNER_WIDTH = SCREEN_WIDTH - 32;
 const CAROUSEL_HEIGHT = 66;
 const DOTS_HEIGHT = 18;
 const PEEK_WIDTH = 5;
+
+function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
+  const placed: (CarouselSlide | undefined)[] = [];
+  const unplaced: CarouselSlide[] = [];
+
+  for (const s of slides) {
+    const raw = s.cardPlacement;
+    const n = typeof raw === 'string' ? Number(raw) : raw;
+    if (typeof n === 'number' && Number.isFinite(n)) {
+      const idx = Math.max(0, Math.floor(n) - 1); // convert 1-based to 0-based
+      if (idx >= placed.length) placed.length = idx + 1;
+      placed[idx] = s;
+    } else {
+      unplaced.push(s);
+    }
+  }
+
+  let up = 0;
+  for (let i = 0; i < placed.length && up < unplaced.length; i++) {
+    if (!placed[i]) placed[i] = unplaced[up++];
+  }
+  while (up < unplaced.length) placed.push(unplaced[up++]);
+
+  return placed.filter(Boolean) as CarouselSlide[];
+}
 
 const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -98,57 +125,84 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     loadContentfulSlides();
   }, [isContentfulCarouselEnabled]);
 
-  // Merge all slides (predefined + contentful),
-  const slidesConfig = useMemo(() => {
-    const baseSlides = [
-      ...priorityContentfulSlides,
-      ...PREDEFINED_SLIDES,
-      ...regularContentfulSlides,
-    ];
-    return baseSlides.map((slide) => {
-      if (slide.id === 'fund' && isZeroBalance) {
+  const applyLocalNavigation = useCallback(
+    (s: CarouselSlide): CarouselSlide => {
+      // fund → open buy flow
+      if (s.variableName === 'fund') {
         return {
-          ...slide,
-          undismissable: true,
+          ...s,
+          navigation: {
+            type: 'function',
+            navigate: () => createBuyNavigationDetails(),
+          },
         };
       }
-      return {
-        ...slide,
-        undismissable: false,
-      };
-    });
-  }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      // solana → open add-account flow (if we don't already redirect below)
+      if (s.variableName === 'solana') {
+        return {
+          ...s,
+          navigation: {
+            type: 'function',
+            navigate: () =>
+              [
+                Routes.MODAL.ROOT_MODAL_FLOW,
+                {
+                  screen: Routes.SHEET.ADD_ACCOUNT,
+                  params: {
+                    clientType: WalletClientType.Solana,
+                    scope: SolScope.Mainnet,
+                  },
+                },
+              ] as const,
+          },
+        };
+      }
+      ///: END:ONLY_INCLUDE_IF
+      return s; // keep Contentful linkUrl for everything else
+    },
+    [],
+  );
+
+  // }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
+  const slidesConfig = useMemo(() => {
+    const patch = (s: CarouselSlide): CarouselSlide => {
+      const withNav = applyLocalNavigation(s);
+      if (withNav.variableName === 'fund' && isZeroBalance) {
+        return { ...withNav, undismissable: withNav.undismissable || true };
+      }
+      return withNav;
+    };
+
+    const priority = priorityContentfulSlides.map(patch);
+    const regular = orderByCardPlacement(regularContentfulSlides.map(patch));
+    return [...priority, ...regular];
+  }, [
+    applyLocalNavigation,
+    isZeroBalance,
+    priorityContentfulSlides,
+    regularContentfulSlides,
+  ]);
 
   const visibleSlides = useMemo(() => {
     const filtered = slidesConfig.filter((slide: CarouselSlide) => {
-      const isCurrentlyActive = isActive(slide);
+      const active = isActive(slide);
+      if (!active) return false;
 
       ///: BEGIN:ONLY_INCLUDE_IF(solana)
       if (
-        slide.id === 'solana' &&
+        slide.variableName === 'solana' &&
         selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      if (
-        slide.id === 'smartAccount' &&
-        selectedAccount?.type &&
-        !isEvmAccountType(selectedAccount.type)
       ) {
         return false;
       }
       ///: END:ONLY_INCLUDE_IF
 
-      if (slide.id === 'fund' && isZeroBalance) {
-        return true;
-      }
-
-      return isCurrentlyActive && !dismissedBanners.includes(slide.id);
+      return !dismissedBanners.includes(slide.id);
     });
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
   }, [
     slidesConfig,
-    isZeroBalance,
     dismissedBanners,
     ///: BEGIN:ONLY_INCLUDE_IF(solana)
     selectedAccount,
@@ -270,11 +324,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             })}
           >
             <RNImage
-              source={
-                slide.id.startsWith('contentful-')
-                  ? { uri: slide.image }
-                  : BANNER_IMAGES[slide.id]
-              }
+              source={slide.image ? { uri: slide.image } : { uri: '' }}
               style={tw.style({ width: 66, height: 66 })}
               resizeMode="contain"
             />
@@ -300,7 +350,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         createEventBuilder({
           category: 'Banner Display',
           properties: {
-            name: slide.id,
+            name: slide.variableName ?? slide.id,
           },
         }).build(),
       );
