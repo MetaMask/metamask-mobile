@@ -39,7 +39,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
 }));
 
 jest.mock('./SDKSessionItem', () => {
-  const { View, Text } = require('react-native');
+  const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: jest.fn(({ connection }) => (
@@ -169,7 +169,7 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const SDKSessionItem = require('./SDKSessionItem').default;
+      const SDKSessionItem = jest.requireActual('./SDKSessionItem').default;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<SDKSessionsManager navigation={mockNavigation as any} />);
@@ -198,7 +198,7 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const SDKSessionItem = require('./SDKSessionItem').default;
+      const SDKSessionItem = jest.requireActual('./SDKSessionItem').default;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<SDKSessionsManager navigation={mockNavigation as any} />);
