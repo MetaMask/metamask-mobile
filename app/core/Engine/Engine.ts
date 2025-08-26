@@ -67,7 +67,6 @@ import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 ///: END:ONLY_INCLUDE_IF
 import {
   QrKeyring,
-  QrKeyringScannerBridge,
   QrKeyringDeferredPromiseBridge,
 } from '@metamask/eth-qr-keyring';
 import { LoggingController } from '@metamask/logging-controller';
