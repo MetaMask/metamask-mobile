@@ -555,7 +555,10 @@ class Onboarding extends PureComponent {
       ) {
         // QA: do not show error sheet if user cancelled
         return;
-      } else if (error.code === OAuthErrorType.GoogleLoginNoCredential) {
+      } else if (
+        error.code === OAuthErrorType.GoogleLoginNoCredential ||
+        error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+      ) {
         // de-escalate google no credential error
         const errorMessage = 'google_login_no_credential';
         this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
