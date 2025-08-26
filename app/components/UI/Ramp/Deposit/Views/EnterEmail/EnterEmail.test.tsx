@@ -37,6 +37,12 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+const mockUseRoute = jest.fn(() => ({
+  params: {
+    redirectToRootAfterAuth: false,
+  },
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -48,9 +54,7 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
-    useRoute: () => ({
-      params: {},
-    }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -106,6 +110,7 @@ describe('EnterEmail Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
         stateToken: 'mock-state-token',
+        redirectToRootAfterAuth: false,
       });
     });
   });
@@ -158,6 +163,30 @@ describe('EnterEmail Component', () => {
       expect(
         screen.getByText('State token is required for OTP verification'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('when redirectToRootAfterAuth is true', () => {
+    beforeEach(() => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          redirectToRootAfterAuth: true,
+        },
+      });
+    });
+
+    it('passes redirectToRootAfterAuth=true to OTP screen when navigating', async () => {
+      render(EnterEmail);
+      const emailInput = screen.getByPlaceholderText('name@domain.com');
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
+          email: 'test@example.com',
+          stateToken: 'mock-state-token',
+          redirectToRootAfterAuth: true,
+        });
+      });
     });
   });
 });

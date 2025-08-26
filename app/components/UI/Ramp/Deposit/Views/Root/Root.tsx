@@ -30,7 +30,9 @@ const Root = () => {
 
     if (createdOrder) {
       if (!isAuthenticated) {
-        const [routeName, params] = createEnterEmailNavDetails({});
+        const [routeName, params] = createEnterEmailNavDetails({
+          redirectToRootAfterAuth: true,
+        });
         navigation.reset({
           index: 0,
           routes: [

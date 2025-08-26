@@ -131,11 +131,15 @@ const BankDetails = () => {
         sdk,
       });
     } catch (error) {
+      if ((error as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(error as Error, 'BankDetails: handleOnRefresh');
     } finally {
       setIsRefreshing(false);
     }
-  }, [dispatchThunk, dispatchUpdateFiatOrder, order, sdk]);
+  }, [dispatchThunk, dispatchUpdateFiatOrder, order, sdk, handleLogoutError]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CREATED && shouldUpdate) {

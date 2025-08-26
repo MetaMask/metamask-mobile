@@ -420,6 +420,51 @@ describe('BankDetails Component', () => {
       });
     });
 
+    it('handles 401 error in handleOnRefresh by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      mockProcessFiatOrder.mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles non-401 errors normally in handleOnRefresh', async () => {
+      const regularError = new Error('Network error');
+      mockProcessFiatOrder.mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      screen
+        .getByTestId('bank-details-refresh-control-scrollview')
+        .props.refreshControl.props.onRefresh();
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleOnRefresh',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      });
+    });
+
     it('logs error when handleLogoutError fails', async () => {
       const axiosError = new Error('Unauthorized') as AxiosError;
       axiosError.status = 401;
