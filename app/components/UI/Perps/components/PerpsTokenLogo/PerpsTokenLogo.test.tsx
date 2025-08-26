@@ -25,13 +25,22 @@ jest.mock('../../../../../component-library/components/Avatars/Avatar', () => ({
 }));
 
 jest.mock('react-native-svg', () => ({
-  SvgXml: ({ xml }: { xml: string }) =>
-    `SvgXml-${xml ? xml.substring(0, 30) : ''}`,
+  SvgXml: ({ xml, onError }: { xml: string; onError?: () => void }) => {
+    // Simulate error for specific test case
+    if (xml === 'error-svg') {
+      onError?.();
+    }
+    return `SvgXml-${xml ? xml.substring(0, 30) : ''}`;
+  },
 }));
+
+// Mock fetch globally
+global.fetch = jest.fn();
 
 describe('PerpsTokenLogo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockClear();
   });
 
   it('renders loading state initially', () => {
@@ -80,5 +89,95 @@ describe('PerpsTokenLogo', () => {
         }),
       ]),
     );
+  });
+
+  it('shows Avatar fallback when no symbol is provided', async () => {
+    const { findByText } = render(
+      <PerpsTokenLogo symbol="" testID="no-symbol" />,
+    );
+
+    // Should render Avatar fallback
+    const avatar = await findByText(/Avatar-/);
+    expect(avatar).toBeTruthy();
+  });
+
+  it('fetches and renders SVG content successfully', async () => {
+    const mockSvgContent = '<svg><circle cx="50" cy="50" r="40"/></svg>';
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: jest.fn().mockResolvedValueOnce(mockSvgContent),
+    });
+
+    const { findByText } = render(
+      <PerpsTokenLogo symbol="BTC" testID="with-svg" />,
+    );
+
+    // Should render SvgXml with the fetched content
+    const svgElement = await findByText(/SvgXml-<svg>/);
+    expect(svgElement).toBeTruthy();
+  });
+
+  it('shows Avatar fallback when fetch fails', async () => {
+    (global.fetch as jest.Mock).mockRejectedValueOnce(
+      new Error('Network error'),
+    );
+
+    const { findByText } = render(
+      <PerpsTokenLogo symbol="FAIL" testID="fetch-error" />,
+    );
+
+    // Should render Avatar fallback
+    const avatar = await findByText('Avatar-FAIL');
+    expect(avatar).toBeTruthy();
+  });
+
+  it('shows Avatar fallback when SVG content is invalid', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: jest.fn().mockResolvedValueOnce('not valid svg content'),
+    });
+
+    const { findByText } = render(
+      <PerpsTokenLogo symbol="INVALID" testID="invalid-svg" />,
+    );
+
+    // Should render Avatar fallback
+    const avatar = await findByText('Avatar-INVALID');
+    expect(avatar).toBeTruthy();
+  });
+
+  it('handles SvgXml onError callback', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: jest.fn().mockResolvedValueOnce('error-svg'),
+    });
+
+    const { findByText } = render(
+      <PerpsTokenLogo symbol="ERROR" testID="svg-error" />,
+    );
+
+    // Should trigger onError and render Avatar fallback
+    const avatar = await findByText('Avatar-ERROR');
+    expect(avatar).toBeTruthy();
+  });
+
+  it('uses cached SVG on subsequent renders', async () => {
+    const mockSvgContent = '<svg><rect width="100" height="100"/></svg>';
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      text: jest.fn().mockResolvedValueOnce(mockSvgContent),
+    });
+
+    // First render - should fetch
+    const { rerender, findByText } = render(
+      <PerpsTokenLogo symbol="CACHED" testID="cached-1" />,
+    );
+    await findByText(/SvgXml-<svg>/);
+
+    // Second render - should use cache
+    rerender(<PerpsTokenLogo symbol="CACHED" testID="cached-2" />);
+
+    // Fetch should only be called once
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });
