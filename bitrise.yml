@@ -376,14 +376,46 @@ stages:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
       - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-  run_regression_e2e_ios_android_stage:
+  run_regression_e2e_ios_android_stage: # TODO: REGRESSION STUFF
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_performance_tests: {}
+      - ios_run_regression_card_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_card_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_performance_tests: {}
+      - ios_run_regression_card_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_card_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -805,9 +837,49 @@ workflows:
   ios_build_regression_tests:
     after_run:
       - ios_e2e_build
-  ios_run_regression_tests:
+  ios_run_regression_confirmations_tests:
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_wallet_platform_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_trade_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_expansion_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_performance_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_card_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionCard'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_identity_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_accounts_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
     after_run:
       - ios_e2e_test
   android_build_regression_tests:
@@ -817,13 +889,49 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
-  android_run_regression_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
+  android_run_regression_confirmations_tests:
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - android_e2e_test
+  android_run_regression_wallet_platform_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - android_e2e_test
+  android_run_regression_trade_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_abstraction_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_expansion_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - android_e2e_test
+  android_run_regression_performance_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - android_e2e_test
+  android_run_regression_card_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionCard'
+    after_run:
+      - android_e2e_test
+  android_run_regression_identity_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - android_e2e_test
+  android_run_regression_accounts_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
     after_run:
       - android_e2e_test
   download_production_qa_apk:

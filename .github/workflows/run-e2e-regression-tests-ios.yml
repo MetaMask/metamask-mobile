@@ -3,6 +3,52 @@ name: iOS E2E Regression Tests
 # TODO: Add schedule once iOS builds are available
 on:
   workflow_call:
+    inputs:
+      confirmations-suite:
+        description: 'Confirmations Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      trade-suite:
+        description: 'Trade Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      wallet-platform-suite:
+        description: 'Wallet Platform Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      identity-suite:
+        description: 'Identity Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      accounts-suite:
+        description: 'Accounts Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-abstraction-suite:
+        description: 'Network Abstraction Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-expansion-suite:
+        description: 'Network Expansion Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      performance-suite:
+        description: 'Performance Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      card-suite:
+        description: 'Card Regression Suite'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       confirmations-suite:
@@ -59,7 +105,7 @@ permissions:
 jobs:
   regression-confirmations-ios:
     name: 'Confirmations Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.confirmations-suite
+    if: ${{ github.event_name == 'schedule' || inputs.confirmations-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -75,7 +121,7 @@ jobs:
 
   regression-trade-ios:
     name: 'Trade Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.trade-suite
+    if: ${{ github.event_name == 'schedule' || inputs.trade-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -91,7 +137,7 @@ jobs:
 
   regression-wallet-platform-ios:
     name: 'Wallet Platform Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.wallet-platform-suite
+    if: ${{ github.event_name == 'schedule' || inputs.wallet-platform-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -107,7 +153,7 @@ jobs:
 
   regression-identity-ios:
     name: 'Identity Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.identity-suite
+    if: ${{ github.event_name == 'schedule' || inputs.identity-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -123,7 +169,7 @@ jobs:
 
   regression-accounts-ios:
     name: 'Accounts Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.accounts-suite
+    if: ${{ github.event_name == 'schedule' || inputs.accounts-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -139,7 +185,7 @@ jobs:
 
   regression-network-abstraction-ios:
     name: 'Network Abstraction Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.network-abstraction-suite
+    if: ${{ github.event_name == 'schedule' || inputs.network-abstraction-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -155,7 +201,7 @@ jobs:
 
   regression-network-expansion-ios:
     name: 'Network Expansion Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.network-expansion-suite
+    if: ${{ github.event_name == 'schedule' || inputs.network-expansion-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -171,7 +217,7 @@ jobs:
 
   regression-performance-ios:
     name: 'Performance Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.performance-suite
+    if: ${{ github.event_name == 'schedule' || inputs.performance-suite }}
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -187,7 +233,7 @@ jobs:
 
   regression-card-ios:
     name: 'Card Regression (iOS) - ${{ matrix.split }}'
-    if: inputs.card-suite
+    if: ${{ github.event_name == 'schedule' || inputs.card-suite }}
     strategy:
       matrix:
         split: [1]
@@ -205,16 +251,6 @@ jobs:
     name: Report iOS Regression Tests
     runs-on: ubuntu-latest
     if: always()
-    needs:
-      - regression-confirmations-ios
-      - regression-trade-ios
-      - regression-wallet-platform-ios
-      - regression-identity-ios
-      - regression-accounts-ios
-      - regression-network-abstraction-ios
-      - regression-network-expansion-ios
-      - regression-performance-ios
-      - regression-card-ios
 
     steps:
       - name: Checkout
@@ -225,6 +261,7 @@ jobs:
         with:
           path: all-test-results/
           pattern: '*-ios-*-test-results'
+          if-no-artifact-found: ignore
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -238,6 +275,7 @@ jobs:
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: ios-merged-test-report
           path: all-test-results/**/*.xml
