@@ -1,6 +1,8 @@
 import React from 'react';
 import UnstakeConfirmationView from './UnstakeConfirmationView';
-import renderWithProvider, { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';

@@ -34,7 +34,9 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => () => MOCK_SELECTED_INTERNAL_ACCOUNT),
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => () => MOCK_SELECTED_INTERNAL_ACCOUNT,
+  ),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');

@@ -40,7 +40,9 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_confirmations;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
-  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const { navigate } = useNavigation();
 
   const { trackEvent, createEventBuilder } = useMetrics();

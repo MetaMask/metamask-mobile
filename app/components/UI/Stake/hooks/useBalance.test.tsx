@@ -4,7 +4,10 @@ import {
 } from '../__mocks__/stakeMockData';
 import { createMockAccountsControllerState } from '../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { DeepPartial, renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderHookWithProvider,
+} from '../../../../util/test/renderWithProvider';
 import useBalance from './useBalance';
 import { toHex } from '@metamask/controller-utils';
 import { RootState } from '../../../../reducers';

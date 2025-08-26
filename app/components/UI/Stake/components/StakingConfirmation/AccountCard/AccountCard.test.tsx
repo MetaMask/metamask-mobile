@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider, { DeepPartial } from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../util/test/renderWithProvider';
 import AccountCard from './AccountCard';
 import { strings } from '../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';

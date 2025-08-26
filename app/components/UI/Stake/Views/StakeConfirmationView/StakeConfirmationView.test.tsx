@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider, { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import StakeConfirmationView from './StakeConfirmationView';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
@@ -35,9 +37,9 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 const mockStore = configureMockStore();
 
 const mockSelectedAccount =
-    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
-      MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
-    ];
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},

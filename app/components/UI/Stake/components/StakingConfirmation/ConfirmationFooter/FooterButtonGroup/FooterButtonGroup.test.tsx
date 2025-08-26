@@ -3,7 +3,9 @@ import React from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import renderWithProvider, { DeepPartial } from '../../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
 import FooterButtonGroup from './FooterButtonGroup';
 import {

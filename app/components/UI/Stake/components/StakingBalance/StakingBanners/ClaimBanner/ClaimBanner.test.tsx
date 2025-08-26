@@ -6,7 +6,9 @@ import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../../util/test/network';
-import renderWithProvider, { DeepPartial } from '../../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../../util/test/renderWithProvider';
 import {
   MOCK_POOL_STAKING_SDK,
   MOCK_ETH_MAINNET_ASSET,
