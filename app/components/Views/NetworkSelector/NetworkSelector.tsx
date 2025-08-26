@@ -102,8 +102,10 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
-import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
-import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NetworkSelectorSource,
+} from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -124,7 +126,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
-  source?: string;
+  source?: NetworkSelectorSource;
 }
 
 const NetworkSelector = () => {
@@ -158,7 +160,6 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const contextualChainId = useSelector(selectSendFlowContextualChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -171,20 +172,15 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
-
   const {
-    chainId: perDappChainId,
+    chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
-  const isContextualChainId =
-    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW &&
-    contextualChainId;
-  const selectedChainId = isContextualChainId
-    ? contextualChainId
-    : perDappChainId;
+  const isSendFlow =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -231,8 +227,6 @@ const NetworkSelector = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
-
-  const source = route.params?.source;
 
   /**
    * This is used to check if the network has multiple RPC endpoints
@@ -382,7 +376,6 @@ const NetworkSelector = () => {
     dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
-    source,
   });
 
   useEffect(() => {
@@ -901,7 +894,7 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        !isContextualChainId && renderNonEvmNetworks(false)
+        !isSendFlow && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {isNetworkUiRedesignEnabled() &&
@@ -910,7 +903,7 @@ const NetworkSelector = () => {
       {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
       {searchString.length === 0 && renderTestNetworksSwitch()}
       {showTestNetworks && renderOtherNetworks()}
-      {showTestNetworks && renderNonEvmNetworks(true)}
+      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
     </>
   );
 
