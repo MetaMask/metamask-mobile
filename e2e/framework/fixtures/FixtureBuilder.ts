@@ -1796,6 +1796,107 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets up the AccountTreeController with a minimal account tree.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withAccountTreeController() {
+    // Build an account tree that uses the actual internal account IDs
+    // present in the fixture's AccountsController so selectors can resolve
+    // the accounts reliably at runtime.
+    // Derive entropy id from the primary internal account if available so the
+    // accountTree wallet key matches the account options (entropySource) that
+    // the app/runtime expects. Fall back to the original fixture id when
+    // missing.
+    const accountsMap =
+      this.fixture.state.engine.backgroundState.AccountsController
+        ?.internalAccounts?.accounts || {};
+    const accountIds = Object.keys(accountsMap);
+    const primaryAccountId =
+      this.fixture.state.engine.backgroundState.AccountsController
+        ?.internalAccounts?.selectedAccount || accountIds[0];
+    const secondaryAccountId = accountIds.find((id) => id !== primaryAccountId);
+
+    // Attempt to read entropySource or entropy.id from the primary account options
+    const primaryAccount = primaryAccountId
+      ? accountsMap[primaryAccountId]
+      : null;
+    const derivedEntropyId =
+      primaryAccount?.options?.entropySource ||
+      primaryAccount?.options?.entropy?.id ||
+      '01FIXTURE000000000000000000';
+    const walletId = `entropy:${derivedEntropyId}`;
+
+    // Ensure the internal account options reflect the derived entropySource so
+    // the AccountsController and AccountTreeController remain consistent in the
+    // fixture state. This avoids a mismatch where groups point to a wallet id
+    // that doesn't appear on the account objects.
+    if (
+      primaryAccountId &&
+      !accountsMap[primaryAccountId].options?.entropySource
+    ) {
+      accountsMap[primaryAccountId].options = {
+        ...(accountsMap[primaryAccountId].options || {}),
+        entropySource: derivedEntropyId,
+      };
+    }
+    if (
+      secondaryAccountId &&
+      !accountsMap[secondaryAccountId].options?.entropySource
+    ) {
+      accountsMap[secondaryAccountId].options = {
+        ...(accountsMap[secondaryAccountId].options || {}),
+        entropySource: derivedEntropyId,
+      };
+    }
+
+    this.fixture.state.engine.backgroundState.AccountTreeController = {
+      accountTree: {
+        wallets: {
+          [walletId]: {
+            type: 'entropy',
+            id: walletId,
+            metadata: {
+              name: 'Fixture Wallet',
+              entropy: { id: derivedEntropyId },
+            },
+            groups: {
+              // Primary group (Main) referencing the selected/internal account id
+              [`${walletId}/0`]: {
+                type: 'multichain-account',
+                id: `${walletId}/0`,
+                metadata: {
+                  name: 'Main',
+                  pinned: false,
+                  hidden: false,
+                  entropy: { groupIndex: 0 },
+                },
+                accounts: primaryAccountId ? [primaryAccountId] : [],
+              },
+              // Secondary group referencing a second internal account if available
+              [`${walletId}/1`]: {
+                type: 'multichain-account',
+                id: `${walletId}/1`,
+                metadata: {
+                  name: 'Imported Account',
+                  pinned: false,
+                  hidden: false,
+                  entropy: { groupIndex: 1 },
+                },
+                accounts: secondaryAccountId ? [secondaryAccountId] : [],
+              },
+            },
+          },
+        },
+        selectedAccountGroup: `${walletId}/0`,
+      },
+      accountGroupsMetadata: {},
+      accountWalletsMetadata: {},
+    };
+
+    return this;
+  }
+
+  /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
    */
