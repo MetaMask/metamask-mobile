@@ -145,6 +145,8 @@ abstract class StreamChannel<T> {
 // Specific channel for prices
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private symbols = new Set<string>();
+  private prewarmUnsubscribe?: () => void;
+  private allMarketSymbols: string[] = [];
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
@@ -153,8 +155,25 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
+    // If we have a prewarm subscription, we're already subscribed to all markets
+    // No need to create another subscription
+    if (this.prewarmUnsubscribe) {
+      // Just notify subscribers with cached data
+      const cached = this.getCachedData();
+      if (cached) {
+        this.notifySubscribers(cached);
+      }
+      return;
+    }
+
     // Collect all unique symbols from subscribers
     const allSymbols = Array.from(this.symbols);
+
+    DevLogger.log(
+      `PriceStreamChannel: allSymbols len=`,
+      allSymbols.length,
+      allSymbols,
+    );
 
     if (allSymbols.length === 0) {
       return;
@@ -222,7 +241,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Ensure connection is established (allMids provides all symbols)
     // No need to reconnect when new symbols are added since allMids
     // already provides prices for all markets
-    if (!this.wsSubscription) {
+    if (!this.wsSubscription && !this.prewarmUnsubscribe) {
       this.connect();
     }
 
@@ -239,6 +258,79 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       },
       throttleMs: params.throttleMs,
     });
+  }
+
+  /**
+   * Pre-warm the channel by subscribing to all market prices
+   * This keeps a single WebSocket connection alive with all price updates
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public async prewarm(): Promise<() => void> {
+    if (this.prewarmUnsubscribe) {
+      return this.prewarmUnsubscribe;
+    }
+
+    try {
+      // Get all available market symbols
+      const controller = Engine.context.PerpsController;
+      const markets = await controller.getMarkets();
+      this.allMarketSymbols = markets.map((market) => market.name);
+
+      DevLogger.log('PriceStreamChannel: Pre-warming with all market symbols', {
+        symbolCount: this.allMarketSymbols.length,
+        symbols: this.allMarketSymbols.slice(0, 10), // Log first 10 for debugging
+      });
+
+      // Subscribe to all market prices
+      this.prewarmUnsubscribe = controller.subscribeToPrices({
+        symbols: this.allMarketSymbols,
+        callback: (updates: PriceUpdate[]) => {
+          // Update cache and build price map
+          const priceMap: Record<string, PriceUpdate> = {};
+          updates.forEach((update) => {
+            const priceUpdate: PriceUpdate = {
+              coin: update.coin,
+              price: update.price,
+              timestamp: Date.now(),
+              percentChange24h: update.percentChange24h,
+              bestBid: update.bestBid,
+              bestAsk: update.bestAsk,
+              spread: update.spread,
+              markPrice: update.markPrice,
+              funding: update.funding,
+              openInterest: update.openInterest,
+              volume24h: update.volume24h,
+            };
+            this.priceCache.set(update.coin, priceUpdate);
+            priceMap[update.coin] = priceUpdate;
+          });
+
+          // Notify any active subscribers with all updates
+          if (this.subscribers.size > 0) {
+            this.notifySubscribers(priceMap);
+          }
+        },
+      });
+
+      return this.prewarmUnsubscribe;
+    } catch (error) {
+      DevLogger.log('PriceStreamChannel: Failed to prewarm prices', error);
+      // Return no-op cleanup function
+      return () => {
+        // No-op
+      };
+    }
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+      this.allMarketSymbols = [];
+    }
   }
 }
 

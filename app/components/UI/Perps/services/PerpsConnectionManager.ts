@@ -210,6 +210,7 @@ class PerpsConnectionManagerClass {
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
+      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
@@ -323,7 +324,7 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm the positions, orders, account, and market data channels
+      // Pre-warm all channels including prices for all markets
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
@@ -331,11 +332,15 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
+      // Price channel prewarm is async and subscribes to all market prices
+      const priceCleanup = await streamManager.prices.prewarm();
+
       this.prewarmCleanups.push(
         positionCleanup,
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
+        priceCleanup,
       );
 
       // Give subscriptions a moment to receive initial data
