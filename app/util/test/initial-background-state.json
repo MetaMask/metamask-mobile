@@ -171,6 +171,7 @@
   },
   "NetworkEnablementController": {
     "enabledNetworkMap": {
+      "bip122": {},
       "eip155": {
         "0x1": true,
         "0x2105": true,
