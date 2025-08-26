@@ -124,7 +124,6 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       }
       // Case: Disconnect an entire dApp V2 session.
       else if (!account && channelId) {
-        // The service layer now handles all cleanup: protocol, permissions, storage, and state sync.
         await SDKConnectV2.disconnect(channelId);
       }
       // Case: Global disconnect all from V2 context.
@@ -137,7 +136,6 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     } catch (error) {
       DevLogger.log('Failed to perform V2 disconnect action', error);
     } finally {
-      // Ensure navigation happens even if an error occurs.
       navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
     }
   };
