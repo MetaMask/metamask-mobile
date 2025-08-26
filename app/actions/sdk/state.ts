@@ -10,6 +10,7 @@ export interface SDKState {
   connections: SDKSessions;
   approvedHosts: ApprovedHosts;
   dappConnections: SDKSessions;
+  v2Connections: SDKSessions;
   // Link to metadata of last created wallet connect session.
   wc2Metadata?: WC2Metadata;
 }
