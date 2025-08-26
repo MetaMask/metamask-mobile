@@ -186,11 +186,12 @@ function assetToToken(asset: Asset): TokenI {
       { minimumFractionDigits: 0, maximumFractionDigits: 5 },
     ),
     balanceFiat: asset.fiat?.balance
-      ? `$${asset.fiat.balance.toString()}` // TODO: Fix this
-      : asset.balance,
-    tokenFiatAmount: asset.fiat?.balance
       ? `${asset.fiat.balance.toString()}` // TODO: Fix this
       : undefined,
+    // This is an undocumented field, but it's used to sort the token list
+    tokenFiatAmount: asset.fiat?.balance
+      ? `${asset.fiat.balance.toString()}`
+      : asset.balance,
     logo:
       asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
