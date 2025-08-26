@@ -570,15 +570,6 @@ class Onboarding extends PureComponent {
     if (error instanceof OAuthError) {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
-        error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed &&
-        error.code !== OAuthErrorType.GoogleLoginError &&
-        error.code !== OAuthErrorType.AppleLoginError
-      ) {
-        this.handleOAuthLoginError(error);
-        return;
-      }
-      if (
         error.code === OAuthErrorType.UserCancelled ||
         error.code === OAuthErrorType.UserDismissed ||
         error.code === OAuthErrorType.GoogleLoginError ||
@@ -586,7 +577,27 @@ class Onboarding extends PureComponent {
       ) {
         // QA: do not show error sheet if user cancelled
         return;
+      } else if (
+        error.code === OAuthErrorType.GoogleLoginNoCredential ||
+        error.code === OAuthErrorType.GoogleLoginNoMatchingCredential
+      ) {
+        // de-escalate google no credential error
+        const errorMessage = 'google_login_no_credential';
+        this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.${errorMessage}_title`),
+            description: strings(`error_sheet.${errorMessage}_description`),
+            descriptionAlign: 'center',
+            buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+            type: 'error',
+          },
+        });
+        return;
       }
+      // unexpected oauth login error
+      this.handleOAuthLoginError(error);
+      return;
     }
 
     const errorMessage = 'oauth_error';
