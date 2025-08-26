@@ -1,4 +1,4 @@
-import { Connection } from './connection';
+import { Connection } from '../services/connection';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -8,18 +8,6 @@ import { Connection } from './connection';
  * specific implementation like Redux or a particular navigation service.
  */
 export interface IHostApplicationAdapter {
-  /**
-   * Triggers the UI flow to ask the user to approve or reject a new
-   * dApp connection request.
-   * @param connectionId The unique ID of the connection being requested.
-   * @param dappMetadata Metadata about the dApp to display to the user.
-   * @returns A promise that resolves when the user has made a choice.
-   */
-  showConnectionApproval(
-    connectionId: string,
-    dappMetadata: Connection['dappMetadata'],
-  ): Promise<void>;
-
   /**
    * Displays a global, non-interactive loading modal. Used to indicate
    * background activity, such as the cryptographic handshake.
