@@ -594,5 +594,10 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "lastAuthTime": 0,
+    "lastAuthenticatedAccount": null,
+    "subscription": null
   }
 }
