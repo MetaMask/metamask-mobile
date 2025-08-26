@@ -11,7 +11,7 @@ import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
 
-export const ZERO_BALANCE = '0x0';
+const ZERO_BALANCE = '0x0';
 const MAX = 20;
 
 /**
