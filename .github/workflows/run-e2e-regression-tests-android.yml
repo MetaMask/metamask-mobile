@@ -48,6 +48,16 @@ on:
         required: false
         type: boolean
         default: false
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: '30 4 * * *'  # 4:30 AM UTC
   workflow_dispatch:
@@ -97,7 +107,16 @@ on:
         required: false
         type: boolean
         default: false
-
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -244,6 +263,38 @@ jobs:
       test-suite-name: regression-card-android-${{ matrix.split }}
       platform: android
       test_suite_tag: 'RegressionCard'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+    secrets: inherit
+  
+  regression-assets-android:
+    name: 'Assets Regression (Android) - ${{ matrix.split }}'
+    if: ${{ github.event_name == 'schedule' || inputs.assets-suite }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-assets-android-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'RegressionAssets'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+  
+  regression-ux-android:
+    name: 'UX Regression (Android) - ${{ matrix.split }}'
+    if: ${{ github.event_name == 'schedule' || inputs.ux-suite }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-ux-android-${{ matrix.split }}
+      platform: android
+      test_suite_tag: 'RegressionWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
     secrets: inherit

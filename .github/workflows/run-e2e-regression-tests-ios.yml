@@ -49,6 +49,16 @@ on:
         required: false
         type: boolean
         default: false
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       confirmations-suite:
@@ -96,7 +106,16 @@ on:
         required: false
         type: boolean
         default: false
-
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -243,6 +262,38 @@ jobs:
       test-suite-name: regression-card-ios-${{ matrix.split }}
       platform: ios
       test_suite_tag: 'RegressionCard'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+    secrets: inherit
+
+  regression-assets-ios:
+    name: 'Assets Regression (iOS) - ${{ matrix.split }}'
+    if: ${{ github.event_name == 'schedule' || inputs.assets-suite }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-assets-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionAssets'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+  
+  regression-ux-ios:
+    name: 'UX Regression (iOS) - ${{ matrix.split }}'
+    if: ${{ github.event_name == 'schedule' || inputs.ux-suite }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-ux-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
     secrets: inherit

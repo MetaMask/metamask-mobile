@@ -1,4 +1,4 @@
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -23,7 +23,7 @@ const IMPORTED_ACCOUNT_2_PRIVATE_KEY =
 const IMPORTED_ACCOUNT_0_INDEX = 0;
 const IMPORTED_ACCOUNT_1_INDEX = 1;
 
-describe(Regression('reveal private key'), () => {
+describe(RegressionAccounts('reveal private key'), () => {
   const PASSWORD = '123123123';
   const INCORRECT_PASSWORD = 'wrongpassword';
 
