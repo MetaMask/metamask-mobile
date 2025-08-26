@@ -39,7 +39,7 @@ import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
-import AVAE from './aave-token-round.png';
+import AAVE from './aave-token-round.png';
 
 export default {
   PALM,
@@ -52,7 +52,7 @@ export default {
   BNB,
   AETH,
   AVAX,
-  AVAE,
+  AAVE,
   'LINEA-GOERLI': LINEA_TESTNET,
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
