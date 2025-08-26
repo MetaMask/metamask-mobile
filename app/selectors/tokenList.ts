@@ -143,10 +143,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     );
 
     const assets = Object.entries(bip44Assets)
-      .filter(
-        ([networkId, _]) =>
-          enabledNetworks.includes(networkId) || networkId.startsWith('0x'),
-      )
+      .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets);
 
     // Current sorting options
