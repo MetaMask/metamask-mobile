@@ -19,6 +19,19 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
+    },
+  },
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
