@@ -11,28 +11,28 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import QuotesView from '../../pages/Ramps/QuotesView';
 import SoftAssert from '../../utils/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
-let mockServer: Mockttp;
-let mockServerPort: number;
 const eventsToCheck: EventPayload[] = [];
 
 const setupOnRampTest = async (testFn: () => Promise<void>) => {
+  const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
+
   await withFixtures(
     {
       fixture: new FixtureBuilder()
         .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+        .withRampsSelectedRegion(selectedRegion)
         .withMetaMetricsOptIn()
         .build(),
       restartDevice: true,
-      mockServerInstance: mockServer,
-      endTestfn: async ({ mockServer: mockServerInstance }) => {
-        const events = await getEventsPayloads(mockServerInstance);
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+      },
+      endTestfn: async ({ mockServer }) => {
+        const events = await getEventsPayloads(mockServer);
         eventsToCheck.push(...events);
       },
     },
@@ -48,21 +48,8 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
 
 describe(SmokeTrade('Onramp quote build screen'), () => {
   let shouldCheckProviderSelectedEvents = true;
-  const segmentMock = {
-    POST: [mockEvents.POST.segmentTrack],
-  };
-
   beforeEach(async () => {
     jest.setTimeout(150000);
-
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
-  });
-
-  afterAll(async () => {
-    if (mockServer) {
-      await stopMockServer(mockServer);
-    }
   });
 
   it('should get to the Amount to buy screen, after selecting Get Started', async () => {

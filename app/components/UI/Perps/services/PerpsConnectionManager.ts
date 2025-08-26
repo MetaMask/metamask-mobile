@@ -1,7 +1,7 @@
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 
@@ -39,13 +39,17 @@ class PerpsConnectionManagerClass {
 
     // Get initial values
     const state = store.getState();
-    this.previousAddress = selectSelectedInternalAccountAddress(state);
+    const selectedEvmAccount =
+      selectSelectedInternalAccountByScope(state)('eip155:1');
+    this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
 
     // Subscribe to Redux store changes
     this.unsubscribeFromStore = store.subscribe(() => {
       const currentState = store.getState();
-      const currentAddress = selectSelectedInternalAccountAddress(currentState);
+      const currentEvmAccount =
+        selectSelectedInternalAccountByScope(currentState)('eip155:1');
+      const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
 
       const hasAccountChanged =
