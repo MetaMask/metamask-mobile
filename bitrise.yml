@@ -396,6 +396,8 @@ stages:
       - android_run_regression_card_tests: {}
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
+      - ios_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
@@ -435,6 +437,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_card_ios: {}
       - run_tag_smoke_card_android: {}
+      - run_tag_smoke_ux_ios: {}
+      - run_tag_smoke_ux_android: {}
 
   report_results_stage:
     workflows:
@@ -882,6 +886,16 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionAccounts'
     after_run:
       - ios_e2e_test
+  ios_run_regression_assets_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_ux_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - ios_e2e_test
   android_build_regression_tests:
     meta:
       bitrise.io:
@@ -932,6 +946,16 @@ workflows:
   android_run_regression_accounts_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - android_e2e_test
+  android_run_regression_ux_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - android_e2e_test
+  android_run_regression_assets_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
     after_run:
       - android_e2e_test
   download_production_qa_apk:
