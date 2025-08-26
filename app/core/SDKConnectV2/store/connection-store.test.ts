@@ -2,22 +2,14 @@ import { ConnectionStore } from './connection-store';
 import { PersistedConnection } from '../types/persisted-connection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  setItem: jest.fn(() => Promise.resolve()),
-  getItem: jest.fn(() => Promise.resolve(null)),
-  removeItem: jest.fn(() => Promise.resolve()),
-  getAllKeys: jest.fn(() => Promise.resolve([])),
-  multiGet: jest.fn(() => Promise.resolve([])),
-}));
+jest.mock('@react-native-async-storage/async-storage');
 
 describe('ConnectionStore', () => {
   let store: ConnectionStore;
-  const TEST_PREFIX = 'test-prefix';
 
   beforeEach(() => {
     jest.clearAllMocks();
-    store = new ConnectionStore(TEST_PREFIX);
+    store = new ConnectionStore('test-prefix');
   });
 
   it('should create an instance with a properly formatted prefix', () => {
