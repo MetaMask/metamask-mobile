@@ -2,6 +2,10 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
+import {
+  LEVERAGE_COLORS,
+  LEVERAGE_BACKGROUND_COLORS,
+} from '../../constants/leverageColors';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -21,16 +25,16 @@ export const createStyles = (colors: Theme['colors']) =>
       lineHeight: 56,
     },
     leverageTextSafe: {
-      color: '#4CAF50', // Green - safe leverage
+      color: LEVERAGE_COLORS.SAFE, // Green - safe leverage
     },
     leverageTextCaution: {
-      color: '#CDDC39', // Yellow - moderate leverage
+      color: LEVERAGE_COLORS.CAUTION, // Yellow - moderate leverage
     },
     leverageTextLow: {
       color: colors.text.default,
     },
     leverageTextMedium: {
-      color: '#FF6B35', // Orange - high leverage
+      color: LEVERAGE_COLORS.MEDIUM, // Orange - high leverage
     },
     leverageTextHigh: {
       color: colors.error.default, // Red - dangerous leverage
@@ -44,16 +48,16 @@ export const createStyles = (colors: Theme['colors']) =>
       marginHorizontal: 12,
     },
     warningContainerSafe: {
-      backgroundColor: 'rgba(76, 175, 80, 0.1)', // Green background
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.SAFE, // Green background
     },
     warningContainerCaution: {
-      backgroundColor: 'rgba(205, 220, 57, 0.1)', // Yellow background
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.CAUTION, // Yellow background
     },
     warningContainerMedium: {
-      backgroundColor: 'rgba(255, 107, 53, 0.1)', // Orange background
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.MEDIUM, // Orange background
     },
     warningContainerHigh: {
-      backgroundColor: 'rgba(215, 44, 44, 0.1)', // Red background
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.HIGH, // Red background
     },
     warningIcon: {
       marginRight: 8,
@@ -64,16 +68,16 @@ export const createStyles = (colors: Theme['colors']) =>
       flexWrap: 'wrap',
     },
     warningTextSafe: {
-      color: '#4CAF50', // Green - matches gradient start
+      color: LEVERAGE_COLORS.SAFE, // Green - matches gradient start
     },
     warningTextCaution: {
-      color: '#CDDC39', // Yellow - matches gradient middle
+      color: LEVERAGE_COLORS.CAUTION, // Yellow - matches gradient middle
     },
     warningTextLow: {
       color: colors.text.alternative,
     },
     warningTextMedium: {
-      color: '#FF6B35', // Orange - matches gradient
+      color: LEVERAGE_COLORS.MEDIUM, // Orange - matches gradient
     },
     warningTextHigh: {
       color: colors.error.default, // Red - matches gradient end
@@ -141,22 +145,22 @@ export const createStyles = (colors: Theme['colors']) =>
       position: 'relative',
     },
     leverageThumb: {
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 32,
       backgroundColor: colors.background.default,
-      borderRadius: 12,
+      borderRadius: 16,
       position: 'absolute',
-      top: -9,
-      left: -12,
+      top: -13,
+      left: -16,
       shadowColor: colors.shadow.default,
       shadowOffset: {
         width: 0,
         height: 2,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 3,
-      borderWidth: 2,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 4,
+      borderWidth: 3,
       borderColor: colors.border.default,
     },
     leverageGradient: {

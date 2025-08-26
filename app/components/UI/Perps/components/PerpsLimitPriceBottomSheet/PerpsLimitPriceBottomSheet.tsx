@@ -18,7 +18,10 @@ import Keypad from '../../../../Base/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  LIMIT_PRICE_CONFIG,
+} from '../../constants/perpsConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -30,6 +33,16 @@ interface PerpsLimitPriceBottomSheetProps {
   direction?: 'long' | 'short';
 }
 
+/**
+ * PerpsLimitPriceBottomSheet
+ * Modal for setting limit order prices with direction-specific presets
+ *
+ * Features:
+ * - Direction-aware presets (Long: -1%, -2%, -5%, -10% | Short: +1%, +2%, +5%, +10%)
+ * - Custom keypad for price input
+ * - Real-time current market price display
+ * - Automatic preset calculation based on current price
+ */
 const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   isVisible,
   onClose,
@@ -79,6 +92,14 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     [],
   );
 
+  /**
+   * Calculate limit price based on percentage from current market price
+   * @param percentage - Percentage to add/subtract from current price
+   * @returns Calculated price as string (e.g., "45123.50")
+   *
+   * For long orders: Negative percentages create buy limits below market
+   * For short orders: Positive percentages create sell limits above market
+   */
   const calculatePriceForPercentage = useCallback(
     (percentage: number) => {
       // Use the current market price (not limit price) for percentage calculations
@@ -160,63 +181,43 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
         </Text>
 
-        {/* Quick percentage buttons - TAT-1411: Direction-specific presets */}
+        {/* Quick percentage buttons - Direction-specific presets using config */}
         <View style={styles.percentageButtonsRow}>
           {direction === 'long' ? (
-            // For long orders: buy below market (-1%, -2%, -5%, -10%)
+            // For long orders: buy below market using LONG_PRESETS
             <>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(-1))}
-              >
-                <Text variant={TextVariant.BodyMD}>-1%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(-2))}
-              >
-                <Text variant={TextVariant.BodyMD}>-2%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(-5))}
-              >
-                <Text variant={TextVariant.BodyMD}>-5%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(-10))}
-              >
-                <Text variant={TextVariant.BodyMD}>-10%</Text>
-              </TouchableOpacity>
+              {LIMIT_PRICE_CONFIG.LONG_PRESETS.map((percentage) => (
+                <TouchableOpacity
+                  key={percentage}
+                  style={styles.percentageButton}
+                  onPress={() =>
+                    setLimitPrice(calculatePriceForPercentage(percentage))
+                  }
+                >
+                  <Text variant={TextVariant.BodyMD}>
+                    {percentage > 0 ? '+' : ''}
+                    {percentage}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </>
           ) : (
-            // For short orders: sell above market (+1%, +2%, +5%, +10%)
+            // For short orders: sell above market using SHORT_PRESETS
             <>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(1))}
-              >
-                <Text variant={TextVariant.BodyMD}>+1%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(2))}
-              >
-                <Text variant={TextVariant.BodyMD}>+2%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(5))}
-              >
-                <Text variant={TextVariant.BodyMD}>+5%</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.percentageButton}
-                onPress={() => setLimitPrice(calculatePriceForPercentage(10))}
-              >
-                <Text variant={TextVariant.BodyMD}>+10%</Text>
-              </TouchableOpacity>
+              {LIMIT_PRICE_CONFIG.SHORT_PRESETS.map((percentage) => (
+                <TouchableOpacity
+                  key={percentage}
+                  style={styles.percentageButton}
+                  onPress={() =>
+                    setLimitPrice(calculatePriceForPercentage(percentage))
+                  }
+                >
+                  <Text variant={TextVariant.BodyMD}>
+                    {percentage > 0 ? '+' : ''}
+                    {percentage}%
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </>
           )}
         </View>

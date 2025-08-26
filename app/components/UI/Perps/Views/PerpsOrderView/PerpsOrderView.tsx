@@ -105,8 +105,17 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
 }
 
-// Extract the main content into a separate component that uses context
-// Define component without React.memo first
+/**
+ * PerpsOrderViewContentBase
+ * Main content component for the Perps order view
+ *
+ * Features:
+ * - Order submission with race condition guard (prevents double submission on Android)
+ * - Real-time price updates and calculations
+ * - Dynamic TP/SL percentage display
+ * - Auto-opening limit price modal when switching order types
+ * - Comprehensive order validation
+ */
 const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { colors } = useTheme();
@@ -420,7 +429,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
-  // Calculate TP/SL display text with percentages
+  /**
+   * Calculate TP/SL display text with percentages
+   * Converts take profit and stop loss prices to percentage distances from current price
+   *
+   * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
+   *
+   * For TP: Shows the percentage gain from current price to take profit price
+   * For SL: Shows the percentage loss from current price to stop loss price
+   */
   const tpSlDisplayText = useMemo(() => {
     const price = parseFloat(currentPrice?.price || '0');
     let tpDisplay = strings('perps.order.off');

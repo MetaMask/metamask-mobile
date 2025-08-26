@@ -84,3 +84,35 @@ export const PERFORMANCE_CONFIG = {
  * This flag controls whether the perps notifications feature logic is enabled
  */
 export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;
+
+/**
+ * Leverage slider UI configuration
+ * Controls the visual and interactive aspects of the leverage slider
+ */
+export const LEVERAGE_SLIDER_CONFIG = {
+  // Step sizes for tick marks based on max leverage
+  TICK_STEP_LOW: 5, // Step size when max leverage <= 20
+  TICK_STEP_MEDIUM: 10, // Step size when max leverage <= 50
+  TICK_STEP_HIGH: 20, // Step size when max leverage > 50
+
+  // Thresholds for determining tick step size
+  MAX_LEVERAGE_LOW_THRESHOLD: 20,
+  MAX_LEVERAGE_MEDIUM_THRESHOLD: 50,
+} as const;
+
+/**
+ * Limit price configuration
+ * Controls preset percentages and behavior for limit orders
+ */
+export const LIMIT_PRICE_CONFIG = {
+  // Preset percentage options for quick selection
+  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+
+  // Modal opening delay when switching to limit order (milliseconds)
+  // Allows order type modal to close smoothly before opening limit price modal
+  MODAL_OPEN_DELAY: 300,
+
+  // Direction-specific preset configurations
+  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+} as const;
