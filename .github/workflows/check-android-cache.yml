@@ -57,18 +57,18 @@ jobs:
           
           if ! FINGERPRINT_HASH=$(npx @expo/fingerprint --silent 2>/dev/null); then
             echo "Failed to generate fingerprint, will build without caching"
-            echo "cache-key=" >> $GITHUB_OUTPUT
+            echo "cache-key=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           
-          echo "✅ Generated fingerprint: $FINGERPRINT_HASH"
+          echo "✅ Generated fingerprint: ${FINGERPRINT_HASH}"
           
           # Use global cache key for maximum efficiency across PRs
           CACHE_KEY="android-apk-global-${FINGERPRINT_HASH}"
-          echo "📦 Cache key: $CACHE_KEY"
+          echo "📦 Cache key: ${CACHE_KEY}"
           
-          echo "cache-key=$CACHE_KEY" >> $GITHUB_OUTPUT
-          echo "fingerprint_hash=$FINGERPRINT_HASH" >> $GITHUB_OUTPUT
+          echo "cache-key=${CACHE_KEY}" >> "$GITHUB_OUTPUT"
+          echo "fingerprint_hash=${FINGERPRINT_HASH}" >> "$GITHUB_OUTPUT"
 
       - name: Check for cached APKs
         id: cache-check
@@ -124,8 +124,8 @@ jobs:
         run: |
           if [[ "${{ steps.cache-check.outputs.cache-hit }}" == "true" ]]; then
             echo "🎯 Cache hit! No build needed"
-            echo "should-build=false" >> $GITHUB_OUTPUT
+            echo "should-build=false" >> "$GITHUB_OUTPUT"
           else
             echo "🏗️ Building APKs (cache miss or no fingerprint)"
-            echo "should-build=true" >> $GITHUB_OUTPUT
+            echo "should-build=true" >> "$GITHUB_OUTPUT"
           fi
