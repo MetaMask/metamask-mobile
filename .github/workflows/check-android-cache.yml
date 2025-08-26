@@ -43,11 +43,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
 
-      - name: Install fingerprint tool
+      - name: Install dependencies
         run: |
-          echo "📦 Installing @expo/fingerprint..."
-          npm install -g @expo/fingerprint
-          echo "✅ @expo/fingerprint installed"
+          echo "📦 Installing dependencies..."
+          yarn install --frozen-lockfile
+          echo "✅ Dependencies installed"
 
       - name: Generate fingerprint hash
         id: fingerprint
@@ -55,7 +55,7 @@ jobs:
           echo "🔍 Generating fingerprint for build caching..."
           
           # Generate fingerprint JSON and create a stable hash from it
-          if ! FINGERPRINT_JSON=$(npx @expo/fingerprint); then
+          if ! FINGERPRINT_JSON=$(npx expo fingerprint); then
             echo "❌ Failed to generate fingerprint, will build without caching"
             echo "cache-key=" >> "$GITHUB_OUTPUT"
             exit 0
