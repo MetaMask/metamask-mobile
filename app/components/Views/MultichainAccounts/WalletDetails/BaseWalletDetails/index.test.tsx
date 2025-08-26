@@ -17,7 +17,11 @@ import {
   createMockWallet,
 } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectAccountTreeControllerState } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectAccountTreeControllerState,
+  selectAccountGroupsByWallet,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
@@ -36,6 +40,8 @@ jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
     selectAccountTreeControllerState: jest.fn(),
+    selectSelectedAccountGroupId: jest.fn(),
+    selectAccountGroupsByWallet: jest.fn(),
   }),
 );
 
@@ -50,6 +56,20 @@ jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   },
   WalletClientType: {
     Solana: 'solana',
+  },
+}));
+
+// Mock Engine to prevent undefined internalAccounts error
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
+    },
   },
 }));
 
@@ -111,7 +131,34 @@ const mockInitialState: Partial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
-};
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [mockAccount1.id]: mockAccount1,
+            [mockAccount2.id]: mockAccount2,
+          },
+          selectedAccount: mockAccount1.id,
+        },
+      },
+      TokenBalancesController: {
+        tokenBalances: {},
+      },
+      TokenRatesController: {
+        marketData: {},
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {},
+        historicalPrices: {},
+      },
+      MultichainBalancesController: {
+        balances: {},
+      },
+    },
+  },
+} as unknown as RootState;
 
 describe('BaseWalletDetails', () => {
   beforeEach(() => {
@@ -159,6 +206,18 @@ describe('BaseWalletDetails', () => {
         },
       },
     });
+
+    // Mock selectAccountGroupsByWallet
+    const mockSelectAccountGroupsByWallet = jest.mocked(
+      selectAccountGroupsByWallet,
+    );
+    mockSelectAccountGroupsByWallet.mockReturnValue([
+      {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [mockAccountGroup1, mockAccountGroup2],
+      },
+    ]);
   });
 
   it('renders wallet name, balance, and accounts list', () => {
