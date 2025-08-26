@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+index e77fc15..b6bdbf9 100644
+--- a/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
++++ b/node_modules/@metamask/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
+@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
+ 
+ public class RNCWebViewClient extends WebViewClient {
+     private static String TAG = "RNCWebViewClient";
+-    protected static final int SHOULD_OVERRIDE_URL_LOADING_TIMEOUT = 250;
++    protected static final int SHOULD_OVERRIDE_URL_LOADING_TIMEOUT = 2000;
+ 
+     protected boolean mLastLoadFailed = false;
+     protected RNCWebView.ProgressChangedFilter progressChangedFilter = null;
