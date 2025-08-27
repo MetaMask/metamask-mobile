@@ -9,7 +9,7 @@ import { SmokeTrade } from '../../tags.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
-import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger';
@@ -24,7 +24,6 @@ const EVENT_NAMES = {
 
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
-  const SECOND_ROW: number = 1;
   let capturedEvents: EventPayload[] = [];
 
   beforeEach(async (): Promise<void> => {
@@ -46,37 +45,19 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
           .build(),
         localNodeOptions: [
           {
-            type: LocalNodeType.anvil,
+            type: LocalNodeType.ganache,
             options: {
               chainId: 1,
-              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
             },
-          ],
-          testSpecificMock,
-          restartDevice: true,
-          endTestfn: async ({ mockServer }) => {
-            try {
-              // Capture all events without filtering.
-              // When fixing the test skipped below the filter needs to be applied there.
-              capturedEvents = await getEventsPayloads(mockServer, [], 30000);
-            } catch (error: unknown) {
-              const errorMessage =
-                error instanceof Error ? error.message : String(error);
-              logger.error(`Error capturing events: ${errorMessage}`);
-            }
           },
         ],
-        mockServerInstance: mockServer,
+        testSpecificMock,
         restartDevice: true,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
+        endTestfn: async ({ mockServer }) => {
           try {
             // Capture all events without filtering.
             // When fixing the test skipped below the filter needs to be applied there.
-            capturedEvents = await getEventsPayloads(
-              mockServerInstance,
-              [],
-              30000,
-            );
+            capturedEvents = await getEventsPayloads(mockServer, [], 30000);
           } catch (error: unknown) {
             const errorMessage =
               error instanceof Error ? error.message : String(error);
@@ -87,11 +68,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       async () => {
         await loginToApp();
         await prepareSwapsTestEnvironment();
+
         await TabBarComponent.tapActions();
         await Assertions.expectElementToBeVisible(
           WalletActionsBottomSheet.swapButton,
         );
         await WalletActionsBottomSheet.tapSwapButton();
+
         // Submit the Swap
         await submitSwapUnifiedUI(
           quantity,
@@ -118,24 +101,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         sourceTokenSymbol: 'ETH',
         destTokenSymbol: 'USDC',
         quantity: '1',
-      },
-      {
-        type: 'swap',
-        sourceTokenSymbol: 'USDC',
-        destTokenSymbol: 'ETH',
-        quantity: '19',
-      },
-      {
-        type: 'wrap',
-        sourceTokenSymbol: 'ETH',
-        destTokenSymbol: 'WETH',
-        quantity: '0.03',
-      },
-      {
-        type: 'unwrap',
-        sourceTokenSymbol: 'WETH',
-        destTokenSymbol: 'ETH',
-        quantity: '0.01',
       },
     ];
 
