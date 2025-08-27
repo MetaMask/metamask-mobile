@@ -209,6 +209,8 @@ export class WC2Manager {
     sessions?: { [topic: string]: WalletConnect2Session };
   }) {
     if (!isWC2Enabled) {
+      console.warn(`WC2::init WC2 is not enabled --- SKIP INIT`);
+
       //If WC is not enabled, we don't need to initialize it
       return;
     }

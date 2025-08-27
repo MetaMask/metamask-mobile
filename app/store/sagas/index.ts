@@ -142,9 +142,9 @@ export function* basicFunctionalityToggle() {
 export function* initializeSDKServices() {
   try {
     // Initialize WalletConnect
-    yield call(WC2Manager.init, {});
+    yield call(() => WC2Manager.init({}));
     // Initialize SDKConnect
-    yield call(SDKConnect.init, { context: 'Nav/App' });
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
   } catch (e) {
     Logger.log('Failed to initialize services', e);
   }
@@ -153,7 +153,7 @@ export function* initializeSDKServices() {
 export function* handleDeeplinkSaga() {
   // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
   // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  const hasInitializedSDKServices = false;
+  let hasInitializedSDKServices = false;
 
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
@@ -183,6 +183,7 @@ export function* handleDeeplinkSaga() {
     // Initialize SDK services
     if (!hasInitializedSDKServices) {
       yield call(initializeSDKServices);
+      hasInitializedSDKServices = true;
     }
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
