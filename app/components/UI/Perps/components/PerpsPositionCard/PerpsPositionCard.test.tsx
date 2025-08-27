@@ -63,6 +63,9 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
+// Create mock functions that can be modified during tests
+const mockUsePerpsEligibility = jest.fn();
+
 // Mock the new hooks from ../../hooks
 jest.mock('../../hooks', () => ({
   usePerpsPositions: jest.fn().mockReturnValue({
@@ -93,6 +96,11 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
+// Mock usePerpsEligibility hook
+jest.mock('../../hooks/usePerpsEligibility', () => ({
+  usePerpsEligibility: () => mockUsePerpsEligibility(),
+}));
+
 // Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
 jest.mock('../PerpsTPSLBottomSheet', () => ({
   __esModule: true,
@@ -111,6 +119,29 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
           <Text>Close</Text>
         </TouchableOpacity>
       </View>
+    );
+  },
+}));
+
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose?: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity
+        testID="perps-position-card-geo-block-tooltip"
+        onPress={onClose}
+      >
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
     );
   },
 }));
@@ -160,6 +191,11 @@ describe('PerpsPositionCard', () => {
       '../../utils/pnlCalculations',
     );
     calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
+
+    // Default eligibility mock
+    mockUsePerpsEligibility.mockReturnValue({
+      isEligible: true,
+    });
   });
 
   describe('Component Rendering', () => {
@@ -300,8 +336,13 @@ describe('PerpsPositionCard', () => {
       });
     });
 
-    it('opens close position bottom sheet when close button is pressed', () => {
-      // Arrange & Act
+    it('opens close position bottom sheet when close button is pressed and user is eligible', () => {
+      // Arrange
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: true,
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -319,8 +360,13 @@ describe('PerpsPositionCard', () => {
       ).toBeDefined();
     });
 
-    it('opens TP/SL bottom sheet when edit button is pressed', () => {
-      // Arrange & Act
+    it('opens TP/SL bottom sheet when edit button is pressed and user is eligible', () => {
+      // Arrange
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: true,
+      });
+
+      // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
       // Verify bottom sheet is not visible initially
@@ -597,6 +643,74 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       ).toBeNull();
+    });
+
+    it('shows geo block modal when edit TP/SL button is pressed and user is not eligible', () => {
+      // Arrange
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press edit button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - TP/SL bottom sheet should not be shown
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+    });
+
+    it('shows geo block modal when close position button is pressed and user is not eligible', () => {
+      // Arrange
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press close button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - Close position bottom sheet should not be shown
+      expect(
+        screen.queryByTestId('perps-close-position-bottomsheet'),
+      ).toBeNull();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press edit button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(
+        screen.getByTestId('perps-position-card-geo-block-tooltip'),
+      );
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 });
