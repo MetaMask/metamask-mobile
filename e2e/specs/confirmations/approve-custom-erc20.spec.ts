@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -17,7 +17,7 @@ import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(RegressionConfirmations('ERC20 tokens'), () => {
   it('approve custom ERC20 token amount from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
