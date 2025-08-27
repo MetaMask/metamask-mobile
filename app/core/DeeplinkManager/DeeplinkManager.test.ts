@@ -26,21 +26,13 @@ const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
-const mockDispatch = jest.fn();
-
 describe('DeeplinkManager', () => {
-  let deeplinkManager = new DeeplinkManager({
-    navigation: mockNavigation,
-    dispatch: mockDispatch,
-  });
+  let deeplinkManager = new DeeplinkManager();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    deeplinkManager = new DeeplinkManager({
-      navigation: mockNavigation,
-      dispatch: mockDispatch,
-    });
+    deeplinkManager = new DeeplinkManager();
   });
 
   it('should set, get, and expire a deeplink correctly', () => {

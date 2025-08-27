@@ -943,13 +943,12 @@ describe('App', () => {
       });
     });
 
-    it('should pass navigation object to SharedDeeplinkManager.init', async () => {
+    it('should no longer pass navigation object to SharedDeeplinkManager.init', async () => {
       renderScreen(App, { name: 'App' }, { state: initialState });
 
       await waitFor(() => {
         expect(SharedDeeplinkManager.init).toHaveBeenCalledWith({
-          navigation: expect.any(Object),
-          dispatch: expect.any(Function),
+
         });
       });
     });
