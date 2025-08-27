@@ -45,6 +45,11 @@ export function Recipient({
 
   return (
     <Pressable
+      testID={
+        isSelected
+          ? `selected-${recipient.address}`
+          : `recipient-${recipient.address}`
+      }
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2 px-4',
@@ -64,6 +69,7 @@ export function Recipient({
         </Box>
         <Box twClassName="ml-4 h-12 justify-center">
           <Text
+            testID={`recipient-address-${recipient.address}`}
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}

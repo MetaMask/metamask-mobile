@@ -96,14 +96,6 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
           />
           <ScrollView>
-            {/* <Text
-              twClassName="m-4"
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('send.accounts')}
-            </Text> */}
             <RecipientList
               data={accounts}
               onRecipientSelected={onRecipientSelected(
@@ -111,24 +103,14 @@ export const Recipient = () => {
               )}
             />
             {contacts.length > 0 && (
-              <>
-                {/* <Text
-                  twClassName="m-4"
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings('send.contacts')}
-                </Text> */}
-                <RecipientList
-                  isContactList
-                  data={contacts}
-                  onRecipientSelected={onRecipientSelected(
-                    RecipientInputMethod.SelectContact,
-                  )}
-                  emptyMessage={strings('send.no_contacts_found')}
-                />
-              </>
+              <RecipientList
+                isContactList
+                data={contacts}
+                onRecipientSelected={onRecipientSelected(
+                  RecipientInputMethod.SelectContact,
+                )}
+                emptyMessage={strings('send.no_contacts_found')}
+              />
             )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (

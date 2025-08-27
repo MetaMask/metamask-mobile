@@ -199,9 +199,9 @@ describe('useEVMNfts', () => {
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     mockIsEvmAddress.mockReturnValue(true);
     mockuseSendScope.mockReturnValue({
-      account: undefined,
-      isSolana: undefined,
-      isEvm: true,
+      isSolanaOnly: false,
+      isEvmOnly: true,
+      isBIP44: false,
     });
     mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
       'network-client-id',
@@ -214,9 +214,9 @@ describe('useEVMNfts', () => {
 
   it('returns empty array when isEvm is false', async () => {
     mockuseSendScope.mockReturnValue({
-      account: undefined,
-      isSolana: true,
-      isEvm: false,
+      isSolanaOnly: false,
+      isEvmOnly: false,
+      isBIP44: false,
     });
 
     mockSelectSelectedAccountGroup.mockReturnValue(

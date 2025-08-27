@@ -15,6 +15,12 @@ export interface AssetType extends TokenI {
   standard?: TokenStandard;
   description?: string;
   balanceInSelectedCurrency?: string;
+  type?: string;
+  fiat?: {
+    balance?: number;
+    currency?: string;
+    conversionRate?: number;
+  };
 }
 
 export interface Nft {

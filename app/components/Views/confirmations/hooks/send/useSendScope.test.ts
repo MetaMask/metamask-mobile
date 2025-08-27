@@ -38,7 +38,7 @@ describe('useSendScope', () => {
     },
   };
 
-  it('returns undefined flags when no account is selected', () => {
+  it('returns false flags when no account is selected', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -57,13 +57,13 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: undefined,
-      isSolana: undefined,
-      isEvm: undefined,
+      isSolanaOnly: false,
+      isEvmOnly: false,
+      isBIP44: false,
     });
   });
 
-  it('returns isSolana true for solana account type', () => {
+  it('returns isSolanaOnly true for solana account type', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -84,13 +84,13 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: mockSolanaAccount,
-      isSolana: true,
-      isEvm: undefined,
+      isSolanaOnly: true,
+      isEvmOnly: false,
+      isBIP44: false,
     });
   });
 
-  it('returns isEvm true for eip155 account type', () => {
+  it('returns isEvmOnly true for eip155 account type', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -111,13 +111,13 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: mockEvmAccount,
-      isSolana: undefined,
-      isEvm: true,
+      isSolanaOnly: false,
+      isEvmOnly: true,
+      isBIP44: false,
     });
   });
 
-  it('returns undefined flags for unknown account type', () => {
+  it('returns false flags for unknown account type', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -139,9 +139,9 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: mockUnknownAccount,
-      isSolana: undefined,
-      isEvm: undefined,
+      isSolanaOnly: false,
+      isEvmOnly: false,
+      isBIP44: false,
     });
   });
 
@@ -172,9 +172,9 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: solanaVariantAccount,
-      isSolana: true,
-      isEvm: undefined,
+      isSolanaOnly: true,
+      isEvmOnly: false,
+      isBIP44: false,
     });
   });
 
@@ -205,9 +205,9 @@ describe('useSendScope', () => {
     });
 
     expect(result.current).toEqual({
-      account: evmVariantAccount,
-      isSolana: undefined,
-      isEvm: true,
+      isSolanaOnly: false,
+      isEvmOnly: true,
+      isBIP44: false,
     });
   });
 });

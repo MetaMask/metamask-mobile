@@ -3,10 +3,11 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useSelector } from 'react-redux';
 import { isAddress } from 'ethers/lib/utils';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 import { AssetType, TokenStandard } from '../../types/token';
 import { useSendContext, SendContextProvider } from './send-context';
-import { useSendScope } from '../../hooks/send/useSendScope';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -17,13 +18,23 @@ jest.mock('ethers/lib/utils', () => ({
   isAddress: jest.fn(),
 }));
 
-jest.mock('../../hooks/send/useSendScope', () => ({
-  useSendScope: jest.fn(),
+jest.mock('@metamask/bridge-controller', () => ({
+  isSolanaChainId: jest.fn(),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  ...jest.requireActual('@metamask/keyring-api'),
+  isEvmAccountType: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Multichain/utils', () => ({
+  isSolanaAccount: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockIsEvmAddress = jest.mocked(isAddress);
-const mockuseSendScope = jest.mocked(useSendScope);
+const mockIsSolanaChainId = jest.mocked(isSolanaChainId);
+const mockIsEvmAccountType = jest.mocked(isEvmAccountType);
 
 describe('useSendContext', () => {
   const mockAccount1 = {
@@ -50,22 +61,28 @@ describe('useSendContext', () => {
     },
   } as unknown as InternalAccount;
 
-  const mockAccounts = {
-    account1: mockAccount1,
-    account2: mockAccount2,
-  };
-
-  const mockSelectedAccount = {
-    id: 'selectedAccount',
-    address: '0x789',
-    type: 'eip155:eoa',
+  const mockSolanaAccount = {
+    id: 'solanaAccount',
+    address: 'solana-address',
+    type: 'solana:default',
     options: {},
     methods: [],
     metadata: {
-      name: 'Selected Account',
-      keyring: { type: 'HD Key Tree' },
+      name: 'Solana Account',
+      keyring: { type: 'Solana Keyring' },
     },
   } as unknown as InternalAccount;
+
+  const mockAccounts = {
+    account1: mockAccount1,
+    account2: mockAccount2,
+    solanaAccount: mockSolanaAccount,
+  };
+
+  const mockSelectedGroup = {
+    id: 'group1',
+    accounts: ['account1', 'solanaAccount'],
+  };
 
   const mockAssetEvm: AssetType = {
     address: '0xtoken',
@@ -82,7 +99,7 @@ describe('useSendContext', () => {
     standard: TokenStandard.ERC20,
   };
 
-  const mockAssetNonEvm: AssetType = {
+  const mockAssetSolana: AssetType = {
     address: 'solana-token',
     aggregators: [],
     decimals: 9,
@@ -93,7 +110,7 @@ describe('useSendContext', () => {
     logo: '',
     isETH: false,
     chainId: 'solana:mainnet',
-    accountId: 'account2',
+    accountId: 'solanaAccount',
   };
 
   const wrapper = ({ children }: { children: React.ReactElement }) => (
@@ -102,13 +119,18 @@ describe('useSendContext', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(mockAccounts);
+    mockUseSelector
+      .mockReturnValueOnce(mockAccounts)
+      .mockReturnValueOnce(mockSelectedGroup)
+      .mockReturnValueOnce(mockAccounts)
+      .mockReturnValueOnce(mockSelectedGroup)
+      .mockReturnValueOnce(mockAccounts)
+      .mockReturnValueOnce(mockSelectedGroup)
+      .mockReturnValueOnce(mockAccounts)
+      .mockReturnValueOnce(mockSelectedGroup);
     mockIsEvmAddress.mockReturnValue(false);
-    mockuseSendScope.mockReturnValue({
-      account: mockSelectedAccount,
-      isEvm: true,
-      isSolana: false,
-    });
+    mockIsSolanaChainId.mockReturnValue(false);
+    mockIsEvmAccountType.mockReturnValue(true);
   });
 
   it('provides initial context values', () => {
@@ -157,7 +179,7 @@ describe('useSendContext', () => {
     expect(result.current.value).toBe('1.5');
   });
 
-  it('updates fromAccount when asset has different accountId', () => {
+  it('updates fromAccount when asset has accountId', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
@@ -168,19 +190,20 @@ describe('useSendContext', () => {
     expect(result.current.from).toBe('0x123');
   });
 
-  it('uses selectedAccount when asset has same accountId', () => {
+  it('updates fromAccount when asset accountId changes', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
       result.current.updateAsset(mockAssetEvm);
     });
 
+    expect(result.current.fromAccount).toEqual(mockAccount1);
+
     act(() => {
-      result.current.updateAsset({ ...mockAssetEvm, name: 'Updated Token' });
+      result.current.updateAsset(mockAssetSolana);
     });
 
-    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
-    expect(result.current.from).toBe('0x789');
+    expect(result.current.fromAccount).toEqual(mockSolanaAccount);
   });
 
   it('computes chainId for EVM assets', () => {
@@ -201,7 +224,7 @@ describe('useSendContext', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
-      result.current.updateAsset(mockAssetNonEvm);
+      result.current.updateAsset(mockAssetSolana);
     });
 
     expect(result.current.chainId).toBe('solana:mainnet');
@@ -219,7 +242,9 @@ describe('useSendContext', () => {
     expect(result.current.chainId).toBeUndefined();
   });
 
-  it('uses selectedAccount when asset has no accountId', () => {
+  it('selects EVM account for EVM asset without accountId', () => {
+    mockIsEvmAddress.mockReturnValue(true);
+    mockIsEvmAccountType.mockReturnValue(true);
     const assetWithoutAccountId = { ...mockAssetEvm, accountId: undefined };
 
     const { result } = renderHook(() => useSendContext(), { wrapper });
@@ -228,8 +253,8 @@ describe('useSendContext', () => {
       result.current.updateAsset(assetWithoutAccountId);
     });
 
-    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
-    expect(result.current.from).toBe('0x789');
+    expect(result.current.fromAccount).toEqual(mockAccount1);
+    expect(result.current.from).toBe('0x123');
   });
 
   it('clears asset when updateAsset called with undefined', () => {
@@ -258,10 +283,10 @@ describe('useSendContext', () => {
     expect(result.current.fromAccount).toEqual(mockAccount1);
 
     act(() => {
-      result.current.updateAsset(mockAssetNonEvm);
+      result.current.updateAsset(mockAssetSolana);
     });
 
-    expect(result.current.fromAccount).toEqual(mockAccount2);
+    expect(result.current.fromAccount).toEqual(mockSolanaAccount);
   });
 
   it('handles missing account in accounts selector', () => {
@@ -280,12 +305,14 @@ describe('useSendContext', () => {
     expect(result.current.from).toBeUndefined();
   });
 
-  it('uses selectedAccount when asset accountId matches current fromAccount', () => {
+  it('keeps same account when asset accountId matches current fromAccount', () => {
     const { result } = renderHook(() => useSendContext(), { wrapper });
 
     act(() => {
       result.current.updateAsset(mockAssetEvm);
     });
+
+    expect(result.current.fromAccount).toEqual(mockAccount1);
 
     act(() => {
       result.current.updateAsset({
@@ -294,7 +321,23 @@ describe('useSendContext', () => {
       });
     });
 
-    expect(result.current.fromAccount).toEqual(mockSelectedAccount);
-    expect(result.current.from).toBe('0x789');
+    expect(result.current.fromAccount).toEqual(mockAccount1);
+  });
+
+  it('handles asset without address for account selection', () => {
+    const assetWithoutAddress = {
+      ...mockAssetEvm,
+      accountId: undefined,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (assetWithoutAddress as any).address;
+
+    const { result } = renderHook(() => useSendContext(), { wrapper });
+
+    act(() => {
+      result.current.updateAsset(assetWithoutAddress as AssetType);
+    });
+
+    expect(result.current.fromAccount).toBeUndefined();
   });
 });

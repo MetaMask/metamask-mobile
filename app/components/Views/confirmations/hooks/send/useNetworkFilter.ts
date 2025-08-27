@@ -40,7 +40,7 @@ export const useNetworkFilter = (
           return sum.plus(new BigNumber(fiatBalance));
         }, new BigNumber(0));
 
-      return networkBTotal.comparedTo(networkATotal);
+      return networkBTotal.comparedTo(networkATotal) || 0;
     });
   }, [tokens, networks]);
 
