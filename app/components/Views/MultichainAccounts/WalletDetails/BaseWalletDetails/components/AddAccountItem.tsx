@@ -30,7 +30,7 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
 
-  const boxStyles: ViewStyle[] = [styles.accountBox];
+  const boxStyles: ViewStyle[] = [styles.addAccountBox];
 
   if (totalItemsCount > 1) {
     boxStyles.push(styles.lastAccountBox);
