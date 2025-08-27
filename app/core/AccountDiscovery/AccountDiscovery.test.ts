@@ -65,7 +65,9 @@ describe('AccountDiscovery', () => {
 
     // Set up default mocks
     mockMultichainWalletSnapFactory.createClient.mockReturnValue(mockClient);
-    mockStorageWrapper.getItem.mockImplementation(async (key) => storageScratchPad[key] || '');
+    mockStorageWrapper.getItem.mockImplementation(
+      async (key) => storageScratchPad[key] || '',
+    );
     mockStorageWrapper.setItem.mockImplementation(async (key, value) => {
       storageScratchPad[key] = value;
     });
@@ -134,7 +136,14 @@ describe('AccountDiscovery', () => {
   describe('performAccountDiscovery', () => {
     it('throw error when discovery is already running', async () => {
       // Arrange
-      AccountDiscovery.discoveryRunning = true;
+      const pendingKeyring = {
+        'keyring-1': { [WalletClientType.Bitcoin]: true },
+      };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+
+      await AccountDiscovery.init();
+
+      AccountDiscovery.performAccountDiscovery();
 
       // Act & Assert
       await expect(AccountDiscovery.performAccountDiscovery()).rejects.toThrow(
