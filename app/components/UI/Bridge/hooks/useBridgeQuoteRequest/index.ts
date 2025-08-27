@@ -12,12 +12,12 @@ import {
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 export const DEBOUNCE_WAIT = 700;
 
@@ -31,7 +31,7 @@ export const useBridgeQuoteRequest = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const slippage = useSelector(selectSlippage);
-  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
+  const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
