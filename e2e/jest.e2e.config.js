@@ -30,8 +30,7 @@ module.exports = {
       {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
-        // Add properties to include CI metadata
-        addFileAttribute: 'true'
+        addFileAttribute: 'true',
       },
     ],
   ],
