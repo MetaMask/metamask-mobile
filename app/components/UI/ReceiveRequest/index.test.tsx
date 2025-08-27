@@ -218,15 +218,16 @@ describe('ReceiveRequest', () => {
 
     // Act
     const { getByTestId } = renderScreen(
-      () => React.createElement(ReceiveRequest, { 
-        navigation: { navigate: mockNavigate },
-        selectedAddress: '0x123',
-        receiveAsset: receiveAsset,
-        metrics: {
-          trackEvent: jest.fn(),
-          createEventBuilder: jest.fn(() => ({ build: jest.fn() })),
-        },
-      }),
+      () =>
+        React.createElement(ReceiveRequest, {
+          navigation: { navigate: mockNavigate },
+          selectedAddress: '0x123',
+          receiveAsset,
+          metrics: {
+            trackEvent: jest.fn(),
+            createEventBuilder: jest.fn(() => ({ build: jest.fn() })),
+          },
+        }),
       { name: 'ReceiveRequest' },
       { state },
     );
@@ -238,7 +239,7 @@ describe('ReceiveRequest', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith('PaymentRequestView', {
       screen: 'PaymentRequest',
-      params: { receiveAsset: receiveAsset },
+      params: { receiveAsset },
     });
   });
 });
