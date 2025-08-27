@@ -1,50 +1,48 @@
-import React, { useEffect, useCallback, useRef } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { typography } from '@metamask/design-tokens';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
-import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { isNonEvmAddress } from '../../../core/Multichain/utils';
-import { getHasOrders } from '../../../reducers/fiatOrders';
-import { getTransactionsNavbarOptions } from '../../UI/Navbar';
-import TransactionsView from '../TransactionsView';
-import MultichainTransactionsView from '../MultichainTransactionsView';
-import TabBar from '../../Base/TabBar';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
-import ErrorBoundary from '../ErrorBoundary';
-import { useTheme } from '../../../util/theme';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import TextComponent, {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
+import { getHasOrders } from '../../../reducers/fiatOrders';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { useParams } from '../../../util/navigation/navUtils';
-import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
-import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import {
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { typography } from '@metamask/design-tokens';
-import { useStyles } from '../../hooks/useStyles';
-import TextComponent, {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { useParams } from '../../../util/navigation/navUtils';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import { useTheme } from '../../../util/theme';
+import TabBar from '../../Base/TabBar';
+import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
+import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
-import { usePerpsPositions } from '../../UI/Perps/hooks';
-import { usePerpsEligibility } from '../../UI/Perps/hooks/usePerpsEligibility';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
+import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { useStyles } from '../../hooks/useStyles';
+import ErrorBoundary from '../ErrorBoundary';
+import MultichainTransactionsView from '../MultichainTransactionsView';
+import TransactionsView from '../TransactionsView';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -133,6 +131,7 @@ const ActivityView = () => {
   const tabViewRef = useRef();
   const params = useParams();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -185,6 +184,11 @@ const ActivityView = () => {
   const renderTabBar = () =>
     hasOrders || isPerpsEnabled ? <TabBar /> : <View />;
 
+  // Calculate if Perps tab is currently active
+  // Perps is the last tab, so its index depends on what other tabs are shown
+  const perpsTabIndex = hasOrders ? 2 : 1;
+  const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
+
   useFocusEffect(
     useCallback(() => {
       if (hasOrders && params.redirectToOrders) {
@@ -213,47 +217,51 @@ const ActivityView = () => {
         </Text>
       </View>
       <View style={styles.wrapper}>
-        <View style={styles.controlButtonOuterWrapper}>
-          <ButtonBase
-            testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-            label={
-              <>
-                {isRemoveGlobalNetworkSelectorEnabled() ? (
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.titleText}
-                    numberOfLines={1}
-                  >
-                    {enabledNetworks.length > 1
-                      ? strings('networks.enabled_networks')
-                      : currentNetworkName ?? strings('wallet.current_network')}
-                  </TextComponent>
-                ) : (
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.titleText}
-                    numberOfLines={1}
-                  >
-                    {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
-                      ? strings('wallet.popular_networks')
-                      : networkName ?? strings('wallet.current_network')}
-                  </TextComponent>
-                )}
-              </>
-            }
-            isDisabled={isDisabled}
-            onPress={isEvmSelected ? showFilterControls : () => null}
-            endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-            style={
-              isDisabled ? styles.controlButtonDisabled : styles.controlButton
-            }
-            disabled={isDisabled}
-          />
-        </View>
+        {!isPerpsTabActive && (
+          <View style={styles.controlButtonOuterWrapper}>
+            <ButtonBase
+              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+              label={
+                <>
+                  {isRemoveGlobalNetworkSelectorEnabled() ? (
+                    <TextComponent
+                      variant={TextVariant.BodyMDMedium}
+                      style={styles.titleText}
+                      numberOfLines={1}
+                    >
+                      {enabledNetworks.length > 1
+                        ? strings('networks.enabled_networks')
+                        : currentNetworkName ??
+                          strings('wallet.current_network')}
+                    </TextComponent>
+                  ) : (
+                    <TextComponent
+                      variant={TextVariant.BodyMDMedium}
+                      style={styles.titleText}
+                      numberOfLines={1}
+                    >
+                      {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
+                        ? strings('wallet.popular_networks')
+                        : networkName ?? strings('wallet.current_network')}
+                    </TextComponent>
+                  )}
+                </>
+              }
+              isDisabled={isDisabled}
+              onPress={isEvmSelected ? showFilterControls : () => null}
+              endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
+              style={
+                isDisabled ? styles.controlButtonDisabled : styles.controlButton
+              }
+              disabled={isDisabled}
+            />
+          </View>
+        )}
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
           locked={!hasOrders && !isPerpsEnabled}
+          onChangeTab={({ i }) => setActiveTabIndex(i)}
         >
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView

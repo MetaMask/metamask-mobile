@@ -197,7 +197,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               )}
               <Animated.View
                 style={[styles.thumb, thumbStyle]}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
               />
             </Animated.View>
           </GestureDetector>

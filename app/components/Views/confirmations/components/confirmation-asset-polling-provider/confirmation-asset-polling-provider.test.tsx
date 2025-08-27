@@ -42,8 +42,9 @@ describe('ConfirmationAssetPollingProvider', () => {
     jest.clearAllMocks();
     mockAssetPollingProvider.mockClear();
     selectEnabledSourceChainsMock.mockReturnValue([
-      { chainId: CHAIN_ID_MOCK },
-      { chainId: CHAIN_ID_2_MOCK },
+      { chainId: CHAIN_ID_MOCK, isEvm: true },
+      { chainId: CHAIN_ID_2_MOCK, isEvm: true },
+      { chainId: 'SolanaChainId', isEvm: false },
     ] as unknown as MultichainNetworkConfiguration[]);
   });
 

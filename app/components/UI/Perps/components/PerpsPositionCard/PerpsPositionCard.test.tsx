@@ -27,11 +27,18 @@ jest.mock('../../utils/pnlCalculations', () => ({
   calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
 }));
 
-// Mock asset metadata hook
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn().mockReturnValue({
-    assetUrl: 'https://example.com/eth.png',
-  }),
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
+  },
 }));
 
 // Mock stream provider
@@ -265,6 +272,38 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(screen.getByText('N/A')).toBeOnTheScreen();
+    });
+
+    it('renders with icon when showIcon is true and not expanded', () => {
+      // Act - Render collapsed with showIcon
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - PerpsTokenLogo should be rendered
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
+    });
+
+    it('does not render icon when showIcon is false', () => {
+      // Act - Render collapsed without showIcon
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          expanded={false}
+          showIcon={false}
+        />,
+      );
+
+      // Assert - PerpsTokenLogo should not be rendered
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
+    });
+
+    it('does not render icon when expanded even if showIcon is true', () => {
+      // Act - Render expanded with showIcon (should not show icon)
+      render(<PerpsPositionCard position={mockPosition} expanded showIcon />);
+
+      // Assert - PerpsTokenLogo should not be rendered in expanded mode
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
     });
   });
 

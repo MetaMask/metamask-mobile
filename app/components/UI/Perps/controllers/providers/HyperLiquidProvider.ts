@@ -2107,16 +2107,46 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     const parsedAmount = amount ? parseFloat(amount) : 0;
-    const feeAmount =
+
+    // Protocol base fee (HyperLiquid's fee)
+    const protocolFeeRate = feeRate;
+    const protocolFeeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)
           ? 0
-          : parsedAmount * feeRate
+          : parsedAmount * protocolFeeRate
+        : undefined;
+
+    // MetaMask builder fee (0.1% = 0.001)
+    const metamaskFeeRate = BUILDER_FEE_CONFIG.maxFeeDecimal;
+    const metamaskFeeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * metamaskFeeRate
+        : undefined;
+
+    // Total fees
+    const totalFeeRate = protocolFeeRate + metamaskFeeRate;
+    const totalFeeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * totalFeeRate
         : undefined;
 
     return {
-      feeRate,
-      feeAmount,
+      // Total fees
+      feeRate: totalFeeRate,
+      feeAmount: totalFeeAmount,
+
+      // Protocol fees
+      protocolFeeRate,
+      protocolFeeAmount,
+
+      // MetaMask fees
+      metamaskFeeRate,
+      metamaskFeeAmount,
     };
   }
 

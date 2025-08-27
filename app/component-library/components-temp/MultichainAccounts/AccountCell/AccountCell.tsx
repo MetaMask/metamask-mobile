@@ -1,6 +1,7 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
@@ -13,14 +14,22 @@ import {
 } from '../../../../components/UI/Box/box.types';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
+import { formatWithThreshold } from '../../../../util/assets';
+import I18n from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   isSelected: boolean;
+  hideMenu?: boolean;
 }
 
-const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
+const AccountCell = ({
+  accountGroup,
+  isSelected,
+  hideMenu = false,
+}: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
@@ -29,6 +38,24 @@ const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
       accountGroup,
     });
   }, [navigate, accountGroup]);
+
+  const selectBalanceForGroup = useMemo(
+    () => selectBalanceByAccountGroup(accountGroup.id),
+    [accountGroup.id],
+  );
+  const groupBalance = useSelector(selectBalanceForGroup);
+  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
+  const userCurrency = groupBalance?.userCurrency;
+
+  const displayBalance = useMemo(() => {
+    if (totalBalance == null || !userCurrency) {
+      return undefined;
+    }
+    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
+      style: 'currency',
+      currency: userCurrency.toUpperCase(),
+    });
+  }, [totalBalance, userCurrency]);
 
   return (
     <Box
@@ -63,22 +90,21 @@ const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
           color={TextColor.Default}
           testID={AccountCellIds.BALANCE}
         >
-          {
-            // TODO: REPLACE WITH ACTUAL BALANCE
-            '$1234567890.00'
-          }
+          {displayBalance}
         </Text>
-        <TouchableOpacity
-          testID={AccountCellIds.MENU}
-          style={styles.menuButton}
-          onPress={handleMenuPress}
-        >
-          <Icon
-            name={IconName.MoreVertical}
-            size={IconSize.Md}
-            color={TextColor.Alternative}
-          />
-        </TouchableOpacity>
+        {!hideMenu && (
+          <TouchableOpacity
+            testID={AccountCellIds.MENU}
+            style={styles.menuButton}
+            onPress={handleMenuPress}
+          >
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Md}
+              color={TextColor.Alternative}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </Box>
   );

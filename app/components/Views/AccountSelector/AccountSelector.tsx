@@ -210,7 +210,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {isMultichainAccountsState2Enabled && selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroup={selectedAccountGroup}
+            selectedAccountGroups={[selectedAccountGroup]}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           />
         ) : (

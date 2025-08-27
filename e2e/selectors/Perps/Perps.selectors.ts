@@ -53,17 +53,6 @@ export const PerpsPositionCardSelectorsIDs = {
 };
 
 // ========================================
-// PERPS POSITION HEADER SELECTORS
-// ========================================
-
-export const PerpsPositionHeaderSelectorsIDs = {
-  HEADER: 'position-header',
-  COIN: 'position-header-coin',
-  PNL: 'position-header-pnl',
-  BACK_BUTTON: 'perps-position-header-back-button',
-};
-
-// ========================================
 // PERPS LOADER SELECTORS
 // ========================================
 
@@ -346,6 +335,8 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
 };
 
 // ========================================

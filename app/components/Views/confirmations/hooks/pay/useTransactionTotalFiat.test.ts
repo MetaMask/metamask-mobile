@@ -65,25 +65,19 @@ describe('useTransactionTotalFiat', () => {
     const { result } = runHook({
       quotes: [
         {
-          adjustedReturn: {
+          sentAmount: {
             valueInCurrency: '12.34',
           },
-          cost: {
-            valueInCurrency: '23.45',
-          },
           totalMaxNetworkFee: {
-            valueInCurrency: '34.56',
+            valueInCurrency: '23.45',
           },
         },
         {
-          adjustedReturn: {
-            valueInCurrency: '45.67',
-          },
-          cost: {
-            valueInCurrency: '56.78',
+          sentAmount: {
+            valueInCurrency: '34.56',
           },
           totalMaxNetworkFee: {
-            valueInCurrency: '67.89',
+            valueInCurrency: '45.67',
           },
         },
       ] as TransactionBridgeQuote[],
@@ -91,8 +85,8 @@ describe('useTransactionTotalFiat', () => {
 
     expect(result.current).toStrictEqual(
       expect.objectContaining({
-        value: '240.69',
-        formatted: '$240.69',
+        value: '116.02',
+        formatted: '$116.02',
       }),
     );
   });
@@ -138,14 +132,11 @@ describe('useTransactionTotalFiat', () => {
     const { result } = runHook({
       quotes: [
         {
-          adjustedReturn: {
+          sentAmount: {
             valueInCurrency: '30',
           },
-          cost: {
-            valueInCurrency: '40',
-          },
           totalMaxNetworkFee: {
-            valueInCurrency: '50',
+            valueInCurrency: '40',
           },
           quote: {
             destAsset: {
@@ -158,8 +149,8 @@ describe('useTransactionTotalFiat', () => {
 
     expect(result.current).toStrictEqual(
       expect.objectContaining({
-        value: '140',
-        formatted: '$140',
+        value: '90',
+        formatted: '$90',
       }),
     );
   });

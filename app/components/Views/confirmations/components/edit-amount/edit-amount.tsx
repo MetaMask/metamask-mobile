@@ -12,9 +12,10 @@ import { BigNumber } from 'bignumber.js';
 
 export interface EditAmountProps {
   autoKeyboard?: boolean;
-  children?: React.ReactNode;
+  children?: (amountHuman: string) => React.ReactNode;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
+  onKeyboardDone?: () => void;
   prefix?: string;
 }
 
@@ -23,15 +24,16 @@ export function EditAmount({
   children,
   onKeyboardShow,
   onKeyboardHide,
+  onKeyboardDone,
   prefix = '',
 }: EditAmountProps) {
   const { fieldAlerts } = useAlerts();
   const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
-  const hasAlert = alerts.length > 0;
   const inputRef = createRef<TextInput>();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
+  const hasAlert = alerts.length > 0 && inputChanged;
 
   const { styles } = useStyles(styleSheet, {
     hasAlert,
@@ -39,11 +41,13 @@ export function EditAmount({
 
   const { payToken } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
-  const { balanceFiat } = payToken ?? {};
+  const { tokenFiatAmount } = payToken ?? {};
 
   const [amountHuman, setAmountHuman] = useState<string>(
     amountUnformatted ?? '0',
   );
+
+  const hasAmount = amountHuman !== '0';
 
   const handleInputPress = useCallback(() => {
     inputRef.current?.focus();
@@ -60,33 +64,45 @@ export function EditAmount({
 
   const handleChange = useCallback(
     (amount: string) => {
-      setAmountHuman(amount);
-      updateTokenAmount(amount);
+      const normalizedAmount = amount.startsWith(prefix)
+        ? amount.replace(prefix, '')
+        : amount;
+
+      setAmountHuman(normalizedAmount);
     },
-    [updateTokenAmount],
+    [prefix],
   );
 
   const handleKeyboardDone = useCallback(() => {
+    updateTokenAmount(amountHuman);
     inputRef.current?.blur();
     setInputChanged(true);
     setShowKeyboard(false);
     setIsFooterVisible?.(true);
     onKeyboardHide?.();
-  }, [inputRef, onKeyboardHide, setIsFooterVisible]);
+    onKeyboardDone?.();
+  }, [
+    amountHuman,
+    inputRef,
+    onKeyboardDone,
+    onKeyboardHide,
+    setIsFooterVisible,
+    updateTokenAmount,
+  ]);
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
-      if (!balanceFiat) {
+      if (!tokenFiatAmount) {
         return;
       }
 
-      const percentageValue = new BigNumber(balanceFiat)
+      const percentageValue = new BigNumber(tokenFiatAmount)
         .multipliedBy(percentage)
         .dividedBy(100);
 
       handleChange(percentageValue.toString(10));
     },
-    [balanceFiat, handleChange],
+    [handleChange, tokenFiatAmount],
   );
 
   const displayValue = `${prefix}${amountHuman}`;
@@ -101,12 +117,14 @@ export function EditAmount({
           ref={inputRef}
           showSoftInputOnFocus={false}
           onPress={handleInputPress}
+          onChangeText={handleChange}
         />
-        {children}
+        {children?.(amountHuman)}
       </View>
       {showKeyboard && (
         <DepositKeyboard
           value={amountHuman.toString()}
+          hasInput={hasAmount}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
           onPercentagePress={handlePercentagePress}

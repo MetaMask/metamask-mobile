@@ -3,7 +3,6 @@ import { cloneDeep } from 'lodash';
 import { RootState } from '../reducers';
 import {
   selectContractBalances,
-  selectContractBalancesByContextualChainId,
   selectAllTokenBalances,
   selectTokensBalances,
   selectAddressHasTokenBalances,
@@ -53,9 +52,6 @@ describe('TokenBalancesController Selectors', () => {
           },
         },
       },
-    },
-    networkOnboarded: {
-      sendFlowChainId: '0x5',
     },
   } as unknown as RootState;
 
@@ -110,62 +106,6 @@ describe('TokenBalancesController Selectors', () => {
         mockTokenBalancesControllerState,
         selectedAccount as `0x${string}`,
         chainId,
-      );
-
-      expect(result).toEqual({});
-    });
-  });
-
-  describe('selectContractBalancesByContextualChainId', () => {
-    it('returns token balances for the selected account and contextual chain ID', () => {
-      const selectedAccount: Hex = '0xAccount1';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({
-        '0xToken3': '0x300',
-      });
-    });
-
-    it('returns an empty object if no balances exist for the selected account', () => {
-      const selectedAccount: Hex = '0xUnknownAccount';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object if no balances exist for the contextual chain ID', () => {
-      const selectedAccount: Hex = '0xAccount1';
-      const contextualChainId = '0xUnknownChain';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object if the selected account is undefined', () => {
-      const selectedAccount: string = '';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
       );
 
       expect(result).toEqual({});
@@ -350,62 +290,6 @@ describe('TokenBalancesController Selectors', () => {
       // Assert - selectors with same parameters are same reference
       expect(result1).toBe(result3);
       expect(result2).toBe(result4);
-    });
-  });
-
-  describe('selectContractBalancesByContextualChainId', () => {
-    it('returns token balances for the selected account and contextual chain ID', () => {
-      const selectedAccount: Hex = '0xAccount1';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({
-        '0xToken3': '0x300',
-      });
-    });
-
-    it('returns an empty object if no balances exist for the selected account', () => {
-      const selectedAccount: Hex = '0xUnknownAccount';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object if no balances exist for the contextual chain ID', () => {
-      const selectedAccount: Hex = '0xAccount1';
-      const contextualChainId = '0xUnknownChain';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({});
-    });
-
-    it('returns an empty object if the selected account is undefined', () => {
-      const selectedAccount: string = '';
-      const contextualChainId = '0x5';
-
-      const result = selectContractBalancesByContextualChainId.resultFunc(
-        mockTokenBalancesControllerState,
-        selectedAccount,
-        contextualChainId,
-      );
-
-      expect(result).toEqual({});
     });
   });
 });

@@ -8,6 +8,7 @@ export { usePerpsDepositStatus } from './usePerpsDepositStatus';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 
 // State hooks (Redux selectors)
 export { usePerpsAccount } from './usePerpsAccount';

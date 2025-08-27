@@ -20,4 +20,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   open_interest: undefined,
   funding_rate: undefined,
   perps_geo_block: undefined,
+  tp_sl: undefined,
 };

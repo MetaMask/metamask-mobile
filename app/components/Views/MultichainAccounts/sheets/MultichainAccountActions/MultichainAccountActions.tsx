@@ -23,6 +23,7 @@ import {
   // MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
+import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
 
 interface MultichainAccountActionsParams {
   accountGroup: AccountGroupObject;
@@ -45,7 +46,16 @@ const MultichainAccountActions = () => {
 
   // const goToEditAccountName = useCallback(() => null, []); // TODO: To be implemented
 
-  const goToAddresses = useCallback(() => null, []); // TODO: To be implemented
+  const goToAddresses = useCallback(() => {
+    navigate(
+      ...createAddressListNavigationDetails({
+        groupId: accountGroup.id,
+        title: `${strings('multichain_accounts.address_list.addresses')} / ${
+          accountGroup.metadata.name
+        }`,
+      }),
+    );
+  }, [accountGroup.id, accountGroup.metadata.name, navigate]);
 
   return (
     <BottomSheet ref={sheetRef}>

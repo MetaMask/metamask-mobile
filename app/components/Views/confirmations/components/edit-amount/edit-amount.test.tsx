@@ -19,6 +19,8 @@ jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 
+jest.useFakeTimers();
+
 const VALUE_MOCK = '1.23';
 
 const state = merge(
@@ -74,7 +76,7 @@ describe('EditAmount', () => {
     );
   });
 
-  it('calls updateTokenAmount when input changes', async () => {
+  it('calls updateTokenAmount when done button pressed', async () => {
     const { getByTestId, getByText } = render();
 
     await act(async () => {
@@ -85,7 +87,17 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '5');
+    await act(async () => {
+      fireEvent.press(getByText('3'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+    });
+
+    await jest.runAllTimersAsync();
+
+    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '53');
   });
 
   it('updates amount when input changes', async () => {
@@ -112,18 +124,29 @@ describe('EditAmount', () => {
   });
 
   it('hides keyboard if done button pressed', async () => {
-    const { queryByTestId, getByText } = render({ autoKeyboard: true });
+    const { queryByTestId, getByTestId, getByText } = render({
+      autoKeyboard: true,
+    });
 
     await act(async () => {
-      fireEvent.press(getByText('Done'));
+      fireEvent.press(getByText('5'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
     });
 
     expect(queryByTestId('deposit-keyboard')).toBeNull();
   });
 
   it('updates token amount if percentage button pressed', async () => {
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '0',
+      updateTokenAmount: updateTokenAmountMock,
+    } as unknown as ReturnType<typeof useTokenAmount>);
+
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { balanceFiat: '1200.50' },
+      payToken: { tokenFiatAmount: 1200.5 },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
@@ -138,7 +161,8 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('50%'));
     });
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
+    await jest.runAllTimersAsync();
+
     expect(input).toHaveProp('value', '600.25');
   });
 
@@ -146,6 +170,11 @@ describe('EditAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '0',
+      updateTokenAmount: updateTokenAmountMock,
+    } as unknown as ReturnType<typeof useTokenAmount>);
 
     const { getByTestId, getByText } = render();
 

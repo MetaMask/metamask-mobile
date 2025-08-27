@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
@@ -23,12 +22,19 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn(),
-}));
-const mockUsePerpsAssetMetadata = usePerpsAssetMetadata as jest.MockedFunction<
-  typeof usePerpsAssetMetadata
->;
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsTokenLogo({
+    symbol,
+    testID,
+  }: {
+    symbol: string;
+    testID?: string;
+  }) {
+    return <View testID={testID || 'perps-token-logo'} data-symbol={symbol} />;
+  };
+});
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
@@ -38,13 +44,6 @@ const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
 const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
   typeof usePerpsLivePrices
 >;
-
-jest.mock('../../../../Base/RemoteImage', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockRemoteImage({ source }: { source: { uri: string } }) {
-    return <View testID="remote-image" data-uri={source.uri} />;
-  };
-});
 
 // Mock react-redux for AvatarToken component
 jest.mock('react-redux', () => ({
@@ -65,11 +64,6 @@ describe('PerpsMarketRowItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
   });
 
   describe('Component Rendering', () => {
@@ -92,18 +86,14 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Asset Image Handling', () => {
-    it('renders RemoteImage when assetUrl is available', () => {
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: 'https://example.com/btc.png',
-        error: null,
-        hasError: false,
-      });
-
+    it('renders PerpsTokenLogo component', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      const remoteImage = screen.getByTestId('remote-image');
-      expect(remoteImage).toBeOnTheScreen();
-      expect(remoteImage.props['data-uri']).toBe('https://example.com/btc.png');
+      const tokenLogo = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('BTC'),
+      );
+      expect(tokenLogo).toBeOnTheScreen();
+      expect(tokenLogo.props['data-symbol']).toBe('BTC');
     });
   });
 
@@ -286,34 +276,6 @@ describe('PerpsMarketRowItem', () => {
 
       expect(mockOnPress).toHaveBeenCalledTimes(3);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
-    });
-  });
-
-  describe('Asset Metadata Integration', () => {
-    it('calls usePerpsAssetMetadata with correct symbol', () => {
-      const customMarket = {
-        ...mockMarketData,
-        symbol: 'ETH',
-      };
-
-      render(<PerpsMarketRowItem market={customMarket} />);
-
-      expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
-    });
-
-    it('handles different asset URLs correctly', () => {
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: 'https://assets.metamask.io/eth.svg',
-        error: null,
-        hasError: false,
-      });
-
-      render(<PerpsMarketRowItem market={mockMarketData} />);
-
-      const remoteImage = screen.getByTestId('remote-image');
-      expect(remoteImage.props['data-uri']).toBe(
-        'https://assets.metamask.io/eth.svg',
-      );
     });
   });
 

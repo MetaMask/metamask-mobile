@@ -11,10 +11,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -30,9 +26,7 @@ import {
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsPositionCard.styles';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import RemoteImage from '../../../../Base/RemoteImage';
 import {
   usePerpsMarkets,
   usePerpsTPSLUpdate,
@@ -41,6 +35,7 @@ import {
 import { usePerpsLivePrices } from '../../hooks/stream';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsClosePositionBottomSheet from '../PerpsClosePositionBottomSheet';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -61,7 +56,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { assetUrl } = usePerpsAssetMetadata(position.coin);
 
   // Subscribe to live prices at the leaf level to avoid re-rendering parent components
   // Only subscribe when expanded (detailed view) to optimize performance
@@ -162,14 +156,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           {/* Icon Section - Conditionally shown (only in collapsed mode) */}
           {showIcon && !expanded && (
             <View style={styles.perpIcon}>
-              {assetUrl ? (
-                <RemoteImage
-                  source={{ uri: assetUrl }}
-                  style={styles.tokenIcon}
-                />
-              ) : (
-                <Icon name={IconName.Coin} size={IconSize.Lg} />
-              )}
+              <PerpsTokenLogo symbol={position.coin} size={40} />
             </View>
           )}
 

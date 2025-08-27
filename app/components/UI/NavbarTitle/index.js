@@ -18,7 +18,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { NETWORK_SELECTOR_SOURCE_VALUES } from '../../../constants/networkSelector';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -82,10 +81,6 @@ class NavbarTitle extends PureComponent {
      * Selected network name
      */
     selectedNetworkName: PropTypes.string,
-    /**
-     * Source of the network selector
-     */
-    source: PropTypes.oneOf(NETWORK_SELECTOR_SOURCE_VALUES),
   };
 
   static defaultProps = {
@@ -101,18 +96,13 @@ class NavbarTitle extends PureComponent {
         this.animating = true;
         this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.NETWORK_SELECTOR,
-          params: {
-            source: this.props.source,
-          },
         });
 
         this.props.metrics.trackEvent(
           this.props.metrics
             .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
             .addProperties({
-              // TODO: if contextual chainId is used, the providerConfig is the chain needed for this tracking
               chain_id: getDecimalChainId(this.props.chainId),
-              source: this.props.source,
             })
             .build(),
         );

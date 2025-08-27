@@ -12,6 +12,16 @@ export const createStyles = (colors: Theme['colors']) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
     },
+    headerLeft: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 2,
+    },
     headerCenter: {
       flex: 1,
       alignItems: 'center',

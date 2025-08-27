@@ -242,15 +242,6 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$0.005')).toBeOnTheScreen();
   });
 
-  it('should render points correctly', () => {
-    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
-      state: mockInitialState,
-    });
-
-    expect(getByText('Points')).toBeOnTheScreen();
-    expect(getByText('+75.50')).toBeOnTheScreen();
-  });
-
   it('should not render points when not present', () => {
     const transactionWithoutPoints = {
       ...mockTransaction,
@@ -272,39 +263,6 @@ describe('PerpsPositionTransactionView', () => {
     );
 
     expect(queryByText('Points')).not.toBeOnTheScreen();
-  });
-
-  it('should handle different point values correctly', () => {
-    const testCases = [
-      { points: '0', expected: '+0' },
-      { points: '0.00', expected: '+0.00' },
-      { points: '100.00', expected: '+100.00' },
-      { points: '0.50', expected: '+0.50' },
-      { points: '1234.56', expected: '+1234.56' },
-    ];
-
-    testCases.forEach(({ points, expected }) => {
-      const transactionWithPoints = {
-        ...mockTransaction,
-        fill: {
-          ...mockTransaction.fill,
-          points,
-        },
-      };
-
-      mockUseRoute.mockReturnValue({
-        params: { transaction: transactionWithPoints },
-      });
-
-      const { getByText } = renderWithProvider(
-        <PerpsPositionTransactionView />,
-        {
-          state: mockInitialState,
-        },
-      );
-
-      expect(getByText(expected)).toBeOnTheScreen();
-    });
   });
 
   it('should navigate to block explorer in browser tab when button is pressed', () => {
