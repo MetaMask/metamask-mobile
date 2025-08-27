@@ -9,7 +9,6 @@ export const ALLOWLISTED_HOSTS = [
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
-  '*.infura.io',
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
