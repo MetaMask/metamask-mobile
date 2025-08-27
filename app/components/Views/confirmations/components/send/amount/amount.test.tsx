@@ -307,7 +307,7 @@ describe('Amount Component', () => {
 describe('getFontSizeForInputLength', () => {
   it('return correct font size for character length', () => {
     expect(getFontSizeForInputLength(5)).toEqual(60);
-    expect(getFontSizeForInputLength(8)).toEqual(60);
+    expect(getFontSizeForInputLength(11)).toEqual(60);
     expect(getFontSizeForInputLength(12)).toEqual(32);
     expect(getFontSizeForInputLength(15)).toEqual(32);
     expect(getFontSizeForInputLength(20)).toEqual(24);
