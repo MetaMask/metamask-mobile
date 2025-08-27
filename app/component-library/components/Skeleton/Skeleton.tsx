@@ -3,6 +3,7 @@
 // Third party dependencies.
 import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
+import { isE2E } from '../../../util/test/utils';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks';
@@ -51,7 +52,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
   useEffect(() => {
     // Only start animation if no children are present or if children should be hidden
-    if (!children || hideChildren) {
+    if (!isE2E && (!children || hideChildren)) {
       startAnimation();
     }
 

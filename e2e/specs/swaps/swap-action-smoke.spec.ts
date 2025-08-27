@@ -3,8 +3,7 @@ import { LocalNodeType } from '../../framework/types';
 import SoftAssert from '../../utils/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import { SmokeTrade } from '../../tags.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
@@ -68,12 +67,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       async () => {
         await loginToApp();
         await prepareSwapsTestEnvironment();
-
-        await TabBarComponent.tapActions();
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.swapButton,
-        );
-        await WalletActionsBottomSheet.tapSwapButton();
+        await WalletView.tapWalletSwapButton();
 
         // Submit the Swap
         await submitSwapUnifiedUI(

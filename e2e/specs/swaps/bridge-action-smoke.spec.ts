@@ -8,7 +8,6 @@ import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
@@ -80,9 +79,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await NetworkEducationModal.tapGotItButton();
         await Assertions.expectElementToBeVisible(WalletView.container);
         await prepareSwapsTestEnvironment();
-
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSwapButton();
+        await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
         await QuoteView.selectNetwork(destNetwork);

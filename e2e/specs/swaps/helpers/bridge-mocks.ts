@@ -1,13 +1,12 @@
 import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../../framework';
-import {
-  interceptProxyUrl,
-  setupMockRequest,
-} from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
   GET_TOKENS_BASE_RESPONSE,
+  GET_QUOTE_ETH_SOLANA_RESPONSE,
+  GET_QUOTE_ETH_BASE_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -37,9 +36,19 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  await interceptProxyUrl(
-    mockServer,
-    (url) => url.includes('getQuote') && url.includes('insufficientBal=false'),
-    (url) => url.replace('insufficientBal=false', 'insufficientBal=true'),
-  );
+  // Mock quote response ETH(Ethereum)->SOL(Solana)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*destChainId=1151111081099710/i,
+    response: GET_QUOTE_ETH_SOLANA_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock quote response ETH(Ethereum)->ETH(BASE)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getQuote.*destChainId=8453/i,
+    response: GET_QUOTE_ETH_BASE_RESPONSE,
+    responseCode: 200,
+  });
 };
