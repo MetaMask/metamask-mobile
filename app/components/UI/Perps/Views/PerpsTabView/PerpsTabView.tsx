@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,11 +44,16 @@ import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
+import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -70,6 +75,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     hideTpSl: true, // Filter out TP/SL orders
     throttleMs: 1000, // Update orders every second
   });
+
+  const { isEligible } = usePerpsEligibility();
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
@@ -127,10 +134,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   ]);
 
   const handleManageBalancePress = useCallback(() => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, isEligible]);
 
   const handleStartTrading = useCallback(() => {
     // Navigate to tutorial carousel for first-time users
@@ -272,6 +284,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             <View style={styles.section}>{renderOrdersSection()}</View>
           </ScrollView>
         </>
+      )}
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="none" statusBarTranslucent>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
+            testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+          />
+        </Modal>
       )}
     </SafeAreaView>
   );

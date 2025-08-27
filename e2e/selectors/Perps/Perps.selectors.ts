@@ -393,3 +393,12 @@ export const PerpsMarketTabsSelectorsIDs = {
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
 };
+
+// ========================================
+// PERPS TAB VIEW SELECTORS
+// ========================================
+
+export const PerpsTabViewSelectorsIDs = {
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+};
