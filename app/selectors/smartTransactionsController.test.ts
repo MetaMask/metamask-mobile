@@ -60,6 +60,10 @@ const getDefaultState = () => {
             expectedDeadline: 45,
             maxDeadline: 160,
             mobileReturnTxHashAsap: false,
+            mobileActive: true,
+            extensionActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
           },
         },
       },
@@ -153,6 +157,8 @@ describe('SmartTransactionsController Selectors', () => {
       const state = getDefaultState();
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
+      // Also set chain-specific feature flags for ethereum (0x1)
+      state.swaps['0x1'].featureFlags.smartTransactions.mobileActive = true;
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state);
       expect(shouldUseSmartTransaction).toEqual(true);
     });
@@ -160,6 +166,8 @@ describe('SmartTransactionsController Selectors', () => {
       const state = getDefaultState();
       state.swaps.featureFlags.smart_transactions.mobile_active = true;
       state.swaps.featureFlags.smartTransactions.mobileActive = true;
+      // Also set chain-specific feature flags for ethereum (0x1)
+      state.swaps['0x1'].featureFlags.smartTransactions.mobileActive = true;
       const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
         state,
         '0x1',
