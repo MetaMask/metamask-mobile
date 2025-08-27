@@ -4,8 +4,7 @@ import {
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
 import StorageWrapper from '../../store/storage-wrapper';
-
-const PENDING_SRP_DISCOVERY = 'pendingSRPDiscovery';
+import { PENDING_SRP_DISCOVERY } from '../../constants/storage';
 
 interface AccountDiscoverySRP {
   [keyringId: string]: {
@@ -38,17 +37,15 @@ class AccountDiscoveryService {
     this.discoveryRunning = true;
 
     try {
-      for (const keyringId in this.pendingKeyring) {
-        for (const walletType of Object.values(WalletClientType)) {
+      for (const walletType of Object.values(WalletClientType)) {
+        const clientType = walletType;
+        const client = MultichainWalletSnapFactory.createClient(clientType, {
+          setSelectedAccount: false,
+        });
+        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+
+        for (const keyringId in this.pendingKeyring) {
           if (this.pendingKeyring[keyringId][walletType]) {
-            const clientType = walletType;
-            const client = MultichainWalletSnapFactory.createClient(
-              clientType,
-              {
-                setSelectedAccount: false,
-              },
-            );
-            const { discoveryScope } = WALLET_SNAP_MAP[clientType];
             await client.addDiscoveredAccounts(keyringId, discoveryScope);
             this.pendingKeyring[keyringId][walletType] = false;
             await StorageWrapper.setItem(
@@ -84,12 +81,13 @@ class AccountDiscoveryService {
    */
   addKeyringForAcccountDiscovery = async (
     keyringIds: string[],
+    clientType: WalletClientType[] = Object.values(WalletClientType),
   ): Promise<void> => {
     for (const keyringId of keyringIds) {
       if (!this.pendingKeyring[keyringId]) {
         this.pendingKeyring[keyringId] = {};
       }
-      for (const wtype of Object.values(WalletClientType)) {
+      for (const wtype of clientType) {
         this.pendingKeyring[keyringId][wtype] = true;
       }
     }

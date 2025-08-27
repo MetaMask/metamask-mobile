@@ -638,6 +638,11 @@ class Onboarding extends PureComponent {
   };
 
   handleCtaActions = (actionType) => {
+    if (SEEDLESS_ONBOARDING_ENABLED) {
+      OAuthLoginService.resetOauthState();
+    }
+
+    // clear pending keyring that might trigger during wallet reset
     AccountDiscovery.clearPendingKeyring();
 
     if (SEEDLESS_ONBOARDING_ENABLED) {

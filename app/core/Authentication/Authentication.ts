@@ -365,6 +365,13 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in newWalletAndKeychain: attempting account discovery',
+        );
+      });
+
       await this.storePassword(password, authData?.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -404,6 +411,14 @@ class AuthenticationService {
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin();
       this.authData = authData;
+
+      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in newWalletAndRestore: attempting account discovery',
+        );
+      });
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -452,7 +467,12 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      AccountDiscovery.attemptAccountDiscovery();
+      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in userEntryAuth: attempting account discovery',
+        );
+      });
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -523,7 +543,12 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      AccountDiscovery.attemptAccountDiscovery();
+      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in appTriggeredAuth: attempting account discovery',
+        );
+      });
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -696,7 +721,6 @@ class AuthenticationService {
    * to the SeedlessOnboardingController, and handles errors by reverting the keyring import if necessary.
    *
    * @param {string} mnemonic - The mnemonic phrase to be backed up and imported.
-   * @param {Array<string>} wordlist - The wordlist used to convert the mnemonic to word indices.
    * @returns {Promise<any>} The metadata of the newly created keyring.
    * @throws Will throw an error if the backup metadata update fails.
    */
@@ -751,7 +775,7 @@ class AuthenticationService {
    * @param syncWithSocial - Whether to sync the private key backup with the social backup service (default: true).
    * @returns A promise that resolves when the backup operation is complete.
    */
-  addNewPrivateKeyBackup = async (
+  addNewPrivateKeySeedlessBackup = async (
     privateKey: string,
     keyringId: string,
     syncWithSocial = true,
@@ -797,12 +821,13 @@ class AuthenticationService {
         [remove0x(privateKey)],
       );
 
-    const isSocialLoginFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
+    const isSocialLoginFlow = Boolean(
+      Engine.context.SeedlessOnboardingController.state.vault,
     );
+
     if (isSocialLoginFlow) {
       try {
-        await this.addNewPrivateKeyBackup(
+        await this.addNewPrivateKeySeedlessBackup(
           privateKey,
           importedAccountAddress,
           options.shouldCreateSocialBackup,
