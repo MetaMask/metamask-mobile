@@ -119,7 +119,10 @@ describe('PerpsAmountDisplay', () => {
   it('should format prices correctly', () => {
     render(<PerpsAmountDisplay amount="1234.56" maxAmount={9876.54} />);
 
-    expect(formatPrice).toHaveBeenCalledWith('1234.56', { minimumDecimals: 0 });
+    expect(formatPrice).toHaveBeenCalledWith('1234.56', {
+      minimumDecimals: 0,
+      maximumDecimals: 2,
+    });
     expect(formatPrice).toHaveBeenCalledWith(9876.54, {
       minimumDecimals: 2,
       maximumDecimals: 2,
