@@ -257,8 +257,13 @@ export const setupMockPostRequest = async (
 
         return result.matches;
       } catch (error) {
-        // If we can't read the body, fall back to URL-only matching
-        return true;
+        // If we can't read the body, log the error and don't match
+        // This prevents incorrect mock selection when body processing fails
+        logger.error(
+          'Failed to read request body during mock matching:',
+          error,
+        );
+        return false;
       }
     })
     .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
