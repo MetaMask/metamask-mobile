@@ -32,7 +32,7 @@ on:
         description: 'The timeout in minutes for the test command'
         required: false
         type: number
-        default: 20
+        default: 30
 
 jobs:
   test-e2e-mobile:
