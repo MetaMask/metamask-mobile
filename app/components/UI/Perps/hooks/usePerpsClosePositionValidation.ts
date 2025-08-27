@@ -16,7 +16,7 @@ interface UsePerpsClosePositionValidationParams {
   positionValue: number; // Total position value in USD
   minimumOrderAmount: number; // Minimum order size in USD
   closingValue: number; // Value being closed in USD
-  remainingPositionValue: number; // Value remaining after close
+  remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number; // Amount user will receive after fees
   isPartialClose: boolean;
 }
@@ -104,7 +104,8 @@ export function usePerpsClosePositionValidation(
     currentPrice,
     minimumOrderAmount,
     closingValue,
-    remainingPositionValue,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    remainingPositionValue, // Kept for interface completeness, not used in validation after TAT-1365
     receiveAmount,
     isPartialClose,
   } = params;
@@ -152,18 +153,8 @@ export function usePerpsClosePositionValidation(
 
       // UI-specific validations that don't belong in the provider
 
-      // Check partial close constraints
-      if (closePercentage > 0 && closePercentage < 100) {
-        // For any partial close, ensure remaining position meets minimum
-        if (remainingPositionValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.close_position.minimum_remaining_error', {
-              minimum: minimumOrderAmount.toString(),
-              remaining: remainingPositionValue.toFixed(2),
-            }),
-          );
-        }
-      } else if (closePercentage === 100) {
+      // TAT-1365: Removed partial close validation - users can close any position size
+      if (closePercentage === 100) {
         // For full closes, check if the close order value meets minimum
         if (closingValue > 0 && closingValue < minimumOrderAmount) {
           errors.push(
@@ -239,7 +230,6 @@ export function usePerpsClosePositionValidation(
     currentPrice,
     minimumOrderAmount,
     closingValue,
-    remainingPositionValue,
     receiveAmount,
     isPartialClose,
     validateClosePosition,

@@ -33,14 +33,9 @@ import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/P
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import RemoteImage from '../../../../Base/RemoteImage';
-import {
-  usePerpsMarkets,
-  usePerpsTPSLUpdate,
-  usePerpsClosePosition,
-} from '../../hooks';
+import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../PerpsClosePositionBottomSheet';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -74,7 +69,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const priceData = externalPriceData || livePrices[position.coin];
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null,
   );
@@ -86,18 +80,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       if (onPositionUpdate) {
         onPositionUpdate();
       }
-    },
-  });
-
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      // Call parent's position update callback if provided
-      if (onPositionUpdate) {
-        onPositionUpdate();
-      }
-      setIsClosePositionVisible(false);
-      setSelectedPosition(null);
     },
   });
 
@@ -131,9 +113,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const handleClosePress = () => {
-    DevLogger.log('PerpsPositionCard: Opening close position bottom sheet');
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
+    DevLogger.log('PerpsPositionCard: Navigating to close position screen');
+    navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
@@ -389,29 +370,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             initialTakeProfitPrice={selectedPosition.takeProfitPrice}
             initialStopLossPrice={selectedPosition.stopLossPrice}
             isUpdating={isUpdating}
-          />
-        </Modal>
-      )}
-
-      {/* Close Position Bottom Sheet - Wrapped in Modal to render from root */}
-      {isClosePositionVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsClosePositionBottomSheet
-            isVisible
-            onClose={() => {
-              setIsClosePositionVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (size, orderType, limitPrice) => {
-              await handleClosePosition(
-                selectedPosition,
-                size,
-                orderType,
-                limitPrice,
-              );
-            }}
-            position={selectedPosition}
-            isClosing={isClosing}
           />
         </Modal>
       )}
