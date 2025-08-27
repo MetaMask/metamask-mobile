@@ -581,7 +581,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
+          selectedAccountGroups={[account1]}
         />,
         { state: createMockState([wallet1], internalAccounts) },
       );
@@ -605,7 +605,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getAllByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
+          selectedAccountGroups={[account1]}
         />,
         { state: createMockState([wallet1, wallet2], internalAccounts) },
       );
@@ -624,7 +624,7 @@ describe('MultichainAccountSelectorList', () => {
       const { getByText } = renderWithProvider(
         <MultichainAccountSelectorList
           onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
+          selectedAccountGroups={[account1]}
         />,
         { state: createMockState([wallet1], internalAccounts) },
       );
