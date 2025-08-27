@@ -7,7 +7,7 @@ import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsCont
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from './useTokensWithBalance';
-import { SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 export const useSortedSourceNetworks = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
@@ -51,11 +51,19 @@ export const useSortedSourceNetworks = () => {
     [evmAddress, evmTotalFiatBalancesCrossChain],
   );
 
-  // Calculate total fiat value per Solana chain (native + tokens)
+  // Calculate total fiat value for Solana (native + tokens)
   const solTokensWithBalance = useTokensWithBalance({
     chainIds: [SolScope.Mainnet],
   });
   const solFiatTotal = solTokensWithBalance.reduce(
+    (sum, token) => sum + (token.tokenFiatAmount ?? 0),
+    0,
+  );
+
+  const btcTokensWithBalance = useTokensWithBalance({
+    chainIds: [BtcScope.Mainnet],
+  });
+  const btcFiatTotal = btcTokensWithBalance.reduce(
     (sum, token) => sum + (token.tokenFiatAmount ?? 0),
     0,
   );
@@ -65,10 +73,15 @@ export const useSortedSourceNetworks = () => {
     () =>
       enabledSourceChains
         .map((chain) => {
-          const totalFiatValue =
-            chain.chainId === SolScope.Mainnet
-              ? solFiatTotal
-              : getEvmChainTotalFiatValue(chain.chainId);
+          let totalFiatValue = 0;
+
+          if (chain.chainId === SolScope.Mainnet) {
+            totalFiatValue = solFiatTotal;
+          } else if (chain.chainId === BtcScope.Mainnet) {
+            totalFiatValue = btcFiatTotal;
+          } else {
+            totalFiatValue = getEvmChainTotalFiatValue(chain.chainId);
+          }
 
           return {
             ...chain,
@@ -76,7 +89,12 @@ export const useSortedSourceNetworks = () => {
           };
         })
         .sort((a, b) => b.totalFiatValue - a.totalFiatValue),
-    [enabledSourceChains, getEvmChainTotalFiatValue, solFiatTotal],
+    [
+      enabledSourceChains,
+      getEvmChainTotalFiatValue,
+      solFiatTotal,
+      btcFiatTotal,
+    ],
   );
 
   return {
