@@ -138,14 +138,15 @@ const PerpsPositionTransactionView: React.FC = () => {
     });
   }
 
-  // Points or Net P&L row - only show if values exist
-  if (transaction.fill?.points) {
-    secondaryDetailRows.push({
-      label: strings('perps.transactions.position.points'),
-      value: `+${transaction.fill?.points}`,
-      textColor: TextColor.Success,
-    });
-  }
+  // Points feature not activated yet - commented out
+  // TODO: Uncomment when points feature is enabled
+  // if (transaction.fill?.points) {
+  //   secondaryDetailRows.push({
+  //     label: strings('perps.transactions.position.points'),
+  //     value: `+${transaction.fill?.points}`,
+  //     textColor: TextColor.Success,
+  //   });
+  // }
 
   return (
     <ScreenView>

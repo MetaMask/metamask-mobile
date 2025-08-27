@@ -19,7 +19,32 @@ module.exports = {
     },
     {
       files: ['**/specs/**/*.{js,ts}'],
+      excludedFiles: ['**/specs/**/*.failing.{js,ts}'],
       rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: '../api-mocking/mock-server',
+                message:
+                  'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+              },
+              {
+                name: '../../api-mocking/mock-server',
+                message:
+                  'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+              },
+            ],
+            patterns: [
+              {
+                group: ['**/api-mocking/mock-server*'],
+                message:
+                  'Do not import startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
+              },
+            ],
+          },
+        ],
         'no-restricted-syntax': [
           'warn',
           {
@@ -49,6 +74,11 @@ module.exports = {
               "CallExpression[callee.object.callee.name='waitFor'][callee.property.name=/^(toBeVisible|toExist|toHaveText|withTimeout)$/]",
             message:
               'Avoid direct waitFor() chains in test specs. Use Assertions utility methods (from e2e/framework/Assertions.ts) for better error handling.',
+          },
+          {
+            selector: "CallExpression[callee.name='startMockServer']",
+            message:
+              'Do not call startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
           },
         ],
       },
