@@ -77,6 +77,10 @@ export const PERFORMANCE_CONFIG = {
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
   MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
+
+  // Asset metadata cache duration (milliseconds)
+  // How long to cache asset icon validation results
+  ASSET_METADATA_CACHE_DURATION_MS: 60 * 60 * 1000, // 1 hour
 } as const;
 
 /**
