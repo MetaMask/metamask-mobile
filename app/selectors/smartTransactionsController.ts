@@ -17,7 +17,7 @@ import { Hex } from '@metamask/utils';
 import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 import { getFeatureFlagDeviceKey } from '../reducers/swaps/utils';
 
-export const isSmartTransacitonEnabledWithNetworkFeatureFlag = (
+export const isSmartTransactionEnabledWithNetworkFeatureFlag = (
   swapsChainFeatureFlags,
 ) => {
   const featureFlagDeviceKey = getFeatureFlagDeviceKey(); // returns mobileActive, mobileActiveIOS or mobileActiveAndroid
@@ -61,7 +61,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
     const isNetworkAllowedWithFeatureFlags =
-      isSmartTransacitonEnabledWithNetworkFeatureFlag(swapsChainFeatureFlags);
+      isSmartTransactionEnabledWithNetworkFeatureFlag(swapsChainFeatureFlags);
 
     return Boolean(
       isAllowedNetwork &&
