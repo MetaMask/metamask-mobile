@@ -306,7 +306,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             })}
           >
             <RNImage
-              source={slide.image ? { uri: slide.image } : { uri: '' }}
+              source={slide.image ? { uri: slide.image } : { uri: undefined }}
               style={tw.style({ width: 66, height: 66 })}
               resizeMode="contain"
             />
