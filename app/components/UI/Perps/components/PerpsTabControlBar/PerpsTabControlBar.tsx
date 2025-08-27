@@ -127,7 +127,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     onManageBalancePress?.();
   };
 
+  const availableBalance = perpsAccount?.availableBalance || '0';
   const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
+  const roe = parseFloat(perpsAccount?.returnOnEquity || '0').toFixed(1);
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
 
   return (
@@ -150,7 +152,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               variant={TextVariant.HeadingSM}
               color={TextColor.Default}
             >
-              {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
+              {formatPerpsFiat(availableBalance)}
             </Text>
           </Animated.View>
           <Icon
@@ -185,8 +187,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               variant={TextVariant.HeadingSM}
               color={pnlColor}
             >
-              {formatPnl(perpsAccount?.unrealizedPnl || '0')} (
-              {formatPercentage(perpsAccount?.returnOnEquity || '0')})
+              {formatPnl(pnlNum)} ({formatPercentage(roe)})
             </Text>
           </Animated.View>
         </View>
