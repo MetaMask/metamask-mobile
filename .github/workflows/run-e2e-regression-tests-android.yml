@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-android-apks:
-    name: "Build Android APKs"
+    name: 'Build Android APKs'
     if: ${{ github.event_name != 'merge_group' }}
     permissions:
       contents: read
@@ -186,22 +186,24 @@ jobs:
         
       - name: Download all test results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           path: all-test-results/
-          pattern: "*-android-*-test-results"
+          pattern: '*-android-*-test-results'
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
         with:
-          name: "Android E2E Regression Test Results"
-          path: "all-test-results/**/*.xml"
-          reporter: "jest-junit"
+          name: 'Android E2E Regression Test Results'
+          path: 'all-test-results/**/*.xml'
+          reporter: 'jest-junit'
           fail-on-error: false
-          list-suites: "failed"
-          list-tests: "failed"
+          list-suites: 'failed'
+          list-tests: 'failed'
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: android-merged-test-report
           path: all-test-results/**/*.xml
