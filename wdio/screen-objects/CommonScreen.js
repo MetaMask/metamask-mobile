@@ -5,8 +5,18 @@ import {
   ToastSelectorsText,
 } from '../../e2e/selectors/wallet/ToastModal.selectors';
 import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
 
 class CommonScreen {
+
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get toast() {
     return Selectors.getXpathElementByResourceId(ToastSelectorsIDs.CONTAINER);
   }
@@ -69,6 +79,17 @@ class CommonScreen {
   async checkNoNotification() {
     const notification = await this.TokenNotificationTitle;
     await notification.waitForExist({ reverse: true });
+  }
+
+
+  async tapOnAsset(asset) {
+    if (!this._device) {
+      await Gestures.getElementByResourceId(`asset-${asset}`);
+    } else {
+      console.log('tapOnAsset ->', this._device);
+      const assetElement = await AppwrightSelectors.getElementByID(this._device, `asset-${asset}`);
+      await assetElement.tap();
+    }
   }
 }
 
