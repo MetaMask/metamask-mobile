@@ -82,6 +82,21 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock Logger
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+// Mock react-native-performance
+jest.mock('react-native-performance', () => ({
+  now: jest.fn(() => Date.now()),
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
+
 // Mock trace utilities
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),

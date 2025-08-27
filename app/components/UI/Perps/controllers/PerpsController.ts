@@ -4,6 +4,7 @@ import {
 } from '@metamask/base-controller';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
@@ -12,8 +13,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
 import {
   trace,
@@ -23,6 +27,7 @@ import {
 } from '../../../../util/trace';
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -277,7 +282,9 @@ export type PerpsControllerActions =
 /**
  * External actions the PerpsController can call
  */
-export type AllowedActions = NetworkControllerGetStateAction['type'];
+export type AllowedActions =
+  | NetworkControllerGetStateAction
+  | AuthenticationController.AuthenticationControllerGetBearerToken;
 
 /**
  * External events the PerpsController can subscribe to
@@ -292,9 +299,9 @@ export type AllowedEvents =
  */
 export type PerpsControllerMessenger = RestrictedMessenger<
   'PerpsController',
-  PerpsControllerActions,
+  PerpsControllerActions | AllowedActions,
   PerpsControllerEvents | AllowedEvents,
-  AllowedActions,
+  AllowedActions['type'],
   AllowedEvents['type']
 >;
 
@@ -487,6 +494,18 @@ export class PerpsController extends BaseController<
           state.lastUpdateTimestamp = Date.now();
         });
 
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({
+          action: 'open',
+          coin: params.coin,
+          sl_price: params.stopLossPrice
+            ? parseFloat(params.stopLossPrice)
+            : undefined,
+          tp_price: params.takeProfitPrice
+            ? parseFloat(params.takeProfitPrice)
+            : undefined,
+        });
+
         // End trace with success data
         endTrace({
           name: TraceName.PerpsOrderExecution,
@@ -580,6 +599,9 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
 
         endTrace({
           name: TraceName.PerpsClosePosition,
@@ -1700,5 +1722,161 @@ export class PerpsController extends BaseController<
         mainnet: false,
       };
     });
+  }
+
+  /**
+   * Report order events to data lake API with retry (non-blocking)
+   */
+  private async reportOrderToDataLake(params: {
+    action: 'open' | 'close';
+    coin: string;
+    sl_price?: number;
+    tp_price?: number;
+    retryCount?: number;
+  }): Promise<{ success: boolean; error?: string }> {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+    const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
+
+    // Start performance measurement for initial call or log retry
+    const startTime = performance.now();
+
+    // Log the attempt
+    DevLogger.log('DataLake API: Starting order report', {
+      action,
+      coin,
+      attempt: retryCount + 1,
+      maxAttempts: MAX_RETRIES + 1,
+      hasStopLoss: !!sl_price,
+      hasTakeProfit: !!tp_price,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      const token = await this.messagingSystem.call(
+        'AuthenticationController:getBearerToken',
+      );
+      const { AccountTreeController } = Engine.context;
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
+
+      if (!evmAccount || !token) {
+        DevLogger.log('DataLake API: Missing requirements', {
+          hasAccount: !!evmAccount,
+          hasToken: !!token,
+          action,
+          coin,
+        });
+        return { success: false, error: 'No account or token available' };
+      }
+
+      const response = await fetch(
+        'https://perps.api.cx.metamask.io/api/v1/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: evmAccount.address,
+            coin,
+            sl_price,
+            tp_price,
+          }),
+          signal: AbortSignal.timeout(5000),
+        },
+      );
+
+      const duration = performance.now() - startTime;
+
+      if (!response.ok && response.status !== 201) {
+        throw new Error(`DataLake API error: ${response.status}`);
+      }
+
+      // Success logging and metrics
+      DevLogger.log('DataLake API: Order reported successfully', {
+        action,
+        coin,
+        duration: `${duration.toFixed(0)}ms`,
+        status: response.status,
+        attempt: retryCount + 1,
+      });
+
+      // Report performance metric to Sentry (only on success)
+      if (retryCount === 0) {
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_CALL,
+          duration,
+          'millisecond',
+        );
+      }
+
+      return { success: true };
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      DevLogger.log('DataLake API: Request failed', {
+        error: errorMessage,
+        duration: `${duration.toFixed(0)}ms`,
+        retryCount,
+        action,
+        coin,
+        willRetry: retryCount < MAX_RETRIES,
+      });
+
+      // Retry logic
+      if (retryCount < MAX_RETRIES) {
+        const retryDelay = RETRY_DELAY_MS * Math.pow(2, retryCount);
+        DevLogger.log('DataLake API: Scheduling retry', {
+          retryIn: `${retryDelay}ms`,
+          nextAttempt: retryCount + 2,
+          action,
+          coin,
+        });
+
+        setTimeout(() => {
+          this.reportOrderToDataLake({
+            action,
+            coin,
+            sl_price,
+            tp_price,
+            retryCount: retryCount + 1,
+          });
+        }, retryDelay);
+      } else {
+        // Final failure - report to Sentry with performance metric
+        DevLogger.log('DataLake API: All retries exhausted', {
+          action,
+          coin,
+          totalAttempts: retryCount + 1,
+          finalError: errorMessage,
+        });
+
+        // Report total retry duration as a metric
+        const totalRetryDuration =
+          duration + RETRY_DELAY_MS * (Math.pow(2, retryCount) - 1); // Include retry delays
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_RETRY,
+          totalRetryDuration,
+          'millisecond',
+        );
+
+        Logger.error(error as Error, {
+          message: 'Failed to report perps order to data lake after retries',
+          action,
+          coin,
+          retryCount,
+          totalDuration: `${totalRetryDuration.toFixed(0)}ms`,
+        });
+      }
+
+      return { success: false, error: errorMessage };
+    }
   }
 }
