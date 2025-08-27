@@ -18,10 +18,7 @@ export async function submitSwapUnifiedUI(
     await QuoteView.tapToken(chainId, sourceTokenSymbol);
   }
   await QuoteView.tapDestToken();
-  console.log(1);
-  await TestHelpers.delay(3000);
   await QuoteView.tapToken(chainId, destTokenSymbol);
-  console.log(2);
 
   await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
     timeout: 60000,
@@ -57,4 +54,7 @@ export async function checkSwapActivity(
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
     );
   }
+
+  // Wait for tx toast to clear
+  await TestHelpers.delay(5000);
 }

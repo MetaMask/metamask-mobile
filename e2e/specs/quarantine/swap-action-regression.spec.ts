@@ -1,9 +1,8 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import { Regression } from '../../tags';
 import {
   submitSwapUnifiedUI,
@@ -27,9 +26,10 @@ describe(Regression('Multiple Swaps from Actions'), (): void => {
           .build(),
         localNodeOptions: [
           {
-            type: LocalNodeType.ganache,
+            type: LocalNodeType.anvil,
             options: {
               chainId: 1,
+              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
             },
           },
         ],
@@ -39,23 +39,16 @@ describe(Regression('Multiple Swaps from Actions'), (): void => {
       async () => {
         await loginToApp();
         await prepareSwapsTestEnvironment();
+        await WalletView.tapWalletSwapButton();
 
-        await TabBarComponent.tapActions();
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.swapButton,
-        );
-        await WalletActionsBottomSheet.tapSwapButton();
         // Submit the Swap ETH->DAI
         await submitSwapUnifiedUI('1', 'ETH', 'DAI', '0x1');
         await checkSwapActivity('ETH', 'DAI');
 
-        await TabBarComponent.tapActions();
-        await Assertions.expectElementToBeVisible(
-          WalletActionsBottomSheet.swapButton,
-        );
-        await WalletActionsBottomSheet.tapSwapButton();
+        await TabBarComponent.tapWallet();
+        await WalletView.tapWalletSwapButton();
 
-        await submitSwapUnifiedUI('100', 'DAI', 'ETH', '0x1');
+        await submitSwapUnifiedUI('1000', 'DAI', 'ETH', '0x1');
         await checkSwapActivity('DAI', 'ETH');
       },
     );
