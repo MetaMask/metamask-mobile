@@ -12,9 +12,9 @@ import {
   MOCK_NFT1155,
 } from '../../../../__mocks__/send.mock';
 import { SendContextProvider } from '../../../../context/send-context';
+import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
-import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
