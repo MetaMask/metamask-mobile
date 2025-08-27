@@ -69,7 +69,6 @@ import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
-import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -555,7 +554,7 @@ export function getSendFlowTitle(
   transaction,
   disableNetwork = true,
   showSelectedNetwork = false,
-  sendFlowContextualChainId = '',
+  globalChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -603,14 +602,7 @@ export function getSendFlowTitle(
             : undefined
         }
         networkName={
-          isRemoveGlobalNetworkSelectorEnabled()
-            ? sendFlowContextualChainId
-            : undefined
-        }
-        source={
-          isRemoveGlobalNetworkSelectorEnabled()
-            ? NETWORK_SELECTOR_SOURCES.SEND_FLOW
-            : undefined
+          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
         }
       />
     ),
@@ -1659,7 +1651,12 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        translate={false}
+        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+      />
     ),
     headerLeft: () => <View />,
     headerRight: () => (
@@ -1867,6 +1864,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const leftAction = () => navigation.pop();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         style={innerStyles.perpsTransactionsTitle}

@@ -1,10 +1,24 @@
 import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class WalletAccountModal {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get accountNameLabelText() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
+    }
   }
 
   get accountNameLabelInput() {
@@ -27,8 +41,23 @@ class WalletAccountModal {
     await expect(this.accountNameLabelInput).toBeDisplayed();
   }
 
+  async isAccountNameLabelVisible(expectedName) {
+    if (!this._device) {
+      await expect(this.accountNameLabelText).toHaveText(expectedName);
+    } else {
+      const element = await AppwrightSelectors.getElementByText(this._device, expectedName);
+      await appwrightExpect(element).toBeVisible();
+    }
+  }
+
   async isAccountNameLabelEqualTo(expected) {
-    await expect(this.accountNameLabelText).toHaveText(expected);
+    if (!this._device) {
+      await expect(this.accountNameLabelText).toHaveText(expected);
+    } else {
+      const element = await this.accountNameLabelText;
+      const text = await element.getText();
+      await appwrightExpect(text).toBe(expected);
+    }
   }
 
   async isAccountInputLabelEqualTo(expected) {
