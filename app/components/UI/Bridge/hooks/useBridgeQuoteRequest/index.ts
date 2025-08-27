@@ -9,8 +9,6 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
@@ -33,8 +31,6 @@ export const useBridgeQuoteRequest = () => {
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
-  const isEvmToSolana = useSelector(selectIsEvmToSolana);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const context = useUnifiedSwapBridgeContext();
   const shouldUseSmartTransaction = useSelector(
     selectShouldUseSmartTransaction,
@@ -69,8 +65,7 @@ export const useBridgeQuoteRequest = () => {
       srcTokenAmount: normalizedSourceAmount,
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
-      destWalletAddress:
-        isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
+      destWalletAddress: destAddress ?? walletAddress,
       gasIncluded: shouldUseSmartTransaction,
     };
 
@@ -86,8 +81,6 @@ export const useBridgeQuoteRequest = () => {
     slippage,
     walletAddress,
     destAddress,
-    isEvmToSolana,
-    isSolanaToEvm,
     context,
     shouldUseSmartTransaction,
   ]);
