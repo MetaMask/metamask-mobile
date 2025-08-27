@@ -40,4 +40,10 @@ export const ALLOWLISTED_URLS = [
   'https://eth.llamarpc.com/',
   'https://rpc.atlantischain.network/',
   'https://rewards.dev-api.cx.metamask.io/auth/mobile-login',
+  'https://tx-sentinel-localhost.api.cx.metamask.io/',
+  'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
+  'https://metamask.github.io/test-dapp/metamask-fox.svg',
+  'https://dapp-scanning.api.cx.metamask.io/bulk-scan',
+  'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
+  'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
 ];

@@ -41,5 +41,14 @@ export const DEFAULT_GAS_API_MOCKS: MockEventsObject = {
       response: GAS_FEES_RESPONSE,
       responseCode: 200,
     },
+    {
+      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/56/gasPrices',
+      responseCode: 200,
+      response: {
+        SafeGasPrice: '0',
+        ProposeGasPrice: '0',
+        FastGasPrice: '0',
+      },
+    },
   ],
 };
