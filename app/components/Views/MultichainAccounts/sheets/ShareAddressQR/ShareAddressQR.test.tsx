@@ -7,7 +7,6 @@ import {
   internalAccount1,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { SolAccountType } from '@metamask/keyring-api';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { InternalAccount } from '@metamask/keyring-internal-api';

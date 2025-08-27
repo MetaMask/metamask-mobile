@@ -10,6 +10,7 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  TextProps,
 } from '@metamask/design-system-react-native';
 
 const initialState = {
@@ -42,9 +43,9 @@ const TestWrapper = ({
 }: {
   accountAddress: string;
   label?: string | React.ReactNode;
-  labelProps?: any;
+  labelProps?: Partial<TextProps>;
   description?: string | React.ReactNode;
-  descriptionProps?: any;
+  descriptionProps?: Partial<TextProps>;
 }) => (
   <QRAccountDisplay
     accountAddress={accountAddress}
