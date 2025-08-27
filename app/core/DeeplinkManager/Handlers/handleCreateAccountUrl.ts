@@ -1,5 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { CaipChainId } from '@metamask/utils';
+import { isCaipChainId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import ReduxService from '../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../selectors/multichain';
@@ -32,7 +32,7 @@ export function handleCreateAccountUrl({
 }) {
   const chainId = new URLSearchParams(path).get('chainId');
 
-  if (!chainId) {
+  if (!chainId || !isCaipChainId(chainId)) {
     return;
   }
 
@@ -66,7 +66,7 @@ export function handleCreateAccountUrl({
 
   // if there are accounts in the scope, check if it has fund
   if (accountIdWithNativeBalanceGreaterThanZero) {
-    const sourceToken = getNativeSourceToken(chainId as CaipChainId);
+    const sourceToken = getNativeSourceToken(chainId);
 
     // this will make the bridge view open with the correct source token
     const params: BridgeRouteParams = {
