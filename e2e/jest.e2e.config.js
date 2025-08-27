@@ -32,6 +32,7 @@ module.exports = {
         classNameTemplate: '{filepath}',
         addFileAttribute: 'true',
         testCasePropertiesFile: './e2e/junitProperties.js',
+        testSuitePropertiesFile: './e2e/junitTestSuiteProperties.js',
       },
     ],
   ],
