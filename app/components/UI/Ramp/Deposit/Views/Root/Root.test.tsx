@@ -13,6 +13,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
 let mockGetStarted = true;
+let mockIsAuthenticated = true;
 const mockSelectedRegion = {
   isoCode: 'US',
   flag: '🇺🇸',
@@ -37,6 +38,7 @@ jest.mock('../../sdk', () => {
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
       getStarted: mockGetStarted,
+      isAuthenticated: mockIsAuthenticated,
       selectedRegion: mockSelectedRegion,
     }),
   };
@@ -73,6 +75,7 @@ describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetStarted = true;
+    mockIsAuthenticated = true;
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue([]);
@@ -139,6 +142,38 @@ describe('Root Component', () => {
             name: 'BankDetails',
             params: {
               orderId: 'test-created-order-id',
+              animationEnabled: false,
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  it('redirects to enterEmail with redirectToRootAfterAuth when there is a created order and user is not authenticated', async () => {
+    const mockOrders = [
+      {
+        id: 'test-created-order-id-unauth',
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+        state: FIAT_ORDER_STATES.CREATED,
+      },
+    ] as FiatOrder[];
+
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue(mockOrders);
+    mockCheckExistingToken.mockResolvedValue(false);
+    mockIsAuthenticated = false;
+    render(Root);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'EnterEmail',
+            params: {
+              redirectToRootAfterAuth: true,
               animationEnabled: false,
             },
           },

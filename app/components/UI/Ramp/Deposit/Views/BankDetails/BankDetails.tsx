@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AxiosError } from 'axios';
 import {
   createNavigationDetails,
   useParams,
@@ -65,7 +66,7 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedRegion } = useDepositSDK();
+  const { sdk, selectedRegion, logoutFromProvider } = useDepositSDK();
   const trackEvent = useAnalytics();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
@@ -104,6 +105,22 @@ const BankDetails = () => {
     [dispatch],
   );
 
+  const handleLogoutError = useCallback(async () => {
+    try {
+      await logoutFromProvider(false);
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.DEPOSIT.ROOT,
+          },
+        ],
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'BankDetails: handleLogoutError');
+    }
+  }, [logoutFromProvider, navigation]);
+
   const handleOnRefresh = useCallback(async () => {
     if (!order) return;
 
@@ -114,11 +131,15 @@ const BankDetails = () => {
         sdk,
       });
     } catch (error) {
+      if ((error as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(error as Error, 'BankDetails: handleOnRefresh');
     } finally {
       setIsRefreshing(false);
     }
-  }, [dispatchThunk, dispatchUpdateFiatOrder, order, sdk]);
+  }, [dispatchThunk, dispatchUpdateFiatOrder, order, sdk, handleLogoutError]);
 
   useEffect(() => {
     if (order?.state === FIAT_ORDER_STATES.CREATED && shouldUpdate) {
@@ -291,6 +312,10 @@ const BankDetails = () => {
 
       await handleOnRefresh();
     } catch (fetchError) {
+      if ((fetchError as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
       if (isString(fetchError)) {
         setConfirmPaymentError(fetchError);
@@ -309,6 +334,7 @@ const BankDetails = () => {
     selectedRegion?.isoCode,
     confirmPayment,
     handleOnRefresh,
+    handleLogoutError,
   ]);
 
   const handleCancelOrder = useCallback(async () => {
@@ -319,12 +345,16 @@ const BankDetails = () => {
       await cancelOrder();
       await handleOnRefresh();
     } catch (fetchError) {
+      if ((fetchError as AxiosError).status === 401) {
+        await handleLogoutError();
+        return;
+      }
       Logger.error(fetchError as Error, 'BankDetails: handleCancelOrder');
       setCancelOrderError(fetchError as Error);
     } finally {
       setIsLoadingCancelOrder(false);
     }
-  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder]);
+  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder, handleLogoutError]);
 
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);

@@ -7,7 +7,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { trace } from '../../../../../../util/trace';
 
-const EMAIL = 'test@email.com';
+const mockEmail = 'test@email.com';
 
 const mockTrackEvent = jest.fn();
 
@@ -23,12 +23,15 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+const mockUseParams = jest.fn(() => ({
+  email: mockEmail,
+  stateToken: 'mock-state-token',
+  redirectToRootAfterAuth: false,
+}));
+
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
-  useParams: () => ({
-    email: EMAIL,
-    stateToken: 'mock-state-token',
-  }),
+  useParams: () => mockUseParams(),
 }));
 
 const mockNavigate = jest.fn();
@@ -51,7 +54,7 @@ const mockVerifyUserOtp = jest.fn().mockResolvedValue(mockAccessTokenResponse);
 const mockSendUserOtp = jest.fn().mockResolvedValue({
   stateToken: 'new-mock-state-token',
   isTncAccepted: false,
-  email: EMAIL,
+  email: mockEmail,
   expiresIn: 300,
 });
 
@@ -262,7 +265,7 @@ describe('OtpCode Screen', () => {
   it('shows error when resend response missing stateToken', async () => {
     mockSendUserOtp.mockResolvedValue({
       isTncAccepted: false,
-      email: EMAIL,
+      email: mockEmail,
       expiresIn: 300,
       // stateToken missing
     });
@@ -271,6 +274,37 @@ describe('OtpCode Screen', () => {
     fireEvent.press(resendButton);
     await waitFor(() => {
       expect(screen.getByText('Contact support')).toBeOnTheScreen();
+    });
+  });
+
+  describe('when redirectToRootAfterAuth is true', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        email: mockEmail,
+        stateToken: 'mock-state-token',
+        redirectToRootAfterAuth: true,
+      });
+    });
+
+    it('navigates to root when redirectToRootAfterAuth is true', async () => {
+      const mockTokenResponse: NativeTransakAccessToken = {
+        accessToken: 'mock-access-token-root',
+        ttl: 1000,
+        created: new Date('2024-01-01'),
+      };
+
+      mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
+      mockSetAuthToken.mockResolvedValue(undefined);
+      const { getByTestId } = render(OtpCode);
+      act(() => {
+        const codeInput = getByTestId('otp-code-input');
+        fireEvent.changeText(codeInput, '123456');
+      });
+      await waitFor(() => {
+        expect(mockVerifyUserOtp).toHaveBeenCalled();
+        expect(mockSetAuthToken).toHaveBeenCalledWith(mockTokenResponse);
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ROOT);
+      });
     });
   });
 });

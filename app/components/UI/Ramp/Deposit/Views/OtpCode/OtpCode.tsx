@@ -39,6 +39,7 @@ import { trace, TraceName } from '../../../../../../util/trace';
 export interface OtpCodeParams {
   email: string;
   stateToken: string;
+  redirectToRootAfterAuth?: boolean;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -69,7 +70,8 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { email, stateToken } = useParams<OtpCodeParams>();
+  const { email, stateToken, redirectToRootAfterAuth } =
+    useParams<OtpCodeParams>();
   const trackEvent = useAnalytics();
   const { selectedRegion } = useDepositSDK();
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);
@@ -197,11 +199,15 @@ const OtpCode = () => {
           region: selectedRegion?.isoCode || '',
         });
 
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({
-            shouldRouteImmediately: true,
-          }),
-        );
+        if (redirectToRootAfterAuth) {
+          navigation.navigate(Routes.DEPOSIT.ROOT);
+        } else {
+          navigation.navigate(
+            ...createBuildQuoteNavDetails({
+              shouldRouteImmediately: true,
+            }),
+          );
+        }
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
@@ -229,6 +235,7 @@ const OtpCode = () => {
     currentStateToken,
     selectedRegion?.isoCode,
     trackEvent,
+    redirectToRootAfterAuth,
   ]);
 
   const handleValueChange = useCallback((text: string) => {
