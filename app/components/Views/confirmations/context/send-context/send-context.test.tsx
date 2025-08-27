@@ -6,7 +6,7 @@ import { isAddress } from 'ethers/lib/utils';
 
 import { AssetType, TokenStandard } from '../../types/token';
 import { useSendContext, SendContextProvider } from './send-context';
-import { useSelectedAccountScope } from '../../hooks/send/useSelectedAccountScope';
+import { useSendScope } from '../../hooks/send/useSendScope';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -17,13 +17,13 @@ jest.mock('ethers/lib/utils', () => ({
   isAddress: jest.fn(),
 }));
 
-jest.mock('../../hooks/send/useSelectedAccountScope', () => ({
-  useSelectedAccountScope: jest.fn(),
+jest.mock('../../hooks/send/useSendScope', () => ({
+  useSendScope: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockIsEvmAddress = jest.mocked(isAddress);
-const mockUseSelectedAccountScope = jest.mocked(useSelectedAccountScope);
+const mockuseSendScope = jest.mocked(useSendScope);
 
 describe('useSendContext', () => {
   const mockAccount1 = {
@@ -104,7 +104,7 @@ describe('useSendContext', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(mockAccounts);
     mockIsEvmAddress.mockReturnValue(false);
-    mockUseSelectedAccountScope.mockReturnValue({
+    mockuseSendScope.mockReturnValue({
       account: mockSelectedAccount,
       isEvm: true,
       isSolana: false,

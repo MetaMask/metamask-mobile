@@ -135,7 +135,7 @@ export const Asset = () => {
           <>
             {filteredTokens.length > 0 && (
               <Text
-                twClassName="m-4 mt-4"
+                twClassName="m-4 mt-2 mb-2"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
@@ -146,7 +146,7 @@ export const Asset = () => {
             <TokenList tokens={filteredTokens} />
             {filteredNfts.length > 0 && (
               <Text
-                twClassName="m-4 mt-4"
+                twClassName="m-4 mt-4 mb-4"
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}

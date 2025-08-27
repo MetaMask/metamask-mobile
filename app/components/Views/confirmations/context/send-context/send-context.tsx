@@ -9,10 +9,13 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
-import { useSelectedAccountScope } from '../../hooks/send/useSelectedAccountScope';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
@@ -46,7 +49,7 @@ export const SendContextProvider: React.FC<{
   const [value, updateValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
   const accounts = useSelector(selectInternalAccountsById);
-  const { account: selectedAccount } = useSelectedAccountScope();
+  const selectedGroup = useSelector(selectSelectedAccountGroup);
 
   const handleUpdateAsset = useCallback(
     (updatedAsset?: AssetType | Nft) => {
@@ -57,10 +60,30 @@ export const SendContextProvider: React.FC<{
       ) {
         updateFromAccount(accounts[updatedAsset.accountId as string]);
       } else {
-        // This is a centralised fix to handle the cases where send flow is triggered directly from the asset details page
-        // Rather than fixing all usages of the navigation, we will use this centralised fix.
-        // After version `7.55` `useSelectedAccountScope` will be removed and the hook will be replaced.
-        updateFromAccount(selectedAccount);
+        // We don't have accountId in the updated asset - this is a navigation from outside of the send flow
+        // Hence we need to update the fromAccount from the selected group
+        const isEvmAsset = updatedAsset?.address
+          ? isEvmAddress(updatedAsset.address)
+          : undefined;
+        const isSolanaAsset = updatedAsset?.chainId
+          ? isSolanaChainId(updatedAsset.chainId)
+          : undefined;
+
+        const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
+          (accountId) => accounts[accountId],
+        );
+
+        if (isEvmAsset) {
+          const evmAccount = selectedAccountGroupAccounts?.find((account) =>
+            isEvmAccountType(account.type),
+          );
+          updateFromAccount(evmAccount);
+        } else if (isSolanaAsset) {
+          const solanaAccount = selectedAccountGroupAccounts?.find((account) =>
+            isSolanaAccount(account),
+          );
+          updateFromAccount(solanaAccount);
+        }
       }
     },
     [
@@ -68,7 +91,7 @@ export const SendContextProvider: React.FC<{
       fromAccount?.id,
       updateAsset,
       updateFromAccount,
-      selectedAccount,
+      selectedGroup?.accounts,
     ],
   );
 

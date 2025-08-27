@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/tokenList';
-import { useSelectedAccountScope } from './useSelectedAccountScope';
+import { useSendScope } from './useSendScope';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import I18n from '../../../../../../locales/i18n';
@@ -12,17 +12,25 @@ import { AssetType, TokenStandard } from '../../types/token';
 
 export function useAccountTokens() {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
-  const { isEvm, isSolana } = useSelectedAccountScope();
+  const { isEvmOnly, isSolanaOnly } = useSendScope();
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
 
-    const filteredAssets = isEvm
-      ? flatAssets.filter((asset) => asset.type.includes('eip155'))
-      : isSolana
-      ? flatAssets.filter((asset) => asset.type.includes('solana'))
-      : flatAssets;
+    let filteredAssets;
+
+    if (isEvmOnly) {
+      filteredAssets = flatAssets.filter((asset) =>
+        asset.type.includes('eip155'),
+      );
+    } else if (isSolanaOnly) {
+      filteredAssets = flatAssets.filter((asset) =>
+        asset.type.includes('solana'),
+      );
+    } else {
+      filteredAssets = flatAssets;
+    }
 
     const assetsWithBalance = filteredAssets.filter(
       (asset) =>
@@ -60,5 +68,5 @@ export function useAccountTokens() {
           new BigNumber(a.fiat?.balance || 0),
         ) || 0,
     );
-  }, [assets, isEvm, isSolana, fiatCurrency]) as unknown as AssetType[];
+  }, [assets, isEvmOnly, isSolanaOnly, fiatCurrency]) as unknown as AssetType[];
 }

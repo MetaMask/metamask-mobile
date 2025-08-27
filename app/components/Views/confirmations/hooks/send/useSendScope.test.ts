@@ -1,7 +1,7 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useSelectedAccountScope } from './useSelectedAccountScope';
+import { useSendScope } from './useSendScope';
 
-describe('useSelectedAccountScope', () => {
+describe('useSendScope', () => {
   const mockEvmAccount = {
     id: 'evm-account-1',
     address: '0x1234567890123456789012345678901234567890',
@@ -52,7 +52,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       state,
     });
 
@@ -79,7 +79,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       state,
     });
 
@@ -106,7 +106,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       state,
     });
 
@@ -133,7 +133,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: state as any,
     });
@@ -166,7 +166,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: state as any,
     });
@@ -199,7 +199,7 @@ describe('useSelectedAccountScope', () => {
       },
     };
 
-    const { result } = renderHookWithProvider(() => useSelectedAccountScope(), {
+    const { result } = renderHookWithProvider(() => useSendScope(), {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: state as any,
     });

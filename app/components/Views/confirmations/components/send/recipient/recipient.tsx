@@ -5,10 +5,6 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
-  FontWeight,
-  TextColor,
-  TextVariant,
-  Text,
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -100,14 +96,14 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
           />
           <ScrollView>
-            <Text
+            {/* <Text
               twClassName="m-4"
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
               fontWeight={FontWeight.Medium}
             >
               {strings('send.accounts')}
-            </Text>
+            </Text> */}
             <RecipientList
               data={accounts}
               onRecipientSelected={onRecipientSelected(
@@ -116,15 +112,16 @@ export const Recipient = () => {
             />
             {contacts.length > 0 && (
               <>
-                <Text
+                {/* <Text
                   twClassName="m-4"
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
                 >
                   {strings('send.contacts')}
-                </Text>
+                </Text> */}
                 <RecipientList
+                  isContactList
                   data={contacts}
                   onRecipientSelected={onRecipientSelected(
                     RecipientInputMethod.SelectContact,

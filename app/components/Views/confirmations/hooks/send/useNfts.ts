@@ -9,7 +9,7 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
-import { useSelectedAccountScope } from './useSelectedAccountScope';
+import { useSendScope } from './useSendScope';
 
 export function useEVMNfts(): Nft[] {
   const { NftController, AssetsContractController, NetworkController } =
@@ -18,7 +18,7 @@ export function useEVMNfts(): Nft[] {
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const allNFTS = useSelector(selectAllNfts);
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
-  const { isEvm } = useSelectedAccountScope();
+  const { isSolanaOnly } = useSendScope();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
@@ -141,7 +141,7 @@ export function useEVMNfts(): Nft[] {
     NetworkController,
   ]);
 
-  if (!isEvm) {
+  if (isSolanaOnly) {
     return [];
   }
 
