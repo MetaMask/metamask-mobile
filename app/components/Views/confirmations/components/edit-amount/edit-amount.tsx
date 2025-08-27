@@ -16,6 +16,8 @@ import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
 
+const MAX_LENGTH = 28;
+
 export interface EditAmountProps {
   autoKeyboard?: boolean;
   children?: (amountHuman: string) => React.ReactNode;
@@ -49,15 +51,17 @@ export function EditAmount({
   const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
   const hasAlert = alerts.length > 0 && inputChanged;
   const fiatSymbol = getCurrencySymbol(fiatCurrency);
+  const amountLength = amountFiat.length;
 
   const { styles } = useStyles(styleSheet, {
+    amountLength,
     hasAlert,
   });
 
   const { tokenFiatAmount } = payToken ?? {};
   const hasAmount = amountFiat !== '0';
 
-  const amountHuman = new BigNumber(amountFiat)
+  const amountHuman = new BigNumber(amountFiat.replace(/,/g, '.'))
     .dividedBy(fiatRate ?? 1)
     .toString(10);
 
@@ -77,6 +81,11 @@ export function EditAmount({
   const handleChange = useCallback(
     (amount: string) => {
       const normalizedAmount = amount.replace(new RegExp(fiatSymbol, 'g'), '');
+
+      if (normalizedAmount.length >= MAX_LENGTH) {
+        return;
+      }
+
       setAmountFiat(normalizedAmount);
     },
     [fiatSymbol],
@@ -107,7 +116,8 @@ export function EditAmount({
 
       const percentageValue = new BigNumber(tokenFiatAmount)
         .multipliedBy(percentage)
-        .dividedBy(100);
+        .dividedBy(100)
+        .decimalPlaces(2, BigNumber.ROUND_HALF_UP);
 
       handleChange(percentageValue.toString(10));
     },
@@ -119,15 +129,17 @@ export function EditAmount({
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
-        <TextInput
-          testID="edit-amount-input"
-          value={displayValue}
-          style={styles.input}
-          ref={inputRef}
-          showSoftInputOnFocus={false}
-          onPress={handleInputPress}
-          onChangeText={handleChange}
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            testID="edit-amount-input"
+            value={displayValue}
+            style={styles.input}
+            ref={inputRef}
+            showSoftInputOnFocus={false}
+            onPress={handleInputPress}
+            onChangeText={handleChange}
+          />
+        </View>
         {children?.(amountHuman)}
       </View>
       {showKeyboard && (

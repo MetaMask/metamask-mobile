@@ -5,8 +5,6 @@ import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers
 import { EditAmount, EditAmountProps } from './edit-amount';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
-import { useTokenAsset } from '../../hooks/useTokenAsset';
-import { TokenI } from '../../../../UI/Tokens/types';
 import { act, fireEvent } from '@testing-library/react-native';
 import {
   AlertsContextParams,
@@ -17,7 +15,6 @@ import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../hooks/useTokenAmount');
-jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
@@ -40,7 +37,6 @@ function render(props: EditAmountProps = {}) {
 
 describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
-  const useTokenAssetMock = jest.mocked(useTokenAsset);
   const useAlertsMock = jest.mocked(useAlerts);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
@@ -50,16 +46,9 @@ describe('EditAmount', () => {
     jest.resetAllMocks();
 
     useTokenAmountMock.mockReturnValue({
-      fiatUnformatted: VALUE_MOCK,
+      fiatUnformatted: '0',
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
-
-    useTokenAssetMock.mockReturnValue({
-      asset: {
-        decimals: 18,
-      } as TokenI,
-      displayName: 'Test Token',
-    });
 
     useAlertsMock.mockReturnValue({
       fieldAlerts: [],
@@ -73,7 +62,13 @@ describe('EditAmount', () => {
   });
 
   it('renders amount from current transaction data', () => {
+    useTokenAmountMock.mockReturnValue({
+      fiatUnformatted: VALUE_MOCK,
+      updateTokenAmount: updateTokenAmountMock,
+    } as unknown as ReturnType<typeof useTokenAmount>);
+
     const { getByTestId } = render();
+
     expect(getByTestId('edit-amount-input')).toHaveProp(
       'value',
       `$${VALUE_MOCK}`,
@@ -101,7 +96,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith('0.61765');
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('26.5');
   });
 
   it('updates amount when input changes', async () => {
@@ -115,10 +110,7 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
-    expect(getByTestId('edit-amount-input')).toHaveProp(
-      'value',
-      `$${VALUE_MOCK + '5'}`,
-    );
+    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5');
   });
 
   it('displays keyboard automatically when autoKeyboard is true', () => {
@@ -150,7 +142,7 @@ describe('EditAmount', () => {
     } as unknown as ReturnType<typeof useTokenAmount>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: { tokenFiatAmount: 1200.5 },
+      payToken: { tokenFiatAmount: 1200.54321 },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
@@ -167,7 +159,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(input).toHaveProp('value', '$600.25');
+    expect(input).toHaveProp('value', '$600.27');
   });
 
   it('does nothing if percentage button pressed with no pay token selected', async () => {
@@ -193,5 +185,40 @@ describe('EditAmount', () => {
     });
 
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('limits decimal places to 2', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    for (const char of '5.123') {
+      await act(async () => {
+        fireEvent.press(getByText(char));
+      });
+    }
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5.12');
+  });
+
+  it('limits length to 28', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    for (const char of '1234567890123456789012345678') {
+      await act(async () => {
+        fireEvent.press(getByText(char));
+      });
+    }
+
+    expect(getByTestId('edit-amount-input')).toHaveProp(
+      'value',
+      '$123456789012345678901234567',
+    );
   });
 });
