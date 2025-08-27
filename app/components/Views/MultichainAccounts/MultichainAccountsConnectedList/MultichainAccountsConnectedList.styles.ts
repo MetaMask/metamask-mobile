@@ -39,7 +39,10 @@ const styleSheet = (params: {
       backgroundColor: colors.background.default,
       marginTop: 8,
       overflow: 'hidden',
-      minHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * numOfAccounts,
+      minHeight: Math.min(
+        ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * numOfAccounts,
+        ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * MAX_VISIBLE_ITEMS,
+      ),
     },
     // Balances Container
     balancesContainer: {
