@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
@@ -20,7 +20,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
-describe(Regression('Send ERC Token'), () => {
+describe(RegressionWalletPlatform('Send ERC Token'), () => {
   let mockServer;
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.

@@ -951,6 +951,7 @@
       "fees": "Fees",
       "market": "Market",
       "limit": "Limit",
+      "open_orders": "Orders",
       "max": "max",
       "cancel_order": "Cancel order",
       "filled": "filled",
@@ -990,6 +991,7 @@
       "margin": "Margin",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
+      "tp_sl": "TP/SL",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1017,6 +1019,7 @@
         "title": "Set Leverage",
         "confirm": "Confirm",
         "entry_price": "Entry Price",
+        "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
         "liquidation_distance": "Liquidation Distance"
       },
@@ -1041,7 +1044,9 @@
         "viewPositions": "View Positions",
         "placeAnother": "Place Another Order",
         "backToPerps": "Back to Perps"
-      }
+      },
+      "submitted": "Order Submitted",
+      "confirmed": "Order Confirmed"
     },
     "close_position": {
       "title": "Close position",
@@ -1245,6 +1250,10 @@
       "perps_geo_block": {
         "title": "Perps geo block",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "tp_sl": {
+        "title": "Take Profit & Stop Loss",
+        "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
       },
       "notifications": {
         "title": "Turn on notifications",
@@ -2494,7 +2503,7 @@
     "not_allowed_error_desc": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
     "unrecognized_address_qr_code_title": "Unrecognized QR Code",
     "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
-    "url_redirection_alert_title": "You are about to visit  an external link",
+    "url_redirection_alert_title": "You are about to visit an external link",
     "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.",
     "label": "Scan a QR code",
     "open_settings": "Settings",
@@ -5095,7 +5104,8 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available: ",
-    "edit_amount_done": "Done"
+    "edit_amount_done": "Done",
+    "deposit_edit_amount_done": "Continue"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

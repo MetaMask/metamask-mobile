@@ -4987,10 +4987,10 @@
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
-"@metamask/bitcoin-wallet-snap@^0.19.3":
-  version "0.19.3"
-  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.19.3.tgz#5d2fd90adf3bb4185c56544da0e3b8c5357971b5"
-  integrity sha512-F5P/x5qA0FKplspSA0Vwo+a1KUb5YfFzurfAMh4AXkImyYuDOa+lufjFuiXQILs4DGF0Cl5ALkKHaecW/6sP2w==
+"@metamask/bitcoin-wallet-snap@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
+  integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
 "@metamask/bridge-controller@^39.0.1":
   version "39.0.1"
@@ -5418,10 +5418,10 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0":
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.0.tgz#7649b6c25be9b669f62883b34d85356858e42aa4"
-  integrity sha512-NKrO93vihpLdjX1HPBzu77vyx9/yItRKsgpllFXNbkiITiEn5HaFsPg3yi6aYj7KTmHY7vp4VSy0EjLMtYYVsA==
+"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0", "@metamask/keyring-api@^20.1.1":
+  version "20.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.1.tgz#4fdf9b3e9b81a653bf827f57b0c8b61574e3cc50"
+  integrity sha512-5gvhFM/wu8ulDeoG8/C+vWfgUApYyTrRopVaGFxZSguBJ+CqnfVJu8pcqQL9u/WYMp2hHiky8WsOA65cEl1D5g==
   dependencies:
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
