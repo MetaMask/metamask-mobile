@@ -177,6 +177,19 @@ const QuoteDetailsCard = () => {
     ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
     : false;
 
+  // Check if price impact warning should be shown
+  const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
+  const shouldShowPriceImpactWarning =
+    rawPriceImpact !== undefined &&
+    bridgeFeatureFlags?.priceImpactThreshold &&
+    ((gasIncluded &&
+      Number(rawPriceImpact) >=
+        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
+      (!gasIncluded &&
+        Number(rawPriceImpact) >=
+          bridgeFeatureFlags.priceImpactThreshold.normal));
+
   return (
     <Box>
       <Box style={styles.container}>
