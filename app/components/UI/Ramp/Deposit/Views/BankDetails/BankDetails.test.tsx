@@ -305,7 +305,6 @@ describe('BankDetails Component', () => {
     mockEndTrace.mockClear();
 
     render(BankDetails);
-    fireEvent.press(screen.getByText('Confirm transfer'));
 
     expect(mockEndTrace).toHaveBeenCalledTimes(3);
     expect(mockEndTrace).toHaveBeenCalledWith({
