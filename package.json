@@ -149,7 +149,7 @@
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^16.0.1",
     "@metamask/eth-query": "^4.0.0",
-    "@metamask/eth-sig-util": "^8.0.0",
+    "@metamask/eth-sig-util": "^8.2.0",
     "@metamask/eth-snap-keyring": "^4.3.3",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/ethjs-contract": "^0.4.1",
