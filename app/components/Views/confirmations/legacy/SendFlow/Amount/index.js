@@ -110,6 +110,7 @@ import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
 import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
+import { NETWORKS_CHAIN_ID } from '../../../../../../constants/network';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1417,6 +1418,14 @@ class Amount extends PureComponent {
     );
   };
 
+  isOPStackNetwork = (chainId) =>
+    [
+      NETWORKS_CHAIN_ID.OPTIMISM,
+      NETWORKS_CHAIN_ID.OPTIMISM_SEPOLIA,
+      NETWORKS_CHAIN_ID.BASE,
+      NETWORKS_CHAIN_ID.BASE_SEPOLIA,
+    ].includes(chainId);
+
   renderCollectibleInput = () => {
     const { amountError } = this.state;
     const { selectedAsset } = this.props;
@@ -1521,18 +1530,19 @@ class Amount extends PureComponent {
                 </TouchableOpacity>
               </View>
               <View style={[styles.actionBorder, styles.actionMax]}>
-                {!selectedAsset.tokenId && (
-                  <TouchableOpacity
-                    testID={AmountViewSelectorsIDs.MAX_BUTTON}
-                    style={styles.actionMaxTouchable}
-                    disabled={!estimatedTotalGas}
-                    onPress={this.useMax}
-                  >
-                    <Text style={styles.maxText}>
-                      {strings('transaction.use_max')}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                {!selectedAsset.tokenId &&
+                  !this.isOPStackNetwork(this.props.globalChainId) && (
+                    <TouchableOpacity
+                      testID={AmountViewSelectorsIDs.MAX_BUTTON}
+                      style={styles.actionMaxTouchable}
+                      disabled={!estimatedTotalGas}
+                      onPress={this.useMax}
+                    >
+                      <Text style={styles.maxText}>
+                        {strings('transaction.use_max')}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
               </View>
             </View>
             {selectedAsset.tokenId
