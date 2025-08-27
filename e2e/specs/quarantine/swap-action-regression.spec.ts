@@ -3,7 +3,7 @@ import { LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import { Regression } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import {
   submitSwapUnifiedUI,
   checkSwapActivity,
@@ -12,7 +12,7 @@ import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 
-describe(Regression('Multiple Swaps from Actions'), (): void => {
+describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(120000);
   });
