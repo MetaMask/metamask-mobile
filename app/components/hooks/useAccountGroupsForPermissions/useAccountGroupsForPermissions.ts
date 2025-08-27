@@ -2,15 +2,55 @@ import { useSelector } from 'react-redux';
 import {
   Caip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
+  isInternalAccountInPermittedAccountIds,
 } from '@metamask/chain-agnostic-permission';
-import { CaipChainId, CaipNamespace } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, CaipNamespace } from '@metamask/utils';
 import { useMemo } from 'react';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
+import { hasChainIdSupport, hasNamespaceSupport } from './utils';
 import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
-import {
-  selectCaip25AccountIdToMultichainAccountGroupMap,
-  selectScopeToAccountGroupMap,
-} from '../../../selectors/multichainAccounts/accounts';
+
+/**
+ * Checks if an account group has any connected accounts
+ *
+ * @param accountGroup - Account group to check for connected accounts
+ * @param connectedAddresses - Array of connected account addresses
+ * @returns True if any account in the group is connected
+ */
+const hasConnectedAccounts = (
+  accountGroup: AccountGroupWithInternalAccounts,
+  connectedAddresses: CaipAccountId[],
+): boolean =>
+  accountGroup.accounts.some((account) => {
+    try {
+      return isInternalAccountInPermittedAccountIds(
+        account,
+        connectedAddresses,
+      );
+    } catch {
+      return false;
+    }
+  });
+
+/**
+ * Checks if an account group supports the requested chains or namespaces
+ *
+ * @param accountGroup - Account group to check for scope support
+ * @param requestedChainIds - Array of requested chain IDs to match against
+ * @param requestedNamespaces - Set of requested namespaces to match against
+ * @returns True if any account in the group supports the requested scopes
+ */
+const hasSupportedScopes = (
+  accountGroup: AccountGroupWithInternalAccounts,
+  requestedChainIds: CaipChainId[],
+  requestedNamespaces: Set<CaipNamespace>,
+): boolean =>
+  accountGroup.accounts.some((account) => {
+    if (requestedChainIds.length > 0) {
+      return hasChainIdSupport(account.scopes, requestedChainIds);
+    }
+    return hasNamespaceSupport(account.scopes, requestedNamespaces);
+  });
 
 /**
  * Hook that manages account groups for CAIP-25 permissions, providing both connected
@@ -31,113 +71,53 @@ export const useAccountGroupsForPermissions = (
   requestedCaipChainIds: CaipChainId[],
   requestedNamespacesWithoutWallet: CaipNamespace[],
 ) => {
-  /** All account groups with their internal account details */
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
-  /** Map from CAIP-25 account IDs to multichain account group IDs */
-  const caip25ToAccountGroupMap = useSelector(
-    selectCaip25AccountIdToMultichainAccountGroupMap,
-  );
-  const scopeToAccountGroupMap = useSelector(selectScopeToAccountGroupMap);
+  const {
+    supportedAccountGroups,
+    connectedAccountGroups,
+    connectedCaipAccountIds,
+  } = useMemo(() => {
+    const connectedAccountIds =
+      getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
+    const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
 
-  const supportedAccountGroups = useMemo(() => {
-    if (requestedCaipChainIds.length) {
-      const chainIdSet = new Set(requestedCaipChainIds);
-      const supportedGroups = new Set<AccountGroupWithInternalAccounts>();
-
-      for (const [scope, scopeAccountGroups] of scopeToAccountGroupMap) {
-        if (chainIdSet.has(scope as CaipChainId)) {
-          if (Array.isArray(scopeAccountGroups)) {
-            for (const group of scopeAccountGroups) {
-              supportedGroups.add(group);
-            }
-          } else {
-            supportedGroups.add(scopeAccountGroups);
-          }
-        }
-      }
-
-      return Array.from(supportedGroups);
-    }
-
-    // Early return if no namespaces requested
-    if (requestedNamespacesWithoutWallet.length === 0) {
-      return [];
-    }
-
-    const namespaceSet = new Set(requestedNamespacesWithoutWallet);
+    const connectedAccountGroupsArray: AccountGroupWithInternalAccounts[] = [];
+    const uniqueAccountGroupIds = new Set<string>();
     const supportedGroups = new Set<AccountGroupWithInternalAccounts>();
 
     for (const accountGroup of accountGroups) {
-      let hasMatchingScope = false;
+      const isConnected = hasConnectedAccounts(
+        accountGroup,
+        connectedAccountIds,
+      );
+      const isSupported = hasSupportedScopes(
+        accountGroup,
+        requestedCaipChainIds,
+        requestedNamespaceSet,
+      );
 
-      for (const account of accountGroup.accounts) {
-        if (account.scopes?.length) {
-          for (const scope of account.scopes) {
-            const [scopeNamespace] = scope.split(':');
-            if (
-              scopeNamespace &&
-              namespaceSet.has(scopeNamespace as CaipNamespace)
-            ) {
-              hasMatchingScope = true;
-              break;
-            }
-          }
-          if (hasMatchingScope) break;
-        }
+      if (isConnected && !uniqueAccountGroupIds.has(accountGroup.id)) {
+        uniqueAccountGroupIds.add(accountGroup.id);
+        connectedAccountGroupsArray.push(accountGroup);
       }
 
-      if (hasMatchingScope) {
+      if (isSupported) {
         supportedGroups.add(accountGroup);
       }
     }
 
-    return Array.from(supportedGroups);
-  }, [
-    requestedCaipChainIds,
-    scopeToAccountGroupMap,
-    accountGroups,
-    requestedNamespacesWithoutWallet,
-  ]);
-
-  /**
-   * Connected account groups and their CAIP account IDs from existing permissions.
-   * Processes existing CAIP-25 permissions to find corresponding account groups.
-   */
-  const { connectedAccountGroups, connectedCaipAccountIds } = useMemo(() => {
-    /** Extract all connected CAIP account IDs from existing permission */
-    const connectedAccountIds =
-      getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
-
-    // Create a Map for O(1) account group lookup instead of O(n) find()
-    const accountGroupsById = new Map<
-      string,
-      AccountGroupWithInternalAccounts
-    >();
-    for (const group of accountGroups) {
-      accountGroupsById.set(group.id, group);
-    }
-
-    const uniqueAccountGroupIds = new Set<string>();
-    const connectedAccountGroupsArray: AccountGroupWithInternalAccounts[] = [];
-
-    // Use for...of for better performance than forEach
-    for (const caipAccountId of connectedAccountIds) {
-      const accountGroupId = caip25ToAccountGroupMap.get(caipAccountId);
-      if (accountGroupId && !uniqueAccountGroupIds.has(accountGroupId)) {
-        const accountGroup = accountGroupsById.get(accountGroupId);
-        if (accountGroup) {
-          uniqueAccountGroupIds.add(accountGroupId);
-          connectedAccountGroupsArray.push(accountGroup);
-        }
-      }
-    }
-
     return {
+      supportedAccountGroups: Array.from(supportedGroups),
       connectedAccountGroups: connectedAccountGroupsArray,
       connectedCaipAccountIds: connectedAccountIds,
     };
-  }, [existingPermission, caip25ToAccountGroupMap, accountGroups]);
+  }, [
+    existingPermission,
+    accountGroups,
+    requestedCaipChainIds,
+    requestedNamespacesWithoutWallet,
+  ]);
 
   return {
     /** Account groups that are currently connected via existing permissions */
