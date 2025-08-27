@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -13,12 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import RemoteImage from '../../../../Base/RemoteImage';
 import type { PerpsMarketData } from '../../controllers/types';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import { styleSheet } from './PerpsMarketHeader.styles';
-import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import PerpsTokenLogo from '../PerpsTokenLogo';
+import { styleSheet } from './PerpsMarketHeader.styles';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -34,7 +33,6 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   return (
     <View style={styles.container} testID={testID}>
@@ -42,7 +40,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.ArrowLeft}
+            iconName={IconName.Arrow2Left}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
@@ -51,13 +49,13 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       )}
 
-      {/* Icon Section */}
+      {/* Icon Section - Smaller size for better spacing */}
       <View style={styles.perpIcon}>
-        {assetUrl ? (
-          <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-        ) : (
-          <Icon name={IconName.Coin} size={IconSize.Lg} />
-        )}
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={32}
+          style={styles.tokenIcon}
+        />
       </View>
 
       {/* Left Section */}

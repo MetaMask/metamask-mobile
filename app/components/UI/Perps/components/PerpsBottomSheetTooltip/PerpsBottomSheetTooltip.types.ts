@@ -28,4 +28,5 @@ export type PerpsTooltipContentKey =
   | 'fees'
   | 'open_interest'
   | 'funding_rate'
-  | 'perps_geo_block';
+  | 'perps_geo_block'
+  | 'tp_sl';
