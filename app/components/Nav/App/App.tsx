@@ -154,6 +154,7 @@ import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
@@ -168,6 +169,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccount/SmartAccountModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -619,6 +621,14 @@ const MultichainAccountDetails = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={AccountDetails}
         initialParams={route?.params}
+      />
+      <Stack.Screen
+        name="SmartAccountDetails"
+        component={SmartAccountModal}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
       />
     </Stack.Navigator>
   );
