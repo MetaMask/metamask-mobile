@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPerpsBalances } from '../selectors/perpsController';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
+import { AccountState } from '../controllers/types';
 
 // Mock dependencies
 jest.mock('react-redux');
@@ -39,7 +40,7 @@ describe('usePerpsPortfolioBalance', () => {
   describe('Basic functionality', () => {
     it('should return zero balance when no perps balances exist', () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -73,7 +74,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -116,7 +117,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPerpsBalances) return mockBalances;
-        if (selector === selectConversionRateBySymbol) return 1;
+        if (selector === (selectConversionRateBySymbol as unknown)) return 1;
         return undefined;
       });
 
@@ -140,7 +141,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPerpsBalances) return mockBalances;
-        if (selector === selectConversionRateBySymbol) return 1;
+        if (selector === (selectConversionRateBySymbol as unknown)) return 1;
         return undefined;
       });
 
@@ -165,7 +166,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 0.85); // EUR conversion rate
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -196,7 +197,8 @@ describe('usePerpsPortfolioBalance', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPerpsBalances) return mockBalances;
-        if (selector === selectConversionRateBySymbol) return undefined;
+        if (selector === (selectConversionRateBySymbol as unknown))
+          return undefined;
         return undefined;
       });
 
@@ -212,7 +214,7 @@ describe('usePerpsPortfolioBalance', () => {
   describe('Fetch on mount behavior', () => {
     it('should fetch account state when fetchOnMount is true and eligible', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -224,7 +226,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      mockGetAccountState.mockResolvedValue(undefined);
+      mockGetAccountState.mockResolvedValue({} as AccountState);
 
       renderHook(() => usePerpsPortfolioBalance({ fetchOnMount: true }));
 
@@ -235,7 +237,7 @@ describe('usePerpsPortfolioBalance', () => {
 
     it('should not fetch when fetchOnMount is false', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -260,7 +262,7 @@ describe('usePerpsPortfolioBalance', () => {
       Engine.context.PerpsController.state.isEligible = false;
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -283,7 +285,7 @@ describe('usePerpsPortfolioBalance', () => {
 
     it('should handle fetch errors gracefully', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -315,7 +317,7 @@ describe('usePerpsPortfolioBalance', () => {
 
     it('should only fetch once even if component re-renders', async () => {
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -327,7 +329,7 @@ describe('usePerpsPortfolioBalance', () => {
         return undefined;
       });
 
-      mockGetAccountState.mockResolvedValue(undefined);
+      mockGetAccountState.mockResolvedValue({} as AccountState);
 
       const { rerender } = renderHook(() =>
         usePerpsPortfolioBalance({ fetchOnMount: true }),
@@ -338,7 +340,7 @@ describe('usePerpsPortfolioBalance', () => {
       });
 
       // Re-render the hook
-      rerender();
+      rerender({});
 
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -361,7 +363,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -393,7 +395,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -423,7 +425,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -448,11 +450,11 @@ describe('usePerpsPortfolioBalance', () => {
           totalValue: '1000.00',
           // Missing unrealizedPnl and accountValue1dAgo
           lastUpdated: Date.now(),
-        } as Partial<typeof mockBalances.hyperliquid>,
+        },
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -488,7 +490,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -524,7 +526,7 @@ describe('usePerpsPortfolioBalance', () => {
       mockUseSelector.mockImplementation((selector) => {
         selectorCallCount++;
         if (selector === selectPerpsBalances) return mockBalances;
-        if (selector === selectConversionRateBySymbol) return 1;
+        if (selector === (selectConversionRateBySymbol as unknown)) return 1;
         return undefined;
       });
 
@@ -536,7 +538,7 @@ describe('usePerpsPortfolioBalance', () => {
       const initialCallCount = selectorCallCount;
 
       // Re-render without changing any dependencies
-      rerender();
+      rerender({});
 
       // Values should remain the same (memoized calculation)
       expect(result.current.perpsBalance).toBe(initialBalance);
@@ -558,7 +560,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       const mockSelectConversionRateBySymbol = jest.fn(() => 1);
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         mockSelectConversionRateBySymbol,
       );
 
@@ -584,7 +586,7 @@ describe('usePerpsPortfolioBalance', () => {
         },
       };
 
-      rerender();
+      rerender({});
 
       // Balance should be updated
       expect(result.current.perpsBalance).toBe(2000);
@@ -602,7 +604,7 @@ describe('usePerpsPortfolioBalance', () => {
       };
 
       let conversionRate = 1;
-      (selectConversionRateBySymbol as jest.Mock).mockImplementation(
+      (selectConversionRateBySymbol as unknown as jest.Mock).mockImplementation(
         () => conversionRate,
       );
 
@@ -620,7 +622,7 @@ describe('usePerpsPortfolioBalance', () => {
 
       // Update the conversion rate
       conversionRate = 0.85;
-      rerender();
+      rerender({});
 
       // Balance should be converted
       expect(result.current.perpsBalance).toBeCloseTo(850, 2);

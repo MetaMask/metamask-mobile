@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
+import { selectIsFirstTimeUser } from '../../controllers/selectors';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -47,6 +48,11 @@ const selectPerpsBalances = createSelector(
   (perpsControllerState) => perpsControllerState?.perpsBalances || {},
 );
 
+const selectIsFirstTimePerpsUser = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+);
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -54,4 +60,5 @@ export {
   selectPerpsEligibility,
   selectPerpsNetwork,
   selectPerpsBalances,
+  selectIsFirstTimePerpsUser,
 };

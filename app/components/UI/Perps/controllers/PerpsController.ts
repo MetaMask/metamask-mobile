@@ -285,6 +285,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getHistoricalPortfolio';
       handler: PerpsController['getHistoricalPortfolio'];
+    }
+  | {
+      type: 'PerpsController:resetFirstTimeUserState';
+      handler: PerpsController['resetFirstTimeUserState'];
     };
 
 /**
@@ -1655,6 +1659,29 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.hasPlacedFirstOrder[currentNetwork] = true;
+    });
+  }
+
+  /**
+   * Reset first-time user state for both networks
+   * This is useful for testing the tutorial flow
+   * Called by Reset Account feature in settings
+   */
+  resetFirstTimeUserState(): void {
+    DevLogger.log('PerpsController: Resetting first-time user state', {
+      timestamp: new Date().toISOString(),
+      previousState: this.state.isFirstTimeUser,
+    });
+
+    this.update((state) => {
+      state.isFirstTimeUser = {
+        testnet: true,
+        mainnet: true,
+      };
+      state.hasPlacedFirstOrder = {
+        testnet: false,
+        mainnet: false,
+      };
     });
   }
 }
