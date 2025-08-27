@@ -8,6 +8,7 @@ import {
   setDestAddress,
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
+  selectSelectedDestChainId,
 } from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import Cell, {
@@ -27,6 +28,9 @@ import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -57,6 +61,21 @@ const DestinationAccountSelector = () => {
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
 
+  // Filter accounts to only those compatible with destination network
+  const destChainId = useSelector(selectSelectedDestChainId);
+  const filteredAccounts = useMemo(() => {
+    if (!destChainId) return [];
+
+    const destCaipChainId = formatChainIdToCaip(destChainId);
+    const isEvmChain = !isNonEvmChainId(destCaipChainId);
+
+    return accounts.filter(
+      (account) =>
+        account.scopes?.includes(destCaipChainId) ||
+        (isEvmChain && account.scopes?.includes(EthScope.Eoa)),
+    );
+  }, [accounts, destChainId]);
+
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
   const accountAvatarType = useSelector((state: RootState) =>
@@ -67,15 +86,6 @@ const DestinationAccountSelector = () => {
 
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
-
-  const filteredAccounts = useMemo(() => {
-    if (isEvmToSolana) {
-      return accounts.filter((account) => isSolanaAddress(account.address));
-    } else if (isSolanaToEvm) {
-      return accounts.filter((account) => !isSolanaAddress(account.address));
-    }
-    return []; // No addresses to pick if EVM <> EVM, or Solana <> Solana, will go to current account
-  }, [accounts, isEvmToSolana, isSolanaToEvm]);
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -133,6 +143,7 @@ const DestinationAccountSelector = () => {
               accountAddress: destAddress,
               style: styles.avatarStyle,
             }}
+            onPress={handleClearDestAddress}
           >
             <View style={styles.closeButtonContainer}>
               <ButtonIcon
