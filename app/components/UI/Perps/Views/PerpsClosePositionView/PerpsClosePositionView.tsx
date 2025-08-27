@@ -632,6 +632,14 @@ const PerpsClosePositionView: React.FC = () => {
           onClose={handleTooltipClose}
           contentKey={selectedTooltip}
           key={selectedTooltip}
+          data={
+            selectedTooltip === 'closing_fees'
+              ? {
+                  metamaskFeeRate: feeResults.metamaskFeeRate,
+                  protocolFeeRate: feeResults.protocolFeeRate,
+                }
+              : undefined
+          }
         />
       )}
     </SafeAreaView>

@@ -19,6 +19,11 @@ export interface PerpsBottomSheetTooltipProps {
    * Optional test ID for testing
    */
   testID?: string;
+
+  /**
+   * Optional data to pass to custom content renderers
+   */
+  data?: Record<string, unknown>;
 }
 
 export type PerpsTooltipContentKey =

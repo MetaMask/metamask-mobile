@@ -134,6 +134,10 @@ describe('PerpsBottomSheetTooltip', () => {
             onClose={mockOnClose}
             contentKey={'fees'}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
+            data={{
+              metamaskFeeRate: 0.001, // 0.1% MetaMask fee
+              protocolFeeRate: 0.00045, // 0.045% protocol fee for taker
+            }}
           />
         </PerpsOrderProvider>
       </SafeAreaProvider>,
@@ -142,8 +146,8 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('Fees')).toBeTruthy();
     expect(getByText('MetaMask fee')).toBeTruthy();
     expect(getByText('Provider fee')).toBeTruthy();
-    // MetaMask fee shows "N/A" since TRADING_FEE_RATE is not defined
-    expect(getByText('N/A')).toBeTruthy();
+    // MetaMask fee should show 0.100%
+    expect(getByText('0.100%')).toBeTruthy();
     // Provider fee (taker) should be 0.045%
     expect(getByText('0.045%')).toBeTruthy();
   });

@@ -9,24 +9,20 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
-import { METAMASK_FEE_CONFIG } from '../../../constants/perpsConfig';
-import { FEE_RATES } from '../../../constants/hyperLiquidConfig';
 
 interface FeesTooltipContentProps extends TooltipContentProps {
-  isMarketOrder?: boolean;
+  data?: {
+    metamaskFeeRate?: number;
+    protocolFeeRate?: number;
+  };
 }
 
-const FeesTooltipContent = ({
-  testID,
-  isMarketOrder = true,
-}: FeesTooltipContentProps) => {
+const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  // Calculate fee rates based on order type
-  const metamaskFee = formatFeeRate(METAMASK_FEE_CONFIG.TRADING_FEE_RATE);
-  const providerFee = formatFeeRate(
-    isMarketOrder ? FEE_RATES.taker : FEE_RATES.maker,
-  );
+  // Use passed fee rates or show N/A if not provided
+  const metamaskFee = formatFeeRate(data?.metamaskFeeRate);
+  const providerFee = formatFeeRate(data?.protocolFeeRate);
 
   return (
     <View testID={testID}>
