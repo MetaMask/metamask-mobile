@@ -6,34 +6,60 @@ import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaM
 import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors'
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
-class WelcomeScreen {
+class WelcomeScreen  {
   constructor() {
     this.CAROUSEL_RECTANGLES = null;
   }
 
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get splashScreenMetamaskAnimationId() {
-    return Selectors.getXpathElementByResourceId(
-      SPLASH_SCREEN_METAMASK_ANIMATION_ID,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        SPLASH_SCREEN_METAMASK_ANIMATION_ID,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SPLASH_SCREEN_METAMASK_ANIMATION_ID);
+    }
   }
 
   get getStartedButton() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
+    }
   }
 
   get screen() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingCarouselSelectorIDs.CONTAINER_ID,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        OnboardingCarouselSelectorIDs.CONTAINER_ID,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.CONTAINER_ID);
+    }
   }
 
   async getLaunchDuration() {
-    return await Selectors.getXpathElementByResourceId(
-      OnboardingCarouselSelectorIDs.APP_START_TIME_ID,
-    );
+    if (!this._device) {
+      return await Selectors.getXpathElementByResourceId(
+        OnboardingCarouselSelectorIDs.APP_START_TIME_ID,
+      );
+    } else {
+      return await AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.APP_START_TIME_ID);
+    }
   }
 
   async isGetLaunchDurationDisplayed() {
@@ -61,11 +87,21 @@ class WelcomeScreen {
   }
 
   async isScreenDisplayed() {
-    expect(this.screen).toBeDisplayed();
+    if (!this._device) {
+      expect(this.screen).toBeDisplayed();
+    } else {
+      const element = await this.screen;
+      await appwrightExpect(element).toBeVisible();
+    }
   }
 
   async isGetStartedButtonDisplayed() {
-    expect(this.getStartedButton).toBeDisplayed();
+    if (!this._device) {
+      expect(this.getStartedButton).toBeDisplayed();
+    } else {
+      const element = await this.getStartedButton;
+      await appwrightExpect(element).toBeVisible();
+    }
   }
 
   async waitForSplashAnimationToNotExit() {
@@ -111,17 +147,27 @@ class WelcomeScreen {
   }
 
   async clickGetStartedButton() {
-    const element = await this.screen;
-    let screenExist = await element.isExisting();
+    if (!this._device) {
+      const element = await this.screen;
+      let screenExist = await element.isExisting();
 
-    await Gestures.waitAndTap(this.getStartedButton);
-    await driver.pause(7000);
-    screenExist = await element.isExisting();
+      await Gestures.waitAndTap(this.getStartedButton);
+      await driver.pause(7000);
+      screenExist = await element.isExisting();
+    } else {
+      const button = await AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
+      await button.tap();
+    }
   }
 
   async waitForScreenToDisplay() {
-    const element = await this.screen;
-    await element.waitForDisplayed({ interval: 500 });
+    if (!this._device) {
+      const element = await this.screen;
+      await element.waitForDisplayed({ interval: 500 });
+    } else {
+      const element = await this.screen;
+      await appwrightExpect(element).toBeVisible();
+    }
   }
 }
 
