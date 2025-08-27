@@ -1,6 +1,12 @@
 import type { RestrictedMessenger } from '@metamask/base-controller';
+import { getVersion } from 'react-native-device-info';
 import AppConstants from '../../../../AppConstants';
-import type { LoginResponseDto } from '../types';
+import type {
+  LoginResponseDto,
+  EstimatePointsDto,
+  EstimatedPointsDto,
+  GetPerpsDiscountDto,
+} from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
 const SERVICE_NAME = 'RewardsDataService';
@@ -15,7 +21,20 @@ export interface RewardsDataServiceLoginAction {
   handler: RewardsDataService['login'];
 }
 
-export type RewardsDataServiceActions = RewardsDataServiceLoginAction;
+export interface RewardsDataServiceEstimatePointsAction {
+  type: `${typeof SERVICE_NAME}:estimatePoints`;
+  handler: RewardsDataService['estimatePoints'];
+}
+
+export interface RewardsDataServiceGetPerpsDiscountAction {
+  type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
+  handler: RewardsDataService['getPerpsDiscount'];
+}
+
+export type RewardsDataServiceActions =
+  | RewardsDataServiceLoginAction
+  | RewardsDataServiceEstimatePointsAction
+  | RewardsDataServiceGetPerpsDiscountAction;
 
 type AllowedActions = never;
 
@@ -39,20 +58,32 @@ export class RewardsDataService {
 
   readonly #fetch: typeof fetch;
 
+  readonly #appType: 'mobile' | 'extension';
+
   constructor({
     messenger,
     fetch: fetchFunction,
+    appType,
   }: {
     messenger: RewardsDataServiceMessenger;
     fetch: typeof fetch;
+    appType: 'mobile' | 'extension';
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
-
+    this.#appType = appType;
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
       this.login.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:estimatePoints`,
+      this.estimatePoints.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsDiscount`,
+      this.getPerpsDiscount.bind(this),
     );
   }
 
@@ -73,6 +104,15 @@ export class RewardsDataService {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+
+    // Add client identification header (matches web3_clientVersion format)
+    try {
+      const appVersion = getVersion();
+      headers['rewards-client-id'] = `${this.#appType}-${appVersion}`;
+    } catch (error) {
+      // Continue without client header if version retrieval fails
+      console.warn('Failed to retrieve app version for client header:', error);
+    }
 
     // Add bearer token for authenticated requests
     try {
@@ -142,5 +182,43 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Estimate points for a given activity.
+   * @param body - The estimate points request body.
+   * @returns The estimated points response DTO.
+   */
+  async estimatePoints(body: EstimatePointsDto): Promise<EstimatedPointsDto> {
+    const response = await this.makeRequest('/points-estimation', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Points estimation failed: ${response.status}`);
+    }
+
+    return (await response.json()) as EstimatedPointsDto;
+  }
+
+  /**
+   * Get Perps fee discount for a given address.
+   * @param params - The request parameters containing the CAIP-10 address.
+   * @returns The Perps discount rewards string for the given address.
+   */
+  async getPerpsDiscount(params: GetPerpsDiscountDto): Promise<string> {
+    const response = await this.makeRequest(
+      `/public/rewards/perps-fee-discount/${params.address}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get Perps discount failed: ${response.status}`);
+    }
+
+    return await response.text();
   }
 }
