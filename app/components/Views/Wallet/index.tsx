@@ -167,8 +167,6 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
-import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
-import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -223,10 +221,15 @@ const WalletTokensTabView = React.memo(
     defiEnabled: boolean;
     collectiblesEnabled: boolean;
   }) => {
-    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+    const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
     const [currentTabIndex, setCurrentTabIndex] = React.useState(0);
     const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+
+    const isPerpsEnabled = useMemo(
+      () => isPerpsFlagEnabled && isEvmSelected,
+      [isPerpsFlagEnabled, isEvmSelected],
+    );
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -1039,11 +1042,7 @@ const Wallet = ({
           {isMultichainAccountsState2Enabled ? (
             <AccountGroupBalance />
           ) : (
-            <PerpsConnectionProvider>
-              <PerpsStreamProvider>
-                <PortfolioBalance />
-              </PerpsStreamProvider>
-            </PerpsConnectionProvider>
+            <PortfolioBalance />
           )}
           <AssetDetailsActions
             displayFundButton={displayFundButton}
