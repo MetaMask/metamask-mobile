@@ -23,13 +23,30 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
       TokensController,
       TokenBalancesController,
       TokenRatesController,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainAssetsController,
       MultichainBalancesController,
       MultichainAssetsRatesController,
+      ///: END:ONLY_INCLUDE_IF
       CurrencyRateController,
       NetworkController,
       AccountTrackerController,
     } = state.engine.backgroundState;
+
+    let multichainState = {
+      accountsAssets: {},
+      assetsMetadata: {},
+      balances: {},
+      conversionRates: {},
+    };
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    multichainState = {
+      ...MultichainAssetsController,
+      ...MultichainBalancesController,
+      ...MultichainAssetsRatesController,
+    };
+    ///: END:ONLY_INCLUDE_IF
 
     return {
       ...AccountTreeController,
@@ -37,9 +54,7 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
       ...TokensController,
       ...TokenBalancesController,
       ...TokenRatesController,
-      ...MultichainAssetsController,
-      ...MultichainBalancesController,
-      ...MultichainAssetsRatesController,
+      ...multichainState,
       ...CurrencyRateController,
       ...NetworkController,
       ...(AccountTrackerController as {
