@@ -42,10 +42,19 @@ const selectPerpsNetwork = createSelector(
     perpsControllerState?.isTestnet ? 'testnet' : 'mainnet',
 );
 
+// Import the existing selector logic
+import { selectIsFirstTimeUser } from '../../controllers/selectors';
+
+const selectIsFirstTimePerpsUser = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+);
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectIsFirstTimePerpsUser,
 };
