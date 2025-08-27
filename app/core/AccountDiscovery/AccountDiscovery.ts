@@ -24,6 +24,7 @@ interface AccountDiscoverySRP {
 class AccountDiscoveryService {
   private _pendingKeyring: AccountDiscoverySRP = {};
   private discoveryRunning = false;
+  private discoveryPromise: Promise<void> = Promise.resolve();
 
   /**
    * Gets the current pending keyring discovery operations.
@@ -42,12 +43,20 @@ class AccountDiscoveryService {
   }
 
   /**
+   * Syncs running discovery promise.
+   */
+  syncRunningDiscovery = async (): Promise<void> => {
+    await this.discoveryPromise;
+  };
+
+  /**
    * Attempts to perform account discovery for all pending keyring operations.
    * This is a wrapper method that calls performAccountDiscovery.
    * @throws {Error} If discovery is already running
    */
   attemptAccountDiscovery = async (): Promise<void> => {
-    await this.performAccountDiscovery();
+    this.discoveryPromise = this.performAccountDiscovery();
+    await this.discoveryPromise;
   };
 
   /**
