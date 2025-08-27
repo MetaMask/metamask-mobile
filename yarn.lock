@@ -4983,6 +4983,15 @@
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
+"@metamask/base-controller@^8.2.0":
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
+  integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
+  dependencies:
+    "@metamask/messenger" "^0.1.0"
+    "@metamask/utils" "^11.4.2"
+    immer "^9.0.6"
+
 "@metamask/bitcoin-wallet-snap@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
