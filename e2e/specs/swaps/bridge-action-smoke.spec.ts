@@ -9,7 +9,6 @@ import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
@@ -37,7 +36,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
   }[] = [];
 
   it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
-    const FIRST_ROW: number = 0;
     const destNetwork = 'Solana';
     const quantity: string = '1';
     const destSymbol: string = 'SOL';
@@ -93,14 +91,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await Assertions.expectElementToBeVisible(ActivitiesView.title);
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
-        );
-        return; //BUGBUG
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(
-            FIRST_ROW,
-          ) as Promise<IndexableNativeElement>,
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          { timeout: 30000 },
         );
       },
     );
@@ -323,7 +313,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
   });
 
   it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
-    const FIRST_ROW: number = 0;
     const destNetwork = 'Base';
     const quantity: string = '1';
     const sourceSymbol: string = 'ETH';
@@ -372,15 +361,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await Assertions.expectElementToBeVisible(ActivitiesView.title);
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
-        );
-
-        return; //BUGBUG
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(
-            FIRST_ROW,
-          ) as Promise<IndexableNativeElement>,
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          { timeout: 30000 },
         );
       },
     );
