@@ -1,5 +1,9 @@
 import { BaseController } from '@metamask/base-controller';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  LoginResponseDto,
+  LastAuthenticatedAccountDto,
+} from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
@@ -67,8 +71,20 @@ export class RewardsController extends BaseController<
       },
     });
 
+    this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
   }
+
+  /**
+   * Register action handlers for this controller
+   */
+  #registerActionHandlers(): void {
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getLastAuthenticatedAccount',
+      this.getLastAuthenticatedAccount.bind(this),
+    );
+  }
+
   /**
    * Initialize event subscriptions based on feature flag state
    */
@@ -306,6 +322,26 @@ export class RewardsController extends BaseController<
       // For other errors, we don't update the state to allow retries
     } finally {
       this.#isProcessingSilentAuth = false;
+    }
+  }
+
+  /**
+   * Get the last authenticated account and its subscription information.
+   * @returns The last authenticated account address, subscription ID, and auth timestamp.
+   */
+  async getLastAuthenticatedAccount(): Promise<LastAuthenticatedAccountDto> {
+    try {
+      return {
+        address: this.state.lastAuthenticatedAccount,
+        subscriptionId: this.state.subscription?.id ?? null,
+        lastAuthTime: this.state.lastAuthTime,
+      };
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'RewardsController: Failed to get last authenticated account info',
+      );
+      throw error;
     }
   }
 }
