@@ -8,6 +8,20 @@ import {
   PerpsOrderTransactionStatusType,
 } from '../../types/transactionHistory';
 
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
+  },
+}));
+
 const mockColors = {
   black: '#000000',
   gray: '#666666',
@@ -105,6 +119,7 @@ describe('PerpsTransactionItem', () => {
     expect(
       getByTestId(PerpsTransactionSelectorsIDs.TRANSACTION_ITEM_AVATAR),
     ).toBeTruthy();
+    expect(getByTestId('perps-token-logo')).toBeTruthy();
     expect(mockRenderRightContent).toHaveBeenCalledWith(mockTransaction);
   });
 
@@ -157,7 +172,7 @@ describe('PerpsTransactionItem', () => {
     expect(queryByText('1.5 ETH')).toBeFalsy();
   });
 
-  it('should render Avatar with correct asset name', () => {
+  it('should render PerpsTokenLogo with correct asset name', () => {
     const btcTransaction = {
       ...mockTransaction,
       asset: 'BTC',
@@ -165,7 +180,7 @@ describe('PerpsTransactionItem', () => {
       subtitle: '0.5 BTC',
     };
 
-    render(
+    const { getByTestId } = render(
       <PerpsTransactionItem
         item={btcTransaction}
         styles={mockStyles}
@@ -174,7 +189,8 @@ describe('PerpsTransactionItem', () => {
       />,
     );
 
-    // Avatar should be called with BTC as name
+    // PerpsTokenLogo should be rendered with BTC as symbol
+    expect(getByTestId('perps-token-logo')).toBeTruthy();
     expect(mockRenderRightContent).toHaveBeenCalledWith(btcTransaction);
   });
 
