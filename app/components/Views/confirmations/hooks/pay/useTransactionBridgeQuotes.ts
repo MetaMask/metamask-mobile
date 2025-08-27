@@ -87,7 +87,15 @@ export function useTransactionBridgeQuotes() {
   useEffect(() => {
     dispatch(setTransactionBridgeQuotes({ transactionId, quotes }));
 
-    log('Bridge quotes', { transactionId, quotes });
+    log(
+      'Bridge quotes',
+      quotes?.map((quote) => ({
+        bridgeId: quote.quote?.bridgeId,
+        networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
+        sourceAmount: quote.sentAmount?.valueInCurrency,
+        to: quote.toTokenAmount?.valueInCurrency,
+      })),
+    );
   }, [dispatch, quotes, transactionId]);
 
   return { loading, quotes };
