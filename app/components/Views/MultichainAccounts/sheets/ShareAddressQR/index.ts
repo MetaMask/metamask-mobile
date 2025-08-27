@@ -1,0 +1,1 @@
+export { ShareAddressQR } from './ShareAddressQR';
