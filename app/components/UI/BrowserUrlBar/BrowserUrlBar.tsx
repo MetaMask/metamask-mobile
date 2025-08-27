@@ -119,6 +119,16 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     };
 
     const onChangeTextInput = (text: string) => {
+      // Prevent drag and drop: block text changes when URL bar is not focused
+      // Normal typing and pasting happen when the input is focused
+      if (!isUrlBarFocused) {
+        // Reset to previous value to prevent drag/drop text insertion
+        inputRef?.current?.setNativeProps({ text: inputValueRef.current });
+        return;
+      }
+
+      // Update the current value and allow normal text input
+      inputValueRef.current = text;
       inputRef?.current?.setNativeProps({ text });
       onChangeText(text);
     };

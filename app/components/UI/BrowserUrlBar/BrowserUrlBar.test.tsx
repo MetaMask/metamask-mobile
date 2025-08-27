@@ -215,4 +215,52 @@ describe('BrowserUrlBar', () => {
     expect(defaultProps.setIsUrlBarFocused).toHaveBeenCalledWith(false);
     expect(defaultProps.onBlur).toHaveBeenCalled();
   });
+
+  it('should prevent text changes when URL bar is not focused (drag and drop prevention)', () => {
+    const onChangeTextMock = jest.fn();
+    const propsUnfocused = {
+      ...defaultProps,
+      onChangeText: onChangeTextMock,
+      isUrlBarFocused: false,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...propsUnfocused} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const urlInput = getByTestId(BrowserURLBarSelectorsIDs.URL_INPUT);
+
+    // Try to change text when URL bar is not focused (simulating drag & drop)
+    fireEvent.changeText(urlInput, 'dragged-text.com');
+
+    // Text change should be blocked, onChangeText should not be called
+    expect(onChangeTextMock).not.toHaveBeenCalled();
+  });
+
+  it('should allow text changes when URL bar is focused (normal input)', () => {
+    const onChangeTextMock = jest.fn();
+    const propsFocused = {
+      ...defaultProps,
+      onChangeText: onChangeTextMock,
+      isUrlBarFocused: true,
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...propsFocused} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const urlInput = getByTestId(BrowserURLBarSelectorsIDs.URL_INPUT);
+
+    // Change text when URL bar is focused (normal typing/pasting)
+    fireEvent.changeText(urlInput, 'typed-text.com');
+
+    // Text change should be allowed, onChangeText should be called
+    expect(onChangeTextMock).toHaveBeenCalledWith('typed-text.com');
+  });
 });
