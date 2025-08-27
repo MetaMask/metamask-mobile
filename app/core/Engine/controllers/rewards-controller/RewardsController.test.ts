@@ -1005,4 +1005,61 @@ describe('RewardsController', () => {
       });
     });
   });
+
+  describe('getLastAuthenticatedAccount', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      rewardsController = new RewardsController({
+        messenger: mockMessenger,
+      });
+    });
+
+    it('should return last authenticated account with subscription info', async () => {
+      const mockState: RewardsControllerState = {
+        lastAuthenticatedAccount: '0x1234567890123456789012345678901234567890',
+        lastAuthTime: 1234567890,
+        subscription: {
+          id: 'test-subscription-id',
+          referralCode: 'test-referral-code',
+        },
+      };
+
+      // Create controller with mock state
+      rewardsController = new RewardsController({
+        messenger: mockMessenger,
+        state: mockState,
+      });
+
+      const result = await rewardsController.getLastAuthenticatedAccount();
+
+      expect(result).toEqual({
+        address: '0x1234567890123456789012345678901234567890',
+        subscriptionId: 'test-subscription-id',
+        lastAuthTime: 1234567890,
+      });
+    });
+
+    it('should return last authenticated account without subscription (null subscription)', async () => {
+      const mockState: RewardsControllerState = {
+        lastAuthenticatedAccount: '0x1234567890123456789012345678901234567890',
+        lastAuthTime: 1234567890,
+        subscription: null,
+      };
+
+      // Create controller with mock state
+      rewardsController = new RewardsController({
+        messenger: mockMessenger,
+        state: mockState,
+      });
+
+      const result = await rewardsController.getLastAuthenticatedAccount();
+
+      expect(result).toEqual({
+        address: '0x1234567890123456789012345678901234567890',
+        subscriptionId: null,
+        lastAuthTime: 1234567890,
+      });
+    });
+  });
 });

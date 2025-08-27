@@ -1,6 +1,10 @@
 import type { RestrictedMessenger } from '@metamask/base-controller';
 import AppConstants from '../../../../AppConstants';
-import type { LoginResponseDto } from '../types';
+import type {
+  LoginResponseDto,
+  EstimatePointsDto,
+  EstimatedPointsDto,
+} from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
 const SERVICE_NAME = 'RewardsDataService';
@@ -15,7 +19,14 @@ export interface RewardsDataServiceLoginAction {
   handler: RewardsDataService['login'];
 }
 
-export type RewardsDataServiceActions = RewardsDataServiceLoginAction;
+export interface RewardsDataServiceEstimatePointsAction {
+  type: `${typeof SERVICE_NAME}:estimatePoints`;
+  handler: RewardsDataService['estimatePoints'];
+}
+
+export type RewardsDataServiceActions =
+  | RewardsDataServiceLoginAction
+  | RewardsDataServiceEstimatePointsAction;
 
 type AllowedActions = never;
 
@@ -53,6 +64,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
       this.login.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:estimatePoints`,
+      this.estimatePoints.bind(this),
     );
   }
 
@@ -142,5 +157,23 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Estimate points for a given activity.
+   * @param body - The estimate points request body.
+   * @returns The estimated points response DTO.
+   */
+  async estimatePoints(body: EstimatePointsDto): Promise<EstimatedPointsDto> {
+    const response = await this.makeRequest('/points-estimation', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Points estimation failed: ${response.status}`);
+    }
+
+    return (await response.json()) as EstimatedPointsDto;
   }
 }
