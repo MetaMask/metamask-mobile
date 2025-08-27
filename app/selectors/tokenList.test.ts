@@ -1,7 +1,4 @@
-import {
-  selectAssetsBySelectedAccountGroup,
-  selectSortedTokenKeys,
-} from './tokenList';
+import { selectSortedTokenKeys } from './tokenList';
 import { selectTokenSortConfig } from './preferencesController';
 import { selectIsEvmNetworkSelected } from './multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -25,9 +22,6 @@ jest.mock('./accountsController');
 jest.mock('./multichain');
 jest.mock('../store', () => ({
   store: { getState: jest.fn() },
-}));
-jest.mock('@metamask/assets-controllers', () => ({
-  selectAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 // This selector consumes many selectors and is very hard to create exact state
@@ -177,76 +171,5 @@ describe('selectSortedTokenKeys', () => {
     const result2 = selectSortedTokenKeys(mockState());
 
     expect(result1).not.toBe(result2);
-  });
-});
-
-describe('selectAssetsBySelectedAccountGroup', () => {
-  it('builds the initial state object', () => {
-    const {
-      selectAssetsBySelectedAccountGroup:
-        mockSelectAssetsBySelectedAccountGroup,
-    } = jest.requireMock('@metamask/assets-controllers');
-
-    const mockResult = {};
-    mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockResult);
-
-    const mockState = () =>
-      ({
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {},
-            },
-            AccountsController: {
-              accounts: {},
-            },
-            TokensController: {
-              allTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {},
-            },
-            TokenRatesController: {
-              tokenRates: {},
-            },
-            MultichainAssetsController: {
-              allAssets: {},
-            },
-            MultichainBalancesController: {
-              allBalances: {},
-            },
-            MultichainAssetsRatesController: {
-              allAssetsRates: {},
-            },
-            CurrencyRateController: {
-              currencyRates: {},
-            },
-            NetworkController: {
-              networks: {},
-            },
-            AccountTrackerController: {
-              accountsByChainId: {},
-            },
-          },
-        },
-      } as unknown as RootState);
-
-    const result = selectAssetsBySelectedAccountGroup(mockState());
-
-    expect(mockSelectAssetsBySelectedAccountGroup).toHaveBeenCalledWith({
-      accountTree: {},
-      accounts: {},
-      allTokens: {},
-      tokenBalances: {},
-      tokenRates: {},
-      allAssets: {},
-      allBalances: {},
-      allAssetsRates: {},
-      currencyRates: {},
-      networks: {},
-      accountsByChainId: {},
-    });
-
-    expect(result).toBe(mockResult);
   });
 });
