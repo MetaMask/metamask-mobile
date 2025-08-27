@@ -20,6 +20,7 @@ export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 export const predefinedPassword = process.env.PREDEFINED_PASSWORD;
 
 export const additionalSrps = [
+  process.env.ADDITIONAL_SRP_1,
   process.env.ADDITIONAL_SRP_2,
   process.env.ADDITIONAL_SRP_3,
   process.env.ADDITIONAL_SRP_4,
