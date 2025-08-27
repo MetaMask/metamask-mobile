@@ -254,6 +254,16 @@ export class RewardsController extends BaseController<
         state.lastAuthenticatedAccount = address;
         state.lastAuthTime = currentTime;
       });
+
+      // Publish event for successful authentication
+      this.messagingSystem.publish(
+        'RewardsController:selectedAccountAuthChange',
+        {
+          account,
+          subscriptionId: subscription.id,
+          error: false,
+        },
+      );
     } catch (error: unknown) {
       // Handle 401 (not opted in) or other errors silently
       if (error instanceof Error && error.message.includes('401')) {
@@ -267,10 +277,30 @@ export class RewardsController extends BaseController<
           state.lastAuthenticatedAccount = address;
           state.lastAuthTime = Date.now();
         });
+
+        // Publish event for failed authentication (not opted in)
+        this.messagingSystem.publish(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account,
+            subscriptionId: null,
+            error: false,
+          },
+        );
       } else {
         Logger.log(
           'RewardsController: Silent auth failed:',
           error instanceof Error ? error.message : String(error),
+        );
+
+        // Publish event for failed authentication (other errors)
+        this.messagingSystem.publish(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account,
+            subscriptionId: null,
+            error: true,
+          },
         );
       }
       // For other errors, we don't update the state to allow retries

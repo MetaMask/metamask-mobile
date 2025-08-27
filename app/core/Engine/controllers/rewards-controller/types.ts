@@ -1,4 +1,5 @@
-import type { RewardsControllerMessengerActions } from '../../messengers/rewards-controller-messenger/types';
+import { ControllerGetStateAction } from '@metamask/base-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
   sessionId: string;
@@ -19,12 +20,24 @@ export type RewardsControllerState = {
 };
 
 /**
+ * Event emitted when silent authentication succeeds or fails
+ */
+export interface RewardsControllerSelectedAccountAuthChangeEvent {
+  type: 'RewardsController:selectedAccountAuthChange';
+  payload: [
+    { account: InternalAccount; subscriptionId: string | null; error: boolean },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
-export interface RewardsControllerEvents {
-  type: 'RewardsController:stateChange';
-  payload: [RewardsControllerState, Patch[]];
-}
+export type RewardsControllerEvents =
+  | {
+      type: 'RewardsController:stateChange';
+      payload: [RewardsControllerState, Patch[]];
+    }
+  | RewardsControllerSelectedAccountAuthChangeEvent;
 
 /**
  * Patch type for state changes
@@ -38,4 +51,7 @@ export interface Patch {
 /**
  * Actions that can be performed by the RewardsController
  */
-export type RewardsControllerActions = RewardsControllerMessengerActions;
+export type RewardsControllerActions = ControllerGetStateAction<
+  'RewardsController',
+  RewardsControllerState
+>;

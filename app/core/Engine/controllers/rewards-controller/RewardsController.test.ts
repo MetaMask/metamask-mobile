@@ -707,4 +707,302 @@ describe('RewardsController', () => {
       expect(rewardsController.state).toEqual(initialState);
     });
   });
+
+  describe('event emission on authentication triggers', () => {
+    const createFreshMessenger = () =>
+      ({
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>);
+
+    beforeEach(() => {
+      // Reset mocks for each test
+      jest.clearAllMocks();
+
+      // Re-setup default mocks
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockStore.getState.mockReturnValue({} as RootState);
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
+    });
+
+    describe('AccountsController:selectedAccountChange trigger', () => {
+      it('should emit event when subscription is found (opted in)', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock successful login
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              return Promise.resolve(mockLoginResponse);
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const accountChangeHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )?.[1];
+
+        expect(accountChangeHandler).toBeDefined();
+        await accountChangeHandler?.(mockAccount.address, mockAccount);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the success event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: mockLoginResponse.subscription.id,
+            error: false,
+          },
+        );
+      });
+
+      it('should emit event when subscription is not found (not opted in)', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock 401 error for not opted in
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              throw new Error('Login failed: 401');
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const accountChangeHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )?.[1];
+
+        expect(accountChangeHandler).toBeDefined();
+        await accountChangeHandler?.(mockAccount.address, mockAccount);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the not opted in event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: null,
+            error: false,
+          },
+        );
+      });
+
+      it('should emit event when subscription is not found and an error occurred', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock network error
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              throw new Error('Network error');
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const accountChangeHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )?.[1];
+
+        expect(accountChangeHandler).toBeDefined();
+        await accountChangeHandler?.(mockAccount.address, mockAccount);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the error event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: null,
+            error: true,
+          },
+        );
+      });
+    });
+
+    describe('KeyringController:unlock trigger', () => {
+      it('should emit event when subscription is found (opted in)', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock successful login
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              return Promise.resolve(mockLoginResponse);
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const unlockHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'KeyringController:unlock',
+        )?.[1];
+
+        expect(unlockHandler).toBeDefined();
+        await unlockHandler?.('KeyringController unlocked', {});
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the success event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: mockLoginResponse.subscription.id,
+            error: false,
+          },
+        );
+      });
+
+      it('should emit event when subscription is not found (not opted in)', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock 401 error for not opted in
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              throw new Error('Login failed: 401');
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const unlockHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'KeyringController:unlock',
+        )?.[1];
+
+        expect(unlockHandler).toBeDefined();
+        await unlockHandler?.('KeyringController unlocked', {});
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the not opted in event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: null,
+            error: false,
+          },
+        );
+      });
+
+      it('should emit event when subscription is not found and an error occurred', async () => {
+        const freshMessenger = createFreshMessenger();
+
+        // Mock network error
+        (freshMessenger.call as jest.Mock).mockImplementation(
+          (...args: unknown[]) => {
+            const [actionType] = args;
+            if (
+              actionType === 'AccountsController:getSelectedMultichainAccount'
+            ) {
+              return mockAccount;
+            }
+            if (actionType === 'KeyringController:signPersonalMessage') {
+              return '0xmocksignature';
+            }
+            if (actionType === 'RewardsDataService:login') {
+              throw new Error('Network error');
+            }
+            throw new Error(`Unexpected action: ${actionType}`);
+          },
+        );
+
+        new RewardsController({
+          messenger: freshMessenger,
+        });
+
+        const unlockHandler = freshMessenger.subscribe.mock.calls.find(
+          (call) => call[0] === 'KeyringController:unlock',
+        )?.[1];
+
+        expect(unlockHandler).toBeDefined();
+        await unlockHandler?.('KeyringController unlocked', {});
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        // Verify that the error event was published
+        expect(freshMessenger.publish).toHaveBeenCalledWith(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account: mockAccount,
+            subscriptionId: null,
+            error: true,
+          },
+        );
+      });
+    });
+  });
 });
