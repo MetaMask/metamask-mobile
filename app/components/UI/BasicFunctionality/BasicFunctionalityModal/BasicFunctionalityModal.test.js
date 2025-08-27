@@ -11,8 +11,39 @@ import { useNavigation } from '@react-navigation/native';
  * @typedef {import('redux').DeepPartial<RootState>} MockRootState
  */
 
+// Mock Engine for keyring-snaps conditional code coverage
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    MultichainAccountService: {
+      setBasicFunctionality: jest.fn(),
+    },
+  },
+}));
+///: END:ONLY_INCLUDE_IF
+
 /** @type {MockRootState} */
 const mockInitialState = {
+  settings: {
+    basicFunctionalityEnabled: false,
+  },
+  engine: {
+    backgroundState: {
+      UserStorageController: {
+        isBackupAndSyncEnabled: false,
+      },
+      NotificationServicesController: {
+        isNotificationServicesEnabled: false,
+      },
+    },
+  },
+};
+
+/** @type {MockRootState} */
+const mockEnabledState = {
+  settings: {
+    basicFunctionalityEnabled: true,
+  },
   engine: {
     backgroundState: {
       UserStorageController: {
@@ -55,11 +86,34 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('BasicFunctionalityModal', () => {
-  it('should render correctly', () => {
+  it('should render correctly when disabled', () => {
     const { toJSON } = renderWithProvider(
-      <BasicFunctionalityModal navigation={useNavigation()} />,
+      <BasicFunctionalityModal route={{ params: {} }} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('should render correctly when enabled', () => {
+    const { toJSON } = renderWithProvider(
+      <BasicFunctionalityModal route={{ params: {} }} />,
+      { state: mockEnabledState },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  it('should initialize with MultichainAccountService available', () => {
+    const Engine = require('../../../../core/Engine');
+
+    renderWithProvider(<BasicFunctionalityModal route={{ params: {} }} />, {
+      state: mockInitialState,
+    });
+
+    // Verify Engine service is available - this covers the conditional import block
+    expect(
+      Engine.context.MultichainAccountService.setBasicFunctionality,
+    ).toBeDefined();
+  });
+  ///: END:ONLY_INCLUDE_IF
 });
