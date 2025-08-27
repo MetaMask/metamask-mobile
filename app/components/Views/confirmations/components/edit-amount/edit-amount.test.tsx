@@ -13,19 +13,25 @@ import {
   useAlerts,
 } from '../../context/alert-system-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
+import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
+import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
+jest.mock('../../hooks/tokens/useTokenFiatRates');
 
 jest.useFakeTimers();
 
 const VALUE_MOCK = '1.23';
+const FIAT_RATE_MOCK = 2;
 
 const state = merge(
+  {},
   simpleSendTransactionControllerMock,
   transactionApprovalControllerMock,
+  otherControllersMock,
 );
 
 function render(props: EditAmountProps = {}) {
@@ -37,13 +43,14 @@ describe('EditAmount', () => {
   const useTokenAssetMock = jest.mocked(useTokenAsset);
   const useAlertsMock = jest.mocked(useAlerts);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const updateTokenAmountMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     useTokenAmountMock.mockReturnValue({
-      amountUnformatted: VALUE_MOCK,
+      fiatUnformatted: VALUE_MOCK,
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
 
@@ -61,22 +68,19 @@ describe('EditAmount', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { balanceFiat: '0' },
     } as ReturnType<typeof useTransactionPayToken>);
+
+    useTokenFiatRateMock.mockReturnValue(FIAT_RATE_MOCK);
   });
 
   it('renders amount from current transaction data', () => {
     const { getByTestId } = render();
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', VALUE_MOCK);
-  });
-
-  it('renders prefix if specified', () => {
-    const { getByTestId } = render({ prefix: 'test-' });
     expect(getByTestId('edit-amount-input')).toHaveProp(
       'value',
-      `test-${VALUE_MOCK}`,
+      `$${VALUE_MOCK}`,
     );
   });
 
-  it('calls updateTokenAmount when done button pressed', async () => {
+  it('calls updateTokenAmount with token amount when done button pressed', async () => {
     const { getByTestId, getByText } = render();
 
     await act(async () => {
@@ -97,7 +101,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '53');
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('0.61765');
   });
 
   it('updates amount when input changes', async () => {
@@ -113,7 +117,7 @@ describe('EditAmount', () => {
 
     expect(getByTestId('edit-amount-input')).toHaveProp(
       'value',
-      VALUE_MOCK + '5',
+      `$${VALUE_MOCK + '5'}`,
     );
   });
 
@@ -163,7 +167,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(input).toHaveProp('value', '600.25');
+    expect(input).toHaveProp('value', '$600.25');
   });
 
   it('does nothing if percentage button pressed with no pay token selected', async () => {

@@ -9,6 +9,12 @@ import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { getCurrencySymbol } from '../../../../../util/number';
+import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
+import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { Hex } from '@metamask/utils';
 
 export interface EditAmountProps {
   autoKeyboard?: boolean;
@@ -16,7 +22,6 @@ export interface EditAmountProps {
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
   onKeyboardDone?: () => void;
-  prefix?: string;
 }
 
 export function EditAmount({
@@ -25,29 +30,36 @@ export function EditAmount({
   onKeyboardShow,
   onKeyboardHide,
   onKeyboardDone,
-  prefix = '',
 }: EditAmountProps) {
+  const fiatCurrency = useSelector(selectCurrentCurrency);
   const { fieldAlerts } = useAlerts();
-  const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
-  const inputRef = createRef<TextInput>();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
+  const { payToken } = useTransactionPayToken();
+  const { fiatUnformatted, updateTokenAmount } = useTokenAmount();
+  const transactionMeta = useTransactionMetadataRequest();
+  const [amountFiat, setAmountFiat] = useState<string>(fiatUnformatted ?? '0');
+
+  const tokenAddress = transactionMeta?.txParams?.to as Hex;
+  const chainId = transactionMeta?.chainId as Hex;
+  const fiatRate = useTokenFiatRate(tokenAddress, chainId);
+
+  const inputRef = createRef<TextInput>();
+  const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
   const hasAlert = alerts.length > 0 && inputChanged;
+  const fiatSymbol = getCurrencySymbol(fiatCurrency);
 
   const { styles } = useStyles(styleSheet, {
     hasAlert,
   });
 
-  const { payToken } = useTransactionPayToken();
-  const { amountUnformatted, updateTokenAmount } = useTokenAmount();
   const { tokenFiatAmount } = payToken ?? {};
+  const hasAmount = amountFiat !== '0';
 
-  const [amountHuman, setAmountHuman] = useState<string>(
-    amountUnformatted ?? '0',
-  );
-
-  const hasAmount = amountHuman !== '0';
+  const amountHuman = new BigNumber(amountFiat)
+    .dividedBy(fiatRate ?? 1)
+    .toString(10);
 
   const handleInputPress = useCallback(() => {
     inputRef.current?.focus();
@@ -64,13 +76,10 @@ export function EditAmount({
 
   const handleChange = useCallback(
     (amount: string) => {
-      const normalizedAmount = amount.startsWith(prefix)
-        ? amount.replace(prefix, '')
-        : amount;
-
-      setAmountHuman(normalizedAmount);
+      const normalizedAmount = amount.replace(new RegExp(fiatSymbol, 'g'), '');
+      setAmountFiat(normalizedAmount);
     },
-    [prefix],
+    [fiatSymbol],
   );
 
   const handleKeyboardDone = useCallback(() => {
@@ -105,7 +114,7 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
-  const displayValue = `${prefix}${amountHuman}`;
+  const displayValue = `${fiatSymbol}${amountFiat}`;
 
   return (
     <View style={styles.container}>
@@ -123,7 +132,7 @@ export function EditAmount({
       </View>
       {showKeyboard && (
         <DepositKeyboard
-          value={amountHuman.toString()}
+          value={amountFiat.toString()}
           hasInput={hasAmount}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
