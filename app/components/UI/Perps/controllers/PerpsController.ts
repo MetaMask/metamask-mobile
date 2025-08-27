@@ -28,6 +28,7 @@ import {
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -1734,6 +1735,17 @@ export class PerpsController extends BaseController<
     tp_price?: number;
     retryCount?: number;
   }): Promise<{ success: boolean; error?: string }> {
+    // Skip data lake reporting for testnet as the API doesn't handle testnet data
+    const isTestnet = this.state.isTestnet;
+    if (isTestnet) {
+      DevLogger.log('DataLake API: Skipping for testnet', {
+        action: params.action,
+        coin: params.coin,
+        network: 'testnet',
+      });
+      return { success: true, error: 'Skipped for testnet' };
+    }
+
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
     const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
@@ -1773,23 +1785,20 @@ export class PerpsController extends BaseController<
         return { success: false, error: 'No account or token available' };
       }
 
-      const response = await fetch(
-        'https://perps.api.cx.metamask.io/api/v1/orders',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            user_id: evmAccount.address,
-            coin,
-            sl_price,
-            tp_price,
-          }),
-          signal: AbortSignal.timeout(5000),
+      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({
+          user_id: evmAccount.address,
+          coin,
+          sl_price,
+          tp_price,
+        }),
+        signal: AbortSignal.timeout(5000),
+      });
 
       const duration = performance.now() - startTime;
 
