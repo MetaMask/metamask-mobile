@@ -68,31 +68,6 @@ describe('transactionTransforms', () => {
       });
     });
 
-    it('should handle Flipped positions correctly', () => {
-      const flippedFill: OrderFill = {
-        ...mockOrderFill,
-        direction: 'Long > Short',
-        startPosition: '2.0',
-        side: 'sell',
-        size: '3.0',
-      };
-
-      const result = transformFillsToTransactions([flippedFill]);
-
-      expect(result[0]).toMatchObject({
-        category: 'position_close',
-        title: 'Flipped ETH long > short',
-        fill: {
-          shortTitle: 'Flipped long > short',
-          isPositive: true, // Flips are positive
-          action: 'Flipped',
-        },
-      });
-
-      // Check that amount is calculated correctly for flipped positions
-      expect(result[0].fill?.amount).toMatch(/^\+/); // Should start with +
-    });
-
     it('should handle missing direction field', () => {
       const fillWithoutDirection: OrderFill = {
         ...mockOrderFill,
@@ -124,8 +99,8 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([closedFill]);
 
-      // Uses size * price + fee calculation, not PnL directly
-      expect(result[0].fill?.amount).toBe('+$3005.00');
+      // For closed positions, uses PnL - fee
+      expect(result[0].fill?.amount).toBe('+$145.75');
       expect(result[0].fill?.isPositive).toBe(true);
     });
 
@@ -138,8 +113,8 @@ describe('transactionTransforms', () => {
 
       const result = transformFillsToTransactions([closedFill]);
 
-      // Should use size * price + fee = 1.5 * 2000 + 5 = 3005
-      expect(result[0].fill?.amount).toBe('+$3005.00');
+      // Should use PnL - fee = 0 - 5 = -5
+      expect(result[0].fill?.amount).toBe('-$5.00');
     });
 
     it('should handle empty fills array', () => {

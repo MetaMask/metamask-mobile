@@ -29,7 +29,7 @@ import { strings } from '../../../../../locales/i18n';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
-  selectedAccountGroup,
+  selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   ...props
@@ -43,6 +43,11 @@ const MultichainAccountSelectorList = ({
 
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
+
+  const selectedIdSet = useMemo(
+    () => new Set(selectedAccountGroups.map((g) => g.id)),
+    [selectedAccountGroups],
+  );
 
   // Debounce search text with 200ms delay
   useEffect(() => {
@@ -137,11 +142,10 @@ const MultichainAccountSelectorList = ({
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroup.id === accountGroup.id) return;
+      if (selectedIdSet.has(accountGroup.id)) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroup.id],
+    [onSelectAccount, selectedIdSet],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -153,7 +157,7 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'cell': {
-            const isSelected = item.data.id === selectedAccountGroup.id;
+            const isSelected = selectedIdSet.has(item.data.id);
             return (
               <AccountListCell
                 accountGroup={item.data}
@@ -171,7 +175,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedAccountGroup.id, handleSelectAccount],
+      [selectedIdSet, handleSelectAccount],
     );
 
   const keyExtractor = useCallback(

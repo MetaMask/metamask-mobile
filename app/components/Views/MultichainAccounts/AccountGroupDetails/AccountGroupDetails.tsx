@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
@@ -29,11 +29,16 @@ import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccoun
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { getWalletIdFromAccountGroup } from '../../../../selectors/multichainAccounts/accounts';
+import {
+  selectInternalAccountListSpreadByScopesByGroupId,
+  getWalletIdFromAccountGroup,
+} from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupType } from '@metamask/account-api';
 import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
+import { createAddressListNavigationDetails } from '../AddressList';
+import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
 
 interface AccountGroupDetailsProps {
   route: {
@@ -62,6 +67,12 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const wallet = selectWallet?.(walletId);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
+  const selectInternalAccountsSpreadByScopes = useSelector(
+    selectInternalAccountListSpreadByScopesByGroupId,
+  );
+  const internalAccountsSpreadByScopes =
+    selectInternalAccountsSpreadByScopes(id);
+
   const account = useMemo(
     () => internalAccountsById[accounts[0]],
     [accounts, internalAccountsById],
@@ -71,6 +82,17 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     () => (account ? isHDOrFirstPartySnapAccount(account) : false),
     [account],
   );
+
+  const navigateToAddressList = useCallback(() => {
+    navigation.navigate(
+      ...createAddressListNavigationDetails({
+        groupId: id,
+        title: `${strings('multichain_accounts.address_list.addresses')} / ${
+          metadata.name
+        }`,
+      }),
+    );
+  }, [id, metadata.name, navigation]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -123,6 +145,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.networks}
           testID={AccountDetailsIds.NETWORKS_LINK}
+          onPress={navigateToAddressList}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.networks')}
@@ -132,6 +155,11 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
             alignItems={AlignItems.center}
             gap={8}
           >
+            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+              {`${internalAccountsSpreadByScopes.length} ${strings(
+                'multichain_accounts.address_list.addresses',
+              )}`}
+            </Text>
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Md}
@@ -142,6 +170,16 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.privateKeys}
           testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
+          onPress={() => {
+            navigation.navigate(
+              ...createPrivateKeyListNavigationDetails({
+                groupId: id,
+                title: strings(
+                  'multichain_accounts.account_details.private_keys',
+                ),
+              }),
+            );
+          }}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.private_keys')}
