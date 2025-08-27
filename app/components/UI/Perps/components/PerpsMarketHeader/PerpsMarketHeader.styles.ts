@@ -41,9 +41,9 @@ export const styleSheet = ({
       marginRight: 12,
     },
     tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
     },
     leftSection: {
       flex: 1,

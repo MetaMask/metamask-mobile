@@ -721,6 +721,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
+        direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
       <ScrollView

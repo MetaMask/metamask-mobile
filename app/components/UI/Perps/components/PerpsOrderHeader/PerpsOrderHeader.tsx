@@ -17,7 +17,6 @@ import { useTheme } from '../../../../../util/theme';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { OrderType } from '../../controllers/types';
 import { formatPercentage, formatPrice } from '../../utils/formatUtils';
-import PerpsTokenLogo from '../PerpsTokenLogo';
 import { createStyles } from './PerpsOrderHeader.styles';
 
 interface PerpsOrderHeaderProps {
@@ -25,6 +24,7 @@ interface PerpsOrderHeaderProps {
   price: number;
   priceChange: number;
   orderType: OrderType;
+  direction?: 'long' | 'short';
   onBack?: () => void;
   onOrderTypePress?: () => void;
 }
@@ -34,6 +34,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   price,
   priceChange,
   orderType,
+  direction = 'long',
   onBack,
   onOrderTypePress,
 }) => {
@@ -79,19 +80,21 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
         iconColor={IconColor.Default}
         size={ButtonIconSizes.Md}
       />
-      <View style={styles.headerCenter}>
-        <View style={styles.headerCenterRow}>
-          <PerpsTokenLogo symbol={asset} size={40} style={styles.tokenIcon} />
-          <Text
-            variant={TextVariant.HeadingMD}
-            style={styles.headerTitle}
-            testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
-          >
-            {asset} {formattedPrice}
+      <View style={styles.headerLeft}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.headerTitle}
+          testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
+        >
+          {direction === 'long' ? 'Long' : 'Short'} {asset}
+        </Text>
+        <View style={styles.priceRow}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {formattedPrice}
           </Text>
           {price > 0 && (
             <Text
-              variant={TextVariant.BodyMD}
+              variant={TextVariant.BodySM}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
               style={styles.headerPriceChange}
             >
