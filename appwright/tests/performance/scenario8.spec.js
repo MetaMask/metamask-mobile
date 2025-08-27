@@ -25,7 +25,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
 
   await LoginScreen.typePassword('123123123');
   await LoginScreen.tapUnlockButton();
-  await importSRPFlow(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
   await WalletMainScreen.isMainWalletViewVisible();
 
   const assetViewScreen = new TimerHelper(

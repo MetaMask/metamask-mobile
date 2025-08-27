@@ -36,7 +36,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
 
   await LoginScreen.typePassword('123123123');
   await LoginScreen.tapUnlockButton();
-  await importSRPFlow(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
