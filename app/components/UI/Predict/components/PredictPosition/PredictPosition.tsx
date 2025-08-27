@@ -7,7 +7,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PredictPosition.styles';
 import { Position } from '../../types';
-import { formatPrice, formatPercentage } from '../../utils/formatUtils';
+import { formatPrice, formatPercentage } from '../../utils/format';
 
 interface PredictPositionProps {
   position: Position;
