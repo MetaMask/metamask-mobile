@@ -159,7 +159,7 @@ const MultichainAddressRow = ({
       bottom: 0,
       opacity: progress,
     },
-    tw.style('bg-success-muted rounded-lg'),
+    tw.style('bg-success-muted'),
   ];
 
   return (
