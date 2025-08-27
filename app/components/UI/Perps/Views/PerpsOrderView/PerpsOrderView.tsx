@@ -986,6 +986,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onPress={handlePlaceOrder}
             isDisabled={!orderValidation.isValid || isPlacingOrder}
             loading={isPlacingOrder}
+            testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
           />
         </View>
       )}
