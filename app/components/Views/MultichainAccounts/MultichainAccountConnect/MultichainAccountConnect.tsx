@@ -92,60 +92,58 @@ import MultichainPermissionsSummary, {
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
-import { selectAccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
 
+/**
+ * Creates CaipAccountIds by enumerating over all scopes and creating account IDs
+ * for each scope that the account groups support.
+ *
+ * Optimized version with early returns and reduced iterations.
+ */
 const getCaip25AccountFromAccountGroupAndScope = (
   accountGroups: AccountGroupWithInternalAccounts[],
   scopes: CaipChainId[],
-) => {
-  // Pre-parse all chain namespaces and cache common strings
-  const chainNamespaces = new Map<CaipChainId, string>();
-  const eip155Scope = `${KnownCaipNamespace.Eip155}:0`;
-  scopes.forEach((chainId) => {
-    try {
-      const { namespace } = parseCaipChainId(chainId);
-      chainNamespaces.set(chainId, namespace);
-    } catch (err) {
-      // Skip invalid chain IDs
+): CaipAccountId[] => {
+  if (!accountGroups.length || !scopes.length) {
+    return [];
+  }
+
+  const wildcardEvmScope = `${KnownCaipNamespace.Eip155}:0`;
+  const caipAccountIds: CaipAccountId[] = [];
+
+  // Pre-parse scopes to avoid repeated parsing
+  const parsedScopes = scopes
+    .map((scope) => {
+      try {
+        const parsed = parseCaipChainId(scope);
+        return { scope, namespace: parsed.namespace };
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean) as { scope: CaipChainId; namespace: string }[];
+
+  // Enumerate over each valid scope to find supporting accounts
+  for (const { scope, namespace } of parsedScopes) {
+    for (const accountGroup of accountGroups) {
+      for (const account of accountGroup.accounts) {
+        const accountScopesSet = new Set(account.scopes);
+
+        const accountSupportsScope =
+          namespace === KnownCaipNamespace.Eip155
+            ? accountScopesSet.has(wildcardEvmScope) ||
+              accountScopesSet.has(scope)
+            : accountScopesSet.has(scope);
+
+        if (accountSupportsScope) {
+          caipAccountIds.push(`${scope}:${account.address}` as CaipAccountId);
+        }
+      }
     }
-  });
+  }
 
-  // Build account addresses more efficiently
-  const updatedSelectedCaipAccountAddresses = new Set<CaipAccountId>();
-
-  // Process each selected account group
-  accountGroups.forEach((accountGroup) => {
-    accountGroup.accounts.forEach((account) => {
-      // Convert scopes to Set for O(1) lookup
-      const accountScopesSet = new Set(account.scopes);
-
-      // Check each selected chain
-      scopes.forEach((chainId) => {
-        const namespace = chainNamespaces.get(chainId);
-        if (!namespace) {
-          return;
-        }
-
-        let shouldAdd = false;
-
-        if (namespace === KnownCaipNamespace.Eip155) {
-          shouldAdd = accountScopesSet.has(eip155Scope);
-        } else {
-          shouldAdd = accountScopesSet.has(chainId);
-        }
-
-        if (shouldAdd) {
-          updatedSelectedCaipAccountAddresses.add(
-            `${chainId}:${account.address}`,
-          );
-        }
-      });
-    });
-  });
-
-  return Array.from(updatedSelectedCaipAccountAddresses);
+  return caipAccountIds;
 };
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
@@ -155,7 +153,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();
-  const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -196,21 +193,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const allNetworksList = Object.keys(networkConfigurations) as CaipChainId[];
-
-  const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
-    (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
+  const allNetworksList = useMemo(
+    () => Object.keys(networkConfigurations) as CaipChainId[],
+    [networkConfigurations],
   );
 
-  const {
-    connectedAccountGroups,
-    supportedAccountGroups,
-    existingConnectedCaipAccountIds,
-  } = useAccountGroupsForPermissions(
-    existingPermissionsCaip25CaveatValue,
-    requestedCaipChainIds,
-    requestedNamespaces,
-  );
+  // const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
+  //   (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
+  // );
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
@@ -235,7 +225,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
         origin: channelIdOrHostname,
         allNetworksList,
-        supportedRequestedCaipChainIds,
+        supportedRequestedCaipChainIds: allNetworksList,
         requestedNamespaces,
       }),
     [
@@ -244,13 +234,28 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       isOriginMMSDKRemoteConn,
       channelIdOrHostname,
       allNetworksList,
-      supportedRequestedCaipChainIds,
       requestedNamespaces,
     ],
   );
 
-  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+  const requestedCaipChainIdsWithDefault = useMemo(() => {
+    const combined = [...requestedCaipChainIds, ...defaultSelectedChainIds];
+    // Remove duplicates for better performance
+    return [...new Set(combined)];
+  }, [requestedCaipChainIds, defaultSelectedChainIds]);
+
+  const {
+    connectedAccountGroups,
+    supportedAccountGroups,
+    existingConnectedCaipAccountIds,
+  } = useAccountGroupsForPermissions(
+    existingPermissionsCaip25CaveatValue,
     defaultSelectedChainIds,
+    requestedNamespaces,
+  );
+
+  const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
+    requestedCaipChainIdsWithDefault,
   );
 
   const selectedNetworkAvatars = useMemo(
@@ -284,34 +289,34 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       };
     }
 
-    // if there are no connected account groups, show the first supported account gruop
+    // if there are no connected account groups, show the first supported account group
     const [firstSupportedAccountGroup] = supportedAccountGroups;
 
     return {
       suggestedAccountGroups: [firstSupportedAccountGroup],
       suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
         [firstSupportedAccountGroup],
-        selectedChainIds,
+        defaultSelectedChainIds,
       ),
     };
   }, [
     connectedAccountGroups,
     existingConnectedCaipAccountIds,
-    selectedChainIds,
+    defaultSelectedChainIds,
     supportedAccountGroups,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
     AccountGroupId[]
   >(
-    Array.from(suggestedAccountGroups).map(
+    suggestedAccountGroups.map(
       (group: AccountGroupWithInternalAccounts) => group.id,
     ),
   );
 
   const [selectedCaipAccountIds, setSelectedCaipAccountIds] = useState<
     CaipAccountId[]
-  >(suggestedCaipAccountIds ?? []);
+  >(suggestedCaipAccountIds);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -388,33 +393,32 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
-  useEffect(() => {
-    const accountsAddressList = accountGroups.map(
-      (accountGroup: AccountGroupWithInternalAccounts) => accountGroup.id,
-    );
+  const suggestedAccountGroupIds = useMemo(
+    () =>
+      suggestedAccountGroups.map(
+        (group: AccountGroupWithInternalAccounts) => group.id,
+      ),
+    [suggestedAccountGroups],
+  );
 
-    if (previousIdentitiesListSize.current !== accountsAddressList.length) {
-      setSelectedAccountGroupIds(
-        connectedAccountGroups.map(
-          (group: AccountGroupWithInternalAccounts) => group.id,
-        ),
-      );
-      setSelectedCaipAccountIds(
-        getCaip25AccountFromAccountGroupAndScope(
-          connectedAccountGroups,
-          selectedChainIds,
-        ),
-      );
-      previousIdentitiesListSize.current = accountsAddressList.length;
+  const connectedCaipAccountIds = useMemo(
+    () =>
+      getCaip25AccountFromAccountGroupAndScope(
+        connectedAccountGroups,
+        defaultSelectedChainIds,
+      ),
+    [connectedAccountGroups, defaultSelectedChainIds],
+  );
+
+  useEffect(() => {
+    const currentLength = suggestedAccountGroupIds.length;
+
+    if (previousIdentitiesListSize.current !== currentLength) {
+      setSelectedAccountGroupIds(suggestedAccountGroupIds);
+      setSelectedCaipAccountIds(connectedCaipAccountIds);
+      previousIdentitiesListSize.current = currentLength;
     }
-  }, [
-    accountGroups,
-    connectedAccountGroups,
-    existingConnectedCaipAccountIds,
-    selectedAccountGroupIds,
-    selectedChainIds,
-    supportedAccountGroups,
-  ]);
+  }, [suggestedAccountGroupIds, connectedCaipAccountIds]);
 
   const cancelPermissionRequest = useCallback(
     (requestId: string) => {
@@ -512,7 +516,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
-    // need to ensure the
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
@@ -530,14 +533,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     };
 
     const connectedAccountLength = selectedAccountGroupIds.length;
-
     const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
     try {
       setIsLoading(true);
-      /*
-       * TODO: update request object to match PermissionsRequest type
-       */
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
@@ -558,11 +557,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           })
           .build(),
       );
-      let labelOptions: ToastOptions['labelOptions'] = [];
 
-      if (connectedAccountLength >= 1) {
-        labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
-      }
+      const labelOptions: ToastOptions['labelOptions'] =
+        connectedAccountLength >= 1
+          ? [{ label: strings('toast.permissions_updated') }]
+          : [];
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
@@ -583,7 +582,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     requestedCaip25CaveatValue,
     selectedCaipAccountIds,
     selectedChainIds,
-    selectedAccountGroupIds,
+    selectedAccountGroupIds.length,
     triggerDappViewedEvent,
     trackEvent,
     createEventBuilder,
@@ -713,16 +712,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     createEventBuilder,
   ]);
 
-  const renderPermissionsSummaryScreen = useCallback(() => {
-    const permissionsSummaryProps: MultichainPermissionsSummaryProps = {
+  const permissionsSummaryProps = useMemo(
+    (): MultichainPermissionsSummaryProps => ({
       currentPageInformation: {
         currentEnsName: '',
-        icon: faviconSource as string,
+        icon: typeof faviconSource === 'string' ? faviconSource : '',
         url: urlWithProtocol,
       },
-      onEdit: () => {
-        setScreen(AccountConnectScreens.MultiConnectSelector);
-      },
+      onEdit: () => setScreen(AccountConnectScreens.MultiConnectSelector),
       onEditNetworks: () =>
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onConfirm: handleConfirm,
@@ -738,20 +735,24 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       onCreateAccount: (_clientType, _scope) => {
         // TODO: Implement account creation when account provider is ready
       },
-    };
+    }),
+    [
+      faviconSource,
+      urlWithProtocol,
+      handleConfirm,
+      selectedAccountGroupIds,
+      selectedNetworkAvatars,
+      tabIndex,
+      cancelPermissionRequest,
+      permissionRequestId,
+      navigation,
+    ],
+  );
 
-    return <MultichainPermissionsSummary {...permissionsSummaryProps} />;
-  }, [
-    faviconSource,
-    urlWithProtocol,
-    handleConfirm,
-    selectedAccountGroupIds,
-    selectedNetworkAvatars,
-    tabIndex,
-    cancelPermissionRequest,
-    permissionRequestId,
-    navigation,
-  ]);
+  const renderPermissionsSummaryScreen = useCallback(
+    () => <MultichainPermissionsSummary {...permissionsSummaryProps} />,
+    [permissionsSummaryProps],
+  );
 
   const renderMultiConnectSelectorScreen = useCallback(
     () => (
