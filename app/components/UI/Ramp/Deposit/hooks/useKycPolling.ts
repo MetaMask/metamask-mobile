@@ -25,10 +25,10 @@ const useKycPolling = (
     fetchKycForms,
   ] = useDepositSdkMethod(
     {
-      method: 'getKYCForms',
+      method: 'getKycRequirement',
       onMount: false,
     },
-    quote,
+    quote.quoteId,
   );
 
   const stopPolling = useCallback(() => {
