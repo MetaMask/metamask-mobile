@@ -115,9 +115,6 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
   },
 }));
 
-// No longer need to mock PerpsClosePositionBottomSheet as it has been removed
-// Close position now navigates to a full-screen view
-
 describe('PerpsPositionCard', () => {
   const mockNavigation = {
     navigate: jest.fn(),

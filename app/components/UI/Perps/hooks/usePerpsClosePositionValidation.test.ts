@@ -67,7 +67,7 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.errors).toContain(errorMessage);
   });
 
-  it('should allow full close regardless of value (per TAT-1365)', async () => {
+  it('should allow full close regardless of value', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
@@ -86,17 +86,16 @@ describe('usePerpsClosePositionValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
 
-    // Per TAT-1365: Full closes should always be allowed regardless of minimum
     expect(result.current.isValid).toBe(true);
     expect(result.current.errors).toHaveLength(0);
   });
 
-  it('should allow partial close even if remaining position is below minimum (per TAT-1365)', async () => {
+  it('should allow partial close even if remaining position is below minimum', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
       ...defaultParams,
-      remainingPositionValue: 5, // Below minimum of 10 but should be allowed per TAT-1365
+      remainingPositionValue: 5,
     };
 
     const { result } = renderHook(() =>
@@ -107,7 +106,6 @@ describe('usePerpsClosePositionValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
 
-    // Per TAT-1365: No restriction on remaining position value
     expect(result.current.isValid).toBe(true);
     expect(result.current.errors).toHaveLength(0);
   });
@@ -189,9 +187,6 @@ describe('usePerpsClosePositionValidation', () => {
       strings('perps.order.validation.limit_price_far_warning'),
     );
   });
-
-  // Test removed: SMALL_CLOSE_PERCENTAGE_WARNING was removed per TAT-1365
-  // Users can now close any percentage without warnings
 
   it('should return error for market order with 0% close', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });

@@ -134,7 +134,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
-  // Ref to prevent double order submission (TAT-1424)
   const isSubmittingRef = useRef(false);
 
   const cachedAccountState = usePerpsAccount();

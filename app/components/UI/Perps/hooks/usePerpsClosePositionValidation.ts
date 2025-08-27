@@ -104,8 +104,6 @@ export function usePerpsClosePositionValidation(
     currentPrice,
     minimumOrderAmount,
     closingValue,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    remainingPositionValue, // Kept for interface completeness, not used in validation after TAT-1365
     receiveAmount,
     isPartialClose,
     positionValue,
