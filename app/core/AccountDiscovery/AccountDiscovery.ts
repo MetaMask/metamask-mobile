@@ -55,6 +55,7 @@ class AccountDiscoveryService {
    * @throws {Error} If discovery is already running
    */
   attemptAccountDiscovery = async (): Promise<void> => {
+    if (this.discoveryRunning) throw new Error('discovery is running');
     this.discoveryPromise = this.performAccountDiscovery();
     await this.discoveryPromise;
   };
