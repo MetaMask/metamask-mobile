@@ -25,18 +25,18 @@ import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 
 jest.mock('@react-native-community/netinfo', () => ({
-    __esModule: true,
-    default: {
-      fetch: jest.fn(),
-      addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
-    },
-    NetInfoStateType: {
-      none: 'none',
-      wifi: 'wifi',
-      cellular: 'cellular',
-      unknown: 'unknown',
-    },
-  }));
+  __esModule: true,
+  default: {
+    fetch: jest.fn(),
+    addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
+  },
+  NetInfoStateType: {
+    none: 'none',
+    wifi: 'wifi',
+    cellular: 'cellular',
+    unknown: 'unknown',
+  },
+}));
 
 import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
 
@@ -422,10 +422,12 @@ describe('Onboarding', () => {
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
-            title: strings('offline_mode.title'),
-            description: strings('offline_mode.text'),
+            title: strings('error_sheet.no_internet_connection_title'),
+            description: strings(
+              'error_sheet.no_internet_connection_description',
+            ),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.oauth_error_button'),
+            buttonLabel: strings('error_sheet.no_internet_connection_button'),
             type: 'error',
           }),
         }),

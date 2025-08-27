@@ -507,10 +507,12 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: {
-            title: strings(`offline_mode.title`),
-            description: strings(`offline_mode.text`),
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
             descriptionAlign: 'center',
-            buttonLabel: strings(`error_sheet.oauth_error_button`),
+            buttonLabel: strings(`error_sheet.no_internet_connection_button`),
             type: 'error',
           },
         });
