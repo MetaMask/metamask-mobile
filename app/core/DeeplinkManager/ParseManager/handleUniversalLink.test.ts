@@ -43,6 +43,9 @@ describe('handleUniversalLinks', () => {
   const mockHandleBrowserUrl = jest.fn();
   const mockHandleOpenHome = jest.fn();
   const mockHandleSwap = jest.fn();
+  const mockHandleCreateAccount = jest.fn();
+  const mockHandlePerps = jest.fn();
+  const mockHandlePerpsAsset = jest.fn();
   const mockConnectToChannel = jest.fn();
   const mockGetConnections = jest.fn();
   const mockRevalidateChannel = jest.fn();
@@ -61,6 +64,9 @@ describe('handleUniversalLinks', () => {
     _handleBrowserUrl: mockHandleBrowserUrl,
     _handleOpenHome: mockHandleOpenHome,
     _handleSwap: mockHandleSwap,
+    _handleCreateAccount: mockHandleCreateAccount,
+    _handlePerps: mockHandlePerps,
+    _handlePerpsAsset: mockHandlePerpsAsset,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -381,6 +387,102 @@ describe('handleUniversalLinks', () => {
         );
       },
     );
+  });
+
+  describe('ACTIONS.CREATE_ACCOUNT', () => {
+    it('calls _handleCreateAccount when action is CREATE_ACCOUNT', async () => {
+      const createAccountUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.CREATE_ACCOUNT}/some-account-path`;
+      const createAccountUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: createAccountUrl,
+        pathname: `/${ACTIONS.CREATE_ACCOUNT}/some-account-path`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: createAccountUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: createAccountUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleCreateAccount).toHaveBeenCalledWith(
+        '/some-account-path',
+      );
+    });
+  });
+
+  describe('ACTIONS.PERPS', () => {
+    it('calls _handlePerps when action is PERPS', async () => {
+      const perpsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS}/markets`;
+      const perpsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsUrl,
+        pathname: `/${ACTIONS.PERPS}/markets`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePerps).toHaveBeenCalledWith('/markets');
+    });
+
+    it('calls _handlePerps when action is PERPS_MARKETS', async () => {
+      const perpsMarketsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_MARKETS}`;
+      const perpsMarketsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsMarketsUrl,
+        pathname: `/${ACTIONS.PERPS_MARKETS}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsMarketsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsMarketsUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePerps).toHaveBeenCalledWith('');
+    });
+  });
+
+  describe('ACTIONS.PERPS_ASSET', () => {
+    it('calls _handlePerpsAsset when action is PERPS_ASSET', async () => {
+      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}/BTC`;
+      const perpsAssetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsAssetUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}/BTC`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsAssetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsAssetUrl,
+        source: 'test-source',
+      });
+
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandlePerpsAsset).toHaveBeenCalledWith('/BTC');
+    });
   });
 
   describe('signature verification', () => {

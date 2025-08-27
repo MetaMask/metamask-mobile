@@ -22,11 +22,10 @@ import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Ganache from '../../../app/util/test/ganache';
-import { testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startSwapsMockServer } from '../swaps/helpers/swap-mocks';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
@@ -41,7 +40,12 @@ describe(Regression('Swap from Token view'), (): void => {
     await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
-    mockServer = await startSwapsMockServer(testSpecificMock, mockServerPort);
+    // Added to pass linting - this pattern is not recommended check other swaps test for new pattern
+    mockServer = await startMockServer(
+      {},
+      mockServerPort,
+      swapTestSpecificMock,
+    );
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
