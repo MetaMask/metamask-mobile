@@ -28,6 +28,7 @@ import { selectEnabledNetworksByNamespace } from './networkEnablementController'
 import { formatWithThreshold } from '../util/assets';
 import I18n from '../../locales/i18n';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
+import { selectChainId, selectIsAllNetworks } from './networkController';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -130,17 +131,23 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     selectAssetsBySelectedAccountGroup,
     selectEnabledNetworksByNamespace,
     selectTokenSortConfig,
+    selectIsAllNetworks,
+    selectChainId,
   ],
-  (bip44Assets, enabledNetworksByNamespace, tokenSortConfig) => {
-    const enabledNetworks = Object.values(enabledNetworksByNamespace).flatMap(
-      (network) =>
-        Object.entries(network)
-          // TODO Temporary workaround to show solana until the network selector is updated
-          .filter(
-            ([networkId, enabled]) => enabled || !networkId.startsWith('0x'),
-          )
-          .map(([networkId]) => networkId),
-    );
+  (
+    bip44Assets,
+    enabledNetworksByNamespace,
+    tokenSortConfig,
+    isAllNetworks,
+    currentChainId,
+  ) => {
+    const enabledNetworks = isAllNetworks
+      ? Object.values(enabledNetworksByNamespace).flatMap((network) =>
+          Object.entries(network)
+            .filter(([_, enabled]) => enabled)
+            .map(([networkId]) => networkId),
+        )
+      : [currentChainId];
 
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
@@ -149,7 +156,6 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
     // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-
     const tokensSorted = sortAssets(
       assets.map((asset) => ({
         ...asset,
@@ -161,7 +167,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     return tokensSorted.map(({ assetId, chainId }) => ({
       address: assetId,
       chainId,
-      isStaked: false, // TODO: Resolve this
+      isStaked: false, // TODO: Resolve this when we support staked balances
     }));
   },
 );

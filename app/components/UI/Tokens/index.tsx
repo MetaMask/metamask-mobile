@@ -23,7 +23,10 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import { selectSortedAssetsBySelectedAccountGroup, selectSortedTokenKeys } from '../../../selectors/tokenList';
+import {
+  selectSortedAssetsBySelectedAccountGroup,
+  selectSortedTokenKeys,
+} from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 interface TokenListNavigationParamList {
@@ -56,17 +59,14 @@ const Tokens = memo(() => {
 
   const styles = createStyles(colors);
 
-  const sortedTokenKeysOld = useSelector(selectSortedTokenKeys);
-  const sortedTokenKeysBip44 = useSelector(selectSortedAssetsBySelectedAccountGroup);
-  const isMultichainAccountsState2Enabled = useSelector(selectMultichainAccountsState2Enabled);
-  const sortedTokenKeys = isMultichainAccountsState2Enabled ? sortedTokenKeysBip44 : sortedTokenKeysOld;
-  console.log('TOKEN LIST', {
-    isMultichainAccountsState2Enabled,
-    sortedTokenKeys: sortedTokenKeys.length,
-    sortedTokenKeysOld: sortedTokenKeysOld.length,
-    sortedTokenKeysBip44: sortedTokenKeysBip44.length,
-    hasSolana: sortedTokenKeys.some((token) => token.chainId?.includes('solana')),
-  });
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const sortedTokenKeys = useSelector(
+    isMultichainAccountsState2Enabled
+      ? selectSortedAssetsBySelectedAccountGroup
+      : selectSortedTokenKeys,
+  );
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
