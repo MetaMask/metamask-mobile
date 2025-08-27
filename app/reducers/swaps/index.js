@@ -124,8 +124,8 @@ export const selectSwapsChainFeatureFlags = createSelector(
   (swapsState, chainId) => ({
     ...(swapsState[chainId]?.featureFlags || {}),
     smartTransactions: {
-      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
       ...(swapsState.featureFlags?.smartTransactions || {}),
+      ...(swapsState[chainId]?.featureFlags?.smartTransactions || {}),
     },
   }),
 );
