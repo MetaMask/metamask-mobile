@@ -13,6 +13,9 @@ export const ALLOWLISTED_HOSTS = [
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
+  'portfolio.dev-api.cx.metamask.io',
+  'portfolio.uat-api.cx.metamask.io',
+  'portfolio.api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -35,4 +38,5 @@ export const ALLOWLISTED_URLS = [
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
   'https://eth.llamarpc.com/',
+  'https://rewards.dev-api.cx.metamask.io/auth/mobile-login',
 ];
