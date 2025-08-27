@@ -130,6 +130,7 @@ ccache
 
 # open-rpc/test-coverage
 html-report/
+tests/coverage/
 
 # terms of use
 app/util/termsOfUse/termsOfUseContent.ts
@@ -155,3 +156,4 @@ CLAUDE.md
 /CLAUDE.md
 temp/
 /temp/
+

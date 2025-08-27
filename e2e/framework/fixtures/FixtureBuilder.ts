@@ -1734,6 +1734,38 @@ class FixtureBuilder {
   }
 
   /**
+   * Configure Perps mock balance via AsyncStorage to be read in-app by MockPerpsProvider
+   */
+  withPerpsMockBalance(balance: string) {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:perpsMockBalance'] = balance;
+    // eslint-disable-next-line no-console
+    console.log('[Fixture] withPerpsMockBalance set to', balance);
+    // Also seed persisted PerpsController state to avoid timing issues
+    const accountState = {
+      availableBalance: balance,
+      totalBalance: balance,
+      marginUsed: '0',
+      unrealizedPnl: '0',
+    } as const;
+    const perpsState = {
+      PerpsController: {
+        accountState,
+      },
+    };
+
+    merge(this.fixture.state.engine.backgroundState, perpsState);
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Fixture] Seeded PerpsController.accountState with',
+      accountState,
+    );
+    return this;
+  }
+
+  /**
    * Sets up a minimal Solana fixture with mainnet configuration
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
    */

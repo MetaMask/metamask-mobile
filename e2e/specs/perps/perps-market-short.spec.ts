@@ -6,36 +6,41 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 
 describe(
-  SmokeTrade('Perps - market details shows Add Funds when no balance'),
+  SmokeTrade('Perps - open market and place SHORT 500 via keypad'),
   () => {
     beforeEach(async () => {
       jest.setTimeout(150000);
     });
 
-    it('should show Add Funds button when account has zero balance', async () => {
+    it('should place a SHORT order entering 500 with keypad', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withMetaMetricsOptIn()
             .withPerpsFeatureFlagEnabled()
-            .withPerpsMockBalance('0')
+            .withPerpsMockBalance('1000')
             .build(),
           restartDevice: true,
         },
         async () => {
           await loginToApp();
-          // Open actions sheet first, then tap Perps
+
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPerpsButton();
           await PerpsMarketListView.expectLoaded();
 
-          // Tap BTC row explicitly by testID
           await PerpsMarketListView.tapMarketRowBySymbol('BTC');
-
           await PerpsMarketDetailsView.expectLoaded();
-          await PerpsMarketDetailsView.tapAddFunds();
+
+          await PerpsMarketDetailsView.tapShort();
+
+          await PerpsOrderView.enterAmountWithKeypad('500');
+          await PerpsOrderView.tapPlaceOrderShort('BTC');
+
+          await PerpsOrderView.dismissToast();
         },
       );
     });

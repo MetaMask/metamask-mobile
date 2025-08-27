@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { decode, encode } from 'base-64';
 import { getRandomValues, randomUUID } from 'react-native-quick-crypto';
 import { LaunchArguments } from 'react-native-launch-arguments';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   FIXTURE_SERVER_PORT,
   isTest,
@@ -29,6 +30,17 @@ if (isTest) {
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
     : FIXTURE_SERVER_PORT;
+  // Hydrate perps mock balance from AsyncStorage set via fixtures
+  (async () => {
+    try {
+      const stored = await AsyncStorage.getItem('@MetaMask:perpsMockBalance');
+      if (stored) {
+        testConfig.perpsMockBalance = String(stored);
+      }
+    } catch (e) {
+      // no-op: avoid failing initialization on storage errors in tests
+    }
+  })();
 }
 
 if (!global.btoa) {

@@ -30,7 +30,6 @@ class PerpsMarketListView {
     await Assertions.expectElementToBeVisible(this.tutorialButton, {
       description: 'Perps tutorial button should be visible',
     });
-    await device.disableSynchronization();
     try {
       await Gestures.waitAndTap(this.tutorialButton, {
         elemDescription: 'Tap Perps tutorial header button',
@@ -74,11 +73,14 @@ class PerpsMarketListView {
 
   async tapMarketRowBySymbol(symbol: string): Promise<void> {
     const id = getPerpsMarketRowItemSelector.rowItem(symbol);
-    const el = Matchers.getElementByID(id);
-    // Ensure visibility: scroll the FlashList if necessary
+    // Disambiguate by indexing the first match
+    const el = element(by.id(id)).atIndex(0) as unknown as DetoxElement;
+
+    // Ensure visibility; if not, scroll the list
     try {
       await Assertions.expectElementToBeVisible(el, {
         description: `Expect ${id} visible before tap`,
+        timeout: 2000,
       });
     } catch {
       await Gestures.scrollToElement(
@@ -88,12 +90,14 @@ class PerpsMarketListView {
           elemDescription: `Scroll to ${id}`,
           direction: 'down',
           scrollAmount: 350,
-          delay: 200,
+          delay: 100,
         },
       );
     }
+
     await Gestures.waitAndTap(el, {
       elemDescription: `Tap perps market row ${symbol}`,
+      delay: 150,
     });
   }
 }

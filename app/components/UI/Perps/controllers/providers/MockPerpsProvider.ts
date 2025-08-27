@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   AccountState,
   AssetRoute,
@@ -38,7 +39,10 @@ import type {
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
+  PriceUpdate,
 } from '../types';
+import type { CandleData } from '../../types';
+import { CandlePeriod } from '../../constants/chartConfig';
 
 // Minimal mock data for E2E
 const MOCK_MARKETS: MarketInfo[] = [
@@ -80,8 +84,73 @@ const MOCK_MARKET_DATA: PerpsMarketData[] = [
 export class MockPerpsProvider implements IPerpsProvider {
   readonly protocolId = 'mock-perps';
 
+  // Minimal client service to support historical candles for charts
+  public clientService = {
+    fetchHistoricalCandles: async (
+      coin: string,
+      interval: CandlePeriod,
+      limit: number,
+    ): Promise<CandleData> => {
+      const now = Date.now();
+      const stepMsMap: Partial<Record<CandlePeriod, number>> = {
+        [CandlePeriod.ONE_MINUTE]: 60_000,
+        [CandlePeriod.THREE_MINUTES]: 180_000,
+        [CandlePeriod.FIVE_MINUTES]: 300_000,
+        [CandlePeriod.FIFTEEN_MINUTES]: 900_000,
+        [CandlePeriod.THIRTY_MINUTES]: 1_800_000,
+        [CandlePeriod.ONE_HOUR]: 3_600_000,
+        [CandlePeriod.TWO_HOURS]: 7_200_000,
+        [CandlePeriod.FOUR_HOURS]: 14_400_000,
+        [CandlePeriod.EIGHT_HOURS]: 28_800_000,
+        [CandlePeriod.TWELVE_HOURS]: 43_200_000,
+        [CandlePeriod.ONE_DAY]: 86_400_000,
+        [CandlePeriod.THREE_DAYS]: 259_200_000,
+        [CandlePeriod.ONE_WEEK]: 604_800_000,
+        [CandlePeriod.ONE_MONTH]: 2_592_000_000,
+      } as const;
+
+      const step = stepMsMap[interval] || 3_600_000;
+      const base = coin === 'BTC' ? 50_000 : coin === 'ETH' ? 3_000 : 150;
+
+      const candles = Array.from({ length: Math.max(5, limit) }, (_, i) => {
+        const time = now - (limit - i) * step;
+        const open = base + Math.sin(i / 5) * (base * 0.005);
+        const close = open + (Math.random() - 0.5) * (base * 0.004);
+        const high = Math.max(open, close) + base * 0.002;
+        const low = Math.min(open, close) - base * 0.002;
+        const volume = 1_000_000 + Math.floor(Math.random() * 100_000);
+        return {
+          time,
+          open: open.toFixed(2),
+          high: high.toFixed(2),
+          low: low.toFixed(2),
+          close: close.toFixed(2),
+          volume: volume.toString(),
+        };
+      });
+
+      return {
+        coin,
+        interval,
+        candles,
+      };
+    },
+  };
+
   getDepositRoutes(_params?: GetSupportedPathsParams): AssetRoute[] {
-    return [];
+    // Static mock route: USDC on Arbitrum -> mocked bridge contract
+    return [
+      {
+        assetId:
+          'eip155:42161/erc20:0x0000000000000000000000000000000000000001/default',
+        chainId: 'eip155:42161',
+        contractAddress: '0x0000000000000000000000000000000000000002',
+        constraints: {
+          minAmount: '0',
+          maxAmount: '100000000000',
+        },
+      },
+    ];
   }
   getWithdrawalRoutes(_params?: GetSupportedPathsParams): AssetRoute[] {
     return [];
@@ -110,9 +179,18 @@ export class MockPerpsProvider implements IPerpsProvider {
   async getAccountState(
     _params?: GetAccountStateParams,
   ): Promise<AccountState> {
+    let balance = '1000';
+    try {
+      const stored = await AsyncStorage.getItem('@MetaMask:perpsMockBalance');
+      if (stored !== null && stored !== undefined && stored !== '') {
+        balance = String(stored);
+      }
+    } catch (error) {
+      // ignore storage errors, use default
+    }
     return {
-      availableBalance: '1000',
-      totalBalance: '1000',
+      availableBalance: balance,
+      totalBalance: balance,
       marginUsed: '0',
       unrealizedPnl: '0',
     };
@@ -182,7 +260,37 @@ export class MockPerpsProvider implements IPerpsProvider {
       : undefined;
     return { feeRate: baseRate, feeAmount };
   }
-  subscribeToPrices(_params: SubscribePricesParams): () => void {
+  subscribeToPrices(params: SubscribePricesParams): () => void {
+    const { symbols, callback, includeMarketData } = params;
+    // E2E-friendly: single-shot update to avoid background timers
+    const updates = symbols.map((s) => {
+      const base = s === 'BTC' ? 50_000 : s === 'ETH' ? 3_000 : 150;
+      const update: PriceUpdate = {
+        coin: s,
+        price: base.toFixed(2),
+        timestamp: Date.now(),
+        percentChange24h: '0.00',
+      } as PriceUpdate;
+      if (includeMarketData) {
+        const enrichedUpdate: PriceUpdate & {
+          funding: number;
+          openInterest: number;
+          volume24h: number;
+        } = {
+          ...update,
+          funding: 0.0001,
+          openInterest: 25_000_000,
+          volume24h: 1_200_000_000,
+        };
+        return enrichedUpdate as unknown as PriceUpdate;
+      }
+      return update;
+    });
+    try {
+      callback(updates as unknown as PriceUpdate[]);
+    } catch {
+      // no-op: swallow callback errors in mock provider
+    }
     return () => undefined;
   }
   subscribeToPositions(_params: SubscribePositionsParams): () => void {

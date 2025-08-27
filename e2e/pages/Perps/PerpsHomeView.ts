@@ -4,7 +4,8 @@ import Gestures from '../../framework/Gestures';
 import {
   PerpsMarketTabsSelectorsIDs,
   PerpsHomeSelectorsIDs,
- PerpsTutorialSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
+  PerpsTutorialSelectorsIDs,
+} from '../../selectors/Perps/Perps.selectors';
 
 class PerpsHomeView {
   get container(): DetoxElement {
@@ -42,7 +43,6 @@ class PerpsHomeView {
   }
 
   async completeTutorialAndTapAddFunds(): Promise<void> {
-    await device.disableSynchronization();
     for (let i = 0; i < 5; i++) {
       try {
         await Assertions.expectElementToBeVisible(

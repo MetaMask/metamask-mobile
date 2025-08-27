@@ -6,13 +6,14 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 
 describe(SmokeTrade('Perps - open market details from list'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  it('should open first market and validate details elements', async () => {
+  it('should be able to do a long with any market option', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -26,7 +27,6 @@ describe(SmokeTrade('Perps - open market details from list'), () => {
         await loginToApp();
         // Open actions sheet first, then tap Perps
         await TabBarComponent.tapActions();
-        await device.disableSynchronization();
         await WalletActionsBottomSheet.tapPerpsButton();
         await PerpsMarketListView.expectLoaded();
 
@@ -34,6 +34,15 @@ describe(SmokeTrade('Perps - open market details from list'), () => {
         await PerpsMarketListView.tapMarketRowBySymbol('BTC');
 
         await PerpsMarketDetailsView.expectLoaded();
+
+        await PerpsMarketDetailsView.tapLong();
+
+        // await PerpsOrderView.tapAmountDisplay();
+        await PerpsOrderView.setAmountToPercentage(0.5);
+        await PerpsOrderView.tapPlaceOrderLong('BTC');
+
+        await PerpsOrderView.expectSuccessToastLong('BTC');
+        await PerpsOrderView.dismissToast();
       },
     );
   });

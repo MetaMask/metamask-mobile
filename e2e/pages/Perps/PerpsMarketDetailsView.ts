@@ -66,6 +66,28 @@ class PerpsMarketDetailsView {
       delay: 300,
     });
   }
+
+  async tapLong(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.longButton, {
+      description: 'Perps details LONG button visible',
+      timeout: 5000,
+    });
+    await Gestures.waitAndTap(this.longButton, {
+      elemDescription: 'Tap LONG on market details',
+      delay: 150,
+    });
+  }
+
+  async tapShort(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.shortButton, {
+      description: 'Perps details SHORT button visible',
+      timeout: 5000,
+    });
+    await Gestures.waitAndTap(this.shortButton, {
+      elemDescription: 'Tap SHORT on market details',
+      delay: 150,
+    });
+  }
 }
 
 export default new PerpsMarketDetailsView();

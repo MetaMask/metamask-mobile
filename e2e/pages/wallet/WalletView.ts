@@ -212,7 +212,6 @@ class WalletView {
   }
 
   async tapPerpsTab(): Promise<void> {
-    await device.disableSynchronization();
     await Gestures.waitAndTap(this.perpsTab, { delay: 300 });
   }
 
