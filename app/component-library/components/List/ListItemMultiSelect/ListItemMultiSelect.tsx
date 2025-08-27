@@ -55,15 +55,10 @@ const TouchableOpacity = ({
       }
     });
 
-  // Preserve onPress for accessibility (screen readers, keyboard navigation)
-  // but ensure it respects disabled state
-  const accessibleOnPress = isDisabled ? undefined : onPress;
-
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={accessibleOnPress} // Preserve for accessibility
         {...props}
         // Ensure disabled prop is available to tests
         {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
