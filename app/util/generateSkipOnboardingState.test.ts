@@ -71,7 +71,7 @@ describe('generateSkipOnboardingState', () => {
 
     it('should export additional SRPs array', () => {
       expect(Array.isArray(additionalSrps)).toBe(true);
-      expect(additionalSrps).toHaveLength(19); // ADDITIONAL_SRP_2 to ADDITIONAL_SRP_20
+      expect(additionalSrps).toHaveLength(20); // ADDITIONAL_SRP_1 to ADDITIONAL_SRP_20
     });
   });
 
@@ -104,7 +104,7 @@ describe('generateSkipOnboardingState', () => {
       });
 
       it('should have additionalSrps array with expected structure', () => {
-        expect(additionalSrps).toHaveLength(19);
+        expect(additionalSrps).toHaveLength(20);
 
         additionalSrps.forEach((srp) => {
           expect(typeof srp === 'string' || srp === undefined).toBe(true);
