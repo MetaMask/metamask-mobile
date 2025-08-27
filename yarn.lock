@@ -4979,11 +4979,12 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
-  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0":
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
+  integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
   dependencies:
+    "@metamask/messenger" "^0.1.0"
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
@@ -5526,6 +5527,11 @@
   resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
   integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
 
+"@metamask/messenger@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
+  integrity sha512-UqYOFvPb8CvRML26h/ftrwFhiQiB0VENoRnUlM0Tl9QjGh17un2emyxpsib3c2rdzP5U/VskXH2KlzPBtfFLYw==
+
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.1.1.tgz#3de904511115c488809ddee25c470332c03db531"
@@ -5555,12 +5561,12 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@0.4.0-preview-7dfc3145":
-  version "0.4.0-preview-7dfc3145"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/multichain-account-service/-/multichain-account-service-0.4.0-preview-7dfc3145.tgz#fa9a07a0628e100d6c9f7905798e2649080cca7c"
-  integrity sha512-pwvdMKFxmvMTT2z/5i1R4chKqeOhkm5nsBgfLjEK9arFdAClL5IjfkI1sBMd9ZyPVrJurBxQSJ+7bpiEJbDL4Q==
+"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@0.5.0-preview-970969ca":
+  version "0.5.0-preview-970969ca"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/multichain-account-service/-/multichain-account-service-0.5.0-preview-970969ca.tgz#d55a4af891b8b039736e2887b1edac7bb2ee72ca"
+  integrity sha512-uUdFiDXyIAE8Mb1V4h+MAdXTATFsUCaMeSooCuDj52RZZIfzextoYh+QE8emLifY4pyxBJLFbep+PIctXHOpjw==
   dependencies:
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/eth-snap-keyring" "^16.1.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/keyring-internal-api" "^8.1.0"
