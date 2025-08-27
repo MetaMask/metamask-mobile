@@ -357,7 +357,7 @@ const PerpsClosePositionView: React.FC = () => {
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {displayMode === 'usd'
                 ? `${formatPositionSize(closeAmount)} ${position.coin}`
-                : formatPrice(closeAmountUSD)}
+                : formatPrice(closeAmountUSD, { maximumDecimals: 2 })}
             </Text>
             <Icon
               name={IconName.SwapVertical}
@@ -403,7 +403,7 @@ const PerpsClosePositionView: React.FC = () => {
                 value={{
                   label: {
                     text: limitPrice
-                      ? `$${formatPrice(limitPrice)}`
+                      ? `$${formatPrice(limitPrice, { maximumDecimals: 2 })}`
                       : 'Set price',
                     variant: TextVariant.BodyMD,
                     color: TextColor.Default,
@@ -421,7 +421,9 @@ const PerpsClosePositionView: React.FC = () => {
               {strings('perps.close_position.margin')}
             </Text>
             <Text variant={TextVariant.BodyMD}>
-              {formatPrice(effectiveMargin * (closePercentage / 100))}
+              {formatPrice(effectiveMargin * (closePercentage / 100), {
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -445,7 +447,9 @@ const PerpsClosePositionView: React.FC = () => {
               color={pnl >= 0 ? TextColor.Success : TextColor.Error}
             >
               {pnl >= 0 ? '+' : '-'}
-              {formatPrice(Math.abs(pnl * (closePercentage / 100)))}
+              {formatPrice(Math.abs(pnl * (closePercentage / 100)), {
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -465,7 +469,7 @@ const PerpsClosePositionView: React.FC = () => {
               </TouchableOpacity>
             </View>
             <Text variant={TextVariant.BodyMD}>
-              -{formatPrice(feeResults.totalFee)}
+              -{formatPrice(feeResults.totalFee, { maximumDecimals: 2 })}
             </Text>
           </View>
 
@@ -474,7 +478,9 @@ const PerpsClosePositionView: React.FC = () => {
               {strings('perps.close_position.you_receive')}
             </Text>
             <Text variant={TextVariant.BodyLGMedium}>
-              {formatPrice(Math.max(0, receiveAmount))}
+              {formatPrice(Math.max(0, receiveAmount), {
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
         </View>
