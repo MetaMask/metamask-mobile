@@ -181,9 +181,6 @@ jest.mock('../../../../selectors/multichain/multichain', () => ({
       },
     },
   }),
-  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
-    address: '0x123',
-  })),
 }));
 
 const mockInitialState = {
