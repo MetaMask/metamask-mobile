@@ -38,6 +38,7 @@ import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
+import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -58,46 +59,55 @@ export interface TutorialScreen {
   riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
 }
 
-const tutorialScreens: TutorialScreen[] = [
-  {
-    id: 'what_are_perps',
-    title: strings('perps.tutorial.what_are_perps.title'),
-    description: strings('perps.tutorial.what_are_perps.description'),
-    subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
-  },
-  {
-    id: 'go_long_or_short',
-    title: strings('perps.tutorial.go_long_or_short.title'),
-    description: strings('perps.tutorial.go_long_or_short.description'),
-    subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
-  },
-  {
-    id: 'choose_leverage',
-    title: strings('perps.tutorial.choose_leverage.title'),
-    description: strings('perps.tutorial.choose_leverage.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
-  },
-  {
-    id: 'watch_liquidation',
-    title: strings('perps.tutorial.watch_liquidation.title'),
-    description: strings('perps.tutorial.watch_liquidation.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
-  },
-  {
-    id: 'close_anytime',
-    title: strings('perps.tutorial.close_anytime.title'),
-    description: strings('perps.tutorial.close_anytime.description'),
-    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
-  },
-  {
+const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
+  const defaultScreens = [
+    {
+      id: 'what_are_perps',
+      title: strings('perps.tutorial.what_are_perps.title'),
+      description: strings('perps.tutorial.what_are_perps.description'),
+      subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+    },
+    {
+      id: 'go_long_or_short',
+      title: strings('perps.tutorial.go_long_or_short.title'),
+      description: strings('perps.tutorial.go_long_or_short.description'),
+      subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
+    },
+    {
+      id: 'choose_leverage',
+      title: strings('perps.tutorial.choose_leverage.title'),
+      description: strings('perps.tutorial.choose_leverage.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
+    },
+    {
+      id: 'watch_liquidation',
+      title: strings('perps.tutorial.watch_liquidation.title'),
+      description: strings('perps.tutorial.watch_liquidation.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
+    },
+    {
+      id: 'close_anytime',
+      title: strings('perps.tutorial.close_anytime.title'),
+      description: strings('perps.tutorial.close_anytime.description'),
+      riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
+    },
+  ];
+
+  const readyToTradeScreen = {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
     riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
-  },
-];
+  };
+
+  if (!isEligible) {
+    return defaultScreens;
+  }
+
+  return [...defaultScreens, readyToTradeScreen];
+};
 
 interface PerpsTutorialRouteParams {
   isFromDeeplink?: boolean;
@@ -105,7 +115,6 @@ interface PerpsTutorialRouteParams {
 }
 
 const PerpsTutorialCarousel: React.FC = () => {
-  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
@@ -123,9 +132,18 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
 
+  const { isEligible } = usePerpsEligibility();
+
+  const { styles } = useStyles(createStyles, { isEligible });
+
+  const tutorialScreens = useMemo(
+    () => getTutorialScreens(isEligible),
+    [isEligible],
+  );
+
   const isLastScreen = useMemo(
     () => currentTab === tutorialScreens.length - 1,
-    [currentTab],
+    [currentTab, tutorialScreens.length],
   );
 
   // Track tutorial viewed on mount
@@ -172,17 +190,23 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
 
-      // Navigate immediately to confirmations screen for instant UI response
-      // Note: When from deeplink, user will go through deposit flow
-      // and should return to markets after completion
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
+      if (isEligible) {
+        // Navigate immediately to confirmations screen for instant UI response
+        // Note: When from deeplink, user will go through deposit flow
+        // and should return to markets after completion
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        });
 
-      // Initialize deposit in the background without blocking
-      depositWithConfirmation().catch((error) => {
-        console.error('Failed to initialize deposit:', error);
-      });
+        // Initialize deposit in the background without blocking
+        depositWithConfirmation().catch((error) => {
+          console.error('Failed to initialize deposit:', error);
+        });
+
+        return;
+      }
+
+      navigation.goBack();
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -200,11 +224,13 @@ const PerpsTutorialCarousel: React.FC = () => {
     }
   }, [
     isLastScreen,
-    markTutorialCompleted,
-    navigation,
-    currentTab,
     track,
+    currentTab,
+    markTutorialCompleted,
+    isEligible,
+    navigation,
     depositWithConfirmation,
+    tutorialScreens.length,
   ]);
 
   const handleSkip = useCallback(() => {
@@ -254,9 +280,17 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const renderTabBar = () => <View />;
 
-  const buttonLabel = isLastScreen
-    ? strings('perps.tutorial.add_funds')
-    : strings('perps.tutorial.continue');
+  const buttonLabel = useMemo(() => {
+    if (!isEligible && isLastScreen) {
+      return strings('perps.tutorial.got_it');
+    }
+
+    if (isLastScreen) {
+      return strings('perps.tutorial.add_funds');
+    }
+
+    return strings('perps.tutorial.continue');
+  }, [isEligible, isLastScreen]);
 
   const skipLabel = isLastScreen
     ? strings('perps.tutorial.got_it')

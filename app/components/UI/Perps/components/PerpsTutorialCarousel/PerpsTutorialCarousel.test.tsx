@@ -78,6 +78,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
 const mockMarkTutorialCompleted = jest.fn();
 const mockTrack = jest.fn();
 const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
+const mockUsePerpsEligibility = jest.fn();
 
 jest.mock('../../hooks', () => ({
   usePerpsFirstTimeUser: () => ({
@@ -92,6 +93,10 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({
     track: mockTrack,
   }),
+}));
+
+jest.mock('../../hooks/usePerpsEligibility', () => ({
+  usePerpsEligibility: () => mockUsePerpsEligibility(),
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -151,6 +156,11 @@ describe('PerpsTutorialCarousel', () => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useRoute as jest.Mock).mockReturnValue({ params: {} });
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
+
+    // Default to eligible user
+    mockUsePerpsEligibility.mockReturnValue({
+      isEligible: true,
+    });
   });
 
   afterEach(() => {
@@ -159,40 +169,19 @@ describe('PerpsTutorialCarousel', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders correct artboard names for each tutorial screen', async () => {
-      const expectedArtboards = [
-        PERPS_RIVE_ARTBOARD_NAMES.INTRO,
-        PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
-        PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
-        PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
-        PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
-        PERPS_RIVE_ARTBOARD_NAMES.READY,
-      ];
-
-      // Render component once
+    it('renders tutorial screens correctly', () => {
       render(<PerpsTutorialCarousel />);
 
-      // Check first screen artboard
+      // Check that first screen renders with animation
       expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
       expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-        expectedArtboards[0],
+        PERPS_RIVE_ARTBOARD_NAMES.INTRO,
       );
 
-      // Navigate through each screen sequentially and verify artboards
-      for (let i = 1; i < expectedArtboards.length; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
-
-        // Check that the correct artboard is rendered for current screen
-        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-          expectedArtboards[i],
-        );
-      }
+      // Check that tutorial content is rendered
+      expect(
+        screen.getByText(strings('perps.tutorial.what_are_perps.title')),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -498,6 +487,218 @@ describe('PerpsTutorialCarousel', () => {
       );
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('Eligibility-based Rendering', () => {
+    describe('Eligible Users', () => {
+      beforeEach(() => {
+        mockUsePerpsEligibility.mockReturnValue({
+          isEligible: true,
+        });
+      });
+
+      it('renders 6 screens including ready_to_trade screen for eligible users', async () => {
+        const expectedArtboards = [
+          PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+          PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
+          PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
+          PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
+          PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
+          PERPS_RIVE_ARTBOARD_NAMES.READY,
+        ];
+
+        render(<PerpsTutorialCarousel />);
+
+        // Check first screen artboard
+        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+          expectedArtboards[0],
+        );
+
+        // Navigate through each screen sequentially and verify artboards
+        for (let i = 1; i < expectedArtboards.length; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+
+          // Check that the correct artboard is rendered for current screen
+          expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+          expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+            expectedArtboards[i],
+          );
+        }
+      });
+
+      it('shows "Add funds" button on last screen for eligible users', async () => {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate through all screens to get to last screen
+        for (let i = 0; i < 5; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+        }
+
+        // Verify we're on the ready_to_trade screen
+        expect(
+          screen.getByText(strings('perps.tutorial.ready_to_trade.title')),
+        ).toBeOnTheScreen();
+
+        // Button should say "Add funds" on last screen for eligible users
+        expect(
+          screen.getByText(strings('perps.tutorial.add_funds')),
+        ).toBeOnTheScreen();
+      });
+
+      it('navigates to deposit screen when eligible user completes tutorial', async () => {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate through all screens by pressing Continue 5 times
+        for (let i = 0; i < 5; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+        }
+
+        // Press the "Add funds" button
+        await act(async () => {
+          fireEvent.press(
+            screen.getByText(strings('perps.tutorial.add_funds')),
+          );
+        });
+
+        // Should mark tutorial as completed and navigate to add funds screen
+        expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.PERPS.ROOT,
+          {
+            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          },
+        );
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
+      });
+    });
+
+    describe('Non-eligible Users', () => {
+      beforeEach(() => {
+        mockUsePerpsEligibility.mockReturnValue({
+          isEligible: false,
+        });
+      });
+
+      it('renders 5 screens without ready_to_trade screen for non-eligible users', async () => {
+        const expectedArtboards = [
+          PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+          PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
+          PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
+          PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
+          PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
+          // No READY screen for non-eligible users
+        ];
+
+        render(<PerpsTutorialCarousel />);
+
+        // Check first screen artboard
+        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+          expectedArtboards[0],
+        );
+
+        // Navigate through each screen sequentially and verify artboards
+        for (let i = 1; i < expectedArtboards.length; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+
+          // Check that the correct artboard is rendered for current screen
+          expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+          expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+            expectedArtboards[i],
+          );
+        }
+
+        // Verify we're on the close_anytime screen (last screen for non-eligible users)
+        expect(
+          screen.getByText(strings('perps.tutorial.close_anytime.title')),
+        ).toBeOnTheScreen();
+
+        // Should NOT show ready_to_trade screen
+        expect(
+          screen.queryByText(strings('perps.tutorial.ready_to_trade.title')),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('shows "Got it" button on last screen for non-eligible users', async () => {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate through all screens to get to last screen (4 clicks for 5 screens)
+        for (let i = 0; i < 4; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+        }
+
+        // Verify we're on the close_anytime screen (last for non-eligible)
+        expect(
+          screen.getByText(strings('perps.tutorial.close_anytime.title')),
+        ).toBeOnTheScreen();
+
+        // Should show "Got it" buttons (both main and skip button show this text)
+        const gotItButtons = screen.getAllByText(
+          strings('perps.tutorial.got_it'),
+        );
+        expect(gotItButtons).toHaveLength(2); // Main button and skip button
+
+        // Should NOT show "Add funds" button
+        expect(
+          screen.queryByText(strings('perps.tutorial.add_funds')),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('goes back when non-eligible user completes tutorial', async () => {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate through all screens by pressing Continue 4 times (5 screens total)
+        for (let i = 0; i < 4; i++) {
+          const continueButton = screen.getByText(
+            strings('perps.tutorial.continue'),
+          );
+          await act(async () => {
+            fireEvent.press(continueButton);
+          });
+        }
+
+        // Press the main "Got it" button (first one found, which is the main button)
+        await act(async () => {
+          const gotItButtons = screen.getAllByText(
+            strings('perps.tutorial.got_it'),
+          );
+          fireEvent.press(gotItButtons[0]); // Main button is first
+        });
+
+        // Should mark tutorial as completed and go back
+        expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+        expect(mockNavigation.goBack).toHaveBeenCalled();
+        // Should NOT navigate to deposit screen or call deposit
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+      });
     });
   });
 });
