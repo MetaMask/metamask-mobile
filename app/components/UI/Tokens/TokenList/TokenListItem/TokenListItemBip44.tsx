@@ -224,9 +224,13 @@ export const TokenListItemBip44 = React.memo(
     }
 
     const mainBalance =
-      primaryCurrency === 'Fiat' ? asset.balanceFiat : asset.balance;
+      primaryCurrency === 'Fiat'
+        ? asset.balanceFiat
+        : `${asset.balance} ${asset.symbol}`;
     const secondaryBalance =
-      primaryCurrency === 'Fiat' ? asset.balance : asset.balanceFiat;
+      primaryCurrency === 'Fiat'
+        ? `${asset.balance} ${asset.symbol}`
+        : asset.balanceFiat;
 
     return (
       <AssetElement
