@@ -29,8 +29,7 @@ export const isSmartTransacitonEnabledWithNetworkFeatureFlag = (
   ) {
     return swapsChainFeatureFlags?.smartTransactions?.mobileActiveIos;
   }
-    return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
-
+  return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
 };
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
