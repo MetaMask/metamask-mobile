@@ -79,6 +79,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
+// WalletConnect
+export const MM_WALLETCONNECT_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/wc?`;
+
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
