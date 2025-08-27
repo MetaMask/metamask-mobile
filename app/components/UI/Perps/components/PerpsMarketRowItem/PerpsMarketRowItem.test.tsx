@@ -90,7 +90,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       const tokenLogo = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
+        getPerpsMarketRowItemSelector.tokenLogo('BTC'),
       );
       expect(tokenLogo).toBeOnTheScreen();
       expect(tokenLogo.props['data-symbol']).toBe('BTC');

@@ -97,14 +97,16 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
-      testID={`perps-market-row-item-${market.symbol}`}
+      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
     >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={32}
-            testID={getPerpsMarketRowItemSelector.rowItem(displayMarket.symbol)}
+            testID={getPerpsMarketRowItemSelector.tokenLogo(
+              displayMarket.symbol,
+            )}
           />
         </View>
 

@@ -118,12 +118,15 @@ export const PerpsMarketListViewSelectorsIDs = {
 
 export const PerpsMarketRowItemSelectorsIDs = {
   ROW_ITEM: 'perps-market-row-item',
+  TOKEN_LOGO: 'perps-market-row-item-token-logo',
 };
 
 // Helper functions for dynamic market row selectors
 export const getPerpsMarketRowItemSelector = {
   rowItem: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
+  tokenLogo: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.TOKEN_LOGO}-${symbol}`,
 };
 
 // ========================================
