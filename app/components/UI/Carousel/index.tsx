@@ -164,7 +164,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
     [],
   );
 
-  // }, [isZeroBalance, priorityContentfulSlides, regularContentfulSlides]);
   const slidesConfig = useMemo(() => {
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
