@@ -25,6 +25,7 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
+import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -43,6 +44,7 @@ const useAccounts = ({
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const accountGroups = useSelector(selectAccountGroups);
 
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
@@ -166,10 +168,15 @@ const useAccounts = ({
           balanceError: undefined,
         };
 
+        const accountName =
+          accountGroups.find(({ accounts: groupAccounts }) =>
+            groupAccounts.includes(internalAccount.id),
+          )?.metadata.name || internalAccount.metadata.name;
+
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           id: internalAccount.id,
-          name: internalAccount.metadata.name,
+          name: accountName,
           address: formattedAddress,
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
@@ -212,6 +219,7 @@ const useAccounts = ({
     selectedInternalAccount?.address,
     accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
     isMultiAccountBalancesEnabled,
+    accountGroups,
   ]);
 
   useEffect(() => {
