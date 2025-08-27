@@ -31,4 +31,5 @@ export type PerpsTooltipContentKey =
   | 'funding_rate'
   | 'perps_geo_block'
   | 'estimated_pnl'
-  | 'limit_price';
+  | 'limit_price'
+  | 'tp_sl';

@@ -23,4 +23,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   perps_geo_block: undefined,
   estimated_pnl: undefined, // Uses default string content
   limit_price: undefined, // Uses default string content
+  tp_sl: undefined,
 };
