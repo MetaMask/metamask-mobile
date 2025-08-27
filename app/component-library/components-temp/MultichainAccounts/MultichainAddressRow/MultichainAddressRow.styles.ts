@@ -38,6 +38,10 @@ const styleSheet = (params: {
       alignItems: 'center',
       gap: 8,
     } as ViewStyle,
+    overlay: {
+      backgroundColor: colors.success.muted,
+      borderRadius: 16,
+    } as ViewStyle,
   });
 };
 

@@ -15,3 +15,16 @@ export interface AssetType extends TokenI {
   standard?: TokenStandard;
   description?: string;
 }
+
+export interface Nft {
+  address: string;
+  standard: 'ERC721' | 'ERC1155';
+  name?: string;
+  collectionName?: string;
+  image?: string;
+  chainId: string;
+  tokenId: string;
+  accountId: string;
+  networkBadgeSource: ImageSourcePropType;
+  balance?: string;
+}
