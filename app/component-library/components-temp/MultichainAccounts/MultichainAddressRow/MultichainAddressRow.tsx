@@ -5,20 +5,28 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
+import { Animated, Easing } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
+  Text,
+  TextVariant,
+  TextColor,
+  IconName,
+  IconColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../components/Avatars/Avatar';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../components/Buttons/ButtonIcon';
-import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
-import { IconColor, IconName } from '../../../components/Icons/Icon';
-import { useStyles } from '../../../hooks';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
-import styleSheet from './MultichainAddressRow.styles';
 import { Icon, MultichainAddressRowProps } from './MultichainAddressRow.types';
 import {
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,
@@ -35,12 +43,11 @@ const MultichainAddressRow = ({
   networkName,
   address,
   icons,
-  style,
   copyParams,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
   ...viewProps
 }: MultichainAddressRowProps) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const tw = useTailwind();
   const networkImageSource = getNetworkImageSource({ chainId });
   const truncatedAddress = useMemo(
     () => formatAddress(address, 'short'),
@@ -134,9 +141,9 @@ const MultichainAddressRow = ({
           <ButtonIcon
             key={index}
             iconName={icon.name}
-            size={ButtonIconSizes.Md}
+            size={ButtonIconSize.Md}
             onPress={icon.callback}
-            iconColor={IconColor.Default}
+            iconProps={{ color: IconColor.IconDefault }}
             testID={icon.testId}
           />
         ))
@@ -144,18 +151,27 @@ const MultichainAddressRow = ({
 
   // Green overlay style (absolute fill)
   const overlayStyle = [
-    StyleSheet.absoluteFillObject,
     {
+      position: 'absolute' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       opacity: progress,
     },
+    tw.style('bg-success-muted'),
   ];
 
   return (
-    <View style={styles.base} testID={testID} {...viewProps}>
-      <Animated.View
-        pointerEvents="none"
-        style={[overlayStyle, styles.overlay]}
-      />
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="p-4 gap-4 bg-default"
+      testID={testID}
+      {...viewProps}
+    >
+      <Animated.View pointerEvents="none" style={overlayStyle} />
       <Avatar
         variant={AvatarVariant.Network}
         size={AvatarSize.Md}
@@ -163,41 +179,59 @@ const MultichainAddressRow = ({
         imageSource={networkImageSource}
         testID={MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID}
       />
-      <View style={styles.content}>
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        alignItems={BoxAlignItems.Start}
+        twClassName="flex-1"
+      >
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Default}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
           testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
         >
           {networkName}
         </Text>
         {showSuccess && copyParams ? (
-          <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.SuccessDefault}
+            fontWeight={FontWeight.Medium}
+          >
             {copyParams.successMessage}
           </Text>
         ) : (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
             testID={MULTICHAIN_ADDRESS_ROW_ADDRESS_TEST_ID}
           >
             {truncatedAddress}
           </Text>
         )}
-      </View>
-      <View style={styles.actions}>
+      </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-4"
+      >
         {copyParams && (
           <ButtonIcon
             iconName={IconName.Copy}
-            size={ButtonIconSizes.Md}
+            size={ButtonIconSize.Md}
             onPress={handleCopy}
-            iconColor={showSuccess ? IconColor.Success : IconColor.Default}
+            iconProps={{
+              color: showSuccess
+                ? IconColor.SuccessDefault
+                : IconColor.IconDefault,
+            }}
             testID={MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID}
           />
         )}
         {renderIcons()}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 };
 
