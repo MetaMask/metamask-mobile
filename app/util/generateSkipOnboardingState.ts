@@ -12,6 +12,8 @@ import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
+import Engine from '../core/Engine';
+import ExtendedKeyringTypes from '../constants/keyringTypes';
 
 export const VAULT_INITIALIZED_KEY = '@MetaMask:vaultInitialized';
 
@@ -59,7 +61,18 @@ async function applyVaultInitialization() {
 
       await importNewSecretRecoveryPhrase(srp);
     }
-    await importAdditionalAccounts(9999);
+    const KeyringController = Engine.context.KeyringController;
+    const allKeyrings = KeyringController.getKeyringsByType(
+      ExtendedKeyringTypes.hd,
+    );
+
+    for (
+      let keyringIndex = 0;
+      keyringIndex < allKeyrings.length;
+      keyringIndex++
+    ) {
+      await importAdditionalAccounts(9999, keyringIndex);
+    }
 
     await StorageWrapper.setItem(VAULT_INITIALIZED_KEY, 'true');
 
