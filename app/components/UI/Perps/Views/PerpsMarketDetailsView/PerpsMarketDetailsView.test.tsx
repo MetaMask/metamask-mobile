@@ -25,6 +25,7 @@ jest.mock('../../providers/PerpsStreamManager');
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
+const mockUsePerpsEligibility = jest.fn();
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -82,6 +83,11 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
 
 jest.mock('../../hooks/usePerpsAccount', () => ({
   usePerpsAccount: () => mockUsePerpsAccount(),
+}));
+
+// Connect the mock to the function
+jest.mock('../../hooks/usePerpsEligibility', () => ({
+  usePerpsEligibility: () => mockUsePerpsEligibility(),
 }));
 
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
@@ -299,32 +305,31 @@ jest.mock('../../components/PerpsOpenOrderCard', () => ({
 }));
 
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
-jest.mock('../../components/PerpsBottomSheetTooltip', () => {
-  const { View } = jest.requireActual('react-native');
-  const ReactActual = jest.requireActual('react');
+jest.mock(
+  '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip',
+  () => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
 
-  return {
-    __esModule: true,
-    default: function MockPerpsBottomSheetTooltip({
-      isVisible,
-      onClose,
-    }: {
-      isVisible: boolean;
-      onClose?: () => void;
-    }) {
-      // Store the visibility in the mock for easier testing
-      ReactActual.useEffect(() => {
-        if (isVisible && onClose) {
-          // Auto-close after a brief delay for testing
-          const timer = setTimeout(onClose, 100);
-          return () => clearTimeout(timer);
-        }
-      }, [isVisible, onClose]);
-
-      return isVisible ? <View testID="perps-bottom-sheet-tooltip" /> : null;
-    },
-  };
-});
+    return {
+      __esModule: true,
+      default: function MockPerpsBottomSheetTooltip({
+        isVisible,
+        onClose,
+        testID,
+      }: {
+        isVisible: boolean;
+        onClose?: () => void;
+        testID: string;
+      }) {
+        return isVisible ? (
+          <TouchableOpacity testID={testID} onPress={onClose}>
+            <Text>Geo Block Tooltip</Text>
+          </TouchableOpacity>
+        ) : null;
+      },
+    };
+  },
+);
 
 const initialState = {
   engine: {
@@ -352,6 +357,10 @@ describe('PerpsMarketDetailsView', () => {
 
     // Reset navigation mocks
     mockCanGoBack.mockReturnValue(true);
+
+    mockUsePerpsEligibility.mockReturnValue({
+      isEligible: true,
+    });
 
     // Reset notification feature flag to default
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
@@ -842,7 +851,11 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Navigation functionality', () => {
-    it('navigates to long order screen when long button is pressed', () => {
+    it('navigates to long order screen when long button is pressed and user is eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: true,
+      });
+
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -864,7 +877,11 @@ describe('PerpsMarketDetailsView', () => {
       });
     });
 
-    it('navigates to short order screen when short button is pressed', () => {
+    it('navigates to short order screen when short button is pressed and user is eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: true,
+      });
+
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -913,6 +930,81 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
+    });
+
+    it('shows geo block modal when long button is pressed and user is not eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows geo block modal when short button is pressed and user is not eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const shortButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+      );
+      fireEvent.press(shortButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      expect(getByText('Geo Block Tooltip')).toBeTruthy();
+
+      const tooltip = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      expect(queryByText('Geo Block Tooltip')).toBeNull();
     });
   });
 
