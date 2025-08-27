@@ -20,11 +20,9 @@ import FixtureBuilder, {
 } from '../../../framework/fixtures/FixtureBuilder';
 import { defaultGanacheOptions } from '../../../framework/Constants';
 import { createUserStorageController } from '../utils/mocks.ts';
-import { TestSpecificMock } from '../../../framework/types.ts';
 
 describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
-  const infuraUrlEndpoint = /^https:\/\/mainnet\.infura\.io\/v3\/.*$/;
 
   beforeAll(async () => {
     sharedUserStorageController = createUserStorageController();
@@ -35,75 +33,6 @@ describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
     DEFAULT_FIXTURE_ACCOUNT_2,
     '0x08C215b461932f44Fab0D15E5d1FF4C5aF591AF0',
   ];
-
-  const testSpecificMock: TestSpecificMock = {
-    POST: [
-      {
-        urlEndpoint: infuraUrlEndpoint,
-        requestBody: {
-          jsonrpc: '2.0',
-          id: 2470556049218,
-          method: 'eth_blockNumber',
-          params: [],
-        },
-        responseCode: 200,
-        response: {
-          jsonrpc: '2.0',
-          id: 1111111111111111,
-          result: '0x1',
-        },
-        ignoreFields: ['id'],
-      },
-      {
-        urlEndpoint: infuraUrlEndpoint,
-        requestBody: {
-          jsonrpc: '2.0',
-          id: 2470556049218,
-          method: 'eth_getBalance',
-          params: [balancesAccounts[2].toLowerCase(), '0x1'],
-        },
-        responseCode: 200,
-        response: {
-          jsonrpc: '2.0',
-          id: 1111111111111111,
-          result: '0xde0b6b3a7640000',
-        },
-        ignoreFields: ['id'],
-      },
-      {
-        urlEndpoint: infuraUrlEndpoint,
-        requestBody: {
-          jsonrpc: '2.0',
-          id: 2470556049218,
-          method: 'eth_getBalance',
-          params: [DEFAULT_FIXTURE_ACCOUNT.toLowerCase(), '0x1'],
-        },
-        responseCode: 200,
-        response: {
-          jsonrpc: '2.0',
-          id: 1111111111111111,
-          result: '0xde0b6b3a7640000',
-        },
-        ignoreFields: ['id'],
-      },
-      {
-        urlEndpoint: infuraUrlEndpoint,
-        requestBody: {
-          jsonrpc: '2.0',
-          id: 2470556049218,
-          method: 'eth_getBalance',
-          params: [DEFAULT_FIXTURE_ACCOUNT_2.toLowerCase(), '0x1'],
-        },
-        responseCode: 200,
-        response: {
-          jsonrpc: '2.0',
-          id: 1111111111111111,
-          result: '0xde0b6b3a7640000',
-        },
-        ignoreFields: ['id'],
-      },
-    ],
-  };
 
   it('should gracefully handle adding accounts with balances and synced accounts', async () => {
     await withIdentityFixtures(
@@ -144,7 +73,7 @@ describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
         fixture: onboardingFixture,
-        testSpecificMock,
+        mockBalancesAccounts: balancesAccounts,
       },
       async () => {
         await importWalletWithRecoveryPhrase({
