@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
-import { ShareAddressQR } from './ShareAddressQR';
+import ShareAddressQR from '.';
 import {
   createMockSnapInternalAccount,
   internalAccount1,
@@ -123,8 +123,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      account: mockAccount,
+      address:
+        mockAccount?.address || '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
       networkName: mockNetworkName,
+      accountName: mockAccount?.metadata?.name || 'Test Account',
+      chainId: '0x1',
     },
   }),
 }));
@@ -136,7 +139,8 @@ jest.mock('../../../../../util/address', () => ({
 
 // Mock useBlockExplorer hook
 jest.mock('../../../../hooks/useBlockExplorer', () => ({
-  useBlockExplorer: jest.fn().mockReturnValue({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
     toBlockExplorer: jest.fn(),
     blockExplorerName: 'Etherscan (Multichain)',
   }),
@@ -234,9 +238,7 @@ describe('ShareAddressQR', () => {
     const { getByText, getByTestId } = render();
 
     // Assert
-    expect(
-      getByText(strings('multichain_accounts.share_address_qr.title')),
-    ).toBeOnTheScreen();
+    expect(getByText('Account 1 / Ethereum Mainnet')).toBeOnTheScreen();
     expect(getByTestId('mock-qr-code')).toBeOnTheScreen();
     expect(getByTestId('qr-account-display')).toBeOnTheScreen();
   });
@@ -301,9 +303,9 @@ describe('ShareAddressQR', () => {
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
     const mockToBlockExplorer = jest.fn();
-    const { useBlockExplorer } = jest.requireMock(
+    const useBlockExplorer = jest.requireMock(
       '../../../../hooks/useBlockExplorer',
-    );
+    ).default;
     useBlockExplorer.mockReturnValue({
       toBlockExplorer: mockToBlockExplorer,
       blockExplorerName: 'Etherscan (Multichain)',
@@ -321,12 +323,10 @@ describe('ShareAddressQR', () => {
 
   it('displays View on Etherscan button with correct text', () => {
     // Arrange
-    const { getByTestId } = render();
-    const explorerButton = getByTestId('share-address-qr-copy-button');
+    const { getByText } = render();
 
     // Assert
-    expect(explorerButton).toBeOnTheScreen();
-    expect(explorerButton.props.children).toContain('Etherscan (Multichain)');
+    expect(getByText(/View on Etherscan/i)).toBeOnTheScreen();
   });
 
   it('renders different account types correctly', () => {

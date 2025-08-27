@@ -1,1 +1,1 @@
-export { ShareAddressQR } from './ShareAddressQR';
+export { default } from './ShareAddressQR';
