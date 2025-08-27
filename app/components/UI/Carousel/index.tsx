@@ -290,7 +290,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
           marginHorizontal: PEEK_WIDTH,
           position: 'relative',
           overflow: 'hidden',
-          paddingLeft: 16,
+          paddingLeft: 0,
         })}
         onPress={() => handleSlideClick(slide.id, slide.navigation)}
       >
@@ -299,7 +299,19 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
           alignItems={BoxAlignItems.Start}
           twClassName="w-full h-full"
         >
-          <Box twClassName="flex-1 justify-center py-3">
+          <Box
+            style={tw.style('overflow-hidden justify-center items-center', {
+              width: 66,
+              height: 66,
+            })}
+          >
+            <RNImage
+              source={slide.image ? { uri: slide.image } : { uri: '' }}
+              style={tw.style({ width: 66, height: 66 })}
+              resizeMode="contain"
+            />
+          </Box>
+          <Box twClassName="flex-1 justify-center py-3 pl-3">
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -315,18 +327,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             >
               {slide.description}
             </Text>
-          </Box>
-          <Box
-            style={tw.style('overflow-hidden justify-center items-center', {
-              width: 66,
-              height: 66,
-            })}
-          >
-            <RNImage
-              source={slide.image ? { uri: slide.image } : { uri: '' }}
-              style={tw.style({ width: 66, height: 66 })}
-              resizeMode="contain"
-            />
           </Box>
           {!slide.undismissable && (
             <ButtonIcon
