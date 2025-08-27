@@ -31,7 +31,7 @@ module.exports = {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
         addFileAttribute: 'true',
-        testCasePropertiesFile: './junitProperties.js',
+        testCasePropertiesFile: './e2e/junitProperties.js',
         testSuitePropertiesFile: './e2e/junitTestSuiteProperties.js',
       },
     ],
