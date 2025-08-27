@@ -129,7 +129,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 
   const availableBalance = perpsAccount?.availableBalance || '0';
   const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0').toFixed(1);
+  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
 
   return (
@@ -187,7 +187,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               variant={TextVariant.HeadingSM}
               color={pnlColor}
             >
-              {formatPnl(pnlNum)} ({formatPercentage(roe)})
+              {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
             </Text>
           </Animated.View>
         </View>
