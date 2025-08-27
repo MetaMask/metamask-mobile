@@ -81,6 +81,12 @@ class ActivitiesView {
     );
   }
 
+  swapApprovalActivityTitle(sourceToken: string): DetoxElement {
+    return Matchers.getElementByText(
+      this.generateApprovedTokenActivityLabel(sourceToken),
+    );
+  }
+
   bridgeActivityTitle(destNetwork: string): DetoxElement {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
