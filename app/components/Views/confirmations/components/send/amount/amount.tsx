@@ -105,9 +105,8 @@ export const Amount = () => {
   ]);
 
   const balanceUnit =
-    assetSymbol ?? (balance && parseInt(balance) === 1)
-      ? strings('send.unit')
-      : strings('send.units');
+    assetSymbol ??
+    (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
 
   return (
     <View style={styles.container}>
