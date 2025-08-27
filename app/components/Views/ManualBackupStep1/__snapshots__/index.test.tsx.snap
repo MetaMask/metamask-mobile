@@ -344,6 +344,7 @@ exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by def
               activeOpacity={1}
               disabled={true}
               loading={false}
+              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
@@ -731,6 +732,7 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
               activeOpacity={1}
               disabled={true}
               loading={false}
+              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
@@ -1118,6 +1120,7 @@ exports[`ManualBackupStep1 render matches snapshot 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
+              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
