@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
@@ -12,7 +12,7 @@ import { loginToApp } from '../../viewHelper';
 
 const TOKEN_ADDRESS = '0x2d1aDB45Bb1d7D2556c6558aDb76CFD4F9F4ed16';
 
-describe(Regression('Import custom token'), () => {
+describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();
