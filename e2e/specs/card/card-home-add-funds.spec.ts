@@ -28,8 +28,10 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
         },
       },
       async () => {
+        await device.disableSynchronization(); // TODO: check what is causing detox to hang
         await loginToApp();
         await testFunction();
+        await device.enableSynchronization();
       },
     );
   };
