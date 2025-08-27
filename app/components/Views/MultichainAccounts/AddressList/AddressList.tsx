@@ -8,11 +8,10 @@ import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import HeaderBase from '../../../../component-library/components/HeaderBase';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ButtonIcon,
   ButtonIconSize,
-  IconName as MMDSIconName,
+  IconName,
   IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
@@ -86,7 +85,7 @@ export const AddressList = () => {
         startAccessory={
           <ButtonIcon
             testID={AddressListIds.GO_BACK}
-            iconName={MMDSIconName.ArrowLeft}
+            iconName={IconName.ArrowLeft}
             size={ButtonIconSize.Md}
             iconProps={{ color: MMDSIconColor.IconDefault }}
             onPress={() => navigation.goBack()}
