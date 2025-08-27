@@ -88,6 +88,11 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLiveOrders: jest.fn(() => []),
 }));
 
+// Mock usePerpsEligibility hook
+jest.mock('../../hooks/usePerpsEligibility', () => ({
+  usePerpsEligibility: jest.fn(),
+}));
+
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
   ...jest.requireActual('../../utils/formatUtils'),
@@ -137,6 +142,18 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   },
 }));
 
+jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
+  __esModule: true,
+  default: ({ onClose, testID }: { onClose: () => void; testID: string }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onClose}>
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
+    );
+  },
+}));
+
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -152,6 +169,9 @@ describe('PerpsTabView', () => {
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
   const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
+  const mockUsePerpsEligibility = jest.requireMock(
+    '../../hooks/usePerpsEligibility',
+  ).usePerpsEligibility;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -213,6 +233,10 @@ describe('PerpsTabView', () => {
     });
 
     mockUsePerpsAccount.mockReturnValue(null);
+
+    mockUsePerpsEligibility.mockReturnValue({
+      isEligible: true,
+    });
   });
 
   describe('Hook Integration', () => {
@@ -369,7 +393,11 @@ describe('PerpsTabView', () => {
       expect(mockLoadPositions).toHaveBeenCalledTimes(0); // Should not be called on render
     });
 
-    it('should navigate to balance modal when manage balance is pressed', () => {
+    it('should navigate to balance modal when manage balance is pressed and user is eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: true,
+      });
+
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
@@ -384,6 +412,49 @@ describe('PerpsTabView', () => {
           screen: Routes.PERPS.MODALS.BALANCE_MODAL,
         },
       );
+    });
+
+    it('should show geo block modal when manage balance is pressed and user is not eligible', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      render(<PerpsTabView />);
+
+      const manageBalanceButton = screen.getByTestId('manage-balance-button');
+
+      act(() => {
+        fireEvent.press(manageBalanceButton);
+      });
+
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should close geo block modal when onClose is called', () => {
+      mockUsePerpsEligibility.mockReturnValue({
+        isEligible: false,
+      });
+
+      render(<PerpsTabView />);
+
+      const manageBalanceButton = screen.getByTestId('manage-balance-button');
+
+      act(() => {
+        fireEvent.press(manageBalanceButton);
+      });
+
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      const tooltip = screen.getByTestId(
+        'perps-tab-view-geo-block-bottom-sheet-tooltip',
+      );
+
+      act(() => {
+        fireEvent.press(tooltip);
+      });
+
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 

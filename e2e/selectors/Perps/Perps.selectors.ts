@@ -154,6 +154,8 @@ export const PerpsAmountDisplaySelectorsIDs = {
 
 export const PerpsTabViewSelectorsIDs = {
   START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {
