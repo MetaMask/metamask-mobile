@@ -299,7 +299,7 @@ export const createTradingViewChartTemplate = (
         });
         // Start loading after a small delay
         // Library is already loaded inline, so start creating chart
-        setTimeout(createChart, 500);
+        createChart();
     </script>
 </body>
 </html>`;
