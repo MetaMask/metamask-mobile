@@ -365,7 +365,7 @@ describe('selectCanSignTransactions', () => {
   const btcAccountWithSignPsbt = {
     ...createMockInternalAccount(
       'bc1q123',
-      'BTC Account with Send',
+      'BTC Account with SignPsbt',
       KeyringTypes.snap,
       BtcAccountType.P2wpkh,
     ),
@@ -407,7 +407,7 @@ describe('selectCanSignTransactions', () => {
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
-  it('returns true for BTC account with SendBitcoin method', () => {
+  it('returns true for BTC account with SignPsbt method', () => {
     const state = getStateWithAccount(btcAccountWithSignPsbt);
     expect(selectCanSignTransactions(state)).toBe(true);
   });
