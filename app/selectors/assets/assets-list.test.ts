@@ -1,3 +1,4 @@
+import type { RootState } from '../../reducers';
 import { selectAssetsBySelectedAccountGroup } from './assets-list';
 
 jest.mock('@metamask/assets-controllers', () => ({
