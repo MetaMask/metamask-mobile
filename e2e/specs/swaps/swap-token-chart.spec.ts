@@ -7,7 +7,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
@@ -15,7 +15,7 @@ import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
 import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 
-describe(Regression('Swap from Token view'), (): void => {
+describe(RegressionTrade('Swap from Token view'), (): void => {
   jest.setTimeout(120000);
 
   it('should complete a USDC to DAI swap from the token chart', async (): Promise<void> => {
