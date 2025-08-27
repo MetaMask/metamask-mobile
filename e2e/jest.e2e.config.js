@@ -35,4 +35,8 @@ module.exports = {
   ],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
+  transform: {
+    '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+    '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+  },
 };
