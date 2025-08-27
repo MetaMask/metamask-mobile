@@ -73,7 +73,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 0.5,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -103,9 +102,10 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -200,7 +200,6 @@ exports[`SnapUIInput renders with initial value 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -230,9 +229,10 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }

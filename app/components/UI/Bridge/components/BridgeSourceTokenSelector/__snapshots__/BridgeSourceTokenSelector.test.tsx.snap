@@ -721,7 +721,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
-                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -771,9 +770,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
+                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }

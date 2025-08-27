@@ -13,7 +13,6 @@ exports[`SrpInput should render default settings correctly 1`] = `
         "flexDirection": "row",
         "height": 40,
         "opacity": 1,
-        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -23,6 +22,8 @@ exports[`SrpInput should render default settings correctly 1`] = `
         [
           {
             "backgroundColor": "inherit",
+            "height": 38,
+            "paddingHorizontal": 16,
           },
           {
             "flex": 1,

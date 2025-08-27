@@ -86,7 +86,6 @@ exports[`SnapUIForm will render 1`] = `
                       "height": 48,
                       "maxHeight": 58,
                       "opacity": 1,
-                      "paddingHorizontal": 16,
                     }
                   }
                   testID="textfield"
@@ -116,9 +115,10 @@ exports[`SnapUIForm will render 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
+                          "paddingHorizontal": 16,
                           "paddingVertical": 0,
                         }
                       }
@@ -274,7 +274,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "height": 48,
                       "maxHeight": 58,
                       "opacity": 1,
-                      "paddingHorizontal": 16,
                     }
                   }
                   testID="textfield"
@@ -304,9 +303,10 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
+                          "paddingHorizontal": 16,
                           "paddingVertical": 0,
                         }
                       }

@@ -232,7 +232,6 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -262,9 +261,10 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -359,7 +359,6 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -390,9 +389,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -423,7 +423,6 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -454,9 +453,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -551,7 +551,6 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -581,9 +580,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -614,7 +614,6 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -644,9 +643,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -1645,7 +1645,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       "height": 48,
                       "maxHeight": 58,
                       "opacity": 1,
-                      "paddingHorizontal": 16,
                     }
                   }
                   testID="textfield"
@@ -1763,9 +1762,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
+                          "paddingHorizontal": 16,
                           "paddingVertical": 0,
                         }
                       }
@@ -1898,7 +1898,6 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
-                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -1928,9 +1927,10 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
+                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }

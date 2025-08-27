@@ -52,7 +52,6 @@ exports[`EditAccountName should render correctly 1`] = `
             "flexDirection": "row",
             "height": 40,
             "opacity": 1,
-            "paddingHorizontal": 16,
           }
         }
         testID="textfield"
@@ -79,9 +78,10 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 24,
+                "height": 38,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingHorizontal": 16,
                 "paddingVertical": 0,
               }
             }
@@ -124,7 +124,6 @@ exports[`EditAccountName should render correctly 1`] = `
             "flexDirection": "row",
             "height": 40,
             "opacity": 0.5,
-            "paddingHorizontal": 16,
           }
         }
         testID="textfield"
@@ -151,9 +150,10 @@ exports[`EditAccountName should render correctly 1`] = `
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 24,
+                "height": 38,
                 "letterSpacing": 0,
                 "opacity": 1,
+                "paddingHorizontal": 16,
                 "paddingVertical": 0,
               }
             }

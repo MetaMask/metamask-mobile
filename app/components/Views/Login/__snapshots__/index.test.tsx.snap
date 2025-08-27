@@ -171,7 +171,6 @@ exports[`Login renders matching snapshot 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "opacity": 1,
-                "paddingHorizontal": 16,
               }
             }
             testID="textfield"
@@ -205,9 +204,10 @@ exports[`Login renders matching snapshot 1`] = `
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
-                    "height": 24,
+                    "height": 46,
                     "letterSpacing": 0,
                     "opacity": 1,
+                    "paddingHorizontal": 16,
                     "paddingVertical": 0,
                   }
                 }
@@ -517,7 +517,6 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "opacity": 1,
-                "paddingHorizontal": 16,
               }
             }
             testID="textfield"
@@ -551,9 +550,10 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
-                    "height": 24,
+                    "height": 46,
                     "letterSpacing": 0,
                     "opacity": 1,
+                    "paddingHorizontal": 16,
                     "paddingVertical": 0,
                   }
                 }

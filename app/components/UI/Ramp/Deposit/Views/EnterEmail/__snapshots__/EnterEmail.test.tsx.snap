@@ -697,7 +697,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
-                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -732,9 +731,10 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -1520,7 +1520,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
-                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -1555,9 +1554,10 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -2357,7 +2357,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
-                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -2392,9 +2391,10 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -3180,7 +3180,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
-                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -3215,9 +3214,10 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
-                                        "height": 24,
+                                        "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }

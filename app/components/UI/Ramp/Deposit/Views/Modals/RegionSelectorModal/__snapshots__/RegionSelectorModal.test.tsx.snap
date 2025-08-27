@@ -541,7 +541,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
-                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -591,9 +590,10 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
+                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }
@@ -1673,7 +1673,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
-                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -1723,9 +1722,10 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
+                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }
@@ -2393,7 +2393,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
-                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -2443,9 +2442,10 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
+                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }

@@ -12,7 +12,6 @@ exports[`TextField should render default settings correctly 1`] = `
       "flexDirection": "row",
       "height": 40,
       "opacity": 1,
-      "paddingHorizontal": 16,
     }
   }
   testID="textfield"
@@ -33,6 +32,8 @@ exports[`TextField should render default settings correctly 1`] = `
       style={
         {
           "backgroundColor": "inherit",
+          "height": 38,
+          "paddingHorizontal": 16,
         }
       }
       textVariant="sBodyMD"

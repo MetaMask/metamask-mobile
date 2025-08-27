@@ -756,7 +756,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -790,9 +789,10 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -856,7 +856,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -890,9 +889,10 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -952,7 +952,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -985,9 +984,10 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -1174,7 +1174,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -1208,9 +1207,10 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -1276,7 +1276,6 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 0.5,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -1329,9 +1328,10 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2272,7 +2272,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -2306,9 +2305,10 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -2357,7 +2357,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -2391,9 +2390,10 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -2453,7 +2453,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2486,9 +2485,10 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2637,7 +2637,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2671,9 +2670,10 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2724,7 +2724,6 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 0.5,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2777,9 +2776,10 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -3720,7 +3720,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -3754,9 +3753,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -3805,7 +3805,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -3839,9 +3838,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -3901,7 +3901,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -3934,9 +3933,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -4093,7 +4093,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -4127,9 +4126,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -4180,7 +4180,6 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 0.5,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -4233,9 +4232,10 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5176,7 +5176,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -5210,9 +5209,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -5261,7 +5261,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -5295,9 +5294,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
+                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -5357,7 +5357,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5390,9 +5389,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5443,7 +5443,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5476,9 +5475,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5539,7 +5539,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5573,9 +5572,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5626,7 +5626,6 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 0.5,
-                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5679,9 +5678,10 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
+                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }

@@ -156,7 +156,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "flexDirection": "row",
                   "height": 48,
                   "opacity": 1,
-                  "paddingHorizontal": 16,
                 }
               }
               testID="textfield"
@@ -191,9 +190,10 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
-                      "height": 24,
+                      "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
+                      "paddingHorizontal": 16,
                       "paddingVertical": 0,
                     }
                   }
@@ -263,7 +263,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "flexDirection": "row",
                   "height": 48,
                   "opacity": 0.5,
-                  "paddingHorizontal": 16,
                 }
               }
               testID="textfield"
@@ -299,9 +298,10 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
-                      "height": 24,
+                      "height": 46,
                       "letterSpacing": 0,
                       "opacity": 1,
+                      "paddingHorizontal": 16,
                       "paddingVertical": 0,
                     }
                   }
