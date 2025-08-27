@@ -27,10 +27,12 @@ export const IPFS_DEFAULT_GATEWAY_URL = 'https://dweb.link/ipfs/';
 export const NETWORKS_CHAIN_ID = {
   MAINNET: toHex('1'),
   OPTIMISM: toHex('10'),
+  OPTIMISM_SEPOLIA: toHex('11155420'),
   BSC: toHex('56'),
   POLYGON: toHex('137'),
   FANTOM: toHex('250'),
   BASE: toHex('8453'),
+  BASE_SEPOLIA: toHex('84532'),
   ARBITRUM: toHex('42161'),
   AVAXCCHAIN: toHex('43114'),
   CELO: toHex('42220'),
