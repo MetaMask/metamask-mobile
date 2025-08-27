@@ -85,7 +85,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${tokenAmount} ${tokenSymbol}`
             : amount
-            ? formatPrice(amount, { minimumDecimals: 0 })
+            ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
             : '$0'}
         </RNText>
         {isActive && (
