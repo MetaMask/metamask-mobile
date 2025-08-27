@@ -53,17 +53,6 @@ export const PerpsPositionCardSelectorsIDs = {
 };
 
 // ========================================
-// PERPS POSITION HEADER SELECTORS
-// ========================================
-
-export const PerpsPositionHeaderSelectorsIDs = {
-  HEADER: 'position-header',
-  COIN: 'position-header-coin',
-  PNL: 'position-header-pnl',
-  BACK_BUTTON: 'perps-position-header-back-button',
-};
-
-// ========================================
 // PERPS LOADER SELECTORS
 // ========================================
 

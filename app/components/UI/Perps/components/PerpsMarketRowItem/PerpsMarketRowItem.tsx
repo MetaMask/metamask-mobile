@@ -7,12 +7,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import styleSheet from './PerpsMarketRowItem.styles';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import type { PerpsMarketData } from '../../controllers/types';
 import {
@@ -26,7 +21,6 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -103,18 +97,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     <TouchableOpacity style={styles.container} onPress={handlePress}>
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
-          {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
-          ) : (
-            <Avatar
-              variant={AvatarVariant.Token}
-              name={displayMarket.symbol}
-              size={AvatarSize.Md}
-              testID={getPerpsMarketRowItemSelector.rowItem(
-                displayMarket.symbol,
-              )}
-            />
-          )}
+          <PerpsTokenLogo
+            symbol={displayMarket.symbol}
+            size={32}
+            testID={getPerpsMarketRowItemSelector.rowItem(displayMarket.symbol)}
+          />
         </View>
 
         <View style={styles.tokenInfo}>
