@@ -29,8 +29,8 @@ const mockedNavigate = {
 
 const mockPage0Accounts = [
   {
-    address: '0x4x678901234567890123456789012345678901210',
-    shortenedAddress: '0x4x678...01210',
+    address: '0x4678901234567890123456789012345678901210',
+    shortenedAddress: '0x46789...01210',
     balance: '0x0',
     index: 0,
   },
@@ -101,8 +101,8 @@ const mockQrKeyring = {
   getAccounts: jest
     .fn()
     .mockReturnValue([
-      '0x4x678901234567890123456789012345678901210',
-      '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
+      '0x4678901234567890123456789012345678901210',
+      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]),
 };
 
@@ -279,6 +279,7 @@ describe('ConnectQRHardware', () => {
 
   it('removes any hardware wallet accounts from existing permissions', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
+    const withKeyringSpy = jest.spyOn(mockKeyringController, 'withKeyring');
 
     const { getByTestId } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
@@ -298,10 +299,10 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(forgetButton);
     });
 
-    expect(mockKeyringController.withKeyring).toHaveBeenCalled();
+    expect(withKeyringSpy).toHaveBeenCalled();
     expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
-      '0x4x678901234567890123456789012345678901210',
-      '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
+      '0x4678901234567890123456789012345678901210',
+      '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]);
     expect(mockQrKeyring.forgetDevice).toHaveBeenCalled();
   });
