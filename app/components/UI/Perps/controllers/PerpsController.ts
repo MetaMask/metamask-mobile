@@ -1806,6 +1806,9 @@ export class PerpsController extends BaseController<
         throw new Error(`DataLake API error: ${response.status}`);
       }
 
+      // Consume response body (might be empty for 201, but good to check)
+      const responseBody = await response.text();
+
       // Success logging and metrics
       DevLogger.log('DataLake API: Order reported successfully', {
         action,
@@ -1813,6 +1816,7 @@ export class PerpsController extends BaseController<
         duration: `${duration.toFixed(0)}ms`,
         status: response.status,
         attempt: retryCount + 1,
+        responseBody: responseBody || 'empty',
       });
 
       // Report performance metric to Sentry (only on success)
