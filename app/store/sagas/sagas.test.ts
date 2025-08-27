@@ -15,7 +15,7 @@ import {
   appLockStateMachine,
   lockKeyringAndApp,
   startAppServices,
-  handleSDKInit,
+  initializeSDKServices,
   handleDeeplinkSaga,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
@@ -77,7 +77,18 @@ jest.mock('../../core/Engine', () => ({
 }));
 
 jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  parse: jest.fn(),
+  __esModule: true,
+  default: {
+    init: jest.fn(),
+    parse: jest.fn(),
+  },
+}));
+
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  default: {
+    start: jest.fn(),
+  },
 }));
 
 jest.mock('../../core/AppStateEventListener', () => ({
@@ -262,69 +273,25 @@ describe('startAppServices', () => {
   // The SDKConnect init gating is now bundled within startAppServices
 });
 
-describe('handleSDKInit', () => {
+describe('initializeSDKServices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default to locked
-    Engine.context.KeyringController.isUnlocked = jest
-      .fn()
-      .mockReturnValue(false);
   });
 
-  it('initializes SDKConnect on LOGIN after gates, then WalletConnect V2', async () => {
-    await expectSaga(handleSDKInit)
-      .withState({ onboarding: { completedOnboarding: false } })
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .dispatch({ type: UserActionType.LOGIN })
-      .run();
+  it('initializes WalletConnect V2 and SDKConnect', async () => {
+    await expectSaga(initializeSDKServices).run();
 
-    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
     expect(WC2Manager.init).toHaveBeenCalledWith({});
-  });
-
-  it('initializes when onboarding completed is true and keyring is unlocked', async () => {
-    Engine.context.KeyringController.isUnlocked = jest
-      .fn()
-      .mockReturnValue(true);
-
-    await expectSaga(handleSDKInit)
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .dispatch(setCompletedOnboarding(true))
-      .run();
-
     expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
-    expect(WC2Manager.init).toHaveBeenCalledWith({});
   });
 
-  it('does not initialize when keyring is locked even if onboarding is complete', async () => {
-    Engine.context.KeyringController.isUnlocked = jest
-      .fn()
-      .mockReturnValue(false);
-
-    await expectSaga(handleSDKInit)
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .dispatch(setCompletedOnboarding(true))
-      .silentRun(10);
-
-    expect(SDKConnect.init).not.toHaveBeenCalled();
-    expect(WC2Manager.init).not.toHaveBeenCalled();
-  });
-
-  it('still initializes WalletConnect V2 if SDKConnect.init throws', async () => {
+  it('still calls WalletConnect V2 if SDKConnect.init throws', async () => {
     (SDKConnect.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
 
-    await expectSaga(handleSDKInit)
-      .withState({ onboarding: { completedOnboarding: false } })
-      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      .dispatch({ type: UserActionType.LOGIN })
-      .run();
+    await expectSaga(initializeSDKServices).run();
 
-    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
     expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 });
 
@@ -359,6 +326,8 @@ describe('handleDeeplinkSaga', () => {
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
+      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(SDKConnect.init).not.toHaveBeenCalled();
     });
   });
 
@@ -392,6 +361,8 @@ describe('handleDeeplinkSaga', () => {
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
+        expect(WC2Manager.init).not.toHaveBeenCalled();
+        expect(SDKConnect.init).not.toHaveBeenCalled();
       });
     });
     describe('when app is unlocked', () => {
@@ -411,6 +382,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is passed in and true', () => {
@@ -432,6 +405,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -468,6 +443,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
         });
       });
     });

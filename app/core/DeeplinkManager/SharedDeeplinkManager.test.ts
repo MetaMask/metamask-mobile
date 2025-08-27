@@ -28,10 +28,7 @@ describe('SharedDeeplinkManager', () => {
 
     mockStore.getState.mockReturnValue(mockedState);
 
-    SharedDeeplinkManager.init({
-      navigation: mockNavigate,
-      dispatch: mockDispatch,
-    });
+    SharedDeeplinkManager.init();
   });
 
   beforeEach(() => {
@@ -47,10 +44,7 @@ describe('SharedDeeplinkManager', () => {
 
     const dispatch = jest.fn();
 
-    SharedDeeplinkManager.init({
-      navigation,
-      dispatch,
-    });
+    SharedDeeplinkManager.init();
 
     expect(spyInit).toHaveBeenCalledWith({
       navigation,
