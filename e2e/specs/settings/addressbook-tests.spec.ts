@@ -127,6 +127,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
+        await SettingsView.dismissModal();
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await Assertions.expectTextDisplayed('Ibrahim edited');
