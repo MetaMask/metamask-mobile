@@ -888,6 +888,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -994,6 +995,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -1100,6 +1102,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -1206,6 +1209,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -1312,6 +1316,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -2633,6 +2638,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -2739,6 +2745,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -2845,6 +2852,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -2951,6 +2959,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -3057,6 +3066,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -4378,6 +4388,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -4484,6 +4495,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -4590,6 +4602,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -4696,6 +4709,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -4802,6 +4816,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -6162,6 +6177,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -6268,6 +6284,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -6374,6 +6391,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -6480,6 +6498,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -6586,6 +6605,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -7907,6 +7927,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -8013,6 +8034,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -8119,6 +8141,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -8225,6 +8248,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -8331,6 +8355,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -9652,6 +9677,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -9758,6 +9784,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -9864,6 +9891,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -9970,6 +9998,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -10076,6 +10105,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -11869,6 +11899,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -11975,6 +12006,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -12081,6 +12113,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -12187,6 +12220,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -12293,6 +12327,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -13614,6 +13649,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -13720,6 +13756,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -13826,6 +13863,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -13932,6 +13970,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
@@ -14038,6 +14077,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               />
                                               <Text
                                                 accessibilityRole="text"
+                                                numberOfLines={1}
                                                 style={
                                                   {
                                                     "color": "#121314",
