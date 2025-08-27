@@ -1,4 +1,4 @@
-import { Regression } from '../../../tags';
+import { RegressionConfirmations } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
@@ -14,7 +14,7 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
 
-describe(Regression('Wallet Initiated Transfer'), () => {
+describe(RegressionConfirmations('Wallet Initiated Transfer'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
