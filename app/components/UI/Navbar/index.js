@@ -1854,12 +1854,6 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
 
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
-    perpsTransactionsBackButton: {
-      marginTop: 0,
-      padding: 12,
-      marginLeft: -12,
-      marginRight: -12,
-    },
     perpsTransactionsTitle: {
       fontWeight: '700',
       textAlign: 'center',
@@ -1885,12 +1879,11 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       />
     ),
     headerLeft: () => (
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
-      >
-        <Icon name={IconName.Arrow2Left} />
-      </TouchableOpacity>
+        size={ButtonIconSize.Lg}
+      />
     ),
     headerRight: () => <View style={innerStyles.rightSpacer} />,
   };
@@ -1898,12 +1891,6 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
 
 export function getPerpsMarketDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
-    perpsMarketDetailsBackButton: {
-      marginTop: 0,
-      padding: 12,
-      marginLeft: -12,
-      marginRight: -12,
-    },
     perpsMarketDetailsTitle: {
       fontWeight: '700',
       textAlign: 'center',
@@ -1925,12 +1912,11 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
       />
     ),
     headerLeft: () => (
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        style={[styles.backButton, innerStyles.perpsMarketDetailsBackButton]}
-      >
-        <Icon name={IconName.Arrow2Left} />
-      </TouchableOpacity>
+        size={ButtonIconSize.Lg}
+      />
     ),
   };
 }

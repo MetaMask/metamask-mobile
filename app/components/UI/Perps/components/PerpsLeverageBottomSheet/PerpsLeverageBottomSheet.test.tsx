@@ -68,6 +68,43 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock usePerpsLiquidationPrice hook
+jest.mock('../../hooks/usePerpsLiquidationPrice', () => ({
+  usePerpsLiquidationPrice: jest.fn((params) => {
+    // Simple calculation for testing
+    const { entryPrice, leverage, direction } = params;
+    let liquidationPrice = '0.00';
+
+    if (entryPrice > 0 && leverage > 0) {
+      if (direction === 'long') {
+        // For long: liquidation = entry * (1 - 1/leverage)
+        liquidationPrice = (entryPrice * (1 - 1 / leverage)).toFixed(2);
+      } else {
+        // For short: liquidation = entry * (1 + 1/leverage)
+        liquidationPrice = (entryPrice * (1 + 1 / leverage)).toFixed(2);
+      }
+    }
+
+    return {
+      liquidationPrice,
+      isCalculating: false,
+      error: null,
+    };
+  }),
+}));
+
+// Mock usePerpsEventTracking hook
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+}));
+
+// Mock usePerpsScreenTracking hook
+jest.mock('../../hooks/usePerpsScreenTracking', () => ({
+  usePerpsScreenTracking: jest.fn(),
+}));
+
 // Mock BottomSheet components from component library
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -246,8 +283,8 @@ describe('PerpsLeverageBottomSheet', () => {
     minLeverage: 1,
     maxLeverage: 20,
     currentPrice: 3000,
-    liquidationPrice: 2850,
     direction: 'long' as const,
+    asset: 'BTC-USD',
   };
 
   beforeEach(() => {
@@ -295,14 +332,14 @@ describe('PerpsLeverageBottomSheet', () => {
         ...defaultProps,
         direction: 'short' as const,
         currentPrice: 3000,
-        liquidationPrice: 3150, // Price rises for short liquidation
+        // With leverage 5 and short, liquidation will be at 3000 * (1 + 1/5) = 3600
       };
 
       // Act
       render(<PerpsLeverageBottomSheet {...shortProps} />);
 
       // Assert
-      expect(screen.getByText(/5\.0%/)).toBeOnTheScreen(); // Warning text
+      expect(screen.getByText(/20\.0%/)).toBeOnTheScreen(); // Warning text (3600-3000)/3000 = 20%
       expect(screen.getByText(/rises/)).toBeOnTheScreen(); // Direction text for short
     });
 
@@ -311,7 +348,6 @@ describe('PerpsLeverageBottomSheet', () => {
       const propsWithZeroPrices = {
         ...defaultProps,
         currentPrice: 0,
-        liquidationPrice: 0,
       };
 
       // Act

@@ -91,22 +91,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => ({
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  }),
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => ({
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  }),
-);
-
 jest.mock('../../../../Base/Keypad', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return ({
