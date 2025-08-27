@@ -1,5 +1,6 @@
-// Auto-generated - DO NOT EDIT MANUALLY
-// Generated from: app/lib/lightweight-charts/index.js
+// Lightweight Charts Library Content
+// To update: Replace the string below with new library version from:
+// https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js
 /*!
  * @license
  * TradingView Lightweight Charts™ v5.0.8
