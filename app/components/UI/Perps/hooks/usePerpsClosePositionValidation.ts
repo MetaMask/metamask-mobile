@@ -152,19 +152,19 @@ export function usePerpsClosePositionValidation(
 
       // UI-specific validations that don't belong in the provider
 
-      // Check minimum for partial closes (not for 100% closes)
-      if (isPartialClose && closingValue < minimumOrderAmount) {
-        errors.push(
-          strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderAmount.toString(),
-          }),
-        );
-      }
-
       // Special case: if the total position is below minimum, user must close 100%
       if (isPartialClose && positionValue < minimumOrderAmount) {
         errors.push(
           strings('perps.close_position.must_close_full_below_minimum'),
+        );
+      }
+      // Check minimum for partial closes (not for 100% closes)
+      // Skip this check if the entire position is below minimum (already handled above)
+      else if (isPartialClose && closingValue < minimumOrderAmount) {
+        errors.push(
+          strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderAmount.toString(),
+          }),
         );
       }
 

@@ -26,11 +26,8 @@ import KeyValueRow from '../../../../../component-library/components-temp/KeyVal
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
-import type {
-  OrderType,
-  Position,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import type { OrderType } from '../../controllers/types';
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
@@ -55,17 +52,13 @@ import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
-interface RouteParams {
-  position: Position;
-}
-
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position } = route.params as RouteParams;
+  const { position } = route.params;
 
   const hasTrackedCloseView = useRef(false);
   const { track } = usePerpsEventTracking();
