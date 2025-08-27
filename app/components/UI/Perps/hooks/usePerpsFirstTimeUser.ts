@@ -4,11 +4,12 @@ import { usePerpsSelector } from './usePerpsSelector';
 
 /**
  * Hook to check if the user is a first-time user of perps trading
- * @returns Object with isFirstTimeUser flag and markTutorialCompleted function
+ * @returns Object with isFirstTimeUser flag, markTutorialCompleted function, and resetFirstTimeUserState function
  */
 export function usePerpsFirstTimeUser(): {
   isFirstTimeUser: boolean;
   markTutorialCompleted: () => void;
+  resetFirstTimeUserState: () => void;
 } {
   const isFirstTimeUser = usePerpsSelector(selectIsFirstTimeUser);
 
@@ -16,8 +17,13 @@ export function usePerpsFirstTimeUser(): {
     Engine.context.PerpsController?.markTutorialCompleted();
   };
 
+  const resetFirstTimeUserState = () => {
+    Engine.context.PerpsController?.resetFirstTimeUserState();
+  };
+
   return {
     isFirstTimeUser,
     markTutorialCompleted,
+    resetFirstTimeUserState,
   };
 }
