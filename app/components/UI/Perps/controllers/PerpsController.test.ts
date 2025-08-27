@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Messenger } from '@metamask/base-controller';
 import { successfulFetch } from '@metamask/controller-utils';
+import { setMeasurement } from '@sentry/react-native';
+import Logger from '../../../../util/Logger';
 
 import {
   getDefaultPerpsControllerState,
@@ -2728,5 +2730,292 @@ describe('PerpsController', () => {
         expect(accountState).toEqual(mockAccountState);
       });
     });
+  });
+
+  describe('data lake API integration', () => {
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
+    let mockLoggerError: jest.MockedFunction<typeof Logger.error>;
+
+    beforeEach(() => {
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Get references to already mocked functions
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockLoggerError = jest.requireMock('../../../../util/Logger').error;
+
+      // Clear previous mock calls
+      mockSetMeasurement.mockClear();
+      mockLoggerError.mockClear();
+
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should report order to data lake on successful order placement', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token'),
+        );
+
+        // Mock successful API response
+        mockFetch.mockResolvedValue({
+          ok: true,
+          status: 201,
+          text: jest.fn().mockResolvedValue(''),
+        } as any);
+
+        // Mock successful order placement
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+          stopLossPrice: '45000',
+          takeProfitPrice: '55000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Ensure mainnet (not testnet)
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async reportOrderToDataLake
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called with correct parameters
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: '0x1234567890123456789012345678901234567890',
+              coin: 'BTC',
+              sl_price: 45000,
+              tp_price: 55000,
+            }),
+          }),
+        );
+
+        // Verify performance metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
+
+    it('should skip data lake API call when on testnet', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action (shouldn't be called)
+        const mockGetBearerToken = jest.fn();
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          mockGetBearerToken,
+        );
+
+        const orderParams = {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Set to testnet
+        controller.state.isTestnet = true;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockGetBearerToken).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should retry on API failure and log error after max retries', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token'),
+        );
+
+        // Mock API failures
+        mockFetch.mockRejectedValue(new Error('Network error'));
+
+        const orderParams = {
+          coin: 'ETH',
+          isBuy: false,
+          size: '1.0',
+          orderType: 'limit' as const,
+          price: '2000',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-456',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward through retries (1s, 2s, 4s delays)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(3);
+
+        jest.advanceTimersByTime(4000);
+        await Promise.resolve();
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+
+        // Verify Logger.error was called after max retries
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            message: 'Failed to report perps order to data lake after retries',
+            action: 'open',
+            coin: 'ETH',
+            retryCount: 3,
+          }),
+        );
+
+        // Verify retry duration metric was recorded
+        expect(mockSetMeasurement).toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 15000);
+
+    it('should handle missing authentication token', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken that returns null
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue(null),
+        );
+
+        const closeParams = {
+          coin: 'BTC',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.closePosition.mockResolvedValue({
+          success: true,
+          orderId: 'close-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Close position
+        await controller.closePosition(closeParams);
+
+        // Allow time for async operations
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was NOT called due to missing token
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    }, 10000);
+
+    it('should handle API error responses', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token'),
+        );
+
+        // Mock API error response (400 Bad Request)
+        mockFetch.mockResolvedValue({
+          ok: false,
+          status: 400,
+          text: jest.fn().mockResolvedValue('Bad Request'),
+        } as any);
+
+        const orderParams = {
+          coin: 'DOGE',
+          isBuy: true,
+          size: '100',
+          orderType: 'market' as const,
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-789',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Verify fetch was called
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to trigger retries
+        jest.advanceTimersByTime(7000); // Through all retry delays
+        await Promise.resolve();
+
+        // Should have retried 3 more times (total 4 attempts)
+        expect(mockFetch).toHaveBeenCalledTimes(4);
+      });
+    }, 10000);
   });
 });
