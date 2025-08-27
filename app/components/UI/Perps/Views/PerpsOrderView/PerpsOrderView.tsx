@@ -250,6 +250,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -295,6 +296,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
     },
     [],
   );
+
+  // Handle opening limit price modal after order type modal closes
+  useEffect(() => {
+    if (!isOrderTypeVisible && shouldOpenLimitPrice) {
+      setIsLimitPriceVisible(true);
+      setShouldOpenLimitPrice(false);
+    }
+  }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track dashboard view event separately with proper dependencies - only once
   useEffect(() => {
@@ -1058,9 +1067,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
           if (type === 'market') {
             setLimitPrice(undefined);
           } else if (type === 'limit' && !orderForm.limitPrice) {
-            setTimeout(() => {
-              setIsLimitPriceVisible(true);
-            }, 300); // Small delay to allow order type modal to close first
+            // Flag to open limit price modal after this modal closes
+            setShouldOpenLimitPrice(true);
           }
           setIsOrderTypeVisible(false);
         }}
