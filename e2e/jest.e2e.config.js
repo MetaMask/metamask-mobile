@@ -31,12 +31,7 @@ module.exports = {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
         // Add properties to include CI metadata
-        addFileAttribute: 'true',
-        testExecutionProperties: {
-          JOB_NAME: process.env.JOB_NAME || '',
-          RUN_ID: process.env.RUN_ID || '',
-          PR_NUMBER: process.env.PR_NUMBER || '',
-        },
+        addFileAttribute: 'true'
       },
     ],
   ],
