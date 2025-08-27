@@ -9,7 +9,7 @@ const SharedDeeplinkManager = {
     if (instance) {
       return;
     }
-    instance = new DeeplinkManager();
+    instance ??= new DeeplinkManager();
     DevLogger.log(`DeeplinkManager initialized`);
   },
   parse: (
@@ -19,7 +19,11 @@ const SharedDeeplinkManager = {
       origin: string;
       onHandled?: () => void;
     },
-  ) => instance.parse(url, args),
+  ) => {
+    // Always try initialize, but instance will only be assigned once
+    SharedDeeplinkManager.init();
+    return instance.parse(url, args);
+  },
   setDeeplink: (url: string) => instance.setDeeplink(url),
   getPendingDeeplink: () => instance.getPendingDeeplink(),
   expireDeeplink: () => instance.expireDeeplink(),
