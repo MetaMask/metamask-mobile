@@ -27,18 +27,17 @@ export const WITHDRAWAL_CONSTANTS = {
  * These fees are protocol-agnostic and apply on top of protocol fees
  */
 export const METAMASK_FEE_CONFIG = {
-  // Trading fees (as decimal, e.g., 0.01 = 1%)
-  TRADING_FEE_RATE: 0, // 0% currently, will be fetched from API later
-
   // Deposit/withdrawal fees
   DEPOSIT_FEE: 0, // $0 currently
   WITHDRAWAL_FEE: 0, // $0 currently
 
-  // Future: These will be fetched from API based on:
-  // - User tier/volume
+  // Future: Fee configuration will be fetched from API based on:
+  // - User tier/volume (for MetaMask fee discounts)
   // - Promotional campaigns
   // - Protocol-specific agreements
   // - MetaMask points/rewards integration
+  // Note: Trading fees are now handled by each provider's calculateFees()
+  // which returns complete fee breakdown including MetaMask fees
 } as const;
 
 /**
@@ -88,3 +87,35 @@ export const PERFORMANCE_CONFIG = {
  * This flag controls whether the perps notifications feature logic is enabled
  */
 export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;
+
+/**
+ * Leverage slider UI configuration
+ * Controls the visual and interactive aspects of the leverage slider
+ */
+export const LEVERAGE_SLIDER_CONFIG = {
+  // Step sizes for tick marks based on max leverage
+  TICK_STEP_LOW: 5, // Step size when max leverage <= 20
+  TICK_STEP_MEDIUM: 10, // Step size when max leverage <= 50
+  TICK_STEP_HIGH: 20, // Step size when max leverage > 50
+
+  // Thresholds for determining tick step size
+  MAX_LEVERAGE_LOW_THRESHOLD: 20,
+  MAX_LEVERAGE_MEDIUM_THRESHOLD: 50,
+} as const;
+
+/**
+ * Limit price configuration
+ * Controls preset percentages and behavior for limit orders
+ */
+export const LIMIT_PRICE_CONFIG = {
+  // Preset percentage options for quick selection
+  PRESET_PERCENTAGES: [1, 2, 5, 10], // Available as both positive and negative
+
+  // Modal opening delay when switching to limit order (milliseconds)
+  // Allows order type modal to close smoothly before opening limit price modal
+  MODAL_OPEN_DELAY: 300,
+
+  // Direction-specific preset configurations
+  LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
+  SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
+} as const;
