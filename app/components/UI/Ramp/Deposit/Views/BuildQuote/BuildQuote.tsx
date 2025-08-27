@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, TouchableOpacity, InteractionManager , ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
@@ -118,6 +118,9 @@ const BuildQuote = () => {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
+  const [isRoutingImmediately, setIsRoutingImmediately] = useState<boolean>(
+    shouldRouteImmediately || false,
+  );
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
 
@@ -391,6 +394,7 @@ const BuildQuote = () => {
       );
       return;
     } finally {
+      setIsRoutingImmediately(false);
       setIsLoading(false);
     }
   }, [
@@ -409,6 +413,7 @@ const BuildQuote = () => {
     routeAfterAuthentication,
     navigateToVerifyIdentity,
     shouldRouteImmediately,
+    setIsRoutingImmediately,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -420,11 +425,15 @@ const BuildQuote = () => {
       valueAsNumber: number;
       pressedKey: string;
     }) => {
+      if (isLoading) {
+        return;
+      }
+
       setError(null);
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
     },
-    [],
+    [isLoading],
   );
 
   const handleSelectAssetId = useCallback(
@@ -500,6 +509,7 @@ const BuildQuote = () => {
 
   useEffect(() => {
     if (shouldRouteImmediately) {
+      setIsRoutingImmediately(true);
       navigation.setParams({
         shouldRouteImmediately: false,
       });
@@ -509,160 +519,172 @@ const BuildQuote = () => {
 
   return (
     <ScreenLayout>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content style={styles.content}>
-          <View style={styles.selectionRow}>
-            <AccountSelector isEvmOnly={false} />
-            <TouchableOpacity
-              style={styles.fiatSelector}
-              onPress={handleRegionPress}
-            >
-              <View style={styles.regionContent}>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>
-                  {selectedRegion?.isoCode}
-                </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Sm}
-                  color={theme.colors.icon.alternative}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.centerGroup}>
-            <View>
-              <Text
-                variant={TextVariant.HeadingLG}
-                style={styles.mainAmount}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {formatCurrency(amountAsNumber, fiatCurrency.id, {
-                  currencyDisplay: 'narrowSymbol',
-                  maximumFractionDigits: 0,
-                })}
-              </Text>
-
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.convertedAmount}
-              >
-                {isLoadingTokenAmount || errorLoadingTokenAmount ? (
-                  ' '
-                ) : (
-                  <>
-                    {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
-                    {cryptoCurrency.symbol}
-                  </>
-                )}
-              </Text>
-            </View>
-
-            <TouchableOpacity onPress={handleCryptoPress}>
-              <View style={styles.cryptoPill}>
-                <BadgeWrapper
-                  badgePosition={BadgePosition.BottomRight}
-                  badgeElement={
-                    <BadgeNetwork
-                      name={networkName}
-                      imageSource={networkImageSource}
+      {isRoutingImmediately ? (
+        <ActivityIndicator
+          size="large"
+          style={styles.spinner}
+          testID="loading-spinner"
+        />
+      ) : (
+        <>
+          <ScreenLayout.Body>
+            <ScreenLayout.Content style={styles.content}>
+              <View style={styles.selectionRow}>
+                <AccountSelector isEvmOnly={false} />
+                <TouchableOpacity
+                  style={styles.fiatSelector}
+                  onPress={handleRegionPress}
+                >
+                  <View style={styles.regionContent}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {selectedRegion?.flag}
+                    </Text>
+                    <Text variant={TextVariant.BodyMD}>
+                      {selectedRegion?.isoCode}
+                    </Text>
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Sm}
+                      color={theme.colors.icon.alternative}
                     />
-                  }
-                >
-                  <AvatarToken
-                    name={cryptoCurrency.name}
-                    imageSource={{ uri: cryptoCurrency.iconUrl }}
-                    size={AvatarSize.Md}
-                  />
-                </BadgeWrapper>
-                <Text variant={TextVariant.HeadingLG}>
-                  {cryptoCurrency.symbol}
-                </Text>
-
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Sm}
-                  color={theme.colors.icon.alternative}
-                />
+                  </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-            {error && (
-              <View style={styles.errorContainer}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Error}
-                  style={styles.errorText}
-                >
-                  {error}
-                </Text>
+
+              <View style={styles.centerGroup}>
+                <View>
+                  <Text
+                    variant={TextVariant.HeadingLG}
+                    style={styles.mainAmount}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {formatCurrency(amountAsNumber, fiatCurrency.id, {
+                      currencyDisplay: 'narrowSymbol',
+                      maximumFractionDigits: 0,
+                    })}
+                  </Text>
+
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    style={styles.convertedAmount}
+                  >
+                    {isLoadingTokenAmount || errorLoadingTokenAmount ? (
+                      ' '
+                    ) : (
+                      <>
+                        {Number(tokenAmount) === 0 ? '0' : tokenAmount}{' '}
+                        {cryptoCurrency.symbol}
+                      </>
+                    )}
+                  </Text>
+                </View>
+
+                <TouchableOpacity onPress={handleCryptoPress}>
+                  <View style={styles.cryptoPill}>
+                    <BadgeWrapper
+                      badgePosition={BadgePosition.BottomRight}
+                      badgeElement={
+                        <BadgeNetwork
+                          name={networkName}
+                          imageSource={networkImageSource}
+                        />
+                      }
+                    >
+                      <AvatarToken
+                        name={cryptoCurrency.name}
+                        imageSource={{ uri: cryptoCurrency.iconUrl }}
+                        size={AvatarSize.Md}
+                      />
+                    </BadgeWrapper>
+                    <Text variant={TextVariant.HeadingLG}>
+                      {cryptoCurrency.symbol}
+                    </Text>
+
+                    <Icon
+                      name={IconName.ArrowDown}
+                      size={IconSize.Sm}
+                      color={theme.colors.icon.alternative}
+                    />
+                  </View>
+                </TouchableOpacity>
+                {error && (
+                  <View style={styles.errorContainer}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Error}
+                      style={styles.errorText}
+                    >
+                      {error}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
-          </View>
 
-          <TouchableOpacity
-            style={styles.paymentMethodBox}
-            onPress={handlePaymentMethodPress}
-          >
-            <ListItem gap={8}>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('deposit.buildQuote.payWith')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {paymentMethod.name}
-                </Text>
-              </ListItemColumn>
+              <TouchableOpacity
+                style={styles.paymentMethodBox}
+                onPress={handlePaymentMethodPress}
+              >
+                <ListItem gap={8}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {strings('deposit.buildQuote.payWith')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {paymentMethod.name}
+                    </Text>
+                  </ListItemColumn>
 
-              <ListItemColumn>
-                <TagBase
-                  includesBorder
-                  textProps={{ variant: TextVariant.BodySM }}
-                >
-                  {strings(
-                    `deposit.payment_duration.${paymentMethod.duration}`,
-                  )}
-                </TagBase>
-              </ListItemColumn>
-              <ListItemColumn>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Md}
-                  color={theme.colors.icon.alternative}
-                />
-              </ListItemColumn>
-            </ListItem>
-          </TouchableOpacity>
+                  <ListItemColumn>
+                    <TagBase
+                      includesBorder
+                      textProps={{ variant: TextVariant.BodySM }}
+                    >
+                      {strings(
+                        `deposit.payment_duration.${paymentMethod.duration}`,
+                      )}
+                    </TagBase>
+                  </ListItemColumn>
+                  <ListItemColumn>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Md}
+                      color={theme.colors.icon.alternative}
+                    />
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
 
-          <Keypad
-            value={amount}
-            onChange={handleKeypadChange}
-            currency={fiatCurrency.symbol}
-            decimals={0}
-            periodButtonProps={{
-              isDisabled: true,
-            }}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Button
-            size={ButtonSize.Lg}
-            onPress={handleOnPressContinue}
-            label={'Continue'}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            isDisabled={amountAsNumber <= 0 || isLoading}
-            loading={isLoading}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
+              <Keypad
+                value={amount}
+                onChange={handleKeypadChange}
+                currency={fiatCurrency.symbol}
+                decimals={0}
+                periodButtonProps={{
+                  isDisabled: true,
+                }}
+              />
+            </ScreenLayout.Content>
+          </ScreenLayout.Body>
+          <ScreenLayout.Footer>
+            <ScreenLayout.Content>
+              <Button
+                size={ButtonSize.Lg}
+                onPress={handleOnPressContinue}
+                label={'Continue'}
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                isDisabled={amountAsNumber <= 0 || isLoading}
+                loading={isLoading}
+              />
+            </ScreenLayout.Content>
+          </ScreenLayout.Footer>
+        </>
+      )}
     </ScreenLayout>
   );
 };
