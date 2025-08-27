@@ -14,7 +14,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  TransakEnvironment,
+  SdkEnvironment,
   Context,
 } from '@consensys/native-ramps-sdk';
 import {
@@ -54,9 +54,9 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = TransakEnvironment.Production;
+let environment = SdkEnvironment.Production;
 if (isDevelopmentOrInternalBuild) {
-  environment = TransakEnvironment.Staging;
+  environment = SdkEnvironment.Staging;
 }
 
 export const DEPOSIT_ENVIRONMENT = environment;

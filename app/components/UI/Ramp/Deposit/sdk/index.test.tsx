@@ -13,7 +13,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
   NativeRampsSdk,
-  TransakEnvironment,
+  SdkEnvironment,
   Context,
 } from '@consensys/native-ramps-sdk';
 
@@ -153,7 +153,7 @@ describe('Deposit SDK Context', () => {
           apiKey: 'test-provider-api-key',
           context: Context.MobileIOS,
         },
-        TransakEnvironment.Staging,
+        SdkEnvironment.Staging,
       );
     });
   });
