@@ -225,23 +225,24 @@ export const setupMockPostRequest = async (
 
   await mockServer
     .forPost('/proxy')
-    .matching((request) => {
+    .matching(async (request) => {
       const decodedUrl = getDecodedProxiedURL(request.url);
 
+      // First check if URL matches
+      let urlMatches = false;
       if (url instanceof RegExp) {
-        const matches = url.test(decodedUrl);
-        return matches;
+        urlMatches = url.test(decodedUrl);
+      } else {
+        urlMatches = decodedUrl.includes(String(url));
       }
-      const matches = decodedUrl.includes(String(url));
-      return matches;
-    })
-    .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
-    .thenCallback(async (request) => {
-      const decodedUrl = getDecodedProxiedURL(request.url);
 
+      if (!urlMatches) {
+        return false;
+      }
+
+      // If URL matches, also check if request body matches (ignoring specified fields)
       try {
         const requestBodyText = await request.body.getText();
-
         const result = processPostRequestBody(requestBodyText, requestBody, {
           ignoreFields,
         });
@@ -252,30 +253,30 @@ export const setupMockPostRequest = async (
           logger.debug('Received:', result.requestBodyJson);
           logger.debug('Ignored fields:', ignoreFields);
           logger.debug('Error:', result.error);
-          return {
-            statusCode:
-              result.error === 'Missing request body' ||
-              result.error === 'Invalid request body JSON'
-                ? 400
-                : statusCode,
-            json: response,
-          };
         }
 
-        logger.info(`Mocking POST request to: ${decodedUrl}`);
-        logger.debug(`Returning response:`, response);
-
-        return {
-          statusCode,
-          json: response,
-        };
+        return result.matches;
       } catch (error) {
-        logger.error('Error processing request:', error);
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'Error processing request' }),
-        };
+        // If we can't read the body, log the error and don't match
+        // This prevents incorrect mock selection when body processing fails
+        logger.error(
+          'Failed to read request body during mock matching:',
+          error,
+        );
+        return false;
       }
+    })
+    .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
+    .thenCallback(async (request) => {
+      const decodedUrl = getDecodedProxiedURL(request.url);
+
+      logger.info(`Mocking POST request to: ${decodedUrl}`);
+      logger.debug(`Returning response:`, response);
+
+      return {
+        statusCode,
+        json: response,
+      };
     });
 };
 
