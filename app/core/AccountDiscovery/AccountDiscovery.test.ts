@@ -52,13 +52,12 @@ describe('AccountDiscovery', () => {
     endTrace: jest.fn(),
   } as unknown as MultichainWalletSnapClient);
 
-  beforeEach(() => {
+  const storageScratchPad: Record<string, string> = {};
+  beforeEach(async () => {
     jest.clearAllMocks();
 
     // Reset AccountDiscovery state
     AccountDiscovery.clearPendingKeyring();
-    // Reset discoveryRunning flag
-    AccountDiscovery.discoveryRunning = false;
 
     // Reset mock client methods
     mockClient.addDiscoveredAccounts.mockReset();
@@ -66,14 +65,15 @@ describe('AccountDiscovery', () => {
 
     // Set up default mocks
     mockMultichainWalletSnapFactory.createClient.mockReturnValue(mockClient);
-    mockStorageWrapper.getItem.mockResolvedValue(null);
-    mockStorageWrapper.setItem.mockResolvedValue(undefined);
+    mockStorageWrapper.getItem.mockImplementation(async (key) => storageScratchPad[key] || '');
+    mockStorageWrapper.setItem.mockImplementation(async (key, value) => {
+      storageScratchPad[key] = value;
+    });
   });
 
   describe('constructor and initialization', () => {
     it('initialize with empty pending keyring when no stored data exists', async () => {
       // Arrange
-      mockStorageWrapper.getItem.mockResolvedValue(null);
 
       // Act
       await AccountDiscovery.init();
@@ -93,7 +93,7 @@ describe('AccountDiscovery', () => {
           [WalletClientType.Solana]: false,
         },
       };
-      mockStorageWrapper.getItem.mockResolvedValue(JSON.stringify(storedData));
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(storedData);
 
       // Act
       await AccountDiscovery.init();
@@ -115,12 +115,14 @@ describe('AccountDiscovery', () => {
   });
 
   describe('clearPendingKeyring', () => {
-    it('clear the pending keyring data', () => {
+    it('clear the pending keyring data', async () => {
       // Arrange
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': { [WalletClientType.Bitcoin]: true },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
 
+      await AccountDiscovery.init();
       // Act
       AccountDiscovery.clearPendingKeyring();
 
@@ -152,7 +154,8 @@ describe('AccountDiscovery', () => {
           [WalletClientType.Solana]: true,
         },
       };
-      AccountDiscovery.pendingKeyring = pendingKeyring;
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.performAccountDiscovery();
@@ -196,16 +199,15 @@ describe('AccountDiscovery', () => {
           [WalletClientType.Bitcoin]: true,
         },
       };
-      AccountDiscovery.pendingKeyring = pendingKeyring;
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.performAccountDiscovery();
 
       // Assert
       expect(
-        AccountDiscovery.pendingKeyring['keyring-1'][
-          WalletClientType.Bitcoin
-        ],
+        AccountDiscovery.pendingKeyring['keyring-1'][WalletClientType.Bitcoin],
       ).toBe(false);
     });
 
@@ -214,25 +216,31 @@ describe('AccountDiscovery', () => {
       mockClient.addDiscoveredAccounts.mockRejectedValue(
         new Error('Discovery failed'),
       );
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': { [WalletClientType.Bitcoin]: true },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act & Assert
       await expect(AccountDiscovery.attemptAccountDiscovery()).rejects.toThrow(
         'Discovery failed',
       );
-      expect(AccountDiscovery.discoveryRunning).toBe(false);
+      // We intentionally access a private property for test verification.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      expect((AccountDiscovery as any).discoveryRunning).toBe(false);
     });
 
     it('skip discovery for items that are already false', async () => {
       // Arrange
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': {
           [WalletClientType.Bitcoin]: false,
           [WalletClientType.Solana]: true,
         },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.attemptAccountDiscovery();
@@ -293,12 +301,15 @@ describe('AccountDiscovery', () => {
 
     it('merge with existing pending keyrings without overwriting', async () => {
       // Arrange
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'existing-keyring': {
           [WalletClientType.Bitcoin]: false,
           [WalletClientType.Solana]: true,
         },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
+
       const keyringIds = ['existing-keyring'];
       const clientTypes = [WalletClientType.Bitcoin];
 
@@ -334,6 +345,7 @@ describe('AccountDiscovery', () => {
 
     it('handle storage errors gracefully', async () => {
       // Arrange
+      await AccountDiscovery.init();
       mockStorageWrapper.setItem.mockRejectedValue(new Error('Storage error'));
       const keyringIds = ['keyring-1'];
 
@@ -341,6 +353,11 @@ describe('AccountDiscovery', () => {
       await expect(
         AccountDiscovery.addKeyringForAcccountDiscovery(keyringIds),
       ).rejects.toThrow('Storage error');
+
+      // assign back mock implementation
+      mockStorageWrapper.setItem.mockImplementation(async (key, value) => {
+        storageScratchPad[key] = value;
+      });
     });
   });
 
@@ -391,7 +408,8 @@ describe('AccountDiscovery', () => {
           [WalletClientType.Solana]: false,
         },
       };
-      mockStorageWrapper.getItem.mockResolvedValue(JSON.stringify(storedState));
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(storedState);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.init();
@@ -407,15 +425,20 @@ describe('AccountDiscovery', () => {
       mockMultichainWalletSnapFactory.createClient.mockImplementation(() => {
         throw new Error('Client creation failed');
       });
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': { [WalletClientType.Bitcoin]: true },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act & Assert
       await expect(AccountDiscovery.performAccountDiscovery()).rejects.toThrow(
         'Client creation failed',
       );
-      expect(AccountDiscovery.discoveryRunning).toBe(false);
+
+      // We intentionally access a private property for test verification.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      expect((AccountDiscovery as any).discoveryRunning).toBe(false);
     });
 
     it('handle addDiscoveredAccounts errors and continue with other discoveries', async () => {
@@ -424,12 +447,15 @@ describe('AccountDiscovery', () => {
         .mockRejectedValueOnce(new Error('First discovery failed'))
         .mockResolvedValueOnce(0);
 
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': {
           [WalletClientType.Bitcoin]: true,
           [WalletClientType.Solana]: true,
         },
       };
+
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act & Assert
       await expect(AccountDiscovery.performAccountDiscovery()).rejects.toThrow(
@@ -441,24 +467,31 @@ describe('AccountDiscovery', () => {
   describe('edge cases', () => {
     it('handle empty pending keyring during discovery', async () => {
       // Arrange
-      AccountDiscovery.pendingKeyring = {};
+      const pendingKeyring = {};
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.performAccountDiscovery();
 
       // Assert
       expect(mockClient.addDiscoveredAccounts).not.toHaveBeenCalled();
-      expect(AccountDiscovery.discoveryRunning).toBe(false);
+
+      // We intentionally access a private property for test verification.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+      expect((AccountDiscovery as any).discoveryRunning).toBe(false);
     });
 
     it('handle wallet types with all false values', async () => {
       // Arrange
-      AccountDiscovery.pendingKeyring = {
+      const pendingKeyring = {
         'keyring-1': {
           [WalletClientType.Bitcoin]: false,
           [WalletClientType.Solana]: false,
         },
       };
+      storageScratchPad[PENDING_SRP_DISCOVERY] = JSON.stringify(pendingKeyring);
+      await AccountDiscovery.init();
 
       // Act
       await AccountDiscovery.performAccountDiscovery();

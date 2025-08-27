@@ -13,19 +13,16 @@ interface AccountDiscoverySRP {
 }
 
 class AccountDiscoveryService {
-  private pendingKeyring: AccountDiscoverySRP = {};
+  private _pendingKeyring: AccountDiscoverySRP = {};
   private discoveryRunning = false;
 
-  private discover = async (
-    keyringId: string,
-    clientType: WalletClientType,
-  ) => {
-    const client = MultichainWalletSnapFactory.createClient(clientType, {
-      setSelectedAccount: false,
-    });
-    const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-    await client.addDiscoveredAccounts(keyringId, discoveryScope);
-  };
+  get pendingKeyring() {
+    return this._pendingKeyring;
+  }
+
+  get isDiscoveryRunning() {
+    return this.discoveryRunning;
+  }
 
   attemptAccountDiscovery = async (): Promise<void> => {
     await this.performAccountDiscovery();
@@ -35,7 +32,6 @@ class AccountDiscoveryService {
     // discovery is running
     if (this.discoveryRunning) throw new Error('discovery is running');
     this.discoveryRunning = true;
-
     try {
       for (const walletType of Object.values(WalletClientType)) {
         const clientType = walletType;
@@ -44,13 +40,13 @@ class AccountDiscoveryService {
         });
         const { discoveryScope } = WALLET_SNAP_MAP[clientType];
 
-        for (const keyringId in this.pendingKeyring) {
-          if (this.pendingKeyring[keyringId][walletType]) {
+        for (const keyringId in this._pendingKeyring) {
+          if (this._pendingKeyring[keyringId][walletType]) {
             await client.addDiscoveredAccounts(keyringId, discoveryScope);
-            this.pendingKeyring[keyringId][walletType] = false;
+            this._pendingKeyring[keyringId][walletType] = false;
             await StorageWrapper.setItem(
               PENDING_SRP_DISCOVERY,
-              JSON.stringify(this.pendingKeyring),
+              JSON.stringify(this._pendingKeyring),
             );
           }
         }
@@ -65,14 +61,20 @@ class AccountDiscoveryService {
   }
 
   init = async (): Promise<void> => {
-    const srp = await StorageWrapper.getItem(PENDING_SRP_DISCOVERY);
-    if (srp) {
-      this.pendingKeyring = JSON.parse(srp);
+    this._pendingKeyring = {};
+    const pendingString = await StorageWrapper.getItem(PENDING_SRP_DISCOVERY);
+    if (pendingString) {
+      const pendingKeyring = JSON.parse(pendingString);
+      if (pendingKeyring) {
+        this._pendingKeyring = pendingKeyring;
+      }
     }
+
+    this.discoveryRunning = false;
   };
 
-  clearPendingKeyring = (): void => {
-    this.pendingKeyring = {};
+  clearPendingKeyring = () => {
+    this._pendingKeyring = {};
   };
 
   /**
@@ -84,17 +86,17 @@ class AccountDiscoveryService {
     clientType: WalletClientType[] = Object.values(WalletClientType),
   ): Promise<void> => {
     for (const keyringId of keyringIds) {
-      if (!this.pendingKeyring[keyringId]) {
-        this.pendingKeyring[keyringId] = {};
+      if (!this._pendingKeyring[keyringId]) {
+        this._pendingKeyring[keyringId] = {};
       }
       for (const wtype of clientType) {
-        this.pendingKeyring[keyringId][wtype] = true;
+        this._pendingKeyring[keyringId][wtype] = true;
       }
     }
 
     await StorageWrapper.setItem(
       PENDING_SRP_DISCOVERY,
-      JSON.stringify(this.pendingKeyring),
+      JSON.stringify(this._pendingKeyring),
     );
   };
 }
