@@ -52,8 +52,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  // Note: Live price subscriptions removed as we're now showing funding cost instead of market price
-
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
