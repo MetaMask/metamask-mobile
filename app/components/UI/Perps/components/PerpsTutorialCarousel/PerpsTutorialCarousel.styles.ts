@@ -4,7 +4,10 @@ import Device from '../../../../../util/device';
 
 const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get('window');
 
-const createStyles = (params: { theme: Theme }) =>
+const createStyles = (params: {
+  theme: Theme;
+  vars: { isEligible: boolean };
+}) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -81,6 +84,8 @@ const createStyles = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       marginBottom: 16,
       alignSelf: 'center',
+      opacity: params.vars.isEligible ? 1 : 0,
+      pointerEvents: params.vars.isEligible ? 'auto' : 'none',
     },
     continueButton: {
       width: '100%',
