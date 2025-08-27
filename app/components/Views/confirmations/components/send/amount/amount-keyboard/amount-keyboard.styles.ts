@@ -4,18 +4,22 @@ import { Theme } from '../../../../../../../util/theme/models';
 
 export const styleSheet = (params: {
   theme: Theme;
-  vars: { continueDisabled: boolean };
+  vars: { amountError: boolean; submitDisabled: boolean };
 }) => {
   const {
     theme,
-    vars: { continueDisabled },
+    vars: { amountError, submitDisabled },
   } = params;
 
+  let backgroundColor = theme.colors.primary.default;
+  if (amountError) {
+    backgroundColor = theme.colors.error.default;
+  } else if (submitDisabled) {
+    backgroundColor = theme.colors.primary.muted;
+  }
   return StyleSheet.create({
     continueButton: {
-      backgroundColor: continueDisabled
-        ? theme.colors.error.default
-        : theme.colors.primary.default,
+      backgroundColor,
       marginBottom: 12,
     },
   });

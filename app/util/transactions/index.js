@@ -255,12 +255,7 @@ export function generateTransferData(type = undefined, opts = {}) {
           .call(
             rawEncode(
               ['address', 'address', 'uint256', 'uint256'],
-              [
-                opts.fromAddress,
-                opts.toAddress,
-                addHexPrefix(opts.tokenId),
-                opts.amount,
-              ],
+              [opts.fromAddress, opts.toAddress, opts.tokenId, opts.amount],
             ),
             (x) => ('00' + x.toString(16)).slice(-2),
           )
