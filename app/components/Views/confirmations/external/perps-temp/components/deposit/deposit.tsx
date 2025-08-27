@@ -13,6 +13,7 @@ import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
+import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 const AMOUNT_PREFIX = '$';
 
@@ -24,7 +25,8 @@ export function PerpsDeposit() {
     isKeyboardVisible,
   });
 
-  useNavbar(strings('confirm.title.perps_deposit'), false);
+  useNavbar(strings('confirm.title.perps_deposit'));
+  useClearConfirmationOnBackSwipe();
 
   return (
     <>
