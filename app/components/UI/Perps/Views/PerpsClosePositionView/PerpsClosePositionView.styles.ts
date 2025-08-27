@@ -39,10 +39,26 @@ export const createStyles = (theme: Theme) => {
     scrollViewContent: {
       paddingBottom: 20,
     },
+    scrollViewContentWithKeypad: {
+      paddingBottom: 100,
+    },
     positionSizeInfo: {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingBottom: 16,
+    },
+    toggleContainer: {
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 0,
+      paddingBottom: 8,
+    },
+    toggleButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 4,
+      paddingVertical: 4,
     },
     sliderSection: {
       paddingHorizontal: 16,
@@ -78,8 +94,6 @@ export const createStyles = (theme: Theme) => {
     totalRow: {
       marginTop: 8,
       paddingTop: 8,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
     },
     validationSection: {
       paddingHorizontal: 16,

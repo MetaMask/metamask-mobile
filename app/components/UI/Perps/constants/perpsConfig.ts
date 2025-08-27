@@ -51,9 +51,6 @@ export const VALIDATION_THRESHOLDS = {
 
   // Limit price difference threshold (as decimal, 0.1 = 10%)
   LIMIT_PRICE_DIFFERENCE_WARNING: 0.1, // Warn if limit price differs by >10% from current price
-
-  // Minimum percentage for partial position close warning
-  SMALL_CLOSE_PERCENTAGE_WARNING: 10, // Warn if closing <10% of position
 } as const;
 
 /**

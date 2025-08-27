@@ -1055,6 +1055,7 @@
       "fees": "Fees",
       "receive": "You'll receive",
       "you_receive": "You'll receive",
+      "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
@@ -1063,7 +1064,7 @@
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
-      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
       "no_amount_selected": "Please select an amount to close"
     },
@@ -1238,6 +1239,19 @@
         "title": "Fees",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee"
+      },
+      "closing_fees": {
+        "title": "Closing Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "estimated_pnl": {
+        "title": "Estimated P&L",
+        "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
+      },
+      "limit_price": {
+        "title": "Limit Price",
+        "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
       },
       "open_interest": {
         "title": "Open interest",

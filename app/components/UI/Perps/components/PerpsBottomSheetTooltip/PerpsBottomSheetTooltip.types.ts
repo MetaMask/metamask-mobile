@@ -26,6 +26,9 @@ export type PerpsTooltipContentKey =
   | 'liquidation_price'
   | 'margin'
   | 'fees'
+  | 'closing_fees'
   | 'open_interest'
   | 'funding_rate'
-  | 'perps_geo_block';
+  | 'perps_geo_block'
+  | 'estimated_pnl'
+  | 'limit_price';

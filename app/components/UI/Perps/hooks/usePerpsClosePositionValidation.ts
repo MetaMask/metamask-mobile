@@ -108,6 +108,7 @@ export function usePerpsClosePositionValidation(
     remainingPositionValue, // Kept for interface completeness, not used in validation after TAT-1365
     receiveAmount,
     isPartialClose,
+    positionValue,
   } = params;
 
   const { validateClosePosition } = usePerpsTrading();
@@ -153,16 +154,20 @@ export function usePerpsClosePositionValidation(
 
       // UI-specific validations that don't belong in the provider
 
-      // TAT-1365: Removed partial close validation - users can close any position size
-      if (closePercentage === 100) {
-        // For full closes, check if the close order value meets minimum
-        if (closingValue > 0 && closingValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderAmount.toString(),
-            }),
-          );
-        }
+      // Check minimum for partial closes (not for 100% closes)
+      if (isPartialClose && closingValue < minimumOrderAmount) {
+        errors.push(
+          strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderAmount.toString(),
+          }),
+        );
+      }
+
+      // Special case: if the total position is below minimum, user must close 100%
+      if (isPartialClose && positionValue < minimumOrderAmount) {
+        errors.push(
+          strings('perps.close_position.must_close_full_below_minimum'),
+        );
       }
 
       // Check if user will receive a positive amount after fees
@@ -189,18 +194,6 @@ export function usePerpsClosePositionValidation(
       // Market order validation
       if (orderType === 'market' && closePercentage === 0) {
         errors.push(strings('perps.close_position.no_amount_selected'));
-      }
-
-      // Add warning for very small partial closes
-      if (
-        isPartialClose &&
-        closePercentage < VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING
-      ) {
-        warnings.push(
-          strings('perps.close_position.small_close_warning', {
-            percentage: closePercentage.toString(),
-          }),
-        );
       }
 
       setValidation({
@@ -232,6 +225,7 @@ export function usePerpsClosePositionValidation(
     closingValue,
     receiveAmount,
     isPartialClose,
+    positionValue,
     validateClosePosition,
   ]);
 

@@ -8,25 +8,25 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
-import {
-  usePerpsOrderFees,
-  formatFeeRate,
-} from '../../../hooks/usePerpsOrderFees';
-import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
+import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
+import { METAMASK_FEE_CONFIG } from '../../../constants/perpsConfig';
+import { FEE_RATES } from '../../../constants/hyperLiquidConfig';
 
-const FeesTooltipContent = ({ testID }: TooltipContentProps) => {
+interface FeesTooltipContentProps extends TooltipContentProps {
+  isMarketOrder?: boolean;
+}
+
+const FeesTooltipContent = ({
+  testID,
+  isMarketOrder = true,
+}: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  const { orderForm } = usePerpsOrderContext();
-
-  // Get actual fee rates from the hook
-  const { metamaskFeeRate, protocolFeeRate } = usePerpsOrderFees({
-    orderType: orderForm.type,
-    amount: orderForm.amount,
-  });
-
-  const metamaskFee = formatFeeRate(metamaskFeeRate);
-  const providerFee = formatFeeRate(protocolFeeRate);
+  // Calculate fee rates based on order type
+  const metamaskFee = formatFeeRate(METAMASK_FEE_CONFIG.TRADING_FEE_RATE);
+  const providerFee = formatFeeRate(
+    isMarketOrder ? FEE_RATES.taker : FEE_RATES.maker,
+  );
 
   return (
     <View testID={testID}>
