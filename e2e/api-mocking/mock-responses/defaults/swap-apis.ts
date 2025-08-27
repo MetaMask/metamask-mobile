@@ -1,4 +1,5 @@
 import { MockEventsObject } from '../../../framework';
+import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses';
 
 export const SWAPS_FEATURE_FLAG_RESPONSE = {
   ethereum: {
@@ -182,5 +183,10 @@ export const SWAP_API_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: SWAPS_FEATURE_FLAG_RESPONSE,
     },
+    {
+      urlEndpoint: 'https://swap.api.cx.metamask.io/networks/1/tokens',
+      responseCode: 200,
+      response: TOKEN_API_TOKENS_RESPONSE,
+    }
   ],
 };

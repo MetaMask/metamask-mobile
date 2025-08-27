@@ -38,5 +38,6 @@ export const ALLOWLISTED_URLS = [
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
   'https://eth.llamarpc.com/',
+  'https://rpc.atlantischain.network/',
   'https://rewards.dev-api.cx.metamask.io/auth/mobile-login',
 ];
