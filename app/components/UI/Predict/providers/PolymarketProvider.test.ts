@@ -1,6 +1,6 @@
 import { PolymarketProvider } from './PolymarketProvider';
 import type { Order, OrderParams, Position } from '../types';
-import { getPolymarketEndpoints } from '../utils/polymarketUtils';
+import { getPolymarketEndpoints } from '../utils/polymarket';
 
 describe('PolymarketProvider', () => {
   const createProvider = (overrides?: { isTestnet?: boolean }) =>

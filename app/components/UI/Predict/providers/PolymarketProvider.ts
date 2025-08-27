@@ -10,8 +10,8 @@ import {
   OrderResult,
   Position,
 } from '../types';
-import { getPolymarketEndpoints } from '../utils/polymarketUtils';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { getPolymarketEndpoints } from '../utils/polymarket';
 
 const POLYMARKET_API_ENDPOINT = 'https://gamma-api.polymarket.com';
 
