@@ -6,9 +6,6 @@ import {
   PopularList,
 } from '../../../../util/networks/customNetworks';
 import { BUILT_IN_CUSTOM_NETWORKS_RPC } from '@metamask/controller-utils';
-//import {
-//FEATURED_RPCS,
-//} from '../../../../shared/constants/network';
 
 /**
  * We capture Segment events for degraded or unavailable RPC endpoints for 1%

@@ -437,8 +437,8 @@ export class Engine {
         onRpcEndpointUnavailable({
           chainId,
           endpointUrl,
-          error,
           infuraProjectId,
+          error,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
