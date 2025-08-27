@@ -23,11 +23,9 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import {
-  selectSortedAssetsBySelectedAccountGroup,
-  selectSortedTokenKeys,
-} from '../../../selectors/tokenList';
+import { selectSortedTokenKeys } from '../../../selectors/tokenList';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };

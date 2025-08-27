@@ -45,7 +45,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
-import { selectAsset } from '../../../../../selectors/tokenList';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
