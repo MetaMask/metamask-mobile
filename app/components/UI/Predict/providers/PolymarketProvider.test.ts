@@ -52,9 +52,11 @@ describe('PolymarketProvider', () => {
     await expect(provider.disconnect()).resolves.toBeUndefined();
   });
 
-  it('getMarkets returns an empty array by default', async () => {
+  it('getMarkets returns an array with some length', async () => {
     const provider = createProvider();
-    await expect(provider.getMarkets()).resolves.toEqual([]);
+    const markets = await provider.getMarkets();
+    expect(Array.isArray(markets)).toBe(true);
+    expect(markets.length).toBeGreaterThan(0);
   });
 
   it('getPositions returns an empty array when API returns none', async () => {
@@ -117,7 +119,7 @@ describe('PolymarketProvider', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const calledWithUrl = mockFetch.mock.calls[0][0] as string;
-    const { DATA_API_ENDPOINT } = getPolymarketEndpoints(false);
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
     expect(calledWithUrl.startsWith(`${DATA_API_ENDPOINT}/positions?`)).toBe(
       true,
     );

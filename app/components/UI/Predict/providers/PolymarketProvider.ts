@@ -77,7 +77,7 @@ export class PolymarketProvider implements IPredictProvider {
     limit?: number;
     offset?: number;
   }): Promise<Position[]> {
-    const { DATA_API_ENDPOINT } = getPolymarketEndpoints(false);
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     const response = await fetch(
       `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}`,
