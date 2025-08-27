@@ -1,6 +1,12 @@
 name: Android E2E Regression Tests
 
 on:
+  # TESTING ONLY
+  pull_request:
+    branches:
+      - christopher/add-regression-workflow
+      with:
+        
   workflow_call:
     inputs:
       confirmations-suite:
