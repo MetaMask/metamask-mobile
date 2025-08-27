@@ -40,7 +40,7 @@ export const validateAmountFn = ({
   let weiBalance;
   if (isNativeToken(asset)) {
     const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
+      (address) => address?.toLowerCase() === from?.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
     // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
@@ -70,7 +70,7 @@ export const useEvmAmountValidation = () => {
       validateAmountFn({
         accounts,
         amount: value,
-        asset,
+        asset: asset as AssetType,
         contractBalances,
         from: from as Hex,
       }),

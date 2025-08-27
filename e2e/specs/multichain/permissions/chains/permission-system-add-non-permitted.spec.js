@@ -1,4 +1,4 @@
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { RegressionNetworkExpansion } from '../../../../tags';
 import { loginToApp } from '../../../../viewHelper';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -18,7 +18,7 @@ import { DappVariants } from '../../../../framework/Constants';
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 xdescribe(
-  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
+  RegressionNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     // These tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
     const isRemoveGlobalNetworkSelectorEnabled =

@@ -53,17 +53,6 @@ export const PerpsPositionCardSelectorsIDs = {
 };
 
 // ========================================
-// PERPS POSITION HEADER SELECTORS
-// ========================================
-
-export const PerpsPositionHeaderSelectorsIDs = {
-  HEADER: 'position-header',
-  COIN: 'position-header-coin',
-  PNL: 'position-header-pnl',
-  BACK_BUTTON: 'perps-position-header-back-button',
-};
-
-// ========================================
 // PERPS LOADER SELECTORS
 // ========================================
 
@@ -118,6 +107,20 @@ export const PerpsMarketListViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS MARKET ROW ITEM SELECTORS
+// ========================================
+
+export const PerpsMarketRowItemSelectorsIDs = {
+  ROW_ITEM: 'perps-market-row-item',
+};
+
+// Helper functions for dynamic market row selectors
+export const getPerpsMarketRowItemSelector = {
+  rowItem: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 
@@ -156,6 +159,7 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  TRADINGVIEW_CHART: 'tradingview-chart',
   // Bottom sheets
   TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
   CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
@@ -166,6 +170,18 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
   CHART_TOOLTIP: 'chart-tooltip',
+};
+
+// ========================================
+// TRADINGVIEW CHART SELECTORS
+// ========================================
+
+export const TradingViewChartSelectorsIDs = {
+  // Chart container and webview
+  CONTAINER: 'tradingview-chart-container',
+  WEBVIEW: 'tradingview-chart-webview',
+  ERROR_CONTAINER: 'tradingview-chart-error',
+  LOADING: 'tradingview-chart-loading',
 };
 
 // Helper functions for dynamic view selectors
@@ -319,6 +335,8 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
 };
 
 // ========================================

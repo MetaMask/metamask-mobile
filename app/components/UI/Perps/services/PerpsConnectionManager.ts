@@ -1,9 +1,10 @@
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
+import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 
 /**
  * Singleton manager for Perps connection state
@@ -15,8 +16,10 @@ class PerpsConnectionManagerClass {
   private isConnected = false;
   private isConnecting = false;
   private isInitialized = false;
+  private isDisconnecting = false;
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
+  private disconnectPromise: Promise<void> | null = null;
   private hasPreloaded = false;
   private prewarmCleanups: (() => void)[] = [];
   private unsubscribeFromStore: (() => void) | null = null;
@@ -39,13 +42,17 @@ class PerpsConnectionManagerClass {
 
     // Get initial values
     const state = store.getState();
-    this.previousAddress = selectSelectedInternalAccountAddress(state);
+    const selectedEvmAccount =
+      selectSelectedInternalAccountByScope(state)('eip155:1');
+    this.previousAddress = selectedEvmAccount?.address;
     this.previousPerpsNetwork = selectPerpsNetwork(state);
 
     // Subscribe to Redux store changes
     this.unsubscribeFromStore = store.subscribe(() => {
       const currentState = store.getState();
-      const currentAddress = selectSelectedInternalAccountAddress(currentState);
+      const currentEvmAccount =
+        selectSelectedInternalAccountByScope(currentState)('eip155:1');
+      const currentAddress = currentEvmAccount?.address;
       const currentPerpsNetwork = selectPerpsNetwork(currentState);
 
       const hasAccountChanged =
@@ -107,6 +114,16 @@ class PerpsConnectionManagerClass {
   }
 
   async connect(): Promise<void> {
+    // Wait if we're still disconnecting
+    if (this.isDisconnecting && this.disconnectPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Waiting for disconnection to complete before connecting',
+      );
+      await this.disconnectPromise;
+      // Add small delay to ensure cleanup is complete
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
     if (this.connectionRefCount === 0) {
       this.setupStateMonitoring();
@@ -114,11 +131,14 @@ class PerpsConnectionManagerClass {
 
     this.connectionRefCount++;
     DevLogger.log(
-      `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount})`,
+      `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount}, isConnected: ${this.isConnected}, isInitialized: ${this.isInitialized})`,
     );
 
     // If already connecting, return the existing promise
     if (this.initPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Already connecting, returning existing promise',
+      );
       return this.initPromise;
     }
 
@@ -128,11 +148,15 @@ class PerpsConnectionManagerClass {
       try {
         // Quick check to see if connection is actually alive
         await Engine.context.PerpsController.getAccountState();
+        DevLogger.log(
+          'PerpsConnectionManager: Connection is already active and healthy',
+        );
         return Promise.resolve();
       } catch (error) {
         // Connection is stale, reset state and reconnect
         DevLogger.log(
-          'PerpsConnectionManager: Stale connection detected, reconnecting',
+          'PerpsConnectionManager: Stale connection detected, will reconnect',
+          error,
         );
         this.isConnected = false;
         this.isInitialized = false;
@@ -149,8 +173,27 @@ class PerpsConnectionManagerClass {
         await Engine.context.PerpsController.initializeProviders();
         this.isInitialized = true;
 
-        // Trigger connection
-        await Engine.context.PerpsController.getAccountState();
+        // Trigger connection - may fail if still initializing
+        try {
+          await Engine.context.PerpsController.getAccountState();
+        } catch (error) {
+          // If it's a CLIENT_REINITIALIZING error, wait and retry once
+          if (
+            error instanceof Error &&
+            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING
+          ) {
+            DevLogger.log(
+              'PerpsConnectionManager: Provider reinitializing, retrying...',
+              {
+                error: error.message,
+              },
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await Engine.context.PerpsController.getAccountState();
+          } else {
+            throw error;
+          }
+        }
 
         this.isConnected = true;
         this.isConnecting = false;
@@ -187,9 +230,11 @@ class PerpsConnectionManagerClass {
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
+      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
+      streamManager.marketData.clearCache();
 
       // Reset state
       this.isConnected = false;
@@ -200,11 +245,34 @@ class PerpsConnectionManagerClass {
       // Force the controller to reinitialize with new context
       await Engine.context.PerpsController.reconnectWithNewContext();
 
+      // Wait a bit for initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Re-establish connection
       this.isConnecting = true;
 
-      // Trigger connection with new account
-      await Engine.context.PerpsController.getAccountState();
+      // Trigger connection with new account - wrap in try/catch to handle initialization errors
+      try {
+        await Engine.context.PerpsController.getAccountState();
+      } catch (error) {
+        // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
+        if (
+          error instanceof Error &&
+          (error.message === PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED ||
+            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING)
+        ) {
+          DevLogger.log(
+            'PerpsConnectionManager: Waiting for initialization to complete',
+            {
+              error: error.message,
+            },
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          await Engine.context.PerpsController.getAccountState();
+        } else {
+          throw error;
+        }
+      }
 
       this.isConnected = true;
       this.isInitialized = true;
@@ -238,27 +306,39 @@ class PerpsConnectionManagerClass {
       this.connectionRefCount = 0; // Ensure it doesn't go negative
 
       if (this.isConnected || this.isInitialized) {
-        try {
-          DevLogger.log(
-            'PerpsConnectionManager: Disconnecting (no more references)',
-          );
+        // Track that we're disconnecting
+        this.isDisconnecting = true;
 
-          // Clean up preloaded subscriptions
-          this.cleanupPreloadedSubscriptions();
+        this.disconnectPromise = (async () => {
+          try {
+            DevLogger.log(
+              'PerpsConnectionManager: Disconnecting (no more references)',
+            );
 
-          // Clean up state monitoring when leaving Perps
-          this.cleanupStateMonitoring();
+            // Clean up preloaded subscriptions
+            this.cleanupPreloadedSubscriptions();
 
-          // Reset state before disconnecting to prevent race conditions
-          this.isConnected = false;
-          this.isInitialized = false;
-          this.isConnecting = false;
-          this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            // Clean up state monitoring when leaving Perps
+            this.cleanupStateMonitoring();
 
-          await Engine.context.PerpsController.disconnect();
-        } catch (error) {
-          DevLogger.log('PerpsConnectionManager: Disconnection error', error);
-        }
+            // Reset state before disconnecting to prevent race conditions
+            this.isConnected = false;
+            this.isInitialized = false;
+            this.isConnecting = false;
+            this.hasPreloaded = false; // Reset pre-load flag on disconnect
+
+            await Engine.context.PerpsController.disconnect();
+
+            DevLogger.log('PerpsConnectionManager: Disconnection complete');
+          } catch (error) {
+            DevLogger.log('PerpsConnectionManager: Disconnection error', error);
+          } finally {
+            this.isDisconnecting = false;
+            this.disconnectPromise = null;
+          }
+        })();
+
+        await this.disconnectPromise;
       } else {
         // Even if not connected, clean up monitoring when leaving Perps
         this.cleanupStateMonitoring();
@@ -287,14 +367,24 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm the positions, orders, and account channels
+      // Pre-warm all channels including prices for all markets
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
       const orderCleanup = streamManager.orders.prewarm();
       const accountCleanup = streamManager.account.prewarm();
+      const marketDataCleanup = streamManager.marketData.prewarm();
 
-      this.prewarmCleanups.push(positionCleanup, orderCleanup, accountCleanup);
+      // Price channel prewarm is async and subscribes to all market prices
+      const priceCleanup = await streamManager.prices.prewarm();
+
+      this.prewarmCleanups.push(
+        positionCleanup,
+        orderCleanup,
+        accountCleanup,
+        marketDataCleanup,
+        priceCleanup,
+      );
 
       // Give subscriptions a moment to receive initial data
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -349,7 +439,21 @@ class PerpsConnectionManagerClass {
       isConnected: this.isConnected,
       isConnecting: this.isConnecting,
       isInitialized: this.isInitialized,
+      isDisconnecting: this.isDisconnecting,
     };
+  }
+
+  /**
+   * Check if the manager is fully disconnected and ready to connect
+   */
+  isFullyDisconnected(): boolean {
+    return (
+      !this.isConnected &&
+      !this.isInitialized &&
+      !this.isConnecting &&
+      !this.isDisconnecting &&
+      this.connectionRefCount === 0
+    );
   }
 }
 

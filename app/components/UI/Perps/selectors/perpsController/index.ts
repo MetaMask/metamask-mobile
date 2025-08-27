@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
-import type { DepositStatus } from '../../controllers/types';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -20,16 +19,14 @@ const selectPerpsDepositState = createSelector(
   (perpsControllerState) => {
     if (!perpsControllerState) {
       return {
-        status: 'idle' as DepositStatus,
-        currentTxHash: null as string | null,
-        error: null as string | null,
+        inProgress: false,
+        lastResult: null,
       };
     }
 
     return {
-      status: perpsControllerState.depositStatus || 'idle',
-      currentTxHash: perpsControllerState.currentDepositTxHash || null,
-      error: perpsControllerState.depositError || null,
+      inProgress: perpsControllerState.depositInProgress || false,
+      lastResult: perpsControllerState.lastDepositResult || null,
     };
   },
 );
@@ -45,10 +42,19 @@ const selectPerpsNetwork = createSelector(
     perpsControllerState?.isTestnet ? 'testnet' : 'mainnet',
 );
 
+// Import the existing selector logic
+import { selectIsFirstTimeUser } from '../../controllers/selectors';
+
+const selectIsFirstTimePerpsUser = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+);
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectIsFirstTimePerpsUser,
 };

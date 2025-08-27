@@ -379,10 +379,8 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -596,5 +594,10 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "lastAuthTime": 0,
+    "lastAuthenticatedAccount": null,
+    "subscription": null
   }
 }

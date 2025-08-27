@@ -1276,4 +1276,86 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
   });
+
+  describe('Race condition prevention', () => {
+    it('should prevent duplicate allMids subscriptions when multiple subscribeToPrices calls happen simultaneously', async () => {
+      const callbacks = [jest.fn(), jest.fn(), jest.fn()];
+      const unsubscribes: (() => void)[] = [];
+
+      // Call subscribeToPrices multiple times simultaneously
+      const subscribePromises = callbacks.map((callback) => {
+        const unsubscribe = service.subscribeToPrices({
+          symbols: ['BTC'],
+          callback,
+        });
+        unsubscribes.push(unsubscribe);
+        return new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Wait for all subscriptions to complete
+      await Promise.all(subscribePromises);
+
+      // Should only create one allMids subscription despite multiple simultaneous calls
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(1);
+
+      // All callbacks should still work
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      callbacks.forEach((callback) => {
+        expect(callback).toHaveBeenCalled();
+      });
+
+      // Cleanup
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    });
+
+    it('should retry allMids subscription if initial attempt fails', async () => {
+      const callback = jest.fn();
+      const mockUnsubscribeFn = jest.fn();
+      const mockSubscriptionObj = {
+        unsubscribe: mockUnsubscribeFn,
+      };
+
+      // Make first attempt fail
+      mockSubscriptionClient.allMids.mockImplementationOnce(() =>
+        Promise.reject(new Error('Connection failed')),
+      );
+
+      // Second attempt succeeds
+      mockSubscriptionClient.allMids.mockImplementationOnce((cb: any) => {
+        setTimeout(() => {
+          cb({
+            mids: {
+              BTC: '50000',
+            },
+          });
+        }, 10);
+        return Promise.resolve(mockSubscriptionObj);
+      });
+
+      // First subscription attempt
+      const unsubscribe1 = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback,
+      });
+
+      // Wait for first attempt to fail
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Second subscription attempt should retry
+      const unsubscribe2 = service.subscribeToPrices({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      // Wait for second attempt to succeed
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Should have tried twice total
+      expect(mockSubscriptionClient.allMids).toHaveBeenCalledTimes(2);
+
+      // Cleanup
+      unsubscribe1();
+      unsubscribe2();
+    });
+  });
 });

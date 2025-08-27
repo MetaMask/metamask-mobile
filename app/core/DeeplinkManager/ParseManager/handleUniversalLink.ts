@@ -29,6 +29,11 @@ enum SUPPORTED_ACTIONS {
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
+  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
+  PERPS = ACTIONS.PERPS,
+  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
+  PERPS_ASSET = ACTIONS.PERPS_ASSET,
+  WC = ACTIONS.WC,
 }
 
 async function handleUniversalLink({
@@ -47,6 +52,7 @@ async function handleUniversalLink({
   source: string;
 }) {
   const validatedUrl = new URL(url);
+
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
@@ -68,7 +74,7 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   if (
-    !Object.keys(SUPPORTED_ACTIONS).includes(action.toUpperCase()) ||
+    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
     !isSupportedDomain
   ) {
     isInvalidLink = true;
@@ -113,8 +119,9 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: string =
-      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
+    const [, actionName] = validatedUrl.pathname.split('/');
+    const sanitizedAction = actionName?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
       linkType: linkType(),
@@ -162,6 +169,26 @@ async function handleUniversalLink({
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
+    return;
+  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
+    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleCreateAccount(deeplinkUrl);
+  } else if (
+    action === SUPPORTED_ACTIONS.PERPS ||
+    action === SUPPORTED_ACTIONS.PERPS_MARKETS
+  ) {
+    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
+    const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerpsAsset(assetPath);
+  } else if (action === SUPPORTED_ACTIONS.WC) {
+    const { params } = extractURLParams(urlObj.href);
+    const wcURL = params?.uri;
+
+    if (wcURL) {
+      instance.parse(wcURL, { origin: source });
+    }
     return;
   }
 }
