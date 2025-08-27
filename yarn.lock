@@ -4979,15 +4979,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
-  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
-  dependencies:
-    "@metamask/utils" "^11.4.2"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^8.2.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0":
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
   integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
