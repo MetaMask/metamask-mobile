@@ -65,6 +65,34 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
       width: '100%',
     },
+    // Order card styles to match position cards
+    positionCard: {
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginVertical: 2,
+    },
+    positionCardContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    positionLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    assetIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+    },
+    positionInfo: {
+      flex: 1,
+    },
+    positionRight: {
+      alignItems: 'flex-end',
+    },
   });
 };
 

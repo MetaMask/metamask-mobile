@@ -11,55 +11,49 @@ import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
-import InfoRowDivider from '../../../../components/UI/info-row-divider';
-import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
-
-const AMOUNT_PREFIX = '$';
+import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [inputChanged, setInputChanged] = useState(false);
 
   const { isFullView } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
-  const handleKeyboardShow = () => {
-    setIsKeyboardVisible(true);
-  };
-
-  const handleKeyboardHide = () => {
-    setIsKeyboardVisible(false);
-  };
-
-  useNavbar(strings('confirm.title.perps_deposit'), false);
+  useNavbar(strings('confirm.title.perps_deposit'));
+  useClearConfirmationOnBackSwipe();
 
   return (
     <>
       <EditAmount
-        prefix={AMOUNT_PREFIX}
         autoKeyboard
-        onKeyboardShow={handleKeyboardShow}
-        onKeyboardHide={handleKeyboardHide}
+        onKeyboardShow={() => setIsKeyboardVisible(true)}
+        onKeyboardHide={() => setIsKeyboardVisible(false)}
+        onKeyboardDone={() => setInputChanged(true)}
       >
-        <Box gap={16}>
-          <AlertMessage field={RowAlertKey.Amount} />
-          <PayTokenAmount />
-        </Box>
-        {!isKeyboardVisible && (
-          <AlertBanner field={RowAlertKey.PayWith} inline />
-        )}
-        <InfoSection>
-          <PayWithRow />
-          {isFullView && <BridgeTimeRow />}
-        </InfoSection>
-        {isFullView && (
-          <InfoSection>
-            <GasFeeFiatRow />
-            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
-            <TotalRow />
-          </InfoSection>
+        {(amountHuman) => (
+          <>
+            <Box gap={16}>
+              {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
+              <PayTokenAmount amountHuman={amountHuman} />
+            </Box>
+            {!isKeyboardVisible && (
+              <AlertBanner field={RowAlertKey.PayWith} inline />
+            )}
+            <InfoSection>
+              <PayWithRow />
+            </InfoSection>
+            {isFullView && (
+              <InfoSection>
+                <GasFeeFiatRow />
+                <BridgeTimeRow />
+                <TotalRow />
+              </InfoSection>
+            )}
+          </>
         )}
       </EditAmount>
     </>
