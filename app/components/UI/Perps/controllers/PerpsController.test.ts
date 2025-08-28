@@ -3151,4 +3151,227 @@ describe('PerpsController', () => {
       });
     }, 10000);
   });
+
+  describe('reportOrderToDataLake - direct tests', () => {
+    let mockMessenger: any;
+    let controller: PerpsController;
+    let mockFetch: jest.MockedFunction<typeof fetch>;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+
+      // Mock global fetch
+      mockFetch = jest.fn();
+      global.fetch = mockFetch as any;
+
+      // Create a mock messenger that can handle the getBearerToken call
+      mockMessenger = {
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerEventHandler: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        publish: jest.fn(),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      };
+
+      // Create controller directly with mock messenger
+      controller = new PerpsController({
+        messenger: mockMessenger as any,
+        state: getDefaultPerpsControllerState(),
+      });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+    });
+
+    it('should return early when on testnet', async () => {
+      // Create controller with testnet mode enabled
+      const testnetController = new PerpsController({
+        messenger: mockMessenger as any,
+        state: {
+          ...getDefaultPerpsControllerState(),
+          isTestnet: true,
+        },
+      });
+
+      // Call reportOrderToDataLake directly
+      const result = await (testnetController as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify it returns early with the correct message
+      expect(result).toEqual({
+        success: true,
+        error: 'Skipped for testnet',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the messenger.call was never invoked (testnet returns before auth check)
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with testnet skip message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Skipping for testnet',
+        expect.objectContaining({
+          action: 'open',
+          coin: 'BTC',
+          network: 'testnet',
+        }),
+      );
+    });
+
+    it('should return error when EVM account is missing', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return non-EVM accounts
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0xabc123',
+            id: 'mock-account-1',
+            type: 'bip122:', // Non-EVM account (Bitcoin)
+          },
+          {
+            address: '0xdef456',
+            id: 'mock-account-2',
+            type: 'cosmos:', // Non-EVM account (Cosmos)
+          },
+        ],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: true,
+          action: 'close',
+          coin: 'ETH',
+        }),
+      );
+    });
+
+    it('should return error when token is missing', async () => {
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Reset AccountTreeController mock to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'DOGE',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: true,
+          hasToken: false,
+          action: 'open',
+          coin: 'DOGE',
+        }),
+      );
+    });
+
+    it('should return error when both account and token are missing', async () => {
+      // Mock messenger to return null token
+      mockMessenger.call.mockResolvedValue(null);
+
+      // Mock AccountTreeController to return empty array
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [],
+      );
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'MATIC',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'No account or token available',
+      });
+
+      // Verify fetch was never called
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // Verify the DevLogger was called with missing requirements message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Missing requirements',
+        expect.objectContaining({
+          hasAccount: false,
+          hasToken: false,
+          action: 'close',
+          coin: 'MATIC',
+        }),
+      );
+    });
+  });
 });
