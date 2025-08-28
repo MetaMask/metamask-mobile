@@ -271,10 +271,16 @@ const PerpsWithdrawView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const formatDisplayAmount = useMemo(
-    () => formatPerpsFiat(withdrawAmount || '0'),
-    [withdrawAmount],
-  );
+  const formatDisplayAmount = useMemo(() => {
+    if (!withdrawAmount || withdrawAmount === '0') {
+      return '$0.00';
+    }
+    // Show full decimals when keypad is active, formatted when not
+    if (isInputFocused) {
+      return `$${withdrawAmount}`;
+    }
+    return formatPerpsFiat(withdrawAmount);
+  }, [withdrawAmount, isInputFocused]);
 
   const formatReceiveAmount = useMemo(() => {
     if (!destAmount) return '-';
