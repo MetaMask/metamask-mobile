@@ -29,7 +29,7 @@ export const useAmountValidation = () => {
       return undefined;
     }
     if (!isDecimal(value) || Number(value) < 0) {
-      return strings('invalidValue');
+      return strings('send.invalid_value');
     }
     if (asset?.standard === TokenStandard.ERC1155) {
       return validateERC1155Balance(asset as Nft, value);
