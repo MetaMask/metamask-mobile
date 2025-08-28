@@ -201,7 +201,7 @@ export interface EstimatedPointsDto {
 
 export interface SeasonTierDto {
   id: string;
-  name: string;
+  type: string;
   pointsNeeded: number;
 }
 
