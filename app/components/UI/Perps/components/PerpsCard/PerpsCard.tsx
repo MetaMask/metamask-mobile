@@ -14,9 +14,8 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../utils/formatUtils';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 
@@ -37,7 +36,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
-  const { assetUrl } = usePerpsAssetMetadata(symbol);
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -105,8 +103,12 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
         <View style={styles.cardLeft}>
-          {assetUrl && (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.assetIcon} />
+          {symbol && (
+            <PerpsTokenLogo
+              symbol={symbol}
+              size={40}
+              style={styles.assetIcon}
+            />
           )}
           <View style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
