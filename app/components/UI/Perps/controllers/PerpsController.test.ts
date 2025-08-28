@@ -531,6 +531,42 @@ describe('PerpsController', () => {
         expect(controller.state.lastError).toBe(null); // initializeProviders doesn't update state directly
       });
     });
+
+    it('should throw error when controller is reinitializing', () => {
+      withController(({ controller }) => {
+        // Set the reinitializing flag to true
+        // @ts-ignore - Accessing private property for testing
+        controller.isReinitializing = true;
+
+        // Should throw CLIENT_REINITIALIZING error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'CLIENT_REINITIALIZING',
+        );
+
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('CLIENT_REINITIALIZING');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
+
+    it('should throw error when provider not found in map', () => {
+      withController(({ controller }) => {
+        // Make controller initialized but clear the providers map
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = true;
+        // @ts-ignore - Accessing private property for testing
+        controller.providers.clear();
+
+        // Should throw PROVIDER_NOT_AVAILABLE error
+        expect(() => controller.getActiveProvider()).toThrow(
+          'PROVIDER_NOT_AVAILABLE',
+        );
+
+        // Verify error state was updated
+        expect(controller.state.lastError).toBe('PROVIDER_NOT_AVAILABLE');
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+      });
+    });
   });
 
   describe('live data subscriptions', () => {
