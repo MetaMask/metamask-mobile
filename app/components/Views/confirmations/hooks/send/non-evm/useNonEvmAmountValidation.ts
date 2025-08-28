@@ -3,7 +3,6 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useCallback } from 'react';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { isDecimal } from '../../../../../../util/number';
 import { AssetType } from '../../../types/token';
 import { useSendContext } from '../../../context/send-context';
 import { validateAmountMultichain } from '../../../utils/multichain-snaps';
@@ -24,11 +23,8 @@ export const validateAmountFn = async ({
   asset,
   fromAccount,
 }: ValidateAmountFnArgs) => {
-  if (!asset || amount === undefined || amount === null || amount === '') {
+  if (!asset || !amount) {
     return;
-  }
-  if (!isDecimal(amount) || Number(amount) < 0) {
-    return strings('send.invalid_value');
   }
   const result = (await validateAmountMultichain(
     fromAccount as InternalAccount,
