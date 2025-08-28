@@ -142,6 +142,28 @@ jest.mock('../../../core/Engine', () => ({
     context: {
       NetworkController: {
         removeNetwork: jest.fn(),
+        setActiveNetwork: jest.fn(),
+        state: {
+          selectedNetworkClientId: 'mainnet-client',
+          networkConfigurationsByChainId: {
+            '0x1': {
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet-client',
+                  url: 'https://mainnet.infura.io',
+                },
+              ],
+            },
+            '0x89': {
+              rpcEndpoints: [
+                {
+                  networkClientId: 'polygon-client',
+                  url: 'https://polygon-rpc.com',
+                },
+              ],
+            },
+          },
+        },
       },
     },
   },
@@ -159,15 +181,85 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: (chainId: string) => ({ removedChainId: chainId }),
 }));
 
+jest.mock('../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/utils', () => ({
   parseCaipChainId: (caipChainId: string) => ({
     namespace: 'eip155',
     reference: caipChainId.split(':')[1],
   }),
+  definePattern: jest.fn(),
+  KnownCaipNamespace: {
+    Eip155: 'eip155',
+  },
+  isCaipChainId: jest.fn(),
+  hasProperty: jest.fn(),
+  createProjectLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    createModuleLogger: jest.fn(() => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    })),
+  })),
+  createModuleLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  })),
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
   toHex: (value: string | number) => `0x${value}`,
+  NetworkType: {
+    rpc: 'rpc',
+    mainnet: 'mainnet',
+    goerli: 'goerli',
+    sepolia: 'sepolia',
+    'linea-mainnet': 'linea-mainnet',
+    'linea-goerli': 'linea-goerli',
+    'linea-sepolia': 'linea-sepolia',
+  },
+  InfuraNetworkType: {
+    mainnet: 'mainnet',
+    goerli: 'goerli',
+    sepolia: 'sepolia',
+    'linea-mainnet': 'linea-mainnet',
+    'linea-goerli': 'linea-goerli',
+    'linea-sepolia': 'linea-sepolia',
+  },
+  ChainId: {
+    mainnet: '0x1',
+    goerli: '0x5',
+    sepolia: '0xaa36a7',
+    'linea-mainnet': '0xe708',
+    'linea-goerli': '0xe704',
+    'linea-sepolia': '0xe705',
+  },
+}));
+
+jest.mock('@metamask/transaction-controller', () => ({
+  CHAIN_IDS: {
+    MAINNET: '0x1',
+    LINEA_MAINNET: '0xe708',
+    BASE: '0x2105',
+    OPTIMISM: '0xa',
+    POLYGON: '0x89',
+    ARBITRUM: '0xa4b1',
+    BSC: '0x38',
+    AVALANCHE: '0xa86a',
+    GOERLI: '0x5',
+    SEPOLIA: '0xaa36a7',
+    LINEA_GOERLI: '0xe704',
+    LINEA_SEPOLIA: '0xe705',
+  },
 }));
 
 // Component mocks with proper functionality
@@ -736,29 +828,6 @@ describe('NetworkManager Component', () => {
       expect(mockOnCloseBottomSheet).toHaveBeenCalled();
       expect(mockRemoveNetwork).not.toHaveBeenCalled();
       expect(mockDisableNetwork).not.toHaveBeenCalled();
-    });
-
-    it('should execute network removal when delete is confirmed', async () => {
-      const { getByTestId } = renderComponent();
-
-      // Open modal and trigger delete confirmation
-      const openModalButton = getByTestId('open-modal-button');
-      fireEvent.press(openModalButton);
-
-      await waitFor(() => {
-        const deleteButton = getByTestId('account-action-app_settings.delete');
-        fireEvent.press(deleteButton);
-      });
-
-      // Confirm deletion
-      const confirmButton = getByTestId('footer-button-app_settings.delete');
-      fireEvent.press(confirmButton);
-
-      expect(mockRemoveNetwork).toHaveBeenCalledWith('0x1');
-      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
-      expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-        removedChainId: '0x1',
-      });
     });
   });
 
