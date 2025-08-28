@@ -1,62 +1,7 @@
-// Mock react-redux
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-// Mock localization strings
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: { [key: string]: string } = {
-      'bottom_nav.home': 'Home',
-      'bottom_nav.browser': 'Browser',
-      'bottom_nav.activity': 'Activity',
-      'bottom_nav.settings': 'Settings',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
-}));
-
-// Mock the metrics hook
-jest.mock('../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({ build: jest.fn() })),
-      build: jest.fn(),
-    })),
-  }),
-}));
-
-// Mock the tailwind hook and Theme
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const mockTw = jest.fn(() => ({}));
-    return Object.assign(mockTw, {
-      style: jest.fn(() => ({})),
-      color: jest.fn(() => '#000000'),
-    });
-  },
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
-  Theme: {
-    Light: {
-      colors: {
-        primary: { default: '#000' },
-        background: { default: '#fff' },
-      },
-    },
-  },
-}));
-
 // Third party dependencies.
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ParamListBase, TabNavigationState } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -78,23 +23,32 @@ const mockInitialState = {
   },
 };
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+// Mock localization strings
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const mockStrings: { [key: string]: string } = {
+      'bottom_nav.home': 'Home',
+      'bottom_nav.browser': 'Browser',
+      'bottom_nav.activity': 'Activity',
+      'bottom_nav.settings': 'Settings',
+    };
+    return mockStrings[key] || key;
+  }),
+}));
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(mockInitialState)),
+}));
 
 // Define the test cases.
 describe('TabBar', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Set default mock implementation
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectRewardsEnabledFlag')) {
-        return false; // Default to rewards disabled
-      }
-      if (selector.toString().includes('selectChainId')) {
-        return '0x1'; // Default chain ID
-      }
-      return selector(mockInitialState);
-    });
-  });
   const state = {
     index: 0,
     routes: [
@@ -195,71 +149,6 @@ describe('TabBar', () => {
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Setting}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: 'Settings',
-    });
-  });
-
-  describe('Rewards navigation', () => {
-    const rewardsState = {
-      index: 0,
-      routes: [{ key: '1', name: 'Tab 1' }],
-    };
-    const rewardsDescriptors = {
-      '1': {
-        options: {
-          tabBarIconKey: TabBarIconKey.Rewards,
-          rootScreenName: Routes.REWARDS_VIEW,
-        },
-      },
-    };
-
-    it('navigates to rewards when rewards are enabled', () => {
-      // Mock useSelector to return true for rewards enabled
-      mockUseSelector.mockImplementation((_selector) => true);
-
-      const { getByTestId } = renderWithProvider(
-        <TabBar
-          state={rewardsState as TabNavigationState<ParamListBase>}
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          descriptors={rewardsDescriptors as any}
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          navigation={navigation as any}
-        />,
-        { state: mockInitialState },
-      );
-
-      fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
-      expect(navigation.navigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
-    });
-
-    it('does not navigate to rewards when rewards are disabled', () => {
-      // Mock rewards disabled
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.toString().includes('selectRewardsEnabledFlag')) {
-          return false;
-        }
-        if (selector.toString().includes('selectChainId')) {
-          return '0x1'; // Default chain ID
-        }
-        return selector(mockInitialState);
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <TabBar
-          state={rewardsState as TabNavigationState<ParamListBase>}
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          descriptors={rewardsDescriptors as any}
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          navigation={navigation as any}
-        />,
-        { state: mockInitialState },
-      );
-
-      fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Rewards}`));
-      expect(navigation.navigate).not.toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
   });
 });

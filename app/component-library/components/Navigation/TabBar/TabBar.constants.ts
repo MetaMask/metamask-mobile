@@ -11,7 +11,6 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Actions]: IconName.SwapVertical,
   [TabBarIconKey.Activity]: IconName.Activity,
   [TabBarIconKey.Setting]: IconName.Setting,
-  [TabBarIconKey.Rewards]: IconName.Star,
 };
 
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
@@ -20,7 +19,6 @@ export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Actions]: '',
   [TabBarIconKey.Activity]: 'bottom_nav.activity',
   [TabBarIconKey.Setting]: 'bottom_nav.settings',
-  [TabBarIconKey.Rewards]: 'bottom_nav.rewards',
 } as const;
 
 export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top

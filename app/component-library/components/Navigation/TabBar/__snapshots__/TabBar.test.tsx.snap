@@ -5,15 +5,35 @@ exports[`TabBar renders correctly 1`] = `
   <View
     style={
       [
-        {},
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc866",
+          "borderTopWidth": 1,
+          "columnGap": 8,
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingLeft": 8,
+          "paddingRight": 8,
+          "paddingTop": 12,
+          "width": "100%",
+        },
         [
-          {},
+          {
+            "paddingBottom": 0,
+          },
         ],
       ]
     }
   >
     <View
-      style={{}}
+      style={
+        {
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        }
+      }
     >
       <View
         style={
@@ -64,7 +84,17 @@ exports[`TabBar renders correctly 1`] = `
           onResponderTerminate={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
           testID="tab-bar-item-Wallet"
         >
           <SvgMock
@@ -90,6 +120,7 @@ exports[`TabBar renders correctly 1`] = `
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
+                "marginTop": 4,
               }
             }
           >
@@ -99,7 +130,13 @@ exports[`TabBar renders correctly 1`] = `
       </View>
     </View>
     <View
-      style={{}}
+      style={
+        {
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        }
+      }
     >
       <View
         style={
@@ -150,7 +187,17 @@ exports[`TabBar renders correctly 1`] = `
           onResponderTerminate={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
           testID="tab-bar-item-Browser"
         >
           <SvgMock
@@ -176,6 +223,7 @@ exports[`TabBar renders correctly 1`] = `
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
+                "marginTop": 4,
               }
             }
           >
@@ -185,7 +233,13 @@ exports[`TabBar renders correctly 1`] = `
       </View>
     </View>
     <View
-      style={{}}
+      style={
+        {
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        }
+      }
     >
       <View
         style={
@@ -236,11 +290,24 @@ exports[`TabBar renders correctly 1`] = `
           onResponderTerminate={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 9999,
+              "height": 45,
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 4,
+              "paddingRight": 4,
+              "paddingTop": 4,
+              "width": 45,
+            }
+          }
           testID="tab-bar-item-Actions"
         >
           <SvgMock
-            color="#000000"
+            color="#ffffff"
             fill="currentColor"
             height={20}
             name="SwapVertical"
@@ -256,7 +323,13 @@ exports[`TabBar renders correctly 1`] = `
       </View>
     </View>
     <View
-      style={{}}
+      style={
+        {
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        }
+      }
     >
       <View
         style={
@@ -307,7 +380,17 @@ exports[`TabBar renders correctly 1`] = `
           onResponderTerminate={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
           testID="tab-bar-item-Activity"
         >
           <SvgMock
@@ -333,6 +416,7 @@ exports[`TabBar renders correctly 1`] = `
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
+                "marginTop": 4,
               }
             }
           >
@@ -342,7 +426,13 @@ exports[`TabBar renders correctly 1`] = `
       </View>
     </View>
     <View
-      style={{}}
+      style={
+        {
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        }
+      }
     >
       <View
         style={
@@ -393,7 +483,17 @@ exports[`TabBar renders correctly 1`] = `
           onResponderTerminate={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          style={{}}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
           testID="tab-bar-item-Setting"
         >
           <SvgMock
@@ -419,6 +519,7 @@ exports[`TabBar renders correctly 1`] = `
                 "fontSize": 12,
                 "letterSpacing": 0.25,
                 "lineHeight": 20,
+                "marginTop": 4,
               }
             }
           >
