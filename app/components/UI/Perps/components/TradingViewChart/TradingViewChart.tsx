@@ -15,6 +15,7 @@ import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
+import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -82,7 +83,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   }, []);
 
   const htmlContent = useMemo(
-    () => createTradingViewChartTemplate(theme),
+    () => createTradingViewChartTemplate(theme, LIGHTWEIGHT_CHARTS_LIBRARY),
     [theme],
   );
 
