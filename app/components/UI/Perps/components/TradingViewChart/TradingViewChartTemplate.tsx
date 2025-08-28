@@ -56,6 +56,10 @@ export const createTradingViewChartTemplate = (
         window.lastLogicalRange = null;
         window.panVelocity = 0;
         window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
+        
+        // Reset prevention variables
+        window.hasUserInteracted = false; // Track if user has ever interacted with the chart
+        window.lastDataLength = 0; // Track actual data changes vs rerenders
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -148,6 +152,7 @@ export const createTradingViewChartTemplate = (
                 // Mouse and touch event handlers for panning detection
                 const handlePanStart = () => {
                     window.isUserPanning = true;
+                    window.hasUserInteracted = true; // Mark that user has interacted
                     window.panStartTime = performance.now();
                     if (window.panEndTimeout) {
                         clearTimeout(window.panEndTimeout);
@@ -178,8 +183,11 @@ export const createTradingViewChartTemplate = (
                 container.addEventListener('touchend', handlePanEnd, { passive: true });
                 container.addEventListener('touchcancel', handlePanEnd, { passive: true });
                 
-                // Wheel events (for momentum scrolling detection)
+                // Wheel events (for momentum scrolling detection and zoom tracking)
                 container.addEventListener('wheel', (e) => {
+                    // Mark user interaction for any wheel event
+                    window.hasUserInteracted = true;
+                    
                     // Detect if this is likely momentum scrolling vs intentional zoom
                     const isLikelyMomentum = Math.abs(e.deltaY) > 10 && Math.abs(e.deltaX) < 5;
                     if (isLikelyMomentum) {
@@ -191,6 +199,56 @@ export const createTradingViewChartTemplate = (
                         }, 100);
                     }
                 }, { passive: true });
+                
+                // Additional interaction tracking for comprehensive coverage
+                container.addEventListener('click', () => {
+                    window.hasUserInteracted = true;
+                });
+                
+                container.addEventListener('dblclick', () => {
+                    window.hasUserInteracted = true;
+                });
+                
+                // Defer interaction tracking setup until chart is fully initialized
+                setTimeout(() => {
+                    // Track any programmatic range changes as user interaction
+                    // (This catches zoom via UI controls, etc.)
+                    if (window.chart && window.chart.timeScale && typeof window.chart.timeScale === 'function') {
+                        const timeScale = window.chart.timeScale();
+                        if (timeScale && timeScale.setVisibleRange && timeScale.setVisibleLogicalRange) {
+                            const originalSetVisibleRange = timeScale.setVisibleRange.bind(timeScale);
+                            const originalSetVisibleLogicalRange = timeScale.setVisibleLogicalRange.bind(timeScale);
+                            
+                            // Override these methods to track user-initiated changes
+                            timeScale.setVisibleRange = function(...args) {
+                                try {
+                                    // Only mark as user interaction if not called from our internal functions
+                                    const stack = new Error().stack;
+                                    if (!stack.includes('applyZoom') && !stack.includes('applyZoomRestrictionsIfNeeded')) {
+                                        window.hasUserInteracted = true;
+                                    }
+                                } catch (e) {
+                                    // Stack trace analysis failed, assume user interaction
+                                    window.hasUserInteracted = true;
+                                }
+                                return originalSetVisibleRange.apply(this, args);
+                            };
+                            
+                            timeScale.setVisibleLogicalRange = function(...args) {
+                                try {
+                                    const stack = new Error().stack;
+                                    if (!stack.includes('applyZoom') && !stack.includes('applyZoomRestrictionsIfNeeded')) {
+                                        window.hasUserInteracted = true;
+                                    }
+                                } catch (e) {
+                                    // Stack trace analysis failed, assume user interaction
+                                    window.hasUserInteracted = true;
+                                }
+                                return originalSetVisibleLogicalRange.apply(this, args);
+                            };
+                        }
+                    }
+                }, 100); // Small delay to ensure chart is fully initialized
 
                 // Function to apply zoom restrictions when not actively panning
                 window.applyZoomRestrictionsIfNeeded = function() {
@@ -333,6 +391,13 @@ export const createTradingViewChartTemplate = (
             // Remove event listeners if needed
             // (They'll be garbage collected with the DOM, but good practice)
         };
+        
+        // Utility function to reset interaction tracking (for debugging/testing)
+        window.resetInteractionTracking = function() {
+            window.hasUserInteracted = false;
+            window.lastDataLength = 0;
+            console.log('📊 TradingView: Interaction tracking reset - chart may auto-scale on next data update');
+        };
         // Store price lines for management
         window.priceLines = {
             entryPrice: null,
@@ -341,13 +406,23 @@ export const createTradingViewChartTemplate = (
             stopLossPrice: null,
             currentPrice: null
         };
-        // Apply zoom to show specific number of candles
-        window.applyZoom = function(candleCount) {
+        // Apply zoom to show specific number of candles (NON-DISRUPTIVE VERSION)
+        window.applyZoom = function(candleCount, forceReset = false) {
             if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
                 return;
             }
             
-            // Ensure candleCount is within bounds using zoom limits
+            // CRITICAL: Don't disrupt user if they've interacted, unless explicitly forced
+            if (window.hasUserInteracted && !forceReset) {
+                // Just update the stored count, don't change the view
+                window.visibleCandleCount = Math.max(
+                    window.ZOOM_LIMITS.MIN_CANDLES, 
+                    Math.min(window.ZOOM_LIMITS.MAX_CANDLES, candleCount)
+                );
+                return;
+            }
+            
+            // Only apply visual changes on initial load or explicit reset
             const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
             const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
@@ -357,7 +432,6 @@ export const createTradingViewChartTemplate = (
             const visibleData = window.allCandleData.slice(startIndex);
             
             if (window.candlestickSeries && visibleData.length > 0) {
-                // Set the visible range to show only the selected number of candles
                 const firstTime = visibleData[0].time;
                 const lastTime = visibleData[visibleData.length - 1].time;
                 
@@ -528,15 +602,16 @@ export const createTradingViewChartTemplate = (
                                     window.visibleCandleCount = message.visibleCandleCount;
                                 }
                                 
-                                // Check if this is truly new data (different source/period) or just a rerender
-                                const currentDataKey = message.source + '_' + (message.data?.length || 0) + '_' + window.visibleCandleCount;
-                                const shouldAutoscale = window.isInitialDataLoad || (window.lastDataKey !== currentDataKey);
+                                // Ultra-simple auto-scale logic: ONLY on initial load
+                                const shouldAutoscale = window.isInitialDataLoad;
                                 
                                 if (shouldAutoscale) {
-                                    // Apply zoom to show the specified number of candles
-                                    window.applyZoom(window.visibleCandleCount);
-                                    window.lastDataKey = currentDataKey;
+                                    // Apply zoom ONLY on first time opening chart
+                                    window.applyZoom(window.visibleCandleCount, true);
+                                    console.log('📊 TradingView: Applied initial zoom to', window.visibleCandleCount, 'candles');
                                 }
+                                
+                                // Mark initial load as complete
                                 window.isInitialDataLoad = false;
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
