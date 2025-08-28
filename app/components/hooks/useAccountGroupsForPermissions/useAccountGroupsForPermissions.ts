@@ -90,17 +90,22 @@ const fulfillsRequestedAccountIds = (
 
 /**
  * Hook that manages account groups for CAIP-25 permissions, providing both connected
- * and supported account groups based on existing permissions and requested chains/namespaces.
+ * and supported account groups based on existing permissions, requested chains/namespaces,
+ * and specific account IDs with prioritization support.
  *
  * This hook handles the complex logic of:
  * - Filtering account groups that support requested chains/namespaces
+ * - Prioritizing account groups that fulfill specific requested account IDs
  * - Mapping existing CAIP-25 permissions to account groups
  * - Converting between different account ID formats
+ * - Preventing duplicate account groups in results
  *
  * @param existingPermission - The current CAIP-25 caveat value containing existing permissions
+ * @param requestedCaipAccountIds - Array of specific CAIP account IDs being requested (prioritized in results)
  * @param requestedCaipChainIds - Array of CAIP chain IDs being requested for permission
  * @param requestedNamespacesWithoutWallet - Array of CAIP namespaces being requested (excluding wallet namespace)
- * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs
+ * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs.
+ *          Account groups that fulfill requestedCaipAccountIds appear first in both arrays.
  */
 export const useAccountGroupsForPermissions = (
   existingPermission: Caip25CaveatValue,
