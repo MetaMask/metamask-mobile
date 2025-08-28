@@ -24,7 +24,7 @@ import Engine from '../../../../../core/Engine';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
-  onAccountCreated?: (newAccountId: string) => void;
+  onAccountCreated: (newAccountId: string) => void;
 }
 
 const AccountListFooter = memo(
@@ -59,7 +59,7 @@ const AccountListFooter = memo(
           });
 
         // Notify parent component about the newly created account
-        if (newAccountGroup?.id && onAccountCreated) {
+        if (newAccountGroup?.id) {
           onAccountCreated(newAccountGroup.id);
         }
       } catch (e: unknown) {
