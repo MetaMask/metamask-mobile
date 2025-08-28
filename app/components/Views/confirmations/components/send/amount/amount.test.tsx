@@ -3,6 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AssetType, TokenStandard } from '../../../types/token';
+// eslint-disable-next-line import/no-namespace
+import * as BalanceFns from '../../../hooks/send/useBalance';
 import { Amount } from './amount';
 import { getFontSizeForInputLength } from './amount.styles';
 
@@ -31,12 +33,6 @@ const mockNFTAsset = {
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
-}));
-
-jest.mock('../../../hooks/send/useBalance', () => ({
-  useBalance: () => ({
-    balance: '10',
-  }),
 }));
 
 jest.mock('../../../hooks/send/useAmountValidation', () => ({
@@ -122,6 +118,7 @@ jest.mock('./amount-keyboard', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: { [key: string]: string } = {
+      'send.unit': 'unit',
       'send.units': 'units',
       'send.available': 'available',
     };
@@ -162,6 +159,11 @@ const renderComponent = (
 describe('Amount Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(BalanceFns, 'useBalance')
+      .mockReturnValue({ balance: '10' } as ReturnType<
+        typeof BalanceFns.useBalance
+      >);
   });
 
   it('renders correctly with ERC20 token', () => {
@@ -193,6 +195,18 @@ describe('Amount Component', () => {
     expect(getByText('17')).toBeTruthy();
     expect(getByText('10 units available')).toBeTruthy();
     expect(queryByTestId('fiat_toggle')).toBeNull();
+  });
+
+  it('display correctly if only one unit of NFT is available', () => {
+    jest
+      .spyOn(BalanceFns, 'useBalance')
+      .mockReturnValue({ balance: '1' } as ReturnType<
+        typeof BalanceFns.useBalance
+      >);
+
+    const { getByText } = renderComponent('ETH', mockNFTAsset);
+
+    expect(getByText('1 unit available')).toBeTruthy();
   });
 
   it('starts in fiat mode when primary currency is Fiat', () => {
@@ -307,7 +321,7 @@ describe('Amount Component', () => {
 describe('getFontSizeForInputLength', () => {
   it('return correct font size for character length', () => {
     expect(getFontSizeForInputLength(5)).toEqual(60);
-    expect(getFontSizeForInputLength(8)).toEqual(60);
+    expect(getFontSizeForInputLength(11)).toEqual(48);
     expect(getFontSizeForInputLength(12)).toEqual(32);
     expect(getFontSizeForInputLength(15)).toEqual(32);
     expect(getFontSizeForInputLength(20)).toEqual(24);
