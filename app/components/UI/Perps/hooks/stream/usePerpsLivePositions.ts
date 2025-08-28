@@ -51,7 +51,7 @@ export function usePerpsLivePositions(
         if (!hasReceivedFirstUpdate.current) {
           DevLogger.log(
             'usePerpsLivePositions: Received first WebSocket update',
-            { positionsCount: newPositions.length },
+            { positionsCount: newPositions?.length ?? 0 },
           );
           hasReceivedFirstUpdate.current = true;
           setIsInitialLoading(false);
