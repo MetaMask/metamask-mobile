@@ -39,6 +39,7 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 
 interface AccountGroupDetailsProps {
   route: {
@@ -66,6 +67,11 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+
+  // Seedless onboarding login flow do not supported for remove private key accounts for now
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -223,7 +229,8 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         </TouchableOpacity>
         <Wallet wallet={wallet} />
         {canExportMnemonic && <SecretRecoveryPhrase account={account} />}
-        {type === AccountGroupType.SingleAccount ? (
+        {type === AccountGroupType.SingleAccount &&
+        !isSeedlessOnboardingLoginFlow ? (
           <RemoveAccount account={account} />
         ) : null}
       </ScrollView>
