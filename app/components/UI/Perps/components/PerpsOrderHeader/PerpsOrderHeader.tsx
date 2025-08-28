@@ -18,6 +18,7 @@ import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type { OrderType } from '../../controllers/types';
 import { formatPercentage, formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOrderHeader.styles';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -106,7 +107,9 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       <TouchableOpacity onPress={handleOrderTypePress}>
         <View style={styles.marketButton}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {orderType === 'market' ? 'Market' : 'Limit'}
+            {orderType === 'market'
+              ? strings('perps.order.market')
+              : strings('perps.order.limit')}
           </Text>
         </View>
       </TouchableOpacity>
