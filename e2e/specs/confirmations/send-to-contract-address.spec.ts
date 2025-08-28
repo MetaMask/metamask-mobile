@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -17,7 +17,7 @@ import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-describe(SmokeConfirmations('Send to contract address'), () => {
+describe(RegressionConfirmations('Send to contract address'), () => {
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 
