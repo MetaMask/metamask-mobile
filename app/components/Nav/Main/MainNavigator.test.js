@@ -212,6 +212,12 @@ const createMockState = (overrides = {}) => ({
           },
         },
       },
+      MultichainNetworkController: {
+        isEvmSelected: true,
+        selectedMultichainNetworkChainId: 'eip155:1',
+        multichainNetworkConfigurationsByChainId: {},
+        networksWithTransactionActivity: {},
+      },
     },
   },
   ...overrides,
