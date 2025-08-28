@@ -1,5 +1,5 @@
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-index 81faf0a..c97635d 100644
+index 81faf0a..3014bae 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
 @@ -6,15 +6,41 @@ export declare const logError: (error: any) => void;
@@ -226,7 +226,7 @@ index 81faf0a..c97635d 100644
      quoteId: string;
      fiatAmount: number;
      fiatAmountInUsd: number;
-@@ -229,12 +247,12 @@ export type TransakOrder = {
+@@ -229,49 +247,57 @@ export type TransakOrder = {
      cryptoAmount: number;
      conversionPrice: number;
      totalFeeInFiat: number;
@@ -242,7 +242,10 @@ index 81faf0a..c97635d 100644
  };
  export declare class OrderIdTransformer {
      static depositOrderIdToTransakOrderId(depositOrderId: string): string;
-@@ -244,34 +262,42 @@ export declare class OrderIdTransformer {
+-    static transakOrderIdToDepositOrderId(transakOrderId: string, environment: TransakEnvironment): string;
++    static transakOrderIdToDepositOrderId(transakOrderId: string, environment: SdkEnvironment): string;
+     static isDepositOrderId(orderId: string): boolean;
+     static extractTransakOrderId(orderId: string): string;
  }
  export declare class NativeRampsSdk {
      #private;
@@ -296,7 +299,7 @@ index 81faf0a..c97635d 100644
      logout(): Promise<string>;
  }
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-index f5facee..5d8f666 100644
+index f5facee..33bf8b8 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
 @@ -1,10 +1,33 @@
@@ -401,7 +404,17 @@ index f5facee..5d8f666 100644
  exports.OrderStatusEnum = {
      Unknown: 'UNKNOWN',
      Precreated: 'PRECREATED',
-@@ -105,20 +152,24 @@ class OrderIdTransformer {
+@@ -89,7 +136,8 @@ class OrderIdTransformer {
+         return parts[parts.length - 1];
+     }
+     static transakOrderIdToDepositOrderId(transakOrderId, environment) {
+-        const provider = environment === TransakEnvironment.Staging
++        const mappedEnvironment = mapSdkEnvironmentToTransakEnvironment(environment);
++        const provider = mappedEnvironment === TransakEnvironment.Staging
+             ? 'transak-native-staging'
+             : 'transak-native';
+         return `/providers/${provider}/orders/${transakOrderId}`;
+@@ -105,20 +153,24 @@ class OrderIdTransformer {
  }
  exports.OrderIdTransformer = OrderIdTransformer;
  class NativeRampsSdk {
@@ -414,11 +427,10 @@ index f5facee..5d8f666 100644
 +        _NativeRampsSdk_context.set(this, void 0);
          _NativeRampsSdk_accessToken.set(this, null);
          __classPrivateFieldSet(this, _NativeRampsSdk_config, Object.assign({}, config), "f");
--        __classPrivateFieldSet(this, _NativeRampsSdk_environment, environment, "f");
+         __classPrivateFieldSet(this, _NativeRampsSdk_environment, environment, "f");
 -        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, environment);
-+        __classPrivateFieldSet(this, _NativeRampsSdk_environment, mapSdkEnvironmentToTransakEnvironment(environment), "f");
 +        __classPrivateFieldSet(this, _NativeRampsSdk_context, config.context, "f");
-+        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, mapSdkEnvironmentToTransakEnvironment(__classPrivateFieldGet(this, _NativeRampsSdk_environment, "f")));
          __classPrivateFieldSet(this, _NativeRampsSdk_apiClient, axios_1.default.create({
              baseURL,
 -            headers: Object.assign(Object.assign({ 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': `NativeRampsSdk/${package_json_1.version}` }, (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").frontendAuth && {
@@ -432,7 +444,7 @@ index f5facee..5d8f666 100644
          }), "f");
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
      }
-@@ -134,25 +185,40 @@ class NativeRampsSdk {
+@@ -134,25 +186,40 @@ class NativeRampsSdk {
      getVersion() {
          return package_json_1.version;
      }
@@ -481,7 +493,7 @@ index f5facee..5d8f666 100644
              this.setAccessToken(accessToken);
              return accessToken;
          }
-@@ -163,8 +229,8 @@ class NativeRampsSdk {
+@@ -163,8 +230,8 @@ class NativeRampsSdk {
      async getUserDetails() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -492,7 +504,7 @@ index f5facee..5d8f666 100644
          }
          catch (error) {
              throw error;
-@@ -172,7 +238,7 @@ class NativeRampsSdk {
+@@ -172,7 +239,7 @@ class NativeRampsSdk {
      }
      async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
          try {
@@ -501,7 +513,7 @@ index f5facee..5d8f666 100644
                  params: {
                      fiatCurrency,
                      cryptoCurrency,
-@@ -183,54 +249,49 @@ class NativeRampsSdk {
+@@ -183,54 +250,49 @@ class NativeRampsSdk {
                      isFeeExcludedFromFiat: true,
                  },
              });
@@ -569,7 +581,7 @@ index f5facee..5d8f666 100644
          }
          catch (error) {
              throw error;
-@@ -239,8 +300,8 @@ class NativeRampsSdk {
+@@ -239,8 +301,8 @@ class NativeRampsSdk {
      async patchUser(data) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -580,7 +592,7 @@ index f5facee..5d8f666 100644
          }
          catch (error) {
              throw error;
-@@ -249,77 +310,88 @@ class NativeRampsSdk {
+@@ -249,77 +311,88 @@ class NativeRampsSdk {
      async submitPurposeOfUsageForm(purpose) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -699,7 +711,7 @@ index f5facee..5d8f666 100644
                  }
                  catch (retryError) {
                      throw retryError;
-@@ -334,15 +406,16 @@ class NativeRampsSdk {
+@@ -334,15 +407,16 @@ class NativeRampsSdk {
              const transakOrderId = OrderIdTransformer.extractTransakOrderId(orderId);
              const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders/payment-confirmation', {
                  orderId: transakOrderId,
@@ -719,7 +731,17 @@ index f5facee..5d8f666 100644
          let depositOrderId;
          if (OrderIdTransformer.isDepositOrderId(orderId)) {
              depositOrderId = orderId;
-@@ -365,14 +438,14 @@ class NativeRampsSdk {
+@@ -353,7 +427,8 @@ class NativeRampsSdk {
+         const transakOrderId = OrderIdTransformer.extractTransakOrderId(depositOrderId);
+         const STG_API_ORDER_URL = `https://on-ramp.uat-api.cx.metamask.io/providers/transak-native-staging/orders/${transakOrderId}`;
+         const PROD_API_ORDER_URL = `https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`;
+-        const API_ORDER_URL = __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f") === TransakEnvironment.Staging
++        const API_ORDER_URL = mapSdkEnvironmentToTransakEnvironment(__classPrivateFieldGet(this, _NativeRampsSdk_environment, "f")) ===
++            TransakEnvironment.Staging
+             ? STG_API_ORDER_URL
+             : PROD_API_ORDER_URL;
+         try {
+@@ -365,14 +440,14 @@ class NativeRampsSdk {
                  },
              });
              const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
@@ -739,7 +761,7 @@ index f5facee..5d8f666 100644
                  }
                  catch (transakError) {
                      console.warn('Failed to fetch payment options from Transak API:', transakError);
-@@ -404,28 +477,27 @@ class NativeRampsSdk {
+@@ -404,28 +479,28 @@ class NativeRampsSdk {
      }
      async requestOtt() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
@@ -763,7 +785,8 @@ index f5facee..5d8f666 100644
      async getGeolocation() {
 -        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
 -        const url = `${baseURL}/fiat/public/v1/get/country`;
-+        const oldBaseURL = __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f") === TransakEnvironment.Staging
++        const mappedEnvironment = mapSdkEnvironmentToTransakEnvironment(__classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++        const oldBaseURL = mappedEnvironment === TransakEnvironment.Staging
 +            ? 'https://api-stg.transak.com'
 +            : 'https://api.transak.com';
 +        const url = new URL('/fiat/public/v1/get/country', oldBaseURL);
@@ -779,7 +802,7 @@ index f5facee..5d8f666 100644
              return response.data;
          }
          catch (error) {
-@@ -433,12 +505,12 @@ class NativeRampsSdk {
+@@ -433,12 +508,12 @@ class NativeRampsSdk {
          }
      }
      generatePaymentWidgetUrl(ottToken, quote, walletAddress, extraParams) {
@@ -787,14 +810,15 @@ index f5facee..5d8f666 100644
 +        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
              throw new Error('Partner API key is required for generatePaymentWidgetUrl');
          }
-         const widgetBaseUrl = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getPaymentWidgetBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+-        const widgetBaseUrl = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getPaymentWidgetBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++        const widgetBaseUrl = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getPaymentWidgetBaseUrl).call(this, mapSdkEnvironmentToTransakEnvironment(__classPrivateFieldGet(this, _NativeRampsSdk_environment, "f")));
          const defaultParams = {
 -            apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey,
 +            apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
              ott: ottToken,
              fiatCurrency: quote.fiatCurrency,
              cryptoCurrencyCode: quote.cryptoCurrency,
-@@ -457,6 +529,16 @@ class NativeRampsSdk {
+@@ -457,6 +532,16 @@ class NativeRampsSdk {
          widgetUrl.search = params.toString();
          return widgetUrl.toString();
      }
@@ -811,7 +835,7 @@ index f5facee..5d8f666 100644
      async getOrdersHistory(limit = 10, skip = 0) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
-@@ -466,7 +548,7 @@ class NativeRampsSdk {
+@@ -466,7 +551,7 @@ class NativeRampsSdk {
                      limit,
                  },
              });
@@ -820,7 +844,7 @@ index f5facee..5d8f666 100644
          }
          catch (error) {
              throw error;
-@@ -476,9 +558,9 @@ class NativeRampsSdk {
+@@ -476,9 +561,9 @@ class NativeRampsSdk {
          var _a;
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -832,7 +856,7 @@ index f5facee..5d8f666 100644
          }
          catch (error) {
              if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-@@ -489,27 +571,22 @@ class NativeRampsSdk {
+@@ -489,27 +574,22 @@ class NativeRampsSdk {
          }
      }
  }
@@ -872,7 +896,7 @@ index f5facee..5d8f666 100644
              if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
                  (0, exports.logRequest)(request);
              }
-@@ -533,9 +610,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -533,9 +613,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
  }, _NativeRampsSdk_getBaseUrl = function _NativeRampsSdk_getBaseUrl(environment) {
      switch (environment) {
          case TransakEnvironment.Production:
@@ -884,7 +908,7 @@ index f5facee..5d8f666 100644
          default:
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
-@@ -549,8 +626,21 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -549,8 +629,21 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
  }, _NativeRampsSdk_ensureAccessToken = function _NativeRampsSdk_ensureAccessToken() {
@@ -908,7 +932,7 @@ index f5facee..5d8f666 100644
      }
  };
  __decorate([
-@@ -562,8 +652,9 @@ __decorate([
+@@ -562,8 +655,9 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __param(1, (0, SdkParam_1.default)({ required: true })),
@@ -919,7 +943,7 @@ index f5facee..5d8f666 100644
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "verifyUserOtp", null);
  __decorate([
-@@ -579,22 +670,21 @@ __decorate([
+@@ -579,22 +673,21 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
@@ -947,7 +971,7 @@ index f5facee..5d8f666 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -610,16 +700,9 @@ __decorate([
+@@ -610,16 +703,9 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
@@ -965,7 +989,7 @@ index f5facee..5d8f666 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -628,8 +711,10 @@ __decorate([
+@@ -628,8 +714,10 @@ __decorate([
  ], NativeRampsSdk.prototype, "cancelOrder", null);
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
@@ -1010,7 +1034,7 @@ index 70cf5dc..5dd5fc3 100644
 +    });
  });
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
-index 5416ceb..6bcd692 100644
+index 5416ceb..bdf7716 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
 @@ -7,13 +7,25 @@ const axios_1 = __importDefault(require("axios"));
@@ -2315,6 +2339,21 @@ index 5416ceb..6bcd692 100644
 +            const result = await emptyConfigSdk.getGeolocation();
 +            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
              (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+     });
+@@ -1200,12 +1311,12 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('transakOrderIdToDepositOrderId', () => {
+         (0, vitest_1.it)('should convert a transak order ID to deposit order ID in production environment', () => {
+             const transakOrderId = 'abc123';
+-            const result = NativeRampsSdk_1.OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrderId, NativeRampsSdk_1.TransakEnvironment.Production);
++            const result = NativeRampsSdk_1.OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrderId, NativeRampsSdk_1.SdkEnvironment.Production);
+             (0, vitest_1.expect)(result).toBe('/providers/transak-native/orders/abc123');
+         });
+         (0, vitest_1.it)('should convert a transak order ID to deposit order ID in staging environment', () => {
+             const transakOrderId = 'abc123';
+-            const result = NativeRampsSdk_1.OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrderId, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const result = NativeRampsSdk_1.OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrderId, NativeRampsSdk_1.SdkEnvironment.Staging);
+             (0, vitest_1.expect)(result).toBe('/providers/transak-native-staging/orders/abc123');
          });
      });
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts

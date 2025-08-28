@@ -21,10 +21,10 @@ const mockUseDepositSdkMethodInitialState = {
   isFetching: false,
 };
 
-let mockFetchKycForms = jest.fn().mockResolvedValue({ forms: [] });
-let mockFetchKycFormData = jest
+let mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
+let mockGetAdditionalRequirements = jest
   .fn()
-  .mockResolvedValue({ data: { kycUrl: 'test-kyc-url' } });
+  .mockResolvedValue({ formsRequired: [] });
 let mockFetchUserDetails = jest
   .fn()
   .mockResolvedValue({ kyc: { l1: { status: KycStatus.APPROVED } } });
@@ -32,7 +32,7 @@ let mockCreateOrder = jest
   .fn()
   .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
 let mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
-let mockRequestOtt = jest.fn().mockResolvedValue({ token: 'test-ott-token' });
+let mockRequestOtt = jest.fn().mockResolvedValue({ ott: 'test-ott-token' });
 let mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
 let mockGetOrder = jest.fn().mockResolvedValue({
   id: 'order-id',
@@ -84,11 +84,14 @@ const verifyPopToBuildQuoteCalled = () => {
 
 jest.mock('./useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
-    if (config?.method === 'getKYCForms') {
-      return [mockUseDepositSdkMethodInitialState, mockFetchKycForms];
+    if (config?.method === 'getKycRequirement') {
+      return [mockUseDepositSdkMethodInitialState, mockGetKycRequirement];
     }
-    if (config?.method === 'getKycForm') {
-      return [mockUseDepositSdkMethodInitialState, mockFetchKycFormData];
+    if (config?.method === 'getAdditionalRequirements') {
+      return [
+        mockUseDepositSdkMethodInitialState,
+        mockGetAdditionalRequirements,
+      ];
     }
     if (config?.method === 'getUserDetails') {
       return [mockUseDepositSdkMethodInitialState, mockFetchUserDetails];
@@ -171,10 +174,10 @@ describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockFetchKycForms = jest.fn().mockResolvedValue({ forms: [] });
-    mockFetchKycFormData = jest
+    mockGetKycRequirement = jest.fn().mockResolvedValue({ status: 'APPROVED' });
+    mockGetAdditionalRequirements = jest
       .fn()
-      .mockResolvedValue({ data: { kycUrl: 'test-kyc-url' } });
+      .mockResolvedValue({ formsRequired: [] });
     mockFetchUserDetails = jest
       .fn()
       .mockResolvedValue({ kyc: { l1: { status: KycStatus.APPROVED } } });
@@ -182,7 +185,7 @@ describe('useDepositRouting', () => {
       .fn()
       .mockResolvedValue({ id: 'order-id', walletAddress: '0x123' });
     mockSubmitPurposeOfUsage = jest.fn().mockResolvedValue(undefined);
-    mockRequestOtt = jest.fn().mockResolvedValue({ token: 'test-ott-token' });
+    mockRequestOtt = jest.fn().mockResolvedValue({ ott: 'test-ott-token' });
     mockGeneratePaymentUrl = jest.fn().mockResolvedValue('https://payment.url');
     mockGetOrder = jest.fn().mockResolvedValue({
       id: 'order-id',
@@ -245,7 +248,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
       expect(mockFetchUserDetails).toHaveBeenCalled();
       expect(mockCreateOrder).toHaveBeenCalledWith(
         mockQuote,
@@ -295,7 +298,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
       expect(mockFetchUserDetails).toHaveBeenCalled();
       expect(mockRequestOtt).toHaveBeenCalled();
       expect(mockGeneratePaymentUrl).toHaveBeenCalledWith(
@@ -362,13 +365,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: false },
-          { id: 'address', isSubmitted: true },
-          { id: 'idProof', isSubmitted: true },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
@@ -378,7 +376,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
@@ -394,13 +392,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: true },
-          { id: 'address', isSubmitted: false },
-          { id: 'idProof', isSubmitted: true },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
@@ -410,7 +403,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
@@ -426,13 +419,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: false },
-          { id: 'address', isSubmitted: true },
-          { id: 'usSSN', isSubmitted: false },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
@@ -442,7 +430,7 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
@@ -458,18 +446,22 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest
+      mockGetKycRequirement = jest
         .fn()
         .mockImplementationOnce(() =>
           Promise.resolve({
-            forms: [{ id: 'purposeOfUsage', isSubmitted: false }],
+            status: 'ADDITIONAL_FORMS_REQUIRED',
           }),
         )
         .mockImplementationOnce(() =>
           Promise.resolve({
-            forms: [],
+            status: 'APPROVED',
           }),
         );
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
+      });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -480,7 +472,7 @@ describe('useDepositRouting', () => {
       expect(mockSubmitPurposeOfUsage).toHaveBeenCalledWith([
         'Buying/selling crypto for investments',
       ]);
-      expect(mockFetchKycForms).toHaveBeenCalledTimes(2);
+      expect(mockGetKycRequirement).toHaveBeenCalledTimes(2);
       expect(mockRequestOtt).toHaveBeenCalled();
       expect(mockGeneratePaymentUrl).toHaveBeenCalled();
 
@@ -500,19 +492,20 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: true },
-          { id: 'address', isSubmitted: true },
-          { id: 'idProof', isSubmitted: false },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
       });
-      mockFetchKycFormData = jest.fn().mockResolvedValue({
-        data: {
-          kycUrl: 'test-kyc-url',
-          workFlowRunId: 'test-workflow-run-id',
-        },
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'test-kyc-url',
+              workFlowRunId: 'test-workflow-run-id',
+            },
+          },
+        ],
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -521,17 +514,16 @@ describe('useDepositRouting', () => {
         result.current.routeAfterAuthentication(mockQuote),
       ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
-      expect(mockFetchKycFormData).toHaveBeenCalledWith(mockQuote, {
-        id: 'idProof',
-        isSubmitted: false,
-      });
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
+      expect(mockGetAdditionalRequirements).toHaveBeenCalledWith(
+        mockQuote.quoteId,
+      );
 
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('AdditionalVerification', {
         quote: mockQuote,
         kycUrl: 'test-kyc-url',
-        kycWorkflowRunId: 'test-workflow-run-id',
+        workFlowRunId: 'test-workflow-run-id',
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       });
@@ -544,21 +536,19 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: true },
-          { id: 'address', isSubmitted: true },
-          { id: 'idProof', isSubmitted: false },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
       });
-      mockFetchKycFormData = jest.fn().mockResolvedValue(null);
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [{ type: 'IDPROOF' }],
+      });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('An unexpected error occurred.');
+      ).rejects.toThrow('Missing ID proof metadata');
     });
 
     it('should throw error when all forms are submitted but no clear next step exists', async () => {
@@ -568,25 +558,24 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'personalDetails', isSubmitted: true },
-          { id: 'address', isSubmitted: true },
-          { id: 'usSSN', isSubmitted: true },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [],
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
       await expect(
         result.current.routeAfterAuthentication(mockQuote),
-      ).rejects.toThrow('An unexpected error occurred.');
+      ).resolves.not.toThrow();
 
-      expect(mockFetchKycForms).toHaveBeenCalledWith(mockQuote);
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        'BasicInfo',
-        expect.any(Object),
-      );
+      expect(mockGetKycRequirement).toHaveBeenCalledWith(mockQuote.quoteId);
+      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
+        quote: mockQuote,
+      });
     });
 
     it('should not auto-submit purpose of usage form when it is already submitted', async () => {
@@ -596,11 +585,9 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: false },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -610,7 +597,7 @@ describe('useDepositRouting', () => {
       ).resolves.not.toThrow();
 
       expect(mockSubmitPurposeOfUsage).not.toHaveBeenCalled();
-      expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
+      expect(mockGetKycRequirement).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
         previousFormData: mockPreviousFormData,
@@ -625,12 +612,12 @@ describe('useDepositRouting', () => {
       };
 
       // Always return the unsubmitted form, so recursion hits the depth limit
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: false },
-          { id: 'personalDetails', isSubmitted: true },
-          { id: 'address', isSubmitted: true },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+      });
+
+      mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+        formsRequired: [{ type: 'PURPOSE_OF_USAGE' }],
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
@@ -652,19 +639,21 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchUserDetails = jest
-        .fn()
-        .mockResolvedValue({ kyc: { l1: { status: 'PENDING' } } });
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
+        kycType: 'SIMPLE',
+      });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
       const success = await result.current.routeAfterAuthentication(mockQuote);
 
-      expect(success).toBe(false);
+      expect(success).toBe(undefined);
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('KycProcessing', {
+      expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
+        previousFormData: mockPreviousFormData,
       });
     });
   });
@@ -690,7 +679,7 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest
+      mockGetKycRequirement = jest
         .fn()
         .mockRejectedValue(new Error('KYC forms fetch failed'));
 
@@ -830,7 +819,7 @@ describe('useDepositRouting', () => {
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
       };
-      mockFetchKycForms = jest.fn().mockImplementation(() => {
+      mockGetKycRequirement = jest.fn().mockImplementation(() => {
         const error = new Error('Unauthorized');
         (error as AxiosError).status = 401;
         throw error;
@@ -1136,7 +1125,7 @@ describe('useDepositRouting', () => {
       result.current.navigateToKycWebview({
         quote: mockQuote,
         kycUrl: 'test-url',
-        kycWorkflowRunId: 'test-workflow-id',
+        workFlowRunId: 'test-workflow-id',
       });
 
       verifyPopToBuildQuoteCalled();
@@ -1145,7 +1134,7 @@ describe('useDepositRouting', () => {
         params: {
           quote: mockQuote,
           sourceUrl: 'test-url',
-          kycWorkflowRunId: 'test-workflow-id',
+          workFlowRunId: 'test-workflow-id',
           cryptoCurrencyChainId: 'eip155:1',
           paymentMethodId: 'credit_debit_card',
         },
@@ -1161,12 +1150,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [
-          { id: 'purposeOfUsage', isSubmitted: true },
-          { id: 'personalDetails', isSubmitted: false },
-          { id: 'address', isSubmitted: true },
-        ],
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'NOT_SUBMITTED',
         kycType: 'SIMPLE',
       });
 
@@ -1190,9 +1175,8 @@ describe('useDepositRouting', () => {
         paymentMethodId: 'credit_debit_card',
       };
 
-      mockFetchKycForms = jest.fn().mockResolvedValue({
-        forms: [],
-        kycType: 'NONE',
+      mockGetKycRequirement = jest.fn().mockResolvedValue({
+        status: 'APPROVED',
       });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
