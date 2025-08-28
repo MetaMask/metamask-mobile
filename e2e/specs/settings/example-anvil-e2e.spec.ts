@@ -31,7 +31,7 @@ describe.skip('NFT Details page', () => {
         await QuoteView.enterAmount(quantity);
 
         //Select destination token
-        await QuoteView.tapDestToken();
+        await QuoteView.tapDestinationToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
         await QuoteView.selectToken(destTokenSymbol);

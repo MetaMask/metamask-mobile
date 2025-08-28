@@ -17,7 +17,7 @@ export async function submitSwapUnifiedUI(
     await QuoteView.tapSourceToken();
     await QuoteView.tapToken(chainId, sourceTokenSymbol);
   }
-  await QuoteView.tapDestToken();
+  await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
   await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {

@@ -80,7 +80,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
 
-    await QuoteView.tapDestToken();
+    await QuoteView.tapDestinationToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
     await TestHelpers.delay(3000);

@@ -1,3 +1,5 @@
+import enContent from '../../../locales/languages/en.json';
+
 export const AdvancedViewSelectorsIDs = {
   CONTAINER: 'advanced-settings',
   ETH_SIGN_SWITCH: 'eth-sign-switch',
@@ -10,6 +12,6 @@ export const AdvancedViewSelectorsIDs = {
 };
 
 export const AdvancedViewSelectorsText = {
-  RESET_ACCOUNT: 'Reset Account',
-  RESET_CONFIRMED: 'Yes, reset',
+  RESET_ACCOUNT: enContent.app_settings.reset_account_button,
+  RESET_CONFIRMED: enContent.app_settings.reset_account_confirm_button,
 };

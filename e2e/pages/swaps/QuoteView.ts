@@ -18,6 +18,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.CONFIRM_SWAP);
   }
 
+  get sourceTokenArea(): DetoxElement {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
+  }
+
   get destinationTokenArea(): DetoxElement {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
@@ -48,12 +52,16 @@ class QuoteView {
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button);
+      await Gestures.waitAndTap(button, {
+        elemDescription: `Tapping on keyboard digit ${digit}`,
+      });
     }
   }
 
   async tapSearchToken(): Promise<void> {
-    await Gestures.waitAndTap(this.searchToken);
+    await Gestures.waitAndTap(this.searchToken, {
+      elemDescription: 'Tap on token search input element',
+    });
   }
 
   async tapToken(chainId: string, symbol: string): Promise<void> {
@@ -61,6 +69,7 @@ class QuoteView {
       this.token(chainId, symbol) as unknown as DetoxElement,
       {
         delay: 1000,
+        elemDescription: `Select token symbol ${symbol}`,
       },
     );
   }
@@ -79,21 +88,21 @@ class QuoteView {
   }
 
   async tapSourceToken(): Promise<void> {
-    const token = Matchers.getElementByText('ETH');
-    await Gestures.waitAndTap(token);
-  }
-
-  async tapDestToken(): Promise<void> {
-    const token = Matchers.getElementByText('USDC');
-    await Gestures.waitAndTap(token);
+    await Gestures.waitAndTap(this.sourceTokenArea, {
+      elemDescription: 'Tap source asset picker',
+    });
   }
 
   async tapDestinationToken(): Promise<void> {
-    await Gestures.waitAndTap(this.destinationTokenArea);
+    await Gestures.waitAndTap(this.destinationTokenArea, {
+      elemDescription: 'Tap destination asset picker',
+    });
   }
 
   async tapSeeAll(): Promise<void> {
-    await Gestures.waitAndTap(this.seeAllButton);
+    await Gestures.waitAndTap(this.seeAllButton, {
+      elemDescription: 'Tap on See all button',
+    });
   }
 
   async swipeNetwork(network: string, percentage: number): Promise<void> {
@@ -103,21 +112,29 @@ class QuoteView {
 
   async selectNetwork(network: string): Promise<void> {
     const networkElement = Matchers.getElementByText(network);
-    await Gestures.waitAndTap(networkElement, { delay: 1000 });
+    await Gestures.waitAndTap(networkElement, {
+      delay: 1000,
+      elemDescription: `Select network ${network}`,
+    });
   }
 
   async tapConfirmBridge(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmBridge);
+    await Gestures.waitAndTap(this.confirmBridge, {
+      elemDescription: 'Confirm bridge',
+    });
   }
 
   async tapConfirmSwap(): Promise<void> {
     await Gestures.waitAndTap(this.confirmSwap, {
       delay: 1300,
+      elemDescription: 'Confirm swap',
     });
   }
 
   async tapOnCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel swap',
+    });
   }
 }
 
