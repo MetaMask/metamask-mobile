@@ -67,9 +67,10 @@ const NetworkMultiSelector = ({
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { selectPopularNetwork } = useNetworkSelection({
-    networks,
-  });
+  const { selectPopularNetwork, selectAllPopularNetworks } =
+    useNetworkSelection({
+      networks,
+    });
 
   const selectedChainIds = useMemo(
     () =>
@@ -145,15 +146,15 @@ const NetworkMultiSelector = ({
     [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
-  const onSelectAllPopularNetworks = useCallback(async () => {
-    await selectPopularNetwork('eip155:1', dismissModal);
-  }, [selectPopularNetwork, dismissModal]);
-
   const onSelectNetwork = useCallback(
-    async (caipChainId: CaipChainId) => {
-      await selectPopularNetwork(caipChainId, dismissModal);
+    async (caipChainId?: CaipChainId) => {
+      if (caipChainId) {
+        await selectPopularNetwork(caipChainId, dismissModal);
+      } else {
+        await selectAllPopularNetworks(dismissModal);
+      }
     },
-    [selectPopularNetwork, dismissModal],
+    [selectPopularNetwork, selectAllPopularNetworks, dismissModal],
   );
 
   const selectAllNetworksComponent = useMemo(
@@ -162,7 +163,7 @@ const NetworkMultiSelector = ({
         isSelected={areAllNetworksSelected}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
-        onPress={onSelectAllPopularNetworks}
+        onPress={() => onSelectNetwork()}
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
@@ -170,7 +171,7 @@ const NetworkMultiSelector = ({
         }}
       />
     ),
-    [areAllNetworksSelected, onSelectAllPopularNetworks],
+    [areAllNetworksSelected, onSelectNetwork],
   );
 
   return (
