@@ -9,37 +9,6 @@ export const mockEvents = {
    * Mock GET request events.
    */
   GET: {
-    /**
-     * Mainnet gas fees endpoint with a mock 500 error response.
-     * @property {string} urlEndpoint - API endpoint for mainnet gas fees.
-     * @property {Object} response - Error response data.
-     */
-
-    remoteFeatureFlagsOldConfirmations: {
-      urlEndpoint:
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-      response: [
-        {
-          mobileMinimumVersions: {
-            appMinimumBuild: 1243,
-            appleMinimumOS: 6,
-            androidMinimumAPIVersion: 21,
-          },
-        },
-        {
-          confirmation_redesign: {
-            signatures: false,
-            staking_confirmations: false,
-            contract_deployment: false,
-            contract_interaction: false,
-            transfer: false,
-            approve: false,
-          },
-        },
-      ],
-      responseCode: 200,
-    },
-
     remoteFeatureFlagsRedesignedConfirmations: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
@@ -113,30 +82,6 @@ export const mockEvents = {
             transfer: true,
             approve: true,
           },
-        },
-      ],
-      responseCode: 200,
-    },
-
-    // TODO: Remove when this feature is no longer behind a feature flag
-    remoteFeatureFlagsDefiPositionsEnabled: {
-      urlEndpoint:
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-      response: [
-        {
-          assetsDefiPositionsEnabled: true,
-        },
-      ],
-      responseCode: 200,
-    },
-
-    // TODO: Remove when this feature is no longer behind a feature flag
-    remoteFeatureFlagsNotificationsEnabledByDefault: {
-      urlEndpoint:
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-      response: [
-        {
-          assetsEnableNotificationsByDefault: true,
         },
       ],
       responseCode: 200,

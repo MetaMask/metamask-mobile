@@ -11,11 +11,11 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -23,14 +23,10 @@ const EXPECTED_TOKEN_AMOUNT = '7';
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('approve default ERC20 token amount from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        ...oldConfirmationsRemoteFeatureFlags,
+      );
     };
 
     await withFixtures(

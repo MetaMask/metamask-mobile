@@ -9,25 +9,21 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../framework/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(RegressionConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
   it('approve all ERC1155 tokens', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        ...oldConfirmationsRemoteFeatureFlags,
+      );
     };
 
     await withFixtures(
