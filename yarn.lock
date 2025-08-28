@@ -4979,15 +4979,7 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
-  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
-  dependencies:
-    "@metamask/utils" "^11.4.2"
-    immer "^9.0.6"
-
-"@metamask/base-controller@^8.2.0":
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0", "@metamask/base-controller@^8.2.0":
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
   integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
@@ -6002,15 +5994,15 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/signature-controller@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-30.0.0.tgz#c69e595a4e3498774e69fc10803f68bc8529566f"
-  integrity sha512-toEbz98TjwzbxnPVE6sWzCJGUqrF+jF2HXz7kJYiZv8UQX3oJqwrNBG4S/M1KnN9Nt+wrvB7hgNWgj08PimAYA==
+"@metamask/signature-controller@^32.0.0":
+  version "32.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-32.0.0.tgz#8ae959294e9d43872084627f90599c71f83cf923"
+  integrity sha512-1Psyi85ap5DwvJEtoIu2caK5gMtOiefbEXJfs/Hduiu1eQNYDsve30FnP2rvxl/NM6HeudCmNlPsfAE3buwAPg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/controller-utils" "^11.9.0"
+    "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.2"
     jsonschema "^1.4.1"
     lodash "^4.17.21"
     uuid "^8.3.2"
