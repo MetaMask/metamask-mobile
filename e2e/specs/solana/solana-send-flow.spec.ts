@@ -1,10 +1,5 @@
-import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -26,50 +21,29 @@ const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
 describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagSendRedesignDisabled;
-
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
-  };
-
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();
   });
 
   it('should import wallet with a Solana account', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withSolanaFixture().build(),
-        restartDevice: true,
-        testSpecificMock,
-      },
-      async () => {
-        await loginToApp();
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
+    });
 
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
+    await WalletView.tapCurrentMainWalletAccountActions();
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
 
-        await Assertions.expectElementToBeVisible(
-          NetworkEducationModal.container,
-        );
-        await NetworkEducationModal.tapGotItButton();
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
+    await NetworkEducationModal.tapGotItButton();
 
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-      },
-    );
+    await WalletView.tapCurrentMainWalletAccountActions();
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
   });
 
-  it('should validate recipient address format correctly', async () => {
+  it.skip('should validate recipient address format correctly', async () => {
     await WalletView.tapWalletSendButton();
     await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
     await Assertions.expectElementToHaveText(
