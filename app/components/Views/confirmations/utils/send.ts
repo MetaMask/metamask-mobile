@@ -15,9 +15,6 @@ import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 
-export const isSendRedesignEnabled = () =>
-  process.env.MM_SEND_REDESIGN_ENABLED === 'true';
-
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
   trackEvent(
@@ -33,9 +30,10 @@ export const handleSendPageNavigation = (
     params?: object,
   ) => void,
   location: string,
+  isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
 ) => {
-  if (isSendRedesignEnabled()) {
+  if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
     let screen = Routes.SEND.ASSET;
     if (asset) {
