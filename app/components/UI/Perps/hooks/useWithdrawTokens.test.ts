@@ -5,6 +5,7 @@ import {
   USDC_SYMBOL,
   USDC_DECIMALS,
   USDC_NAME,
+  HYPERLIQUID_MAINNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
 
 // Mock react-redux
@@ -43,9 +44,6 @@ describe('useWithdrawTokens', () => {
       if (selector.name === 'selectIsIpfsGatewayEnabled') {
         return false;
       }
-      if (selector.name === 'selectPerpsNetwork') {
-        return 'mainnet';
-      }
       return null;
     });
   });
@@ -63,7 +61,9 @@ describe('useWithdrawTokens', () => {
     expect(result.current.sourceToken.symbol).toBe(USDC_SYMBOL);
     expect(result.current.sourceToken.decimals).toBe(USDC_DECIMALS);
     expect(result.current.sourceToken.name).toBe(USDC_NAME);
-    expect(result.current.sourceToken.chainId).toBe('0xa4b1'); // Arbitrum mainnet
+    expect(result.current.sourceToken.chainId).toBe(
+      HYPERLIQUID_MAINNET_CHAIN_ID,
+    );
     expect(result.current.sourceToken.currencyExchangeRate).toBe(1);
   });
 
@@ -96,9 +96,6 @@ describe('useWithdrawTokens', () => {
       }
       if (selector.name === 'selectIsIpfsGatewayEnabled') {
         return false;
-      }
-      if (selector.name === 'selectPerpsNetwork') {
-        return 'mainnet';
       }
       return null;
     });
