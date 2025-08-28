@@ -29,6 +29,7 @@ enum SUPPORTED_ACTIONS {
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
+  WC = ACTIONS.WC,
 }
 
 async function handleUniversalLink({
@@ -162,6 +163,14 @@ async function handleUniversalLink({
       .replace(BASE_URL_ACTION, PREFIXES[ACTIONS.SEND]);
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
+    return;
+  } else if (action === SUPPORTED_ACTIONS.WC) {
+    const { params } = extractURLParams(urlObj.href);
+    const wcURL = params?.uri;
+
+    if (wcURL) {
+      instance.parse(wcURL, { origin: source });
+    }
     return;
   }
 }

@@ -430,7 +430,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -461,6 +461,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -536,7 +537,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -567,6 +568,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -642,7 +644,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -673,6 +675,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -748,7 +751,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -779,6 +782,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -854,7 +858,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -885,6 +889,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1594,7 +1599,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1625,6 +1630,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1700,7 +1706,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1731,6 +1737,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1806,7 +1813,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1837,6 +1844,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1912,7 +1920,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1943,6 +1951,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2018,7 +2027,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -2049,6 +2058,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2794,7 +2804,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -2825,6 +2835,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2900,7 +2911,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -2931,6 +2942,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3006,7 +3018,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3037,6 +3049,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3112,7 +3125,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3143,6 +3156,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3218,7 +3232,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3249,6 +3263,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
