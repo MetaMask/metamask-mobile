@@ -5,7 +5,6 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
-import useAccountTrackerPolling from './useAccountTrackerPolling';
 
 import { AssetPollingProvider } from './AssetPollingProvider';
 
@@ -19,7 +18,6 @@ jest.mock('./useAccountTrackerPolling', () => jest.fn());
 const CHAIN_IDS_MOCK = ['0x1', '0x2'];
 
 describe('AssetPollingProvider', () => {
-  const mockUseAccountTrackerPolling = jest.mocked(useAccountTrackerPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
@@ -33,7 +31,6 @@ describe('AssetPollingProvider', () => {
   it('calls all polling hooks', () => {
     render(<AssetPollingProvider />);
 
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalled();
     expect(mockUseCurrencyRatePolling).toHaveBeenCalled();
     expect(mockUseTokenRatesPolling).toHaveBeenCalled();
     expect(mockUseTokenDetectionPolling).toHaveBeenCalled();
@@ -45,7 +42,6 @@ describe('AssetPollingProvider', () => {
     render(
       <AssetPollingProvider
         chainIds={['0x1', '0x2']}
-        networkClientId="networkClientId"
         address="0x1234567890abcdef"
       />,
     );
@@ -69,10 +65,6 @@ describe('AssetPollingProvider', () => {
 
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
       chainIds: CHAIN_IDS_MOCK,
-    });
-
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: ['networkClientId'],
     });
   });
 });

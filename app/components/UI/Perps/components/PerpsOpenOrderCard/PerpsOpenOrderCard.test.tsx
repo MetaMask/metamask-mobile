@@ -242,7 +242,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutTP} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles missing stop loss price', () => {
@@ -254,7 +254,7 @@ describe('PerpsOpenOrderCard', () => {
       render(<PerpsOpenOrderCard order={orderWithoutSL} expanded />);
 
       // Should find "not set" text in the component
-      expect(screen.getByText('Not Set')).toBeOnTheScreen();
+      expect(screen.getByText('Not set')).toBeOnTheScreen();
     });
 
     it('handles zero original size for fill percentage calculation', () => {
