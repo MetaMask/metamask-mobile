@@ -1915,12 +1915,11 @@ export class PerpsController extends BaseController<
           sl_price,
           tp_price,
         }),
-        signal: AbortSignal.timeout(5000),
       });
 
       const duration = performance.now() - startTime;
 
-      if (!response.ok && response.status !== 201) {
+      if (!response.ok) {
         throw new Error(`DataLake API error: ${response.status}`);
       }
 
