@@ -11,7 +11,16 @@ const initialState = {
     favorites: {},
   },
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          sendRedesign: {
+            enabled: false,
+          },
+        },
+      },
+    },
   },
 };
 const mockStore = configureMockStore();

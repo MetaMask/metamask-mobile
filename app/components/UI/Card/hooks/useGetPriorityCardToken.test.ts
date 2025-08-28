@@ -16,6 +16,7 @@ jest.mock('../sdk', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/tokenBalancesController', () => ({
@@ -57,8 +58,13 @@ jest.mock('../../../../util/trace', () => ({
 describe('useGetPriorityCardToken', () => {
   const mockGetPriorityToken = jest.fn();
   const mockFetchAllowances = jest.fn();
+  const mockDispatch = jest.fn();
   const mockTrace = jest.fn();
   const mockEndTrace = jest.fn();
+
+  // Mock Redux state that persists across test lifecycle
+  let mockPriorityToken: CardTokenAllowance | null = null;
+  let mockLastFetched: Date | string | null = null;
   const mockSDK = {
     getPriorityToken: mockGetPriorityToken,
     getSupportedTokensAllowances: mockFetchAllowances,
@@ -129,10 +135,15 @@ describe('useGetPriorityCardToken', () => {
     jest.clearAllMocks();
     mockGetPriorityToken.mockReset();
     mockFetchAllowances.mockReset();
+    mockDispatch.mockReset();
     mockTrace.mockReset();
     mockEndTrace.mockReset();
 
-    // Setup direct selector mocks
+    // Reset mock state for each test
+    mockPriorityToken = null;
+    mockLastFetched = null;
+
+    // Mock token balances
     const mockTokenBalances = {
       [mockAddress.toLowerCase()]: {
         '0x1': {
@@ -177,6 +188,34 @@ describe('useGetPriorityCardToken', () => {
     });
 
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
+
+    (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
+
+    // Set up react-redux mocks with simplified implementation
+    const { useSelector, useDispatch } = jest.requireMock('react-redux');
+
+    // Simplified dispatch mock that just captures calls
+    mockDispatch.mockImplementation(
+      (action: { type?: string; payload?: unknown }) => action,
+    );
+
+    // Simplified selector mock that returns static values for most tests
+    useSelector.mockImplementation((selector: (state: unknown) => unknown) => {
+      const selectorString = selector.toString();
+      if (selectorString.includes('selectAllTokenBalances')) {
+        return mockTokenBalances;
+      }
+      if (selectorString.includes('selectCardPriorityToken')) {
+        return null; // Most tests start with no cached token
+      }
+      if (selectorString.includes('selectCardPriorityTokenLastFetched')) {
+        return null; // Most tests start with no last fetched time
+      }
+      return null;
+    });
+
+    useDispatch.mockReturnValue(mockDispatch);
+
     (strings as jest.Mock).mockReturnValue('Error occurred');
 
     // Mock trace utilities
@@ -213,14 +252,27 @@ describe('useGetPriorityCardToken', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
-    expect(result.current.priorityToken).toEqual(
+
+    // Verify that dispatch was called with the correct actions
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
+        type: expect.stringContaining('setCardPriorityToken'),
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.Enabled,
+        }),
       }),
     );
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: expect.stringContaining('setCardPriorityTokenLastFetched'),
+        payload: expect.any(Date),
+      }),
+    );
+
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
     expect(mockGetPriorityToken).toHaveBeenCalledWith(mockAddress, [
       '0xToken1',
@@ -246,14 +298,19 @@ describe('useGetPriorityCardToken', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(result.current.priorityToken).toEqual(
+    // Verify that dispatch was called with the correct token (fallback to first valid allowance)
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
+        type: expect.stringContaining('setCardPriorityToken'),
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.Enabled,
+        }),
       }),
     );
+
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
@@ -296,25 +353,150 @@ describe('useGetPriorityCardToken', () => {
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
   });
 
-  it('should handle empty allowances array', async () => {
-    mockFetchAllowances.mockResolvedValue([]);
+  it('should use cached token when cache is valid', async () => {
+    const now = new Date();
+    const recentTimestamp = new Date(now.getTime() - 2 * 60 * 1000); // 2 minutes ago
+    const cachedToken = {
+      address: '0xCachedToken',
+      symbol: 'CACHED',
+      name: 'Cached Token',
+      decimals: 18,
+      allowanceState: AllowanceState.Enabled,
+      isStaked: false,
+      chainId: '0xe708',
+    } as CardTokenAllowance;
+
+    // Reset all mocks to ensure clean state
+    jest.resetAllMocks();
+
+    // Create fresh mock functions for this test
+    const testMockFetchAllowances = jest.fn();
+    const testMockGetPriorityToken = jest.fn();
+    const testMockDispatch = jest.fn();
+
+    // Mock react-redux hooks
+    const useReduxMocks = jest.requireMock('react-redux');
+    useReduxMocks.useDispatch.mockReturnValue(testMockDispatch);
+
+    // Track selector calls for debugging
+    const selectorCalls: string[] = [];
+
+    // Mock useSelector to consistently return cached values
+    useReduxMocks.useSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        const selectorString = selector.toString();
+        selectorCalls.push(selectorString.substring(0, 50) + '...');
+
+        if (selectorString.includes('selectAllTokenBalances')) {
+          return {
+            [mockAddress.toLowerCase()]: {
+              '0x1': {
+                '0xCachedToken': '1000000000000000000',
+              },
+            },
+          };
+        }
+        if (
+          selectorString.includes('selectCardPriorityToken') &&
+          !selectorString.includes('LastFetched')
+        ) {
+          return cachedToken;
+        }
+        if (
+          selectorString.includes('selectCardPriorityTokenLastFetched') ||
+          selectorString.includes('LastFetched')
+        ) {
+          return recentTimestamp;
+        }
+        return null;
+      },
+    );
+
+    // Mock the SDK with test-specific functions
+    const sdkMocks = jest.requireMock('../sdk');
+    sdkMocks.useCardSDK.mockReturnValue({
+      sdk: {
+        getSupportedTokensAllowances: testMockFetchAllowances,
+        getPriorityToken: testMockGetPriorityToken,
+        supportedTokens: [
+          {
+            address: '0xCachedToken',
+            symbol: 'CACHED',
+            name: 'Cached Token',
+            decimals: 18,
+          },
+        ],
+      },
+    });
 
     const { result } = renderHook(() => useGetPriorityCardToken());
 
-    // Wait for useEffect to complete
+    // Give the hook time to stabilize and run any effects
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 150));
     });
 
-    expect(result.current.priorityToken).toEqual({
-      ...mockSDK.supportedTokens[0],
-      allowanceState: AllowanceState.NotEnabled,
-      isStaked: false,
-      chainId: LINEA_CHAIN_ID,
-    });
+    // The key assertion: no API calls should have been made
+    expect(testMockFetchAllowances).not.toHaveBeenCalled();
+    expect(testMockGetPriorityToken).not.toHaveBeenCalled();
+
+    // No new dispatch calls should have been made since cache is valid
+    expect(testMockDispatch).not.toHaveBeenCalled();
+
+    // Hook should not be in loading or error state
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
-    expect(mockGetPriorityToken).not.toHaveBeenCalled();
+  });
+
+  it('should fetch new data when cache is stale', async () => {
+    // Set up a stale cached token (older than 5 minutes)
+    const staleTimestamp = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
+
+    // Override the selector to return stale cache
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: (state: unknown) => unknown) => {
+      const selectorString = selector.toString();
+      if (selectorString.includes('selectAllTokenBalances')) {
+        return {
+          [mockAddress.toLowerCase()]: {
+            '0x1': {
+              '0xToken1': '1000000000000000000',
+            },
+          },
+        };
+      }
+      if (selectorString.includes('selectCardPriorityToken')) {
+        return null; // No cached token
+      }
+      if (selectorString.includes('selectCardPriorityTokenLastFetched')) {
+        return staleTimestamp; // Stale timestamp
+      }
+      return null;
+    });
+
+    mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
+    mockGetPriorityToken.mockResolvedValue(mockCardToken);
+
+    const { result } = renderHook(() => useGetPriorityCardToken());
+
+    // Wait for the fetch to complete
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Should have called the API since cache is stale
+    expect(mockFetchAllowances).toHaveBeenCalledTimes(1);
+    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
+
+    // Should have dispatched new actions
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: expect.stringContaining('setCardPriorityToken'),
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(false);
   });
 
   it('should handle multiple consecutive fetch calls', async () => {
@@ -336,11 +518,15 @@ describe('useGetPriorityCardToken', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(result.current.priorityToken).toEqual(
+    // Verify that setCardPriorityToken was called with the expected token
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+        }),
       }),
     );
 
@@ -385,12 +571,16 @@ describe('useGetPriorityCardToken', () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
-    expect(result.current.priorityToken).toEqual(
+    // Verify that setCardPriorityToken was called with the expected token
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.Enabled,
+        }),
       }),
     );
     expect(mockFetchAllowances).toHaveBeenCalledTimes(1);
@@ -415,14 +605,9 @@ describe('useGetPriorityCardToken', () => {
     );
     expect(mockFetchAllowances).toHaveBeenCalledTimes(1); // Fresh API call made
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1); // Fresh API call made
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
+
+    // Verify that dispatch was called again after manual fetch
+    expect(mockDispatch).toHaveBeenCalledTimes(4); // 2 for auto-fetch (token + timestamp), 2 for manual fetch (token + timestamp)
   });
 
   it('should fallback to token with positive balance when suggested token has zero balance', async () => {
@@ -478,452 +663,715 @@ describe('useGetPriorityCardToken', () => {
       if (selector === mockSelectSelectedInternalAccountByScope) {
         return customAccountSelector;
       }
-      return null;
-    });
-
-    mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
-    mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
-
-    const { result } = renderHook(() => useGetPriorityCardToken());
-
-    // Wait for useEffect to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    // Should return the token with positive balance, not the suggested one with zero balance
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
-        address: '0xToken2',
-        symbol: 'TKN2',
-        name: 'Token 2',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(false);
-  });
-
-  it('should return suggested token even with zero balance if no other token has positive balance', async () => {
-    // Create SDK format allowances where all tokens have zero balance, using supported tokens
-    const tokenWithZeroBalance1SDK = createMockSDKTokenData(
-      '0xToken1',
-      '1000000000000', // Large allowance for enabled state
-    );
-    const tokenWithZeroBalance2SDK = createMockSDKTokenData(
-      '0xToken2',
-      '500000000000', // Large allowance for enabled state
-    );
-    const allowancesWithZeroBalance = [
-      tokenWithZeroBalance1SDK,
-      tokenWithZeroBalance2SDK,
-    ];
-
-    const suggestedTokenWithZeroBalance = {
-      address: '0xToken1',
-      symbol: 'TKN1',
-      name: 'Token 1',
-      decimals: 18,
-    };
-
-    // Mock balances where all tokens have zero balance
-    const zeroBalanceTokens = {
-      [mockAddress.toLowerCase()]: {
-        '0x1': {
-          '0xToken1': '0',
-          '0xToken2': '0',
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          // Mock different selectors based on what they're selecting
+          if (selector.toString().includes('selectAllTokenBalances')) {
+            return {
+              [mockAddress.toLowerCase()]: {
+                '0x1': {
+                  '0xZeroBalance': '0', // Zero balance (exact case match with suggested token)
+                  '0xToken2': '500000000000000000', // Positive balance (exact case match with allowance)
+                },
+              },
+            };
+          }
+          if (selector.toString().includes('selectCardPriorityToken')) {
+            return mockPriorityToken; // Use the shared mock state
+          }
+          if (
+            selector.toString().includes('selectCardPriorityTokenLastFetched')
+          ) {
+            return mockLastFetched; // Use the shared mock state
+          }
+          return null;
         },
-      },
-    };
-    const zeroAccountSelector = (scope: string) => {
-      if (scope === 'eip155:0') {
-        return {
-          address: mockAddress,
-          id: 'test-account-id',
-          type: 'eip155:eoa' as const,
-          options: {},
-          metadata: {},
-          methods: [],
-        };
-      }
-      return undefined;
-    };
+      );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (selector === mockSelectAllTokenBalances) {
-        return zeroBalanceTokens;
-      }
-      if (selector === mockSelectSelectedInternalAccountByScope) {
-        return zeroAccountSelector;
-      }
-      return null;
+      mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
+      mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Should have dispatched the token with positive balance, not the suggested one with zero balance
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
     });
 
-    mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
-    mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
+    it('should return suggested token even with zero balance if no other token has positive balance', async () => {
+      // Create SDK format allowances where all tokens have zero balance, using supported tokens
+      const tokenWithZeroBalance1SDK = createMockSDKTokenData(
+        '0xToken1',
+        '1000000000000', // Large allowance for enabled state
+      );
+      const tokenWithZeroBalance2SDK = createMockSDKTokenData(
+        '0xToken2',
+        '500000000000', // Large allowance for enabled state
+      );
+      const allowancesWithZeroBalance = [
+        tokenWithZeroBalance1SDK,
+        tokenWithZeroBalance2SDK,
+      ];
 
-    const { result } = renderHook(() => useGetPriorityCardToken());
-
-    // Wait for useEffect to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    // Should return the suggested token even though it has zero balance
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
+      const suggestedTokenWithZeroBalance = {
         address: '0xToken1',
         symbol: 'TKN1',
         name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(false);
-  });
+        decimals: 18,
+      };
 
-  it('should maintain loading state correctly during fetch', async () => {
-    // Start with no address to avoid automatic fetching. We control the
-    // selected-account selector dynamically so the hook sees no address on
-    // initial render, then we provide an account and rerender to trigger fetch.
-    type AccountLike =
-      | {
-          address: string;
-          id: string;
-          type: 'eip155:eoa';
-          options: Record<string, unknown>;
-          metadata: Record<string, unknown>;
-          methods: unknown[];
+      // Mock balances where all tokens have zero balance
+      const zeroBalanceTokens = {
+        [mockAddress.toLowerCase()]: {
+          '0x1': {
+            '0xToken1': '0',
+            '0xToken2': '0',
+          },
+        },
+      };
+      const zeroAccountSelector = (scope: string) => {
+        if (scope === 'eip155:0') {
+          return {
+            address: mockAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {},
+            methods: [],
+          };
         }
-      | undefined;
+        return undefined;
+      };
 
-    let currentAccountSelector: (scope: string) => AccountLike = (
-      _scope: string,
-    ) => undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (selector === mockSelectAllTokenBalances) {
+          return zeroBalanceTokens;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return zeroAccountSelector;
+        }
+      });
 
-    // Provide stable empty balances to avoid referential changes across renders
-    const emptyBalances: Record<string, unknown> = {};
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (selector === mockSelectAllTokenBalances) {
-        return emptyBalances; // stable empty object
-      }
-      if (selector === mockSelectSelectedInternalAccountByScope) {
-        return currentAccountSelector;
-      }
-      return null;
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          // Mock different selectors based on what they're selecting
+          if (selector.toString().includes('selectAllTokenBalances')) {
+            return {
+              [mockAddress.toLowerCase()]: {
+                '0x1': {
+                  '0xToken1': '0',
+                  '0xToken2': '0',
+                },
+              },
+            };
+          }
+          if (selector.toString().includes('selectCardPriorityToken')) {
+            return mockPriorityToken; // Use the shared mock state
+          }
+          if (
+            selector.toString().includes('selectCardPriorityTokenLastFetched')
+          ) {
+            return mockLastFetched; // Use the shared mock state
+          }
+          return null;
+        },
+      );
+
+      mockFetchAllowances.mockResolvedValue(allowancesWithZeroBalance);
+      mockGetPriorityToken.mockResolvedValue(suggestedTokenWithZeroBalance);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should have dispatched the suggested token even though it has zero balance
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
     });
 
-    const { result, rerender } = renderHook(() => useGetPriorityCardToken());
+    it('should maintain loading state correctly during fetch', async () => {
+      // Start with no address to avoid automatic fetching. We control the
+      // selected-account selector dynamically so the hook sees no address on
+      // initial render, then we provide an account and rerender to trigger fetch.
+      type AccountLike =
+        | {
+            address: string;
+            id: string;
+            type: 'eip155:eoa';
+            options: Record<string, unknown>;
+            metadata: Record<string, unknown>;
+            methods: unknown[];
+          }
+        | undefined;
 
-    // Initially, loading should be false with no address
-    expect(result.current.isLoading).toBe(false);
+      let currentAccountSelector: (scope: string) => AccountLike = (
+        _scope: string,
+      ) => undefined;
 
-    let resolvePromise: (value: CardToken) => void;
-    const mockPromise = new Promise<CardToken>((resolve) => {
-      resolvePromise = resolve;
+      // Provide stable empty balances to avoid referential changes across renders
+      const emptyBalances: Record<string, unknown> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (selector === mockSelectAllTokenBalances) {
+          return emptyBalances; // stable empty object
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return currentAccountSelector;
+        }
+        return null;
+      });
+
+      const { result, rerender } = renderHook(() => useGetPriorityCardToken());
+
+      // Initially, loading should be false with no address
+      expect(result.current.isLoading).toBe(false);
+
+      let resolvePromise: (value: CardToken) => void;
+      const mockPromise = new Promise<CardToken>((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
+      mockGetPriorityToken.mockReturnValue(
+        mockPromise as unknown as Promise<CardToken>,
+      );
+
+      // Now provide an address which will trigger useEffect and start loading
+      currentAccountSelector = (_scope: string) => {
+        if (_scope === 'eip155:0') {
+          return {
+            address: mockAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {},
+            methods: [],
+          };
+        }
+        return undefined;
+      };
+
+      // Rerender so hook will read the updated selector result
+      rerender();
+
+      // Wait a tick for the useEffect to trigger and set loading to true
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // Loading should now be true as the fetch is in progress
+      expect(result.current.isLoading).toBe(true);
+
+      // Resolve the promise which should set loading back to false
+      await act(async () => {
+        resolvePromise?.(mockCardToken);
+        await new Promise((resolve) => setTimeout(resolve, 10)); // Let the promise resolve
+      });
+
+      expect(result.current.isLoading).toBe(false);
     });
 
-    mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
-    mockGetPriorityToken.mockReturnValue(
-      mockPromise as unknown as Promise<CardToken>,
-    );
+    it('should refetch when SDK becomes available', async () => {
+      mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
+      mockGetPriorityToken.mockResolvedValue(mockCardToken);
 
-    // Now provide an address which will trigger useEffect and start loading
-    currentAccountSelector = (_scope: string) => {
-      if (_scope === 'eip155:0') {
-        return {
-          address: mockAddress,
-          id: 'test-account-id',
-          type: 'eip155:eoa' as const,
-          options: {},
-          metadata: {},
-          methods: [],
-        };
-      }
-      return undefined;
-    };
+      (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
+      const { result } = renderHook(() => useGetPriorityCardToken());
 
-    // Rerender so hook will read the updated selector result
-    rerender();
+      // Wait for initial mount with no SDK
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
 
-    // Wait a tick for the useEffect to trigger and set loading to true
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(result.current.priorityToken).toBeNull();
+      expect(mockGetPriorityToken).not.toHaveBeenCalled();
+
+      // Enable SDK and create a new hook instance to trigger fetch
+      (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
+
+      renderHook(() => useGetPriorityCardToken());
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
     });
 
-    // Loading should now be true as the fetch is in progress
-    expect(result.current.isLoading).toBe(true);
-
-    // Resolve the promise which should set loading back to false
-    await act(async () => {
-      resolvePromise?.(mockCardToken);
-      await new Promise((resolve) => setTimeout(resolve, 10)); // Let the promise resolve
-    });
-
-    expect(result.current.isLoading).toBe(false);
-  });
-
-  it('should refetch when SDK becomes available', async () => {
-    mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
-    mockGetPriorityToken.mockResolvedValue(mockCardToken);
-
-    (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
-    const { result } = renderHook(() => useGetPriorityCardToken());
-
-    // Wait for initial mount with no SDK
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.priorityToken).toBeNull();
-    expect(mockGetPriorityToken).not.toHaveBeenCalled();
-
-    // Enable SDK and create a new hook instance to trigger fetch
-    (useCardSDK as jest.Mock).mockReturnValue({ sdk: mockSDK });
-
-    const { result: result2 } = renderHook(() => useGetPriorityCardToken());
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    expect(result2.current.priorityToken).toEqual(
-      expect.objectContaining({
+    it('should handle address change and refetch', async () => {
+      const address1 = '0x1111111111111111111111111111111111111111';
+      const address2 = '0x2222222222222222222222222222222222222222';
+      const mockSDKAllowance1 = createMockSDKTokenData(
+        '0xToken1',
+        '1000000000000',
+      ); // Large allowance for enabled state
+      const mockSDKAllowance2 = createMockSDKTokenData(
+        '0xToken2',
+        '500000000000',
+      ); // Large allowance for enabled state
+      const mockToken1 = {
         address: '0xToken1',
         symbol: 'TKN1',
         name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle address change and refetch', async () => {
-    const address1 = '0x1111111111111111111111111111111111111111';
-    const address2 = '0x2222222222222222222222222222222222222222';
-    const mockSDKAllowance1 = createMockSDKTokenData(
-      '0xToken1',
-      '1000000000000',
-    ); // Large allowance for enabled state
-    const mockSDKAllowance2 = createMockSDKTokenData(
-      '0xToken2',
-      '500000000000',
-    ); // Large allowance for enabled state
-    const mockToken1 = {
-      address: '0xToken1',
-      symbol: 'TKN1',
-      name: 'Token 1',
-      decimals: 18,
-    };
-    const mockToken2 = {
-      address: '0xToken2',
-      symbol: 'TKN2',
-      name: 'Token 2',
-      decimals: 18,
-    };
-
-    // Set up proper token balances for both addresses.
-    // Keep a single, stable balances object reference to avoid triggering
-    // useEffect repeatedly due to referential changes on every selector call.
-    let currentAddress = address1;
-
-    const dynamicTokenBalances = {
-      [address1.toLowerCase()]: {
-        '0x1': {
-          '0xToken1': '1000000000000000000',
-        },
-      },
-      [address2.toLowerCase()]: {
-        '0x1': {
-          '0xToken2': '500000000000000000',
-        },
-      },
-    };
-
-    const accountSelector = (scope: string) => {
-      if (scope === 'eip155:0') {
-        return {
-          address: currentAddress,
-          id: 'test-account-id',
-          type: 'eip155:eoa' as const,
-          options: {},
-          metadata: {},
-          methods: [],
-        };
-      }
-      return undefined;
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseSelector.mockImplementation((selector: any) => {
-      if (selector === mockSelectAllTokenBalances) {
-        return dynamicTokenBalances;
-      }
-      if (selector === mockSelectSelectedInternalAccountByScope) {
-        return (scope: string) => accountSelector(scope);
-      }
-      return null;
-    });
-
-    // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
-    mockFetchAllowances.mockResolvedValue([mockSDKAllowance1]);
-    mockGetPriorityToken.mockResolvedValue(mockToken1);
-
-    const { result, rerender } = renderHook(() => useGetPriorityCardToken());
-
-    // Wait for the useEffect to trigger the fetch
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenCalledWith(address1, ['0xToken1']);
-
-    // Reset mocks for second address
-    mockFetchAllowances.mockClear();
-    mockGetPriorityToken.mockClear();
-    mockFetchAllowances.mockResolvedValue([mockSDKAllowance2]);
-    mockGetPriorityToken.mockResolvedValue(mockToken2);
-
-    // Change the current address and rerender to trigger effect
-    currentAddress = address2;
-    rerender();
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
+        decimals: 18,
+      };
+      const mockToken2 = {
         address: '0xToken2',
         symbol: 'TKN2',
         name: 'Token 2',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenLastCalledWith(address2, [
-      '0xToken2',
-    ]);
-    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1); // Only once since we cleared
-  });
+        decimals: 18,
+      };
 
-  it('should automatically fetch priority token on mount when address is provided', async () => {
-    mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
-    mockGetPriorityToken.mockResolvedValue(mockCardToken);
+      // Set up proper token balances for both addresses.
+      // Keep a single, stable balances object reference to avoid triggering
+      // useEffect repeatedly due to referential changes on every selector call.
+      let currentAddress = address1;
 
-    const { result } = renderHook(() => useGetPriorityCardToken());
+      const dynamicTokenBalances = {
+        [address1.toLowerCase()]: {
+          '0x1': {
+            '0xToken1': '1000000000000000000',
+          },
+        },
+        [address2.toLowerCase()]: {
+          '0x1': {
+            '0xToken2': '500000000000000000',
+          },
+        },
+      };
 
-    // Wait for the useEffect to trigger the fetch
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      const accountSelector = (scope: string) => {
+        if (scope === 'eip155:0') {
+          return {
+            address: currentAddress,
+            id: 'test-account-id',
+            type: 'eip155:eoa' as const,
+            options: {},
+            metadata: {},
+            methods: [],
+          };
+        }
+        return undefined;
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (selector === mockSelectAllTokenBalances) {
+          return dynamicTokenBalances;
+        }
+        if (selector === mockSelectSelectedInternalAccountByScope) {
+          return (scope: string) => accountSelector(scope);
+        }
+      });
+      // Set up proper token balances for both addresses
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          // Mock different selectors based on what they're selecting
+          if (selector.toString().includes('selectAllTokenBalances')) {
+            return {
+              [address1.toLowerCase()]: {
+                '0x1': {
+                  '0xToken1': '1000000000000000000',
+                },
+              },
+              [address2.toLowerCase()]: {
+                '0x1': {
+                  '0xToken2': '500000000000000000',
+                },
+              },
+            };
+          }
+          if (selector.toString().includes('selectCardPriorityToken')) {
+            return mockPriorityToken; // Use the shared mock state
+          }
+          if (
+            selector.toString().includes('selectCardPriorityTokenLastFetched')
+          ) {
+            return mockLastFetched; // Use the shared mock state
+          }
+          return null;
+        },
+      );
+
+      // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
+      mockFetchAllowances.mockResolvedValue([mockSDKAllowance1]);
+      mockGetPriorityToken.mockResolvedValue(mockToken1);
+
+      const { rerender } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the useEffect to trigger the fetch
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(mockGetPriorityToken).toHaveBeenCalledWith(address1, ['0xToken1']);
+
+      // Reset mocks for second address
+      mockFetchAllowances.mockClear();
+      mockGetPriorityToken.mockClear();
+      mockFetchAllowances.mockResolvedValue([mockSDKAllowance2]);
+      mockGetPriorityToken.mockResolvedValue(mockToken2);
+
+      // Change the current address and rerender to trigger effect
+      currentAddress = address2;
+      rerender();
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(mockGetPriorityToken).toHaveBeenLastCalledWith(address2, [
+        '0xToken2',
+      ]);
+      expect(mockGetPriorityToken).toHaveBeenCalledTimes(1); // Only once since we cleared
     });
 
-    expect(result.current.priorityToken).toEqual(
-      expect.objectContaining({
+    it('should automatically fetch priority token on mount when address is provided', async () => {
+      mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
+      mockGetPriorityToken.mockResolvedValue(mockCardToken);
+
+      renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the useEffect to trigger the fetch
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      );
+      expect(mockFetchAllowances).toHaveBeenCalledTimes(1);
+      expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle concurrent fetch calls correctly', async () => {
+      let resolvePromise1: (value: CardToken) => void;
+      let resolvePromise2: (value: CardToken) => void;
+
+      const mockPromise1 = new Promise<CardToken>((resolve) => {
+        resolvePromise1 = resolve;
+      });
+      const mockPromise2 = new Promise<CardToken>((resolve) => {
+        resolvePromise2 = resolve;
+      });
+
+      const mockToken1 = {
         address: '0xToken1',
         symbol: 'TKN1',
         name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(mockFetchAllowances).toHaveBeenCalledTimes(1);
-    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle concurrent fetch calls correctly', async () => {
-    let resolvePromise1: (value: CardToken) => void;
-    let resolvePromise2: (value: CardToken) => void;
-
-    const mockPromise1 = new Promise<CardToken>((resolve) => {
-      resolvePromise1 = resolve;
-    });
-    const mockPromise2 = new Promise<CardToken>((resolve) => {
-      resolvePromise2 = resolve;
-    });
-
-    const mockToken1 = {
-      address: '0xToken1',
-      symbol: 'TKN1',
-      name: 'Token 1',
-      decimals: 18,
-    };
-    const mockToken2 = {
-      address: '0xToken2',
-      symbol: 'TKN2',
-      name: 'Token 2',
-      decimals: 18,
-    };
-    const mockSDKAllowance1 = createMockSDKTokenData(
-      '0xToken1',
-      '1000000000000',
-    ); // Large allowance for enabled state
-    const mockSDKAllowance2 = createMockSDKTokenData(
-      '0xToken2',
-      '500000000000',
-    ); // Large allowance for enabled state
-
-    const { result } = renderHook(() => useGetPriorityCardToken());
-
-    // Wait for the automatic fetch from useEffect to complete
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    mockFetchAllowances.mockResolvedValueOnce([mockSDKAllowance1]);
-    mockFetchAllowances.mockResolvedValueOnce([mockSDKAllowance2]);
-    mockGetPriorityToken.mockReturnValueOnce(mockPromise1);
-    mockGetPriorityToken.mockReturnValueOnce(mockPromise2);
-
-    let priorityToken1: CardTokenAllowance | null | undefined;
-    let priorityToken2: CardTokenAllowance | null | undefined;
-
-    // Test concurrent calls by calling both functions within act
-    let fetch1: Promise<CardTokenAllowance | null>;
-    let fetch2: Promise<CardTokenAllowance | null>;
-
-    await act(async () => {
-      fetch1 = result.current.fetchPriorityToken();
-      fetch2 = result.current.fetchPriorityToken();
-    });
-
-    // Resolve both promises in an act block
-    await act(async () => {
-      resolvePromise1?.(mockToken1);
-      resolvePromise2?.(mockToken2);
-    });
-
-    // Wait for both fetches to complete
-    await act(async () => {
-      priorityToken1 = await fetch1;
-      priorityToken2 = await fetch2;
-    });
-
-    expect(priorityToken1).toEqual(
-      expect.objectContaining({
-        address: '0xToken1',
-        symbol: 'TKN1',
-        name: 'Token 1',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(priorityToken2).toEqual(
-      expect.objectContaining({
+        decimals: 18,
+      };
+      const mockToken2 = {
         address: '0xToken2',
         symbol: 'TKN2',
         name: 'Token 2',
-        allowanceState: AllowanceState.Enabled,
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenCalledTimes(2);
-    expect(result.current.isLoading).toBe(false);
+        decimals: 18,
+      };
+      const mockSDKAllowance1 = createMockSDKTokenData(
+        '0xToken1',
+        '1000000000000',
+      ); // Large allowance for enabled state
+      const mockSDKAllowance2 = createMockSDKTokenData(
+        '0xToken2',
+        '500000000000',
+      ); // Large allowance for enabled state
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the automatic fetch from useEffect to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      mockFetchAllowances.mockResolvedValueOnce([mockSDKAllowance1]);
+      mockFetchAllowances.mockResolvedValueOnce([mockSDKAllowance2]);
+      mockGetPriorityToken.mockReturnValueOnce(mockPromise1);
+      mockGetPriorityToken.mockReturnValueOnce(mockPromise2);
+
+      let priorityToken1: CardTokenAllowance | null | undefined;
+      let priorityToken2: CardTokenAllowance | null | undefined;
+
+      // Test concurrent calls by calling both functions within act
+      let fetch1: Promise<CardTokenAllowance | null>;
+      let fetch2: Promise<CardTokenAllowance | null>;
+
+      await act(async () => {
+        fetch1 = result.current.fetchPriorityToken();
+        fetch2 = result.current.fetchPriorityToken();
+      });
+
+      // Resolve both promises in an act block
+      await act(async () => {
+        resolvePromise1?.(mockToken1);
+        resolvePromise2?.(mockToken2);
+      });
+
+      // Wait for both fetches to complete
+      await act(async () => {
+        priorityToken1 = await fetch1;
+        priorityToken2 = await fetch2;
+      });
+
+      expect(priorityToken1).toEqual(
+        expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.Enabled,
+        }),
+      );
+      expect(priorityToken2).toEqual(
+        expect.objectContaining({
+          address: '0xToken2',
+          symbol: 'TKN2',
+          name: 'Token 2',
+          allowanceState: AllowanceState.Enabled,
+        }),
+      );
+      expect(mockGetPriorityToken).toHaveBeenCalledTimes(2);
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('should return fallback token when no allowances are returned', async () => {
+      // Mock empty allowances array
+      mockFetchAllowances.mockResolvedValue([]);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the hook to complete its async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should dispatch the first supported token as fallback
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled,
+            isStaked: false,
+            chainId: LINEA_CHAIN_ID,
+          }),
+        }),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityTokenLastFetched',
+          payload: expect.any(Date),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+      expect(mockGetPriorityToken).not.toHaveBeenCalled();
+    });
+
+    it('should return null when no allowances and no supported tokens exist', async () => {
+      // Mock empty allowances and no supported tokens
+      mockFetchAllowances.mockResolvedValue([]);
+
+      // Override SDK to have no supported tokens
+      (useCardSDK as jest.Mock).mockReturnValue({
+        sdk: {
+          ...mockSDK,
+          supportedTokens: [],
+        },
+      });
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the hook to complete its async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should dispatch null when no fallback tokens available
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: null,
+        }),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityTokenLastFetched',
+          payload: expect.any(Date),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+      expect(mockGetPriorityToken).not.toHaveBeenCalled();
+    });
+
+    it('should handle error when getSupportedTokensAllowances returns null', async () => {
+      // Mock null response from getSupportedTokensAllowances (which causes fetchAllowances to throw)
+      mockFetchAllowances.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the hook to complete its async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // This should trigger an error since fetchAllowances tries to map over null
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(true);
+      expect(result.current.priorityToken).toBeNull();
+      expect(mockGetPriorityToken).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        'useGetPriorityCardToken::error fetching priority token',
+      );
+    });
+
+    it('should return first token when all allowances have zero balance', async () => {
+      // Create allowances where all have zero allowance amounts
+      const zeroAllowanceTokens = [
+        createMockSDKTokenData('0xToken1', '0'), // Zero allowance
+        createMockSDKTokenData('0xToken2', '0'), // Zero allowance
+        createMockSDKTokenData('0xToken3', '0'), // Zero allowance
+      ];
+
+      mockFetchAllowances.mockResolvedValue(zeroAllowanceTokens);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the hook to complete its async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should dispatch the first token even though it has zero allowance
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+          }),
+        }),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityTokenLastFetched',
+          payload: expect.any(Date),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+      expect(mockGetPriorityToken).not.toHaveBeenCalled(); // Should not call getPriorityToken if no valid allowances
+    });
+
+    it('should handle case when all tokens have zero allowance and no supported tokens', async () => {
+      // Create allowances where all have zero allowance amounts
+      const zeroAllowanceTokens = [
+        createMockSDKTokenData('0xUnknownToken', '0'), // Zero allowance, not in supported tokens
+      ];
+
+      mockFetchAllowances.mockResolvedValue(zeroAllowanceTokens);
+
+      const { result } = renderHook(() => useGetPriorityCardToken());
+
+      // Wait for the hook to complete its async operations
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Should dispatch null since the token is not in supported tokens (filtered out)
+      // and falls back to the fallback token logic
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'card/setCardPriorityToken',
+          payload: expect.objectContaining({
+            address: '0xToken1', // First supported token as fallback
+            allowanceState: AllowanceState.NotEnabled,
+          }),
+        }),
+      );
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBe(false);
+    });
   });
 });

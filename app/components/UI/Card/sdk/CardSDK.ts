@@ -17,10 +17,18 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
+  private enableLogs: boolean;
 
-  constructor({ cardFeatureFlag }: { cardFeatureFlag: CardFeatureFlag }) {
+  constructor({
+    cardFeatureFlag,
+    enableLogs = false,
+  }: {
+    cardFeatureFlag: CardFeatureFlag;
+    enableLogs?: boolean;
+  }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.chainId = getDecimalChainId(LINEA_CHAIN_ID);
+    this.enableLogs = enableLogs;
   }
 
   get isCardEnabled(): boolean {
@@ -110,6 +118,15 @@ export class CardSDK {
     return accountsApi;
   }
 
+  private logDebugInfo(fnName: string, data: unknown) {
+    if (this.enableLogs) {
+      Logger.log(
+        `CardSDK Debug Log - ${fnName}`,
+        JSON.stringify(data, null, 2),
+      );
+    }
+  }
+
   /**
    * Checks if the given accounts are cardholders by querying the accounts API.
    * Supports batching for performance optimization - processes up to 3 batches of 50 accounts each.
@@ -156,6 +173,7 @@ export class CardSDK {
       }
 
       const data = await response.json();
+      this.logDebugInfo('performCardholderRequest', data);
       return data.is || [];
     } catch (error) {
       Logger.error(
@@ -192,6 +210,10 @@ export class CardSDK {
     const results = await Promise.all(batchPromises);
     const allCardholderAccounts = results.flatMap(
       (result) => result as `${string}:${string}:${string}`[],
+    );
+    this.logDebugInfo(
+      'processBatchedCardholderRequests',
+      allCardholderAccounts,
     );
 
     return allCardholderAccounts;
@@ -268,6 +290,10 @@ export class CardSDK {
         supportedTokensAddresses,
         spenders,
       );
+    this.logDebugInfo(
+      'getSupportedTokensAllowances',
+      spendersAllowancesForTokens,
+    );
 
     return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
@@ -293,14 +319,26 @@ export class CardSDK {
 
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
+      this.logDebugInfo('getPriorityToken (Simple Case 1)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.getFirstSupportedTokenOrNull();
     }
 
     if (nonZeroBalanceTokens.length === 1) {
+      this.logDebugInfo('getPriorityToken (Simple Case 2)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
     }
 
     // Handle complex case with multiple tokens
+    this.logDebugInfo('getPriorityToken (Complex Case)', {
+      address,
+      nonZeroBalanceTokens,
+    });
     return this.findPriorityTokenFromApprovalLogs(
       address,
       nonZeroBalanceTokens,

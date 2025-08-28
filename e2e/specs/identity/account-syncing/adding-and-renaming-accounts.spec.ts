@@ -5,7 +5,7 @@ import {
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags';
+import { RegressionIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { arrangeTestUtils } from '../utils/helpers.ts';
@@ -20,7 +20,7 @@ import { defaultGanacheOptions } from '../../../framework/Constants';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(
-  SmokeIdentity('Account syncing - Adding and Renaming Accounts'),
+  RegressionIdentity('Account syncing - Adding and Renaming Accounts'),
   () => {
     let sharedUserStorageController: UserStorageMockttpController;
 

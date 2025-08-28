@@ -51,6 +51,7 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { isE2E } from '../../../../../util/test/utils';
 
 /**
  * CardHome Component
@@ -152,6 +153,11 @@ const CardHome = () => {
     selectedChainId,
   ]);
 
+  const isLoading = useMemo(
+    () => (isE2E ? false : isLoadingPriorityToken),
+    [isLoadingPriorityToken],
+  );
+
   if (error) {
     return (
       <View style={styles.errorContainer}>
@@ -207,7 +213,7 @@ const CardHome = () => {
             length={SensitiveTextLength.Long}
             variant={TextVariant.HeadingLG}
           >
-            {isLoadingPriorityToken ||
+            {isLoading ||
             balanceAmount === TOKEN_BALANCE_LOADING ||
             balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
               <Skeleton
@@ -273,7 +279,7 @@ const CardHome = () => {
             styles.defaultHorizontalPadding,
           ]}
         >
-          {isLoadingPriorityToken || !priorityToken ? (
+          {isLoading || !priorityToken ? (
             <Skeleton
               height={50}
               width={'100%'}
@@ -291,7 +297,7 @@ const CardHome = () => {
             styles.defaultHorizontalPadding,
           ]}
         >
-          {isLoadingPriorityToken ? (
+          {isLoading ? (
             <Skeleton
               height={28}
               width={'100%'}
@@ -305,7 +311,7 @@ const CardHome = () => {
               size={ButtonSize.Sm}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
-              loading={isLoadingPriorityToken}
+              loading={isLoading}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
           )}

@@ -8,12 +8,12 @@ import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import HeaderBase from '../../../../component-library/components/HeaderBase';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
+import {
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+  IconColor as MMDSIconColor,
+} from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -51,42 +51,58 @@ export const AddressList = () => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
-  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
-    const copyAddressToClipboard = async () => {
-      await ClipboardManager.setString(item.account.address);
-    };
+  const renderAddressItem = useCallback(
+    ({ item }: { item: AddressItem }) => {
+      const copyAddressToClipboard = async () => {
+        await ClipboardManager.setString(item.account.address);
+      };
 
-    return (
-      <MultichainAddressRow
-        chainId={item.scope}
-        networkName={item.networkName}
-        address={item.account.address}
-        copyParams={{
-          successMessage: strings('multichain_accounts.address_list.copied'),
-          callback: copyAddressToClipboard,
-        }}
-        icons={[
-          {
-            name: IconName.QrCode,
-            callback: () => {
-              // TODO: Implement navigation to QR code screen when it is ready
+      return (
+        <MultichainAddressRow
+          chainId={item.scope}
+          networkName={item.networkName}
+          address={item.account.address}
+          copyParams={{
+            successMessage: strings('multichain_accounts.address_list.copied'),
+            callback: copyAddressToClipboard,
+          }}
+          icons={[
+            {
+              name: IconName.QrCode,
+              callback: () => {
+                navigation.navigate(
+                  Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+                  {
+                    screen:
+                      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
+                    params: {
+                      address: item.account.address,
+                      networkName: item.networkName,
+                      chainId: item.scope,
+                      accountName: item.account.metadata.name,
+                    },
+                  },
+                );
+              },
+              testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
             },
-            testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
-          },
-        ]}
-      />
-    );
-  }, []);
+          ]}
+        />
+      );
+    },
+    [navigation],
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
         startAccessory={
-          <ButtonLink
+          <ButtonIcon
             testID={AddressListIds.GO_BACK}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            iconProps={{ color: MMDSIconColor.IconDefault }}
             onPress={() => navigation.goBack()}
           />
         }
