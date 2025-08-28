@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -15,6 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       flex: 1,
       backgroundColor: colors.background.default,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
   });
 };
