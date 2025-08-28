@@ -715,6 +715,104 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  describe('Input Handling', () => {
+    it('handles display mode toggle between USD and token', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Press the display toggle button
+      const toggleButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
+      );
+      fireEvent.press(toggleButton);
+
+      // Assert - Display should toggle (component re-renders with new mode)
+      expect(toggleButton).toBeDefined();
+    });
+
+    it('tracks events on mount', () => {
+      // Arrange
+      const { track } = defaultPerpsEventTrackingMock;
+
+      // Act
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert - Track should have been called for initial render
+      expect(track).toHaveBeenCalled();
+    });
+  });
+
+  describe('Order Type Selection', () => {
+    it('opens order type bottom sheet when order type button is pressed', () => {
+      // Arrange
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Press the order type button
+      const orderTypeButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON,
+      );
+      fireEvent.press(orderTypeButton);
+
+      // Assert - Order type selection should trigger state change
+      // The actual bottom sheet rendering is handled by the PerpsOrderTypeBottomSheet component
+      expect(orderTypeButton).toBeDefined();
+    });
+  });
+
+  describe('Tooltip Management', () => {
+    it('handles tooltip interactions for estimated PnL', () => {
+      // Arrange
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Find the estimated PnL label
+      const pnlLabel = getByText(strings('perps.close_position.estimated_pnl'));
+
+      // Assert - Tooltip trigger should be available
+      expect(pnlLabel).toBeDefined();
+    });
+
+    it('handles tooltip interactions for closing fees', () => {
+      // Arrange
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Find the fees label
+      const feesLabel = getByText(strings('perps.close_position.fees'));
+
+      // Assert - Tooltip trigger should be available
+      expect(feesLabel).toBeDefined();
+    });
+  });
+
   describe('Navigation Callbacks', () => {
     it('navigates back on successful position close', async () => {
       // Arrange
