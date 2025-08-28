@@ -18,6 +18,7 @@ import {
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { Box } from '@metamask/design-system-react-native';
 import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -112,7 +113,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     >
       <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
-          {showAllPeriods ? 'All Candle Periods' : 'Select Candle Period'}
+          {strings('perps.chart.candle_intervals')}
         </Text>
       </BottomSheetHeader>
       <Box>

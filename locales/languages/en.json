@@ -1288,7 +1288,8 @@
       "retrying_connection": "Connecting..."
     },
     "chart": {
-      "no_data": "No chart data available"
+      "no_data": "No chart data available",
+      "candle_intervals": "Candle intervals"
     },
     "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
