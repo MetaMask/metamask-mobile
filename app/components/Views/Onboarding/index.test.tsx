@@ -417,7 +417,7 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockReplace).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -426,8 +426,12 @@ describe('Onboarding', () => {
             description: strings(
               'error_sheet.no_internet_connection_description',
             ),
-            descriptionAlign: 'center',
+            descriptionAlign: 'left',
             buttonLabel: strings('error_sheet.no_internet_connection_button'),
+            primaryButtonLabel: strings(
+              'error_sheet.no_internet_connection_button',
+            ),
+            closeOnPrimaryButtonPress: true,
             type: 'error',
           }),
         }),
