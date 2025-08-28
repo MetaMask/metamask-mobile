@@ -20,6 +20,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -37,10 +38,15 @@ import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { USDC_DECIMALS, USDC_SYMBOL } from '../../constants/hyperLiquidConfig';
+import {
+  HYPERLIQUID_ASSET_CONFIGS,
+  USDC_DECIMALS,
+  USDC_SYMBOL,
+} from '../../constants/hyperLiquidConfig';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   usePerpsAccount,
+  usePerpsNetwork,
   usePerpsWithdrawQuote,
   useWithdrawTokens,
 } from '../../hooks';
@@ -49,9 +55,8 @@ import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 
-import type { CaipAssetId, Hex } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -86,6 +91,9 @@ const PerpsWithdrawView: React.FC = () => {
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const { toastRef } = useContext(ToastContext);
   const cachedAccountState = usePerpsAccount();
+
+  const perpsNetwork = usePerpsNetwork();
+  const isTestnet = perpsNetwork === 'testnet';
 
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
@@ -232,7 +240,11 @@ const PerpsWithdrawView: React.FC = () => {
       // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
       // Convert hex chainId to decimal for CAIP format
       const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
-      const assetId: CaipAssetId = `eip155:${chainIdDecimal}/erc20:${destToken.address.toLowerCase()}/default`;
+
+      // Get the correct assetId for USDC on Arbitrum
+      const assetId = isTestnet
+        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
 
       DevLogger.log('Initiating withdrawal with params:', {
         amount: withdrawAmount,
@@ -242,17 +254,61 @@ const PerpsWithdrawView: React.FC = () => {
         chainIdDecimal,
       });
 
+      // Start performance measurements for transaction submission and confirmation
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
+      );
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
       const result = await controller.withdraw({
         amount: withdrawAmount,
-        destination: destToken.address as `0x${string}`,
         assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
       });
 
-      if (!result.success) {
+      // Measure withdrawal transaction submission
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
+
+      if (result.success) {
+        // Measure withdrawal transaction confirmation
+        const confirmationDuration = endMeasure(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+        );
+
+        // Track withdrawal completed with duration
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
+          amount: withdrawAmount,
+          completionDuration: confirmationDuration,
+        });
+
+        DevLogger.log('Withdrawal successful, duration:', confirmationDuration);
+      } else {
+        // End confirmation measurement on failure too
+        endMeasure(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+        );
+
+        // Track withdrawal failed
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+          errorMessage: result.error || 'Unknown error',
+        });
+
         DevLogger.log('Withdrawal failed:', result.error);
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
+      // End measurements on error
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
+      endMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      // Track withdrawal failed
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {
       setIsSubmittingTx(false);
@@ -260,11 +316,15 @@ const PerpsWithdrawView: React.FC = () => {
   }, [
     hasValidInputs,
     isSubmittingTx,
-    withdrawAmount,
-    destToken,
-    navigation,
     trackEvent,
+    withdrawAmount,
     toastRef,
+    navigation,
+    destToken.chainId,
+    destToken.address,
+    isTestnet,
+    startMeasure,
+    endMeasure,
   ]);
 
   const handleBack = useCallback(() => {
