@@ -3635,6 +3635,9 @@ app:
         is_expand: false
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
+        is_expand: true
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: true
+    - opts:
         is_expand: false
       PROJECT_LOCATION: android
     - opts:
