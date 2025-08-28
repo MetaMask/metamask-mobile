@@ -485,6 +485,77 @@ describe('handleUniversalLinks', () => {
     });
   });
 
+  describe('ACTIONS.WC', () => {
+    const testCases = [
+      {
+        domain: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        description: 'old deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        description: 'new deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        description: 'test deeplink domain',
+      },
+    ] as const;
+
+    it.each(testCases)(
+      'calls parse with wc uri param for $description',
+      async ({ domain }) => {
+        const wcUri = 'wc:abc123@2?relay-protocol=irn&symKey=xyz';
+        const encodedWcUri = encodeURIComponent(wcUri);
+        const wcUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.WC}?uri=${encodedWcUri}`;
+        const wcUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: wcUrl,
+          pathname: `/${ACTIONS.WC}`,
+        };
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: wcUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: wcUrl,
+          source: 'test-source',
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockParse).toHaveBeenCalledWith(wcUri, {
+          origin: 'test-source',
+        });
+      },
+    );
+
+    it.each(testCases)(
+      'does not call parse when wc uri param is missing for $description',
+      async ({ domain }) => {
+        const wcUrl = `${PROTOCOLS.HTTPS}://${domain}/${ACTIONS.WC}`;
+        const wcUrlObj = {
+          ...urlObj,
+          hostname: domain,
+          href: wcUrl,
+          pathname: `/${ACTIONS.WC}`,
+        } as ReturnType<typeof extractURLParams>['urlObj'];
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: wcUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: wcUrl,
+          source: 'test-source',
+        });
+
+        expect(handled).toHaveBeenCalled();
+        expect(mockParse).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe('signature verification', () => {
     beforeEach(() => {
       DevLogger.log = jest.fn();
