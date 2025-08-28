@@ -365,7 +365,7 @@ export const useDepositRouting = ({
         }
 
         switch (requirements.status) {
-          case 'APPROVED':
+          case 'APPROVED': {
             try {
               if (!userDetails) {
                 throw new Error('Missing user details');
@@ -427,6 +427,7 @@ export const useDepositRouting = ({
                   : 'Failed to process KYC flow',
               );
             }
+          }
 
           case 'NOT_SUBMITTED':
             trackEvent('RAMPS_KYC_STARTED', {
@@ -438,7 +439,7 @@ export const useDepositRouting = ({
             navigateToBasicInfoCallback({ quote, previousFormData });
             return;
 
-          case 'ADDITIONAL_FORMS_REQUIRED':
+          case 'ADDITIONAL_FORMS_REQUIRED': {
             const additionalRequirements = await getAdditionalRequirements(
               quote.quoteId,
             );
@@ -480,6 +481,7 @@ export const useDepositRouting = ({
             // If no additional forms are required, route to KYC processing
             navigateToKycProcessingCallback({ quote });
             return;
+          }
 
           default:
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
@@ -509,6 +511,7 @@ export const useDepositRouting = ({
       logoutFromProvider,
       navigateToBasicInfoCallback,
       trackEvent,
+      navigateToAdditionalVerificationCallback,
 
       createOrder,
       requestOtt,
