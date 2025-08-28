@@ -180,36 +180,14 @@ export const getPerpsHookMocks = () => ({
     jest.requireMock('../../hooks/stream').usePerpsPositionsStream,
 });
 
-// Test data factories
-export const createMockPosition = (overrides = {}) => ({
-  coin: 'ETH',
-  size: '1.5',
-  entryPrice: '2900.00',
-  marginUsed: '1450.00',
-  unrealizedPnl: '150.00',
-  realizedPnl: '0',
-  fundingPnl: '0',
-  leverage: 3,
-  liquidationPrice: '2500.00',
-  markPrice: '3000.00',
-  marginRatio: '5',
-  lastModified: Date.now(),
-  id: 'position-test-id',
-  ...overrides,
-});
+// Import shared test data from perpsHooksMocks
+export {
+  defaultPerpsPositionMock as createMockPosition,
+  defaultPerpsOrderMock as createMockOrder,
+  defaultPerpsMarketStatsMock as createMockMarketStats,
+} from './perpsHooksMocks';
 
-export const createMockOrder = (overrides = {}) => ({
-  orderId: 'order-test-id',
-  coin: 'ETH',
-  side: 'buy',
-  size: '1.0',
-  price: '3000.00',
-  orderType: 'limit',
-  status: 'pending',
-  createdAt: Date.now(),
-  ...overrides,
-});
-
+// For backwards compatibility, export a createMockMarket factory
 export const createMockMarket = (overrides = {}) => ({
   symbol: 'ETH',
   name: 'Ethereum',

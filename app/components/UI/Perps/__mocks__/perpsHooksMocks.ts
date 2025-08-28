@@ -1,4 +1,6 @@
 import { noop } from 'lodash';
+import type { UsePerpsMarketStatsReturn } from '../hooks/usePerpsMarketStats';
+import type { Position, Order } from '../controllers/types';
 
 /**
  * Default mock implementations for Perps hooks
@@ -73,16 +75,50 @@ export const defaultPerpsConnectionMock = {
   resetError: jest.fn(),
 };
 
-export const defaultPerpsPositionMock = {
+export const defaultPerpsPositionMock: Position = {
   coin: 'ETH',
   size: '1.5',
   entryPrice: '2900.00',
-  marginUsed: '1450.00',
+  positionValue: '4350.00',
   unrealizedPnl: '150.00',
-  leverage: 3,
-  isLong: true,
-  positionId: 'pos_123',
-  createdAt: new Date().toISOString(),
+  marginUsed: '1450.00',
+  leverage: {
+    type: 'isolated',
+    value: 3,
+  },
+  liquidationPrice: '2500.00',
+  maxLeverage: 50,
+  returnOnEquity: '10.3',
+  cumulativeFunding: {
+    allTime: '0',
+    sinceOpen: '0',
+    sinceChange: '0',
+  },
+};
+
+export const defaultPerpsOrderMock: Order = {
+  orderId: 'order-123',
+  symbol: 'ETH',
+  side: 'buy',
+  orderType: 'limit',
+  size: '1.0',
+  originalSize: '1.0',
+  price: '3000.00',
+  filledSize: '0',
+  remainingSize: '1.0',
+  status: 'open',
+  timestamp: Date.now(),
+};
+
+export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
+  volume24h: '$1.5B',
+  high24h: '3050.00',
+  low24h: '2950.00',
+  openInterest: '$500M',
+  fundingRate: '0.0100%',
+  currentPrice: 3000,
+  isLoading: false,
+  refresh: jest.fn(),
 };
 
 /**
