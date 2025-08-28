@@ -151,15 +151,8 @@ export const mockEvents = {
 
     remoteFeatureFlagSendRedesignDisabled: {
       urlEndpoint:
-        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
-        {
-          mobileMinimumVersions: {
-            appMinimumBuild: 1243,
-            appleMinimumOS: 6,
-            androidMinimumAPIVersion: 21,
-          },
-        },
         {
           sendRedesign: {
             enabled: false,
