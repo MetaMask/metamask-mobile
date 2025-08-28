@@ -14,20 +14,27 @@ import { Hex } from '@metamask/utils';
 import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 import { getFeatureFlagDeviceKey } from '../reducers/swaps/utils';
 
-export const isSmartTransactionEnabledWithNetworkFeatureFlag = (
-  swapsChainFeatureFlags,
-) => {
-  const featureFlagDeviceKey = getFeatureFlagDeviceKey(); // returns mobileActive, mobileActiveIOS or mobileActiveAndroid
+export const isSmartTransactionEnabledWithNetworkFeatureFlag =
+  (swapsChainFeatureFlags: {
+    smartTransactions?: {
+      mobileActive?: boolean;
+      extensionActive?: boolean;
+      mobileActiveIOS?: boolean;
+      mobileActiveAndroid?: boolean;
+      mobileActiveIos?: boolean;
+    };
+  }) => {
+    const featureFlagDeviceKey = getFeatureFlagDeviceKey(); // returns mobileActive, mobileActiveIOS or mobileActiveAndroid
 
-  // The API can return mobileActiveIos instead of mobileActiveIOS
-  if (
-    featureFlagDeviceKey === 'mobileActiveIOS' &&
-    !swapsChainFeatureFlags?.smartTransactions?.mobileActiveIOS
-  ) {
-    return swapsChainFeatureFlags?.smartTransactions?.mobileActiveIos;
-  }
-  return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
-};
+    // The API can return mobileActiveIos instead of mobileActiveIOS
+    if (
+      featureFlagDeviceKey === 'mobileActiveIOS' &&
+      !swapsChainFeatureFlags?.smartTransactions?.mobileActiveIOS
+    ) {
+      return swapsChainFeatureFlags?.smartTransactions?.mobileActiveIos;
+    }
+    return swapsChainFeatureFlags?.smartTransactions?.[featureFlagDeviceKey];
+  };
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
