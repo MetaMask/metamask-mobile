@@ -72,7 +72,7 @@ export const PERPS_CHART_CONFIG = {
     MIN: 10, // Minimum candles to display (zoomed in)
     DEFAULT: 45, // Default candles to display
     MAX: 250, // Maximum candles to display (zoomed out)
-    TOTAL: 250, // Total candles to load in memory
+    TOTAL: 2000, // Total candles to load in memory
   },
   // Default candle period settings
   DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
@@ -280,7 +280,10 @@ export const calculateCandleCount = (
   // Calculate number of candles needed
   const candleCount = Math.ceil(durationInMinutes / periodInMinutes);
 
-  // Cap at mobile-friendly limits for better UX and performance
-  // Target: 10-100 candles for optimal mobile chart readability
-  return Math.min(Math.max(candleCount, 10), 100);
+  // Cap at 2000 candles max for memory management
+  // Allow minimum of 10 candles for basic functionality
+  return Math.min(
+    Math.max(candleCount, 10),
+    PERPS_CHART_CONFIG.CANDLE_COUNT.TOTAL,
+  );
 };
