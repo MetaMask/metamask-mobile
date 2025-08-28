@@ -15,6 +15,9 @@ export const oldConfirmationsRemoteFeatureFlags = [
       transfer: false,
       approve: false,
     },
+    sendRedesign: {
+      enabled: false,
+    },
   },
 ];
 
@@ -34,6 +37,9 @@ export const confirmationsRedesignedFeatureFlags = [
       contract_interaction: true,
       transfer: true,
       approve: true,
+    },
+    sendRedesign: {
+      enabled: false,
     },
   },
   {
@@ -113,3 +119,16 @@ export const remoteFeatureMultichainAccountsAccountDetails = (
     minimumVersion: '7.46.0',
   },
 });
+
+export const remoteFeatureFlagSendRedesignDisabled = {
+  urlEndpoint:
+    'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+  response: [
+    {
+      sendRedesign: {
+        enabled: false,
+      },
+    },
+  ],
+  responseCode: 200,
+};

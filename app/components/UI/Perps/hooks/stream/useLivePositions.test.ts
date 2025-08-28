@@ -47,245 +47,266 @@ describe('usePerpsLivePositions', () => {
     jest.useRealTimers();
   });
 
-  it('should subscribe to positions on mount', () => {
-    const throttleMs = 3000;
-    mockSubscribe.mockReturnValue(jest.fn());
+  describe('Subscription Lifecycle', () => {
+    it('subscribes to positions on mount with specified throttle', () => {
+      // Arrange
+      const throttleMs = 3000;
+      mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => usePerpsLivePositions({ throttleMs }));
+      // Act
+      renderHook(() => usePerpsLivePositions({ throttleMs }));
 
-    expect(mockSubscribe).toHaveBeenCalledWith({
-      callback: expect.any(Function),
-      throttleMs,
-    });
-  });
-
-  it('should unsubscribe on unmount', () => {
-    const mockUnsubscribe = jest.fn();
-    mockSubscribe.mockReturnValue(mockUnsubscribe);
-
-    const { unmount } = renderHook(() => usePerpsLivePositions());
-
-    unmount();
-
-    expect(mockUnsubscribe).toHaveBeenCalled();
-  });
-
-  it('should update positions when callback is invoked', async () => {
-    let capturedCallback: (positions: Position[]) => void = jest.fn();
-    mockSubscribe.mockImplementation((params) => {
-      capturedCallback = params.callback;
-      return jest.fn();
-    });
-
-    const { result } = renderHook(() => usePerpsLivePositions());
-
-    // Initially empty with loading state
-    expect(result.current).toEqual({
-      positions: [],
-      isInitialLoading: true,
-    });
-
-    // Simulate positions update
-    const positions: Position[] = [
-      mockPosition,
-      { ...mockPosition, coin: 'ETH-PERP', size: '10.0' },
-    ];
-
-    act(() => {
-      capturedCallback(positions);
-    });
-
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        positions,
-        isInitialLoading: false,
+      // Assert
+      expect(mockSubscribe).toHaveBeenCalledWith({
+        callback: expect.any(Function),
+        throttleMs,
       });
     });
-  });
 
-  it('should use default throttle value when not provided', () => {
-    mockSubscribe.mockReturnValue(jest.fn());
+    it('unsubscribes on unmount to prevent memory leaks', () => {
+      // Arrange
+      const mockUnsubscribe = jest.fn();
+      mockSubscribe.mockReturnValue(mockUnsubscribe);
 
-    renderHook(() => usePerpsLivePositions());
+      // Act
+      const { unmount } = renderHook(() => usePerpsLivePositions());
+      unmount();
 
-    expect(mockSubscribe).toHaveBeenCalledWith({
-      callback: expect.any(Function),
-      throttleMs: 0, // Default value for positions (no throttling for instant updates)
+      // Assert
+      expect(mockUnsubscribe).toHaveBeenCalled();
     });
   });
 
-  it('should handle throttle changes', () => {
-    const mockUnsubscribe1 = jest.fn();
-    const mockUnsubscribe2 = jest.fn();
+  describe('Position Updates', () => {
+    it('updates positions and clears loading state when data arrives', async () => {
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
 
-    mockSubscribe
-      .mockReturnValueOnce(mockUnsubscribe1)
-      .mockReturnValueOnce(mockUnsubscribe2);
+      const { result } = renderHook(() => usePerpsLivePositions());
 
-    const { rerender } = renderHook(
-      ({ throttleMs }) => usePerpsLivePositions({ throttleMs }),
-      {
-        initialProps: { throttleMs: 0 },
-      },
-    );
-
-    expect(mockSubscribe).toHaveBeenCalledWith({
-      callback: expect.any(Function),
-      throttleMs: 0,
-    });
-
-    // Change throttle
-    rerender({ throttleMs: 2000 });
-
-    // Should resubscribe with new throttle
-    expect(mockUnsubscribe1).toHaveBeenCalled();
-    expect(mockSubscribe).toHaveBeenCalledWith({
-      callback: expect.any(Function),
-      throttleMs: 2000,
-    });
-  });
-
-  it('should handle empty positions array', async () => {
-    let capturedCallback: (positions: Position[]) => void = jest.fn();
-    mockSubscribe.mockImplementation((params) => {
-      capturedCallback = params.callback;
-      return jest.fn();
-    });
-
-    const { result } = renderHook(() => usePerpsLivePositions());
-
-    act(() => {
-      capturedCallback([]);
-    });
-
-    await waitFor(() => {
+      // Initially empty with loading state
       expect(result.current).toEqual({
         positions: [],
-        isInitialLoading: false,
+        isInitialLoading: true,
+      });
+
+      // Simulate positions update
+      const positions: Position[] = [
+        mockPosition,
+        { ...mockPosition, coin: 'ETH-PERP', size: '10.0' },
+      ];
+
+      act(() => {
+        capturedCallback(positions);
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          positions,
+          isInitialLoading: false,
+        });
       });
     });
-  });
 
-  it('should handle null or undefined updates gracefully', async () => {
-    let capturedCallback: (positions: Position[]) => void = jest.fn();
-    mockSubscribe.mockImplementation((params) => {
-      capturedCallback = params.callback;
-      return jest.fn();
+    it('uses no throttling by default for instant position updates', () => {
+      // Arrange
+      mockSubscribe.mockReturnValue(jest.fn());
+
+      // Act
+      renderHook(() => usePerpsLivePositions());
+
+      // Assert - No throttle means instant updates
+      expect(mockSubscribe).toHaveBeenCalledWith({
+        callback: expect.any(Function),
+        throttleMs: 0,
+      });
     });
 
-    const { result } = renderHook(() => usePerpsLivePositions());
+    it('resubscribes when throttle value changes', () => {
+      const mockUnsubscribe1 = jest.fn();
+      const mockUnsubscribe2 = jest.fn();
 
-    // Send null update (should be handled gracefully)
-    act(() => {
-      capturedCallback(null as unknown as Position[]);
+      mockSubscribe
+        .mockReturnValueOnce(mockUnsubscribe1)
+        .mockReturnValueOnce(mockUnsubscribe2);
+
+      const { rerender } = renderHook(
+        ({ throttleMs }) => usePerpsLivePositions({ throttleMs }),
+        {
+          initialProps: { throttleMs: 0 },
+        },
+      );
+
+      expect(mockSubscribe).toHaveBeenCalledWith({
+        callback: expect.any(Function),
+        throttleMs: 0,
+      });
+
+      // Change throttle
+      rerender({ throttleMs: 2000 });
+
+      // Should resubscribe with new throttle
+      expect(mockUnsubscribe1).toHaveBeenCalled();
+      expect(mockSubscribe).toHaveBeenCalledWith({
+        callback: expect.any(Function),
+        throttleMs: 2000,
+      });
     });
 
-    // Should not crash and positions should remain empty
-    expect(result.current).toEqual({
-      positions: [],
-      isInitialLoading: true,
+    it('handles empty positions array without unnecessary re-renders', async () => {
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      act(() => {
+        capturedCallback([]);
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          positions: [],
+          isInitialLoading: false,
+        });
+      });
     });
 
-    // Send undefined update
-    act(() => {
-      capturedCallback(undefined as unknown as Position[]);
-    });
+    it('handles null updates gracefully by maintaining loading state', async () => {
+      // Arrange
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
 
-    // Should still not crash
-    expect(result.current).toEqual({
-      positions: [],
-      isInitialLoading: true,
-    });
+      const { result } = renderHook(() => usePerpsLivePositions());
 
-    // Send valid update to ensure it still works
-    const validPositions: Position[] = [mockPosition];
+      // Act - Send null update (indicates no cached data yet)
+      act(() => {
+        capturedCallback(null);
+      });
 
-    act(() => {
-      capturedCallback(validPositions);
-    });
-
-    await waitFor(() => {
+      // Assert - Should maintain loading state when null is received
       expect(result.current).toEqual({
-        positions: validPositions,
-        isInitialLoading: false,
-      });
-    });
-  });
-
-  it('should replace positions on each update', async () => {
-    let capturedCallback: (positions: Position[]) => void = jest.fn();
-    mockSubscribe.mockImplementation((params) => {
-      capturedCallback = params.callback;
-      return jest.fn();
-    });
-
-    const { result } = renderHook(() => usePerpsLivePositions());
-
-    // First update
-    const firstPositions: Position[] = [mockPosition];
-    act(() => {
-      capturedCallback(firstPositions);
-    });
-
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        positions: firstPositions,
-        isInitialLoading: false,
+        positions: [],
+        isInitialLoading: true,
       });
     });
 
-    // Second update with different positions
-    const secondPositions: Position[] = [
-      { ...mockPosition, coin: 'ETH-PERP', size: '5.0' },
-      { ...mockPosition, coin: 'SOL-PERP', size: '20.0' },
-    ];
-
-    act(() => {
-      capturedCallback(secondPositions);
-    });
-
-    await waitFor(() => {
-      expect(result.current).toEqual({
-        positions: secondPositions,
-        isInitialLoading: false,
+    it('transitions from loading to loaded when receiving valid positions after null', async () => {
+      // Arrange
+      let capturedCallback: (positions: Position[] | null) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
       });
-      expect(result.current.positions).not.toContain(mockPosition);
-    });
-  });
 
-  it('should handle position updates with changed values', async () => {
-    let capturedCallback: (positions: Position[]) => void = jest.fn();
-    mockSubscribe.mockImplementation((params) => {
-      capturedCallback = params.callback;
-      return jest.fn();
-    });
+      const { result } = renderHook(() => usePerpsLivePositions());
+      const validPositions: Position[] = [mockPosition];
 
-    const { result } = renderHook(() => usePerpsLivePositions());
+      // Act - First send null, then valid positions
+      act(() => {
+        capturedCallback(null);
+      });
 
-    // Initial position
-    const initialPosition: Position = { ...mockPosition };
-    act(() => {
-      capturedCallback([initialPosition]);
-    });
+      // Assert - Still loading after null
+      expect(result.current.isInitialLoading).toBe(true);
 
-    await waitFor(() => {
-      expect(result.current.positions[0].unrealizedPnl).toBe('1000');
-    });
+      // Act - Send valid positions
+      act(() => {
+        capturedCallback(validPositions);
+      });
 
-    // Update with changed PnL
-    const updatedPosition: Position = {
-      ...mockPosition,
-      unrealizedPnl: '2000',
-      positionValue: '52000',
-    };
-
-    act(() => {
-      capturedCallback([updatedPosition]);
+      // Assert - Should be loaded with positions
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          positions: validPositions,
+          isInitialLoading: false,
+        });
+      });
     });
 
-    await waitFor(() => {
-      expect(result.current.positions[0].unrealizedPnl).toBe('2000');
-      expect(result.current.positions[0].positionValue).toBe('52000');
+    it('replaces entire positions array on each update', async () => {
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // First update
+      const firstPositions: Position[] = [mockPosition];
+      act(() => {
+        capturedCallback(firstPositions);
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          positions: firstPositions,
+          isInitialLoading: false,
+        });
+      });
+
+      // Second update with different positions
+      const secondPositions: Position[] = [
+        { ...mockPosition, coin: 'ETH-PERP', size: '5.0' },
+        { ...mockPosition, coin: 'SOL-PERP', size: '20.0' },
+      ];
+
+      act(() => {
+        capturedCallback(secondPositions);
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual({
+          positions: secondPositions,
+          isInitialLoading: false,
+        });
+        expect(result.current.positions).not.toContain(mockPosition);
+      });
+    });
+
+    it('updates position values when PnL or other fields change', async () => {
+      let capturedCallback: (positions: Position[]) => void = jest.fn();
+      mockSubscribe.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      // Initial position
+      const initialPosition: Position = { ...mockPosition };
+      act(() => {
+        capturedCallback([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(result.current.positions[0].unrealizedPnl).toBe('1000');
+      });
+
+      // Update with changed PnL
+      const updatedPosition: Position = {
+        ...mockPosition,
+        unrealizedPnl: '2000',
+        positionValue: '52000',
+      };
+
+      act(() => {
+        capturedCallback([updatedPosition]);
+      });
+
+      await waitFor(() => {
+        expect(result.current.positions[0].unrealizedPnl).toBe('2000');
+        expect(result.current.positions[0].positionValue).toBe('52000');
+      });
     });
   });
 });
