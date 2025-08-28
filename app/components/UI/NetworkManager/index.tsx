@@ -46,7 +46,6 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -54,6 +53,8 @@ import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
 } from './index.types';
+import { MAINNET } from '../../../constants/network';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -87,7 +88,6 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { disableNetwork } = useNetworkEnablement();
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
@@ -219,15 +219,29 @@ const NetworkManager = () => {
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(() => {
+  const confirmRemoveRpc = useCallback(async () => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
+      const selectedNetworkClientId =
+        NetworkController.state.selectedNetworkClientId;
+      const isSelectedNetwork =
+        NetworkController.state.networkConfigurationsByChainId[
+          chainId
+        ].rpcEndpoints.some(
+          (rpcEndpoint) =>
+            rpcEndpoint.networkClientId === selectedNetworkClientId,
+        );
+
+      if (isSelectedNetwork) {
+        // if we delete selected network, switch to mainnet before removing the selected network
+        await NetworkController.setActiveNetwork(MAINNET);
+      }
+
       NetworkController.removeNetwork(chainId);
-      disableNetwork(showConfirmDeleteModal.caipChainId);
 
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
@@ -235,7 +249,7 @@ const NetworkManager = () => {
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork]);
+  }, [showConfirmDeleteModal]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -307,13 +321,14 @@ const NetworkManager = () => {
               iconName={IconName.Edit}
               onPress={handleEditNetwork}
             />
-            {showNetworkMenuModal.displayEdit && (
+            {isRemoveGlobalNetworkSelectorEnabled() ||
+            showNetworkMenuModal.displayEdit ? (
               <AccountAction
                 actionTitle={strings('app_settings.delete')}
                 iconName={IconName.Trash}
                 onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
               />
-            )}
+            ) : null}
           </View>
         </BottomSheet>
       )}
