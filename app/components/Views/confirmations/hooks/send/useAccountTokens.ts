@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/tokenList';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { useSendScope } from './useSendScope';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';

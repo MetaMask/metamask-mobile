@@ -6,7 +6,7 @@ import { useSendScope } from './useSendScope';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
-import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/tokenList';
+import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 jest.mock('react-redux', () => ({
@@ -30,7 +30,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../selectors/tokenList', () => ({
+jest.mock('../../../../../selectors/assets/assets-list', () => ({
   selectAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
