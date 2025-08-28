@@ -133,8 +133,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { candleData, isLoadingHistory, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
-      selectedDuration: TimeDuration.YEAR_TO_DATE, // Fixed duration to fetch 250 candles
-      selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+      selectedDuration: TimeDuration.YEAR_TO_DATE,
+      selectedInterval: selectedCandlePeriod,
     });
 
   // Check if user has an existing position for this market

@@ -26,7 +26,7 @@ interface PerpsCandlePeriodBottomSheetProps {
   selectedPeriod: CandlePeriod;
   selectedDuration: TimeDuration;
   onPeriodChange?: (period: CandlePeriod) => void;
-  showAllPeriods?: boolean; // New prop to show all periods instead of filtered by duration
+  showAllPeriods?: boolean;
   testID?: string;
 }
 
@@ -50,12 +50,10 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  // Get available periods - either all periods or filtered by duration
   const availablePeriods = showAllPeriods
     ? CANDLE_PERIODS
     : getCandlePeriodsForDuration(selectedDuration);
 
-  // Organize periods into 3 sections as specified
   const periodSections = showAllPeriods
     ? [
         {
@@ -118,7 +116,6 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       </BottomSheetHeader>
       <Box>
         {showAllPeriods && periodSections ? (
-          // Show organized sections
           periodSections.map((section, sectionIndex) => (
             <Box
               key={section.title}
@@ -170,7 +167,6 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             </Box>
           ))
         ) : (
-          // Show simple list for filtered periods in grid
           <Box style={styles.periodOptionsGrid}>
             {availablePeriods.map((period) => (
               <TouchableOpacity

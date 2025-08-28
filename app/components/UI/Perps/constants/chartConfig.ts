@@ -162,11 +162,6 @@ export const DURATION_CANDLE_PERIODS = {
   },
 } as const;
 
-/**
- * Legacy: All available candle periods (for backward compatibility)
- * @deprecated Use DURATION_CANDLE_PERIODS instead
- * Only includes API-supported intervals
- */
 export const CANDLE_PERIODS = [
   { label: '1m', value: CandlePeriod.ONE_MINUTE },
   { label: '3m', value: CandlePeriod.THREE_MINUTES },
@@ -179,7 +174,7 @@ export const CANDLE_PERIODS = [
   { label: '8h', value: CandlePeriod.EIGHT_HOURS },
   { label: '12h', value: CandlePeriod.TWELVE_HOURS },
   { label: '1d', value: CandlePeriod.ONE_DAY },
-  { label: '2d', value: CandlePeriod.THREE_DAYS }, // Map 2d to 3d (closest available)
+  { label: '2d', value: CandlePeriod.THREE_DAYS },
   { label: '7d', value: CandlePeriod.ONE_WEEK },
   { label: '30d', value: CandlePeriod.ONE_MONTH },
 ] as const;

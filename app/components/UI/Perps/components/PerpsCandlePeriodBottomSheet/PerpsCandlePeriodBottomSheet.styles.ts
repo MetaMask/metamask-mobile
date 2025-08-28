@@ -12,20 +12,20 @@ const styleSheet = (params: { theme: Theme }) => {
     periodOptionsGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      justifyContent: 'flex-start', // Left-aligned rows
-      paddingHorizontal: 8, // Minimal padding to prevent edge overflow
+      justifyContent: 'flex-start',
+      paddingHorizontal: 8,
     },
     periodOption: {
-      width: '18%', // Responsive width - 5 buttons fit with spacing
-      height: 48, // Fixed height from Figma
+      width: '18%',
+      height: 48,
       paddingVertical: 4,
-      paddingHorizontal: 4, // Minimal horizontal padding
+      paddingHorizontal: 4,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: 8,
-      marginRight: '2%', // Consistent spacing between buttons
-      borderRadius: 12, // From Figma
-      backgroundColor: colors.background.muted, // Surface-1 equivalent
+      marginRight: '2%',
+      borderRadius: 12,
+      backgroundColor: colors.background.muted,
     },
     periodOptionActive: {
       backgroundColor: colors.primary.alternative,
