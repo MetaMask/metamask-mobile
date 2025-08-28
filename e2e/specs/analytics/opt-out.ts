@@ -2,7 +2,7 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import { loginToApp } from '../../viewHelper';
@@ -17,7 +17,9 @@ import {
 import SoftAssert from '../../utils/SoftAssert';
 
 describe(
-  Regression('Regression - metametrics opt out from settings WITH ANALYTICS'),
+  RegressionWalletPlatform(
+    'Regression - metametrics opt out from settings WITH ANALYTICS',
+  ),
   (): void => {
     beforeEach(async (): Promise<void> => {
       jest.setTimeout(150000);

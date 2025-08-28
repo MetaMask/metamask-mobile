@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags.js';
+import { RegressionWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
@@ -38,22 +38,25 @@ const exportSrp = async () => {
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 
-describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
-  it('exports private key', async () => {
-    await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HD_ACCOUNT);
-      await exportPrivateKey();
+describe(
+  RegressionWalletPlatform('Multichain Accounts: Account Details'),
+  () => {
+    beforeEach(async () => {
+      await TestHelpers.reverseServerPort();
     });
-  });
 
-  it('exports SRP', async () => {
-    await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HD_ACCOUNT);
-      await exportSrp();
+    it('exports private key', async () => {
+      await withMultichainAccountDetailsEnabled(async () => {
+        await goToAccountDetails(HD_ACCOUNT);
+        await exportPrivateKey();
+      });
     });
-  });
-});
+
+    it('exports SRP', async () => {
+      await withMultichainAccountDetailsEnabled(async () => {
+        await goToAccountDetails(HD_ACCOUNT);
+        await exportSrp();
+      });
+    });
+  },
+);
