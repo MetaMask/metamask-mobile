@@ -146,13 +146,17 @@ const NetworkMultiSelector = ({
     [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
+  const onSelectAllPopularNetworks = useCallback(() => {
+    selectAllPopularNetworks(dismissModal);
+  }, [selectAllPopularNetworks, dismissModal]);
+
   const selectAllNetworksComponent = useMemo(
     () => (
       <Cell
         isSelected={areAllNetworksSelected}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
-        onPress={() => selectAllPopularNetworks(dismissModal)}
+        onPress={onSelectAllPopularNetworks}
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
@@ -160,7 +164,7 @@ const NetworkMultiSelector = ({
         }}
       />
     ),
-    [selectAllPopularNetworks, areAllNetworksSelected, dismissModal],
+    [onSelectAllPopularNetworks, areAllNetworksSelected],
   );
 
   const onSelectNetwork = useCallback(
