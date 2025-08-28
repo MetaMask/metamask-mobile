@@ -102,11 +102,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
   // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
   const conditionalOnPress =
-    TouchableComponent === TouchableOpacity
-      ? onPress
-      : isDisabled
-      ? undefined
-      : onPress;
+    TouchableComponent !== TouchableOpacity && isDisabled ? undefined : onPress;
 
   return (
     <TouchableComponent
@@ -120,11 +116,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
           style={styles.checkbox}
           isChecked={isSelected}
           onPressIn={
-            Platform.OS === 'android'
-              ? undefined
-              : isDisabled
-              ? undefined
-              : onPress
+            Platform.OS === 'android' || isDisabled ? undefined : onPress
           }
         />
         {children}

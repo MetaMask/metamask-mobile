@@ -103,11 +103,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
   // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
   const conditionalOnPress =
-    TouchableComponent === TouchableOpacity
-      ? onPress
-      : isDisabled
-      ? undefined
-      : onPress;
+    TouchableComponent !== TouchableOpacity && isDisabled ? undefined : onPress;
 
   return (
     <TouchableComponent
