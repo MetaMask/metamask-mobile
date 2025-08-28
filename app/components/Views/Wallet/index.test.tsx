@@ -259,6 +259,9 @@ const mockInitialState = {
               },
             },
           },
+          sendRedesign: {
+            enabled: false,
+          },
         },
       },
       TokensController: {

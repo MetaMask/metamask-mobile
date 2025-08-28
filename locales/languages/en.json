@@ -510,6 +510,7 @@
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
     "continue": "Continue",
+    "unit": "unit",
     "units": "units",
     "next": "Next",
     "title": "Send",
@@ -519,6 +520,7 @@
     "amount": "Amount",
     "confirm": "Confirm",
     "paste": "Paste",
+    "no_assets_available": "No assets available to send",
     "clear": "Clear",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
@@ -922,16 +924,22 @@
       "done": "Done",
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
+      "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
-      "arrival_time": "Funds will arrive within 5 minutes",
+      "success_toast": "Withdrawal successful",
+      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
-      "completed": "Withdrawal Complete",
       "max": "Max",
       "percentage_10": "10%",
-      "percentage_25": "25%"
+      "percentage_25": "25%",
+      "available_balance": "Available perps balance: {{amount}}",
+      "receive": "Receive",
+      "provider_fee": "Provider fee",
+      "you_will_receive": "You'll receive",
+      "continue": "Continue",
+      "funds_received": "{{amount}} {{symbol}} received"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -946,6 +954,7 @@
       "title": "New Order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "enter_price": "Enter price",
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
@@ -1052,9 +1061,14 @@
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "cancel": "Cancel",
+      "margin": "Margin",
       "pnl": "PnL",
+      "estimated_pnl": "Estimated PnL",
       "fees": "Fees",
       "receive": "You'll receive",
+      "you_receive": "You'll receive",
+      "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
@@ -1063,7 +1077,7 @@
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
       "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
-      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
       "no_amount_selected": "Please select an amount to close"
     },
@@ -1154,15 +1168,15 @@
     "position": {
       "title": "Positions",
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidation_price": "Liquidation Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding cost",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "Margin",
-        "not_set": "Not Set",
+        "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "Loading positions...",
@@ -1185,7 +1199,8 @@
         "total_balance": "Total Balance",
         "available_balance": "Available Balance",
         "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "total_unrealized_pnl": "Total Unrealized P&L",
+        "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
         "update_success": "TP/SL updated successfully"
@@ -1236,8 +1251,23 @@
       },
       "fees": {
         "title": "Fees",
+        "content": "Trading fees are charged when you open or close a position.",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee",
+        "total": "Total fees"
+      },
+      "closing_fees": {
+        "title": "Closing Fees",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee"
+      },
+      "estimated_pnl": {
+        "title": "Estimated P&L",
+        "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
+      },
+      "limit_price": {
+        "title": "Limit Price",
+        "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
       },
       "open_interest": {
         "title": "Open interest",
@@ -1250,6 +1280,14 @@
       "perps_geo_block": {
         "title": "Perps geo block",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "receive": {
+        "title": "Receive",
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+      },
+      "withdrawal_fees": {
+        "title": "Provider Fee",
+        "content": "A network fee charged for processing your withdrawal transaction."
       },
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
@@ -1452,7 +1490,7 @@
     "sort_by": "Sort by",
     "filter_by": "Filter by",
     "networks": "Networks",
-    "default": "Default",
+    "popular": "Popular",
     "custom": "Custom",
     "current_network": "Current network",
     "popular_networks": "Popular networks",
@@ -3027,6 +3065,7 @@
     "select_network": "Select a network",
     "enabled_networks": "Enabled networks",
     "additional_networks": "Additional networks",
+    "all_popular_networks": "All popular networks",
     "show_test_networks": "Show test networks",
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
@@ -5224,7 +5263,10 @@
 
     "oauth_error_title": "Login failed",
     "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
-    "oauth_error_button": "Try again"
+    "oauth_error_button": "Try again",
+    "no_internet_connection_title": "Unable to connect",
+    "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
+    "no_internet_connection_button": "Try again"
   },
   "password_hint": {
     "title": "Password hint",
@@ -5362,6 +5404,12 @@
       "copy_address": "Copy address",
       "view_on_explorer_button": "View on {{explorer}}",
       "view_on_block_explorer": "View on Block Explorer"
+    },
+    "share_address_qr": {
+      "title": "{{networkName}} Address",
+      "copy_address": "Copy address",
+      "description": "Use this address to receive tokens and collectibles on",
+      "description_prefix": "Use this address to receive tokens and collectibles on"
     },
     "export_credentials": {
       "export_private_key": "Private key",
