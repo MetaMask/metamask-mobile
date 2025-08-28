@@ -2,8 +2,9 @@ import { RegressionAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
-import { loginToApp, navigateToSettings } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -29,7 +30,7 @@ describe(
         },
         async () => {
           await loginToApp();
-          await navigateToSettings();
+          await TabBarComponent.tapSettings();
           await SettingsView.scrollToAesCryptoButton();
           await SettingsView.tapAesCryptoTestForm();
 

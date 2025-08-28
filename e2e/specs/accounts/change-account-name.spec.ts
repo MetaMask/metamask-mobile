@@ -9,7 +9,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToSettings } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
@@ -63,7 +63,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
         await Assertions.expectElementToBeVisible(
           TabBarComponent.tabBarSettingButton,
         );
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.scrollToLockButton();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
@@ -116,7 +116,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
         await Assertions.expectElementToBeVisible(
           TabBarComponent.tabBarSettingButton,
         );
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.scrollToLockButton();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();

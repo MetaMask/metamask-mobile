@@ -1,7 +1,7 @@
 import { RegressionWalletUX } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import { loginToApp, navigateToSettings } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -39,14 +39,13 @@ describe(RegressionWalletUX('Clear Privacy data'), () => {
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
         // should go to settings then security & privacy
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacyView.scrollToClearPrivacyData();
         await SecurityAndPrivacyView.tapClearPrivacyData();
 
         await Assertions.expectElementToBeVisible(ClearPrivacyModal.container);
         await ClearPrivacyModal.tapClearButton();
-        await SettingsView.dismissModal();
 
         await TabBarComponent.tapBrowser();
         await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();

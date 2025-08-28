@@ -18,14 +18,13 @@ import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './framework/fixtures/FixtureUtils';
-import Gestures from './framework/Gestures';
-import Matchers from './framework/Matchers';
 import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
+import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
@@ -300,41 +299,6 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
 };
 
 /**
- * Navigates to Settings using either tab bar or hamburger menu based on feature flags
- *
- * @async
- * @function navigateToSettings
- * @returns {Promise<void>} Resolves when navigation to settings is complete
- */
-export const navigateToSettings = async () => {
-  try {
-    // First try the traditional tab bar approach
-    await TabBarComponent.tapSettings();
-  } catch (error) {
-    // If tab bar fails, try the hamburger menu (rewards feature flag enabled)
-    try {
-      await Gestures.waitAndTap(
-        Matchers.getElementByID('navbar-hamburger-menu-button'),
-        {
-          elemDescription: 'Navbar - Hamburger Menu Button',
-        },
-      );
-    } catch (hamburgerError) {
-      // If both fail, throw the original error
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const hamburgerErrorMessage =
-        hamburgerError instanceof Error
-          ? hamburgerError.message
-          : String(hamburgerError);
-      throw new Error(
-        `Failed to navigate to settings. Tab bar error: ${errorMessage}, Hamburger menu error: ${hamburgerErrorMessage}`,
-      );
-    }
-  }
-};
-
-/**
  * Adds the Localhost network to the user's network list.
  *
  * @async
@@ -342,7 +306,7 @@ export const navigateToSettings = async () => {
  * @returns {Promise<void>} Resolves when the Localhost network is added to the user's network list.
  */
 export const addLocalhostNetwork = async () => {
-  await navigateToSettings();
+  await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
   await Assertions.expectElementToBeVisible(NetworkView.networkContainer, {
     description: 'Network Container should be visible',

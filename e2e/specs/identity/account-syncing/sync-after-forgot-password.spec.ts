@@ -2,7 +2,6 @@ import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
   loginToApp,
-  navigateToSettings,
 } from '../../../viewHelper';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
@@ -15,6 +14,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { defaultGanacheOptions } from '../../../framework/Constants';
 import SettingsView from '../../../pages/Settings/SettingsView';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import LoginView from '../../../pages/wallet/LoginView';
 import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalView';
 import { createUserStorageController } from '../utils/mocks.ts';
@@ -69,7 +69,7 @@ describe(RegressionIdentity('Account syncing - Forgot Password Flow'), () => {
       },
       async ({ userStorageMockttpController, mockServer }) => {
         await CreateNewWallet();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapLock();
         await SettingsView.tapYesAlertButton();
         await LoginView.tapForgotPassword();

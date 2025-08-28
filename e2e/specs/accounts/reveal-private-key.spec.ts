@@ -1,7 +1,7 @@
 import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp, navigateToSettings } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
@@ -50,7 +50,7 @@ describe(RegressionAccounts('reveal private key'), () => {
       async () => {
         await loginToApp();
         // Navigate to Reveal private key screen
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToRevealPrivateKey();
         await SecurityAndPrivacy.tapShowPrivateKeyButton();
@@ -183,7 +183,7 @@ describe(RegressionAccounts('reveal private key'), () => {
       },
       async () => {
         await loginToApp();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToRevealPrivateKey();
         await SecurityAndPrivacy.tapShowPrivateKeyButton();

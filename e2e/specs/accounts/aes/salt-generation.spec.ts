@@ -1,8 +1,9 @@
 import { RegressionAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
-import { loginToApp, navigateToSettings } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
 
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -24,7 +25,7 @@ describe(RegressionAccounts('AES Crypto - Salt generation'), () => {
       },
       async () => {
         await loginToApp();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.scrollToAesCryptoButton();
         await SettingsView.tapAesCryptoTestForm();
 

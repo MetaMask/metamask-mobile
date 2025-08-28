@@ -1,7 +1,8 @@
 import { RegressionWalletUX } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp, navigateToSettings } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
@@ -14,7 +15,7 @@ describe(RegressionWalletUX('Settings'), () => {
       },
       async () => {
         await loginToApp();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.scrollToContactSupportButton();
         await SettingsView.tapContactSupport();
 

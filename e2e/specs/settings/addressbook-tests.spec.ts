@@ -6,7 +6,7 @@ import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import AddAddressModal from '../../pages/Send/AddAddressModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import { loginToApp, navigateToSettings } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import CommonView from '../../pages/CommonView';
@@ -65,7 +65,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
         // should go to settings then select contacts
         await SendView.tapCancelButton();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.expectContactIsVisible('Myth');
@@ -97,7 +97,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await SettingsView.tapContacts();
         await ContactsView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(AddContactView.container);
@@ -127,7 +127,6 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
-        await SettingsView.dismissModal();
         await TabBarComponent.tapWallet();
         await WalletView.tapWalletSendButton();
         await Assertions.expectTextDisplayed('Ibrahim edited');
@@ -145,7 +144,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
         },
         async () => {
           await loginToApp();
-          await navigateToSettings();
+          await TabBarComponent.tapSettings();
           await SettingsView.tapContacts();
           await ContactsView.tapAddContactButton();
           await Assertions.expectElementToBeVisible(AddContactView.container);
@@ -168,7 +167,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
           // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
           await ContactsView.expectContactIsVisible(TEST_CONTACT.editedName);
           await ContactsView.expectContactIsNotVisible(TEST_CONTACT.name);
-          await SettingsView.dismissModal();
+
           // should display all EVM contacts in the send flow
           await TabBarComponent.tapWallet();
           await WalletView.tapWalletSendButton();
@@ -180,7 +179,7 @@ describe(RegressionWalletPlatform('Addressbook Tests'), () => {
 
           // should remove a contact
           // Tap on Moon address
-          await navigateToSettings();
+          await TabBarComponent.tapSettings();
           await SettingsView.tapContacts();
           await ContactsView.tapOnAlias(TEST_CONTACT.editedName);
 

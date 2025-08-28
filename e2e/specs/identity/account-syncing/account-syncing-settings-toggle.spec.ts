@@ -1,4 +1,4 @@
-import { loginToApp, navigateToSettings } from '../../../viewHelper';
+import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
@@ -12,6 +12,7 @@ import {
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import BackupAndSyncView from '../../../pages/Settings/BackupAndSyncView';
 import CommonView from '../../../pages/CommonView';
@@ -99,7 +100,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         );
 
         // Navigate to Settings to toggle account sync
-        await navigateToSettings();
+        await TabBarComponent.tapSettings();
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
         );
@@ -116,7 +117,7 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
         await Assertions.expectElementToBeVisible(
           SettingsView.backupAndSyncSectionButton,
         );
-        await SettingsView.dismissModal();
+        await TabBarComponent.tapWallet();
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Create third account with sync disabled - this should NOT sync to user storage

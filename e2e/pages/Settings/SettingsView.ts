@@ -5,7 +5,6 @@ import {
   SettingsViewSelectorsText,
 } from '../../selectors/Settings/SettingsView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
-import TabBarComponent from '../wallet/TabBarComponent';
 
 class SettingsView {
   get generalSettingsButton(): DetoxElement {
@@ -67,10 +66,6 @@ class SettingsView {
 
   get scrollViewIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
-  }
-
-  get header(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.SETTINGS_HEADER);
   }
 
   async scrollToLockButton(): Promise<void> {
@@ -188,17 +183,6 @@ class SettingsView {
     await Gestures.tap(this.snapsSectionButton, {
       elemDescription: 'Settings - Snaps Button',
     });
-  }
-
-  // Dismiss the Settings view
-  async dismissModal(): Promise<void> {
-    // First try tap tabBar, if rewards feature flag is disabled
-    try {
-      await TabBarComponent.tapWallet();
-    } catch {
-      // Next try dismiss modal
-      await Gestures.swipe(this.header, 'down');
-    }
   }
 }
 
