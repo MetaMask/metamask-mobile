@@ -1,8 +1,17 @@
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-index 81faf0a..a948e53 100644
+index 81faf0a..c97635d 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-@@ -10,11 +10,32 @@ export declare enum TransakEnvironment {
+@@ -6,15 +6,41 @@ export declare const logError: (error: any) => void;
+ export declare enum DepositOrderType {
+     Deposit = "DEPOSIT"
+ }
++export declare enum SdkEnvironment {
++    Development = "dev",
++    Staging = "stg",
++    Production = "prod"
++}
+ export declare enum TransakEnvironment {
      Production = "production",
      Staging = "staging"
  }
@@ -37,7 +46,7 @@ index 81faf0a..a948e53 100644
  };
  export type NativeTransakUserDetails = {
      id: string;
-@@ -24,7 +45,7 @@ export type NativeTransakUserDetails = {
+@@ -24,7 +50,7 @@ export type NativeTransakUserDetails = {
      mobileNumber: string;
      status: string;
      dob: string;
@@ -46,7 +55,7 @@ index 81faf0a..a948e53 100644
      address: NativeTransakUserDetailsAddress;
      createdAt: string;
  };
-@@ -37,14 +58,39 @@ export type NativeTransakUserDetailsAddress = {
+@@ -37,14 +63,39 @@ export type NativeTransakUserDetailsAddress = {
      country: string;
      countryCode: string;
  };
@@ -91,7 +100,7 @@ index 81faf0a..a948e53 100644
  };
  export type BuyQuote = {
      quoteId: string;
-@@ -65,58 +111,25 @@ export type BuyQuote = {
+@@ -65,58 +116,25 @@ export type BuyQuote = {
      cryptoLiquidityProvider: string;
      notes: any[];
  };
@@ -163,7 +172,7 @@ index 81faf0a..a948e53 100644
  };
  export type Reservation = {
      id: string;
-@@ -155,14 +168,13 @@ export type DepositOrder = {
+@@ -155,14 +173,13 @@ export type DepositOrder = {
      orderType: DepositOrderType.Deposit;
      exchangeRate?: number;
      statusDescription?: string;
@@ -181,7 +190,7 @@ index 81faf0a..a948e53 100644
      fields: OrderPaymentMethodField[];
  };
  export type OrderPaymentMethodField = {
-@@ -201,27 +213,28 @@ export type UserLimits = {
+@@ -201,27 +218,28 @@ export type UserLimits = {
      };
  };
  export type OttResponse = {
@@ -217,7 +226,7 @@ index 81faf0a..a948e53 100644
      quoteId: string;
      fiatAmount: number;
      fiatAmountInUsd: number;
-@@ -229,12 +242,12 @@ export type TransakOrder = {
+@@ -229,12 +247,12 @@ export type TransakOrder = {
      cryptoAmount: number;
      conversionPrice: number;
      totalFeeInFiat: number;
@@ -233,12 +242,12 @@ index 81faf0a..a948e53 100644
  };
  export declare class OrderIdTransformer {
      static depositOrderIdToTransakOrderId(depositOrderId: string): string;
-@@ -244,34 +257,42 @@ export declare class OrderIdTransformer {
+@@ -244,34 +262,42 @@ export declare class OrderIdTransformer {
  }
  export declare class NativeRampsSdk {
      #private;
 -    constructor(config?: NativeRampsSdkConfig, environment?: TransakEnvironment);
-+    constructor(config: NativeRampsSdkConfig, environment?: TransakEnvironment);
++    constructor(config: NativeRampsSdkConfig, environment?: SdkEnvironment);
      setAccessToken(accessToken: NativeTransakAccessToken): void;
      getAccessToken(): NativeTransakAccessToken | null;
      clearAccessToken(): void;
@@ -287,7 +296,7 @@ index 81faf0a..a948e53 100644
      logout(): Promise<string>;
  }
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-index f5facee..c8e4871 100644
+index f5facee..5d8f666 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
 @@ -1,10 +1,33 @@
@@ -333,7 +342,7 @@ index f5facee..c8e4871 100644
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.TransakEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
 -const axios_1 = __importDefault(require("axios"));
-+exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
++exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.SdkEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
 +const axios_1 = __importStar(require("axios"));
  const SdkParam_1 = __importDefault(require("./SdkParam"));
  const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
@@ -356,10 +365,32 @@ index f5facee..c8e4871 100644
      });
  };
  exports.logResponse = logResponse;
-@@ -73,6 +96,13 @@ var TransakEnvironment;
+@@ -68,11 +91,35 @@ var DepositOrderType;
+ (function (DepositOrderType) {
+     DepositOrderType["Deposit"] = "DEPOSIT";
+ })(DepositOrderType = exports.DepositOrderType || (exports.DepositOrderType = {}));
++var SdkEnvironment;
++(function (SdkEnvironment) {
++    SdkEnvironment["Development"] = "dev";
++    SdkEnvironment["Staging"] = "stg";
++    SdkEnvironment["Production"] = "prod";
++})(SdkEnvironment = exports.SdkEnvironment || (exports.SdkEnvironment = {}));
+ var TransakEnvironment;
+ (function (TransakEnvironment) {
      TransakEnvironment["Production"] = "production";
      TransakEnvironment["Staging"] = "staging";
  })(TransakEnvironment = exports.TransakEnvironment || (exports.TransakEnvironment = {}));
++function mapSdkEnvironmentToTransakEnvironment(sdkEnv) {
++    switch (sdkEnv) {
++        case SdkEnvironment.Development:
++        case SdkEnvironment.Staging:
++            return TransakEnvironment.Staging;
++        case SdkEnvironment.Production:
++            return TransakEnvironment.Production;
++        default:
++            throw new Error(`Invalid SDK environment: ${String(sdkEnv)}`);
++    }
++}
 +var Context;
 +(function (Context) {
 +    Context["Browser"] = "browser";
@@ -370,12 +401,12 @@ index f5facee..c8e4871 100644
  exports.OrderStatusEnum = {
      Unknown: 'UNKNOWN',
      Precreated: 'PRECREATED',
-@@ -105,20 +135,24 @@ class OrderIdTransformer {
+@@ -105,20 +152,24 @@ class OrderIdTransformer {
  }
  exports.OrderIdTransformer = OrderIdTransformer;
  class NativeRampsSdk {
 -    constructor(config = {}, environment = TransakEnvironment.Production) {
-+    constructor(config, environment = TransakEnvironment.Production) {
++    constructor(config, environment = SdkEnvironment.Production) {
          _NativeRampsSdk_instances.add(this);
          _NativeRampsSdk_apiClient.set(this, void 0);
          _NativeRampsSdk_config.set(this, void 0);
@@ -383,9 +414,11 @@ index f5facee..c8e4871 100644
 +        _NativeRampsSdk_context.set(this, void 0);
          _NativeRampsSdk_accessToken.set(this, null);
          __classPrivateFieldSet(this, _NativeRampsSdk_config, Object.assign({}, config), "f");
-         __classPrivateFieldSet(this, _NativeRampsSdk_environment, environment, "f");
+-        __classPrivateFieldSet(this, _NativeRampsSdk_environment, environment, "f");
+-        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, environment);
++        __classPrivateFieldSet(this, _NativeRampsSdk_environment, mapSdkEnvironmentToTransakEnvironment(environment), "f");
 +        __classPrivateFieldSet(this, _NativeRampsSdk_context, config.context, "f");
-         const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, environment);
++        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
          __classPrivateFieldSet(this, _NativeRampsSdk_apiClient, axios_1.default.create({
              baseURL,
 -            headers: Object.assign(Object.assign({ 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': `NativeRampsSdk/${package_json_1.version}` }, (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").frontendAuth && {
@@ -399,7 +432,7 @@ index f5facee..c8e4871 100644
          }), "f");
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
      }
-@@ -134,25 +168,42 @@ class NativeRampsSdk {
+@@ -134,25 +185,40 @@ class NativeRampsSdk {
      getVersion() {
          return package_json_1.version;
      }
@@ -414,7 +447,6 @@ index f5facee..c8e4871 100644
 -            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/email/send', {
 +            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/login', {
                  email,
-+                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
              });
 -            return response.data.response;
 +            return response.data.data;
@@ -437,7 +469,6 @@ index f5facee..c8e4871 100644
 -            });
 -            const accessToken = response.data.response;
 +                otp: verificationCode,
-+                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
 +                stateToken,
 +            };
 +            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/verify', requestBody);
@@ -450,7 +481,7 @@ index f5facee..c8e4871 100644
              this.setAccessToken(accessToken);
              return accessToken;
          }
-@@ -163,8 +214,8 @@ class NativeRampsSdk {
+@@ -163,8 +229,8 @@ class NativeRampsSdk {
      async getUserDetails() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -461,7 +492,7 @@ index f5facee..c8e4871 100644
          }
          catch (error) {
              throw error;
-@@ -172,7 +223,7 @@ class NativeRampsSdk {
+@@ -172,7 +238,7 @@ class NativeRampsSdk {
      }
      async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
          try {
@@ -470,7 +501,7 @@ index f5facee..c8e4871 100644
                  params: {
                      fiatCurrency,
                      cryptoCurrency,
-@@ -183,54 +234,49 @@ class NativeRampsSdk {
+@@ -183,54 +249,49 @@ class NativeRampsSdk {
                      isFeeExcludedFromFiat: true,
                  },
              });
@@ -538,7 +569,7 @@ index f5facee..c8e4871 100644
          }
          catch (error) {
              throw error;
-@@ -239,8 +285,8 @@ class NativeRampsSdk {
+@@ -239,8 +300,8 @@ class NativeRampsSdk {
      async patchUser(data) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -549,7 +580,7 @@ index f5facee..c8e4871 100644
          }
          catch (error) {
              throw error;
-@@ -249,77 +295,88 @@ class NativeRampsSdk {
+@@ -249,77 +310,88 @@ class NativeRampsSdk {
      async submitPurposeOfUsageForm(purpose) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -668,7 +699,7 @@ index f5facee..c8e4871 100644
                  }
                  catch (retryError) {
                      throw retryError;
-@@ -334,15 +391,16 @@ class NativeRampsSdk {
+@@ -334,15 +406,16 @@ class NativeRampsSdk {
              const transakOrderId = OrderIdTransformer.extractTransakOrderId(orderId);
              const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders/payment-confirmation', {
                  orderId: transakOrderId,
@@ -688,7 +719,7 @@ index f5facee..c8e4871 100644
          let depositOrderId;
          if (OrderIdTransformer.isDepositOrderId(orderId)) {
              depositOrderId = orderId;
-@@ -365,14 +423,14 @@ class NativeRampsSdk {
+@@ -365,14 +438,14 @@ class NativeRampsSdk {
                  },
              });
              const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
@@ -708,7 +739,7 @@ index f5facee..c8e4871 100644
                  }
                  catch (transakError) {
                      console.warn('Failed to fetch payment options from Transak API:', transakError);
-@@ -404,28 +462,29 @@ class NativeRampsSdk {
+@@ -404,28 +477,27 @@ class NativeRampsSdk {
      }
      async requestOtt() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
@@ -718,9 +749,7 @@ index f5facee..c8e4871 100644
          try {
 -            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/auth/public/v1/request-ott', {});
 -            if (!response.data || !response.data.response) {
-+            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/request-ott', {
-+                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
-+            });
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/request-ott');
 +            if (!response.data || !response.data.data) {
                  throw new Error('Failed to get OTT token');
              }
@@ -750,7 +779,7 @@ index f5facee..c8e4871 100644
              return response.data;
          }
          catch (error) {
-@@ -433,12 +492,12 @@ class NativeRampsSdk {
+@@ -433,12 +505,12 @@ class NativeRampsSdk {
          }
      }
      generatePaymentWidgetUrl(ottToken, quote, walletAddress, extraParams) {
@@ -765,7 +794,7 @@ index f5facee..c8e4871 100644
              ott: ottToken,
              fiatCurrency: quote.fiatCurrency,
              cryptoCurrencyCode: quote.cryptoCurrency,
-@@ -457,6 +516,16 @@ class NativeRampsSdk {
+@@ -457,6 +529,16 @@ class NativeRampsSdk {
          widgetUrl.search = params.toString();
          return widgetUrl.toString();
      }
@@ -782,7 +811,7 @@ index f5facee..c8e4871 100644
      async getOrdersHistory(limit = 10, skip = 0) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
-@@ -466,7 +535,7 @@ class NativeRampsSdk {
+@@ -466,7 +548,7 @@ class NativeRampsSdk {
                      limit,
                  },
              });
@@ -791,7 +820,7 @@ index f5facee..c8e4871 100644
          }
          catch (error) {
              throw error;
-@@ -476,9 +545,9 @@ class NativeRampsSdk {
+@@ -476,9 +558,9 @@ class NativeRampsSdk {
          var _a;
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -803,7 +832,7 @@ index f5facee..c8e4871 100644
          }
          catch (error) {
              if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-@@ -489,27 +558,22 @@ class NativeRampsSdk {
+@@ -489,27 +571,22 @@ class NativeRampsSdk {
          }
      }
  }
@@ -817,22 +846,23 @@ index f5facee..c8e4871 100644
 -                if (request.url === '/api/v1/pricing/public/quotes') {
 -                    request.params = Object.assign(Object.assign({}, (request.params || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
 -                }
-+        var _a, _b, _c;
+-            }
+-            else {
+-                request.data = Object.assign(Object.assign({}, (request.data || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
++        var _a, _b, _c, _d;
 +        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
 +            if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get' ||
 +                ((_b = request.method) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'patch') {
 +                request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
              }
-             else {
--                request.data = Object.assign(Object.assign({}, (request.data || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
--            }
 -            if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f") && request.headers) {
 -                if (request.url === '/auth/public/v1/request-ott') {
 -                    request.headers.authorization = `Bearer ${__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id}`;
 -                }
 -                else {
 -                    request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id;
-+                if (!((_c = request.data) === null || _c === void 0 ? void 0 : _c.apiKey)) {
++            else if (((_c = request.method) === null || _c === void 0 ? void 0 : _c.toLowerCase()) !== 'post') {
++                if (!((_d = request.data) === null || _d === void 0 ? void 0 : _d.apiKey)) {
 +                    request.data = Object.assign(Object.assign({}, (request.data || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
                  }
              }
@@ -842,7 +872,7 @@ index f5facee..c8e4871 100644
              if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
                  (0, exports.logRequest)(request);
              }
-@@ -533,9 +597,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -533,9 +610,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
  }, _NativeRampsSdk_getBaseUrl = function _NativeRampsSdk_getBaseUrl(environment) {
      switch (environment) {
          case TransakEnvironment.Production:
@@ -854,7 +884,7 @@ index f5facee..c8e4871 100644
          default:
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
-@@ -549,8 +613,21 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+@@ -549,8 +626,21 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
  }, _NativeRampsSdk_ensureAccessToken = function _NativeRampsSdk_ensureAccessToken() {
@@ -878,7 +908,7 @@ index f5facee..c8e4871 100644
      }
  };
  __decorate([
-@@ -562,8 +639,9 @@ __decorate([
+@@ -562,8 +652,9 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __param(1, (0, SdkParam_1.default)({ required: true })),
@@ -889,7 +919,7 @@ index f5facee..c8e4871 100644
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "verifyUserOtp", null);
  __decorate([
-@@ -579,22 +657,21 @@ __decorate([
+@@ -579,22 +670,21 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
@@ -917,7 +947,7 @@ index f5facee..c8e4871 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -610,16 +687,9 @@ __decorate([
+@@ -610,16 +700,9 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
@@ -935,7 +965,7 @@ index f5facee..c8e4871 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -628,8 +698,10 @@ __decorate([
+@@ -628,8 +711,10 @@ __decorate([
  ], NativeRampsSdk.prototype, "cancelOrder", null);
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
@@ -948,10 +978,10 @@ index f5facee..c8e4871 100644
  ], NativeRampsSdk.prototype, "createOrder", null);
  __decorate([
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
-index 70cf5dc..96bd05b 100644
+index 70cf5dc..5dd5fc3 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
-@@ -4,8 +4,8 @@ const vitest_1 = require("vitest");
+@@ -4,15 +4,24 @@ const vitest_1 = require("vitest");
  const NativeRampsSdk_1 = require("./NativeRampsSdk");
  (0, vitest_1.describe)('NativeRampsSdk', () => {
      const mockConfig = {
@@ -962,8 +992,11 @@ index 70cf5dc..96bd05b 100644
      };
      (0, vitest_1.it)('getVersion returns a string', () => {
          const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
-@@ -15,4 +15,13 @@ const NativeRampsSdk_1 = require("./NativeRampsSdk");
-         const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+         (0, vitest_1.expectTypeOf)(sdk.getVersion()).toEqualTypeOf();
+     });
+     (0, vitest_1.it)('can be initialized with environment parameter', () => {
+-        const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++        const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
          (0, vitest_1.expectTypeOf)(sdk.getVersion()).toEqualTypeOf();
      });
 +    (0, vitest_1.it)('getContext returns Context enum type', () => {
@@ -977,7 +1010,7 @@ index 70cf5dc..96bd05b 100644
 +    });
  });
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
-index 5416ceb..9ce720d 100644
+index 5416ceb..6bcd692 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
 @@ -7,13 +7,25 @@ const axios_1 = __importDefault(require("axios"));
@@ -1032,7 +1065,7 @@ index 5416ceb..9ce720d 100644
      };
      let sdk;
      let mockAxiosInstance;
-@@ -55,46 +68,42 @@ vitest_1.vi.mock('axios', () => {
+@@ -55,46 +68,54 @@ vitest_1.vi.mock('axios', () => {
          });
          (0, vitest_1.it)('initializes with default environment', () => {
              (0, vitest_1.expect)(sdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
@@ -1040,10 +1073,23 @@ index 5416ceb..9ce720d 100644
 +            (0, vitest_1.expect)(axios_1.default.create.mock.calls[0][0].baseURL).toContain('api-gateway.transak.com');
          });
          (0, vitest_1.it)('initializes with staging environment', () => {
-             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+-            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
              (0, vitest_1.expect)(stagingSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
 -            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-stg.transak.com');
 +            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-gateway-stg.transak.com');
++        });
++        (0, vitest_1.it)('initializes with development environment (maps to Transak staging)', () => {
++            vitest_1.vi.clearAllMocks();
++            const developmentSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Development);
++            (0, vitest_1.expect)(developmentSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
++            (0, vitest_1.expect)(axios_1.default.create.mock.calls[0][0].baseURL).toContain('api-gateway-stg.transak.com');
++        });
++        (0, vitest_1.it)('initializes with production environment (maps to Transak production)', () => {
++            vitest_1.vi.clearAllMocks();
++            const productionSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Production);
++            (0, vitest_1.expect)(productionSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
++            (0, vitest_1.expect)(axios_1.default.create.mock.calls[0][0].baseURL).toContain('api-gateway.transak.com');
          });
          (0, vitest_1.it)('initializes with empty config object', () => {
 -            const emptySdk = new NativeRampsSdk_1.NativeRampsSdk({});
@@ -1059,12 +1105,13 @@ index 5416ceb..9ce720d 100644
          (0, vitest_1.it)('throws error for invalid environment in getBaseUrl', () => {
              (0, vitest_1.expect)(() => {
                  new NativeRampsSdk_1.NativeRampsSdk(mockConfig, 'invalid');
-             }).toThrow('Invalid environment: invalid');
-         });
+-            }).toThrow('Invalid environment: invalid');
+-        });
 -        (0, vitest_1.it)('initializes without partnerApiKey', () => {
 -            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ verbose: true });
 -            (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
--        });
++            }).toThrow('Invalid SDK environment: invalid');
+         });
          (0, vitest_1.it)('initializes with verbose logging enabled', () => {
              const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
 -                partnerApiKey: 'test-key',
@@ -1090,7 +1137,7 @@ index 5416ceb..9ce720d 100644
          };
          (0, vitest_1.it)('sets access token', () => {
              sdk.setAccessToken(mockToken);
-@@ -113,80 +122,96 @@ vitest_1.vi.mock('axios', () => {
+@@ -113,80 +134,94 @@ vitest_1.vi.mock('axios', () => {
      });
      (0, vitest_1.describe)('authentication methods', () => {
          (0, vitest_1.it)('sends OTP to user email', async () => {
@@ -1109,7 +1156,7 @@ index 5416ceb..9ce720d 100644
              const result = await sdk.sendUserOtp('test@example.com');
 -            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/send', { email: 'test@example.com' });
 -            (0, vitest_1.expect)(result).toStrictEqual({ isTncAccepted: true });
-+            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'test@example.com', apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'test@example.com' });
 +            (0, vitest_1.expect)(result).toStrictEqual({
 +                isTncAccepted: true,
 +                stateToken: 'state-token-123',
@@ -1138,7 +1185,6 @@ index 5416ceb..9ce720d 100644
 -                emailVerificationCode: '123456',
 -                isTncAccepted: true,
 +                otp: '123456',
-+                apiKey: 'test-api-key',
 +                stateToken: 'state-token-123',
 +            });
 +            (0, vitest_1.expect)(result).toMatchObject({
@@ -1153,7 +1199,7 @@ index 5416ceb..9ce720d 100644
              mockAxiosInstance.post.mockRejectedValueOnce(invalidEmailError);
              await (0, vitest_1.expect)(sdk.sendUserOtp('invalid_email')).rejects.toThrow('Invalid email format');
 -            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/send', { email: 'invalid_email' });
-+            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'invalid_email', apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'invalid_email' });
          });
          (0, vitest_1.it)('handles error when verifying OTP', async () => {
              const invalidOtpError = new Error('Invalid verification code');
@@ -1166,7 +1212,6 @@ index 5416ceb..9ce720d 100644
 -                emailVerificationCode: '000000',
 -                isTncAccepted: true,
 +                otp: '000000',
-+                apiKey: 'test-api-key',
 +                stateToken: 'state-token-123',
              });
          });
@@ -1214,7 +1259,7 @@ index 5416ceb..9ce720d 100644
              };
              sdk.setAccessToken(mockToken);
              const unauthorizedError = {
-@@ -196,22 +221,21 @@ vitest_1.vi.mock('axios', () => {
+@@ -196,22 +231,21 @@ vitest_1.vi.mock('axios', () => {
              };
              mockAxiosInstance.post.mockRejectedValueOnce(unauthorizedError);
              const result = await sdk.logout();
@@ -1240,7 +1285,7 @@ index 5416ceb..9ce720d 100644
              });
          });
          (0, vitest_1.it)('gets user details', async () => {
-@@ -224,12 +248,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -224,12 +258,15 @@ vitest_1.vi.mock('axios', () => {
                  status: 'active',
                  dob: '1990-01-01',
                  kyc: {
@@ -1262,7 +1307,7 @@ index 5416ceb..9ce720d 100644
                  },
                  address: {
                      addressLine1: '123 Main St',
-@@ -242,65 +269,70 @@ vitest_1.vi.mock('axios', () => {
+@@ -242,65 +279,70 @@ vitest_1.vi.mock('axios', () => {
                  },
                  createdAt: '2023-01-01',
              };
@@ -1351,7 +1396,7 @@ index 5416ceb..9ce720d 100644
              });
          });
          (0, vitest_1.it)('gets buy quote', async () => {
-@@ -323,10 +355,10 @@ vitest_1.vi.mock('axios', () => {
+@@ -323,10 +365,10 @@ vitest_1.vi.mock('axios', () => {
                  cryptoLiquidityProvider: 'provider',
                  notes: [],
              };
@@ -1364,7 +1409,7 @@ index 5416ceb..9ce720d 100644
                  params: {
                      fiatCurrency: 'USD',
                      cryptoCurrency: 'ETH',
-@@ -339,35 +371,47 @@ vitest_1.vi.mock('axios', () => {
+@@ -339,35 +381,47 @@ vitest_1.vi.mock('axios', () => {
              });
              (0, vitest_1.expect)(result).toStrictEqual(mockQuote);
          });
@@ -1430,7 +1475,7 @@ index 5416ceb..9ce720d 100644
                          fields: [],
                      },
                  ],
-@@ -378,13 +422,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -378,13 +432,15 @@ vitest_1.vi.mock('axios', () => {
                  walletAddress: '0x123456789',
                  orderType: 'DEPOSIT',
              };
@@ -1449,7 +1494,7 @@ index 5416ceb..9ce720d 100644
              });
              (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`, {
                  params: {
-@@ -393,7 +439,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -393,7 +449,7 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1458,7 +1503,7 @@ index 5416ceb..9ce720d 100644
          });
          (0, vitest_1.it)('gets order details from on-ramp API and adds deposit type', async () => {
              const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
-@@ -413,7 +459,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -413,10 +469,10 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1466,8 +1511,12 @@ index 5416ceb..9ce720d 100644
 +            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
          });
          (0, vitest_1.it)('gets order details from staging on-ramp API when using staging environment', async () => {
-             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
-@@ -449,19 +495,34 @@ vitest_1.vi.mock('axios', () => {
+-            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const depositOrderId = '/providers/transak-native-staging/orders/9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const mockOrder = {
+@@ -449,19 +505,34 @@ vitest_1.vi.mock('axios', () => {
              });
          });
          (0, vitest_1.it)('handles "Order exists" error when creating an order', async () => {
@@ -1510,7 +1559,7 @@ index 5416ceb..9ce720d 100644
                          fields: [],
                      },
                  ],
-@@ -477,20 +538,22 @@ vitest_1.vi.mock('axios', () => {
+@@ -477,20 +548,22 @@ vitest_1.vi.mock('axios', () => {
                  response: {
                      data: {
                          error: {
@@ -1538,7 +1587,7 @@ index 5416ceb..9ce720d 100644
              });
              const mockRampApiResponse = { data: mockDepositOrder };
              mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
-@@ -498,17 +561,17 @@ vitest_1.vi.mock('axios', () => {
+@@ -498,17 +571,17 @@ vitest_1.vi.mock('axios', () => {
                  callback();
                  return 123;
              });
@@ -1564,7 +1613,7 @@ index 5416ceb..9ce720d 100644
              });
              (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${newOrderId}`, {
                  params: {
-@@ -517,46 +580,79 @@ vitest_1.vi.mock('axios', () => {
+@@ -517,46 +590,79 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1661,7 +1710,7 @@ index 5416ceb..9ce720d 100644
              });
              (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
          });
-@@ -568,12 +664,12 @@ vitest_1.vi.mock('axios', () => {
+@@ -568,12 +674,12 @@ vitest_1.vi.mock('axios', () => {
                  walletAddress: '0x123456789',
              };
              const mockPaymentMethod = { id: 'payment-123' };
@@ -1676,7 +1725,7 @@ index 5416ceb..9ce720d 100644
              });
              (0, vitest_1.expect)(result).toStrictEqual({
                  success: true,
-@@ -587,7 +683,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -587,7 +693,7 @@ vitest_1.vi.mock('axios', () => {
              await (0, vitest_1.expect)(sdk.confirmPayment(mockOrder.id, mockPaymentMethod.id)).rejects.toThrow(mockError);
              (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders/payment-confirmation', {
                  orderId: mockOrder.id,
@@ -1685,7 +1734,7 @@ index 5416ceb..9ce720d 100644
              });
          });
          (0, vitest_1.it)('gets order with no payment options provided', async () => {
-@@ -615,18 +711,23 @@ vitest_1.vi.mock('axios', () => {
+@@ -615,18 +721,23 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              sdk.setAccessToken({
@@ -1714,7 +1763,7 @@ index 5416ceb..9ce720d 100644
          });
          (0, vitest_1.it)('handles Transak API error when fetching payment options', async () => {
              const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
-@@ -639,10 +740,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -639,10 +750,9 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              sdk.setAccessToken({
@@ -1726,7 +1775,7 @@ index 5416ceb..9ce720d 100644
              });
              const mockTransakError = new Error('Transak API error');
              mockAxiosInstance.get.mockRejectedValueOnce(mockTransakError);
-@@ -663,14 +763,13 @@ vitest_1.vi.mock('axios', () => {
+@@ -663,14 +773,13 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              const result = await sdk.getOrder(transakOrderId, '0x123456789');
@@ -1743,7 +1792,7 @@ index 5416ceb..9ce720d 100644
              });
              const mockResponse = { data: null };
              mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
-@@ -681,74 +780,55 @@ vitest_1.vi.mock('axios', () => {
+@@ -681,74 +790,55 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('KYC methods', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1850,7 +1899,7 @@ index 5416ceb..9ce720d 100644
                          status: 'SUBMITTED',
                          kycType: 'STANDARD',
                          randomLogIdentifier: 'kyq7h8jxw5',
-@@ -756,9 +836,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -756,9 +846,9 @@ vitest_1.vi.mock('axios', () => {
                  },
              };
              mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
@@ -1863,7 +1912,7 @@ index 5416ceb..9ce720d 100644
              });
              (0, vitest_1.expect)(result).toEqual({
                  status: 'SUBMITTED',
-@@ -768,27 +848,25 @@ vitest_1.vi.mock('axios', () => {
+@@ -768,27 +858,25 @@ vitest_1.vi.mock('axios', () => {
          });
          (0, vitest_1.it)('throws error if access token is not set', async () => {
              sdk.clearAccessToken();
@@ -1895,7 +1944,7 @@ index 5416ceb..9ce720d 100644
              });
          });
          (0, vitest_1.it)('gets user limits', async () => {
-@@ -839,18 +917,17 @@ vitest_1.vi.mock('axios', () => {
+@@ -839,18 +927,17 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('one-time token and widget URL', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1914,22 +1963,22 @@ index 5416ceb..9ce720d 100644
              mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
              const result = await sdk.requestOtt();
 -            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
-+            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott');
              (0, vitest_1.expect)(result).toStrictEqual(mockTokenResponse);
          });
          (0, vitest_1.it)('generates payment widget URL', () => {
-@@ -915,15 +992,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -915,15 +1002,15 @@ vitest_1.vi.mock('axios', () => {
              const mockError = new Error('Failed to get token');
              mockAxiosInstance.post.mockRejectedValueOnce(mockError);
              await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow(mockError);
 -            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
-+            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott');
          });
          (0, vitest_1.it)('throws error when response data is missing for OTT request', async () => {
              mockAxiosInstance.post.mockResolvedValueOnce({ data: null });
              await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
 -            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
-+            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott');
          });
          (0, vitest_1.it)('throws error when generating widget URL without partner API key', () => {
 -            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
@@ -1937,9 +1986,12 @@ index 5416ceb..9ce720d 100644
              (0, vitest_1.expect)(() => {
                  noApiKeySdk.generatePaymentWidgetUrl('ott-token', {
                      fiatCurrency: 'USD',
-@@ -936,10 +1013,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -934,12 +1021,11 @@ vitest_1.vi.mock('axios', () => {
+             }).toThrow('Partner API key is required for generatePaymentWidgetUrl');
+         });
          (0, vitest_1.it)('generates widget URL for staging environment', () => {
-             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+-            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
              stagingSdk.setAccessToken({
 -                id: 'token-id',
 +                accessToken: 'token-id',
@@ -1949,7 +2001,7 @@ index 5416ceb..9ce720d 100644
              });
              const url = stagingSdk.generatePaymentWidgetUrl('ott-token', {
                  fiatCurrency: 'USD',
-@@ -952,40 +1028,16 @@ vitest_1.vi.mock('axios', () => {
+@@ -952,40 +1038,16 @@ vitest_1.vi.mock('axios', () => {
      });
      (0, vitest_1.describe)('interceptor behavior', () => {
          (0, vitest_1.it)('should handle requests without partnerApiKey', () => {
@@ -1993,7 +2045,7 @@ index 5416ceb..9ce720d 100644
                  params: {
                      fiatCurrency: 'USD',
                      cryptoCurrency: 'ETH',
-@@ -1010,8 +1062,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -1010,8 +1072,9 @@ vitest_1.vi.mock('axios', () => {
              };
              vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceVerbose);
              const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
@@ -2004,7 +2056,12 @@ index 5416ceb..9ce720d 100644
              });
              const logErrorSpy = vitest_1.vi
                  .spyOn(console, 'error')
-@@ -1028,20 +1081,18 @@ vitest_1.vi.mock('axios', () => {
+@@ -1024,24 +1087,22 @@ vitest_1.vi.mock('axios', () => {
+         (0, vitest_1.it)('throws error for invalid environment in payment widget base URL', () => {
+             (0, vitest_1.expect)(() => {
+                 new NativeRampsSdk_1.NativeRampsSdk(mockConfig, 'invalid');
+-            }).toThrow('Invalid environment: invalid');
++            }).toThrow('Invalid SDK environment: invalid');
          });
          (0, vitest_1.it)('handles requestOtt with missing response data', async () => {
              sdk.setAccessToken({
@@ -2027,7 +2084,7 @@ index 5416ceb..9ce720d 100644
              });
              mockAxiosInstance.post.mockResolvedValueOnce({ data: null });
              await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
-@@ -1050,10 +1101,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -1050,10 +1111,9 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('orders history', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -2039,7 +2096,7 @@ index 5416ceb..9ce720d 100644
              });
          });
          (0, vitest_1.it)('gets orders history', async () => {
-@@ -1061,7 +1111,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -1061,7 +1121,7 @@ vitest_1.vi.mock('axios', () => {
                  { id: 'order-1', status: 'COMPLETED', walletAddress: '0x123' },
                  { id: 'order-2', status: 'FAILED', walletAddress: '0x456' },
              ];
@@ -2048,7 +2105,7 @@ index 5416ceb..9ce720d 100644
              mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
              const result = await sdk.getOrdersHistory();
              (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
-@@ -1076,7 +1126,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -1076,7 +1136,7 @@ vitest_1.vi.mock('axios', () => {
              const mockTransakOrders = [
                  { id: 'order-3', status: 'CREATED', walletAddress: '0x789' },
              ];
@@ -2057,7 +2114,7 @@ index 5416ceb..9ce720d 100644
              mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
              const result = await sdk.getOrdersHistory(5, 10);
              (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
-@@ -1092,99 +1142,150 @@ vitest_1.vi.mock('axios', () => {
+@@ -1092,99 +1152,150 @@ vitest_1.vi.mock('axios', () => {
          (0, vitest_1.it)('gets user geolocation successfully', async () => {
              const mockGeolocationResponse = { ipCountryCode: 'US' };
              const mockResponse = { data: mockGeolocationResponse };
@@ -2224,7 +2281,7 @@ index 5416ceb..9ce720d 100644
                  },
              });
 +            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
-+            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.SdkEnvironment.Staging);
 +            const result = await stagingSdk.getGeolocation();
 +            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api-stg.transak.com/fiat/public/v1/get/country');
              (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
