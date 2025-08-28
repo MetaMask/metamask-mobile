@@ -43,43 +43,233 @@ function deepMerge(
 
 /**
  * Default feature flags configuration as array of objects (matches API format)
+ * Note: You can override these using testSpecificMock
  */
 const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
   {
-    mobileMinimumVersions: {
-      appMinimumBuild: 1243,
-      appleMinimumOS: 6,
-      androidMinimumAPIVersion: 21,
+    assetsDefiPositionsEnabled: true,
+  },
+  {
+    assetsEnableNotificationsByDefault: true,
+  },
+  {
+    assetsNftGridEnabled: true,
+  },
+  {
+    assetsNotificationsEnabled: true,
+  },
+  {
+    bridgeConfig: {
+      refreshRate: 3000000,
+      support: false,
+      chains: {},
+      maxRefreshCount: 1,
     },
   },
   {
+    bridgeConfigV2: {
+      minimumVersion: '7.46.0',
+      priceImpactThreshold: {
+        normal: 0.05,
+        gasless: 0.2,
+      },
+      refreshRate: 30000,
+      support: true,
+      chains: {
+        '1': {
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+        '10': {
+          isActiveDest: true,
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+        },
+        '56': {
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+        },
+        '137': {
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+        '324': {
+          isActiveDest: true,
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+        },
+        '1329': {
+          isActiveDest: true,
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+        },
+        '8453': {
+          isActiveDest: true,
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+        },
+        '42161': {
+          isActiveSrc: true,
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+        },
+        '43114': {
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+        '59144': {
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+        '20000000000001': {
+          isUnifiedUIEnabled: true,
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+        '1151111081099710': {
+          isUnifiedUIEnabled: true,
+          refreshRate: 10000,
+          topAssets: [
+            'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
+            'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
+            '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxsDx8F8k8k3uYw1PDC',
+            '3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y',
+            '9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u',
+            'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263',
+            'rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof',
+            '21AErpiB8uSb94oQKRcwuHqyHF93njAxBSbdUrpupump',
+            'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+          ],
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
+      },
+      maxRefreshCount: 5,
+    },
+  },
+  {
+    cardFeature: {
+      chains: {
+        'eip155:59144': {
+          tokens: [
+            {
+              name: 'USD Coin',
+              symbol: 'USDC',
+              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              name: 'Tether USD',
+              symbol: 'USDT',
+              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+              decimals: 6,
+              enabled: true,
+            },
+            {
+              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+            },
+            {
+              enabled: true,
+              name: 'EURe',
+              symbol: 'EURe',
+              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
+              decimals: 18,
+            },
+            {
+              enabled: true,
+              name: 'GBPe',
+              symbol: 'GBPe',
+              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
+              decimals: 18,
+            },
+            {
+              enabled: true,
+              name: 'Aave USDC',
+              symbol: 'aUSDC',
+              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+              decimals: 6,
+            },
+          ],
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+          enabled: true,
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+        },
+      },
+      constants: {
+        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+      },
+    },
+  },
+  {
+    carouselBanners: false,
+  },
+  {
     confirmation_redesign: {
-      signatures: false,
-      staking_confirmations: false,
-      contract_deployment: false,
-      contract_interaction: false,
-      transfer: false,
-      approve: false,
+      staking_confirmations: true,
+      transfer: true,
+      approve: true,
+      contract_deployment: true,
+      contract_interaction: true,
+      signatures: true,
     },
   },
   {
     rewards: false,
   },
   {
-    assetsDefiPositionsEnabled: false,
+    perpsEnabled: true,
   },
   {
-    assetsEnableNotificationsByDefault: false,
+    perpsPerpTradingEnabled: {
+      enabled: true,
+      minimumVersion: '7.51.0',
+    },
   },
   {
     enableMultichainAccounts: {
-      enabled: false,
+      enabled: true,
       featureVersion: '1',
-      minimumVersion: '7.46.0',
+      minimumVersion: '7.53.0',
+    },
+  },
+  {
+    mobileMinimumVersions: {
+      androidMinimumAPIVersion: 0,
+      appMinimumBuild: 0,
+      appleMinimumOS: 0,
     },
   },
   {
     solanaOnboardingModal: true,
+  },
+  {
+    sendRedesign: {
+      enabled: true,
+    },
+  },
+  {
+    tokenDiscoveryBrowserEnabled: false,
+  },
+  {
+    tokenSearchDiscoveryEnabled: true,
+  },
+  {
+    walletFrameworkRpcFailoverEnabled: true,
   },
 ];
 
