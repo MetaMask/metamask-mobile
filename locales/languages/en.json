@@ -1501,6 +1501,8 @@
     "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
