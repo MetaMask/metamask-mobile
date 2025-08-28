@@ -201,8 +201,7 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
         nativeTokenInfoByChainId &&
         nativeTokenInfoByChainId.isStaked &&
         nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0) &&
-        nativeTokenInfoByChainId.stakedBalance !== '0'
+        nativeTokenInfoByChainId.stakedBalance !== toHex(0)
       ) {
         // Staked tokens
         tokensByChain[nativeChainId].push({

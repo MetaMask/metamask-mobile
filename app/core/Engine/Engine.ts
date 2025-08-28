@@ -451,11 +451,10 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl, error }) => {
+      async ({ chainId, endpointUrl }) => {
         onRpcEndpointDegraded({
           chainId,
           endpointUrl,
-          error,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)

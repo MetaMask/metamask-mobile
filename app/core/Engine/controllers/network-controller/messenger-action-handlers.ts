@@ -1,5 +1,11 @@
-import { type Hex, hexToNumber, isObject, isValidJson } from '@metamask/utils';
-import { shouldCreateRpcServiceEvents } from './utils';
+import { isConnectionError } from '@metamask/network-controller';
+import { Hex, hexToNumber } from '@metamask/utils';
+import {
+  getIsOurInfuraEndpointUrl,
+  getIsQuicknodeEndpointUrl,
+  shouldCreateRpcServiceEvents,
+} from './utils';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import Logger from '../../../../util/Logger';
 import onlyKeepHost from '../../../../util/onlyKeepHost';
 import {
@@ -7,17 +13,23 @@ import {
   ITrackingEvent,
   JsonMap,
 } from '../../../Analytics/MetaMetrics.types';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 
 /**
- * Called when an endpoint is determined to be "unavailable". Creates a Segment
- * event so we can understand failures better and so that we can automatically
- * activate Quicknode when Infura is down.
+ * Handler for the `NetworkController:rpcEndpointUnavailable` messenger action,
+ * which is called when an RPC endpoint cannot be reached or does not respond
+ * successfully after a sufficient number of retries.
+ *
+ * In this case:
+ *
+ * - When we detect that Infura is down, we create an event in Segment so that
+ * Quicknode can be automatically enabled.
+ * - When we detect that Quicknode is down, we create an event in Segment so
+ * that Quicknode can be automatically re-enabled.
  *
  * Note that in production we do not create events *every* time an endpoint is
- * unavailable. In the case where the endpoint is truly down, this would create
- * millions of events and we would blow past our Segment quota. Instead we only
- * create an event 1% of the time.
+ * unavailable. If Infura is truly down, this would create millions of events
+ * and we would quickly be in trouble with Segment. Instead we only create an
+ * event 1% of the time.
  *
  * @param args - The arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
@@ -25,149 +37,115 @@ import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
- * @param args.metaMetricsId - The MetaMetrics ID of the user.
  * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.metaMetricsId - The MetaMetrics ID of the user.
  */
 export function onRpcEndpointUnavailable({
   chainId,
   endpointUrl,
   error,
   infuraProjectId,
-  metaMetricsId,
   trackEvent,
+  metaMetricsId,
 }: {
   chainId: Hex;
   endpointUrl: string;
   error: unknown;
   infuraProjectId: string;
-  metaMetricsId: string | null | undefined;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
+  metaMetricsId: string | undefined;
 }): void {
-  trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE, {
-    chainId,
+  const isInfuraEndpointUrl = getIsOurInfuraEndpointUrl(
     endpointUrl,
-    error,
     infuraProjectId,
-    metaMetricsId,
-    trackEvent,
-  });
+  );
+  const isQuicknodeEndpointUrl = getIsQuicknodeEndpointUrl(endpointUrl);
+
+  if (
+    shouldCreateRpcServiceEvents(metaMetricsId) &&
+    !isConnectionError(error) &&
+    (isInfuraEndpointUrl || isQuicknodeEndpointUrl)
+  ) {
+    Logger.log(
+      `Creating Segment event "${
+        MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE.category
+      }" with chain_id_caip: "eip155:${hexToNumber(
+        chainId,
+      )}", rpc_endpoint_url: ${onlyKeepHost(endpointUrl)}`,
+    );
+    trackEvent({
+      event: MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+      properties: {
+        chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+        rpc_endpoint_url: onlyKeepHost(endpointUrl),
+      },
+    });
+  }
 }
 
 /**
- * Called when an endpoint is determined to be "degraded". Creates a Segment
- * event so we can understand failures better.
+ * Handler for the `NetworkController:rpcEndpointDegraded` messenger action,
+ * which is called when an RPC endpoint is slow to return a successful response,
+ * or it cannot be reached or does not respond successfully after some number of
+ * retries.
+ *
+ * In this case, when we detect that Infura or Quicknode are degraded, we create
+ * an event in Segment so that we know to investigate further.
  *
  * Note that in production we do not create events *every* time an endpoint is
- * unavailable. In the case where the endpoint is down, this would create
- * millions of events and we would blow past our Segment quota. Instead we only
- * create an event 1% of the time.
+ * unavailable. If Infura is truly down, this would create millions of events
+ * and we would quickly be in trouble with Segment. Instead we only create an
+ * event 1% of the time.
  *
  * @param args - The arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
  * @param args.endpointUrl - The URL of the endpoint.
- * @param args.error - The connection or response error encountered after making
- * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
- * @param args.metaMetricsId - The MetaMetrics ID of the user.
  * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.metaMetricsId - The MetaMetrics ID of the user.
  */
 export function onRpcEndpointDegraded({
   chainId,
   endpointUrl,
-  error,
   infuraProjectId,
-  metaMetricsId,
   trackEvent,
+  metaMetricsId,
 }: {
   chainId: Hex;
   endpointUrl: string;
-  error: unknown;
   infuraProjectId: string;
-  metaMetricsId: string | null | undefined;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
+  metaMetricsId: string | undefined;
 }): void {
-  trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_DEGRADED, {
-    chainId,
+  const isInfuraEndpointUrl = getIsOurInfuraEndpointUrl(
     endpointUrl,
-    error,
     infuraProjectId,
-    metaMetricsId,
-    trackEvent,
-  });
-}
-
-/**
- * Creates a Segment event when an RPC endpoint is determined to be degraded or
- * unavailable.
- *
- * @param event - The Segment event to create.
- * @param args - The remaining arguments.
- * @param args.chainId - The chain ID that the endpoint represents.
- * @param args.endpointUrl - The URL of the endpoint.
- * @param args.error - The connection or response error encountered after making
- * a request to the RPC endpoint.
- * @param args.infuraProjectId - Our Infura project ID.
- * @param args.metaMetricsId - The MetaMetrics ID of the user.
- * @param args.trackEvent - The function that will create the Segment event.
- */
-export function trackRpcEndpointEvent(
-  event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
-  {
-    chainId,
-    endpointUrl,
-    error,
-    infuraProjectId,
-    trackEvent,
-    metaMetricsId,
-  }: {
-    chainId: Hex;
-    endpointUrl: string;
-    error: unknown;
-    infuraProjectId: string;
-    trackEvent: (options: {
-      event: IMetaMetricsEvent | ITrackingEvent;
-      properties: JsonMap;
-    }) => void;
-    metaMetricsId: string | null | undefined;
-  },
-): void {
-  if (
-    !shouldCreateRpcServiceEvents({
-      endpointUrl,
-      error,
-      infuraProjectId,
-      metaMetricsId,
-    })
-  ) {
-    return;
-  }
-
-  // The names of Segment properties have a particular case.
-  /* eslint-disable @typescript-eslint/naming-convention */
-  const properties = {
-    chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-    rpc_endpoint_url: onlyKeepHost(endpointUrl),
-    ...(isObject(error) &&
-    'httpStatus' in error &&
-    isValidJson(error.httpStatus)
-      ? { http_status: error.httpStatus }
-      : {}),
-  };
-  /* eslint-enable @typescript-eslint/naming-convention */
-
-  Logger.log(
-    `Creating Segment event "${event.category}" with ${JSON.stringify(
-      properties,
-    )}`,
   );
-  trackEvent({
-    event,
-    properties,
-  });
+  const isQuicknodeEndpointUrl = getIsQuicknodeEndpointUrl(endpointUrl);
+
+  if (
+    shouldCreateRpcServiceEvents(metaMetricsId) &&
+    (isInfuraEndpointUrl || isQuicknodeEndpointUrl)
+  ) {
+    Logger.log(
+      `Creating Segment event "${
+        MetaMetricsEvents.RPC_SERVICE_DEGRADED.category
+      }" with chain_id_caip: "eip155:${hexToNumber(
+        chainId,
+      )}", rpc_endpoint_url: ${onlyKeepHost(endpointUrl)}`,
+    );
+    trackEvent({
+      event: MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+      properties: {
+        chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+        rpc_endpoint_url: onlyKeepHost(endpointUrl),
+      },
+    });
+  }
 }

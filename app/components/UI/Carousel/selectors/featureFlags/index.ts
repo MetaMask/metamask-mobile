@@ -5,7 +5,3 @@ export const selectContentfulCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFlags): boolean => Boolean(remoteFlags?.contentfulCarouselEnabled),
 );
-export const selectCarouselBannersFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFlags): boolean => Boolean(remoteFlags?.carouselBanners),
-);
