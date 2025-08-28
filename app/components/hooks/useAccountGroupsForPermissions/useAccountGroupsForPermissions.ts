@@ -82,34 +82,39 @@ export const useAccountGroupsForPermissions = (
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
     const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
 
-    const connectedAccountGroupsArray: AccountGroupWithInternalAccounts[] = [];
-    const uniqueAccountGroupIds = new Set<string>();
-    const supportedGroups = new Set<AccountGroupWithInternalAccounts>();
+    const { filteredConnectedAccountGroups, filteredSupportedAccountGroups } =
+      accountGroups.reduce(
+        (acc, accountGroup) => {
+          const isConnected = hasConnectedAccounts(
+            accountGroup,
+            connectedAccountIds,
+          );
+          const isSupported = hasSupportedScopes(
+            accountGroup,
+            requestedCaipChainIds,
+            requestedNamespaceSet,
+          );
 
-    for (const accountGroup of accountGroups) {
-      const isConnected = hasConnectedAccounts(
-        accountGroup,
-        connectedAccountIds,
+          if (isConnected) {
+            acc.filteredConnectedAccountGroups.push(accountGroup);
+          }
+          if (isSupported) {
+            acc.filteredSupportedAccountGroups.push(accountGroup);
+          }
+
+          return acc;
+        },
+        {
+          filteredConnectedAccountGroups:
+            [] as AccountGroupWithInternalAccounts[],
+          filteredSupportedAccountGroups:
+            [] as AccountGroupWithInternalAccounts[],
+        },
       );
-      const isSupported = hasSupportedScopes(
-        accountGroup,
-        requestedCaipChainIds,
-        requestedNamespaceSet,
-      );
-
-      if (isConnected && !uniqueAccountGroupIds.has(accountGroup.id)) {
-        uniqueAccountGroupIds.add(accountGroup.id);
-        connectedAccountGroupsArray.push(accountGroup);
-      }
-
-      if (isSupported) {
-        supportedGroups.add(accountGroup);
-      }
-    }
 
     return {
-      supportedAccountGroups: Array.from(supportedGroups),
-      connectedAccountGroups: connectedAccountGroupsArray,
+      supportedAccountGroups: filteredSupportedAccountGroups,
+      connectedAccountGroups: filteredConnectedAccountGroups,
       connectedCaipAccountIds: connectedAccountIds,
     };
   }, [
