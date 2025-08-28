@@ -3062,5 +3062,93 @@ describe('PerpsController', () => {
         expect(mockFetch).toHaveBeenCalledTimes(4);
       });
     }, 10000);
+
+    it('should retry and succeed on subsequent attempt', async () => {
+      withController(async ({ controller, messenger }) => {
+        // Register AuthenticationController:getBearerToken action
+        messenger.registerActionHandler(
+          'AuthenticationController:getBearerToken',
+          jest.fn().mockResolvedValue('mock-bearer-token'),
+        );
+
+        // Mock API to fail first, then succeed on retry
+        mockFetch
+          .mockRejectedValueOnce(new Error('Temporary network error'))
+          .mockResolvedValueOnce({
+            ok: true,
+            status: 201,
+            text: jest.fn().mockResolvedValue(''),
+          } as any);
+
+        const orderParams = {
+          coin: 'SOL',
+          isBuy: true,
+          size: '10',
+          orderType: 'limit' as const,
+          price: '100',
+          stopLossPrice: '90',
+          takeProfitPrice: '110',
+        };
+
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order-sol-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        controller.state.isTestnet = false;
+
+        // Place order
+        await controller.placeOrder(orderParams);
+
+        // Wait for initial failed attempt
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        // Fast forward to first retry (1 second delay)
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+
+        // Wait for the retry to complete
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Should have succeeded on second attempt
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+
+        // Verify the second call had the correct parameters including retryCount
+        expect(mockFetch).toHaveBeenNthCalledWith(
+          2,
+          'https://perps.api.cx.metamask.io/api/v1/orders',
+          expect.objectContaining({
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-bearer-token',
+            },
+            body: JSON.stringify({
+              user_id: '0x1234567890123456789012345678901234567890',
+              coin: 'SOL',
+              sl_price: 90,
+              tp_price: 110,
+            }),
+          }),
+        );
+
+        // Performance metric should NOT be recorded for retry success (only for initial success)
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_call',
+          expect.any(Number),
+          'millisecond',
+        );
+
+        // Should NOT record retry metric since it succeeded
+        expect(mockSetMeasurement).not.toHaveBeenCalledWith(
+          'data_lake_api_retry',
+          expect.any(Number),
+          'millisecond',
+        );
+      });
+    }, 10000);
   });
 });
