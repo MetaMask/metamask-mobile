@@ -8,7 +8,7 @@ import {
   setDestAddress,
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
-  selectSelectedDestChainId,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import Cell, {
@@ -62,11 +62,11 @@ const DestinationAccountSelector = () => {
   const hasInitialized = useRef(false);
 
   // Filter accounts to only those compatible with destination network
-  const destChainId = useSelector(selectSelectedDestChainId);
+  const destToken = useSelector(selectDestToken);
   const filteredAccounts = useMemo(() => {
-    if (!destChainId) return [];
+    if (!destToken) return [];
 
-    const destCaipChainId = formatChainIdToCaip(destChainId);
+    const destCaipChainId = formatChainIdToCaip(destToken.chainId);
     const isEvmChain = !isNonEvmChainId(destCaipChainId);
 
     return accounts.filter(
@@ -74,7 +74,7 @@ const DestinationAccountSelector = () => {
         account.scopes?.includes(destCaipChainId) ||
         (isEvmChain && account.scopes?.includes(EthScope.Eoa)),
     );
-  }, [accounts, destChainId]);
+  }, [accounts, destToken]);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
