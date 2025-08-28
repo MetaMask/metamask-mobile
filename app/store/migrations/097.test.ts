@@ -1,4 +1,4 @@
-import migrate from './096';
+import migrate from './097';
 import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
@@ -13,7 +13,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const migrationVersion = 96;
+const migrationVersion = 97;
 
 describe(`Migration ${migrationVersion}: update hostname keyed PermissionController and SelectedNetworkController entries to origin`, () => {
   beforeEach(() => {

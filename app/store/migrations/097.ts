@@ -19,7 +19,7 @@ const isHostname = (value: string) =>
  * @returns Migrated Redux state.
  */
 export default function migrate(state: unknown) {
-  const version = 96;
+  const version = 97;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(state, version)) {
