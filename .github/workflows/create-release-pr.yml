@@ -23,7 +23,7 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@03eade10be5004a31416f47faa5e5d7102c53ffe
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@914cbff8a8d58cfe0053e8690a3c0d4b281e27d6
     with:
       platform: mobile
       checkout-base-branch: ${{ inputs.checkout-base-branch }}
@@ -31,7 +31,7 @@ jobs:
       semver-version: ${{ inputs.semver-version }}
       previous-version-ref: ${{ inputs.previous-version-ref }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      github-tools-version: 03eade10be5004a31416f47faa5e5d7102c53ffe
+      github-tools-version: 914cbff8a8d58cfe0053e8690a3c0d4b281e27d6
 
     secrets:
       # This token needs read permissions to metamask-planning & write permissions to metamask-mobile
