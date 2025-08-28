@@ -164,7 +164,7 @@ jobs:
 
   build-android-apks:
     name: "Build Android APKs"
-    if: ${{ github.event_name != 'merge_group' }}
+    if: false
     permissions:
       contents: read
       id-token: write
