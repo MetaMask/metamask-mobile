@@ -6330,7 +6330,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.1...HEAD
-[7.53.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.0...v7.53.1
+[7.53.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.53.0...v7.53.1
 [7.53.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.53.0
 [7.51.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.3...v7.51.4  
 [7.51.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.2...v7.51.3  
