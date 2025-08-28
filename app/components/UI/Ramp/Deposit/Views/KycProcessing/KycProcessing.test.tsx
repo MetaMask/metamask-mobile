@@ -149,7 +149,7 @@ describe('KycProcessing Component', () => {
   describe('handleContinue button behavior', () => {
     beforeEach(() => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.APPROVED } },
+        kyc: { status: KycStatus.APPROVED },
       };
     });
 
@@ -204,7 +204,7 @@ describe('KycProcessing Component', () => {
 
     it('does not track analytics event when KYC status is pending', () => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.SUBMITTED, type: 'STANDARD' } },
+        kyc: { status: KycStatus.SUBMITTED, type: 'STANDARD' },
       };
 
       render(KycProcessing);
