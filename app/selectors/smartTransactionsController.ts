@@ -1,9 +1,6 @@
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
-import {
-  selectSwapsChainFeatureFlags,
-  swapsSmartTxFlagEnabled,
-} from '../reducers/swaps';
+import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
 import { areAddressesEqual, isHardwareAccount } from '../util/address';
 import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
@@ -40,7 +37,30 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     (state: RootState, chainId?: Hex) =>
       selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
     swapsSmartTxFlagEnabled,
-    selectSwapsChainFeatureFlags,
+    (state: RootState, chainId?: Hex) => {
+      const effectiveChainId = chainId || selectEvmChainId(state);
+      const swapsState = state.swaps;
+
+      // Handle case where swaps state is undefined (e.g., in tests)
+      if (!swapsState) {
+        return {
+          smartTransactions: {
+            mobileActive: false,
+            extensionActive: false,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: false,
+          },
+        };
+      }
+
+      return {
+        smartTransactions: {
+          ...(swapsState.featureFlags?.smartTransactions || {}),
+          ...(swapsState[effectiveChainId]?.featureFlags?.smartTransactions ||
+            {}),
+        },
+      };
+    },
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
         .smartTransactionsState?.liveness,
