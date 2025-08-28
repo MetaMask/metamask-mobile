@@ -1567,7 +1567,9 @@ describe('EarnLendingDepositConfirmationView', () => {
   it('calls depositTokens and handles error with catch and finally', async () => {
     const errorMocked = new Error('Deposit Failed');
     mockExecuteLendingDeposit.mockRejectedValue(errorMocked);
-    const errorSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // intentionally empty
+    });
 
     const { getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
