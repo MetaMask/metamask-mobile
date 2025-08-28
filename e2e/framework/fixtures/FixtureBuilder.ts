@@ -47,7 +47,7 @@ export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
 // AccountTreeController Wallet and Group IDs - reused across fixtures
 export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
 export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
-export const ENTROPY_WALLET_3_ID = `entropy:${MOCK_ENTROPY_SOURCE_3}`;
+export const HD_KEYRING_WALLET_ID = 'keyring:01JNG66ATK17YSN0TSS6H51EE3';
 export const QR_HARDWARE_WALLET_ID = 'keyring:QR Hardware Wallet Device';
 export const SIMPLE_KEYRING_WALLET_ID = 'keyring:Simple Key Pair';
 
