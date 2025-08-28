@@ -44,31 +44,20 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   });
 
   it('should import wallet with a Solana account', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: false,
-        testSpecificMock,
-      },
-      async () => {
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
-        });
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
+    });
 
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
+    await WalletView.tapCurrentMainWalletAccountActions();
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapAddSolanaAccount();
+    await AddNewHdAccountComponent.tapConfirm();
 
-        await Assertions.expectElementToBeVisible(
-          NetworkEducationModal.container,
-        );
-        await NetworkEducationModal.tapGotItButton();
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
+    await NetworkEducationModal.tapGotItButton();
 
-        await WalletView.tapCurrentMainWalletAccountActions();
-        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
-      },
-    );
+    await WalletView.tapCurrentMainWalletAccountActions();
+    await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
   });
 
   it('should validate recipient address format correctly', async () => {
