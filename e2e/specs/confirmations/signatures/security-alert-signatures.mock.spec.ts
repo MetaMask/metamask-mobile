@@ -9,9 +9,11 @@ import { loginToApp } from '../../../viewHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  getTestDappLocalUrl,
+} from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
-import { getLocalTestDappUrl } from '../../../fixtures/utils';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
@@ -27,7 +29,7 @@ const typedSignRequestBody = {
     ],
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
-  origin: getLocalTestDappUrl(),
+  origin: getTestDappLocalUrl(),
 };
 
 describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
