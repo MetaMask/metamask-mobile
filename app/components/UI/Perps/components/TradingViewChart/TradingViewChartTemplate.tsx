@@ -47,6 +47,15 @@ export const createTradingViewChartTemplate = (
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
             DEFAULT_CANDLES: 45 // Default visible candles
         };
+        
+        // Performance optimization variables
+        window.lastRangeChangeTime = 0;
+        window.isUserPanning = false;
+        window.panStartTime = 0;
+        window.panEndTimeout = null;
+        window.lastLogicalRange = null;
+        window.panVelocity = 0;
+        window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -64,6 +73,17 @@ export const createTradingViewChartTemplate = (
                         },
                         textColor: '${theme.colors.text.muted}',
                         attributionLogo: false, // Hide the TradingView logo
+                        // Performance optimizations
+                        fontFamily: 'system-ui, -apple-system, sans-serif',
+                    },
+                    // Add performance optimizations for aggressive panning
+                    autoSize: false, // Disable auto-resize for better performance
+                    handleScroll: true,
+                    handleScale: true,
+                    // Disable smooth scrolling conflicts
+                    kinetic: {
+                        mouse: true,
+                        touch: true,
                     },
                     localization: {
                         priceFormatter: (price) => {
@@ -82,10 +102,10 @@ export const createTradingViewChartTemplate = (
                         timeVisible: true,
                         secondsVisible: false,
                         borderColor: 'transparent',
-                        // Add zoom restrictions
+                        // Optimized scroll and zoom handling for smooth panning
                         handleScale: {
                             axisPressedMouseMove: {
-                                time: false, // Disable time scale dragging
+                                time: true, // Enable time scale dragging for smooth panning
                                 price: true, // Allow price scale dragging
                             },
                             mouseWheel: true, // Enable mouse wheel zoom
@@ -93,9 +113,25 @@ export const createTradingViewChartTemplate = (
                         },
                         handleScroll: {
                             mouseWheel: true, // Enable mouse wheel scroll
-                            pressedMouseMove: true, // Enable drag scroll
+                            pressedMouseMove: true, // Enable drag scroll (important for smooth panning)
                             horzTouchDrag: true, // Enable horizontal touch drag
                             vertTouchDrag: false, // Disable vertical touch drag
+                        },
+                        // Aggressive panning optimizations
+                        shiftVisibleRangeOnNewBar: false, // Prevent automatic shifting
+                        allowShiftVisibleRangeOnWhitespaceReplacement: false, // Prevent unexpected jumps
+                        fixLeftEdge: false, // Allow free scrolling
+                        fixRightEdge: false, // Allow free scrolling  
+                        lockVisibleTimeRangeOnResize: true, // Maintain position on resize
+                        rightBarStaysOnScroll: false, // Don't auto-follow latest data during scroll
+                        uniformDistribution: false, // Allow natural time distribution
+                        tickMarkFormatter: (time) => {
+                            // Ultra-lightweight tick formatting
+                            return new Date(time * 1000).toLocaleTimeString('en-US', { 
+                                hour12: false, 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            });
                         },
                     },
                     rightPriceScale: {
@@ -106,38 +142,125 @@ export const createTradingViewChartTemplate = (
                     }
                 });
 
-                // Add zoom restriction functionality
+                // Add interaction event listeners for smooth panning detection
+                const container = document.getElementById('container');
+                
+                // Mouse and touch event handlers for panning detection
+                const handlePanStart = () => {
+                    window.isUserPanning = true;
+                    window.panStartTime = performance.now();
+                    if (window.panEndTimeout) {
+                        clearTimeout(window.panEndTimeout);
+                        window.panEndTimeout = null;
+                    }
+                };
+                
+                const handlePanEnd = () => {
+                    // Don't immediately set panning to false - use a delay to handle momentum scrolling
+                    if (window.panEndTimeout) {
+                        clearTimeout(window.panEndTimeout);
+                    }
+                    
+                    window.panEndTimeout = setTimeout(() => {
+                        window.isUserPanning = false;
+                        // Apply zoom restrictions after panning stops
+                        window.applyZoomRestrictionsIfNeeded();
+                    }, window.panningDisableTime);
+                };
+                
+                // Mouse events
+                container.addEventListener('mousedown', handlePanStart);
+                container.addEventListener('mouseup', handlePanEnd);
+                container.addEventListener('mouseleave', handlePanEnd);
+                
+                // Touch events for mobile
+                container.addEventListener('touchstart', handlePanStart, { passive: true });
+                container.addEventListener('touchend', handlePanEnd, { passive: true });
+                container.addEventListener('touchcancel', handlePanEnd, { passive: true });
+                
+                // Wheel events (for momentum scrolling detection)
+                container.addEventListener('wheel', (e) => {
+                    // Detect if this is likely momentum scrolling vs intentional zoom
+                    const isLikelyMomentum = Math.abs(e.deltaY) > 10 && Math.abs(e.deltaX) < 5;
+                    if (isLikelyMomentum) {
+                        handlePanStart();
+                        // Short delay for momentum scrolling
+                        if (window.panEndTimeout) clearTimeout(window.panEndTimeout);
+                        window.panEndTimeout = setTimeout(() => {
+                            window.isUserPanning = false;
+                        }, 100);
+                    }
+                }, { passive: true });
+
+                // Function to apply zoom restrictions when not actively panning
+                window.applyZoomRestrictionsIfNeeded = function() {
+                    if (window.isUserPanning) return;
+                    
+                    const logicalRange = window.chart.timeScale().getVisibleLogicalRange();
+                    if (!logicalRange || !window.allCandleData || window.allCandleData.length === 0) {
+                        return;
+                    }
+                    
+                    const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
+                    
+                    // Apply strict zoom limits when user is not actively panning
+                    if (visibleCandleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
+                        const maxRange = window.ZOOM_LIMITS.MAX_CANDLES;
+                        const centerPoint = (logicalRange.from + logicalRange.to) / 2;
+                        const halfRange = maxRange / 2;
+                        
+                        window.chart.timeScale().setVisibleLogicalRange({
+                            from: centerPoint - halfRange,
+                            to: centerPoint + halfRange,
+                        });
+                    } else if (visibleCandleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
+                        const minRange = window.ZOOM_LIMITS.MIN_CANDLES;
+                        const centerPoint = (logicalRange.from + logicalRange.to) / 2;
+                        const halfRange = minRange / 2;
+                        
+                        window.chart.timeScale().setVisibleLogicalRange({
+                            from: centerPoint - halfRange,
+                            to: centerPoint + halfRange,
+                        });
+                    }
+                    
+                    // Update stored visible candle count
+                    window.visibleCandleCount = visibleCandleCount;
+                };
+
+                // Lightweight zoom tracking - NO interference during panning
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
-                    if (logicalRange && window.allCandleData && window.allCandleData.length > 0) {
-                        // Calculate visible candle count from logical range
-                        const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
+                    if (!logicalRange) return;
+                    
+                    // Simply track the current range - apply restrictions only when NOT panning
+                    window.lastLogicalRange = logicalRange;
+                    
+                    // If user is actively panning, do NOTHING - let the chart scroll smoothly
+                    if (window.isUserPanning) {
+                        return;
+                    }
+                    
+                    // Very minimal processing during non-panning - only track visible count
+                    const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
+                    window.visibleCandleCount = visibleCandleCount;
+                    
+                    // Only apply restrictions on intentional zoom (significant changes when not panning)
+                    const now = performance.now();
+                    const timeSinceLastPan = now - window.panStartTime;
+                    
+                    // If it's been a while since panning and this looks like a zoom operation
+                    if (timeSinceLastPan > window.panningDisableTime) {
+                        const prevCount = window.visibleCandleCount || window.ZOOM_LIMITS.DEFAULT_CANDLES;
+                        const countChange = Math.abs(visibleCandleCount - prevCount);
                         
-                        // Prevent zooming out beyond maximum limit
-                        if (visibleCandleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
-                            // Calculate the maximum allowed range
-                            const maxRange = window.ZOOM_LIMITS.MAX_CANDLES;
-                            const centerPoint = (logicalRange.from + logicalRange.to) / 2;
-                            const halfRange = maxRange / 2;
-                            
-                            // Set the visible range to exactly max candles centered around the current view
-                            window.chart.timeScale().setVisibleLogicalRange({
-                                from: centerPoint - halfRange,
-                                to: centerPoint + halfRange,
-                            });
-                            return;
-                        }
-                        
-                        // Prevent zooming in beyond minimum limit
-                        if (visibleCandleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
-                            const minRange = window.ZOOM_LIMITS.MIN_CANDLES;
-                            const centerPoint = (logicalRange.from + logicalRange.to) / 2;
-                            const halfRange = minRange / 2;
-                            
-                            window.chart.timeScale().setVisibleLogicalRange({
-                                from: centerPoint - halfRange,
-                                to: centerPoint + halfRange,
-                            });
-                            return;
+                        // Only restrict on significant zoom changes (not minor adjustments)
+                        if (countChange > 10) {
+                            // Use debounced restriction application
+                            setTimeout(() => {
+                                if (!window.isUserPanning) {
+                                    window.applyZoomRestrictionsIfNeeded();
+                                }
+                            }, 50);
                         }
                     }
                 });
@@ -160,7 +283,7 @@ export const createTradingViewChartTemplate = (
             if (window.candlestickSeries) {
                 window.chart.removeSeries(window.candlestickSeries);
             }
-            // Create new candlestick series
+            // Create new candlestick series with performance optimizations
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '#BAF24A',
                 downColor: '#FF7584',
@@ -171,18 +294,45 @@ export const createTradingViewChartTemplate = (
                 priceLineWidth: 1,
                 lastValueVisible: true,
                 title: 'Current',
+                // Performance optimizations for smooth panning
+                priceFormat: {
+                    type: 'price',
+                    precision: 2,
+                    minMove: 0.01,
+                },
+                // Reduce visual updates during panning for better performance
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 3,
+                crosshairMarkerBorderColor: '#FFF',
+                crosshairMarkerBackgroundColor: '#FF7584',
             });
             return window.candlestickSeries;
         };
-        // Handle window resize
+        // Optimized resize handler with throttling
+        let resizeTimeout;
         window.addEventListener('resize', function() {
-            if (window.chart) {
-                window.chart.applyOptions({
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                });
-            }
+            if (resizeTimeout) clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.chart) {
+                    window.chart.applyOptions({
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    });
+                }
+            }, 100); // Throttle resize to prevent excessive redraws
         });
+        
+        // Cleanup function for event listeners
+        window.cleanupChartEventListeners = function() {
+            if (window.panEndTimeout) {
+                clearTimeout(window.panEndTimeout);
+            }
+            if (resizeTimeout) {
+                clearTimeout(resizeTimeout);
+            }
+            // Remove event listeners if needed
+            // (They'll be garbage collected with the DOM, but good practice)
+        };
         // Store price lines for management
         window.priceLines = {
             entryPrice: null,
@@ -355,7 +505,23 @@ export const createTradingViewChartTemplate = (
                             if (window.candlestickSeries) {
                                 // Store all data for zoom functionality
                                 window.allCandleData = [...message.data];
-                                window.candlestickSeries.setData(message.data);
+                                
+                                // Use batch update for better performance during large data sets
+                                try {
+                                    window.candlestickSeries.setData(message.data);
+                                } catch (error) {
+                                    console.error('TradingView: Error setting candle data:', error);
+                                    // Fallback: update data in smaller chunks
+                                    const chunkSize = 500;
+                                    for (let i = 0; i < message.data.length; i += chunkSize) {
+                                        const chunk = message.data.slice(i, i + chunkSize);
+                                        if (i === 0) {
+                                            window.candlestickSeries.setData(chunk);
+                                        } else {
+                                            chunk.forEach(candle => window.candlestickSeries.update(candle));
+                                        }
+                                    }
+                                }
                                 
                                 // Update visible candle count if provided
                                 if (message.visibleCandleCount) {
