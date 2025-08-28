@@ -67,6 +67,7 @@ import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -110,7 +111,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
-  const [activeTabId, setActiveTabId] = useState('position');
+  // Initialize with statistics as default, will be updated based on data
+  const [activeTabId, setActiveTabId] = useState('statistics');
   const [refreshing, setRefreshing] = useState(false);
 
   const account = usePerpsAccount();
@@ -152,6 +154,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     asset: market?.symbol || '',
     loadOnMount: true,
   });
+
+  // Determine the initial tab based on available data
+  useEffect(() => {
+    DevLogger.log('isLoadingPosition', isLoadingPosition);
+    DevLogger.log('existingPosition', existingPosition);
+    DevLogger.log('openOrders', openOrders);
+    if (!isLoadingPosition) {
+      let newTabId = 'statistics'; // Default fallback
+
+      // Priority 1: Position tab if position exists
+      if (existingPosition) {
+        newTabId = 'position';
+      }
+      // Priority 2: Orders tab if orders exist but no position
+      else if (openOrders && openOrders.length > 0) {
+        newTabId = 'orders';
+      }
+      // Priority 3: Statistics tab (already set as default)
+      DevLogger.log('newTabId', newTabId);
+      setActiveTabId(newTabId);
+    }
+  }, [isLoadingPosition, existingPosition, openOrders]);
 
   // Track screen load and position data loaded
   useEffect(() => {
@@ -398,6 +422,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               unfilledOrders={openOrders}
               onPositionUpdate={refreshPosition}
               onActiveTabChange={setActiveTabId}
+              activeTabId={activeTabId}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />

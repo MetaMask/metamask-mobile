@@ -12,6 +12,7 @@ export interface PerpsMarketTabsProps {
   unfilledOrders: Order[];
   onPositionUpdate?: () => Promise<void>;
   onActiveTabChange?: (tabId: string) => void;
+  activeTabId?: string;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */

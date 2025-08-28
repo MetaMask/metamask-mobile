@@ -33,6 +33,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   unfilledOrders = [],
   onPositionUpdate,
   onActiveTabChange,
+  activeTabId: controlledActiveTabId,
   nextFundingTime,
   fundingIntervalHours,
 }) => {
@@ -81,8 +82,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
 
-  // Set initial active tab to the first available tab
-  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || 'statistics');
+  // Use controlled activeTabId from parent, or fall back to first tab
+  const [localActiveTabId, setLocalActiveTabId] = useState(
+    tabs[0]?.id || 'statistics',
+  );
+  const activeTabId = controlledActiveTabId || localActiveTabId;
+
+  // Update local state when controlled value changes
+  useEffect(() => {
+    if (controlledActiveTabId) {
+      setLocalActiveTabId(controlledActiveTabId);
+    }
+  }, [controlledActiveTabId]);
 
   // Update active tab if current tab is no longer available
   useEffect(() => {
@@ -90,7 +101,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     if (!tabIds.includes(activeTabId)) {
       // Switch to first available tab if current tab is hidden
       const newTabId = tabs[0]?.id || 'statistics';
-      setActiveTabId(newTabId);
+      setLocalActiveTabId(newTabId);
       onActiveTabChange?.(newTabId);
     }
   }, [tabs, activeTabId, onActiveTabChange]);
@@ -98,7 +109,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   // Notify parent when tab changes
   const handleTabChange = useCallback(
     (tabId: string) => {
-      setActiveTabId(tabId);
+      setLocalActiveTabId(tabId);
       onActiveTabChange?.(tabId);
     },
     [onActiveTabChange],
