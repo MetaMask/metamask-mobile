@@ -219,7 +219,6 @@ interface WalletProps {
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
 }
-
 interface WalletTokensTabViewProps {
   navigation: WalletProps['navigation'];
   onChangeTab: (value: ChangeTabProperties) => void;
@@ -232,7 +231,13 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => isPerpsFlagEnabled && isEvmSelected,
+    [isPerpsFlagEnabled, isEvmSelected],
+  );
+
   const {
     navigation,
     onChangeTab,

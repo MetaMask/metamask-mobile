@@ -95,19 +95,23 @@ export const formatPnl = (pnl: string | number): string => {
 /**
  * Formats a percentage value with sign prefix
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
+ * @param decimals - Number of decimal places to show (default: 2)
  * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
  * @example formatPercentage(5.25) => "+5.25%"
  * @example formatPercentage(-2.75) => "-2.75%"
  * @example formatPercentage(0) => "+0.00%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  decimals: number = 2,
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
 
   if (isNaN(num)) {
     return '0.00%';
   }
 
-  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+  return `${num >= 0 ? '+' : ''}${num.toFixed(decimals)}%`;
 };
 
 /**
