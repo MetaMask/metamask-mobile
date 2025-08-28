@@ -1,5 +1,7 @@
 import {
   getGanachePort,
+  getSecondTestDappLocalUrl,
+  getTestDappLocalUrl,
   getMockServerPort,
   getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
@@ -56,8 +58,6 @@ export const SIMPLE_KEYRING_SNAP_ID =
   'snap:npm:@metamask/snap-simple-keyring-snap';
 export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
 export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
-
-const DAPP_URL = 'localhost';
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -819,7 +819,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = DAPP_URL,
+    dappUrl = getTestDappLocalUrl(),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -893,7 +893,7 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
     this.withPermissionController(
