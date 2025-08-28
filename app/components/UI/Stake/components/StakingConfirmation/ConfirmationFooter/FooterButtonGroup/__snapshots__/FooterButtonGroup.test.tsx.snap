@@ -15,7 +15,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
-    disabled={false}
+    disabled={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -58,8 +58,8 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
-    disabled={false}
-    loading={false}
+    disabled={true}
+    loading={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -81,20 +81,10 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
     }
     testID="continue-button"
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#ffffff",
-          "fontFamily": "Geist Medium",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Continue
-    </Text>
+    <ActivityIndicator
+      color="#ffffff"
+      size="small"
+    />
   </TouchableOpacity>
 </View>
 `;
@@ -114,7 +104,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
-    disabled={false}
+    disabled={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -157,8 +147,8 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
-    disabled={false}
-    loading={false}
+    disabled={true}
+    loading={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -180,20 +170,10 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
     }
     testID="continue-button"
   >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#ffffff",
-          "fontFamily": "Geist Medium",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-        }
-      }
-    >
-      Continue
-    </Text>
+    <ActivityIndicator
+      color="#ffffff"
+      size="small"
+    />
   </TouchableOpacity>
 </View>
 `;
