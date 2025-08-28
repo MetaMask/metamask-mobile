@@ -7,6 +7,41 @@ import { setupMockRequest } from './mockHelpers';
 import { MockApiEndpoint } from '../framework';
 
 /**
+ * Deep merge utility that properly handles nested objects
+ */
+function deepMerge(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = { ...target };
+
+  Object.keys(source).forEach((key) => {
+    const sourceValue = source[key];
+    const targetValue = result[key];
+
+    if (
+      typeof sourceValue === 'object' &&
+      typeof targetValue === 'object' &&
+      sourceValue !== null &&
+      targetValue !== null &&
+      !Array.isArray(sourceValue) &&
+      !Array.isArray(targetValue)
+    ) {
+      // Recursively merge nested objects
+      result[key] = deepMerge(
+        targetValue as Record<string, unknown>,
+        sourceValue as Record<string, unknown>,
+      );
+    } else {
+      // Replace with source value (handles primitives, arrays, null, type mismatches)
+      result[key] = sourceValue;
+    }
+  });
+
+  return result;
+}
+
+/**
  * Default feature flags configuration as array of objects (matches API format)
  */
 const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
@@ -72,15 +107,17 @@ export const createRemoteFeatureFlagsMock = (
         typeof existingFlag === 'object' &&
         typeof flagValue === 'object' &&
         flagValue !== null &&
-        existingFlag !== null
+        existingFlag !== null &&
+        !Array.isArray(existingFlag) &&
+        !Array.isArray(flagValue)
       ) {
         // Deep merge for nested objects like confirmation_redesign
-        existingObj[flagName] = {
-          ...(existingFlag as Record<string, unknown>),
-          ...(flagValue as Record<string, unknown>),
-        };
+        existingObj[flagName] = deepMerge(
+          existingFlag as Record<string, unknown>,
+          flagValue as Record<string, unknown>,
+        );
       } else {
-        // Replace simple values
+        // Replace simple values, arrays, or when types don't match
         existingObj[flagName] = flagValue;
       }
     } else {
