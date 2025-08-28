@@ -29,9 +29,6 @@ export { usePerpsMarketStats } from './usePerpsMarketStats';
 export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
 
-// Network validation hooks
-export { usePerpsNetworkValidation } from './usePerpsNetworkValidation';
-
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
