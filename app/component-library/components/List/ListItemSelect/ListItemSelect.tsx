@@ -66,6 +66,8 @@ const TouchableOpacity = ({
         {...props}
         // Ensure disabled prop is available to tests
         {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
+        accessibilityRole="button"
+        accessible
       >
         {children}
       </RNTouchableOpacity>
