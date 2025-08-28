@@ -12,7 +12,7 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
@@ -22,18 +22,10 @@ describe(SmokeConfirmations('ERC721 token'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
-        mockEvents.GET.suggestedGasFeesApiGanache;
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: urlEndpoint,
         response,
-        responseCode: 200,
-      });
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: gasUrlEndpoint,
-        response: gasResponse,
         responseCode: 200,
       });
     };

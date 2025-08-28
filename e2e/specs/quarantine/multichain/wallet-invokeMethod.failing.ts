@@ -33,7 +33,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../../framework/Constants';
 import { LocalNodeType } from '../../../framework';
 import { AnvilNodeOptions } from '../../../framework/types';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [

@@ -13,7 +13,11 @@ import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../api-mocking/mockHelpers';
+} from '../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../api-mocking/mock-responses/security-alerts-mock';
 
 const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
@@ -53,9 +57,9 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
-        mockEvents.POST.securityAlertApiValidate.response,
+        SECURITY_ALERTS_BENIGN_RESPONSE,
         {
           statusCode: 201,
           ignoreFields: [
@@ -94,7 +98,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
         {
           block: 20733277,
@@ -147,7 +151,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await setupMockPostRequest(
         mockServer,
-        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
+        securityAlertsUrl('0x539'),
         {},
         {
           error: 'Internal Server Error',

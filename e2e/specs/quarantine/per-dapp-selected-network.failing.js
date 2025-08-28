@@ -17,7 +17,7 @@ import Assertions from '../../framework/Assertions.ts';
 import Matchers from '../../framework/Matchers.ts';
 import { loginToApp } from '../../viewHelper.ts';
 import { DappVariants } from '../../framework/Constants.ts';
-import { setupMockRequest } from '../../api-mocking/mockHelpers.ts';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.ts';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';

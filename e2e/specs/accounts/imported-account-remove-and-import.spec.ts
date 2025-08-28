@@ -13,7 +13,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token

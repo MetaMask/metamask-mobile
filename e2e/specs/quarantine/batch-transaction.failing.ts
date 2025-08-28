@@ -21,7 +21,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
 import { AnvilNodeOptions, LocalNodeType } from '../../framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const LOCAL_CHAIN_NAME = 'Localhost';
 

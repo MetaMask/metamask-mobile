@@ -20,7 +20,7 @@ import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';

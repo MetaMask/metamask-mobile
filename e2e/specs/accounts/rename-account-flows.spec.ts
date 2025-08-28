@@ -8,7 +8,7 @@ import { SmokeAccounts } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(SmokeAccounts('Account Rename UI Flows'), () => {

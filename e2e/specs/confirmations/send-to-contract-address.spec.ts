@@ -13,7 +13,7 @@ import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

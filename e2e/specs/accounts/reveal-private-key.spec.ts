@@ -13,7 +13,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =

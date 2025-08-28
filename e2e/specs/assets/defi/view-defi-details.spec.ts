@@ -6,7 +6,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../viewHelper';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
   it('open the Aave V3 position details', async () => {

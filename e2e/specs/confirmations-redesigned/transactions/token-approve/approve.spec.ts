@@ -14,7 +14,7 @@ import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApprov
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupMockRequest } from '../../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
 import { Mockttp } from 'mockttp';
 
 describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {

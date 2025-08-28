@@ -4,7 +4,7 @@
 
 import type { Mockttp } from 'mockttp';
 import { setupMockRequest } from './mockHelpers';
-import { MockApiEndpoint } from '../framework';
+import { MockApiEndpoint } from '../../framework';
 
 /**
  * Deep merge utility that properly handles nested objects

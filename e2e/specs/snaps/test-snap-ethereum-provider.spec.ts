@@ -7,7 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 

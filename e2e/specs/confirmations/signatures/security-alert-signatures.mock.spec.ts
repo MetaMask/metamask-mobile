@@ -15,7 +15,11 @@ import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -76,9 +80,9 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Signature'), () => {
 
       await setupMockPostRequest(
         mockServer,
-        mockEvents.POST.securityAlertApiValidate.urlEndpoint,
+        securityAlertsUrl('0xaa36a7'),
         typedSignRequestBody,
-        mockEvents.POST.securityAlertApiValidate.response,
+        SECURITY_ALERTS_BENIGN_RESPONSE,
         {
           statusCode: 201,
           ignoreFields: [

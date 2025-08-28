@@ -13,7 +13,7 @@ import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensVie
 import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 

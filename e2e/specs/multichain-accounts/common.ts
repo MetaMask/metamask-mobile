@@ -7,7 +7,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 export interface Account {
   name: string;

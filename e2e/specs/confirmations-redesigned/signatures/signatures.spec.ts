@@ -13,7 +13,7 @@ import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 
 const SIGNATURE_LIST = [
   {

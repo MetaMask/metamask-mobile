@@ -1,7 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
-import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
 import { createLogger } from '../framework/logger';
-import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
+import {
+  findMatchingPostEvent,
+  processPostRequestBody,
+} from './helpers/mockHelpers.js';
 import {
   MockApiEndpoint,
   MockEventsObject,

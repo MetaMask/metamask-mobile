@@ -14,7 +14,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(RegressionAssets('Transaction'), () => {

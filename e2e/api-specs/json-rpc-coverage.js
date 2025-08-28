@@ -21,7 +21,7 @@ import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.select
 import { getGanachePort } from '../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../framework/Constants';
-import { setupMockRequest } from '../api-mocking/mockHelpers';
+import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
 
 const port = getGanachePort(8545, process.pid);
 const chainId = 1337;

@@ -6,7 +6,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../selectors/wallet/WalletView.selectors';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { loginToApp } from '../../../viewHelper';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(RegressionNetworkAbstractions('View DeFi tab'), () => {

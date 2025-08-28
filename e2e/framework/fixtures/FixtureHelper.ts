@@ -18,7 +18,7 @@ import {
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
-import { setupDefaultRemoteFeatureFlags } from '../../api-mocking/remoteFeatureFlagsHelper';
+import { setupDefaultRemoteFeatureFlags } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {

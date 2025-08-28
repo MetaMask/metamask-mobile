@@ -17,7 +17,7 @@ import AmountView from '../../../pages/Send/AmountView';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
