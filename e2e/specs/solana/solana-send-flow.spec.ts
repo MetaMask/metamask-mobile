@@ -72,23 +72,14 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   });
 
   it('should validate recipient address format correctly', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: false,
-        testSpecificMock,
-      },
-      async () => {
-        await WalletView.tapWalletSendButton();
-        await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
-        await Assertions.expectElementToHaveText(
-          SnapSendActionSheet.invalidAddressError,
-          INVALID_ADDRESS_ERROR,
-        );
-        // Snap UI components prove tricky for testID's
-        await SnapSendActionSheet.tapCancelButton();
-      },
+    await WalletView.tapWalletSendButton();
+    await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
+    await Assertions.expectElementToHaveText(
+      SnapSendActionSheet.invalidAddressError,
+      INVALID_ADDRESS_ERROR,
     );
+    // Snap UI components prove tricky for testID's
+    await SnapSendActionSheet.tapCancelButton();
   });
 
   // Skipped due to the test being targetting a live network. This should be re-enabled once we have local Solana node
