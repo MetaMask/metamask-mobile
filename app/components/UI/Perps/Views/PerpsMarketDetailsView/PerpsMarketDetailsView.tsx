@@ -67,7 +67,6 @@ import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -111,8 +110,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
-  // Initialize with statistics as default, will be updated based on data
-  const [activeTabId, setActiveTabId] = useState('statistics');
   const [refreshing, setRefreshing] = useState(false);
 
   const account = usePerpsAccount();
@@ -146,36 +143,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
 
   // Check if user has an existing position for this market
-  const {
-    isLoading: isLoadingPosition,
-    existingPosition,
-    refreshPosition,
-  } = useHasExistingPosition({
-    asset: market?.symbol || '',
-    loadOnMount: true,
-  });
-
-  // Determine the initial tab based on available data
-  useEffect(() => {
-    DevLogger.log('isLoadingPosition', isLoadingPosition);
-    DevLogger.log('existingPosition', existingPosition);
-    DevLogger.log('openOrders', openOrders);
-    if (!isLoadingPosition) {
-      let newTabId = 'statistics'; // Default fallback
-
-      // Priority 1: Position tab if position exists
-      if (existingPosition) {
-        newTabId = 'position';
-      }
-      // Priority 2: Orders tab if orders exist but no position
-      else if (openOrders && openOrders.length > 0) {
-        newTabId = 'orders';
-      }
-      // Priority 3: Statistics tab (already set as default)
-      DevLogger.log('newTabId', newTabId);
-      setActiveTabId(newTabId);
-    }
-  }, [isLoadingPosition, existingPosition, openOrders]);
+  const { isLoading: isLoadingPosition, existingPosition } =
+    useHasExistingPosition({
+      asset: market?.symbol || '',
+      loadOnMount: true,
+    });
 
   // Track screen load and position data loaded
   useEffect(() => {
@@ -243,44 +215,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
-      // Always refresh chart data regardless of active tab
+      // Only refresh candle data
+      // Position and market stats update automatically via WebSocket
       if (candleData) {
         await refreshCandleData();
       }
-
-      switch (activeTabId) {
-        case 'position':
-          // Refresh position data
-          await refreshPosition();
-          break;
-
-        case 'orders':
-          // Orders update automatically via WebSocket, no refresh needed
-          break;
-
-        case 'statistics':
-          // Refresh market statistics (24h high/low from candle data)
-          await marketStats.refresh();
-          // Also refresh position as it affects some stats
-          await refreshPosition();
-          break;
-
-        default:
-          // Fallback: refresh position
-          await refreshPosition();
-      }
     } catch (error) {
-      console.error(`Failed to refresh ${activeTabId} data:`, error);
+      console.error('Failed to refresh candle data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    activeTabId,
-    refreshPosition,
-    marketStats,
-    candleData,
-    refreshCandleData,
-  ]);
+  }, [candleData, refreshCandleData]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -420,9 +365,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
-              onPositionUpdate={refreshPosition}
-              onActiveTabChange={setActiveTabId}
-              activeTabId={activeTabId}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />
