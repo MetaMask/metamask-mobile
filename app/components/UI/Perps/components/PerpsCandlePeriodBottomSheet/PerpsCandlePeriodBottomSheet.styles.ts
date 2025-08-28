@@ -9,24 +9,35 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       paddingTop: 8,
     },
-    periodOption: {
+    periodOptionsGrid: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-start', // Left-aligned rows
+      paddingHorizontal: 8, // Minimal padding to prevent edge overflow
+    },
+    periodOption: {
+      width: '18%', // Responsive width - 5 buttons fit with spacing
+      height: 48, // Fixed height from Figma
+      paddingVertical: 4,
+      paddingHorizontal: 4, // Minimal horizontal padding
+      justifyContent: 'center',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginBottom: 6,
+      marginBottom: 8,
+      marginRight: '2%', // Consistent spacing between buttons
+      borderRadius: 12, // From Figma
+      backgroundColor: colors.background.muted, // Surface-1 equivalent
     },
     periodOptionActive: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
-      borderWidth: 2,
+      backgroundColor: colors.primary.alternative,
     },
-    checkIcon: {
-      marginLeft: 8,
+    sectionTitle: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      marginBottom: 4,
     },
-    periodOptionLast: {
-      marginBottom: 0,
+    sectionSpacing: {
+      marginTop: 16,
     },
   });
 };

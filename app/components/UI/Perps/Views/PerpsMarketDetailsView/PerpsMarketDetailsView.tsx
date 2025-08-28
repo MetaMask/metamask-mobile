@@ -60,9 +60,11 @@ import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
-import TradingViewChart from '../../components/TradingViewChart';
-import type { TradingViewChartRef } from '../../components/TradingViewChart';
+import TradingViewChart, {
+  type TradingViewChartRef,
+} from '../../components/TradingViewChart';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 
 interface MarketDetailsRouteParams {
@@ -99,6 +101,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
   const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
+  const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
+    useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
 
   const [activeTabId, setActiveTabId] = useState('position');
@@ -187,8 +191,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   const handleMorePress = useCallback(() => {
-    // For now, do nothing as specified in requirements
-    // TODO: Add more candle period options functionality
+    setIsMoreCandlePeriodsVisible(true);
+  }, []);
+
+  const handleMoreCandlePeriodsClose = useCallback(() => {
+    setIsMoreCandlePeriodsVisible(false);
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -371,6 +378,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onPeriodChange={handleCandlePeriodChange}
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
+            />
+
+            {/* More Candle Periods Bottom Sheet */}
+            <PerpsCandlePeriodBottomSheet
+              isVisible={isMoreCandlePeriodsVisible}
+              onClose={handleMoreCandlePeriodsClose}
+              selectedPeriod={selectedCandlePeriod}
+              selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
+              onPeriodChange={handleCandlePeriodChange}
+              showAllPeriods // Show all available candle periods
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
             />
           </View>
 
