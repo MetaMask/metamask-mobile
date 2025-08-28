@@ -47,7 +47,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
-        restartDevice: false,
+        restartDevice: true,
         testSpecificMock,
       },
       async () => {
