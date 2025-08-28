@@ -21,7 +21,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => ({
     quote: { id: 'test-quote' } as unknown as BuyQuote,
-    kycWorkflowRunId: 'test-workflow-run-id',
+    workFlowRunId: 'test-workflow-run-id',
   })),
 }));
 

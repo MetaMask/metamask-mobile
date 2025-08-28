@@ -17,7 +17,7 @@ const mockTrackEvent = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-const mockKycForms = { forms: [] };
+const mockKycForms = { formsRequired: [] };
 const mockQuote = {
   id: 'test-quote-id',
   amount: 100,
@@ -124,7 +124,7 @@ describe('KycProcessing Component', () => {
 
   it('renders approved state snapshot', () => {
     mockUseUserDetailsPolling.userDetails = {
-      kyc: { l1: { status: KycStatus.APPROVED } },
+      kyc: { status: KycStatus.APPROVED },
     };
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -132,7 +132,7 @@ describe('KycProcessing Component', () => {
 
   it('renders rejected state snapshot', () => {
     mockUseUserDetailsPolling.userDetails = {
-      kyc: { l1: { status: KycStatus.REJECTED } },
+      kyc: { status: KycStatus.REJECTED },
     };
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -140,7 +140,7 @@ describe('KycProcessing Component', () => {
 
   it('renders pending forms state snapshot', () => {
     mockUseDepositSdkMethod.mockReturnValueOnce([
-      { data: { forms: [{}] }, error: null, isFetching: false },
+      { data: { formsRequired: [{}] }, error: null, isFetching: false },
     ]);
     render(KycProcessing);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -149,7 +149,7 @@ describe('KycProcessing Component', () => {
   describe('handleContinue button behavior', () => {
     beforeEach(() => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.APPROVED } },
+        kyc: { status: KycStatus.APPROVED },
       };
     });
 
@@ -169,7 +169,7 @@ describe('KycProcessing Component', () => {
   describe('Analytics tracking', () => {
     it('tracks RAMPS_KYC_APPLICATION_APPROVED event when KYC status is approved', () => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.APPROVED, type: 'STANDARD' } },
+        kyc: { status: KycStatus.APPROVED, type: 'STANDARD' },
       };
 
       render(KycProcessing);
@@ -185,7 +185,7 @@ describe('KycProcessing Component', () => {
 
     it('tracks RAMPS_KYC_APPLICATION_FAILED event when KYC status is rejected', () => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.REJECTED, type: 'SIMPLE' } },
+        kyc: { status: KycStatus.REJECTED, type: 'SIMPLE' },
       };
 
       render(KycProcessing);
@@ -201,7 +201,7 @@ describe('KycProcessing Component', () => {
 
     it('does not track analytics event when KYC status is pending', () => {
       mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.SUBMITTED, type: 'STANDARD' } },
+        kyc: { status: KycStatus.SUBMITTED, type: 'STANDARD' },
       };
 
       render(KycProcessing);
