@@ -13,7 +13,6 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
-import { usePerpsNetworkValidation } from '../hooks';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -54,9 +53,6 @@ export const PerpsConnectionProvider: React.FC<
 
   // Enable withdrawal status monitoring and toasts at the provider level
   usePerpsWithdrawStatus();
-
-  // Ensure Arbitrum network is enabled for perps operations
-  usePerpsNetworkValidation();
 
   // Poll connection state to sync with singleton
   useEffect(() => {
