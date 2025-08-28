@@ -1588,8 +1588,17 @@ describe('TokenListItem - Component Integration', () => {
 });
 
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
-import { isTestNet } from '../../../../../util/networks';
+import {
+  isTestNet,
+  getDefaultNetworkByChainId,
+} from '../../../../../util/networks';
 import { formatWithThreshold } from '../../../../../util/assets';
+import {
+  UnpopularNetworkList,
+  CustomNetworkImgMapping,
+  PopularList,
+  getNonEvmNetworkImageSourceByChainId,
+} from '../../../../../util/networks/customNetworks';
 
 describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -1989,13 +1998,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
   describe('Network Badge Logic Coverage', () => {
     const mockGetDefaultNetworkByChainId = jest.mocked(
-      require('../../../../../util/networks').getDefaultNetworkByChainId,
+      getDefaultNetworkByChainId,
     );
 
     it('covers networkBadgeSource with default network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue({
         imageSource: 'mainnet.png',
-      });
+        blockExplorerUrl: 'https://etherscan.io',
+        imageUrl: 'mainnet.png',
+      } as unknown as ReturnType<typeof getDefaultNetworkByChainId>);
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -2020,13 +2031,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with unpopular network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockUnpopularNetworkList = jest.mocked(
-        require('../../../../../util/networks/customNetworks')
-          .UnpopularNetworkList,
-      );
-      mockUnpopularNetworkList.push({
+      const mockUnpopularNetworkList = jest.mocked(UnpopularNetworkList);
+      (mockUnpopularNetworkList as unknown[]).push({
         chainId: '0x999',
-        rpcPrefs: { imageSource: 'unpopular.png' },
+        rpcPrefs: {
+          imageSource: 'unpopular.png',
+          blockExplorerUrl: 'https://example.com',
+          imageUrl: 'unpopular.png',
+        },
       });
 
       const assetKey: FlashListAssetKey = {
@@ -2052,10 +2064,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with custom network mapping', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockCustomNetworkImgMapping = jest.mocked(
-        require('../../../../../util/networks/customNetworks')
-          .CustomNetworkImgMapping,
-      );
+      const mockCustomNetworkImgMapping = jest.mocked(CustomNetworkImgMapping);
       mockCustomNetworkImgMapping['0x888'] = 'custom.png';
 
       const assetKey: FlashListAssetKey = {
@@ -2081,12 +2090,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with popular network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockPopularList = jest.mocked(
-        require('../../../../../util/networks/customNetworks').PopularList,
-      );
-      mockPopularList.push({
+      const mockPopularList = jest.mocked(PopularList);
+      (mockPopularList as unknown[]).push({
         chainId: '0x777',
-        rpcPrefs: { imageSource: 'popular.png' },
+        rpcPrefs: {
+          imageSource: 'popular.png',
+          blockExplorerUrl: 'https://example.com',
+          imageUrl: 'popular.png',
+        },
       });
 
       const assetKey: FlashListAssetKey = {
@@ -2113,8 +2124,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('covers networkBadgeSource with CAIP chain ID', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
       const mockGetNonEvmNetworkImageSourceByChainId = jest.mocked(
-        require('../../../../../util/networks/customNetworks')
-          .getNonEvmNetworkImageSourceByChainId,
+        getNonEvmNetworkImageSourceByChainId,
       );
       mockGetNonEvmNetworkImageSourceByChainId.mockReturnValue('caip.png');
 
