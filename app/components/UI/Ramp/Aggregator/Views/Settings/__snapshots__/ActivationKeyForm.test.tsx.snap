@@ -504,6 +504,35 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 Label
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -514,6 +543,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "flexDirection": "row",
                                     "height": 40,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -548,7 +578,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -585,6 +614,35 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 Key
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -595,6 +653,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "flexDirection": "row",
                                     "height": 40,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -631,7 +690,6 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "height": 38,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }

@@ -61,6 +61,35 @@ exports[`SnapUIInput handles disabled input 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -73,6 +102,7 @@ exports[`SnapUIInput handles disabled input 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 0.5,
+                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -105,7 +135,6 @@ exports[`SnapUIInput handles disabled input 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }
@@ -188,6 +217,35 @@ exports[`SnapUIInput renders with initial value 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -200,6 +258,7 @@ exports[`SnapUIInput renders with initial value 1`] = `
                     "height": 48,
                     "maxHeight": 58,
                     "opacity": 1,
+                    "paddingHorizontal": 16,
                   }
                 }
                 testID="textfield"
@@ -232,7 +291,6 @@ exports[`SnapUIInput renders with initial value 1`] = `
                         "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
-                        "paddingHorizontal": 16,
                         "paddingVertical": 0,
                       }
                     }

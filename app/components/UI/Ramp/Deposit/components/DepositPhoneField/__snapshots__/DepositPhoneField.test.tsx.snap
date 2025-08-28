@@ -29,6 +29,35 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -39,6 +68,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -123,7 +153,6 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -165,6 +194,35 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -175,6 +233,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -259,7 +318,6 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -301,6 +359,35 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -311,6 +398,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -395,7 +483,6 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -437,6 +524,35 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -447,6 +563,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -531,7 +648,6 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -573,6 +689,35 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -583,6 +728,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -667,7 +813,6 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -724,6 +869,35 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -734,6 +908,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -818,7 +993,6 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -860,6 +1034,35 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -870,6 +1073,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -955,7 +1159,6 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -997,6 +1200,35 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1007,6 +1239,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -1091,7 +1324,6 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -1133,6 +1365,35 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1143,6 +1404,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -1227,7 +1489,6 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }
@@ -1269,6 +1530,35 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1279,6 +1569,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         "flexDirection": "row",
         "height": 48,
         "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
     testID="textfield"
@@ -1363,7 +1654,6 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
             "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
-            "paddingHorizontal": 16,
             "paddingVertical": 0,
           }
         }

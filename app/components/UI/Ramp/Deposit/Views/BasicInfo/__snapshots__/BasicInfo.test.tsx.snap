@@ -748,6 +748,35 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -758,6 +787,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -794,7 +824,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -835,6 +864,35 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -845,6 +903,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -881,7 +940,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -921,6 +979,35 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -931,6 +1018,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -1016,7 +1104,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -1080,6 +1167,35 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -1090,6 +1206,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -1145,7 +1262,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -1218,6 +1334,35 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -1228,6 +1373,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -1266,7 +1412,6 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -2199,6 +2344,35 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2209,6 +2383,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2245,7 +2420,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2286,6 +2460,35 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2296,6 +2499,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2332,7 +2536,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2372,6 +2575,35 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2382,6 +2614,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -2467,7 +2700,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -2531,6 +2763,35 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2541,6 +2802,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -2596,7 +2858,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -2669,6 +2930,35 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2679,6 +2969,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -2717,7 +3008,6 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -3650,6 +3940,35 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -3660,6 +3979,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -3696,7 +4016,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -3737,6 +4056,35 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -3747,6 +4095,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -3783,7 +4132,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -3823,6 +4171,35 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -3833,6 +4210,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -3918,7 +4296,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -3982,6 +4359,35 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -3992,6 +4398,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -4047,7 +4454,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -4120,6 +4526,35 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -4130,6 +4565,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -4168,7 +4604,6 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -5101,6 +5536,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5111,6 +5575,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5147,7 +5612,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5203,6 +5667,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5213,6 +5706,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5249,7 +5743,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5304,6 +5797,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -5314,6 +5836,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -5399,7 +5922,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -5478,6 +6000,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5488,6 +6039,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -5543,7 +6095,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -5616,6 +6167,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -5626,6 +6206,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -5664,7 +6245,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -6612,6 +7192,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -6622,6 +7231,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -6658,7 +7268,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -6714,6 +7323,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -6724,6 +7362,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -6760,7 +7399,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -6815,6 +7453,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -6825,6 +7492,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -6910,7 +7578,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -6974,6 +7641,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -6984,6 +7680,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -7039,7 +7736,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -7112,6 +7808,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -7122,6 +7847,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -7160,7 +7886,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -8108,6 +8833,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       First name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -8118,6 +8872,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -8154,7 +8909,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -8210,6 +8964,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Last name
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -8220,6 +9003,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -8256,7 +9040,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }
@@ -8311,6 +9094,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     Phone number
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -8321,6 +9133,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         "flexDirection": "row",
                                         "height": 48,
                                         "opacity": 1,
+                                        "paddingHorizontal": 16,
                                       }
                                     }
                                     testID="textfield"
@@ -8406,7 +9219,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
-                                            "paddingHorizontal": 16,
                                             "paddingVertical": 0,
                                           }
                                         }
@@ -8485,6 +9297,35 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       Date of birth
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -8495,6 +9336,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           "flexDirection": "row",
                                           "height": 48,
                                           "opacity": 1,
+                                          "paddingHorizontal": 16,
                                         }
                                       }
                                       testID="textfield"
@@ -8550,7 +9392,6 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
-                                              "paddingHorizontal": 16,
                                               "paddingVertical": 0,
                                             }
                                           }

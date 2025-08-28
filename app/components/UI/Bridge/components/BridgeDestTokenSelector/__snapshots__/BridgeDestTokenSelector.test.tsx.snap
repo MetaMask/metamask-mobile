@@ -674,6 +674,35 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </RCTScrollView>
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -684,6 +713,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
+                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -736,7 +766,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }

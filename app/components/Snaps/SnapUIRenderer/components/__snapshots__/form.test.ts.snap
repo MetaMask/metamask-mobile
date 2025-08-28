@@ -74,6 +74,35 @@ exports[`SnapUIForm will render 1`] = `
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -86,6 +115,7 @@ exports[`SnapUIForm will render 1`] = `
                       "height": 48,
                       "maxHeight": 58,
                       "opacity": 1,
+                      "paddingHorizontal": 16,
                     }
                   }
                   testID="textfield"
@@ -118,7 +148,6 @@ exports[`SnapUIForm will render 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingHorizontal": 16,
                           "paddingVertical": 0,
                         }
                       }
@@ -262,6 +291,35 @@ exports[`SnapUIForm will render with fields 1`] = `
                   My Input
                 </Text>
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -274,6 +332,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "height": 48,
                       "maxHeight": 58,
                       "opacity": 1,
+                      "paddingHorizontal": 16,
                     }
                   }
                   testID="textfield"
@@ -306,7 +365,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
-                          "paddingHorizontal": 16,
                           "paddingVertical": 0,
                         }
                       }

@@ -711,6 +711,35 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               />
                             </TouchableOpacity>
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -721,6 +750,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   "flexDirection": "row",
                                   "height": 40,
                                   "opacity": 1,
+                                  "paddingHorizontal": 16,
                                 }
                               }
                               testID="textfield"
@@ -773,7 +803,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingHorizontal": 16,
                                       "paddingVertical": 0,
                                     }
                                   }

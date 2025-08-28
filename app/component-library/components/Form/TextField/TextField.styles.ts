@@ -40,6 +40,7 @@ const styleSheet = (params: {
         height: Number(size),
         borderWidth: BORDER_WIDTH,
         borderColor,
+        paddingHorizontal: 16,
         opacity: isDisabled ? 0.5 : 1,
         backgroundColor: theme.colors.background.default,
       },
@@ -55,7 +56,6 @@ const styleSheet = (params: {
     // eslint-disable-next-line react-native/no-color-literals
     input: {
       backgroundColor: 'inherit',
-      paddingHorizontal: 16,
       // subtract border width from height so it won't overflow the container
       height: Number(size) - BORDER_WIDTH * 2,
     },

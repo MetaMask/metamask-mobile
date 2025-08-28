@@ -687,6 +687,35 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -697,6 +726,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -734,7 +764,6 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -1510,6 +1539,35 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -1520,6 +1578,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -1557,7 +1616,6 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -2347,6 +2405,35 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -2357,6 +2444,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -2394,7 +2482,6 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
@@ -3170,6 +3257,35 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 We'll email you a six-digit verification code to securely log in or create an account with Transak.
                               </Text>
                               <View
+                                accessibilityState={
+                                  {
+                                    "busy": undefined,
+                                    "checked": undefined,
+                                    "disabled": undefined,
+                                    "expanded": undefined,
+                                    "selected": undefined,
+                                  }
+                                }
+                                accessibilityValue={
+                                  {
+                                    "max": undefined,
+                                    "min": undefined,
+                                    "now": undefined,
+                                    "text": undefined,
+                                  }
+                                }
+                                accessible={true}
+                                collapsable={false}
+                                focusable={true}
+                                onBlur={[Function]}
+                                onClick={[Function]}
+                                onFocus={[Function]}
+                                onResponderGrant={[Function]}
+                                onResponderMove={[Function]}
+                                onResponderRelease={[Function]}
+                                onResponderTerminate={[Function]}
+                                onResponderTerminationRequest={[Function]}
+                                onStartShouldSetResponder={[Function]}
                                 style={
                                   {
                                     "alignItems": "center",
@@ -3180,6 +3296,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     "flexDirection": "row",
                                     "height": 48,
                                     "opacity": 1,
+                                    "paddingHorizontal": 16,
                                   }
                                 }
                                 testID="textfield"
@@ -3217,7 +3334,6 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 46,
                                         "letterSpacing": 0,
                                         "opacity": 1,
-                                        "paddingHorizontal": 16,
                                         "paddingVertical": 0,
                                       }
                                     }
