@@ -45,7 +45,7 @@ export const useAssetSelectionMetrics = () => {
         createEventBuilder(MetaMetricsEvents.SEND_ASSET_SELECTED)
           .addProperties({
             account_type: accountType,
-            assetType,
+            asset_type: assetType,
             asset_list_position: position,
             asset_list_size: assetListSize,
             chain_id: isEvmSendType ? sendAsset?.chainId : undefined,
