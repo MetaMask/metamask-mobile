@@ -30,7 +30,6 @@ import {
   PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
-
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -48,7 +47,6 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-
 import {
   usePerpsAccount,
   usePerpsConnection,
@@ -129,7 +127,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  // Get candlestick data - using YEAR_TO_DATE to fetch maximum candles (250)
   const { candleData, isLoadingHistory, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
@@ -205,7 +202,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       chartRef.current?.resetToDefault();
 
-      // Always refresh chart data regardless of active tab
       if (candleData) {
         await refreshCandleData();
       }
@@ -355,7 +351,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               selectedPeriod={selectedCandlePeriod}
               selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
               onPeriodChange={handleCandlePeriodChange}
-              showAllPeriods // Show all available candle periods
+              showAllPeriods
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
             />
           </View>
