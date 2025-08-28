@@ -1,6 +1,12 @@
 import { typography } from '@metamask/design-tokens';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -149,7 +155,11 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const openAccountSelector = useCallback(() => {
