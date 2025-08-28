@@ -1587,48 +1587,60 @@ describe('TokenListItem - Component Integration', () => {
   });
 });
 
+import { useSelector } from 'react-redux';
+import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
+import { isTestNet } from '../../../../../util/networks';
+import { formatWithThreshold } from '../../../../../util/assets';
+
 describe('TokenListItem - Component Rendering Tests for Coverage', () => {
-  const mockUseSelector = require('react-redux').useSelector as jest.Mock;
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
   const mockUseTokenPricePercentageChange =
-    require('../../hooks/useTokenPricePercentageChange')
-      .useTokenPricePercentageChange as jest.Mock;
-  const mockIsTestNet = require('../../../../../util/networks')
-    .isTestNet as jest.Mock;
-  const mockFormatWithThreshold = require('../../../../../util/assets')
-    .formatWithThreshold as jest.Mock;
+    useTokenPricePercentageChange as jest.MockedFunction<
+      typeof useTokenPricePercentageChange
+    >;
+  const mockIsTestNet = isTestNet as jest.MockedFunction<typeof isTestNet>;
+  const mockFormatWithThreshold = formatWithThreshold as jest.MockedFunction<
+    typeof formatWithThreshold
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Default mock setup
-    mockUseSelector.mockImplementation((selector: any) => {
-      // Return sensible defaults for all selectors
-      if (selector.toString().includes('selectIsEvmNetworkSelected'))
-        return true;
-      if (selector.toString().includes('selectSelectedInternalAccountAddress'))
-        return '0x123';
-      if (selector.toString().includes('selectCurrentCurrency')) return 'USD';
-      if (selector.toString().includes('selectShowFiatInTestnets'))
-        return false;
-      if (selector.toString().includes('selectSingleTokenBalance'))
-        return { '0x456': '1.23' };
-      if (selector.toString().includes('selectSingleTokenPriceMarketData'))
-        return { price: 100 };
-      if (selector.toString().includes('selectCurrencyRateForChainId'))
-        return 1.0;
-      if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-        return {
-          address: '0x456',
-          chainId: '0x1',
-          symbol: 'TEST',
-          name: 'Test Token',
-          balance: '1.23',
-          balanceFiat: '$123.00',
-          isNative: false,
-          isETH: false,
-        };
-      return {};
-    });
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        // Return sensible defaults for all selectors
+        if (selector.toString().includes('selectIsEvmNetworkSelected'))
+          return true;
+        if (
+          selector.toString().includes('selectSelectedInternalAccountAddress')
+        )
+          return '0x123';
+        if (selector.toString().includes('selectCurrentCurrency')) return 'USD';
+        if (selector.toString().includes('selectShowFiatInTestnets'))
+          return false;
+        if (selector.toString().includes('selectSingleTokenBalance'))
+          return { '0x456': '1.23' };
+        if (selector.toString().includes('selectSingleTokenPriceMarketData'))
+          return { price: 100 };
+        if (selector.toString().includes('selectCurrencyRateForChainId'))
+          return 1.0;
+        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
+          return {
+            address: '0x456',
+            chainId: '0x1',
+            symbol: 'TEST',
+            name: 'Test Token',
+            balance: '1.23',
+            balanceFiat: '$123.00',
+            isNative: false,
+            isETH: false,
+          };
+        return {};
+      },
+    );
 
     mockUseTokenPricePercentageChange.mockReturnValue(5.67);
     mockIsTestNet.mockReturnValue(false);
@@ -1685,19 +1697,21 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
   describe('Balance Calculation Coverage', () => {
     it('covers non-EVM balance formatting with MULTICHAIN_NETWORK_DECIMAL_PLACES', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('selectIsEvmNetworkSelected'))
-          return false;
-        if (selector.toString().includes('makeSelectNonEvmAssetById'))
-          return {
-            address: 'cosmos:asset',
-            chainId: 'cosmos:cosmoshub-4',
-            symbol: 'ATOM',
-            balance: '123.456789',
-            balanceFiat: '$500.00',
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectIsEvmNetworkSelected'))
+            return false;
+          if (selector.toString().includes('makeSelectNonEvmAssetById'))
+            return {
+              address: 'cosmos:asset',
+              chainId: 'cosmos:cosmoshub-4',
+              symbol: 'ATOM',
+              balance: '123.456789',
+              balanceFiat: '$500.00',
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: 'cosmos:asset',
@@ -1722,19 +1736,23 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers testnet balance hiding logic', () => {
       mockIsTestNet.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('selectShowFiatInTestnets'))
-          return false;
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x456',
-            chainId: '0x5', // Goerli testnet
-            symbol: 'TEST',
-            balance: '1.23',
-            balanceFiat: undefined, // No fiat on testnet
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectShowFiatInTestnets'))
+            return false;
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x456',
+              chainId: '0x5', // Goerli testnet
+              symbol: 'TEST',
+              balance: '1.23',
+              balanceFiat: undefined, // No fiat on testnet
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -1775,7 +1793,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
             showRemoveMenu={jest.fn()}
             setShowScamWarningModal={jest.fn()}
             privacyMode={false}
-            showPercentageChange={true}
+            showPercentageChange
           />
         </MockProvider>,
       );
@@ -1857,16 +1875,20 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
   describe('Network Avatar Rendering Coverage', () => {
     it('covers renderNetworkAvatar for native assets with custom network mapping', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x0',
-            chainId: '0x89', // Polygon
-            symbol: 'MATIC',
-            isNative: true,
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x0',
+              chainId: '0x89', // Polygon
+              symbol: 'MATIC',
+              isNative: true,
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x0',
@@ -1890,17 +1912,21 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
 
     it('covers renderNetworkAvatar for regular native assets', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x0',
-            chainId: '0x1',
-            symbol: 'ETH',
-            ticker: 'ETH',
-            isNative: true,
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x0',
+              chainId: '0x1',
+              symbol: 'ETH',
+              ticker: 'ETH',
+              isNative: true,
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x0',
@@ -1924,17 +1950,21 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
 
     it('covers renderNetworkAvatar for non-native token assets', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x456',
-            chainId: '0x1',
-            symbol: 'USDC',
-            image: 'https://example.com/usdc.png',
-            isNative: false,
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x456',
+              chainId: '0x1',
+              symbol: 'USDC',
+              image: 'https://example.com/usdc.png',
+              isNative: false,
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -1959,9 +1989,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   });
 
   describe('Network Badge Logic Coverage', () => {
-    const mockGetDefaultNetworkByChainId =
-      require('../../../../../util/networks')
-        .getDefaultNetworkByChainId as jest.Mock;
+    const mockGetDefaultNetworkByChainId = jest.mocked(
+      require('../../../../../util/networks').getDefaultNetworkByChainId,
+    );
 
     it('covers networkBadgeSource with default network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue({
@@ -1991,8 +2021,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with unpopular network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockUnpopularNetworkList =
-        require('../../../../../util/networks/customNetworks').UnpopularNetworkList;
+      const mockUnpopularNetworkList = jest.mocked(
+        require('../../../../../util/networks/customNetworks')
+          .UnpopularNetworkList,
+      );
       mockUnpopularNetworkList.push({
         chainId: '0x999',
         rpcPrefs: { imageSource: 'unpopular.png' },
@@ -2021,8 +2053,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with custom network mapping', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockCustomNetworkImgMapping =
-        require('../../../../../util/networks/customNetworks').CustomNetworkImgMapping;
+      const mockCustomNetworkImgMapping = jest.mocked(
+        require('../../../../../util/networks/customNetworks')
+          .CustomNetworkImgMapping,
+      );
       mockCustomNetworkImgMapping['0x888'] = 'custom.png';
 
       const assetKey: FlashListAssetKey = {
@@ -2048,8 +2082,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with popular network', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockPopularList =
-        require('../../../../../util/networks/customNetworks').PopularList;
+      const mockPopularList = jest.mocked(
+        require('../../../../../util/networks/customNetworks').PopularList,
+      );
       mockPopularList.push({
         chainId: '0x777',
         rpcPrefs: { imageSource: 'popular.png' },
@@ -2078,9 +2113,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
     it('covers networkBadgeSource with CAIP chain ID', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-      const mockGetNonEvmNetworkImageSourceByChainId =
+      const mockGetNonEvmNetworkImageSourceByChainId = jest.mocked(
         require('../../../../../util/networks/customNetworks')
-          .getNonEvmNetworkImageSourceByChainId as jest.Mock;
+          .getNonEvmNetworkImageSourceByChainId,
+      );
       mockGetNonEvmNetworkImageSourceByChainId.mockReturnValue('caip.png');
 
       const assetKey: FlashListAssetKey = {
@@ -2089,17 +2125,19 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('selectIsEvmNetworkSelected'))
-          return false;
-        if (selector.toString().includes('makeSelectNonEvmAssetById'))
-          return {
-            address: 'cosmos:asset',
-            chainId: 'cosmos:cosmoshub-4',
-            symbol: 'ATOM',
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.toString().includes('selectIsEvmNetworkSelected'))
+            return false;
+          if (selector.toString().includes('makeSelectNonEvmAssetById'))
+            return {
+              address: 'cosmos:asset',
+              chainId: 'cosmos:cosmoshub-4',
+              symbol: 'ATOM',
+            };
+          return {};
+        },
+      );
 
       render(
         <MockProvider>
@@ -2119,16 +2157,20 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
   describe('Error State Coverage', () => {
     it('covers hasBalanceError state', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x456',
-            chainId: '0x1',
-            symbol: 'ERROR',
-            hasBalanceError: true,
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x456',
+              chainId: '0x1',
+              symbol: 'ERROR',
+              hasBalanceError: true,
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -2152,16 +2194,20 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
 
     it('covers TOKEN_RATE_UNDEFINED state', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x456',
-            chainId: '0x1',
-            symbol: 'TEST',
-            balanceFiat: TOKEN_RATE_UNDEFINED,
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x456',
+              chainId: '0x1',
+              symbol: 'TEST',
+              balanceFiat: TOKEN_RATE_UNDEFINED,
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -2187,11 +2233,15 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
   describe('Asset Null Guard Coverage', () => {
     it('covers early return when asset is null', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return null;
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return null;
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
@@ -2215,15 +2265,19 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
 
     it('covers early return when chainId is null', () => {
-      mockUseSelector.mockImplementation((selector: any) => {
-        if (selector.toString().includes('makeSelectAssetByAddressAndChainId'))
-          return {
-            address: '0x456',
-            chainId: null,
-            symbol: 'TEST',
-          };
-        return {};
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (
+            selector.toString().includes('makeSelectAssetByAddressAndChainId')
+          )
+            return {
+              address: '0x456',
+              chainId: null,
+              symbol: 'TEST',
+            };
+          return {};
+        },
+      );
 
       const assetKey: FlashListAssetKey = {
         address: '0x456',
