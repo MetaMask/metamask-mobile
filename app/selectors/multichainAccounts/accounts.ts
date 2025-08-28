@@ -8,26 +8,18 @@ import {
   AccountWalletId,
   selectOne,
 } from '@metamask/account-api';
-import {
-  CaipAccountId,
-  CaipChainId,
-  KnownCaipNamespace,
-} from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthAccountType } from '@metamask/keyring-api';
 
 import { createDeepEqualSelector } from '../util';
-import {
-  selectAccountGroupWithInternalAccounts,
-  selectAccountTreeControllerState,
-} from './accountTreeController';
+import { selectAccountTreeControllerState } from './accountTreeController';
 import { selectInternalAccountsById } from '../accountsController';
 import {
   type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
-import { AccountGroupWithInternalAccounts } from './accounts.type';
 
 /**
  * Extracts the wallet ID from an account group ID.
