@@ -61,6 +61,7 @@ import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip'
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart from '../../components/TradingViewChart';
+import type { TradingViewChartRef } from '../../components/TradingViewChart';
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 
@@ -97,7 +98,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
-  const [visibleCandleCount] = useState<number>(45);
+  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(45);
+  const chartRef = useRef<TradingViewChartRef>(null);
 
   const [activeTabId, setActiveTabId] = useState('position');
   const [refreshing, setRefreshing] = useState(false);
@@ -193,6 +195,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
+      // Reset chart to default state (like initial navigation)
+      setSelectedCandlePeriod(CandlePeriod.THREE_MINUTES);
+      setVisibleCandleCount(45);
+
+      // Reset chart view to default position
+      chartRef.current?.resetToDefault();
+
       // Always refresh chart data regardless of active tab
       if (candleData) {
         await refreshCandleData();
@@ -338,6 +347,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <TradingViewChart
+              ref={chartRef}
               candleData={candleData}
               height={350}
               visibleCandleCount={visibleCandleCount}

@@ -623,6 +623,14 @@ export const createTradingViewChartTemplate = (
                             window.updatePriceLines(message.lines);
                         }
                         break;
+                    case 'RESET_TO_DEFAULT':
+                        // Reset chart to default state (like initial navigation)
+                        if (window.chart && window.allCandleData && window.allCandleData.length > 0) {
+                            window.visibleCandleCount = window.ZOOM_LIMITS.DEFAULT_CANDLES;
+                            window.applyZoom(window.ZOOM_LIMITS.DEFAULT_CANDLES, true); // Force reset
+                            console.log('📊 TradingView: Reset to default state - 45 candles');
+                        }
+                        break;
                     case 'UPDATE_INTERVAL':
                         // Send confirmation back to React Native
                         if (window.ReactNativeWebView) {
