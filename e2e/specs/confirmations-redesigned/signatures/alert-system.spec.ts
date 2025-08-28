@@ -6,7 +6,6 @@ import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp } from '../../../viewHelper';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -21,6 +20,8 @@ import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   securityAlertsUrl,
 } from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -71,14 +72,10 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
   describe('Security Alert API', () => {
     it('should sign typed message', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
-        const { urlEndpoint, response } =
-          mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await setupMockRequest(mockServer, {
-          requestMethod: 'GET',
-          url: urlEndpoint,
-          response,
-          responseCode: 200,
-        });
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          ...confirmationsRedesignedFeatureFlags,
+        );
 
         await setupMockPostRequest(
           mockServer,
@@ -107,14 +104,10 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
     it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
-        const { urlEndpoint, response } =
-          mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await setupMockRequest(mockServer, {
-          requestMethod: 'GET',
-          url: urlEndpoint,
-          response,
-          responseCode: 200,
-        });
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          ...confirmationsRedesignedFeatureFlags,
+        );
 
         await setupMockPostRequest(
           mockServer,
@@ -162,14 +155,10 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
     it('should show security alert for error when validating request fails', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
-        const { urlEndpoint, response } =
-          mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await setupMockRequest(mockServer, {
-          requestMethod: 'GET',
-          url: urlEndpoint,
-          response,
-          responseCode: 200,
-        });
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          ...confirmationsRedesignedFeatureFlags,
+        );
 
         await setupMockRequest(mockServer, {
           requestMethod: 'GET',
@@ -215,14 +204,10 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
   describe('Inline Alert', () => {
     it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
-        const { urlEndpoint, response } =
-          mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await setupMockRequest(mockServer, {
-          requestMethod: 'GET',
-          url: urlEndpoint,
-          response,
-          responseCode: 200,
-        });
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          ...confirmationsRedesignedFeatureFlags,
+        );
       };
 
       await withFixtures(

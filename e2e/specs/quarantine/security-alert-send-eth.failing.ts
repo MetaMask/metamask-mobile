@@ -7,7 +7,6 @@ import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { Mockttp } from 'mockttp';
 import {
@@ -18,6 +17,8 @@ import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   securityAlertsUrl,
 } from '../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
@@ -46,14 +47,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        ...confirmationsRedesignedFeatureFlags,
+      );
 
       await setupMockPostRequest(
         mockServer,
@@ -87,15 +84,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
-
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        ...confirmationsRedesignedFeatureFlags,
+      );
       await setupMockPostRequest(
         mockServer,
         securityAlertsUrl('0x539'),
@@ -131,14 +123,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for error when validating request fails', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        ...confirmationsRedesignedFeatureFlags,
+      );
 
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',

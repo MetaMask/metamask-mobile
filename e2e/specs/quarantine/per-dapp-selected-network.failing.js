@@ -17,7 +17,8 @@ import Assertions from '../../framework/Assertions.ts';
 import Matchers from '../../framework/Matchers.ts';
 import { loginToApp } from '../../viewHelper.ts';
 import { DappVariants } from '../../framework/Constants.ts';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.ts';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -42,14 +43,10 @@ async function changeNetworkFromNetworkListModal(networkName) {
 
 describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   const testSpecificMock = async (mockServer) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      ...confirmationsRedesignedFeatureFlags,
+    );
   };
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
