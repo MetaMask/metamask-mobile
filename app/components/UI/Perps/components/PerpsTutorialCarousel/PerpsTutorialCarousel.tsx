@@ -130,8 +130,6 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const { isEligible } = usePerpsEligibility();
 
-  const { styles } = useStyles(createStyles, { isEligible });
-
   const tutorialScreens = useMemo(
     () => getTutorialScreens(isEligible),
     [isEligible],
@@ -141,6 +139,10 @@ const PerpsTutorialCarousel: React.FC = () => {
     () => currentTab === tutorialScreens.length - 1,
     [currentTab, tutorialScreens.length],
   );
+
+  const { styles } = useStyles(createStyles, {
+    shouldShowSkipButton: !isLastScreen || isEligible,
+  });
 
   // Track tutorial viewed on mount
   useEffect(() => {
@@ -368,14 +370,16 @@ const PerpsTutorialCarousel: React.FC = () => {
             size={ButtonSize.Lg}
             style={styles.continueButton}
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {skipLabel}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.skipButton}>
+            <TouchableOpacity onPress={handleSkip} disabled={!isEligible}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
+                {skipLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>
