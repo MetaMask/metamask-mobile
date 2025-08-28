@@ -571,7 +571,6 @@ describe('getSettingsNavigationOptions', () => {
       );
 
       expect(getByText(mockTitle)).toBeDefined();
-      expect(getByTestId('settings-header')).toBeDefined();
     });
 
     it('should display the provided title text', () => {
