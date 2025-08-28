@@ -147,7 +147,8 @@ const NetworkMultiSelector = ({
   );
 
   const onSelectAllPopularNetworks = useCallback(async () => {
-    await selectAllPopularNetworks(dismissModal);
+    await selectAllPopularNetworks();
+    dismissModal?.();
   }, [selectAllPopularNetworks, dismissModal]);
 
   const onSelectNetwork = useCallback(
@@ -171,7 +172,7 @@ const NetworkMultiSelector = ({
         }}
       />
     ),
-    [onSelectAllPopularNetworks, areAllNetworksSelected],
+    [areAllNetworksSelected, onSelectAllPopularNetworks],
   );
 
   return (

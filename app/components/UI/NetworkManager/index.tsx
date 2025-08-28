@@ -264,7 +264,7 @@ const NetworkManager = () => {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} style={containerStyle}>
+    <BottomSheet ref={sheetRef} style={containerStyle} shouldNavigateBack>
       <View style={styles.sheet}>
         <Text
           variant={TextVariant.HeadingMD}
