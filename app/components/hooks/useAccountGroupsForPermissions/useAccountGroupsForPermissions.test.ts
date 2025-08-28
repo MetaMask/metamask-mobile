@@ -1,80 +1,45 @@
 import { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { CaipAccountId, CaipChainId, CaipNamespace } from '@metamask/utils';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useAccountGroupsForPermissions } from './useAccountGroupsForPermissions';
 import {
   renderHookWithProvider,
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { RootState } from '../../../reducers';
+import {
+  createMockInternalAccount,
+  createMockSnapInternalAccount,
+} from '../../../util/test/accountsControllerTestUtils';
 
 const MOCK_WALLET_ID = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ';
 const MOCK_GROUP_ID_1 = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0';
 const MOCK_GROUP_ID_2 = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1';
 const MOCK_SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
-// Helper function to create mock internal accounts with object parameter
-const createMockInternalAccount = ({
-  id,
-  name,
-  address,
-  type,
-}: {
-  id: string;
-  name: string;
-  address: string;
-  type: EthAccountType | SolAccountType;
-}): InternalAccount => ({
-  id,
-  address,
-  type: type as InternalAccount['type'], // Cast to satisfy the type system
-  scopes:
-    type === SolAccountType.DataAccount
-      ? [MOCK_SOLANA_CHAIN_ID as `${string}:${string}`]
-      : ['eip155:1' as `${string}:${string}`],
-  options: {},
-  methods:
-    type === SolAccountType.DataAccount
-      ? ['solana_signTransaction', 'solana_signMessage']
-      : ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
-  metadata: {
-    name,
-    keyring: {
-      type: 'HD Key Tree',
-    },
-    importTime: Date.now(),
-  },
-});
+// Create mock accounts using utility functions
+const mockEvmAccount1 = createMockInternalAccount(
+  '0x601Ca13E71aabF3E0A0701d52946476d98cb9b76',
+  'EVM Account 1',
+);
 
-const mockEvmAccount1 = createMockInternalAccount({
-  id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
-  name: 'EVM Account 1',
-  address: '0x1111111111111111111111111111111111111111',
-  type: EthAccountType.Eoa,
-});
+const mockEvmAccount2 = createMockInternalAccount(
+  '0x470D229d889c7BB5a2ea6AEBbb6fF6b077732161',
+  'EVM Account 2',
+);
 
-const mockEvmAccount2 = createMockInternalAccount({
-  id: '07c2cfec-36c9-46c4-8115-3836d3ac9047',
-  name: 'EVM Account 2',
-  address: '0x2222222222222222222222222222222222222222',
-  type: EthAccountType.Eoa,
-});
+const mockSolAccount1 = createMockSnapInternalAccount(
+  'EmeSsjxm6V7VBat5FCqdQK4cK7WLstrcScCWyocbhbcd',
+  'Solana Account 1',
+  SolAccountType.DataAccount,
+);
 
-const mockSolAccount1 = createMockInternalAccount({
-  id: '784225f4-d30b-4e77-a900-c8bbce735b88',
-  name: 'Solana Account 1',
-  address: 'So1anaAddr1111111111111111111111111111111111',
-  type: SolAccountType.DataAccount,
-});
-
-const mockSolAccount2 = createMockInternalAccount({
-  id: '9b6b30a0-3c87-4a33-9d10-a27a2aba2ba2',
-  name: 'Solana Account 2',
-  address: 'So1anaAddr2222222222222222222222222222222222',
-  type: SolAccountType.DataAccount,
-});
+const mockSolAccount2 = createMockSnapInternalAccount(
+  '9UkckVyckpAeyZ8GTVtsptULY6vx6LZpocETwVVnLy6Y',
+  'Solana Account 2',
+  SolAccountType.DataAccount,
+);
 
 const createEmptyPermission = (): Caip25CaveatValue => ({
   requiredScopes: {},
