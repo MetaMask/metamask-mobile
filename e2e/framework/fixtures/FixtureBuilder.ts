@@ -54,8 +54,8 @@ export const SIMPLE_KEYRING_WALLET_ID = 'keyring:Simple Key Pair';
 // Snap Wallet IDs - using real Snap IDs from the codebase
 export const SIMPLE_KEYRING_SNAP_ID =
   'snap:npm:@metamask/snap-simple-keyring-snap';
-export const BITCOIN_WALLET_SNAP_ID = 'snap:npm:@metamask/bitcoin-wallet-snap';
-export const SOLANA_WALLET_SNAP_ID = 'snap:npm:@metamask/solana-wallet-snap';
+export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
+export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 const DAPP_URL = 'localhost';
 
