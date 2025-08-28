@@ -38,6 +38,7 @@ import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
+import { PerpsTutorialSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export enum PERPS_RIVE_ARTBOARD_NAMES {
   INTRO = 'Intro_Perps_v03 2',
@@ -332,13 +333,13 @@ const PerpsTutorialCarousel: React.FC = () => {
             label={buttonLabel}
             onPress={handleContinue}
             size={ButtonSize.Lg}
-            testID="perps-tutorial-continue-button"
+            testID={PerpsTutorialSelectorsIDs.CONTINUE_BUTTON}
             style={styles.continueButton}
           />
           <TouchableOpacity
             onPress={handleSkip}
             style={styles.skipButton}
-            testID="perps-tutorial-skip-button"
+            testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
           >
             <Text
               variant={TextVariant.BodyMDMedium}

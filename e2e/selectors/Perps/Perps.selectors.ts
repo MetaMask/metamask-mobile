@@ -61,6 +61,7 @@ export const PerpsLoaderSelectorsIDs = {
   INLINE: 'perps-loader-inline',
   SPINNER: 'perps-loader-spinner',
   TEXT: 'perps-loader-text',
+  LOADING_SKELETON: 'perps-loading-skeleton',
 };
 
 // ========================================
@@ -222,6 +223,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
   SOURCE_TOKEN_AREA: 'source-token-area',
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
+  BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -344,9 +346,11 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
-  PLACE_ORDER_BUTTON: 'place-order-button',
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
+  STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_VIEW_BUTTON: 'perps-order-view-place-order-button',
+  TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
 };
 
 // ========================================
@@ -406,6 +410,7 @@ export const PerpsTutorialSelectorsIDs = {
 // ========================================
 
 export const PerpsTabViewSelectorsIDs = {
+  ROOT: 'perps-tab-view',
   BALANCE_BUTTON: 'perps-balance-button',
   ADD_FUNDS_BUTTON: 'perps-add-funds-button',
   WITHDRAW_BUTTON: 'perps-withdraw-button',
@@ -424,4 +429,5 @@ export const PerpsGeneralSelectorsIDs = {
     'perps-order-success-toast-dismiss-button',
   DONE_BUTTON: 'done-button',
   CONTINUE_BUTTON: 'continue-button',
+  SLIDER: 'perps-slider',
 };

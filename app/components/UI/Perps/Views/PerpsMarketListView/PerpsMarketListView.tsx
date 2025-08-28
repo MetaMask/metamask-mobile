@@ -153,7 +153,10 @@ const PerpsMarketListView = ({
   };
 
   const handleBackPressed = () => {
-    navigation.goBack();
+    // Navigate back to the main Perps tab
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
   const filteredMarkets = useMemo(() => {
@@ -306,11 +309,13 @@ const PerpsMarketListView = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <ButtonIcon
-            iconName={IconName.Arrow2Left}
-            size={ButtonIconSizes.Md}
-            onPress={handleBackPressed}
-          />
+          <View style={styles.backButtonWrapper}>
+            <ButtonIcon
+              iconName={IconName.Arrow2Left}
+              size={ButtonIconSizes.Md}
+              onPress={handleBackPressed}
+            />
+          </View>
           <Text
             variant={TextVariant.HeadingLG}
             color={TextColor.Default}
