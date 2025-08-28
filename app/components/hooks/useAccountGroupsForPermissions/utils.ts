@@ -81,12 +81,11 @@ export const hasChainIdSupport = (
     return false;
   }
 
-  for (const accountScope of accountScopes) {
-    for (const requestedChainId of requestedChainIds) {
-      return anyScopesMatch([accountScope], requestedChainId);
-    }
-  }
-  return false;
+  return accountScopes.some((accountScope) =>
+    requestedChainIds.some((requestedChainId) =>
+      anyScopesMatch([accountScope], requestedChainId),
+    ),
+  );
 };
 
 /**
