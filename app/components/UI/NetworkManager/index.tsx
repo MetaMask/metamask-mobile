@@ -260,6 +260,10 @@ const NetworkManager = () => {
     return hasSelectedPopularNetworks ? 0 : 1;
   }, [selectedCount]);
 
+  const dismissModal = useCallback(() => {
+    sheetRef.current?.dismissModal();
+  }, []);
+
   return (
     <ReusableModal ref={sheetRef} style={containerStyle}>
       <View style={styles.sheet}>
@@ -277,8 +281,16 @@ const NetworkManager = () => {
             onChangeTab={onChangeTab}
             initialPage={defaultTabIndex}
           >
-            <NetworkMultiSelector {...defaultTabProps} openModal={openModal} />
-            <CustomNetworkSelector {...customTabProps} openModal={openModal} />
+            <NetworkMultiSelector
+              {...defaultTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
+            <CustomNetworkSelector
+              {...customTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
           </ScrollableTabView>
         </View>
       </View>

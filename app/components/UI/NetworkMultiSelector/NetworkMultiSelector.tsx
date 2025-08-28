@@ -55,7 +55,10 @@ const CUSTOM_NETWORK_PROPS = {
   compactMode: true,
 } as const;
 
-const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
+const NetworkMultiSelector = ({
+  openModal,
+  dismissModal,
+}: NetworkMultiSelectorProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
@@ -149,7 +152,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         isSelected={areAllNetworksSelected}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
-        onPress={selectAllPopularNetworks}
+        onPress={() => selectAllPopularNetworks(dismissModal)}
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
@@ -157,7 +160,14 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         }}
       />
     ),
-    [selectAllPopularNetworks, areAllNetworksSelected],
+    [selectAllPopularNetworks, areAllNetworksSelected, dismissModal],
+  );
+
+  const onSelectNetwork = useCallback(
+    (caipChainId: CaipChainId) => {
+      selectPopularNetwork(caipChainId, dismissModal);
+    },
+    [selectPopularNetwork, dismissModal],
   );
 
   return (
@@ -170,7 +180,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         openModal={openModal}
         networks={networks}
         selectedChainIds={selectedChainIds}
-        onSelectNetwork={selectPopularNetwork}
+        onSelectNetwork={onSelectNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
         areAllNetworksSelected={areAllNetworksSelected}
