@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -33,7 +33,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 describe(
-  Regression('removes and reimports an account using a private key'),
+  RegressionAccounts('removes and reimports an account using a private key'),
   () => {
     it('removes an imported account and imports it again using a private key', async () => {
       await withFixtures(
