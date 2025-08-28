@@ -213,6 +213,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
   SOURCE_TOKEN_AREA: 'source-token-area',
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
+  BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
 };
 
 // ========================================

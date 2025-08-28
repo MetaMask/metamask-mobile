@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -13,7 +13,7 @@ import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
-describe(SmokeConfirmations('Failing contracts'), () => {
+describe(RegressionConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
 
   it('sends a failing contract transaction', async () => {
