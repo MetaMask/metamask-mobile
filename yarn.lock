@@ -5210,10 +5210,10 @@
     "@metamask/eth-sig-util" "^8.2.0"
     hdkey "^2.1.0"
 
-"@metamask/eth-qr-keyring@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-qr-keyring/-/eth-qr-keyring-1.0.0.tgz#f4c473e5b8d2e17a2c925f7762716ad6ec648e61"
-  integrity sha512-F4d2rlfBzk33gvrvXnXFTcX8fALEHZgdtA3kXqctMkgL3uuxrie8gdIqc++TUjwoRfXcOjLFVTU8kyRgXuun6Q==
+"@metamask/eth-qr-keyring@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-qr-keyring/-/eth-qr-keyring-1.1.0.tgz#aa8579aa3a6cb81e59ec6e4544a0e0ff4033d1de"
+  integrity sha512-gqC8IgZRqVv6w8zt4IhWfWqjL5uFcqyHavCoeWKyh3K6IMlrg5r6cO907szsI0Y3GJ7U/gkq3OOf5EQRicMf3g==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^5.4.0"
