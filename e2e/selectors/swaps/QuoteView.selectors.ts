@@ -13,6 +13,7 @@ export const QuoteViewSelectorText = {
 export const QuoteViewSelectorIDs = {
   TOKEN_SEARCH_INPUT: 'bridge-token-search-input',
   EXPAND_QUOTE_DETAILS: 'expand-quote-details',
+  SOURCE_TOKEN_AREA: 'source-token-area',
   DESTINATION_TOKEN_AREA: 'dest-token-area',
   SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
 };
