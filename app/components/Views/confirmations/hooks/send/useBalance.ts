@@ -65,8 +65,7 @@ export const useBalance = () => {
 
   const balance = useMemo(() => {
     if (asset?.standard === TokenStandard.ERC1155) {
-      // todo: add logic to check balance units for ERC1155 tokens
-      return '0';
+      return asset?.balance ?? '0';
     }
     return isEvmSendType
       ? getEvmBalance({

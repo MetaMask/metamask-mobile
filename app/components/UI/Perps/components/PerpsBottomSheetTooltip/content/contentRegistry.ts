@@ -1,4 +1,5 @@
 import FeesTooltipContent from './FeesTooltipContent';
+import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
 import { ContentRegistry } from './types';
 
 /**
@@ -14,7 +15,8 @@ import { ContentRegistry } from './types';
 export const tooltipContentRegistry: ContentRegistry = {
   fees: FeesTooltipContent, // Now works for both order and close position views
   closing_fees: FeesTooltipContent, // Use the same component, it handles both cases
-  // Other contentKeys (leverage, liquidation_price, margin) use default string content
+  withdrawal_fees: WithdrawalFeesTooltipContent,
+  receive: undefined,
   leverage: undefined,
   liquidation_price: undefined,
   margin: undefined,
