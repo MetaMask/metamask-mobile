@@ -13,10 +13,10 @@ import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApprov
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;

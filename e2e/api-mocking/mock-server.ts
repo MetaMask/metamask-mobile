@@ -5,7 +5,7 @@ import { createLogger } from '../framework/logger';
 import {
   findMatchingPostEvent,
   processPostRequestBody,
-} from './helpers/mockHelpers.js';
+} from './helpers/mockHelpers';
 import {
   MockApiEndpoint,
   MockEventsObject,

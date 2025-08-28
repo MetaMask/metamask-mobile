@@ -14,9 +14,9 @@ import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-r
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
-import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
