@@ -612,7 +612,7 @@ describe('MultichainAccountSelectorList', () => {
 
       // Should have multiple "Create account" buttons (one per wallet)
       const createAccountButtons = getAllByText('Create account');
-      expect(createAccountButtons.length).toBeGreaterThan(1);
+      expect(createAccountButtons.length).toBe(2);
     });
 
     it('passes walletId to AccountListFooter', () => {

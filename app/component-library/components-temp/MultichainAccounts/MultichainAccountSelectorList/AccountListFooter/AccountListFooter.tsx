@@ -35,14 +35,7 @@ const AccountListFooter = memo(
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
     const wallet = walletsMap?.[walletId];
-    const walletInfo = useWalletInfo(
-      wallet || {
-        id: walletId,
-        metadata: { name: '' },
-        groups: {},
-        type: 'keyring' as const,
-      },
-    );
+    const walletInfo = useWalletInfo(wallet);
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
@@ -50,6 +43,8 @@ const AccountListFooter = memo(
           new Error('No keyring ID found for wallet'),
           'Cannot create account without keyring ID',
         );
+        setIsLoading(false);
+
         return;
       }
 
