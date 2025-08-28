@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { configureStore } from '@reduxjs/toolkit';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -1587,7 +1587,6 @@ describe('TokenListItem - Component Integration', () => {
   });
 });
 
-import { useSelector } from 'react-redux';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
 import { formatWithThreshold } from '../../../../../util/assets';
