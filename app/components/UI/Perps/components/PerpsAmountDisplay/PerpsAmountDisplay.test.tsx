@@ -70,10 +70,15 @@ describe('PerpsAmountDisplay', () => {
       // Arrange - Testing branch coverage for line 72
       const label = 'Enter Amount';
       const amount = '1000';
+      const maxAmount = 10000;
 
       // Act
       const { getByText } = render(
-        <PerpsAmountDisplay amount={amount} label={label} />,
+        <PerpsAmountDisplay
+          amount={amount}
+          label={label}
+          maxAmount={maxAmount}
+        />,
       );
 
       // Assert
@@ -85,11 +90,13 @@ describe('PerpsAmountDisplay', () => {
       const tokenAmount = '0.5';
       const tokenSymbol = 'ETH';
       const amount = '1000';
+      const maxAmount = 10000;
 
       // Act
       const { getByText } = render(
         <PerpsAmountDisplay
           amount={amount}
+          maxAmount={maxAmount}
           showTokenAmount
           tokenAmount={tokenAmount}
           tokenSymbol={tokenSymbol}

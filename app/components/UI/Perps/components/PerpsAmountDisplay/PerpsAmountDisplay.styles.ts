@@ -13,7 +13,7 @@ const createStyles = (colors: Theme['colors']) =>
     },
     amountValue: {
       fontSize: 64,
-      fontWeight: '200',
+      fontWeight: '600',
       color: colors.text.default,
       lineHeight: 72,
     },
@@ -31,7 +31,7 @@ const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
     },
     maxAmount: {
-      marginTop: 8,
+      marginTop: 4,
     },
     warning: {
       marginTop: 12,

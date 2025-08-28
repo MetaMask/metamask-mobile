@@ -94,7 +94,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
           </Text>
           {price > 0 && (
             <Text
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodyMD}
               color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
               style={styles.headerPriceChange}
             >
@@ -105,7 +105,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       </View>
       <TouchableOpacity onPress={handleOrderTypePress}>
         <View style={styles.marketButton}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {orderType === 'market' ? 'Market' : 'Limit'}
           </Text>
         </View>
