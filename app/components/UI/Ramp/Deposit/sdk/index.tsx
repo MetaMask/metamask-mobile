@@ -7,13 +7,15 @@ import React, {
   useEffect,
   useCallback,
 } from 'react';
+import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDepositProviderApiKey } from '../../../../../selectors/featureFlagController/deposit';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
   NativeTransakAccessToken,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
 } from '@consensys/native-ramps-sdk';
 import {
   getProviderToken,
@@ -52,13 +54,18 @@ const isDevelopment =
 const isInternalBuild = process.env.RAMP_INTERNAL_BUILD === 'true';
 const isDevelopmentOrInternalBuild = isDevelopment || isInternalBuild;
 
-let environment = TransakEnvironment.Production;
+let environment = SdkEnvironment.Production;
 if (isDevelopmentOrInternalBuild) {
-  environment = TransakEnvironment.Staging;
+  environment = SdkEnvironment.Staging;
 }
 
 export const DEPOSIT_ENVIRONMENT = environment;
-export const DepositSDKNoAuth = new NativeRampsSdk({}, environment);
+export const DepositSDKNoAuth = new NativeRampsSdk(
+  {
+    context: Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid,
+  },
+  environment,
+);
 
 export const DepositSDKContext = createContext<DepositSDK | undefined>(
   undefined,
@@ -135,7 +142,8 @@ export const DepositSDKProvider = ({
       const sdkInstance = new NativeRampsSdk(
         {
           apiKey: providerApiKey,
-          verbose: true,
+          context:
+            Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid,
         },
         environment,
       );
@@ -159,7 +167,6 @@ export const DepositSDKProvider = ({
 
       if (
         tokenResponse.success &&
-        tokenResponse.token &&
         tokenResponse.token?.accessToken
       ) {
         setAuthToken(tokenResponse.token);

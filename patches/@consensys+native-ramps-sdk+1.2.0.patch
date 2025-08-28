@@ -1,10 +1,33 @@
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-index 81faf0a..5906e41 100644
+index 81faf0a..a948e53 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
-@@ -11,10 +11,9 @@ export declare enum TransakEnvironment {
+@@ -10,11 +10,32 @@ export declare enum TransakEnvironment {
+     Production = "production",
      Staging = "staging"
  }
++export declare enum Context {
++    Browser = "browser",
++    Extension = "extension",
++    MobileAndroid = "mobile-android",
++    MobileIOS = "mobile-ios"
++}
++export type PatchUserRequestBody = Partial<{
++    personalDetails: Partial<{
++        firstName: string;
++        lastName: string;
++        mobileNumber: string;
++        dob: string;
++    }>;
++    addressDetails: Partial<{
++        addressLine1: string;
++        addressLine2: string;
++        state: string;
++        city: string;
++        postCode: string;
++        countryCode: string;
++    }>;
++}>;
  export type NativeTransakAccessToken = {
 -    id: string;
 +    accessToken: string;
@@ -14,7 +37,7 @@ index 81faf0a..5906e41 100644
  };
  export type NativeTransakUserDetails = {
      id: string;
-@@ -24,7 +23,7 @@ export type NativeTransakUserDetails = {
+@@ -24,7 +45,7 @@ export type NativeTransakUserDetails = {
      mobileNumber: string;
      status: string;
      dob: string;
@@ -23,7 +46,7 @@ index 81faf0a..5906e41 100644
      address: NativeTransakUserDetailsAddress;
      createdAt: string;
  };
-@@ -37,14 +36,39 @@ export type NativeTransakUserDetailsAddress = {
+@@ -37,14 +58,39 @@ export type NativeTransakUserDetailsAddress = {
      country: string;
      countryCode: string;
  };
@@ -41,7 +64,7 @@ index 81faf0a..5906e41 100644
 +    kycResult: string | null;
 +    rejectionDetails: NativeTransakUserDetailsKycAttemptRejectionDetails | null;
 +    userId: string;
-+    workflowRunId: string;
++    workFlowRunId: string;
 +};
 +export type NativeTransakUserDetailsKycAttempt = {
 +    artifacts: NativeTransakUserDetailsKycAttemptArtifact[];
@@ -68,7 +91,7 @@ index 81faf0a..5906e41 100644
  };
  export type BuyQuote = {
      quoteId: string;
-@@ -65,58 +89,21 @@ export type BuyQuote = {
+@@ -65,58 +111,25 @@ export type BuyQuote = {
      cryptoLiquidityProvider: string;
      notes: any[];
  };
@@ -98,7 +121,8 @@ index 81faf0a..5906e41 100644
 -    type: string;
 -    data: any;
 -};
- export type KycWorkflowRunStatus = {
+-export type KycWorkflowRunStatus = {
++export type IdProofStatus = {
      status: 'NOT_SUBMITTED' | 'SUBMITTED';
      kycType: string;
      randomLogIdentifier: string;
@@ -115,15 +139,13 @@ index 81faf0a..5906e41 100644
 -export type KycFormDetailsField = {
 -    name: string;
 -    id: string;
--    type: string;
++export type AdditionalRequirement = {
+     type: string;
 -    value: string;
 -    regex: string;
 -    regexErrorMessage: string;
 -    disabled: boolean;
-+export type AdditionalRequirement = {
-+    formId: string;
-+    formName: string;
-     isRequired: boolean;
+-    isRequired: boolean;
 -    placeholder: string;
 -    cols: KycFormDetailsFieldCols;
 -};
@@ -131,11 +153,17 @@ index 81faf0a..5906e41 100644
 -    xs: number;
 -    md: number;
 -    lg: number;
-+    description?: string;
++    metadata?: {
++        options: string[];
++        documentProofOptions: string[];
++        expiresAt: string;
++        kycUrl: string;
++        workFlowRunId: string;
++    };
  };
  export type Reservation = {
      id: string;
-@@ -155,14 +142,13 @@ export type DepositOrder = {
+@@ -155,14 +168,13 @@ export type DepositOrder = {
      orderType: DepositOrderType.Deposit;
      exchangeRate?: number;
      statusDescription?: string;
@@ -153,7 +181,7 @@ index 81faf0a..5906e41 100644
      fields: OrderPaymentMethodField[];
  };
  export type OrderPaymentMethodField = {
-@@ -201,27 +187,24 @@ export type UserLimits = {
+@@ -201,27 +213,28 @@ export type UserLimits = {
      };
  };
  export type OttResponse = {
@@ -168,6 +196,10 @@ index 81faf0a..5906e41 100644
 -    frontendAuth?: string;
 +    apiKey?: string;
      verbose?: boolean;
++    context: Context;
++};
++export type AdditionalRequirementsResponse = {
++    formsRequired: AdditionalRequirement[];
  };
  export type TransakOrder = {
 -    id: string;
@@ -185,7 +217,7 @@ index 81faf0a..5906e41 100644
      quoteId: string;
      fiatAmount: number;
      fiatAmountInUsd: number;
-@@ -229,12 +212,12 @@ export type TransakOrder = {
+@@ -229,12 +242,12 @@ export type TransakOrder = {
      cryptoAmount: number;
      conversionPrice: number;
      totalFeeInFiat: number;
@@ -201,8 +233,17 @@ index 81faf0a..5906e41 100644
  };
  export declare class OrderIdTransformer {
      static depositOrderIdToTransakOrderId(depositOrderId: string): string;
-@@ -251,27 +234,31 @@ export declare class NativeRampsSdk {
+@@ -244,34 +257,42 @@ export declare class OrderIdTransformer {
+ }
+ export declare class NativeRampsSdk {
+     #private;
+-    constructor(config?: NativeRampsSdkConfig, environment?: TransakEnvironment);
++    constructor(config: NativeRampsSdkConfig, environment?: TransakEnvironment);
+     setAccessToken(accessToken: NativeTransakAccessToken): void;
+     getAccessToken(): NativeTransakAccessToken | null;
+     clearAccessToken(): void;
      getVersion(): string;
++    getContext(): Context;
      sendUserOtp(email: string): Promise<{
          isTncAccepted: boolean;
 +        stateToken: string;
@@ -215,13 +256,19 @@ index 81faf0a..5906e41 100644
      getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
 -    getKYCForms(quote: BuyQuote): Promise<KycForms>;
 -    getKycForm(quote: BuyQuote, form: KycForm): Promise<KycFormDetails>;
-     getKycWorkflowRunStatus(kycWorkflowRunId: string): Promise<KycWorkflowRunStatus>;
+-    getKycWorkflowRunStatus(kycWorkflowRunId: string): Promise<KycWorkflowRunStatus>;
+-    patchUser(data: any): Promise<any>;
++    getIdProofStatus(workFlowRunId: string): Promise<IdProofStatus>;
 +    getKycRequirement(quoteId: string): Promise<KycRequirement>;
-+    getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirement[]>;
-     patchUser(data: any): Promise<any>;
++    getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirementsResponse>;
++    patchUser(data: PatchUserRequestBody): Promise<any>;
      submitPurposeOfUsageForm(purpose: string[]): Promise<void>;
-     submitSsnDetails(ssn: string): Promise<any>;
+-    submitSsnDetails(ssn: string): Promise<any>;
 -    walletReserve(quote: BuyQuote, walletAddress: string): Promise<Reservation>;
++    submitSsnDetails({ ssn, quoteId }: {
++        ssn: string;
++        quoteId: string;
++    }): Promise<any>;
      cancelOrder(depositOrderId: string): Promise<void>;
 -    createOrder(reservation: Reservation): Promise<DepositOrder>;
 +    cancelAllActiveOrders(): Promise<void>;
@@ -240,10 +287,58 @@ index 81faf0a..5906e41 100644
      logout(): Promise<string>;
  }
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-index f5facee..78f9872 100644
+index f5facee..c8e4871 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
-@@ -40,7 +40,7 @@ const logRequest = (config) => {
+@@ -1,10 +1,33 @@
+ "use strict";
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    var desc = Object.getOwnPropertyDescriptor(m, k);
++    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
++      desc = { enumerable: true, get: function() { return m[k]; } };
++    }
++    Object.defineProperty(o, k2, desc);
++}) : (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    o[k2] = m[k];
++}));
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++    Object.defineProperty(o, "default", { enumerable: true, value: v });
++}) : function(o, v) {
++    o["default"] = v;
++});
+ var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+     return c > 3 && r && Object.defineProperty(target, key, r), r;
+ };
++var __importStar = (this && this.__importStar) || function (mod) {
++    if (mod && mod.__esModule) return mod;
++    var result = {};
++    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
++    __setModuleDefault(result, mod);
++    return result;
++};
+ var __metadata = (this && this.__metadata) || function (k, v) {
+     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+ };
+@@ -25,10 +48,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken;
++var _NativeRampsSdk_instances, _NativeRampsSdk_apiClient, _NativeRampsSdk_config, _NativeRampsSdk_environment, _NativeRampsSdk_context, _NativeRampsSdk_accessToken, _NativeRampsSdk_setupInterceptors, _NativeRampsSdk_getBaseUrl, _NativeRampsSdk_getPaymentWidgetBaseUrl, _NativeRampsSdk_ensureAccessToken;
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.TransakEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
+-const axios_1 = __importDefault(require("axios"));
++exports.ServicesSignatures = exports.NativeRampsSdk = exports.OrderIdTransformer = exports.OrderStatusEnum = exports.Context = exports.TransakEnvironment = exports.DepositOrderType = exports.logError = exports.logResponse = exports.logRequest = void 0;
++const axios_1 = __importStar(require("axios"));
+ const SdkParam_1 = __importDefault(require("./SdkParam"));
+ const ServicesSignatures_1 = __importDefault(require("./ServicesSignatures"));
+ exports.ServicesSignatures = ServicesSignatures_1.default;
+@@ -40,7 +63,7 @@ const logRequest = (config) => {
          url,
          params,
          data,
@@ -252,7 +347,7 @@ index f5facee..78f9872 100644
      });
  };
  exports.logRequest = logRequest;
-@@ -50,7 +50,7 @@ const logResponse = (response) => {
+@@ -50,7 +73,7 @@ const logResponse = (response) => {
          status,
          statusText,
          data,
@@ -261,7 +356,35 @@ index f5facee..78f9872 100644
      });
  };
  exports.logResponse = logResponse;
-@@ -116,9 +116,11 @@ class NativeRampsSdk {
+@@ -73,6 +96,13 @@ var TransakEnvironment;
+     TransakEnvironment["Production"] = "production";
+     TransakEnvironment["Staging"] = "staging";
+ })(TransakEnvironment = exports.TransakEnvironment || (exports.TransakEnvironment = {}));
++var Context;
++(function (Context) {
++    Context["Browser"] = "browser";
++    Context["Extension"] = "extension";
++    Context["MobileAndroid"] = "mobile-android";
++    Context["MobileIOS"] = "mobile-ios";
++})(Context = exports.Context || (exports.Context = {}));
+ exports.OrderStatusEnum = {
+     Unknown: 'UNKNOWN',
+     Precreated: 'PRECREATED',
+@@ -105,20 +135,24 @@ class OrderIdTransformer {
+ }
+ exports.OrderIdTransformer = OrderIdTransformer;
+ class NativeRampsSdk {
+-    constructor(config = {}, environment = TransakEnvironment.Production) {
++    constructor(config, environment = TransakEnvironment.Production) {
+         _NativeRampsSdk_instances.add(this);
+         _NativeRampsSdk_apiClient.set(this, void 0);
+         _NativeRampsSdk_config.set(this, void 0);
+         _NativeRampsSdk_environment.set(this, void 0);
++        _NativeRampsSdk_context.set(this, void 0);
+         _NativeRampsSdk_accessToken.set(this, null);
+         __classPrivateFieldSet(this, _NativeRampsSdk_config, Object.assign({}, config), "f");
+         __classPrivateFieldSet(this, _NativeRampsSdk_environment, environment, "f");
++        __classPrivateFieldSet(this, _NativeRampsSdk_context, config.context, "f");
          const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, environment);
          __classPrivateFieldSet(this, _NativeRampsSdk_apiClient, axios_1.default.create({
              baseURL,
@@ -276,9 +399,13 @@ index f5facee..78f9872 100644
          }), "f");
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
      }
-@@ -135,24 +137,38 @@ class NativeRampsSdk {
+@@ -134,25 +168,42 @@ class NativeRampsSdk {
+     getVersion() {
          return package_json_1.version;
      }
++    getContext() {
++        return __classPrivateFieldGet(this, _NativeRampsSdk_context, "f");
++    }
      async sendUserOtp(email) {
 +        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
 +            throw new Error('Partner API key is required for sendUserOtp');
@@ -323,7 +450,7 @@ index f5facee..78f9872 100644
              this.setAccessToken(accessToken);
              return accessToken;
          }
-@@ -163,8 +179,8 @@ class NativeRampsSdk {
+@@ -163,8 +214,8 @@ class NativeRampsSdk {
      async getUserDetails() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -334,7 +461,7 @@ index f5facee..78f9872 100644
          }
          catch (error) {
              throw error;
-@@ -172,7 +188,7 @@ class NativeRampsSdk {
+@@ -172,7 +223,7 @@ class NativeRampsSdk {
      }
      async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
          try {
@@ -343,7 +470,7 @@ index f5facee..78f9872 100644
                  params: {
                      fiatCurrency,
                      cryptoCurrency,
-@@ -183,54 +199,49 @@ class NativeRampsSdk {
+@@ -183,54 +234,49 @@ class NativeRampsSdk {
                      isFeeExcludedFromFiat: true,
                  },
              });
@@ -355,16 +482,16 @@ index f5facee..78f9872 100644
          }
      }
 -    async getKYCForms(quote) {
-+    async getKycWorkflowRunStatus(kycWorkflowRunId) {
++    async getIdProofStatus(workFlowRunId) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
 -            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/kyc/get-forms', {
-+            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/workflow-run-id/status', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/kyc/id-proof-status', {
                  params: {
 -                    onlyFormIds: true,
 -                    'metadata[quoteId]': quote.quoteId,
 -                    'metadata[formType]': 'KYC',
-+                    workflowRunId: kycWorkflowRunId,
++                    workFlowRunId,
                  },
              });
 -            return response.data.response;
@@ -411,17 +538,23 @@ index f5facee..78f9872 100644
          }
          catch (error) {
              throw error;
-@@ -240,7 +251,7 @@ class NativeRampsSdk {
+@@ -239,8 +285,8 @@ class NativeRampsSdk {
+     async patchUser(data) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
-             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").patch('/api/v2/user', data);
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").patch('/api/v2/user', data);
 -            return response.data.response;
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").patch('/api/v2/kyc/user', data);
 +            return response.data.data;
          }
          catch (error) {
              throw error;
-@@ -252,7 +263,7 @@ class NativeRampsSdk {
-             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/purpose-of-usage', {
+@@ -249,77 +295,88 @@ class NativeRampsSdk {
+     async submitPurposeOfUsageForm(purpose) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/purpose-of-usage', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/kyc/purpose-of-usage', {
                  purposeList: purpose,
              });
 -            return response.data.response;
@@ -429,9 +562,16 @@ index f5facee..78f9872 100644
          }
          catch (error) {
              throw error;
-@@ -264,62 +275,72 @@ class NativeRampsSdk {
-             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/verify-ssn', {
+         }
+     }
+-    async submitSsnDetails(ssn) {
++    async submitSsnDetails({ ssn, quoteId }) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/verify-ssn', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/kyc/ssn', {
                  ssn,
++                quoteId,
              });
 -            return response.data.response;
 +            return response.data.data;
@@ -528,7 +668,7 @@ index f5facee..78f9872 100644
                  }
                  catch (retryError) {
                      throw retryError;
-@@ -334,15 +355,15 @@ class NativeRampsSdk {
+@@ -334,15 +391,16 @@ class NativeRampsSdk {
              const transakOrderId = OrderIdTransformer.extractTransakOrderId(orderId);
              const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders/payment-confirmation', {
                  orderId: transakOrderId,
@@ -544,10 +684,11 @@ index f5facee..78f9872 100644
      }
 -    async getOrder(orderId, wallet, paymentOptions) {
 +    async getOrder(orderId, wallet, paymentDetails) {
++        var _a;
          let depositOrderId;
          if (OrderIdTransformer.isDepositOrderId(orderId)) {
              depositOrderId = orderId;
-@@ -365,14 +386,14 @@ class NativeRampsSdk {
+@@ -365,14 +423,14 @@ class NativeRampsSdk {
                  },
              });
              const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
@@ -556,7 +697,8 @@ index f5facee..78f9872 100644
 +            if (paymentDetails && paymentDetails.length > 0) {
 +                return Object.assign(Object.assign({}, order), { paymentDetails });
              }
-             if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
+-            if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
++            if ((_a = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) === null || _a === void 0 ? void 0 : _a.accessToken) {
                  try {
                      const transakResponse = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get(`/api/v2/orders/${transakOrderId}`);
 -                    const transakOrder = transakResponse.data.response;
@@ -566,7 +708,7 @@ index f5facee..78f9872 100644
                  }
                  catch (transakError) {
                      console.warn('Failed to fetch payment options from Transak API:', transakError);
-@@ -404,28 +425,29 @@ class NativeRampsSdk {
+@@ -404,28 +462,29 @@ class NativeRampsSdk {
      }
      async requestOtt() {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
@@ -608,7 +750,7 @@ index f5facee..78f9872 100644
              return response.data;
          }
          catch (error) {
-@@ -433,12 +455,12 @@ class NativeRampsSdk {
+@@ -433,12 +492,12 @@ class NativeRampsSdk {
          }
      }
      generatePaymentWidgetUrl(ottToken, quote, walletAddress, extraParams) {
@@ -623,7 +765,7 @@ index f5facee..78f9872 100644
              ott: ottToken,
              fiatCurrency: quote.fiatCurrency,
              cryptoCurrencyCode: quote.cryptoCurrency,
-@@ -457,6 +479,16 @@ class NativeRampsSdk {
+@@ -457,6 +516,16 @@ class NativeRampsSdk {
          widgetUrl.search = params.toString();
          return widgetUrl.toString();
      }
@@ -640,7 +782,7 @@ index f5facee..78f9872 100644
      async getOrdersHistory(limit = 10, skip = 0) {
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
-@@ -466,7 +498,7 @@ class NativeRampsSdk {
+@@ -466,7 +535,7 @@ class NativeRampsSdk {
                      limit,
                  },
              });
@@ -649,7 +791,7 @@ index f5facee..78f9872 100644
          }
          catch (error) {
              throw error;
-@@ -476,9 +508,9 @@ class NativeRampsSdk {
+@@ -476,9 +545,9 @@ class NativeRampsSdk {
          var _a;
          __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
          try {
@@ -661,39 +803,46 @@ index f5facee..78f9872 100644
          }
          catch (error) {
              if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
-@@ -491,24 +523,18 @@ class NativeRampsSdk {
+@@ -489,27 +558,22 @@ class NativeRampsSdk {
+         }
+     }
  }
- _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
+-_NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
++_NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_context = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
      __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.request.use((request) => {
 -        var _a;
 -        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey) {
-+        var _a, _b;
-+        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
-             if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get') {
+-            if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get') {
 -                request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
 -                if (request.url === '/api/v1/pricing/public/quotes') {
 -                    request.params = Object.assign(Object.assign({}, (request.params || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
 -                }
++        var _a, _b, _c;
++        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
++            if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get' ||
++                ((_b = request.method) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'patch') {
 +                request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
              }
              else {
 -                request.data = Object.assign(Object.assign({}, (request.data || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
-+                if (!((_b = request.data) === null || _b === void 0 ? void 0 : _b.apiKey)) {
-+                    request.data = Object.assign(Object.assign({}, (request.data || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
-+                }
-             }
-             if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f") && request.headers) {
+-            }
+-            if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f") && request.headers) {
 -                if (request.url === '/auth/public/v1/request-ott') {
 -                    request.headers.authorization = `Bearer ${__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id}`;
 -                }
 -                else {
 -                    request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id;
--                }
-+                request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").accessToken;
++                if (!((_c = request.data) === null || _c === void 0 ? void 0 : _c.apiKey)) {
++                    request.data = Object.assign(Object.assign({}, (request.data || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
+                 }
              }
++            if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
++                request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").accessToken;
++            }
              if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
                  (0, exports.logRequest)(request);
-@@ -533,9 +559,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+             }
+@@ -533,9 +597,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
  }, _NativeRampsSdk_getBaseUrl = function _NativeRampsSdk_getBaseUrl(environment) {
      switch (environment) {
          case TransakEnvironment.Production:
@@ -705,7 +854,31 @@ index f5facee..78f9872 100644
          default:
              throw new Error(`Invalid environment: ${String(environment)}`);
      }
-@@ -562,8 +588,9 @@ __decorate([
+@@ -549,8 +613,21 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+             throw new Error(`Invalid environment: ${String(environment)}`);
+     }
+ }, _NativeRampsSdk_ensureAccessToken = function _NativeRampsSdk_ensureAccessToken() {
+-    if (!__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
+-        throw new Error('No access token set. Call verifyUserOtp() or setAccessToken() first.');
++    var _a;
++    if (!((_a = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) === null || _a === void 0 ? void 0 : _a.accessToken)) {
++        const message = 'Authentication required. Please log in to continue.';
++        const error = new axios_1.AxiosError(message, 'UNAUTHORIZED', undefined, null, {
++            status: 401,
++            statusText: 'Unauthorized',
++            data: {
++                error: {
++                    message,
++                },
++            },
++            headers: {},
++            config: {},
++        });
++        throw error;
+     }
+ };
+ __decorate([
+@@ -562,8 +639,9 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __param(1, (0, SdkParam_1.default)({ required: true })),
@@ -716,7 +889,7 @@ index f5facee..78f9872 100644
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "verifyUserOtp", null);
  __decorate([
-@@ -579,22 +606,21 @@ __decorate([
+@@ -579,22 +657,21 @@ __decorate([
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
@@ -724,7 +897,7 @@ index f5facee..78f9872 100644
 +    __metadata("design:paramtypes", [String]),
      __metadata("design:returntype", Promise)
 -], NativeRampsSdk.prototype, "getKYCForms", null);
-+], NativeRampsSdk.prototype, "getKycWorkflowRunStatus", null);
++], NativeRampsSdk.prototype, "getIdProofStatus", null);
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
 -    __param(1, (0, SdkParam_1.default)({ required: true })),
@@ -744,8 +917,12 @@ index f5facee..78f9872 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -613,13 +639,6 @@ __decorate([
-     __metadata("design:paramtypes", [String]),
+@@ -610,16 +687,9 @@ __decorate([
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String]),
++    __metadata("design:paramtypes", [Object]),
      __metadata("design:returntype", Promise)
  ], NativeRampsSdk.prototype, "submitSsnDetails", null);
 -__decorate([
@@ -758,7 +935,7 @@ index f5facee..78f9872 100644
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
      __metadata("design:type", Function),
-@@ -628,8 +647,10 @@ __decorate([
+@@ -628,8 +698,10 @@ __decorate([
  ], NativeRampsSdk.prototype, "cancelOrder", null);
  __decorate([
      __param(0, (0, SdkParam_1.default)({ required: true })),
@@ -771,24 +948,56 @@ index f5facee..78f9872 100644
  ], NativeRampsSdk.prototype, "createOrder", null);
  __decorate([
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
-index 70cf5dc..bf9d0b5 100644
+index 70cf5dc..96bd05b 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
-@@ -4,8 +4,7 @@ const vitest_1 = require("vitest");
+@@ -4,8 +4,8 @@ const vitest_1 = require("vitest");
  const NativeRampsSdk_1 = require("./NativeRampsSdk");
  (0, vitest_1.describe)('NativeRampsSdk', () => {
      const mockConfig = {
 -        partnerApiKey: 'test-api-key',
 -        frontendAuth: 'test-frontend-auth',
 +        apiKey: 'test-api-key',
++        context: NativeRampsSdk_1.Context.Browser,
      };
      (0, vitest_1.it)('getVersion returns a string', () => {
          const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+@@ -15,4 +15,13 @@ const NativeRampsSdk_1 = require("./NativeRampsSdk");
+         const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+         (0, vitest_1.expectTypeOf)(sdk.getVersion()).toEqualTypeOf();
+     });
++    (0, vitest_1.it)('getContext returns Context enum type', () => {
++        const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++        (0, vitest_1.expectTypeOf)(sdk.getContext()).toEqualTypeOf();
++    });
++    (0, vitest_1.it)('can be initialized with context parameter', () => {
++        const configWithContext = Object.assign(Object.assign({}, mockConfig), { context: NativeRampsSdk_1.Context.MobileAndroid });
++        const sdk = new NativeRampsSdk_1.NativeRampsSdk(configWithContext);
++        (0, vitest_1.expectTypeOf)(sdk.getContext()).toEqualTypeOf();
++    });
+ });
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
-index 5416ceb..bd76961 100644
+index 5416ceb..9ce720d 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
-@@ -11,9 +11,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -7,13 +7,25 @@ const axios_1 = __importDefault(require("axios"));
+ const vitest_1 = require("vitest");
+ const NativeRampsSdk_1 = require("./NativeRampsSdk");
+ const package_json_1 = require("../package.json");
+-vitest_1.vi.mock('axios', () => {
++vitest_1.vi.mock('axios', async () => {
++    const actual = await vitest_1.vi.importActual('axios');
++    const AxiosError = actual.AxiosError ||
++        class extends Error {
++            constructor(message, code, config, request, response) {
++                super(message);
++                this.code = code;
++                this.config = config;
++                this.request = request;
++                this.response = response;
++                this.name = 'AxiosError';
++            }
++        };
      return {
          default: {
              create: vitest_1.vi.fn(() => ({
@@ -801,7 +1010,7 @@ index 5416ceb..bd76961 100644
                  delete: vitest_1.vi.fn().mockResolvedValue({ data: { success: true } }),
                  interceptors: {
                      request: {
-@@ -25,16 +25,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -25,16 +37,17 @@ vitest_1.vi.mock('axios', () => {
                  },
              })),
              get: vitest_1.vi.fn().mockResolvedValue({ data: {} }),
@@ -811,6 +1020,7 @@ index 5416ceb..bd76961 100644
 +            patch: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
              delete: vitest_1.vi.fn().mockResolvedValue({ data: { success: true } }),
          },
++        AxiosError,
      };
  });
  (0, vitest_1.describe)('NativeRampsSdk', () => {
@@ -818,10 +1028,11 @@ index 5416ceb..bd76961 100644
 -        partnerApiKey: 'test-api-key',
 -        frontendAuth: 'test-frontend-auth',
 +        apiKey: 'test-api-key',
++        context: NativeRampsSdk_1.Context.MobileAndroid,
      };
      let sdk;
      let mockAxiosInstance;
-@@ -55,12 +54,12 @@ vitest_1.vi.mock('axios', () => {
+@@ -55,46 +68,42 @@ vitest_1.vi.mock('axios', () => {
          });
          (0, vitest_1.it)('initializes with default environment', () => {
              (0, vitest_1.expect)(sdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
@@ -835,24 +1046,39 @@ index 5416ceb..bd76961 100644
 +            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-gateway-stg.transak.com');
          });
          (0, vitest_1.it)('initializes with empty config object', () => {
-             const emptySdk = new NativeRampsSdk_1.NativeRampsSdk({});
-@@ -77,13 +76,13 @@ vitest_1.vi.mock('axios', () => {
+-            const emptySdk = new NativeRampsSdk_1.NativeRampsSdk({});
++            const emptySdk = new NativeRampsSdk_1.NativeRampsSdk({ context: NativeRampsSdk_1.Context.MobileAndroid });
+             (0, vitest_1.expect)(emptySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+             (0, vitest_1.expect)(emptySdk.getVersion()).toBe(package_json_1.version);
+         });
+-        (0, vitest_1.it)('initializes with no config at all', () => {
+-            const noConfigSdk = new NativeRampsSdk_1.NativeRampsSdk();
+-            (0, vitest_1.expect)(noConfigSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+-            (0, vitest_1.expect)(noConfigSdk.getVersion()).toBe(package_json_1.version);
+-        });
+         (0, vitest_1.it)('throws error for invalid environment in getBaseUrl', () => {
+             (0, vitest_1.expect)(() => {
                  new NativeRampsSdk_1.NativeRampsSdk(mockConfig, 'invalid');
              }).toThrow('Invalid environment: invalid');
          });
 -        (0, vitest_1.it)('initializes without partnerApiKey', () => {
-+        (0, vitest_1.it)('initializes without apiKey', () => {
-             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ verbose: true });
-             (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
-         });
+-            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ verbose: true });
+-            (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+-        });
          (0, vitest_1.it)('initializes with verbose logging enabled', () => {
              const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
 -                partnerApiKey: 'test-key',
 +                apiKey: 'test-key',
                  verbose: true,
++                context: NativeRampsSdk_1.Context.Browser,
              });
              (0, vitest_1.expect)(verboseSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
-@@ -91,10 +90,9 @@ vitest_1.vi.mock('axios', () => {
+         });
++        (0, vitest_1.it)('initializes with mobile iOS context', () => {
++            const iosConfig = Object.assign(Object.assign({}, mockConfig), { context: NativeRampsSdk_1.Context.MobileIOS });
++            const sdk = new NativeRampsSdk_1.NativeRampsSdk(iosConfig);
++            (0, vitest_1.expect)(sdk.getContext()).toBe(NativeRampsSdk_1.Context.MobileIOS);
++        });
      });
      (0, vitest_1.describe)('access token management', () => {
          const mockToken = {
@@ -864,7 +1090,7 @@ index 5416ceb..bd76961 100644
          };
          (0, vitest_1.it)('sets access token', () => {
              sdk.setAccessToken(mockToken);
-@@ -113,80 +111,96 @@ vitest_1.vi.mock('axios', () => {
+@@ -113,80 +122,96 @@ vitest_1.vi.mock('axios', () => {
      });
      (0, vitest_1.describe)('authentication methods', () => {
          (0, vitest_1.it)('sends OTP to user email', async () => {
@@ -988,7 +1214,7 @@ index 5416ceb..bd76961 100644
              };
              sdk.setAccessToken(mockToken);
              const unauthorizedError = {
-@@ -196,7 +210,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -196,22 +221,21 @@ vitest_1.vi.mock('axios', () => {
              };
              mockAxiosInstance.post.mockRejectedValueOnce(unauthorizedError);
              const result = await sdk.logout();
@@ -997,7 +1223,12 @@ index 5416ceb..bd76961 100644
              (0, vitest_1.expect)(result).toBe('user was already logged out');
              (0, vitest_1.expect)(sdk.getAccessToken()).toBeNull();
          });
-@@ -208,10 +222,9 @@ vitest_1.vi.mock('axios', () => {
+         (0, vitest_1.it)('throws error when logging out without access token', async () => {
+             const noTokenSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+-            await (0, vitest_1.expect)(noTokenSdk.logout()).rejects.toThrow('No access token set. Call verifyUserOtp() or setAccessToken() first.');
++            await (0, vitest_1.expect)(noTokenSdk.logout()).rejects.toThrow('Authentication required. Please log in to continue.');
+         });
+     });
      (0, vitest_1.describe)('user methods', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1009,7 +1240,7 @@ index 5416ceb..bd76961 100644
              });
          });
          (0, vitest_1.it)('gets user details', async () => {
-@@ -224,12 +237,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -224,12 +248,15 @@ vitest_1.vi.mock('axios', () => {
                  status: 'active',
                  dob: '1990-01-01',
                  kyc: {
@@ -1027,11 +1258,11 @@ index 5416ceb..bd76961 100644
 +                    kycResult: 'APPROVED',
 +                    rejectionDetails: null,
 +                    userId: 'user-id',
-+                    workflowRunId: 'workflow-123',
++                    workFlowRunId: 'workflow-123',
                  },
                  address: {
                      addressLine1: '123 Main St',
-@@ -242,16 +258,16 @@ vitest_1.vi.mock('axios', () => {
+@@ -242,65 +269,70 @@ vitest_1.vi.mock('axios', () => {
                  },
                  createdAt: '2023-01-01',
              };
@@ -1050,8 +1281,13 @@ index 5416ceb..bd76961 100644
 +                data: { data: Object.assign(Object.assign({}, userData), { id: 'user-id' }) },
              };
              mockAxiosInstance.patch.mockResolvedValueOnce(mockResponse);
-             const result = await sdk.patchUser(userData);
-@@ -260,19 +276,18 @@ vitest_1.vi.mock('axios', () => {
+-            const result = await sdk.patchUser(userData);
+-            (0, vitest_1.expect)(mockAxiosInstance.patch).toHaveBeenCalledWith('/api/v2/user', userData);
++            const result = await sdk.patchUser({ personalDetails: userData });
++            (0, vitest_1.expect)(mockAxiosInstance.patch).toHaveBeenCalledWith('/api/v2/kyc/user', {
++                personalDetails: userData,
++            });
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, userData), { id: 'user-id' }));
          });
          (0, vitest_1.it)('submits purpose of usage form', async () => {
              const purposes = ['investment', 'payment'];
@@ -1059,7 +1295,8 @@ index 5416ceb..bd76961 100644
 +            const mockResponse = { data: { data: true } };
              mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
              await sdk.submitPurposeOfUsageForm(purposes);
-             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/purpose-of-usage', { purposeList: purposes });
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/purpose-of-usage', { purposeList: purposes });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/kyc/purpose-of-usage', { purposeList: purposes });
          });
          (0, vitest_1.it)('submits SSN details', async () => {
              sdk.setAccessToken({
@@ -1072,9 +1309,17 @@ index 5416ceb..bd76961 100644
 -            const mockResponse = { data: { response: { success: true } } };
 +            const mockResponse = { data: { data: { success: true } } };
              mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
-             const result = await sdk.submitSsnDetails('123-45-6789');
-             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/verify-ssn', { ssn: '123-45-6789' });
-@@ -280,10 +295,9 @@ vitest_1.vi.mock('axios', () => {
+-            const result = await sdk.submitSsnDetails('123-45-6789');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/verify-ssn', { ssn: '123-45-6789' });
++            const result = await sdk.submitSsnDetails({
++                ssn: '123-45-6789',
++                quoteId: 'quote-123',
++            });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/kyc/ssn', {
++                ssn: '123-45-6789',
++                quoteId: 'quote-123',
++            });
+             (0, vitest_1.expect)(result).toStrictEqual({ success: true });
          });
          (0, vitest_1.it)('handles error when submitting SSN details', async () => {
              sdk.setAccessToken({
@@ -1086,7 +1331,15 @@ index 5416ceb..bd76961 100644
              });
              const mockError = new Error('Invalid SSN');
              mockAxiosInstance.post.mockRejectedValueOnce(mockError);
-@@ -297,10 +311,9 @@ vitest_1.vi.mock('axios', () => {
+-            await (0, vitest_1.expect)(sdk.submitSsnDetails('invalid-ssn')).rejects.toThrow('Invalid SSN');
++            await (0, vitest_1.expect)(sdk.submitSsnDetails({ ssn: 'invalid-ssn', quoteId: 'quote-123' })).rejects.toThrow('Invalid SSN');
+         });
+         (0, vitest_1.it)('throws error when accessing user methods without access token', async () => {
+             const noTokenSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+-            await (0, vitest_1.expect)(noTokenSdk.getUserDetails()).rejects.toThrow('No access token set. Call verifyUserOtp() or setAccessToken() first.');
++            await (0, vitest_1.expect)(noTokenSdk.getUserDetails()).rejects.toThrow('Authentication required. Please log in to continue.');
+         });
+     });
      (0, vitest_1.describe)('quote and order methods', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1098,7 +1351,7 @@ index 5416ceb..bd76961 100644
              });
          });
          (0, vitest_1.it)('gets buy quote', async () => {
-@@ -323,10 +336,10 @@ vitest_1.vi.mock('axios', () => {
+@@ -323,10 +355,10 @@ vitest_1.vi.mock('axios', () => {
                  cryptoLiquidityProvider: 'provider',
                  notes: [],
              };
@@ -1111,7 +1364,7 @@ index 5416ceb..bd76961 100644
                  params: {
                      fiatCurrency: 'USD',
                      cryptoCurrency: 'ETH',
-@@ -339,35 +352,47 @@ vitest_1.vi.mock('axios', () => {
+@@ -339,35 +371,47 @@ vitest_1.vi.mock('axios', () => {
              });
              (0, vitest_1.expect)(result).toStrictEqual(mockQuote);
          });
@@ -1177,7 +1430,7 @@ index 5416ceb..bd76961 100644
                          fields: [],
                      },
                  ],
-@@ -378,13 +403,15 @@ vitest_1.vi.mock('axios', () => {
+@@ -378,13 +422,15 @@ vitest_1.vi.mock('axios', () => {
                  walletAddress: '0x123456789',
                  orderType: 'DEPOSIT',
              };
@@ -1196,7 +1449,7 @@ index 5416ceb..bd76961 100644
              });
              (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`, {
                  params: {
-@@ -393,7 +420,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -393,7 +439,7 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1205,7 +1458,7 @@ index 5416ceb..bd76961 100644
          });
          (0, vitest_1.it)('gets order details from on-ramp API and adds deposit type', async () => {
              const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
-@@ -413,7 +440,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -413,7 +459,7 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1214,7 +1467,7 @@ index 5416ceb..bd76961 100644
          });
          (0, vitest_1.it)('gets order details from staging on-ramp API when using staging environment', async () => {
              const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
-@@ -449,19 +476,34 @@ vitest_1.vi.mock('axios', () => {
+@@ -449,19 +495,34 @@ vitest_1.vi.mock('axios', () => {
              });
          });
          (0, vitest_1.it)('handles "Order exists" error when creating an order', async () => {
@@ -1257,7 +1510,7 @@ index 5416ceb..bd76961 100644
                          fields: [],
                      },
                  ],
-@@ -477,20 +519,22 @@ vitest_1.vi.mock('axios', () => {
+@@ -477,20 +538,22 @@ vitest_1.vi.mock('axios', () => {
                  response: {
                      data: {
                          error: {
@@ -1285,7 +1538,7 @@ index 5416ceb..bd76961 100644
              });
              const mockRampApiResponse = { data: mockDepositOrder };
              mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
-@@ -498,17 +542,17 @@ vitest_1.vi.mock('axios', () => {
+@@ -498,17 +561,17 @@ vitest_1.vi.mock('axios', () => {
                  callback();
                  return 123;
              });
@@ -1311,7 +1564,7 @@ index 5416ceb..bd76961 100644
              });
              (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${newOrderId}`, {
                  params: {
-@@ -517,46 +561,79 @@ vitest_1.vi.mock('axios', () => {
+@@ -517,46 +580,79 @@ vitest_1.vi.mock('axios', () => {
                      context: 'mobile',
                  },
              });
@@ -1408,7 +1661,7 @@ index 5416ceb..bd76961 100644
              });
              (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
          });
-@@ -568,12 +645,12 @@ vitest_1.vi.mock('axios', () => {
+@@ -568,12 +664,12 @@ vitest_1.vi.mock('axios', () => {
                  walletAddress: '0x123456789',
              };
              const mockPaymentMethod = { id: 'payment-123' };
@@ -1423,7 +1676,7 @@ index 5416ceb..bd76961 100644
              });
              (0, vitest_1.expect)(result).toStrictEqual({
                  success: true,
-@@ -587,7 +664,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -587,7 +683,7 @@ vitest_1.vi.mock('axios', () => {
              await (0, vitest_1.expect)(sdk.confirmPayment(mockOrder.id, mockPaymentMethod.id)).rejects.toThrow(mockError);
              (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders/payment-confirmation', {
                  orderId: mockOrder.id,
@@ -1432,7 +1685,7 @@ index 5416ceb..bd76961 100644
              });
          });
          (0, vitest_1.it)('gets order with no payment options provided', async () => {
-@@ -615,18 +692,23 @@ vitest_1.vi.mock('axios', () => {
+@@ -615,18 +711,23 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              sdk.setAccessToken({
@@ -1461,7 +1714,7 @@ index 5416ceb..bd76961 100644
          });
          (0, vitest_1.it)('handles Transak API error when fetching payment options', async () => {
              const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
-@@ -639,10 +721,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -639,10 +740,9 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              sdk.setAccessToken({
@@ -1473,7 +1726,7 @@ index 5416ceb..bd76961 100644
              });
              const mockTransakError = new Error('Transak API error');
              mockAxiosInstance.get.mockRejectedValueOnce(mockTransakError);
-@@ -663,14 +744,13 @@ vitest_1.vi.mock('axios', () => {
+@@ -663,14 +763,13 @@ vitest_1.vi.mock('axios', () => {
              const mockResponse = { data: mockOrder };
              mockAxios.get.mockResolvedValueOnce(mockResponse);
              const result = await sdk.getOrder(transakOrderId, '0x123456789');
@@ -1490,7 +1743,7 @@ index 5416ceb..bd76961 100644
              });
              const mockResponse = { data: null };
              mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
-@@ -681,74 +761,55 @@ vitest_1.vi.mock('axios', () => {
+@@ -681,74 +780,55 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('KYC methods', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1588,7 +1841,8 @@ index 5416ceb..bd76961 100644
 -            (0, vitest_1.expect)(result).toStrictEqual(mockFormDetails);
 +            (0, vitest_1.expect)(result).toStrictEqual(mockAdditionalRequirements);
          });
-         (0, vitest_1.it)('gets KYC workflow run status', async () => {
+-        (0, vitest_1.it)('gets KYC workflow run status', async () => {
++        (0, vitest_1.it)('gets ID proof status', async () => {
              const mockResponse = {
                  data: {
 -                    response: {
@@ -1596,7 +1850,27 @@ index 5416ceb..bd76961 100644
                          status: 'SUBMITTED',
                          kycType: 'STANDARD',
                          randomLogIdentifier: 'kyq7h8jxw5',
-@@ -774,10 +835,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -756,9 +836,9 @@ vitest_1.vi.mock('axios', () => {
+                 },
+             };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.getKycWorkflowRunStatus('workflow-run-id-123');
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/user/workflow-run-id/status', {
+-                params: { workflowRunId: 'workflow-run-id-123' },
++            const result = await sdk.getIdProofStatus('workflow-run-id-123');
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/kyc/id-proof-status', {
++                params: { workFlowRunId: 'workflow-run-id-123' },
+             });
+             (0, vitest_1.expect)(result).toEqual({
+                 status: 'SUBMITTED',
+@@ -768,27 +848,25 @@ vitest_1.vi.mock('axios', () => {
+         });
+         (0, vitest_1.it)('throws error if access token is not set', async () => {
+             sdk.clearAccessToken();
+-            await (0, vitest_1.expect)(sdk.getKycWorkflowRunStatus('workflow-run-id-123')).rejects.toThrow('No access token set. Call verifyUserOtp() or setAccessToken() first.');
++            await (0, vitest_1.expect)(sdk.getIdProofStatus('workflow-run-id-123')).rejects.toThrow('Authentication required. Please log in to continue.');
+         });
+         (0, vitest_1.it)('throws error if API call fails', async () => {
              const mockError = new Error('API Error');
              mockAxiosInstance.get.mockRejectedValueOnce(mockError);
              sdk.setAccessToken({
@@ -1606,9 +1880,10 @@ index 5416ceb..bd76961 100644
                  created: new Date(),
 -                userId: 'user123',
              });
-             await (0, vitest_1.expect)(sdk.getKycWorkflowRunStatus('workflow-run-id-123')).rejects.toThrow('API Error');
+-            await (0, vitest_1.expect)(sdk.getKycWorkflowRunStatus('workflow-run-id-123')).rejects.toThrow('API Error');
++            await (0, vitest_1.expect)(sdk.getIdProofStatus('workflow-run-id-123')).rejects.toThrow('API Error');
          });
-@@ -785,10 +845,9 @@ vitest_1.vi.mock('axios', () => {
+     });
      (0, vitest_1.describe)('user limits', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1620,7 +1895,7 @@ index 5416ceb..bd76961 100644
              });
          });
          (0, vitest_1.it)('gets user limits', async () => {
-@@ -839,18 +898,17 @@ vitest_1.vi.mock('axios', () => {
+@@ -839,18 +917,17 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('one-time token and widget URL', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1643,7 +1918,7 @@ index 5416ceb..bd76961 100644
              (0, vitest_1.expect)(result).toStrictEqual(mockTokenResponse);
          });
          (0, vitest_1.it)('generates payment widget URL', () => {
-@@ -915,12 +973,12 @@ vitest_1.vi.mock('axios', () => {
+@@ -915,15 +992,15 @@ vitest_1.vi.mock('axios', () => {
              const mockError = new Error('Failed to get token');
              mockAxiosInstance.post.mockRejectedValueOnce(mockError);
              await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow(mockError);
@@ -1657,8 +1932,12 @@ index 5416ceb..bd76961 100644
 +            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
          });
          (0, vitest_1.it)('throws error when generating widget URL without partner API key', () => {
-             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
-@@ -936,10 +994,9 @@ vitest_1.vi.mock('axios', () => {
+-            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
++            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ context: NativeRampsSdk_1.Context.Browser });
+             (0, vitest_1.expect)(() => {
+                 noApiKeySdk.generatePaymentWidgetUrl('ott-token', {
+                     fiatCurrency: 'USD',
+@@ -936,10 +1013,9 @@ vitest_1.vi.mock('axios', () => {
          (0, vitest_1.it)('generates widget URL for staging environment', () => {
              const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
              stagingSdk.setAccessToken({
@@ -1670,8 +1949,12 @@ index 5416ceb..bd76961 100644
              });
              const url = stagingSdk.generatePaymentWidgetUrl('ott-token', {
                  fiatCurrency: 'USD',
-@@ -955,37 +1012,13 @@ vitest_1.vi.mock('axios', () => {
-             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
+@@ -952,40 +1028,16 @@ vitest_1.vi.mock('axios', () => {
+     });
+     (0, vitest_1.describe)('interceptor behavior', () => {
+         (0, vitest_1.it)('should handle requests without partnerApiKey', () => {
+-            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
++            const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ context: NativeRampsSdk_1.Context.Browser });
              (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
          });
 -        (0, vitest_1.it)('should add Bearer prefix for OTT endpoint', async () => {
@@ -1710,16 +1993,18 @@ index 5416ceb..bd76961 100644
                  params: {
                      fiatCurrency: 'USD',
                      cryptoCurrency: 'ETH',
-@@ -1010,7 +1043,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -1010,8 +1062,9 @@ vitest_1.vi.mock('axios', () => {
              };
              vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceVerbose);
              const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
 -                partnerApiKey: 'test-key',
 +                apiKey: 'test-key',
                  verbose: true,
++                context: NativeRampsSdk_1.Context.Browser,
              });
              const logErrorSpy = vitest_1.vi
-@@ -1028,20 +1061,18 @@ vitest_1.vi.mock('axios', () => {
+                 .spyOn(console, 'error')
+@@ -1028,20 +1081,18 @@ vitest_1.vi.mock('axios', () => {
          });
          (0, vitest_1.it)('handles requestOtt with missing response data', async () => {
              sdk.setAccessToken({
@@ -1742,7 +2027,7 @@ index 5416ceb..bd76961 100644
              });
              mockAxiosInstance.post.mockResolvedValueOnce({ data: null });
              await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
-@@ -1050,10 +1081,9 @@ vitest_1.vi.mock('axios', () => {
+@@ -1050,10 +1101,9 @@ vitest_1.vi.mock('axios', () => {
      (0, vitest_1.describe)('orders history', () => {
          (0, vitest_1.beforeEach)(() => {
              sdk.setAccessToken({
@@ -1754,7 +2039,7 @@ index 5416ceb..bd76961 100644
              });
          });
          (0, vitest_1.it)('gets orders history', async () => {
-@@ -1061,7 +1091,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -1061,7 +1111,7 @@ vitest_1.vi.mock('axios', () => {
                  { id: 'order-1', status: 'COMPLETED', walletAddress: '0x123' },
                  { id: 'order-2', status: 'FAILED', walletAddress: '0x456' },
              ];
@@ -1763,7 +2048,7 @@ index 5416ceb..bd76961 100644
              mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
              const result = await sdk.getOrdersHistory();
              (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
-@@ -1076,7 +1106,7 @@ vitest_1.vi.mock('axios', () => {
+@@ -1076,7 +1126,7 @@ vitest_1.vi.mock('axios', () => {
              const mockTransakOrders = [
                  { id: 'order-3', status: 'CREATED', walletAddress: '0x789' },
              ];
@@ -1772,7 +2057,7 @@ index 5416ceb..bd76961 100644
              mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
              const result = await sdk.getOrdersHistory(5, 10);
              (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
-@@ -1092,99 +1122,150 @@ vitest_1.vi.mock('axios', () => {
+@@ -1092,99 +1142,150 @@ vitest_1.vi.mock('axios', () => {
          (0, vitest_1.it)('gets user geolocation successfully', async () => {
              const mockGeolocationResponse = { ipCountryCode: 'US' };
              const mockResponse = { data: mockGeolocationResponse };
@@ -1969,22 +2254,32 @@ index 5416ceb..bd76961 100644
                  },
              });
 +            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
-+            const emptyConfigSdk = new NativeRampsSdk_1.NativeRampsSdk({});
++            const emptyConfigSdk = new NativeRampsSdk_1.NativeRampsSdk({ context: NativeRampsSdk_1.Context.Browser });
 +            const result = await emptyConfigSdk.getGeolocation();
 +            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
              (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
          });
      });
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
-index 0404537..2836360 100644
+index 0404537..6fc294a 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
-@@ -31,17 +31,17 @@ declare const _default: {
+@@ -13,6 +13,9 @@ declare const _default: {
+         getVersion: {
+             parameters: any[];
+         };
++        getContext: {
++            parameters: any[];
++        };
+         sendUserOtp: {
+             parameters: {
+                 required: boolean;
+@@ -31,17 +34,17 @@ declare const _default: {
                  required: boolean;
              }[];
          };
 -        getKYCForms: {
-+        getKycWorkflowRunStatus: {
++        getIdProofStatus: {
              parameters: {
                  required: boolean;
              }[];
@@ -2000,7 +2295,7 @@ index 0404537..2836360 100644
              parameters: {
                  required: boolean;
              }[];
-@@ -61,16 +61,14 @@ declare const _default: {
+@@ -61,16 +64,14 @@ declare const _default: {
                  required: boolean;
              }[];
          };
@@ -2020,7 +2315,7 @@ index 0404537..2836360 100644
          createOrder: {
              parameters: {
                  required: boolean;
-@@ -102,6 +100,9 @@ declare const _default: {
+@@ -102,6 +103,9 @@ declare const _default: {
                  required: boolean;
              }[];
          };
@@ -2031,10 +2326,20 @@ index 0404537..2836360 100644
              parameters: {
                  required: boolean;
 diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
-index a384609..ccc28f4 100644
+index a384609..865ad73 100644
 --- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
 +++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
-@@ -27,6 +27,9 @@ exports.default = {
+@@ -15,6 +15,9 @@ exports.default = {
+         "getVersion": {
+             "parameters": []
+         },
++        "getContext": {
++            "parameters": []
++        },
+         "sendUserOtp": {
+             "parameters": [
+                 {
+@@ -27,6 +30,9 @@ exports.default = {
                  {
                      "required": true
                  },
@@ -2044,12 +2349,12 @@ index a384609..ccc28f4 100644
                  {
                      "required": true
                  }
-@@ -54,24 +57,21 @@ exports.default = {
+@@ -54,24 +60,21 @@ exports.default = {
                  }
              ]
          },
 -        "getKYCForms": {
-+        "getKycWorkflowRunStatus": {
++        "getIdProofStatus": {
              "parameters": [
                  {
                      "required": true
@@ -2072,7 +2377,7 @@ index a384609..ccc28f4 100644
              "parameters": [
                  {
                      "required": true
-@@ -99,16 +99,6 @@ exports.default = {
+@@ -99,16 +102,6 @@ exports.default = {
                  }
              ]
          },
@@ -2089,7 +2394,7 @@ index a384609..ccc28f4 100644
          "cancelOrder": {
              "parameters": [
                  {
-@@ -116,8 +106,17 @@ exports.default = {
+@@ -116,8 +109,17 @@ exports.default = {
                  }
              ]
          },
@@ -2107,7 +2412,7 @@ index a384609..ccc28f4 100644
                  {
                      "required": true
                  }
-@@ -181,6 +180,9 @@ exports.default = {
+@@ -181,6 +183,9 @@ exports.default = {
                  }
              ]
          },

@@ -13,7 +13,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
   NativeRampsSdk,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
 } from '@consensys/native-ramps-sdk';
 
 const mockDispatch = jest.fn();
@@ -27,6 +28,12 @@ jest.mock('../utils/ProviderTokenVault', () => ({
     .fn()
     .mockResolvedValue({ success: false, token: null }),
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'ios',
+  },
 }));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -144,8 +151,9 @@ describe('Deposit SDK Context', () => {
       expect(NativeRampsSdk).toHaveBeenCalledWith(
         {
           apiKey: 'test-provider-api-key',
+          context: Context.MobileIOS,
         },
-        TransakEnvironment.Staging,
+        SdkEnvironment.Staging,
       );
     });
   });
