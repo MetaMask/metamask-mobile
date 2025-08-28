@@ -744,8 +744,6 @@ describe('App', () => {
     });
   });
 
-
-
   describe('Navigation hooks usage', () => {
     it('should use useNavigationState to check previous route and skip auth when coming from Settings', async () => {
       // Arrange: mock routes so previous route is SettingsView
