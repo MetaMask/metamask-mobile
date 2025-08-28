@@ -3156,6 +3156,7 @@ describe('PerpsController', () => {
     let mockMessenger: any;
     let controller: PerpsController;
     let mockFetch: jest.MockedFunction<typeof fetch>;
+    let mockSetMeasurement: jest.MockedFunction<typeof setMeasurement>;
 
     beforeEach(() => {
       jest.useFakeTimers();
@@ -3163,6 +3164,30 @@ describe('PerpsController', () => {
       // Mock global fetch
       mockFetch = jest.fn();
       global.fetch = mockFetch as any;
+
+      // Get reference to already mocked setMeasurement
+      mockSetMeasurement = jest.requireMock(
+        '@sentry/react-native',
+      ).setMeasurement;
+      mockSetMeasurement.mockClear();
+
+      // Clear DevLogger mocks
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      DevLogger.log.mockClear();
+
+      // Reset AccountTreeController mock to default
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
 
       // Create a mock messenger that can handle the getBearerToken call
       mockMessenger = {
@@ -3370,6 +3395,155 @@ describe('PerpsController', () => {
           hasToken: false,
           action: 'close',
           coin: 'MATIC',
+        }),
+      );
+    });
+
+    it('should successfully report order to data lake API', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      // Mock successful API response
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+        text: jest.fn().mockResolvedValue('{"success":true}'),
+      } as any);
+
+      // Mock performance.now for timing
+      const mockPerformanceNow = jest.spyOn(performance, 'now');
+      mockPerformanceNow
+        .mockReturnValueOnce(1000) // Start time
+        .mockReturnValueOnce(1100); // End time (100ms duration)
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'open',
+        coin: 'BTC',
+        sl_price: 45000,
+        tp_price: 55000,
+      });
+
+      // Verify successful result
+      expect(result).toEqual({
+        success: true,
+      });
+
+      // Verify fetch was called with correct parameters
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://perps.api.cx.metamask.io/api/v1/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-bearer-token',
+          },
+          body: JSON.stringify({
+            user_id: '0x1234567890123456789012345678901234567890',
+            coin: 'BTC',
+            sl_price: 45000,
+            tp_price: 55000,
+          }),
+        },
+      );
+
+      // Verify DevLogger was called with success message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+
+      // Find the call with our success message among all DevLogger calls
+      const successCall = DevLogger.log.mock.calls.find(
+        (call: any[]) =>
+          call[0] === 'DataLake API: Order reported successfully',
+      );
+
+      expect(successCall).toBeDefined();
+      expect(successCall[1]).toMatchObject({
+        action: 'open',
+        coin: 'BTC',
+        status: 201,
+        attempt: 1,
+        responseBody: '{"success":true}',
+      });
+      // Check duration separately as it's a string with 'ms' suffix
+      expect(successCall[1].duration).toMatch(/^\d+ms$/);
+
+      // Verify performance metric was recorded
+      expect(mockSetMeasurement).toHaveBeenCalledWith(
+        'data_lake_api_call',
+        expect.any(Number),
+        'millisecond',
+      );
+
+      mockPerformanceNow.mockRestore();
+    });
+
+    it('should handle API error response and not retry', async () => {
+      // Mock messenger to return a token
+      mockMessenger.call.mockResolvedValue('mock-bearer-token');
+
+      // Mock AccountTreeController to return EVM account
+      const Engine = jest.requireMock('../../../../core/Engine');
+      Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+        [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:',
+          },
+        ],
+      );
+
+      // Mock API error response (400 Bad Request)
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: jest.fn().mockResolvedValue('Bad Request'),
+      } as any);
+
+      controller.state.isTestnet = false;
+
+      // Call reportOrderToDataLake directly
+      const result = await (controller as any).reportOrderToDataLake({
+        action: 'close',
+        coin: 'ETH',
+      });
+
+      // Verify it returns error
+      expect(result).toEqual({
+        success: false,
+        error: 'DataLake API error: 400',
+      });
+
+      // Verify fetch was called once
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Verify DevLogger was called with error message
+      const DevLogger = jest.requireMock(
+        '../../../../core/SDKConnect/utils/DevLogger',
+      ).DevLogger;
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DataLake API: Request failed',
+        expect.objectContaining({
+          error: 'DataLake API error: 400',
+          action: 'close',
+          coin: 'ETH',
+          willRetry: true,
         }),
       );
     });
