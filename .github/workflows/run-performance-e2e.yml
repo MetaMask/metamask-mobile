@@ -1,24 +1,7 @@
 name: Build Apps and Run Performance E2E Tests
 on:
-  workflow_dispatch:
-    inputs:
-      info:
-        description: 'This workflow runs performance tests on multiple devices for both iOS and Android platforms. Device matrix is automatically read from appwright/device-matrix.json'
-        required: false
-        type: string
-      browserstack_app_url_android:
-        description: 'BrowserStack Android App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios:
-        description: 'BrowserStack iOS App URL (bs://...)'
-        required: false
-        type: string
-      test_suite:
-        description: 'Test suite to run (e.g., **/tests/*.spec.js for all tests)'
-        required: false
-        default: '**/tests/performance/*.spec.js'
-        type: string
+  schedule:
+    - cron: '0 * * * 1-6'
 permissions:
   contents: read
   id-token: write
