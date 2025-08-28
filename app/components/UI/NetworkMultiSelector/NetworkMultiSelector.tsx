@@ -67,10 +67,9 @@ const NetworkMultiSelector = ({
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { selectPopularNetwork, selectAllPopularNetworks } =
-    useNetworkSelection({
-      networks,
-    });
+  const { selectPopularNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const selectedChainIds = useMemo(
     () =>
@@ -147,9 +146,8 @@ const NetworkMultiSelector = ({
   );
 
   const onSelectAllPopularNetworks = useCallback(async () => {
-    await selectAllPopularNetworks();
-    dismissModal?.();
-  }, [selectAllPopularNetworks, dismissModal]);
+    await selectPopularNetwork('eip155:1', dismissModal);
+  }, [selectPopularNetwork, dismissModal]);
 
   const onSelectNetwork = useCallback(
     async (caipChainId: CaipChainId) => {
