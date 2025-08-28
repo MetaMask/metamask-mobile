@@ -35,7 +35,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { TraceName, TraceOperation } from '../../util/trace';
-import AccountDiscovery from '../AccountDiscovery';
+import { AccountDiscoveryService } from '../AccountDiscovery/AccountDiscovery';
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
@@ -91,17 +91,6 @@ jest.mock('@react-native-community/netinfo', () => ({
     unknown: 'unknown',
   },
 }));
-
-jest.mock('../AccountDiscovery', () => ({
-  __esModule: true,
-  default: {
-    addKeyringForAcccountDiscovery: jest.fn(),
-    attemptAccountDiscovery: jest.fn(),
-  },
-}));
-
-const mockAccountDiscovery = jest.mocked(AccountDiscovery);
-mockAccountDiscovery.attemptAccountDiscovery.mockResolvedValue(undefined);
 
 jest.mock('../Engine', () => ({
   resetState: jest.fn(),
@@ -199,7 +188,27 @@ jest.mock('../../util/trace', () => ({
   endTrace: (...args: any[]) => mockEndTrace(...args),
 }));
 
+jest.mock('../AccountDiscovery/AccountDiscovery', () => {
+  const actual = jest.requireActual('../AccountDiscovery/AccountDiscovery');
+  const mockInstance = {
+    attemptAccountDiscovery: jest.fn().mockResolvedValue(undefined),
+    addKeyringForAcccountDiscovery: jest.fn().mockResolvedValue(undefined),
+  };
+  return {
+    ...actual,
+    AccountDiscoveryService: {
+      getInstance: jest.fn().mockResolvedValue(mockInstance),
+    },
+  };
+});
+
 describe('Authentication', () => {
+  let mockAccountDiscovery: jest.Mocked<AccountDiscoveryService>;
+  beforeAll(async () => {
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
+    mockAccountDiscovery = jest.mocked(accountDiscovery);
+  });
+
   afterEach(() => {
     StorageWrapper.clearAll();
     jest.restoreAllMocks();
@@ -512,7 +521,7 @@ describe('Authentication', () => {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
       expect(
-        AccountDiscovery.addKeyringForAcccountDiscovery,
+        mockAccountDiscovery.addKeyringForAcccountDiscovery,
       ).toHaveBeenCalledWith(
         [expect.any(String)], // keyringIds array
       );
@@ -532,7 +541,7 @@ describe('Authentication', () => {
         false,
       );
       expect(
-        AccountDiscovery.addKeyringForAcccountDiscovery,
+        mockAccountDiscovery.addKeyringForAcccountDiscovery,
       ).toHaveBeenCalledWith(
         [expect.any(String)], // keyringIds array
       );

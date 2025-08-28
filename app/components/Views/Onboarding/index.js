@@ -62,7 +62,7 @@ import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandler
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import ErrorBoundary from '../ErrorBoundary';
-import AccountDiscovery from '../../../core/AccountDiscovery';
+import { AccountDiscoveryService } from '../../../core/AccountDiscovery/AccountDiscovery';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -648,13 +648,13 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
-  handleCtaActions = (actionType) => {
+  handleCtaActions = async (actionType) => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
       OAuthLoginService.resetOauthState();
     }
-
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
     // clear pending keyring that might trigger during wallet reset
-    AccountDiscovery.clearPendingKeyring();
+    accountDiscovery.clearPendingKeyring();
 
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

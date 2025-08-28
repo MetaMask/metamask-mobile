@@ -62,7 +62,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import AccountDiscovery from '../AccountDiscovery';
+import { AccountDiscoveryService } from '../AccountDiscovery/AccountDiscovery';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -129,8 +129,8 @@ class AuthenticationService {
       password,
       parsedSeedUint8Array,
     );
-
-    await AccountDiscovery.addKeyringForAcccountDiscovery([
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
+    await accountDiscovery.addKeyringForAcccountDiscovery([
       Engine.context.KeyringController.state.keyrings[0].metadata.id,
     ]);
     password = this.wipeSensitiveData();
@@ -152,7 +152,9 @@ class AuthenticationService {
 
     const primaryHdKeyringId =
       Engine.context.KeyringController.state.keyrings[0].metadata.id;
-    await AccountDiscovery.addKeyringForAcccountDiscovery([primaryHdKeyringId]);
+
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
+    await accountDiscovery.addKeyringForAcccountDiscovery([primaryHdKeyringId]);
 
     password = this.wipeSensitiveData();
   };
@@ -365,7 +367,8 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
-      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
         Logger.error(
           err,
           'Error in newWalletAndKeychain: attempting account discovery',
@@ -412,7 +415,8 @@ class AuthenticationService {
       await this.dispatchLogin();
       this.authData = authData;
 
-      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
         Logger.error(
           err,
           'Error in newWalletAndRestore: attempting account discovery',
@@ -467,7 +471,8 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
         Logger.error(
           err,
           'Error in userEntryAuth: attempting account discovery',
@@ -543,7 +548,8 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      AccountDiscovery.attemptAccountDiscovery().catch((err) => {
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
         Logger.error(
           err,
           'Error in appTriggeredAuth: attempting account discovery',
@@ -704,7 +710,8 @@ class AuthenticationService {
           );
 
           // discover multichain accounts from imported srp
-          await AccountDiscovery.addKeyringForAcccountDiscovery([
+          const accountDiscovery = await AccountDiscoveryService.getInstance();
+          await accountDiscovery.addKeyringForAcccountDiscovery([
             keyringMetadata.id,
           ]);
         } else {
@@ -933,7 +940,8 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        await AccountDiscovery.addKeyringForAcccountDiscovery(
+        const accountDiscovery = await AccountDiscoveryService.getInstance();
+        await accountDiscovery.addKeyringForAcccountDiscovery(
           keyringMetadataList.map((item) => item.id),
         );
 
