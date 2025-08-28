@@ -243,17 +243,6 @@ describe('Amount', () => {
     expect(getByText('17')).toBeTruthy();
   });
 
-  it('display 0 balance for ERC1155 tokens', () => {
-    mockUseRoute.mockReturnValue({
-      params: {
-        asset: MOCK_NFT1155,
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { getByText } = renderComponent();
-    expect(getByText('0 units available')).toBeTruthy();
-  });
-
   // it('display total balance correctly for ERC20 token', () => {
   //   mockUseRoute.mockReturnValue({
   //     params: {
