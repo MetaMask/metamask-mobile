@@ -5242,7 +5242,10 @@
 
     "oauth_error_title": "Login failed",
     "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
-    "oauth_error_button": "Try again"
+    "oauth_error_button": "Try again",
+    "no_internet_connection_title": "Unable to connect",
+    "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
+    "no_internet_connection_button": "Try again"
   },
   "password_hint": {
     "title": "Password hint",
