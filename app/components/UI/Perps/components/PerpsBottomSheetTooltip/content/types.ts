@@ -5,9 +5,7 @@ export interface TooltipContentProps {
   testID: string;
 }
 
-export type ContentRenderer = (
-  props: TooltipContentProps,
-) => React.ReactElement;
+export type ContentRenderer = React.ComponentType<TooltipContentProps>;
 
 export type ContentRegistry = Record<
   PerpsTooltipContentKey,

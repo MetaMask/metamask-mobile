@@ -510,6 +510,7 @@
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
     "continue": "Continue",
+    "unit": "unit",
     "units": "units",
     "next": "Next",
     "title": "Send",
@@ -519,6 +520,7 @@
     "amount": "Amount",
     "confirm": "Confirm",
     "paste": "Paste",
+    "no_assets_available": "No assets available to send",
     "clear": "Clear",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
@@ -922,16 +924,22 @@
       "done": "Done",
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
+      "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
-      "arrival_time": "Funds will arrive within 5 minutes",
+      "success_toast": "Withdrawal successful",
+      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
-      "completed": "Withdrawal Complete",
       "max": "Max",
       "percentage_10": "10%",
-      "percentage_25": "25%"
+      "percentage_25": "25%",
+      "available_balance": "Available perps balance: {{amount}}",
+      "receive": "Receive",
+      "provider_fee": "Provider fee",
+      "you_will_receive": "You'll receive",
+      "continue": "Continue",
+      "funds_received": "{{amount}} {{symbol}} received"
     },
     "quote": {
       "network_fee": "Network fee",
@@ -1154,15 +1162,15 @@
     "position": {
       "title": "Positions",
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidation_price": "Liquidation Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding cost",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "Margin",
-        "not_set": "Not Set",
+        "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "Loading positions...",
@@ -1185,7 +1193,8 @@
         "total_balance": "Total Balance",
         "available_balance": "Available Balance",
         "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "total_unrealized_pnl": "Total Unrealized P&L",
+        "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
         "update_success": "TP/SL updated successfully"
@@ -1236,8 +1245,10 @@
       },
       "fees": {
         "title": "Fees",
+        "content": "Trading fees are charged when you open or close a position.",
         "metamask_fee": "MetaMask fee",
-        "provider_fee": "Provider fee"
+        "provider_fee": "Provider fee",
+        "total": "Total fees"
       },
       "open_interest": {
         "title": "Open interest",
@@ -1250,6 +1261,14 @@
       "perps_geo_block": {
         "title": "Perps geo block",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "receive": {
+        "title": "Receive",
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+      },
+      "withdrawal_fees": {
+        "title": "Provider Fee",
+        "content": "A network fee charged for processing your withdrawal transaction."
       },
       "tp_sl": {
         "title": "Take Profit & Stop Loss",
