@@ -29,6 +29,17 @@ import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import Engine from '../../../../../core/Engine';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+
+export const getNetworkName = (
+  chainId: Hex,
+  networkConfigurations: Record<string, MultichainNetworkConfiguration>,
+) =>
+  networkConfigurations?.[chainId as Hex]?.name ??
+  PopularList.find((network) => network.chainId === chainId)?.nickname ??
+  'Unknown Network';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -67,6 +78,13 @@ export const BridgeDestTokenSelector: React.FC = () => {
         return <SkeletonItem />;
       }
 
+      // If the user hasn't added the network, it won't be in the networkConfigurations object
+      // So we use the PopularList to get the network name
+      const networkName = getNetworkName(
+        item.chainId as Hex,
+        networkConfigurations,
+      );
+
       // Open the asset details screen as a bottom sheet
       // Use dispatch with unique key to force new modal instance
       const handleInfoButtonPress = () => {
@@ -78,15 +96,18 @@ export const BridgeDestTokenSelector: React.FC = () => {
             params: { ...item },
           },
         });
-      };
 
-      // If the user hasn't added the network, it won't be in the networkConfigurations object
-      // So we use the PopularList to get the network name
-      const networkName =
-        networkConfigurations?.[item.chainId as Hex]?.name ??
-        PopularList.find((network) => network.chainId === item.chainId)
-          ?.nickname ??
-        'Unknown Network';
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+          {
+            token_name: item.name ?? 'Unknown',
+            token_symbol: item.symbol,
+            token_contract: item.address,
+            chain_name: networkName,
+            chain_id: item.chainId,
+          },
+        );
+      };
 
       return (
         <TokenSelectorItem

@@ -132,6 +132,11 @@ describe('PerpsController', () => {
       toggleTestnet: jest.fn(),
       getPositions: jest.fn(),
       getAccountState: jest.fn(),
+      getHistoricalPortfolio: jest.fn().mockResolvedValue({
+        totalBalance24hAgo: '10000',
+        totalBalance7dAgo: '9500',
+        totalBalance30dAgo: '9000',
+      }),
       getMarkets: jest.fn(),
       placeOrder: jest.fn(),
       editOrder: jest.fn(),
@@ -370,6 +375,8 @@ describe('PerpsController', () => {
         totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
+        returnOnEquity: '20.0',
+        totalValue: '1600',
       };
 
       withController(async ({ controller }) => {
@@ -2383,6 +2390,192 @@ describe('PerpsController', () => {
     });
   });
 
+  describe('resetFirstTimeUserState', () => {
+    it('should reset isFirstTimeUser to true for both networks', () => {
+      withController(({ controller }) => {
+        // Arrange - set both networks as not first-time
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: false,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: true,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset from partially completed state', () => {
+      withController(({ controller }) => {
+        // Arrange - only testnet completed
+        controller.state.isFirstTimeUser = {
+          testnet: false,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: true,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - both should be reset to initial state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should reset even when already in first-time state', () => {
+      withController(({ controller }) => {
+        // Arrange - already in first-time state
+        controller.state.isFirstTimeUser = {
+          testnet: true,
+          mainnet: true,
+        };
+        controller.state.hasPlacedFirstOrder = {
+          testnet: false,
+          mainnet: false,
+        };
+
+        // Act
+        controller.resetFirstTimeUserState();
+
+        // Assert - should remain in first-time state
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should work correctly regardless of current network', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - complete tutorial on testnet
+          controller.state.isTestnet = true;
+          controller.markTutorialCompleted();
+          controller.markFirstOrderCompleted();
+
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+
+          // Act - reset while on testnet
+          controller.resetFirstTimeUserState();
+
+          // Assert - both networks should be reset
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+
+          // Verify current network detection still works
+          expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should persist reset state', async () => {
+      // First controller instance - simulate completed state then reset
+      await withController(
+        async ({ controller }) => {
+          // Assert initial completed state was loaded
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+
+          // Reset everything
+          controller.resetFirstTimeUserState();
+
+          // Assert reset worked
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          state: {
+            isTestnet: false,
+            // Simulate previously completed state
+            isFirstTimeUser: {
+              testnet: false,
+              mainnet: false,
+            },
+            hasPlacedFirstOrder: {
+              testnet: true,
+              mainnet: true,
+            },
+          },
+        },
+      );
+
+      // Second controller instance - verify reset state persisted
+      await withController(
+        async ({ controller }) => {
+          // Assert - reset state should be persisted
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: false,
+          });
+        },
+        {
+          // Use reset state to simulate persistence
+          state: {
+            isFirstTimeUser: {
+              testnet: true,
+              mainnet: true,
+            },
+            hasPlacedFirstOrder: {
+              testnet: false,
+              mainnet: false,
+            },
+          },
+        },
+      );
+    });
+  });
+
   describe('reconnectWithNewContext', () => {
     it('should clear state and reinitialize providers', async () => {
       // Mock initialize to succeed before creating controller
@@ -2510,6 +2703,8 @@ describe('PerpsController', () => {
         availableBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalValue: '20100',
       };
       mockHyperLiquidProvider.getAccountState.mockResolvedValue(
         mockAccountState,
