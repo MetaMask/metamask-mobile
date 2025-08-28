@@ -1967,16 +1967,16 @@ class FixtureBuilder {
             },
           },
           // Snap Keyring - Bitcoin Wallet Snap
-          [BITCOIN_WALLET_SNAP_ID]: {
-            id: BITCOIN_WALLET_SNAP_ID,
+          [GENERIC_SNAP_WALLET_1_ID]: {
+            id: GENERIC_SNAP_WALLET_1_ID,
             type: 'Snap',
             metadata: {
               name: 'Bitcoin Wallet Snap',
               snapId: 'npm:@metamask/bitcoin-wallet-snap',
             },
             groups: {
-              [`${BITCOIN_WALLET_SNAP_ID}/bitcoin`]: {
-                id: `${BITCOIN_WALLET_SNAP_ID}/bitcoin`,
+              [`${GENERIC_SNAP_WALLET_1_ID}/bitcoin`]: {
+                id: `${GENERIC_SNAP_WALLET_1_ID}/bitcoin`,
                 type: 'MultipleAccount',
                 accounts: [
                   'f798gf5c-4a0i-9a0j-ghi1-i678901235ef', // Bitcoin Account 1
@@ -1988,16 +1988,16 @@ class FixtureBuilder {
             },
           },
           // Snap Keyring - Solana Wallet Snap
-          [SOLANA_WALLET_SNAP_ID]: {
-            id: SOLANA_WALLET_SNAP_ID,
+          [GENERIC_SNAP_WALLET_2_ID]: {
+            id: GENERIC_SNAP_WALLET_2_ID,
             type: 'Snap',
             metadata: {
               name: 'Solana Wallet Snap',
               snapId: 'npm:@metamask/solana-wallet-snap',
             },
             groups: {
-              [`${SOLANA_WALLET_SNAP_ID}/solana`]: {
-                id: `${SOLANA_WALLET_SNAP_ID}/solana`,
+              [`${GENERIC_SNAP_WALLET_2_ID}/solana`]: {
+                id: `${GENERIC_SNAP_WALLET_2_ID}/solana`,
                 type: 'MultipleAccount',
                 accounts: [
                   'g899hg6d-5b1j-0b1k-hij2-j789012346fg', // Solana Account 1
