@@ -2,138 +2,28 @@ name: Android E2E Regression Tests
 
 on:
   workflow_call:
-    inputs:
-      confirmations-suite:
-        description: 'Confirmations Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      trade-suite:
-        description: 'Trade Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      wallet-platform-suite:
-        description: 'Wallet Platform Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      identity-suite:
-        description: 'Identity Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      accounts-suite:
-        description: 'Accounts Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      network-abstraction-suite:
-        description: 'Network Abstraction Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      network-expansion-suite:
-        description: 'Network Expansion Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      assets-suite:
-        description: 'Assets Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      ux-suite:
-        description: 'UX Regression Suite'
-        required: false
-        type: boolean
-        default: false
   schedule:
     - cron: '30 4 * * *'  # 4:30 AM UTC
   workflow_dispatch:
-    inputs:
-      confirmations-suite:
-        description: 'Confirmations Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      trade-suite:
-        description: 'Trade Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      wallet-platform-suite:
-        description: 'Wallet Platform Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      identity-suite:
-        description: 'Identity Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      accounts-suite:
-        description: 'Accounts Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      network-abstraction-suite:
-        description: 'Network Abstraction Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      network-expansion-suite:
-        description: 'Network Expansion Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      assets-suite:
-        description: 'Assets Regression Suite'
-        required: false
-        type: boolean
-        default: false
-      ux-suite:
-        description: 'UX Regression Suite'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
   id-token: write
+  actions: read
 
 jobs:
-  validate-suites:
-    name: Validate suite selection
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ensure at least one suite is selected (non-schedule)
-        if: ${{ github.event_name != 'schedule' }}
-        run: |
-          selected=0
-          for v in \
-            "${{ inputs.confirmations-suite }}" \
-            "${{ inputs.trade-suite }}" \
-            "${{ inputs.wallet-platform-suite }}" \
-            "${{ inputs.identity-suite }}" \
-            "${{ inputs.accounts-suite }}" \
-            "${{ inputs.network-abstraction-suite }}" \
-            "${{ inputs.network-expansion-suite }}" \
-            "${{ inputs.assets-suite }}" \
-            "${{ inputs.ux-suite }}" \
-          ; do
-            if [ "$v" = "true" ]; then
-              selected=1
-            fi
-          done
-          if [ "$selected" -ne 1 ]; then
-            echo "No regression suites selected. Enable at least one suite input."
-            exit 1
-          fi
+  build-android-apks:
+    name: 'Build Android APKs'
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+
   regression-confirmations-android:
     name: 'Confirmations Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.confirmations-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -149,8 +39,7 @@ jobs:
 
   regression-trade-android:
     name: 'Trade Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.trade-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -166,8 +55,7 @@ jobs:
 
   regression-wallet-platform-android:
     name: 'Wallet Platform Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.wallet-platform-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -183,8 +71,7 @@ jobs:
 
   regression-identity-android:
     name: 'Identity Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.identity-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -200,8 +87,7 @@ jobs:
 
   regression-accounts-android:
     name: 'Accounts Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.accounts-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -217,8 +103,7 @@ jobs:
 
   regression-network-abstraction-android:
     name: 'Network Abstraction Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.network-abstraction-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -234,8 +119,7 @@ jobs:
 
   regression-network-expansion-android:
     name: 'Network Expansion Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.network-expansion-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2, 3, 4]
@@ -251,8 +135,7 @@ jobs:
 
   regression-assets-android:
     name: 'Assets Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.assets-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1, 2]
@@ -268,8 +151,7 @@ jobs:
   
   regression-ux-android:
     name: 'UX Regression (Android) - ${{ matrix.split }}'
-    needs: validate-suites
-    if: ${{ github.event_name == 'schedule' || inputs.ux-suite }}
+    needs: [build-android-apks]
     strategy:
       matrix:
         split: [1]
@@ -287,12 +169,21 @@ jobs:
     name: Report Android Regression Tests
     runs-on: ubuntu-latest
     if: always()
-    needs: validate-suites
+    needs:
+      - regression-confirmations-android
+      - regression-trade-android
+      - regression-wallet-platform-android
+      - regression-identity-android
+      - regression-accounts-android
+      - regression-network-abstraction-android
+      - regression-network-expansion-android
+      - regression-assets-android
+      - regression-ux-android
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+        
       - name: Download all test results
         uses: actions/download-artifact@v4
         continue-on-error: true

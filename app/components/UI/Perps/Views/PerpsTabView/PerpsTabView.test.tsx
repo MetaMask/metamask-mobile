@@ -89,6 +89,7 @@ jest.mock('../../hooks', () => ({
 
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
+  ...jest.requireActual('../../utils/formatUtils'),
   formatPrice: jest.fn((value) => `$${value}`),
   formatPnl: jest.fn((value) => `${value >= 0 ? '+' : ''}$${Math.abs(value)}`),
 }));

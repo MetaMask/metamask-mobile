@@ -18,7 +18,7 @@ export const useContacts = () => {
         if (!seenAddresses.has(contact.address)) {
           seenAddresses.add(contact.address);
           flattenedContacts.push({
-            name: contact.name,
+            contactName: contact.name,
             address: contact.address,
           });
         }
