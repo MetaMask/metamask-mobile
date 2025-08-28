@@ -78,6 +78,9 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
       minimumVersion: '7.46.0',
     },
   },
+  {
+    solanaOnboardingModal: true,
+  },
 ];
 
 /**
