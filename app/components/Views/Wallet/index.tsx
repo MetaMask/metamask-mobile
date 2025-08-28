@@ -172,6 +172,8 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -715,6 +717,7 @@ const Wallet = ({
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -835,6 +838,7 @@ const Wallet = ({
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -857,6 +861,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         isCardholder,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -872,6 +877,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     isCardholder,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1105,7 +1111,10 @@ const Wallet = ({
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
             receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
-          <Carousel style={styles.carouselContainer} />
+          {isCarouselBannersEnabled && (
+            <Carousel style={styles.carouselContainer} />
+          )}
+
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -1136,6 +1145,7 @@ const Wallet = ({
       onReceive,
       onSend,
       route.params,
+      isCarouselBannersEnabled,
     ],
   );
   const renderLoader = useCallback(
