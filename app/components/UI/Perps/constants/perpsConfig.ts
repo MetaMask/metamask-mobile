@@ -116,3 +116,12 @@ export const LIMIT_PRICE_CONFIG = {
   LONG_PRESETS: [-1, -2, -5, -10], // Buy below market for long orders
   SHORT_PRESETS: [1, 2, 5, 10], // Sell above market for short orders
 } as const;
+
+/**
+ * Data Lake API configuration
+ * Endpoints for reporting perps trading activity for notifications
+ */
+export const DATA_LAKE_API_CONFIG = {
+  // Order reporting endpoint - only used for mainnet perps trading
+  ORDERS_ENDPOINT: 'https://perps.api.cx.metamask.io/api/v1/orders',
+} as const;
