@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -17,7 +17,7 @@ import ToastModal from '../../pages/wallet/ToastModal';
 import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
-describe(Regression('Transaction'), () => {
+describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
