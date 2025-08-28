@@ -7,7 +7,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import {
   hexToBN,
-  isDecimal,
   toTokenMinimalUnit,
   toWei,
 } from '../../../../../../util/number';
@@ -30,11 +29,8 @@ export const validateAmountFn = ({
   contractBalances: Record<Hex, Hex>;
   from: Hex;
 }) => {
-  if (!asset || amount === undefined || amount === null || amount === '') {
+  if (!asset || !amount) {
     return;
-  }
-  if (!isDecimal(amount) || Number(amount) < 0) {
-    return strings('send.invalid_value');
   }
   let weiValue;
   let weiBalance;
