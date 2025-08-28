@@ -31,13 +31,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   position,
   isLoadingPosition,
   unfilledOrders = [],
-  onPositionUpdate,
   onActiveTabChange,
   nextFundingTime,
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const hasUserInteracted = useRef(false);
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -81,10 +81,56 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     return dynamicTabs;
   }, [position, unfilledOrders.length]);
 
-  // Set initial active tab to the first available tab
-  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || 'statistics');
+  // Initialize with statistics by default
+  const [activeTabId, setActiveTabId] = useState('statistics');
 
-  // Update active tab if current tab is no longer available
+  // Set initial tab based on data availability
+  // Now we can properly distinguish between loading and empty states
+  useEffect(() => {
+    // If user has interacted, respect their choice
+    if (hasUserInteracted.current) {
+      return;
+    }
+
+    // Wait until position data has loaded
+    // isLoadingPosition will be true until first WebSocket update
+    if (isLoadingPosition) {
+      return;
+    }
+
+    let targetTabId = 'statistics'; // Default fallback
+
+    // Priority 1: Position tab if position exists
+    if (position) {
+      targetTabId = 'position';
+    }
+    // Priority 2: Orders tab if orders exist but no position
+    else if (unfilledOrders && unfilledOrders.length > 0) {
+      targetTabId = 'orders';
+    }
+    // Priority 3: Statistics tab (already set)
+
+    // Only update if tab actually needs to change
+    if (activeTabId !== targetTabId) {
+      DevLogger.log('PerpsMarketTabs: Auto-selecting tab:', {
+        targetTabId,
+        hasPosition: !!position,
+        ordersCount: unfilledOrders?.length || 0,
+        previousTab: activeTabId,
+        isLoadingPosition,
+      });
+      setActiveTabId(targetTabId);
+      onActiveTabChange?.(targetTabId);
+    }
+  }, [
+    position,
+    unfilledOrders,
+    activeTabId,
+    onActiveTabChange,
+    isLoadingPosition,
+  ]);
+
+  // Update active tab if current tab is no longer available (but respect user interaction)
   useEffect(() => {
     const tabIds = tabs.map((t) => t.id);
     if (!tabIds.includes(activeTabId)) {
@@ -98,6 +144,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   // Notify parent when tab changes
   const handleTabChange = useCallback(
     (tabId: string) => {
+      hasUserInteracted.current = true; // Mark that user has interacted
       setActiveTabId(tabId);
       onActiveTabChange?.(tabId);
     },
@@ -244,7 +291,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
-              onPositionUpdate={onPositionUpdate}
             />
           </View>
         );
