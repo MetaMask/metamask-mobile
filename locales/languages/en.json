@@ -1890,7 +1890,7 @@
     "forget": "Forget this device"
   },
   "address_selector": {
-    "select_address": "Select an address"
+    "select_an_address": "Select an address"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
