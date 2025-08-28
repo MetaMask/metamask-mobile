@@ -168,6 +168,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1250,7 +1251,8 @@ const App: React.FC = () => {
         const selectedNetworks = PopularList.filter((network) =>
           chainIdsToAdd.includes(network.chainId),
         );
-        const { NetworkController } = Engine.context;
+        const { NetworkController, NetworkEnablementController } =
+          Engine.context;
 
         // Loop through each selected network and call NetworkController.addNetwork
         for (const network of selectedNetworks) {
@@ -1271,6 +1273,11 @@ const App: React.FC = () => {
                 },
               ],
             });
+
+            // Also enable the network in NetworkEnablementController
+            // This ensures Arbitrum (and others) are enabled by default
+            const caipChainId = toEvmCaipChainId(network.chainId);
+            NetworkEnablementController.enableNetwork(caipChainId);
           } catch (error) {
             Logger.error(error as Error);
           }

@@ -1,4 +1,5 @@
 import FeesTooltipContent from './FeesTooltipContent';
+import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
 import { ContentRegistry } from './types';
 
 /**
@@ -13,7 +14,8 @@ import { ContentRegistry } from './types';
  */
 export const tooltipContentRegistry: ContentRegistry = {
   fees: FeesTooltipContent,
-  // Other contentKeys (leverage, liquidation_price, margin) use default string content
+  withdrawal_fees: WithdrawalFeesTooltipContent,
+  receive: undefined,
   leverage: undefined,
   liquidation_price: undefined,
   margin: undefined,

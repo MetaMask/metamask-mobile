@@ -11,7 +11,9 @@ import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
+import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
+import { usePerpsNetworkValidation } from '../hooks';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -49,6 +51,12 @@ export const PerpsConnectionProvider: React.FC<
   // Enable deposit status monitoring and toasts at the provider level
   // This ensures it runs only once for all Perps screens
   usePerpsDepositStatus();
+
+  // Enable withdrawal status monitoring and toasts at the provider level
+  usePerpsWithdrawStatus();
+
+  // Ensure Arbitrum network is enabled for perps operations
+  usePerpsNetworkValidation();
 
   // Poll connection state to sync with singleton
   useEffect(() => {

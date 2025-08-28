@@ -5,11 +5,13 @@ import { useSelector } from 'react-redux';
 
 import { selectIsIpfsGatewayEnabled } from '../../../../selectors/preferencesController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
+import { selectPerpsNetwork } from '../selectors/perpsController';
 import type { PerpsToken } from '../types';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
+  ARBITRUM_TESTNET_CHAIN_ID,
   USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
   USDC_DECIMALS,
   USDC_NAME,
   USDC_SYMBOL,
@@ -28,41 +30,19 @@ export const useWithdrawTokens = () => {
   // Selectors
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const perpsNetwork = useSelector(selectPerpsNetwork);
+  const isTestnet = perpsNetwork === 'testnet';
 
-  // Source token (Hyperliquid USDC)
+  // Source token (USDC from Perps Account - not showing Hyperliquid)
   const sourceToken = useMemo<PerpsToken>(() => {
-    // Always use mainnet chain ID for network image (like in deposit/order views)
-    const hyperliquidChainId = HYPERLIQUID_MAINNET_CHAIN_ID;
+    // Use appropriate Arbitrum chain ID based on network
+    const chainId = isTestnet
+      ? ARBITRUM_TESTNET_CHAIN_ID
+      : ARBITRUM_MAINNET_CHAIN_ID;
+    const arbitrumChainId = toHex(parseInt(chainId, 10)) as Hex;
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS,
-      decimals: USDC_DECIMALS,
-      name: USDC_NAME,
-      chainId: hyperliquidChainId,
-      currencyExchangeRate: 1,
-    };
-
-    // Enhance with icon from token list
-    if (tokenList) {
-      return enhanceTokenWithIcon({
-        token: baseToken,
-        tokenList,
-        isIpfsGatewayEnabled,
-      });
-    }
-
-    return baseToken;
-  }, [tokenList, isIpfsGatewayEnabled]);
-
-  // Destination token (Arbitrum USDC)
-  const destToken = useMemo<PerpsToken>(() => {
-    const arbitrumChainId = toHex(
-      parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10),
-    ) as Hex;
-
-    const baseToken: PerpsToken = {
-      symbol: USDC_SYMBOL,
-      address: USDC_ARBITRUM_MAINNET_ADDRESS,
       decimals: USDC_DECIMALS,
       name: USDC_NAME,
       chainId: arbitrumChainId,
@@ -79,7 +59,39 @@ export const useWithdrawTokens = () => {
     }
 
     return baseToken;
-  }, [tokenList, isIpfsGatewayEnabled]);
+  }, [tokenList, isIpfsGatewayEnabled, isTestnet]);
+
+  // Destination token (Arbitrum USDC)
+  const destToken = useMemo<PerpsToken>(() => {
+    // Use appropriate chain ID and address based on network
+    const chainId = isTestnet
+      ? ARBITRUM_TESTNET_CHAIN_ID
+      : ARBITRUM_MAINNET_CHAIN_ID;
+    const usdcAddress = isTestnet
+      ? USDC_ARBITRUM_TESTNET_ADDRESS
+      : USDC_ARBITRUM_MAINNET_ADDRESS;
+    const arbitrumChainId = toHex(parseInt(chainId, 10)) as Hex;
+
+    const baseToken: PerpsToken = {
+      symbol: USDC_SYMBOL,
+      address: usdcAddress,
+      decimals: USDC_DECIMALS,
+      name: USDC_NAME,
+      chainId: arbitrumChainId,
+      currencyExchangeRate: 1,
+    };
+
+    // Enhance with icon from token list
+    if (tokenList) {
+      return enhanceTokenWithIcon({
+        token: baseToken,
+        tokenList,
+        isIpfsGatewayEnabled,
+      });
+    }
+
+    return baseToken;
+  }, [tokenList, isIpfsGatewayEnabled, isTestnet]);
 
   return {
     sourceToken,

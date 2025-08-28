@@ -5,6 +5,7 @@ export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsDepositStatus } from './usePerpsDepositStatus';
+export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -27,6 +28,9 @@ export { usePerpsMarketStats } from './usePerpsMarketStats';
 // Withdrawal specific hooks
 export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
+
+// Network validation hooks
+export { usePerpsNetworkValidation } from './usePerpsNetworkValidation';
 
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
