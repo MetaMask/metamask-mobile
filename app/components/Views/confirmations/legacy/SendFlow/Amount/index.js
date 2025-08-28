@@ -1474,6 +1474,8 @@ class Amount extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const disableMax = this.isOPStackNetwork(this.props.globalChainId);
+
     return (
       <SafeAreaView
         edges={['bottom']}
@@ -1530,19 +1532,18 @@ class Amount extends PureComponent {
                 </TouchableOpacity>
               </View>
               <View style={[styles.actionBorder, styles.actionMax]}>
-                {!selectedAsset.tokenId &&
-                  !this.isOPStackNetwork(this.props.globalChainId) && (
-                    <TouchableOpacity
-                      testID={AmountViewSelectorsIDs.MAX_BUTTON}
-                      style={styles.actionMaxTouchable}
-                      disabled={!estimatedTotalGas}
-                      onPress={this.useMax}
-                    >
-                      <Text style={styles.maxText}>
-                        {strings('transaction.use_max')}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                {!selectedAsset.tokenId && !disableMax && (
+                  <TouchableOpacity
+                    testID={AmountViewSelectorsIDs.MAX_BUTTON}
+                    style={styles.actionMaxTouchable}
+                    disabled={!estimatedTotalGas}
+                    onPress={this.useMax}
+                  >
+                    <Text style={styles.maxText}>
+                      {strings('transaction.use_max')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
             {selectedAsset.tokenId
