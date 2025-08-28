@@ -47,6 +47,8 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        restartDevice: false,
+        testSpecificMock,
       },
       async () => {
         await importWalletWithRecoveryPhrase({
