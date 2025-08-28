@@ -38,6 +38,7 @@ import {
 import { useAccountName } from '../../hooks/useAccountName';
 import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { strings } from '../../../../locales/i18n';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(
@@ -151,7 +152,7 @@ const AddressSelector = () => {
   return (
     <BottomSheet ref={sheetRef} isFullscreen>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        Select Address
+        {strings('address_selector.select_an_address')}
       </BottomSheetHeader>
       <Box
         justifyContent={BoxJustifyContent.Center}

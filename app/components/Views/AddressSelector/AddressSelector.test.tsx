@@ -1,6 +1,6 @@
 import React from 'react';
 import Routes from '../../../constants/navigation/Routes';
-import { screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
@@ -10,6 +10,15 @@ import initialRootState from '../../../util/test/initial-root-state';
 import AddressSelector from './AddressSelector';
 import { AddressSelectorParams } from './AddressSelector.types';
 import { setReloadAccounts } from '../../../actions/accounts';
+import Engine from '../../../core/Engine';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+  },
+}));
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -142,5 +151,16 @@ describe('AccountSelector', () => {
     };
     render(AddressSelector, stateWithReload);
     expect(mockDispatch).toHaveBeenCalledWith(setReloadAccounts(false));
+  });
+
+  it('calls setActiveNetwork when an address is pressed', () => {
+    const { getByText } = render(AddressSelector);
+    const lineaAccount = getByText('Linea');
+    act(() => {
+      fireEvent.press(lineaAccount);
+    });
+    expect(
+      Engine.context.MultichainNetworkController.setActiveNetwork,
+    ).toHaveBeenCalledWith('linea-mainnet');
   });
 });
