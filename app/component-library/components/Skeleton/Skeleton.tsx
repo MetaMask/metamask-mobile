@@ -3,7 +3,6 @@
 // Third party dependencies.
 import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
-import { isE2E } from '../../../util/test/utils';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks';
@@ -11,6 +10,7 @@ import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import styleSheet from './Skeleton.styles';
 import { SkeletonProps } from './Skeleton.types';
+import { isE2E } from '../../../util/test/utils';
 
 const Skeleton: React.FC<SkeletonProps> = ({
   height,
@@ -30,6 +30,10 @@ const Skeleton: React.FC<SkeletonProps> = ({
   });
 
   const startAnimation = () => {
+    // On E2E, we don't want to animate the skeleton otherwise recurring timers will be ON.
+    if (isE2E) {
+      return;
+    }
     Animated.sequence([
       Animated.timing(opacityAnim, {
         toValue: 0.1,
@@ -52,7 +56,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
   useEffect(() => {
     // Only start animation if no children are present or if children should be hidden
-    if (!isE2E && (!children || hideChildren)) {
+    if (!children || hideChildren) {
       startAnimation();
     }
 
