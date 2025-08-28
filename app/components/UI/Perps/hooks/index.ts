@@ -32,6 +32,9 @@ export { useWithdrawValidation } from './useWithdrawValidation';
 // Payment tokens hook
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
+// Network validation hooks
+export { usePerpsNetworkValidation } from './usePerpsNetworkValidation';
+
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';

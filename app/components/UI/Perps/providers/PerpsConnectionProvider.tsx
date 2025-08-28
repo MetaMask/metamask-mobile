@@ -4,16 +4,16 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
+import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
-import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
-import { usePerpsNetworkValidation } from '../hooks';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { usePerpsNetworkValidation } from '../hooks/usePerpsNetworkValidation';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
