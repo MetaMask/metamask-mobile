@@ -19,7 +19,6 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import RemoteImage from '../../../../Base/RemoteImage';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import { BigNumber } from 'bignumber.js';
 
 /**
  * PerpsCard Component
@@ -59,10 +58,10 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
     valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    const notionalValue = BigNumber(position.size || '0')
-      .multipliedBy(position.entryPrice || '0')
-      .toString();
-    valueText = formatPrice(notionalValue, { maximumDecimals: 2 });
+    valueText = formatPrice(position.positionValue, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
