@@ -4,7 +4,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { SmokeNetworkExpansion } from '../../tags';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -46,14 +46,12 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   it('should import wallet with a Solana account', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withSolanaFixture().build(),
         restartDevice: true,
         testSpecificMock,
       },
       async () => {
-        await importWalletWithRecoveryPhrase({
-          seedPhrase: process.env.MM_SOLANA_E2E_TEST_SRP,
-        });
+        await loginToApp();
 
         await WalletView.tapCurrentMainWalletAccountActions();
         await AccountListBottomSheet.tapAddAccountButton();
