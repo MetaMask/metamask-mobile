@@ -376,6 +376,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
       },
       "PreferencesController": {
@@ -1009,6 +1010,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
       },
       "PreferencesController": {

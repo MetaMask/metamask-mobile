@@ -52,7 +52,11 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     infoIcon: {
-      marginLeft: 8,
+      marginLeft: 0,
+      padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
+      marginRight: -6, // Compensate for padding to keep visual alignment
+      marginTop: -10, // Keep icon at same vertical position
+      marginBottom: -10, // Keep icon at same vertical position
     },
     infoSection: {
       paddingHorizontal: 24,
