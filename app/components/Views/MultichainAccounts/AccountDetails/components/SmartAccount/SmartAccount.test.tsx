@@ -10,6 +10,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
+import Icon from '../../../../../../component-library/components/Icons/Icon';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -54,9 +55,9 @@ describe('SmartAccountDetails', () => {
   it('displays arrow icon', () => {
     const { UNSAFE_getByType } = render(mockAccount);
 
-    // Check that an SVG/Icon element is rendered
-    const svgElement = UNSAFE_getByType('SvgMock');
-    expect(svgElement).toBeTruthy();
+    // Check that an Icon element is rendered
+    const iconElement = UNSAFE_getByType(Icon);
+    expect(iconElement).toBeTruthy();
   });
 
   it('navigates to SmartAccountDetails when pressed', () => {
