@@ -22,6 +22,10 @@ import {
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+import {
+  MOCK_ENTROPY_SOURCE,
+  MOCK_ENTROPY_SOURCE_2,
+} from '../../../app/util/test/keyringControllerTestUtils';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -39,6 +43,19 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
+
+// AccountTreeController Wallet and Group IDs - reused across fixtures
+export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
+export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
+export const HD_KEYRING_WALLET_ID = 'keyring:01JNG66ATK17YSN0TSS6H51EE3';
+export const QR_HARDWARE_WALLET_ID = 'keyring:01JNG66NARF27JY9TGWJX385QW';
+export const SIMPLE_KEYRING_WALLET_ID = 'keyring:01JNG67PTK18YTN1UTT7I52FF4';
+
+// Snap Wallet IDs - using real Snap IDs from the codebase
+export const SIMPLE_KEYRING_SNAP_ID =
+  'snap:npm:@metamask/snap-simple-keyring-snap';
+export const BITCOIN_WALLET_SNAP_ID = 'snap:npm:@metamask/bitcoin-wallet-snap';
+export const SOLANA_WALLET_SNAP_ID = 'snap:npm:@metamask/solana-wallet-snap';
 
 const DAPP_URL = 'localhost';
 
@@ -1792,6 +1809,229 @@ class FixtureBuilder {
    */
   withSeedphraseBackedUpDisabled() {
     this.fixture.state.user.seedphraseBackedUp = false;
+    return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the AccountTreeController.
+   * If no data is provided, sets up a comprehensive default state following @metamask/account-tree-controller specs
+   * with pre-defined grouping rules. Uses existing entropy sources (MOCK_ENTROPY_SOURCE),
+   * real keyring types (KeyringTypes.hd, .qr, .simple), and actual Snap IDs from the codebase.
+   * If custom wallets are provided, they completely replace the defaults.
+   * @param {object} data - Data to merge into the AccountTreeController's state. Optional.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withAccountTreeController(data: Record<string, unknown> = {}) {
+    // Define a comprehensive default state following @metamask/account-tree-controller specs
+    // Leverages existing keyring types, entropy sources (MOCK_ENTROPY_SOURCE*), and real Snap IDs from the codebase
+    const defaultAccountTreeState = {
+      accountTree: {
+        wallets: {
+          // Entropy-based Multichain Wallet (Primary SRP)
+          [ENTROPY_WALLET_1_ID]: {
+            id: ENTROPY_WALLET_1_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 1',
+              entropySource: MOCK_ENTROPY_SOURCE,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_1_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Account 1 - EVM address
+                  'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // Account 1 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+              [`${ENTROPY_WALLET_1_ID}/account-2`]: {
+                id: `${ENTROPY_WALLET_1_ID}/account-2`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2', // Account 2 - EVM address
+                  'b2c3d4e5-f6g7-8901-bcde-f23456789012', // Account 2 - Solana address
+                ],
+                metadata: {
+                  name: 'Account 2',
+                },
+              },
+            },
+          },
+          // Secondary Entropy Wallet (Secondary SRP)
+          [ENTROPY_WALLET_2_ID]: {
+            id: ENTROPY_WALLET_2_ID,
+            type: 'Entropy',
+            metadata: {
+              name: 'Secret Recovery Phrase 2',
+              entropySource: MOCK_ENTROPY_SOURCE_2,
+            },
+            groups: {
+              [`${ENTROPY_WALLET_2_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_2_ID}/account-1`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Secondary wallet Account 1
+                ],
+                metadata: {
+                  name: 'Account 1',
+                },
+              },
+            },
+          },
+          // HD Keyring (KeyringTypes.hd)
+          [HD_KEYRING_WALLET_ID]: {
+            id: HD_KEYRING_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'HD Key Tree',
+              keyringType: 'HD Key Tree', // KeyringTypes.hd
+            },
+            groups: {
+              [`${HD_KEYRING_WALLET_ID}/ethereum`]: {
+                id: `${HD_KEYRING_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3', // HD Account 1
+                  '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4', // HD Account 2
+                ],
+                metadata: {
+                  name: 'Ethereum Accounts',
+                },
+              },
+            },
+          },
+          // QR Hardware Wallet (KeyringTypes.qr)
+          [QR_HARDWARE_WALLET_ID]: {
+            id: QR_HARDWARE_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'QR Hardware Device',
+              keyringType: 'QR Hardware Wallet Device', // KeyringTypes.qr
+            },
+            groups: {
+              [`${QR_HARDWARE_WALLET_ID}/ethereum`]: {
+                id: `${QR_HARDWARE_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'b374ca01-3934-e498-e5ba-d3409147f34e', // Hardware Account
+                ],
+                metadata: {
+                  name: 'Hardware Accounts',
+                },
+              },
+            },
+          },
+          // Simple Key Pair (KeyringTypes.simple)
+          [SIMPLE_KEYRING_WALLET_ID]: {
+            id: SIMPLE_KEYRING_WALLET_ID,
+            type: 'Keyring',
+            metadata: {
+              name: 'Imported Accounts',
+              keyringType: 'Simple Key Pair', // KeyringTypes.simple
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_WALLET_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_WALLET_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  '43e1c289-177e-cfbe-6ef3-4b5fb2b66ebc', // Imported Account
+                ],
+                metadata: {
+                  name: 'Private Key Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Simple Keyring Snap
+          [SIMPLE_KEYRING_SNAP_ID]: {
+            id: SIMPLE_KEYRING_SNAP_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Simple Keyring Snap',
+              snapId: 'npm:@metamask/snap-simple-keyring-snap',
+            },
+            groups: {
+              [`${SIMPLE_KEYRING_SNAP_ID}/ethereum`]: {
+                id: `${SIMPLE_KEYRING_SNAP_ID}/ethereum`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'e697fe4b-399h-899i-fgh0-h567890124de', // Snap Account 1
+                ],
+                metadata: {
+                  name: 'Snap Ethereum Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Bitcoin Wallet Snap
+          [BITCOIN_WALLET_SNAP_ID]: {
+            id: BITCOIN_WALLET_SNAP_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Bitcoin Wallet Snap',
+              snapId: 'npm:@metamask/bitcoin-wallet-snap',
+            },
+            groups: {
+              [`${BITCOIN_WALLET_SNAP_ID}/bitcoin`]: {
+                id: `${BITCOIN_WALLET_SNAP_ID}/bitcoin`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'f798gf5c-4a0i-9a0j-ghi1-i678901235ef', // Bitcoin Account 1
+                ],
+                metadata: {
+                  name: 'Bitcoin Accounts',
+                },
+              },
+            },
+          },
+          // Snap Keyring - Solana Wallet Snap
+          [SOLANA_WALLET_SNAP_ID]: {
+            id: SOLANA_WALLET_SNAP_ID,
+            type: 'Snap',
+            metadata: {
+              name: 'Solana Wallet Snap',
+              snapId: 'npm:@metamask/solana-wallet-snap',
+            },
+            groups: {
+              [`${SOLANA_WALLET_SNAP_ID}/solana`]: {
+                id: `${SOLANA_WALLET_SNAP_ID}/solana`,
+                type: 'MultipleAccount',
+                accounts: [
+                  'g899hg6d-5b1j-0b1k-hij2-j789012346fg', // Solana Account 1
+                ],
+                metadata: {
+                  name: 'Solana Accounts',
+                },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: `${ENTROPY_WALLET_1_ID}/account-1`,
+      },
+    };
+
+    // Check if user provided their own wallets - if so, use those instead of defaults
+    const providedAccountTree = data.accountTree as {
+      wallets?: Record<string, unknown>;
+    };
+    const hasCustomWallets = providedAccountTree?.wallets;
+
+    let stateToMerge;
+    if (hasCustomWallets) {
+      // User provided custom wallets, so skip defaults and use their data directly
+      stateToMerge = data;
+    } else {
+      // No custom wallets provided, merge with comprehensive defaults
+      stateToMerge = merge({}, defaultAccountTreeState, data);
+    }
+
+    merge(
+      this.fixture.state.engine.backgroundState.AccountTreeController,
+      stateToMerge,
+    );
     return this;
   }
 
