@@ -85,7 +85,10 @@ describe('AccountListFooter', () => {
   describe('Rendering', () => {
     it('renders correctly with wallet info', () => {
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
       expect(getByText('Create account')).toBeOnTheScreen();
     });
@@ -94,7 +97,10 @@ describe('AccountListFooter', () => {
   describe('Button Interactions', () => {
     it('calls handlePress when button is pressed', async () => {
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -106,7 +112,10 @@ describe('AccountListFooter', () => {
 
     it('sets loading state immediately when pressed', async () => {
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -124,7 +133,10 @@ describe('AccountListFooter', () => {
       );
 
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -144,7 +156,10 @@ describe('AccountListFooter', () => {
       );
 
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -162,7 +177,10 @@ describe('AccountListFooter', () => {
   describe('Loading State Management', () => {
     it('shows spinner when loading', async () => {
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -178,7 +196,10 @@ describe('AccountListFooter', () => {
       );
 
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -198,7 +219,10 @@ describe('AccountListFooter', () => {
       );
 
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
@@ -216,7 +240,10 @@ describe('AccountListFooter', () => {
   describe('InteractionManager Integration', () => {
     it('uses InteractionManager to defer async work', async () => {
       const { getByText } = render(
-        <AccountListFooter walletId={mockWalletId} />,
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={jest.fn()}
+        />,
       );
 
       fireEvent.press(getByText('Create account'));
