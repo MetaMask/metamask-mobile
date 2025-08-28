@@ -40,6 +40,13 @@ export const createTradingViewChartTemplate = (
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         window.visibleCandleCount = 45; // Default visible candle count
         window.allCandleData = []; // Store all loaded data for zoom functionality
+        
+        // Zoom limits - consistent with chart configuration
+        window.ZOOM_LIMITS = {
+            MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
+            MAX_CANDLES: 250, // Maximum candles visible when zoomed out
+            DEFAULT_CANDLES: 45 // Default visible candles
+        };
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -75,6 +82,21 @@ export const createTradingViewChartTemplate = (
                         timeVisible: true,
                         secondsVisible: false,
                         borderColor: 'transparent',
+                        // Add zoom restrictions
+                        handleScale: {
+                            axisPressedMouseMove: {
+                                time: false, // Disable time scale dragging
+                                price: true, // Allow price scale dragging
+                            },
+                            mouseWheel: true, // Enable mouse wheel zoom
+                            pinch: true, // Enable pinch zoom on mobile
+                        },
+                        handleScroll: {
+                            mouseWheel: true, // Enable mouse wheel scroll
+                            pressedMouseMove: true, // Enable drag scroll
+                            horzTouchDrag: true, // Enable horizontal touch drag
+                            vertTouchDrag: false, // Disable vertical touch drag
+                        },
                     },
                     rightPriceScale: {
                         borderColor: 'transparent',
@@ -83,6 +105,43 @@ export const createTradingViewChartTemplate = (
                         borderColor: 'transparent',
                     }
                 });
+
+                // Add zoom restriction functionality
+                window.chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
+                    if (logicalRange && window.allCandleData && window.allCandleData.length > 0) {
+                        // Calculate visible candle count from logical range
+                        const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
+                        
+                        // Prevent zooming out beyond maximum limit
+                        if (visibleCandleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
+                            // Calculate the maximum allowed range
+                            const maxRange = window.ZOOM_LIMITS.MAX_CANDLES;
+                            const centerPoint = (logicalRange.from + logicalRange.to) / 2;
+                            const halfRange = maxRange / 2;
+                            
+                            // Set the visible range to exactly max candles centered around the current view
+                            window.chart.timeScale().setVisibleLogicalRange({
+                                from: centerPoint - halfRange,
+                                to: centerPoint + halfRange,
+                            });
+                            return;
+                        }
+                        
+                        // Prevent zooming in beyond minimum limit
+                        if (visibleCandleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
+                            const minRange = window.ZOOM_LIMITS.MIN_CANDLES;
+                            const centerPoint = (logicalRange.from + logicalRange.to) / 2;
+                            const halfRange = minRange / 2;
+                            
+                            window.chart.timeScale().setVisibleLogicalRange({
+                                from: centerPoint - halfRange,
+                                to: centerPoint + halfRange,
+                            });
+                            return;
+                        }
+                    }
+                });
+
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -138,13 +197,14 @@ export const createTradingViewChartTemplate = (
                 return;
             }
             
-            // Ensure candleCount is within bounds
-            const minCandles = 10;
-            const maxCandles = Math.min(250, window.allCandleData.length);
+            // Ensure candleCount is within bounds using zoom limits
+            const minCandles = window.ZOOM_LIMITS.MIN_CANDLES;
+            const maxCandles = window.ZOOM_LIMITS.MAX_CANDLES;
             const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
             
             // Get the last N candles to display (most recent data)
-            const visibleData = window.allCandleData.slice(-actualCandleCount);
+            const startIndex = Math.max(0, window.allCandleData.length - actualCandleCount);
+            const visibleData = window.allCandleData.slice(startIndex);
             
             if (window.candlestickSeries && visibleData.length > 0) {
                 // Set the visible range to show only the selected number of candles
