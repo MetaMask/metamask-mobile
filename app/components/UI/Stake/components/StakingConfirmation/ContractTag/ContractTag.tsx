@@ -20,7 +20,7 @@ const ContractTag = ({
   useBlockieIcon = false,
 }: ContractTagProps) => {
   // A set of addresses for the Aave V3 pool contracts
-  const avaeAddresses = useMemo(
+  const aaveAddresses = useMemo(
     () =>
       new Set<string>(
         Object.values(CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS).map(
@@ -33,7 +33,7 @@ const ContractTag = ({
   return (
     <TagBase
       startAccessory={
-        avaeAddresses.has(contractAddress.toLowerCase()) ? (
+        aaveAddresses.has(contractAddress.toLowerCase()) ? (
           <Avatar
             variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
