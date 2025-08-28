@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import * as Haptics from 'expo-haptics';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -44,6 +45,17 @@ import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+
+const triggerLeverageHaptic = async (): Promise<void> => {
+  try {
+    await impactAsync(ImpactFeedbackStyle.Light);
+  } catch (error) {
+    // Haptic feedback is not critical - fail silently
+    DevLogger.log('Haptic feedback not available:', error);
+  }
+};
 
 interface PerpsTabViewProps {}
 
@@ -143,6 +155,37 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     resetError();
     connect();
   }, [connect, resetError]);
+
+  // Temporary handler for testing haptics
+  const handleHapticTest = useCallback(async () => {
+    try {
+      console.log('Testing Android-compatible expo-haptics...');
+
+      // Only use notification haptics on Android (these work cross-platform)
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      console.log('Success notification haptic triggered');
+
+      setTimeout(async () => {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Warning,
+        );
+        console.log('Warning notification haptic triggered');
+      }, 400);
+
+      setTimeout(async () => {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        console.log('Error notification haptic triggered');
+      }, 800);
+
+      // Test selection feedback (should work on Android)
+      setTimeout(async () => {
+        await Haptics.selectionAsync();
+        console.log('Selection haptic triggered');
+      }, 1200);
+    } catch (error) {
+      console.error('Haptic error:', error);
+    }
+  }, []);
 
   const renderOrdersSection = () => {
     // Only show orders section if there are active orders
@@ -267,6 +310,18 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ) : (
         <>
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
+
+          {/* Temporary Haptics Test Button - Remove after testing */}
+          <View style={styles.section}>
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Md}
+              label="Test Android Expo Haptics 📳"
+              onPress={triggerLeverageHaptic}
+              width={ButtonWidthTypes.Full}
+            />
+          </View>
+
           <ScrollView style={styles.content}>
             <View style={styles.section}>{renderPositionsSection()}</View>
             <View style={styles.section}>{renderOrdersSection()}</View>
