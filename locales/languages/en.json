@@ -520,6 +520,7 @@
     "amount": "Amount",
     "confirm": "Confirm",
     "paste": "Paste",
+    "no_assets_available": "No assets available to send",
     "clear": "Clear",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
