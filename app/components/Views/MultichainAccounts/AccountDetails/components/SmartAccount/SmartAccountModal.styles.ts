@@ -40,12 +40,8 @@ const styleSheet = (params: { theme: Theme }) => {
     description: {
       flexWrap: 'wrap',
     },
-    networkListContainer: {
-      marginTop: 16,
-      minHeight: 60,
-    },
-    networkListPlaceholder: {
-      height: 60,
+    networkList: {
+      marginBottom: 8,
     },
   });
 };
