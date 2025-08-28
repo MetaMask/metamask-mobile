@@ -393,7 +393,8 @@
     "hasPlacedFirstOrder": {
       "testnet": false,
       "mainnet": false
-    }
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
