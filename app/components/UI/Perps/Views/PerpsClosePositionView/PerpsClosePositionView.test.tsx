@@ -14,6 +14,7 @@ import {
   defaultMinimumOrderAmountMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -148,7 +149,11 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component renders without error
-      expect(queryByTestId('close-position-confirm-button')).toBeDefined();
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
     });
 
     it('shows default market order type on initial render', () => {
@@ -199,7 +204,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const cancelButton = getByTestId('close-position-cancel-button');
+      const cancelButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
+      );
       fireEvent.press(cancelButton);
 
       // Assert
@@ -223,7 +230,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
       fireEvent.press(confirmButton);
 
       // Assert
@@ -248,7 +257,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
 
       // Assert
       expect(
@@ -273,7 +284,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Button should have loading prop set
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
       expect(confirmButton.props.loading).toBe(true);
     });
   });
@@ -342,7 +355,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
 
       // Assert
       expect(
@@ -436,7 +451,11 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component should render without errors
-      expect(queryByTestId('close-position-confirm-button')).toBeDefined();
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
     });
 
     it('handles short position correctly', () => {
@@ -459,7 +478,11 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component should render without errors
-      expect(queryByTestId('close-position-confirm-button')).toBeDefined();
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
     });
 
     it('displays positive PnL in success color', () => {
@@ -544,7 +567,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
       fireEvent.press(confirmButton);
 
       // Assert
@@ -594,7 +619,11 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - Component should render without crashing
-      expect(queryByTestId('close-position-confirm-button')).toBeDefined();
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
     });
   });
 
@@ -640,6 +669,52 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
+  describe('Limit Order Features', () => {
+    it('switches between market and limit order types', () => {
+      // Given a close position view
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Then it should show market order by default
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON),
+      ).toBeDefined();
+      expect(getByText(strings('perps.order.market'))).toBeDefined();
+    });
+
+    it('validates limit order requires price', () => {
+      // Given validation returns error for missing limit price
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: false,
+        errors: ['Limit price is required'],
+        warnings: [],
+      });
+
+      // When rendering with no limit price
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Then confirm button should be disabled
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+      expect(
+        confirmButton.props.disabled ||
+          confirmButton.props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+  });
+
   describe('Navigation Callbacks', () => {
     it('navigates back on successful position close', async () => {
       // Arrange
@@ -665,7 +740,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Act
-      const confirmButton = getByTestId('close-position-confirm-button');
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
       fireEvent.press(confirmButton);
 
       // Assert

@@ -48,6 +48,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
@@ -298,6 +299,7 @@ const PerpsClosePositionView: React.FC = () => {
         <TouchableOpacity
           style={styles.orderTypeButton}
           onPress={() => setIsOrderTypeVisible(true)}
+          testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
         >
           <Text variant={TextVariant.BodyMD}>
             {orderType === 'market'
@@ -343,6 +345,7 @@ const PerpsClosePositionView: React.FC = () => {
             onPress={() =>
               setDisplayMode(displayMode === 'usd' ? 'token' : 'usd')
             }
+            testID={PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON}
           >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {displayMode === 'usd'
@@ -577,7 +580,9 @@ const PerpsClosePositionView: React.FC = () => {
               !validationResult.isValid
             }
             loading={isClosing}
-            testID="close-position-confirm-button"
+            testID={
+              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON
+            }
           />
           <Button
             label={strings('perps.close_position.cancel')}
@@ -586,7 +591,9 @@ const PerpsClosePositionView: React.FC = () => {
             width={ButtonWidthTypes.Full}
             onPress={handleCancel}
             isDisabled={isClosing}
-            testID="close-position-cancel-button"
+            testID={
+              PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON
+            }
           />
         </View>
       )}
@@ -619,6 +626,7 @@ const PerpsClosePositionView: React.FC = () => {
         asset={position.coin}
         limitPrice={limitPrice}
         currentPrice={currentPrice}
+        direction={isLong ? 'short' : 'long'} // Opposite direction for closing
       />
 
       {/* Tooltip Bottom Sheet */}
