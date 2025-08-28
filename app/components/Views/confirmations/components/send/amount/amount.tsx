@@ -104,6 +104,10 @@ export const Amount = () => {
     updateValue,
   ]);
 
+  const balanceUnit =
+    assetSymbol ??
+    (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
+
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
@@ -156,9 +160,9 @@ export const Amount = () => {
           </TagBase>
         )}
         <View style={styles.balanceSection}>
-          <Text color={TextColor.Alternative}>{`${balance} ${
-            assetSymbol ?? strings('send.units')
-          } ${strings('send.available')}`}</Text>
+          <Text
+            color={TextColor.Alternative}
+          >{`${balance} ${balanceUnit} ${strings('send.available')}`}</Text>
         </View>
       </View>
       <AmountKeyboard
