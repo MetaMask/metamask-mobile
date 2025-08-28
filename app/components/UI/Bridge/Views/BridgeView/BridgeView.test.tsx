@@ -168,6 +168,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
         yOffset: 0,
         isSelected: true,
         caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
+        scopes: ['eip155:0', 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
       },
     ],
     ensByAccountAddress: {
