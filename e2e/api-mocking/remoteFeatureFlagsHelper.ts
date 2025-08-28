@@ -90,8 +90,10 @@ export const createRemoteFeatureFlagsMock = (
   flagOverrides: Record<string, unknown> = {},
   distribution: string = 'main',
 ): MockApiEndpoint => {
-  // Start with default array
-  const result = [...DEFAULT_FEATURE_FLAGS_ARRAY];
+  // Start with deep copy of default array to avoid mutation
+  const result = JSON.parse(
+    JSON.stringify(DEFAULT_FEATURE_FLAGS_ARRAY),
+  ) as Record<string, unknown>[];
 
   // Apply overrides by finding and merging with existing objects or adding new ones
   Object.entries(flagOverrides).forEach(([flagName, flagValue]) => {
