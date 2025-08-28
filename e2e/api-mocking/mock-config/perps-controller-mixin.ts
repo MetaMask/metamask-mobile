@@ -228,6 +228,22 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
 
   // Initialize Redux state with mock data immediately
   const mockService = PerpsE2EMockService.getInstance();
+
+  // If the controller has a mockProfile in its state (injected via Fixture), apply it
+  try {
+    const maybeState = (controller as { state?: { mockProfile?: string } })
+      ?.state;
+    if (maybeState?.mockProfile) {
+      console.log(
+        '🎭 E2E Mock: Applying profile from fixture:',
+        maybeState.mockProfile,
+      );
+      PerpsE2EMockService.setProfile(maybeState.mockProfile);
+      mockService.reset();
+    }
+  } catch (e) {
+    // no-op if structure differs
+  }
   const mockAccount = mockService.getMockAccountState();
   const mockPositions = mockService.getMockPositions();
 

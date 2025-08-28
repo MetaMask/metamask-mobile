@@ -22,6 +22,7 @@ import type {
 
 export class PerpsE2EMockService {
   private static instance: PerpsE2EMockService;
+  private static activeProfile: string | null = null;
 
   // Mock state that persists across the E2E session
   private mockAccount: AccountState = {
@@ -53,38 +54,49 @@ export class PerpsE2EMockService {
     return PerpsE2EMockService.instance;
   }
 
+  // Allow E2E to set a mock "profile" that controls initial state
+  public static setProfile(profile: string | null) {
+    PerpsE2EMockService.activeProfile = profile;
+  }
+
   // Reset state for fresh test runs
   public reset(): void {
+    const profile = PerpsE2EMockService.activeProfile;
+
+    // Default account state
     this.mockAccount = {
-      totalBalance: '10000.00',
-      availableBalance: '8000.00',
-      marginUsed: '2000.00',
-      unrealizedPnl: '150.00',
+      totalBalance: profile === 'no-funds' ? '0.00' : '10000.00',
+      availableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
+      marginUsed: profile === 'no-funds' ? '0.00' : '2000.00',
+      unrealizedPnl: profile === 'no-funds' ? '0.00' : '150.00',
     };
 
-    // Start with a default position to close in E2E tests
-    this.mockPositions = [
-      {
-        coin: 'BTC',
-        entryPrice: '45000.00',
-        size: '0.1', // Long position
-        positionValue: '4500.00',
-        unrealizedPnl: '150.00', // $150 profit
-        marginUsed: '900.00', // 5x leverage
-        leverage: {
-          type: 'cross',
-          value: 5,
-        },
-        liquidationPrice: '36000.00',
-        maxLeverage: 50,
-        returnOnEquity: '0.167', // 16.7% ROE
-        cumulativeFunding: {
-          allTime: '0',
-          sinceChange: '0',
-          sinceOpen: '0',
-        },
-      },
-    ];
+    // Positions based on profile
+    this.mockPositions =
+      profile === 'no-funds'
+        ? []
+        : [
+            {
+              coin: 'BTC',
+              entryPrice: '45000.00',
+              size: '0.1',
+              positionValue: '4500.00',
+              unrealizedPnl: '150.00',
+              marginUsed: '900.00',
+              leverage: {
+                type: 'cross',
+                value: 5,
+              },
+              liquidationPrice: '36000.00',
+              maxLeverage: 50,
+              returnOnEquity: '0.167',
+              cumulativeFunding: {
+                allTime: '0',
+                sinceChange: '0',
+                sinceOpen: '0',
+              },
+            },
+          ];
 
     this.mockOrders = [];
     this.mockOrderFills = [];

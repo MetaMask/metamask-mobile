@@ -177,6 +177,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             size={ButtonSize.Lg}
             label={strings('perps.position.list.start_trading')}
             onPress={handleStartTrading}
+            testID="perps-onboarding-button"
             style={styles.startTradingButton}
             width={ButtonWidthTypes.Full}
           />

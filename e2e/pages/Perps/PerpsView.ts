@@ -5,6 +5,8 @@ import {
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import { ToastSelectorsText } from '../../selectors/wallet/ToastModal.selectors';
 
 class PerpsView {
   get closePositionButton() {
@@ -69,6 +71,35 @@ class PerpsView {
 
   async tapOrderSuccessToastDismissButton() {
     await Gestures.waitAndTap(this.orderSuccessToastDismissButton);
+  }
+
+  async dismissToast(): Promise<void> {
+    let button: DetoxElement | null = null;
+    try {
+      const tryDismiss = Matchers.getElementByText('Dismiss');
+      await Assertions.expectElementToBeVisible(tryDismiss as DetoxElement, {
+        description: 'Toast Dismiss button visible',
+        timeout: 3000,
+      });
+      button = tryDismiss as DetoxElement;
+    } catch {
+      const tryClose = Matchers.getElementByText(
+        ToastSelectorsText.CLOSE_BUTTON,
+      );
+      await Assertions.expectElementToBeVisible(tryClose as DetoxElement, {
+        description: 'Toast Close button visible',
+        timeout: 5000,
+      });
+      button = tryClose as DetoxElement;
+    }
+    await Gestures.waitAndTap(button as DetoxElement, {
+      elemDescription: 'Tap toast close',
+      delay: 100,
+    });
+    // await Assertions.expectElementToNotBeVisible(this.toastContainer, {
+    //   description: 'Toast container should disappear',
+    //   timeout: 10000,
+    // });
   }
 
   async tapClosePositionBottomSheetButton() {
