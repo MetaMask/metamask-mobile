@@ -645,8 +645,8 @@ const EarnLendingDepositConfirmationView = () => {
   const depositTokens = async (networkClientId: string) => {
     const protocol = earnToken?.experience?.market?.protocol;
     const chainId = earnToken?.chainId;
-    const underlyingTokenAddress =
-      earnToken?.experience?.market?.underlying?.address;
+    const underlyingTokenAddress = earnToken?.experience?.market?.underlying
+      ?.address as string;
 
     if (!protocol || !chainId) {
       return;
