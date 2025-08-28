@@ -132,6 +132,11 @@ describe('PerpsController', () => {
       toggleTestnet: jest.fn(),
       getPositions: jest.fn(),
       getAccountState: jest.fn(),
+      getHistoricalPortfolio: jest.fn().mockResolvedValue({
+        totalBalance24hAgo: '10000',
+        totalBalance7dAgo: '9500',
+        totalBalance30dAgo: '9000',
+      }),
       getMarkets: jest.fn(),
       placeOrder: jest.fn(),
       editOrder: jest.fn(),
@@ -370,6 +375,8 @@ describe('PerpsController', () => {
         totalBalance: '1500',
         marginUsed: '500',
         unrealizedPnl: '100',
+        returnOnEquity: '20.0',
+        totalValue: '1600',
       };
 
       withController(async ({ controller }) => {
@@ -2696,6 +2703,8 @@ describe('PerpsController', () => {
         availableBalance: '15000',
         marginUsed: '5000',
         unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalValue: '20100',
       };
       mockHyperLiquidProvider.getAccountState.mockResolvedValue(
         mockAccountState,

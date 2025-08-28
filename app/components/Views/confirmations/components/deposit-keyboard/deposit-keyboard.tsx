@@ -9,6 +9,8 @@ import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -44,6 +46,7 @@ export function DepositKeyboard({
   onPercentagePress,
   value,
 }: DepositKeyboardProps) {
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { styles } = useStyles(styleSheet, {});
 
   const valueString = value.toString();
@@ -93,7 +96,8 @@ export function DepositKeyboard({
       <KeypadComponent
         value={valueString}
         onChange={handleChange}
-        currency="native"
+        currency={currentCurrency}
+        decimals={2}
       />
     </View>
   );

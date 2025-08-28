@@ -66,6 +66,8 @@ import { isNotificationsFeatureEnabled } from '../../../../../util/notifications
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
+import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   isNavigationFromOrderSuccess?: boolean;
@@ -88,6 +90,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
   }, [startMeasure]);
 
+  // Set navigation header with proper back button
+  useEffect(() => {
+    if (market) {
+      navigation.setOptions(
+        getPerpsMarketDetailsNavbar(navigation, market.symbol),
+      );
+    }
+  }, [navigation, market]);
+
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_HOUR,
   );
@@ -108,7 +119,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
 
   // Get real-time open orders via WebSocket
-  const ordersData = usePerpsLiveOrders(); // Instant updates (no debouncing)
+  const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
@@ -251,7 +262,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback to markets list if no previous screen
+      navigation.navigate(Routes.PERPS.MARKETS);
+    }
   };
 
   const handleLongPress = () => {
