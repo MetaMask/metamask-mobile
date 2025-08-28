@@ -96,6 +96,8 @@ describe('perps controller init', () => {
         testnet: false,
         mainnet: false,
       },
+      withdrawInProgress: false,
+      lastWithdrawResult: null,
     };
 
     initRequestMock.persistedState = {

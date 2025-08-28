@@ -381,6 +381,8 @@
     "pendingOrders": [],
     "depositInProgress": false,
     "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,

@@ -129,6 +129,15 @@ export type PerpsControllerState = {
     error?: string;
   } | null;
 
+  // Simple withdrawal state (transient, for UI feedback)
+  withdrawInProgress: boolean;
+  lastWithdrawResult: {
+    success: boolean;
+    txHash?: string;
+    amount?: string;
+    error?: string;
+  } | null;
+
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
@@ -162,6 +171,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   pendingOrders: [],
   depositInProgress: false,
   lastDepositResult: null,
+  withdrawInProgress: false,
+  lastWithdrawResult: null,
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
@@ -188,6 +199,8 @@ const metadata = {
   pendingOrders: { persist: false, anonymous: false },
   depositInProgress: { persist: false, anonymous: false },
   lastDepositResult: { persist: false, anonymous: false },
+  withdrawInProgress: { persist: false, anonymous: false },
+  lastWithdrawResult: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
@@ -802,6 +815,12 @@ export class PerpsController extends BaseController<
     });
   }
 
+  clearWithdrawResult(): void {
+    this.update((state) => {
+      state.lastWithdrawResult = null;
+    });
+  }
+
   /**
    * Withdraw funds from trading account
    *
@@ -837,6 +856,11 @@ export class PerpsController extends BaseController<
         isTestnet: this.state.isTestnet,
       });
 
+      // Set withdrawal in progress
+      this.update((state) => {
+        state.withdrawInProgress = true;
+      });
+
       // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
       DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
@@ -859,6 +883,12 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastError = null;
           state.lastUpdateTimestamp = Date.now();
+          state.withdrawInProgress = false;
+          state.lastWithdrawResult = {
+            success: true,
+            txHash: result.txHash,
+            amount: params.amount,
+          };
         });
 
         DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -866,6 +896,19 @@ export class PerpsController extends BaseController<
           amount: params.amount,
           assetId: params.assetId,
           withdrawalId: result.withdrawalId,
+        });
+
+        // Note: The withdrawal result will be cleared by usePerpsWithdrawStatus hook
+        // after showing the appropriate toast messages
+
+        // Trigger account state refresh after withdrawal
+        this.getAccountState().catch((error) => {
+          DevLogger.log(
+            '⚠️ PerpsController: Failed to refresh after withdrawal',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          );
         });
 
         endTrace({
@@ -883,7 +926,13 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED;
         state.lastUpdateTimestamp = Date.now();
+        state.withdrawInProgress = false;
+        state.lastWithdrawResult = {
+          success: false,
+          error: result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED,
+        };
       });
+
       DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
         error: result.error,
         params,
@@ -916,6 +965,11 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
+        state.withdrawInProgress = false;
+        state.lastWithdrawResult = {
+          success: false,
+          error: errorMessage,
+        };
       });
 
       endTrace({
