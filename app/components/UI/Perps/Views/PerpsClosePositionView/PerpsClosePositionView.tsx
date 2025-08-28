@@ -101,11 +101,8 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   const positionValue = absSize * currentPrice;
-  // Calculate effective margin from position value and leverage
-  const leverage = position.leverage
-    ? parseFloat(position.leverage.value.toString())
-    : 1;
-  const effectiveMargin = positionValue / leverage;
+  // Use the actual margin from the position instead of recalculating
+  const effectiveMargin = parseFloat(position.marginUsed);
 
   // Use unrealized PnL from position
   const pnl = parseFloat(position.unrealizedPnl);
