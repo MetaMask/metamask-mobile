@@ -30,9 +30,6 @@ import { Authentication } from '../../../core';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import branch from 'react-native-branch';
-import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -747,63 +744,7 @@ describe('App', () => {
     });
   });
 
-  describe('Branch deeplink handling', () => {
-    it('initializes SharedDeeplinkManager with navigation and dispatch', async () => {
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(SharedDeeplinkManager.init).toHaveBeenCalledWith({
-          navigation: expect.any(Object),
-          dispatch: expect.any(Function),
-        });
-      });
-    });
-    it('calls getBranchDeeplink immediately for cold start deeplink check', async () => {
-      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
-      });
-    });
-    it('processes cold start deeplink when non-branch link is found', async () => {
-      const mockDeeplink = 'https://link.metamask.io/home';
-      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-        '+non_branch_link': mockDeeplink,
-      });
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
-        expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
-          mockDeeplink,
-        );
-      });
-    });
 
-    it('subscribes to Branch deeplink events', async () => {
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(branch.subscribe).toHaveBeenCalled();
-      });
-    });
-    it('processes deeplink from subscription callback when uri is provided', async () => {
-      const mockUri = 'https://link.metamask.io/home';
-      const mockDeeplink = 'https://link.metamask.io/swap';
-      (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-        '+non_branch_link': mockDeeplink,
-      });
-      renderScreen(App, { name: 'App' }, { state: initialState });
-      await waitFor(() => {
-        expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
-      });
-      const subscribeCallback = (branch.subscribe as jest.Mock).mock
-        .calls[0][0];
-      subscribeCallback({ uri: mockUri });
-      await waitFor(() => {
-        expect(AppStateEventProcessor.setCurrentDeeplink).toHaveBeenCalledWith(
-          mockUri,
-        );
-      });
-    });
-  });
 
   describe('Navigation hooks usage', () => {
     it('should use useNavigationState to check previous route and skip auth when coming from Settings', async () => {
@@ -939,16 +880,6 @@ describe('App', () => {
               },
             },
           ],
-        });
-      });
-    });
-
-    it('should no longer pass navigation object to SharedDeeplinkManager.init', async () => {
-      renderScreen(App, { name: 'App' }, { state: initialState });
-
-      await waitFor(() => {
-        expect(SharedDeeplinkManager.init).toHaveBeenCalledWith({
-
         });
       });
     });

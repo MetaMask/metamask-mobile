@@ -17,9 +17,7 @@ jest.mock('../../core/NavigationService', () => ({
 }));
 
 describe('SharedDeeplinkManager', () => {
-  const mockDispatch = jest.fn();
   const mockStore = store as jest.Mocked<typeof store>;
-  const mockNavigate = jest.fn() as unknown as NavigationProp<ParamListBase>;
 
   beforeEach(() => {
     const mockedState = {
