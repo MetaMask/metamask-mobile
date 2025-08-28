@@ -5,6 +5,7 @@ import AccountListFooter from './AccountListFooter';
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useWalletInfo } from '../../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo';
+import Logger from '../../../../../util/Logger';
 
 // Mock dependencies
 jest.mock('../../../../../core/Engine');
@@ -18,6 +19,9 @@ jest.mock(
     useWalletInfo: jest.fn(),
   }),
 );
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 // Mock AnimatedSpinner
 jest.mock('../../../../../components/UI/AnimatedSpinner', () => ({
@@ -252,6 +256,61 @@ describe('AccountListFooter', () => {
         expect(InteractionManager.runAfterInteractions).toHaveBeenCalledWith(
           expect.any(Function),
         );
+      });
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('logs error and sets loading to false when no keyring ID is found', async () => {
+      (useWalletInfo as jest.Mock).mockReturnValue({ keyringId: undefined });
+
+      const mockLogger = Logger as jest.Mocked<typeof Logger>;
+      const onAccountCreated = jest.fn();
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={onAccountCreated}
+        />,
+      );
+
+      fireEvent.press(getByText('Create account'));
+
+      await waitFor(() => {
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'Cannot create account without keyring ID',
+        );
+      });
+
+      await waitFor(() => {
+        expect(getByText('Create account')).toBeOnTheScreen();
+      });
+
+      expect(
+        mockMultichainAccountService.createNextMultichainAccountGroup,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('calls onAccountCreated when new account group has an ID', async () => {
+      const mockNewAccountGroup = { id: 'new-account-group-id' };
+      mockMultichainAccountService.createNextMultichainAccountGroup.mockResolvedValue(
+        mockNewAccountGroup,
+      );
+
+      const onAccountCreated = jest.fn();
+
+      const { getByText } = render(
+        <AccountListFooter
+          walletId={mockWalletId}
+          onAccountCreated={onAccountCreated}
+        />,
+      );
+
+      fireEvent.press(getByText('Create account'));
+
+      await waitFor(() => {
+        expect(onAccountCreated).toHaveBeenCalledWith('new-account-group-id');
       });
     });
   });
