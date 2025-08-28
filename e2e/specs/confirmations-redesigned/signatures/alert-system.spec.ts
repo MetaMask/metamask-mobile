@@ -74,7 +74,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          ...confirmationsRedesignedFeatureFlags,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
         );
 
         await setupMockPostRequest(
@@ -106,7 +106,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          ...confirmationsRedesignedFeatureFlags,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
         );
 
         await setupMockPostRequest(
@@ -157,7 +157,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          ...confirmationsRedesignedFeatureFlags,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
         );
 
         await setupMockRequest(mockServer, {
@@ -206,7 +206,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
-          ...confirmationsRedesignedFeatureFlags,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
         );
       };
 

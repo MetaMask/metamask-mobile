@@ -25,7 +25,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...oldConfirmationsRemoteFeatureFlags,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
       );
     };
 

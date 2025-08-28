@@ -46,7 +46,10 @@ const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   },
 ];
 const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, ...remoteFeatureEip7702);
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...remoteFeatureEip7702),
+  );
 };
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {

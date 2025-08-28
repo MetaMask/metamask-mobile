@@ -19,7 +19,6 @@ import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
 import { getGanachePort } from '../framework/fixtures/FixtureUtils';
-import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../framework/Constants';
 import { setupMockRequest } from '../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -161,7 +160,7 @@ const main = async () => {
   const testSpecificMock = async (mockServer) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...oldConfirmationsRemoteFeatureFlags,
+      Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
     );
   };
 

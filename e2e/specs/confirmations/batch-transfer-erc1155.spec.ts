@@ -22,7 +22,7 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...oldConfirmationsRemoteFeatureFlags,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
       );
     };
 

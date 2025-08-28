@@ -40,7 +40,7 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         testSpecificMock: async (mockServer) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            ...oldConfirmationsRemoteFeatureFlags,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
           );
         },
       },

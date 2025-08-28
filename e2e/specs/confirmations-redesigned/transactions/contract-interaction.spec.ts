@@ -29,7 +29,7 @@ describe(SmokeConfirmationsRedesigned('Contract Interaction'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
   beforeAll(async () => {

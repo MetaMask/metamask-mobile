@@ -32,7 +32,7 @@ describe(
       });
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...confirmationsRedesignedFeatureFlags,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
       );
     };
 

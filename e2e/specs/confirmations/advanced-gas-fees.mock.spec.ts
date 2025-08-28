@@ -16,7 +16,7 @@ const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const testSpecificMock = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
-    ...oldConfirmationsRemoteFeatureFlags,
+    Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
   );
 };
 

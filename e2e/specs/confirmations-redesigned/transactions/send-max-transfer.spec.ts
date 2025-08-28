@@ -34,7 +34,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
 
     const {

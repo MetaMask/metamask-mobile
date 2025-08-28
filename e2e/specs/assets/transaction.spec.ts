@@ -35,7 +35,7 @@ describe(RegressionAssets('Transaction'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            ...oldConfirmationsRemoteFeatureFlags,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
           );
         },
       },

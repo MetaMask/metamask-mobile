@@ -85,7 +85,7 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
     );
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
   let eventsToCheck: EventPayload[];

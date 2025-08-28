@@ -77,7 +77,7 @@ describe(SmokeConfirmationsRedesigned('7702 - smart account'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
   beforeAll(async () => {

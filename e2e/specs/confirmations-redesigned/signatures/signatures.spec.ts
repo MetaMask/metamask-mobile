@@ -52,7 +52,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
 

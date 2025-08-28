@@ -49,7 +49,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...confirmationsRedesignedFeatureFlags,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
       );
 
       await setupMockPostRequest(
@@ -86,7 +86,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...confirmationsRedesignedFeatureFlags,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
       );
       await setupMockPostRequest(
         mockServer,
@@ -125,7 +125,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...confirmationsRedesignedFeatureFlags,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
       );
 
       await setupMockRequest(mockServer, {

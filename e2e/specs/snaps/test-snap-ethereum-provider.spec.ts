@@ -22,7 +22,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
-            ...confirmationsRedesignedFeatureFlags,
+            Object.assign({}, ...confirmationsRedesignedFeatureFlags),
           );
         },
       },

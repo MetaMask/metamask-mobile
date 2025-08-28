@@ -24,7 +24,7 @@ describe(RegressionConfirmations('Send to contract address'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...oldConfirmationsRemoteFeatureFlags,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
       );
     };
 

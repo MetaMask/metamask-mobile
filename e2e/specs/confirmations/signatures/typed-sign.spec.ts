@@ -17,7 +17,7 @@ describe(SmokeConfirmations('Typed Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...oldConfirmationsRemoteFeatureFlags,
+      Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
     );
   };
 

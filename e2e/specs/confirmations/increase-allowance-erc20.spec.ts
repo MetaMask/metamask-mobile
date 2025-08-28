@@ -21,7 +21,7 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(
         mockServer,
-        ...oldConfirmationsRemoteFeatureFlags,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
       );
     };
 

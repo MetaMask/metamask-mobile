@@ -27,7 +27,7 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
 

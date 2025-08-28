@@ -36,7 +36,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
 
     const {

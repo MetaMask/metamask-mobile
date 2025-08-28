@@ -31,7 +31,7 @@ describe(SmokeConfirmationsRedesigned('Token Approve - approve method'), () => {
     });
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
 

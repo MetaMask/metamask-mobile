@@ -1,4 +1,3 @@
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils.ts';
@@ -45,7 +44,7 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   const testSpecificMock = async (mockServer) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
-      ...confirmationsRedesignedFeatureFlags,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
     );
   };
 
