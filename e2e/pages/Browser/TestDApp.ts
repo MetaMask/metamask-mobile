@@ -412,6 +412,13 @@ class TestDApp {
     });
   }
 
+  async tapConfirmButtonToDisappear(): Promise<void> {
+    await Gestures.tap(this.confirmButtonText, {
+      elemDescription: 'Confirm Button',
+      waitForElementToDisappear: true,
+    });
+  }
+
   async tapConnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectButtonText, {
       elemDescription: 'Connect Button',
