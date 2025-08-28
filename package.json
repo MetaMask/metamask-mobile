@@ -140,6 +140,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/eth-json-rpc-provider": "npm:@metamask-previews/eth-json-rpc-provider@4.1.8-preview-789d703",
     "**/json-schema": "^0.4.0",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/node-fetch": "^2.6.7",
