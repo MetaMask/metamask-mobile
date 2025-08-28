@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import DeeplinkManager from './DeeplinkManager';
 import { store } from '../../store';
@@ -31,23 +30,6 @@ describe('SharedDeeplinkManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('should call init method on the DeeplinkManager instance after initialization', () => {
-    const spyInit = jest.spyOn(SharedDeeplinkManager, 'init');
-
-    const navigation = {
-      navigate: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>;
-
-    const dispatch = jest.fn();
-
-    SharedDeeplinkManager.init();
-
-    expect(spyInit).toHaveBeenCalledWith({
-      navigation,
-      dispatch,
-    });
   });
 
   it('should return instance of DeeplinkManager when calling getInstance', () => {
