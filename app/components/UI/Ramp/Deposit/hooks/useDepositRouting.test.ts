@@ -124,6 +124,7 @@ jest.mock('../sdk', () => ({
     logoutFromProvider: mockLogoutFromProvider,
     selectedWalletAddress: '0x123',
   })),
+  DEPOSIT_ENVIRONMENT: 'stg',
 }));
 
 jest.mock('./useHandleNewOrder');
@@ -865,7 +866,7 @@ describe('useDepositRouting', () => {
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockHandleNewOrder).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
     });
 
@@ -962,7 +963,7 @@ describe('useDepositRouting', () => {
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
     });
 
@@ -1052,7 +1053,7 @@ describe('useDepositRouting', () => {
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
@@ -1087,7 +1088,7 @@ describe('useDepositRouting', () => {
 
       expect(mockGetOrder).toHaveBeenCalledWith('test-order-id', '0x123');
       expect(mockNavigate).toHaveBeenCalledWith('OrderProcessing', {
-        orderId: '/providers/transak-native/orders/test-order-id',
+        orderId: '/providers/transak-native-staging/orders/test-order-id',
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
