@@ -260,7 +260,7 @@ describe('Remote Feature Flags Helper', () => {
     });
   });
 
-  describe('setupDefaultRemoteFeatureFlags', () => {
+  describe('setupRemoteFeatureFlagsMock', () => {
     let mockServer: jest.Mocked<Mockttp>;
 
     beforeEach(() => {
