@@ -30,7 +30,7 @@ import {
   PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
@@ -38,11 +38,7 @@ import type {
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
-import {
-  getDefaultCandlePeriodForDuration,
-  TimeDuration,
-  CandlePeriod,
-} from '../../constants/chartConfig';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
@@ -65,7 +61,7 @@ import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip'
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart from '../../components/TradingViewChart';
-import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
+import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 
 interface MarketDetailsRouteParams {
@@ -99,17 +95,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [navigation, market]);
 
-  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_HOUR,
-  );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
-    useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
-    );
-  const [
-    isCandlePeriodBottomSheetVisible,
-    setIsCandlePeriodBottomSheetVisible,
-  ] = useState(false);
+    useState<CandlePeriod>(CandlePeriod.THREE_MINUTES);
+  const [visibleCandleCount] = useState<number>(45);
+
   const [activeTabId, setActiveTabId] = useState('position');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -135,11 +124,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
-  // Get candlestick data
+  // Get candlestick data - using YEAR_TO_DATE to fetch maximum candles (250)
   const { candleData, isLoadingHistory, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
-      selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+      selectedDuration: TimeDuration.YEAR_TO_DATE, // Fixed duration to fetch 250 candles
       selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
     });
 
@@ -181,22 +170,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   }, [isLoadingPosition, market, endMeasure]);
 
-  const handleDurationChange = useCallback(
-    (newDuration: TimeDuration) => {
-      setSelectedDuration(newDuration);
-      // Auto-update candle period to the appropriate default for the new duration
-      const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-      setSelectedCandlePeriod(defaultPeriod);
-
-      // Track chart time series change
-      track(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED, {
-        [PerpsEventProperties.ASSET]: market?.symbol || '',
-        [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
-      });
-    },
-    [market, track],
-  );
-
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
       setSelectedCandlePeriod(newPeriod);
@@ -211,8 +184,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [market, track],
   );
 
-  const handleGearPress = useCallback(() => {
-    setIsCandlePeriodBottomSheetVisible(true);
+  const handleMorePress = useCallback(() => {
+    // For now, do nothing as specified in requirements
+    // TODO: Add more candle period options functionality
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -366,6 +340,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <TradingViewChart
               candleData={candleData}
               height={350}
+              visibleCandleCount={visibleCandleCount}
               tpslLines={
                 existingPosition
                   ? {
@@ -380,12 +355,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
             />
 
-            {/* Duration Selector - Independent from TradingViewChart */}
-            <PerpsTimeDurationSelector
-              selectedDuration={selectedDuration}
-              onDurationChange={handleDurationChange}
-              onGearPress={handleGearPress}
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-duration-selector`}
+            {/* Candle Period Selector */}
+            <PerpsCandlePeriodSelector
+              selectedPeriod={selectedCandlePeriod}
+              onPeriodChange={handleCandlePeriodChange}
+              onMorePress={handleMorePress}
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
           </View>
 
@@ -465,18 +440,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
         </View>
-      )}
-
-      {/* Candle Period Bottom Sheet */}
-      {isCandlePeriodBottomSheetVisible && (
-        <PerpsCandlePeriodBottomSheet
-          isVisible
-          onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
-          selectedPeriod={selectedCandlePeriod}
-          selectedDuration={selectedDuration}
-          onPeriodChange={handleCandlePeriodChange}
-          testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
-        />
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}

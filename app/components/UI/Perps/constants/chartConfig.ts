@@ -67,6 +67,15 @@ export const PERPS_CHART_CONFIG = {
     HORIZONTAL: 24, // Account for horizontal padding
     VERTICAL: 120, // Account for labels and padding
   },
+  // Chart zoom configuration
+  CANDLE_COUNT: {
+    MIN: 10, // Minimum candles to display (zoomed in)
+    DEFAULT: 45, // Default candles to display
+    MAX: 250, // Maximum candles to display (zoomed out)
+    TOTAL: 250, // Total candles to load in memory
+  },
+  // Default candle period settings
+  DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
 } as const;
 
 /**

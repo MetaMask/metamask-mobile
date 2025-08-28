@@ -31,6 +31,7 @@ interface TradingViewChartProps {
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
+  visibleCandleCount?: number; // Number of candles to display (for zoom level)
   testID?: string;
 }
 
@@ -42,6 +43,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   height = 350,
   tpslLines,
   onChartReady,
+  visibleCandleCount = 45, // Default to 45 visible candles
   testID,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -205,10 +207,17 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         type: 'SET_CANDLESTICK_DATA',
         data: dataToSend,
         source: dataSource,
+        visibleCandleCount,
       };
       webViewRef.current.postMessage(JSON.stringify(message));
     }
-  }, [isChartReady, candleDataVersion, formatCandleData, candleData]);
+  }, [
+    isChartReady,
+    candleDataVersion,
+    formatCandleData,
+    candleData,
+    visibleCandleCount,
+  ]);
 
   // Update auxiliary lines when they change
   useEffect(() => {

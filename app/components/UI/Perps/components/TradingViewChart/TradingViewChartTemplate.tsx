@@ -38,6 +38,8 @@ export const createTradingViewChartTemplate = (
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
+        window.visibleCandleCount = 45; // Default visible candle count
+        window.allCandleData = []; // Store all loaded data for zoom functionality
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -130,6 +132,40 @@ export const createTradingViewChartTemplate = (
             stopLossPrice: null,
             currentPrice: null
         };
+        // Apply zoom to show specific number of candles
+        window.applyZoom = function(candleCount) {
+            if (!window.chart || !window.allCandleData || window.allCandleData.length === 0) {
+                return;
+            }
+            
+            // Ensure candleCount is within bounds
+            const minCandles = 10;
+            const maxCandles = Math.min(250, window.allCandleData.length);
+            const actualCandleCount = Math.max(minCandles, Math.min(maxCandles, candleCount));
+            
+            // Get the last N candles to display (most recent data)
+            const visibleData = window.allCandleData.slice(-actualCandleCount);
+            
+            if (window.candlestickSeries && visibleData.length > 0) {
+                // Set the visible range to show only the selected number of candles
+                const firstTime = visibleData[0].time;
+                const lastTime = visibleData[visibleData.length - 1].time;
+                
+                try {
+                    window.chart.timeScale().setVisibleRange({
+                        from: firstTime,
+                        to: lastTime,
+                    });
+                } catch (error) {
+                    console.error('TradingView: Error setting visible range:', error);
+                    // Fallback to fit content if setVisibleRange fails
+                    window.chart.timeScale().fitContent();
+                }
+            }
+            
+            window.visibleCandleCount = actualCandleCount;
+        };
+
         // Update TPSL price lines
         window.updatePriceLines = function(lines) {
             if (!window.candlestickSeries) {
@@ -257,12 +293,22 @@ export const createTradingViewChartTemplate = (
                                 window.createCandlestickSeries();
                             }
                             if (window.candlestickSeries) {
+                                // Store all data for zoom functionality
+                                window.allCandleData = [...message.data];
                                 window.candlestickSeries.setData(message.data);
+                                
+                                // Update visible candle count if provided
+                                if (message.visibleCandleCount) {
+                                    window.visibleCandleCount = message.visibleCandleCount;
+                                }
+                                
                                 // Check if this is truly new data (different source/period) or just a rerender
-                                const currentDataKey = message.source + '_' + (message.data?.length || 0);
+                                const currentDataKey = message.source + '_' + (message.data?.length || 0) + '_' + window.visibleCandleCount;
                                 const shouldAutoscale = window.isInitialDataLoad || (window.lastDataKey !== currentDataKey);
+                                
                                 if (shouldAutoscale) {
-                                    window.chart.timeScale().fitContent();
+                                    // Apply zoom to show the specified number of candles
+                                    window.applyZoom(window.visibleCandleCount);
                                     window.lastDataKey = currentDataKey;
                                 }
                                 window.isInitialDataLoad = false;
