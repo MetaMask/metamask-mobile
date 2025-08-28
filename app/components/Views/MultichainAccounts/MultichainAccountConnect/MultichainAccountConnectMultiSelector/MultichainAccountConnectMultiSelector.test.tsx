@@ -2,10 +2,11 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupId } from '@metamask/account-api';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
@@ -24,66 +25,33 @@ const MOCK_GROUP_ID_2 =
   'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1' as AccountGroupId;
 const MOCK_SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
-// Helper function to create mock internal accounts
-const createMockInternalAccount = ({
-  id,
-  name,
-  address,
-  type,
-}: {
-  id: string;
-  name: string;
-  address: string;
-  type: EthAccountType | SolAccountType;
-}): InternalAccount => ({
-  id,
-  address,
-  type: type as InternalAccount['type'],
-  scopes:
-    type === SolAccountType.DataAccount
-      ? [MOCK_SOLANA_CHAIN_ID as `${string}:${string}`]
-      : ['eip155:1' as `${string}:${string}`],
-  options: {},
-  methods:
-    type === SolAccountType.DataAccount
-      ? ['solana_signTransaction', 'solana_signMessage']
-      : ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
-  metadata: {
-    name,
-    keyring: {
-      type: 'HD Key Tree',
-    },
-    importTime: Date.now(),
-  },
-});
+const mockEvmAccount1 = createMockInternalAccount(
+  '0xf609ccad1163c95d8eceda30f36feb1fad0e3d8e',
+  'EVM Account 1',
+  KeyringTypes.hd,
+  EthAccountType.Eoa,
+);
 
-const mockEvmAccount1 = createMockInternalAccount({
-  id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
-  name: 'EVM Account 1',
-  address: '0x1111111111111111111111111111111111111111',
-  type: EthAccountType.Eoa,
-});
+const mockEvmAccount2 = createMockInternalAccount(
+  '0xf609ccad1163c95d8eceda30f36feb1fad0e3d8e',
+  'EVM Account 2',
+  KeyringTypes.hd,
+  EthAccountType.Eoa,
+);
 
-const mockEvmAccount2 = createMockInternalAccount({
-  id: '07c2cfec-36c9-46c4-8115-3836d3ac9047',
-  name: 'EVM Account 2',
-  address: '0x2222222222222222222222222222222222222222',
-  type: EthAccountType.Eoa,
-});
+const mockSolAccount1 = createMockInternalAccount(
+  'Afji7h1QkJPjdxxW62WpogPChpMAdBtpkenD54z8qEfD',
+  'Solana Account 1',
+  KeyringTypes.snap,
+  SolAccountType.DataAccount,
+);
 
-const mockSolAccount1 = createMockInternalAccount({
-  id: '784225f4-d30b-4e77-a900-c8bbce735b88',
-  name: 'Solana Account 1',
-  address: 'So1anaAddr1111111111111111111111111111111111',
-  type: SolAccountType.DataAccount,
-});
-
-const mockSolAccount2 = createMockInternalAccount({
-  id: '9b6b30a0-3c87-4a33-9d10-a27a2aba2ba2',
-  name: 'Solana Account 2',
-  address: 'So1anaAddr2222222222222222222222222222222222',
-  type: SolAccountType.DataAccount,
-});
+const mockSolAccount2 = createMockInternalAccount(
+  '2VKYABRBgWY3TWpvCTxLCdhxqzN1JLcnnjdGPvY4PHjf',
+  'Solana Account 2',
+  KeyringTypes.snap,
+  SolAccountType.DataAccount,
+);
 
 const mockConnection: ConnectionProps = {
   id: 'test-connection',
