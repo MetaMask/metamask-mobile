@@ -16,6 +16,7 @@ import { TransactionBridgeQuote } from '../../../components/Views/confirmations/
 import { cloneDeep } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { toHex } from '@metamask/controller-utils';
+import { updateRequiredTransactionIds } from '../../transaction-controller';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -69,7 +70,7 @@ export class PayHook {
     for (const quote of quotes) {
       log('Submitting bridge', index, quote);
 
-      await this.#submitBridgeTransaction(quote);
+      await this.#submitBridgeTransaction(transactionId, quote);
 
       index += 1;
     }
@@ -78,6 +79,7 @@ export class PayHook {
   }
 
   async #submitBridgeTransaction(
+    transactionId: string,
     originalQuote: TransactionBridgeQuote,
   ): Promise<void> {
     const quote = cloneDeep(originalQuote);
@@ -97,6 +99,11 @@ export class PayHook {
     log('Bridge transaction submitted', result);
 
     const { id: bridgeTransactionId } = result;
+
+    updateRequiredTransactionIds({
+      transactionId,
+      requiredTransactionIds: [bridgeTransactionId],
+    });
 
     log('Waiting for bridge completion', bridgeTransactionId);
 

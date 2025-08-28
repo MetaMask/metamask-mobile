@@ -112,6 +112,7 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -221,6 +222,10 @@ const TransactionsHome = () => (
       name={Routes.TRANSACTIONS_VIEW}
       component={ActivityView}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
