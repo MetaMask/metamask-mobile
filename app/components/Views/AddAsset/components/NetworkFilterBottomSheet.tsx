@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import Text from '../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
@@ -22,6 +22,7 @@ import {
 import { enableAllNetworksFilter } from '../../../UI/Tokens/util/enableAllNetworksFilter';
 
 export const NETWORK_FILTER_BOTTOM_SHEET = 'NETWORK_FILTER_BOTTOM_SHEET';
+
 export default function NetworkFilterBottomSheet({
   onFilterControlsBottomSheetPress,
   setOpenNetworkFilter,
@@ -41,6 +42,16 @@ export default function NetworkFilterBottomSheet({
   const isAllNetworksEnabled = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectEvmChainId);
 
+  const handleListItemPress = useCallback(
+    (option: FilterOption) => {
+      sheetRef.current?.onCloseBottomSheet(() => {
+        onFilterControlsBottomSheetPress(option);
+        setOpenNetworkFilter(false);
+      });
+    },
+    [onFilterControlsBottomSheetPress, setOpenNetworkFilter, sheetRef],
+  );
+
   return (
     <BottomSheet
       shouldNavigateBack={false}
@@ -55,10 +66,7 @@ export default function NetworkFilterBottomSheet({
         </Text>
         <ListItemSelect
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL}
-          onPress={() => {
-            onFilterControlsBottomSheetPress(FilterOption.AllNetworks);
-            setOpenNetworkFilter(false);
-          }}
+          onPress={() => handleListItemPress(FilterOption.AllNetworks)}
           isSelected={
             isAllNetworksEnabled && Object.keys(isAllNetworksEnabled).length > 1
           }
@@ -78,10 +86,7 @@ export default function NetworkFilterBottomSheet({
         </ListItemSelect>
         <ListItemSelect
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT}
-          onPress={() => {
-            onFilterControlsBottomSheetPress(FilterOption.CurrentNetwork);
-            setOpenNetworkFilter(false);
-          }}
+          onPress={() => handleListItemPress(FilterOption.CurrentNetwork)}
           isSelected={
             isAllNetworksEnabled &&
             Object.keys(isAllNetworksEnabled).length === 1
