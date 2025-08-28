@@ -1,6 +1,12 @@
 import { typography } from '@metamask/design-tokens';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -28,7 +34,10 @@ import {
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { useParams } from '../../../util/navigation/navUtils';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
@@ -43,6 +52,14 @@ import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
 import MultichainTransactionsView from '../MultichainTransactionsView';
 import TransactionsView from '../TransactionsView';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -64,11 +81,10 @@ const createStyles = (params) => {
         ? colors.border.default
         : undefined,
       borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
-      maxWidth: '60%',
-      borderRadius: 20,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
@@ -76,12 +92,18 @@ const createStyles = (params) => {
         ? colors.border.default
         : undefined,
       borderStyle: 'solid',
-      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 1,
-      marginLeft: isRemoveGlobalNetworkSelectorEnabled() ? 0 : 5,
-      marginRight: 5,
-      maxWidth: '60%',
+      marginRight: 4,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
       opacity: 0.5,
-      borderRadius: 20,
+    },
+    networkManagerWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     header: {
       backgroundColor: colors.background.default,
@@ -125,12 +147,19 @@ const ActivityView = () => {
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
     useCurrentNetworkInfo();
+  const { areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const tabViewRef = useRef();
   const params = useParams();
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
   const [activeTabIndex, setActiveTabIndex] = useState(0);
 
   const openAccountSelector = useCallback(() => {
@@ -209,6 +238,12 @@ const ActivityView = () => {
     ]),
   );
 
+  // TODO: Placeholder variable for now until we update the network enablement controller
+  const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
+  const networkImageSource = getNetworkImageSource({
+    chainId: firstEnabledChainId,
+  });
+
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <View style={[styles.header, { marginTop: insets.top }]}>
@@ -224,16 +259,26 @@ const ActivityView = () => {
               label={
                 <>
                   {isRemoveGlobalNetworkSelectorEnabled() ? (
-                    <TextComponent
-                      variant={TextVariant.BodyMDMedium}
-                      style={styles.titleText}
-                      numberOfLines={1}
-                    >
-                      {enabledNetworks.length > 1
-                        ? strings('networks.enabled_networks')
-                        : currentNetworkName ??
-                          strings('wallet.current_network')}
-                    </TextComponent>
+                    <View style={styles.networkManagerWrapper}>
+                      {!areAllNetworksSelected && (
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Xs}
+                          name={networkName}
+                          imageSource={networkImageSource}
+                        />
+                      )}
+                      <TextComponent
+                        variant={TextVariant.BodyMDMedium}
+                        style={styles.controlButtonText}
+                        numberOfLines={1}
+                      >
+                        {enabledNetworks.length > 1
+                          ? strings('wallet.all_networks')
+                          : currentNetworkName ??
+                            strings('wallet.current_network')}
+                      </TextComponent>
+                    </View>
                   ) : (
                     <TextComponent
                       variant={TextVariant.BodyMDMedium}

@@ -59,6 +59,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '50',
+        returnOnEquity: '5.0',
+        totalValue: '5050',
       };
 
       const state: DeepPartial<RootState> = {
@@ -84,6 +86,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '0',
       };
 
       const state: DeepPartial<RootState> = {
@@ -156,6 +160,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '500',
+        returnOnEquity: '50.0',
+        totalValue: '6500',
       };
 
       const state: DeepPartial<RootState> = {
@@ -182,6 +188,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '4500',
         marginUsed: '2000',
         unrealizedPnl: '-500',
+        returnOnEquity: '-25.0',
+        totalValue: '4000',
       };
 
       const state: DeepPartial<RootState> = {
@@ -208,6 +216,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '10000',
         marginUsed: '9500',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '10000',
       };
 
       const state: DeepPartial<RootState> = {
@@ -235,6 +245,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '10000',
       };
 
       const state: DeepPartial<RootState> = {
@@ -265,6 +277,8 @@ describe('usePerpsAccount', () => {
         totalBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '1000',
       };
 
       const state: DeepPartial<RootState> = {

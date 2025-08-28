@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import SortModal from '../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder, {
@@ -69,7 +69,7 @@ const TOKEN_RESPONSE: MockApiEndpoint = {
   responseCode: 200,
 };
 
-describe(SmokeNetworkAbstractions('Import Tokens'), () => {
+describe(RegressionAssets('Import Tokens'), () => {
   beforeAll(async () => {
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
