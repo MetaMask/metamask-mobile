@@ -1160,15 +1160,15 @@
     "position": {
       "title": "Positions",
       "card": {
-        "entry_price": "Entry Price",
-        "market_price": "Market Price",
-        "liquidation_price": "Liquidation Price",
-        "take_profit": "Take Profit",
-        "stop_loss": "Stop Loss",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding cost",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "Margin",
-        "not_set": "Not Set",
+        "not_set": "Not set",
         "edit_tpsl": "Edit TP/SL",
-        "close_position": "Close Position"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "Loading positions...",

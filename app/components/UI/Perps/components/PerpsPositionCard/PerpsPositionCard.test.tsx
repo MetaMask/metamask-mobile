@@ -178,7 +178,7 @@ describe('PerpsPositionCard', () => {
       ).toBeOnTheScreen();
       expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
       expect(
-        screen.getByText('perps.position.card.market_price'),
+        screen.getByText('perps.position.card.funding_cost'),
       ).toBeOnTheScreen();
       expect(
         screen.getByText('perps.position.card.liquidation_price'),
@@ -469,7 +469,7 @@ describe('PerpsPositionCard', () => {
       // Assert - Check that all 6 body items are present
       const bodyLabels = [
         'perps.position.card.entry_price',
-        'perps.position.card.market_price',
+        'perps.position.card.funding_cost',
         'perps.position.card.liquidation_price',
         'perps.position.card.take_profit',
         'perps.position.card.stop_loss',

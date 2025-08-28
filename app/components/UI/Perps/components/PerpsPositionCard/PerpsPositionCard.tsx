@@ -1,36 +1,33 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsNavigationParamList,
   Position,
-  PriceUpdate,
 } from '../../controllers/types';
+import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import {
   formatPnl,
-  formatPrice,
   formatPositionSize,
+  formatPrice,
 } from '../../utils/formatUtils';
-import styleSheet from './PerpsPositionCard.styles';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsPositionCard.styles';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -38,7 +35,6 @@ interface PerpsPositionCardProps {
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
   onPositionUpdate?: () => Promise<void>;
-  priceData?: PriceUpdate | null; // Current market price data
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -47,20 +43,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   showIcon = false, // Default to not showing icon
   rightAccessory,
   onPositionUpdate,
-  priceData: externalPriceData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-
-  // Subscribe to live prices at the leaf level to avoid re-rendering parent components
-  // Only subscribe when expanded (detailed view) to optimize performance
-  const livePrices = usePerpsLivePrices({
-    symbols: expanded ? [position.coin] : [],
-    throttleMs: 1000, // Update every second
-  });
-
-  // Use external price data if provided, otherwise use live prices
-  const priceData = externalPriceData || livePrices[position.coin];
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
@@ -215,25 +200,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   variant={TextVariant.BodyXS}
                   color={TextColor.Alternative}
                 >
-                  {strings('perps.position.card.market_price')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
-                  {priceData?.price
-                    ? formatPrice(priceData.price, {
-                        minimumDecimals: 2,
-                        maximumDecimals: 2,
-                      })
-                    : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
-                </Text>
-              </View>
-              <View style={styles.bodyItem}>
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                >
                   {strings('perps.position.card.liquidation_price')}
                 </Text>
                 <Text
@@ -246,6 +212,23 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                         maximumDecimals: 2,
                       })
                     : 'N/A'}
+                </Text>
+              </View>
+              <View style={styles.bodyItem}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.margin')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
+                  {formatPrice(position.marginUsed, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  })}
                 </Text>
               </View>
             </View>
@@ -294,13 +277,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   variant={TextVariant.BodyXS}
                   color={TextColor.Alternative}
                 >
-                  {strings('perps.position.card.margin')}
+                  {strings('perps.position.card.funding_cost')}
                 </Text>
                 <Text
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Default}
                 >
-                  {formatPrice(position.marginUsed, {
+                  {formatPrice(position.cumulativeFunding.sinceOpen, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
                   })}
