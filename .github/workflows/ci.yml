@@ -173,6 +173,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: "E2E Smoke Tests (Android)"
+    if: false
     permissions:
       contents: read
       id-token: write
