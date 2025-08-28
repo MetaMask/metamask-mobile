@@ -77,7 +77,10 @@ const PerpsMarketListHeader = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.listHeader}>
+    <View
+      style={styles.listHeader}
+      testID={PerpsMarketListViewSelectorsIDs.LIST_HEADER}
+    >
       <View style={styles.listHeaderLeft}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
           {strings('perps.token_volume')}
