@@ -149,6 +149,26 @@ export const mockEvents = {
       responseCode: 200,
     },
 
+    remoteFeatureFlagSendRedesignDisabled: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+      response: [
+        {
+          mobileMinimumVersions: {
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
+          },
+        },
+        {
+          sendRedesign: {
+            enabled: false,
+          },
+        },
+      ],
+      responseCode: 200,
+    },
+
     // TODO: Remove when this feature is no longer behind a feature flag
     remoteFeatureFlagsDefiPositionsEnabled: {
       urlEndpoint:
