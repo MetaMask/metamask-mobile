@@ -20,8 +20,12 @@ import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multi
 const hasConnectedAccounts = (
   accountGroup: AccountGroupWithInternalAccounts,
   connectedAddresses: CaipAccountId[],
-): boolean =>
-  accountGroup.accounts.some((account) => {
+): boolean => {
+  if (!connectedAddresses.length || accountGroup.accounts.length === 0) {
+    return false;
+  }
+
+  return accountGroup.accounts.some((account) => {
     try {
       return isInternalAccountInPermittedAccountIds(
         account,
@@ -31,6 +35,7 @@ const hasConnectedAccounts = (
       return false;
     }
   });
+};
 
 /**
  * Checks if an account group supports the requested chains or namespaces
@@ -44,13 +49,44 @@ const hasSupportedScopes = (
   accountGroup: AccountGroupWithInternalAccounts,
   requestedChainIds: CaipChainId[],
   requestedNamespaces: Set<CaipNamespace>,
-): boolean =>
-  accountGroup.accounts.some((account) => {
+): boolean => {
+  if (accountGroup.accounts.length === 0) {
+    return false;
+  }
+  return accountGroup.accounts.some((account) => {
     if (requestedChainIds.length > 0) {
       return hasChainIdSupport(account.scopes, requestedChainIds);
     }
     return hasNamespaceSupport(account.scopes, requestedNamespaces);
   });
+};
+
+/**
+ * Checks if an account group fulfills the requested CAIP account IDs
+ *
+ * @param accountGroup - Account group to check for requested account IDs
+ * @param requestedCaipAccountIds - Array of requested CAIP account IDs to match against
+ * @returns True if any account in the group matches the requested CAIP account IDs
+ */
+const fulfillsRequestedAccountIds = (
+  accountGroup: AccountGroupWithInternalAccounts,
+  requestedCaipAccountIds: CaipAccountId[],
+): boolean => {
+  if (!requestedCaipAccountIds.length || accountGroup.accounts.length === 0) {
+    return false;
+  }
+
+  return accountGroup.accounts.some((account) => {
+    try {
+      return isInternalAccountInPermittedAccountIds(
+        account,
+        requestedCaipAccountIds,
+      );
+    } catch {
+      return false;
+    }
+  });
+};
 
 /**
  * Hook that manages account groups for CAIP-25 permissions, providing both connected
@@ -68,6 +104,7 @@ const hasSupportedScopes = (
  */
 export const useAccountGroupsForPermissions = (
   existingPermission: Caip25CaveatValue,
+  requestedCaipAccountIds: CaipAccountId[],
   requestedCaipChainIds: CaipChainId[],
   requestedNamespacesWithoutWallet: CaipNamespace[],
 ) => {
@@ -82,44 +119,58 @@ export const useAccountGroupsForPermissions = (
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
     const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
 
-    const { filteredConnectedAccountGroups, filteredSupportedAccountGroups } =
-      accountGroups.reduce(
-        (acc, accountGroup) => {
-          const isConnected = hasConnectedAccounts(
-            accountGroup,
-            connectedAccountIds,
-          );
-          const isSupported = hasSupportedScopes(
-            accountGroup,
-            requestedCaipChainIds,
-            requestedNamespaceSet,
-          );
+    const connectedAccountGroups: AccountGroupWithInternalAccounts[] = [];
+    const supportedAccountGroups: AccountGroupWithInternalAccounts[] = [];
+    // Priority groups are groups that fulfill the requested account IDs and should be shown first
+    const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
+    const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
 
-          if (isConnected) {
-            acc.filteredConnectedAccountGroups.push(accountGroup);
-          }
-          if (isSupported) {
-            acc.filteredSupportedAccountGroups.push(accountGroup);
-          }
-
-          return acc;
-        },
-        {
-          filteredConnectedAccountGroups:
-            [] as AccountGroupWithInternalAccounts[],
-          filteredSupportedAccountGroups:
-            [] as AccountGroupWithInternalAccounts[],
-        },
+    accountGroups.forEach((accountGroup) => {
+      const isConnected = hasConnectedAccounts(
+        accountGroup,
+        connectedAccountIds,
+      );
+      const isSupported = hasSupportedScopes(
+        accountGroup,
+        requestedCaipChainIds,
+        requestedNamespaceSet,
+      );
+      const fulfillsRequestedAccounts = fulfillsRequestedAccountIds(
+        accountGroup,
+        requestedCaipAccountIds,
       );
 
+      if (isConnected) {
+        if (fulfillsRequestedAccounts) {
+          priorityConnectedGroups.push(accountGroup);
+        } else {
+          connectedAccountGroups.push(accountGroup);
+        }
+      }
+      if (isSupported || fulfillsRequestedAccounts) {
+        if (fulfillsRequestedAccounts) {
+          prioritySupportedGroups.push(accountGroup);
+        } else if (isSupported) {
+          supportedAccountGroups.push(accountGroup);
+        }
+      }
+    });
+
     return {
-      supportedAccountGroups: filteredSupportedAccountGroups,
-      connectedAccountGroups: filteredConnectedAccountGroups,
+      supportedAccountGroups: [
+        ...prioritySupportedGroups,
+        ...supportedAccountGroups,
+      ],
+      connectedAccountGroups: [
+        ...priorityConnectedGroups,
+        ...connectedAccountGroups,
+      ],
       connectedCaipAccountIds: connectedAccountIds,
     };
   }, [
     existingPermission,
     accountGroups,
+    requestedCaipAccountIds,
     requestedCaipChainIds,
     requestedNamespacesWithoutWallet,
   ]);
