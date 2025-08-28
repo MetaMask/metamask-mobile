@@ -10,6 +10,8 @@ import type { PerpsToken } from '../types';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   ARBITRUM_TESTNET_CHAIN_ID,
+  HYPERLIQUID_MAINNET_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CHAIN_ID,
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_ARBITRUM_TESTNET_ADDRESS,
   USDC_DECIMALS,
@@ -37,15 +39,14 @@ export const useWithdrawTokens = () => {
   const sourceToken = useMemo<PerpsToken>(() => {
     // Use appropriate Arbitrum chain ID based on network
     const chainId = isTestnet
-      ? ARBITRUM_TESTNET_CHAIN_ID
-      : ARBITRUM_MAINNET_CHAIN_ID;
-    const arbitrumChainId = toHex(parseInt(chainId, 10)) as Hex;
+      ? HYPERLIQUID_MAINNET_CHAIN_ID
+      : HYPERLIQUID_TESTNET_CHAIN_ID;
     const baseToken: PerpsToken = {
       symbol: USDC_SYMBOL,
       address: ZERO_ADDRESS,
       decimals: USDC_DECIMALS,
       name: USDC_NAME,
-      chainId: arbitrumChainId,
+      chainId,
       currencyExchangeRate: 1,
     };
 
