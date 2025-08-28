@@ -789,28 +789,6 @@ workflows:
                 echo "Timeout: Workflow did not complete within 100 seconds"
                 echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                 exit 1
-      - script@1:
-          title: Pull latest changes after version bump
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -e
-                echo "Pulling latest changes after version bump..."
-                
-                # Show current commit before pull
-                echo "Current HEAD before pull:"
-                git log -1 --oneline
-                
-                # Pull the latest changes from the branch
-                git pull origin $BITRISE_GIT_BRANCH
-                
-                # Show current commit after pull
-                echo "Current HEAD after pull:"
-                git log -1 --oneline
-                
-                # Verify the version bump is present
-                echo "Verifying version bump changes..."
-                git show --name-only HEAD
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
@@ -2977,11 +2955,6 @@ workflows:
       - certificate-and-profile-installer@1: {
         run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
       }
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $NAME
-            - build_version: $NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
           title: iOS Sourcemaps & Build
           is_always_run: false
