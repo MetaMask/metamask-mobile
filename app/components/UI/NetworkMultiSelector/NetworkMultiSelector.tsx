@@ -147,8 +147,15 @@ const NetworkMultiSelector = ({
   );
 
   const onSelectAllPopularNetworks = useCallback(() => {
-    selectAllPopularNetworks(dismissModal);
-  }, [selectAllPopularNetworks, dismissModal]);
+    selectAllPopularNetworks();
+  }, [selectAllPopularNetworks]);
+
+  const onSelectNetwork = useCallback(
+    (caipChainId: CaipChainId) => {
+      selectPopularNetwork(caipChainId, dismissModal);
+    },
+    [selectPopularNetwork, dismissModal],
+  );
 
   const selectAllNetworksComponent = useMemo(
     () => (
@@ -165,13 +172,6 @@ const NetworkMultiSelector = ({
       />
     ),
     [onSelectAllPopularNetworks, areAllNetworksSelected],
-  );
-
-  const onSelectNetwork = useCallback(
-    (caipChainId: CaipChainId) => {
-      selectPopularNetwork(caipChainId, dismissModal);
-    },
-    [selectPopularNetwork, dismissModal],
   );
 
   return (
