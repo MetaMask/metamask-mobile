@@ -44,11 +44,9 @@ MESSAGE TYPES:
 - UPDATE_INTERVAL: Handles time duration/period changes
 - CHART_READY: Notifies React Native when chart is initialized
 
-TESTING:
-To test this HTML file directly in a browser:
-1. Replace theme variables with actual color values
-2. Mock the window.ReactNativeWebView object
-3. Open in browser and test chart functionality
+SECURITY ENHANCEMENT:
+The production app now bundles the Lightweight Charts library locally instead of
+loading from CDN to eliminate external dependencies and security risks.
 
 MAINTENANCE:
 - Keep this file in sync with TradingViewChartTemplate.tsx
@@ -57,7 +55,7 @@ MAINTENANCE:
 -->
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>TradingView Chart</title>
@@ -83,28 +81,16 @@ MAINTENANCE:
 <body>
     <div id="container"></div>
 
+    <!-- Load Lightweight Charts Library (Local) -->
+    <script>
+        ${lightweightChartsLib}
+    </script>
     <script>
         // Global variables
         window.chart = null;
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        
-        // Step 1: Load TradingView library dynamically
-        function loadTradingView() {
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
-            
-            script.onload = function() {
-                setTimeout(createChart, 500); // Small delay to ensure library is ready
-            };
-            
-            script.onerror = function() {
-                console.error('TradingView: Failed to load library');
-            };
-            
-            document.head.appendChild(script);
-        }
         
         // Step 2: Create chart
         function createChart() {
@@ -396,7 +382,8 @@ MAINTENANCE:
         });
         
         // Start loading after a small delay
-        setTimeout(loadTradingView, 500);
+        // Library is already loaded via script tag, so start creating chart
+        createChart();
     </script>
 </body>
 </html>
