@@ -165,10 +165,7 @@ export const DepositSDKProvider = ({
     try {
       const tokenResponse = await getProviderToken();
 
-      if (
-        tokenResponse.success &&
-        tokenResponse.token?.accessToken
-      ) {
+      if (tokenResponse.success && tokenResponse.token?.accessToken) {
         setAuthToken(tokenResponse.token);
         return true;
       }
