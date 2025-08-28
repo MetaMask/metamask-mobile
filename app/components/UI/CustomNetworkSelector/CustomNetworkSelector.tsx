@@ -72,8 +72,8 @@ const CustomNetworkSelector = ({
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      const handlePress = () => {
-        selectCustomNetwork(caipChainId, dismissModal);
+      const handlePress = async () => {
+        await selectCustomNetwork(caipChainId, dismissModal);
       };
 
       const handleMenuPress = () => {

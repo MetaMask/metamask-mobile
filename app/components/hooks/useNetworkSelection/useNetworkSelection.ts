@@ -96,18 +96,18 @@ export const useNetworkSelection = ({
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
-    (chainId: CaipChainId, onComplete?: () => void) => {
-      enableNetwork(chainId);
-      resetCustomNetworks(chainId);
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks(chainId);
       onComplete?.();
     },
     [enableNetwork, resetCustomNetworks],
   );
 
   const selectAllPopularNetworks = useCallback(
-    (onComplete?: () => void) => {
-      enableAllPopularNetworks();
-      resetCustomNetworks();
+    async (onComplete?: () => void) => {
+      await enableAllPopularNetworks();
+      await resetCustomNetworks();
       onComplete?.();
     },
     [enableAllPopularNetworks, resetCustomNetworks],
@@ -115,9 +115,9 @@ export const useNetworkSelection = ({
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
-    (chainId: CaipChainId, onComplete?: () => void) => {
-      enableNetwork(chainId);
-      resetCustomNetworks();
+    async (chainId: CaipChainId, onComplete?: () => void) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks();
       onComplete?.();
     },
     [enableNetwork, resetCustomNetworks],

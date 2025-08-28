@@ -146,13 +146,13 @@ const NetworkMultiSelector = ({
     [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
-  const onSelectAllPopularNetworks = useCallback(() => {
-    selectAllPopularNetworks();
-  }, [selectAllPopularNetworks]);
+  const onSelectAllPopularNetworks = useCallback(async () => {
+    await selectAllPopularNetworks(dismissModal);
+  }, [selectAllPopularNetworks, dismissModal]);
 
   const onSelectNetwork = useCallback(
-    (caipChainId: CaipChainId) => {
-      selectPopularNetwork(caipChainId, dismissModal);
+    async (caipChainId: CaipChainId) => {
+      await selectPopularNetwork(caipChainId, dismissModal);
     },
     [selectPopularNetwork, dismissModal],
   );

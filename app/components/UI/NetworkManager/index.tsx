@@ -266,7 +266,6 @@ const NetworkManager = () => {
   return (
     <BottomSheet ref={sheetRef} style={containerStyle}>
       <View style={styles.sheet}>
-        <View style={styles.notch} />
         <Text
           variant={TextVariant.HeadingMD}
           style={styles.networkTabsSelectorTitle}
