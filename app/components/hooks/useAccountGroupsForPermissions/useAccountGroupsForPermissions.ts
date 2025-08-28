@@ -49,13 +49,17 @@ const hasSupportedScopes = (
   accountGroup: AccountGroupWithInternalAccounts,
   requestedChainIds: CaipChainId[],
   requestedNamespaces: Set<CaipNamespace>,
-): boolean =>
-  accountGroup.accounts.some((account) => {
+): boolean => {
+  if (accountGroup.accounts.length === 0) {
+    return false;
+  }
+  return accountGroup.accounts.some((account) => {
     if (requestedChainIds.length > 0) {
       return hasChainIdSupport(account.scopes, requestedChainIds);
     }
     return hasNamespaceSupport(account.scopes, requestedNamespaces);
   });
+};
 
 /**
  * Hook that manages account groups for CAIP-25 permissions, providing both connected
