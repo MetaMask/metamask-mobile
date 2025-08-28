@@ -5,6 +5,14 @@ import { NetworkMenuModalState } from '../NetworkManager/index.types';
 export enum NetworkListItemType {
   Network = 'network',
   AdditionalNetworkSection = 'additional-network-section',
+  SelectAllNetworksListItem = 'select-all-networks',
+}
+
+export interface SelectAllNetworksListItem {
+  id: string;
+  type: NetworkListItemType.SelectAllNetworksListItem;
+  component: React.ReactNode;
+  isSelected: boolean;
 }
 
 export interface Network {
@@ -23,7 +31,10 @@ export interface AdditionalNetworkSection {
   component: React.ReactNode;
 }
 
-export type NetworkListItem = Network | AdditionalNetworkSection;
+export type NetworkListItem =
+  | Network
+  | AdditionalNetworkSection
+  | SelectAllNetworksListItem;
 
 export interface NetworkMultiSelectorListProps {
   onSelectNetwork?: (caipChainId: CaipChainId) => void;
@@ -38,5 +49,7 @@ export interface NetworkMultiSelectorListProps {
   isSelectionDisabled?: boolean;
   isAutoScrollEnabled?: boolean;
   additionalNetworksComponent?: React.ReactNode;
+  selectAllNetworksComponent?: React.ReactNode;
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
+  areAllNetworksSelected?: boolean;
 }
