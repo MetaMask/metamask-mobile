@@ -19,8 +19,8 @@ import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
-import { useRampSDK } from '../sdk';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { selectChainId } from '../../../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   selector: {
@@ -38,7 +38,7 @@ const AccountSelector = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { selectedChainId } = useRampSDK();
+  const selectedChainId = useSelector(selectChainId);
   const accountName = useAccountName();
 
   const selectedFormattedAddress = useSelector(

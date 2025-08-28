@@ -31,12 +31,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../Ramp/Aggregator/sdk', () => ({
-  useRampSDK: jest.fn().mockReturnValue({
-    selectedChainId: '1',
-  }),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
