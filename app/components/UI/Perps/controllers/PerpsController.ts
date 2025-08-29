@@ -4,6 +4,7 @@ import {
 } from '@metamask/base-controller';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
@@ -12,8 +13,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type Hex } from '@metamask/utils';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { generateTransferData } from '../../../../util/transactions';
 import {
   trace,
@@ -23,6 +27,8 @@ import {
 } from '../../../../util/trace';
 import type { CandleData } from '../types';
 import { CandlePeriod } from '../constants/chartConfig';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { DATA_LAKE_API_CONFIG } from '../constants/perpsConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -58,6 +64,8 @@ import type {
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
+  GetHistoricalPortfolioParams,
+  HistoricalPortfolioResult,
 } from './types';
 import { getEnvironment } from './utils';
 
@@ -67,6 +75,7 @@ import { getEnvironment } from './utils';
  */
 export const PERPS_ERROR_CODES = {
   CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+  CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
   BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
@@ -105,6 +114,16 @@ export type PerpsControllerState = {
   positions: Position[];
   accountState: AccountState | null;
 
+  // Perps balances per provider for portfolio display
+  perpsBalances: {
+    [provider: string]: {
+      totalValue: string; // Current total account value (cash + positions) in USD
+      unrealizedPnl: string; // Current P&L from open positions in USD
+      accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
+      lastUpdated: number; // Timestamp of last update
+    };
+  };
+
   // Order management
   pendingOrders: OrderParams[];
 
@@ -113,6 +132,15 @@ export type PerpsControllerState = {
   lastDepositResult: {
     success: boolean;
     txHash?: string;
+    error?: string;
+  } | null;
+
+  // Simple withdrawal state (transient, for UI feedback)
+  withdrawInProgress: boolean;
+  lastWithdrawResult: {
+    success: boolean;
+    txHash?: string;
+    amount?: string;
     error?: string;
   } | null;
 
@@ -145,9 +173,12 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   connectionStatus: 'disconnected',
   positions: [],
   accountState: null,
+  perpsBalances: {},
   pendingOrders: [],
   depositInProgress: false,
   lastDepositResult: null,
+  withdrawInProgress: false,
+  lastWithdrawResult: null,
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
@@ -167,12 +198,15 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
 const metadata = {
   positions: { persist: true, anonymous: false },
   accountState: { persist: true, anonymous: false },
+  perpsBalances: { persist: true, anonymous: false },
   isTestnet: { persist: true, anonymous: false },
   activeProvider: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   depositInProgress: { persist: false, anonymous: false },
   lastDepositResult: { persist: false, anonymous: false },
+  withdrawInProgress: { persist: false, anonymous: false },
+  lastWithdrawResult: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
@@ -269,6 +303,10 @@ export type PerpsControllerActions =
       handler: PerpsController['markFirstOrderCompleted'];
     }
   | {
+      type: 'PerpsController:getHistoricalPortfolio';
+      handler: PerpsController['getHistoricalPortfolio'];
+    }
+  | {
       type: 'PerpsController:resetFirstTimeUserState';
       handler: PerpsController['resetFirstTimeUserState'];
     };
@@ -276,7 +314,9 @@ export type PerpsControllerActions =
 /**
  * External actions the PerpsController can call
  */
-export type AllowedActions = NetworkControllerGetStateAction['type'];
+export type AllowedActions =
+  | NetworkControllerGetStateAction
+  | AuthenticationController.AuthenticationControllerGetBearerToken;
 
 /**
  * External events the PerpsController can subscribe to
@@ -291,9 +331,9 @@ export type AllowedEvents =
  */
 export type PerpsControllerMessenger = RestrictedMessenger<
   'PerpsController',
-  PerpsControllerActions,
+  PerpsControllerActions | AllowedActions,
   PerpsControllerEvents | AllowedEvents,
-  AllowedActions,
+  AllowedActions['type'],
   AllowedEvents['type']
 >;
 
@@ -321,6 +361,7 @@ export class PerpsController extends BaseController<
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private isReinitializing = false;
 
   constructor({ messenger, state = {} }: PerpsControllerOptions) {
     super({
@@ -412,9 +453,21 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get the currently active provider - ensures initialization first
+   * Get the currently active provider
+   * @returns The active provider
+   * @throws Error if provider is not initialized or reinitializing
    */
   getActiveProvider(): IPerpsProvider {
+    // Check if we're in the middle of reinitializing
+    if (this.isReinitializing) {
+      this.update((state) => {
+        state.lastError = PERPS_ERROR_CODES.CLIENT_REINITIALIZING;
+        state.lastUpdateTimestamp = Date.now();
+      });
+      throw new Error(PERPS_ERROR_CODES.CLIENT_REINITIALIZING);
+    }
+
+    // Check if not initialized
     if (!this.isInitialized) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
@@ -471,6 +524,18 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.pendingOrders = state.pendingOrders.filter((o) => o !== params);
           state.lastUpdateTimestamp = Date.now();
+        });
+
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({
+          action: 'open',
+          coin: params.coin,
+          sl_price: params.stopLossPrice
+            ? parseFloat(params.stopLossPrice)
+            : undefined,
+          tp_price: params.takeProfitPrice
+            ? parseFloat(params.takeProfitPrice)
+            : undefined,
         });
 
         // End trace with success data
@@ -566,6 +631,9 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastUpdateTimestamp = Date.now();
         });
+
+        // Report to data lake (fire-and-forget with retry)
+        this.reportOrderToDataLake({ action: 'close', coin: params.coin });
 
         endTrace({
           name: TraceName.PerpsClosePosition,
@@ -770,6 +838,12 @@ export class PerpsController extends BaseController<
     });
   }
 
+  clearWithdrawResult(): void {
+    this.update((state) => {
+      state.lastWithdrawResult = null;
+    });
+  }
+
   /**
    * Withdraw funds from trading account
    *
@@ -805,6 +879,11 @@ export class PerpsController extends BaseController<
         isTestnet: this.state.isTestnet,
       });
 
+      // Set withdrawal in progress
+      this.update((state) => {
+        state.withdrawInProgress = true;
+      });
+
       // Get provider (all validation is handled at the provider level)
       const provider = this.getActiveProvider();
       DevLogger.log('📡 PerpsController: DELEGATING TO PROVIDER', {
@@ -827,6 +906,12 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastError = null;
           state.lastUpdateTimestamp = Date.now();
+          state.withdrawInProgress = false;
+          state.lastWithdrawResult = {
+            success: true,
+            txHash: result.txHash,
+            amount: params.amount,
+          };
         });
 
         DevLogger.log('✅ PerpsController: WITHDRAWAL SUCCESSFUL', {
@@ -834,6 +919,19 @@ export class PerpsController extends BaseController<
           amount: params.amount,
           assetId: params.assetId,
           withdrawalId: result.withdrawalId,
+        });
+
+        // Note: The withdrawal result will be cleared by usePerpsWithdrawStatus hook
+        // after showing the appropriate toast messages
+
+        // Trigger account state refresh after withdrawal
+        this.getAccountState().catch((error) => {
+          DevLogger.log(
+            '⚠️ PerpsController: Failed to refresh after withdrawal',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          );
         });
 
         endTrace({
@@ -851,7 +949,13 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED;
         state.lastUpdateTimestamp = Date.now();
+        state.withdrawInProgress = false;
+        state.lastWithdrawResult = {
+          success: false,
+          error: result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED,
+        };
       });
+
       DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
         error: result.error,
         params,
@@ -884,6 +988,11 @@ export class PerpsController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
+        state.withdrawInProgress = false;
+        state.lastWithdrawResult = {
+          success: false,
+          error: errorMessage,
+        };
       });
 
       endTrace({
@@ -919,6 +1028,21 @@ export class PerpsController extends BaseController<
       // Only update state if the provider call succeeded
       this.update((state) => {
         state.positions = positions;
+        // Update perps balances if we have account state
+        if (state.accountState) {
+          const providerKey = this.state.activeProvider;
+          // Preserve existing historical data if available
+          const existingBalance = state.perpsBalances[providerKey];
+          state.perpsBalances[providerKey] = {
+            totalValue: state.accountState.totalValue || '0',
+            unrealizedPnl: state.accountState.unrealizedPnl || '0',
+            accountValue1dAgo:
+              existingBalance?.accountValue1dAgo ||
+              state.accountState.totalValue ||
+              '0',
+            lastUpdated: Date.now(),
+          };
+        }
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1005,15 +1129,42 @@ export class PerpsController extends BaseController<
 
     try {
       const provider = this.getActiveProvider();
-      const accountState = await provider.getAccountState(params);
+
+      // Get both current account state and historical portfolio data
+      const [accountState, historicalPortfolio] = await Promise.all([
+        provider.getAccountState(params),
+        provider.getHistoricalPortfolio(params).catch((error) => {
+          DevLogger.log(
+            'Failed to get historical portfolio, continuing without it:',
+            error,
+          );
+          return;
+        }),
+      ]);
+
+      // fallback to the current account total value if possible
+      const historicalPortfolioToUse: HistoricalPortfolioResult =
+        historicalPortfolio ?? {
+          accountValue1dAgo: accountState.totalValue || '0',
+          timestamp: 0,
+        };
 
       // Only update state if the provider call succeeded
       DevLogger.log(
-        'PerpsController: Updating Redux store with accountState:',
-        accountState,
+        'PerpsController: Updating Redux store with accountState and historical data:',
+        { accountState, historicalPortfolio: historicalPortfolioToUse },
       );
+
       this.update((state) => {
         state.accountState = accountState;
+        // Update perps balances for the active provider
+        const providerKey = this.state.activeProvider;
+        state.perpsBalances[providerKey] = {
+          totalValue: accountState.totalValue || '0',
+          unrealizedPnl: accountState.unrealizedPnl || '0',
+          accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
+          lastUpdated: Date.now(),
+        };
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1024,6 +1175,8 @@ export class PerpsController extends BaseController<
         data: {
           success: true,
           hasBalance: parseFloat(accountState.totalBalance) > 0,
+          hasHistoricalData:
+            parseFloat(historicalPortfolioToUse?.accountValue1dAgo || '0') > 0,
         },
       });
 
@@ -1046,6 +1199,37 @@ export class PerpsController extends BaseController<
           success: false,
           error: errorMessage,
         },
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
+   * Get historical portfolio data for percentage calculations
+   */
+  async getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult> {
+    try {
+      const provider = this.getActiveProvider();
+      const result = await provider.getHistoricalPortfolio(params);
+
+      // Return the result without storing it in state
+      // Historical data can be fetched when needed
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to get historical portfolio';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
       });
 
       // Re-throw the error so components can handle it appropriately
@@ -1244,14 +1428,40 @@ export class PerpsController extends BaseController<
    * Get supported withdrawal routes - returns complete asset and routing information
    */
   getWithdrawalRoutes(): AssetRoute[] {
-    const provider = this.getActiveProvider();
-    return provider.getWithdrawalRoutes();
+    try {
+      const provider = this.getActiveProvider();
+      return provider.getWithdrawalRoutes();
+    } catch (error) {
+      DevLogger.log('PerpsController: Error getting withdrawal routes', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return empty array if provider is not available
+      return [];
+    }
   }
 
   /**
    * Toggle between testnet and mainnet
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
+    // Prevent concurrent reinitializations
+    if (this.isReinitializing) {
+      DevLogger.log(
+        'PerpsController: Already reinitializing, skipping toggle',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
+      return {
+        success: false,
+        isTestnet: this.state.isTestnet,
+        error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
+      };
+    }
+
+    this.isReinitializing = true;
+
     try {
       const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
@@ -1289,6 +1499,8 @@ export class PerpsController extends BaseController<
             ? error.message
             : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
+    } finally {
+      this.isReinitializing = false;
     }
   }
 
@@ -1325,48 +1537,135 @@ export class PerpsController extends BaseController<
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToPrices(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToPrices(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to prices', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live position updates
    */
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToPositions(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToPositions(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to positions', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live order fill updates
    */
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToOrderFills(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderFills(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to order fills', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live order updates
    */
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToOrders(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrders(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to orders', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live account updates
    */
   subscribeToAccount(params: SubscribeAccountParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToAccount(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToAccount(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to account', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
+  }
+
+  /**
+   * Update perps balances for the current provider
+   * Called when account state changes
+   */
+  updatePerpsBalances(
+    accountState: AccountState,
+    accountValue1dAgo?: string,
+  ): void {
+    const providerKey = this.state.activeProvider;
+    this.update((state) => {
+      // Preserve existing historical data if not provided
+      const existingBalance = state.perpsBalances[providerKey];
+      state.perpsBalances[providerKey] = {
+        totalValue: accountState.totalValue || '0',
+        unrealizedPnl: accountState.unrealizedPnl || '0',
+        accountValue1dAgo:
+          accountValue1dAgo ||
+          existingBalance?.accountValue1dAgo ||
+          accountState.totalValue ||
+          '0',
+        lastUpdated: Date.now(),
+      };
+    });
   }
 
   /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
-    const provider = this.getActiveProvider();
-    provider.setLiveDataConfig(config);
+    try {
+      const provider = this.getActiveProvider();
+      provider.setLiveDataConfig(config);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error setting live data config', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   /**
@@ -1394,8 +1693,21 @@ export class PerpsController extends BaseController<
       },
     );
 
-    const provider = this.getActiveProvider();
-    await provider.disconnect();
+    // Only disconnect the provider if we're initialized
+    if (this.isInitialized && !this.isReinitializing) {
+      try {
+        const provider = this.getActiveProvider();
+        await provider.disconnect();
+      } catch (error) {
+        DevLogger.log(
+          'PerpsController: Error getting provider during disconnect',
+          {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          },
+        );
+      }
+    }
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
@@ -1407,25 +1719,43 @@ export class PerpsController extends BaseController<
    * Called when user switches accounts or networks
    */
   async reconnectWithNewContext(): Promise<void> {
-    DevLogger.log('PerpsController: Reconnecting with new account/network', {
-      timestamp: new Date().toISOString(),
-    });
+    // Prevent concurrent reinitializations
+    if (this.isReinitializing) {
+      DevLogger.log('PerpsController: Already reinitializing, waiting...', {
+        timestamp: new Date().toISOString(),
+      });
+      // Wait for the current reinitialization to complete
+      if (this.initializationPromise) {
+        await this.initializationPromise;
+      }
+      return;
+    }
 
-    // Clear Redux state immediately to reset UI
-    this.update((state) => {
-      state.positions = [];
-      state.accountState = null;
-      state.pendingOrders = [];
-      state.lastError = null;
-    });
+    this.isReinitializing = true;
 
-    // Clear state and force reinitialization
-    // initializeProviders() will handle disconnection if needed
-    this.isInitialized = false;
-    this.initializationPromise = null;
+    try {
+      DevLogger.log('PerpsController: Reconnecting with new account/network', {
+        timestamp: new Date().toISOString(),
+      });
 
-    // Reinitialize with new context
-    await this.initializeProviders();
+      // Clear Redux state immediately to reset UI
+      this.update((state) => {
+        state.positions = [];
+        state.accountState = null;
+        state.pendingOrders = [];
+        state.lastError = null;
+      });
+
+      // Clear state and force reinitialization
+      // initializeProviders() will handle disconnection if needed
+      this.isInitialized = false;
+      this.initializationPromise = null;
+
+      // Reinitialize with new context
+      await this.initializeProviders();
+    } finally {
+      this.isReinitializing = false;
+    }
   }
 
   /**
@@ -1565,5 +1895,172 @@ export class PerpsController extends BaseController<
         mainnet: false,
       };
     });
+  }
+
+  /**
+   * Report order events to data lake API with retry (non-blocking)
+   */
+  private async reportOrderToDataLake(params: {
+    action: 'open' | 'close';
+    coin: string;
+    sl_price?: number;
+    tp_price?: number;
+    retryCount?: number;
+  }): Promise<{ success: boolean; error?: string }> {
+    // Skip data lake reporting for testnet as the API doesn't handle testnet data
+    const isTestnet = this.state.isTestnet;
+    if (isTestnet) {
+      DevLogger.log('DataLake API: Skipping for testnet', {
+        action: params.action,
+        coin: params.coin,
+        network: 'testnet',
+      });
+      return { success: true, error: 'Skipped for testnet' };
+    }
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+    const { action, coin, sl_price, tp_price, retryCount = 0 } = params;
+
+    // Start performance measurement for initial call or log retry
+    const startTime = performance.now();
+
+    // Log the attempt
+    DevLogger.log('DataLake API: Starting order report', {
+      action,
+      coin,
+      attempt: retryCount + 1,
+      maxAttempts: MAX_RETRIES + 1,
+      hasStopLoss: !!sl_price,
+      hasTakeProfit: !!tp_price,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      const token = await this.messagingSystem.call(
+        'AuthenticationController:getBearerToken',
+      );
+      const { AccountTreeController } = Engine.context;
+      const accounts =
+        AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
+
+      if (!evmAccount || !token) {
+        DevLogger.log('DataLake API: Missing requirements', {
+          hasAccount: !!evmAccount,
+          hasToken: !!token,
+          action,
+          coin,
+        });
+        return { success: false, error: 'No account or token available' };
+      }
+
+      const response = await fetch(DATA_LAKE_API_CONFIG.ORDERS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: evmAccount.address,
+          coin,
+          sl_price,
+          tp_price,
+        }),
+      });
+
+      const duration = performance.now() - startTime;
+
+      if (!response.ok) {
+        throw new Error(`DataLake API error: ${response.status}`);
+      }
+
+      // Consume response body (might be empty for 201, but good to check)
+      const responseBody = await response.text();
+
+      // Success logging and metrics
+      DevLogger.log('DataLake API: Order reported successfully', {
+        action,
+        coin,
+        duration: `${duration.toFixed(0)}ms`,
+        status: response.status,
+        attempt: retryCount + 1,
+        responseBody: responseBody || 'empty',
+      });
+
+      // Report performance metric to Sentry (only on success)
+      if (retryCount === 0) {
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_CALL,
+          duration,
+          'millisecond',
+        );
+      }
+
+      return { success: true };
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      DevLogger.log('DataLake API: Request failed', {
+        error: errorMessage,
+        duration: `${duration.toFixed(0)}ms`,
+        retryCount,
+        action,
+        coin,
+        willRetry: retryCount < MAX_RETRIES,
+      });
+
+      // Retry logic
+      if (retryCount < MAX_RETRIES) {
+        const retryDelay = RETRY_DELAY_MS * Math.pow(2, retryCount);
+        DevLogger.log('DataLake API: Scheduling retry', {
+          retryIn: `${retryDelay}ms`,
+          nextAttempt: retryCount + 2,
+          action,
+          coin,
+        });
+
+        setTimeout(() => {
+          this.reportOrderToDataLake({
+            action,
+            coin,
+            sl_price,
+            tp_price,
+            retryCount: retryCount + 1,
+          });
+        }, retryDelay);
+      } else {
+        // Final failure - report to Sentry with performance metric
+        DevLogger.log('DataLake API: All retries exhausted', {
+          action,
+          coin,
+          totalAttempts: retryCount + 1,
+          finalError: errorMessage,
+        });
+
+        // Report total retry duration as a metric
+        const totalRetryDuration =
+          duration + RETRY_DELAY_MS * (Math.pow(2, retryCount) - 1); // Include retry delays
+        setMeasurement(
+          PerpsMeasurementName.DATA_LAKE_API_RETRY,
+          totalRetryDuration,
+          'millisecond',
+        );
+
+        Logger.error(error as Error, {
+          message: 'Failed to report perps order to data lake after retries',
+          action,
+          coin,
+          retryCount,
+          totalDuration: `${totalRetryDuration.toFixed(0)}ms`,
+        });
+      }
+
+      return { success: false, error: errorMessage };
+    }
   }
 }
