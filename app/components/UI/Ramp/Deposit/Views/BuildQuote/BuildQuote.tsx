@@ -73,13 +73,13 @@ import {
   selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import {
-  USDC_TOKEN,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
   DEBIT_CREDIT_PAYMENT_METHOD,
+  MUSD_TOKEN,
 } from '../../constants';
 import {
   createNavigationDetails,
@@ -111,7 +111,7 @@ const BuildQuote = () => {
     DEBIT_CREDIT_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(USDC_TOKEN);
+    useState<DepositCryptoCurrency>(MUSD_TOKEN);
   const [fiatCurrency, setFiatCurrency] =
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');

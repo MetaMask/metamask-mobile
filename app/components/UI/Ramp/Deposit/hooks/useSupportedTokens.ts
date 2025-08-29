@@ -23,7 +23,7 @@ function useSupportedTokens() {
     }
 
     return initialSupportedTokens.sort((a, b) =>
-      a.symbol.localeCompare(b.symbol),
+      a.symbol.toUpperCase().localeCompare(b.symbol.toUpperCase()),
     );
   }, [chainIdsWithBalance, isCardholder]);
 
