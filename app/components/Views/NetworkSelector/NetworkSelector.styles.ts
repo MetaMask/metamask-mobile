@@ -4,7 +4,6 @@ import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from '../../../util/theme/models';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks/index';
 
 /**
  * Style sheet function for NetworkSelector screen.
@@ -13,7 +12,6 @@ import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks/ind
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     addNetworkButton: {
-      marginTop: isRemoveGlobalNetworkSelectorEnabled() ? 16 : 0,
       marginHorizontal: 16,
       marginBottom: Device.isAndroid()
         ? 16
