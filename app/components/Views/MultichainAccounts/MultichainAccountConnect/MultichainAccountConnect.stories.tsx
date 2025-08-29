@@ -61,14 +61,13 @@ const mockAccountGroups: AccountGroupWithInternalAccounts[] = [
   mockAccountGroup3,
 ];
 
-// Mock network configurations
 const mockNetworkConfigurations = {
   'eip155:1': {
     chainId: '0x1',
     name: 'Ethereum Mainnet',
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: ['https://mainnet.infura.io/v3/'],
-    blockExplorerUrls: ['https://etherscan.io'],
+    rpcUrls: ['https://url'],
+    blockExplorerUrls: ['https://url'],
   },
   'eip155:137': {
     chainId: '0x89',
@@ -77,16 +76,8 @@ const mockNetworkConfigurations = {
     rpcUrls: ['https://polygon-rpc.com'],
     blockExplorerUrls: ['https://polygonscan.com'],
   },
-  'eip155:56': {
-    chainId: '0x38',
-    name: 'BNB Smart Chain',
-    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-    rpcUrls: ['https://bsc-dataseed.binance.org'],
-    blockExplorerUrls: ['https://bscscan.com'],
-  },
 } as const;
 
-// Mock host info for different scenarios
 const createMockHostInfo = (origin: string, isEip1193Request = false) => ({
   metadata: {
     origin,
@@ -122,7 +113,6 @@ const createMockHostInfo = (origin: string, isEip1193Request = false) => ({
   },
 });
 
-// Mock store with comprehensive state
 const createMockStore = (accountGroups = mockAccountGroups) =>
   configureStore({
     reducer: {
@@ -194,7 +184,6 @@ const createMockStore = (accountGroups = mockAccountGroups) =>
       }),
   });
 
-// Mock navigation component
 const MockNavigationWrapper = ({ children }: { children: React.ReactNode }) => (
   <NavigationContainer>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -269,34 +258,11 @@ const createStoryArgs = (
 });
 
 export const Default = {
-  args: createStoryArgs('https://uniswap.org'),
-};
-
-export const EIP1193Request = {
-  args: createStoryArgs('https://opensea.io', true),
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Shows the component handling a legacy EIP-1193 connection request.',
-      },
-    },
-  },
-};
-
-export const WalletConnectDApp = {
-  args: createStoryArgs('https://pancakeswap.finance'),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Shows the component connecting to a dApp via WalletConnect.',
-      },
-    },
-  },
+  args: createStoryArgs('https://fake-url'),
 };
 
 export const SingleAccount = {
-  args: createStoryArgs('https://compound.finance', false, [mockAccountGroup1]),
+  args: createStoryArgs('https://fake-rul', false, [mockAccountGroup1]),
   parameters: {
     docs: {
       description: {
@@ -308,46 +274,12 @@ export const SingleAccount = {
 };
 
 export const MultipleAccounts = {
-  args: createStoryArgs('https://aave.com'),
+  args: createStoryArgs('https://fake-url'),
   parameters: {
     docs: {
       description: {
         story:
           'Shows the component with multiple accounts available for selection.',
-      },
-    },
-  },
-};
-
-export const DeFiProtocol = {
-  args: createStoryArgs('https://curve.fi'),
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Example of connecting to a DeFi protocol with multichain support.',
-      },
-    },
-  },
-};
-
-export const NFTMarketplace = {
-  args: createStoryArgs('https://blur.io'),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Example of connecting to an NFT marketplace.',
-      },
-    },
-  },
-};
-
-export const GameDApp = {
-  args: createStoryArgs('https://axieinfinity.com'),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Example of connecting to a gaming dApp.',
       },
     },
   },
