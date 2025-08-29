@@ -95,19 +95,23 @@ export const formatPnl = (pnl: string | number): string => {
 /**
  * Formats a percentage value with sign prefix
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
+ * @param decimals - Number of decimal places to show (default: 2)
  * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
  * @example formatPercentage(5.25) => "+5.25%"
  * @example formatPercentage(-2.75) => "-2.75%"
  * @example formatPercentage(0) => "+0.00%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  decimals: number = 2,
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
 
   if (isNaN(num)) {
     return '0.00%';
   }
 
-  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+  return `${num >= 0 ? '+' : ''}${num.toFixed(decimals)}%`;
 };
 
 /**
@@ -320,17 +324,25 @@ export const parsePercentageString = (formattedValue: string): number => {
 };
 
 /**
- * Formats a timestamp for transaction detail views
+ * Formats a timestamp for transaction detail views with time
  * @param timestamp - Unix timestamp in milliseconds
- * @returns Formatted date string (e.g., "July 24, 2025")
- * @example formatTransactionDate(1642492800000) => "January 18, 2022"
+ * @returns Formatted date string with time (e.g., "July 24, 2025 at 2:30 PM")
+ * @example formatTransactionDate(1642492800000) => "January 18, 2022 at 12:00 AM"
  */
-export const formatTransactionDate = (timestamp: number): string =>
-  new Intl.DateTimeFormat('en-US', {
+export const formatTransactionDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const dateStr = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(new Date(timestamp));
+  }).format(date);
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${dateStr} at ${timeStr}`;
+};
 
 /**
  * Formats a timestamp for transaction section headers

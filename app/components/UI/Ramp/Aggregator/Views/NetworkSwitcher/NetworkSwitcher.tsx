@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { SolScope } from '@metamask/keyring-api';
 import {
   ImageSourcePropType,
   RefreshControl,
@@ -152,7 +153,7 @@ function NetworkSwitcher() {
   }, [navigation]);
 
   const switchToMainnet = useCallback(
-    (type: 'mainnet' | 'linea-mainnet') => {
+    (type: 'mainnet' | 'linea-mainnet' | SolScope.Mainnet) => {
       const { MultichainNetworkController } = Engine.context;
       MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
@@ -213,6 +214,10 @@ function NetworkSwitcher() {
 
       if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
         return switchToMainnet('linea-mainnet');
+      }
+
+      if (chainId === SolScope.Mainnet) {
+        return switchToMainnet(SolScope.Mainnet);
       }
 
       const supportedNetworkConfigurations = rampNetworksDetails.map(

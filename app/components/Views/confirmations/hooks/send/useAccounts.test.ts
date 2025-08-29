@@ -1,4 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
+import { isEvmAccountType } from '@metamask/keyring-api';
+
+import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import { useSendContext } from '../../context/send-context';
+import { useSendType } from './useSendType';
 import { useAccounts } from './useAccounts';
 
 jest.mock('react-redux', () => ({
@@ -28,15 +36,6 @@ jest.mock('../../../../../selectors/accountsController', () => ({
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
-
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-
-import { useSelector } from 'react-redux';
-import { useSendType } from './useSendType';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
-import { useSendContext } from '../../context/send-context';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
@@ -155,8 +154,10 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Group 1',
+          accountGroupName: 'Group 1',
+          accountName: 'Account 1',
           address: '0x1234567890123456789012345678901234567890',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -211,8 +212,10 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Group 2',
+          accountGroupName: 'Group 2',
+          accountName: 'Solana Account 1',
           address: 'Sol1234567890123456789012345678901234567890',
+          walletName: 'Wallet 1',
         },
       ]);
     });
@@ -406,12 +409,16 @@ describe('useAccounts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
-            name: 'Group 1',
+            accountGroupName: 'Group 1',
+            accountName: 'Account 1',
             address: '0x1234567890123456789012345678901234567890',
+            walletName: 'Wallet 1',
           },
           {
-            name: 'Group 3',
+            accountGroupName: 'Group 3',
+            accountName: 'Account 2',
             address: '0x9876543210987654321098765432109876543210',
+            walletName: 'Wallet 2',
           },
         ]),
       );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
 
@@ -12,10 +13,14 @@ import {
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
 }));
 
 jest.mock('../../../../util/address', () => ({
@@ -38,6 +43,47 @@ const mockWallet = {
   id: 'wallet-1',
   metadata: { name: 'Test Wallet' },
   type: 'keyring',
+};
+
+const mockNetworkControllerState = {
+  networkConfigurationsByChainId: {
+    0x1: {
+      chainId: '0x1',
+      name: 'Ethereum',
+    },
+    0xaa36a7: {
+      chainId: '0xaa36a7',
+      name: 'Sepolia Test Network',
+    },
+    0x2105: {
+      chainId: '0x2105',
+      name: 'Base',
+    },
+    0xa4b1: {
+      chainId: '0xa4b1',
+      name: 'Arbitrum One',
+    },
+  },
+};
+
+const mockMultichainNetworkController = {
+  multichainNetworkConfigurationsByChainId: {
+    [SolScope.Mainnet]: {
+      name: 'Solana Mainnet',
+      chainId: SolScope.Mainnet,
+      isTestnet: false,
+    },
+    [SolScope.Testnet]: {
+      name: 'Solana Testnet',
+      chainId: SolScope.Testnet,
+      isTestnet: true,
+    },
+    [SolScope.Devnet]: {
+      name: 'Solana Devnet',
+      chainId: SolScope.Devnet,
+      isTestnet: true,
+    },
+  },
 };
 
 describe('AccountGroupDetails', () => {
@@ -89,6 +135,8 @@ describe('AccountGroupDetails', () => {
             },
           ],
         },
+        NetworkController: mockNetworkControllerState,
+        MultichainNetworkController: mockMultichainNetworkController,
       },
     },
   };
@@ -236,5 +284,20 @@ describe('AccountGroupDetails', () => {
     expect(
       getByTestId2(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
+  });
+
+  it('navigates to Address List when Networks link is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+    fireEvent.press(networksLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
+      groupId: mockAccountGroup.id,
+      title: `Addresses / ${mockAccountGroup.metadata.name}`,
+    });
   });
 });

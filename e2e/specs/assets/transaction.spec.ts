@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -12,12 +12,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(Regression('Transaction'), () => {
+describe(RegressionAssets('Transaction'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -33,14 +33,10 @@ describe(Regression('Transaction'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: urlEndpoint,
-            response,
-            responseCode: 200,
-          });
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+          );
         },
       },
       async () => {
