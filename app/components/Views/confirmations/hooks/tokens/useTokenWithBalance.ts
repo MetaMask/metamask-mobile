@@ -22,8 +22,8 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
     selectSingleTokenBalance(
       state,
       selectedAddress as Hex,
-      toChecksumAddress(tokenAddress),
       chainId,
+      toChecksumAddress(tokenAddress),
     ),
   );
 
