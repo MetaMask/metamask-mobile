@@ -6,16 +6,19 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeAccounts } from '../../tags';
+import { RegressionAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { setupMockPostRequest } from '../../api-mocking/mockHelpers';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { Mockttp } from 'mockttp';
 
 const PASSWORD = '123123123';
 
-describe(SmokeAccounts('Error Boundary Screen'), () => {
+describe(RegressionAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -36,6 +39,17 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
           )
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupMockPostRequest(
+            mockServer,
+            'https://security-alerts.api.cx.metamask.io/validate/0x539',
+            mockEvents.POST.securityAlertApiValidate.requestBody,
+            mockEvents.POST.securityAlertApiValidate.response,
+            {
+              statusCode: mockEvents.POST.securityAlertApiValidate.responseCode,
+            },
+          );
+        },
       },
       async () => {
         await loginToApp();

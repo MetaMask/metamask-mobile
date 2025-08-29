@@ -16,7 +16,7 @@ interface UsePerpsClosePositionValidationParams {
   positionValue: number; // Total position value in USD
   minimumOrderAmount: number; // Minimum order size in USD
   closingValue: number; // Value being closed in USD
-  remainingPositionValue: number; // Value remaining after close
+  remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number; // Amount user will receive after fees
   isPartialClose: boolean;
 }
@@ -104,9 +104,9 @@ export function usePerpsClosePositionValidation(
     currentPrice,
     minimumOrderAmount,
     closingValue,
-    remainingPositionValue,
     receiveAmount,
     isPartialClose,
+    positionValue,
   } = params;
 
   const { validateClosePosition } = usePerpsTrading();
@@ -152,26 +152,20 @@ export function usePerpsClosePositionValidation(
 
       // UI-specific validations that don't belong in the provider
 
-      // Check partial close constraints
-      if (closePercentage > 0 && closePercentage < 100) {
-        // For any partial close, ensure remaining position meets minimum
-        if (remainingPositionValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.close_position.minimum_remaining_error', {
-              minimum: minimumOrderAmount.toString(),
-              remaining: remainingPositionValue.toFixed(2),
-            }),
-          );
-        }
-      } else if (closePercentage === 100) {
-        // For full closes, check if the close order value meets minimum
-        if (closingValue > 0 && closingValue < minimumOrderAmount) {
-          errors.push(
-            strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderAmount.toString(),
-            }),
-          );
-        }
+      // Special case: if the total position is below minimum, user must close 100%
+      if (isPartialClose && positionValue < minimumOrderAmount) {
+        errors.push(
+          strings('perps.close_position.must_close_full_below_minimum'),
+        );
+      }
+      // Check minimum for partial closes (not for 100% closes)
+      // Skip this check if the entire position is below minimum (already handled above)
+      else if (isPartialClose && closingValue < minimumOrderAmount) {
+        errors.push(
+          strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderAmount.toString(),
+          }),
+        );
       }
 
       // Check if user will receive a positive amount after fees
@@ -198,18 +192,6 @@ export function usePerpsClosePositionValidation(
       // Market order validation
       if (orderType === 'market' && closePercentage === 0) {
         errors.push(strings('perps.close_position.no_amount_selected'));
-      }
-
-      // Add warning for very small partial closes
-      if (
-        isPartialClose &&
-        closePercentage < VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING
-      ) {
-        warnings.push(
-          strings('perps.close_position.small_close_warning', {
-            percentage: closePercentage.toString(),
-          }),
-        );
       }
 
       setValidation({
@@ -239,9 +221,9 @@ export function usePerpsClosePositionValidation(
     currentPrice,
     minimumOrderAmount,
     closingValue,
-    remainingPositionValue,
     receiveAmount,
     isPartialClose,
+    positionValue,
     validateClosePosition,
   ]);
 
