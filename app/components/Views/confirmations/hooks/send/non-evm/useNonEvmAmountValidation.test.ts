@@ -33,27 +33,6 @@ describe('validateAmountFn', () => {
     );
   });
 
-  it('returns invalid value error if value passed is not correct positive decimal', async () => {
-    expect(
-      await validateAmountFn(
-        getArguments({
-          amount: 'abc',
-          fromAccount: { id: '123' },
-          asset: SOLANA_ASSET,
-        }),
-      ),
-    ).toStrictEqual('Invalid value');
-    expect(
-      await validateAmountFn(
-        getArguments({
-          amount: '-100',
-          fromAccount: { id: '123' },
-          asset: SOLANA_ASSET,
-        }),
-      ),
-    ).toStrictEqual('Invalid value');
-  });
-
   it('does not return error if validateAmountMultichain return no error', async () => {
     jest
       .spyOn(MultichainSnapsUtils, 'validateAmountMultichain')

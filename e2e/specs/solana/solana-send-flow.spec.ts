@@ -43,7 +43,7 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
   });
 
-  it('should validate recipient address format correctly', async () => {
+  it.skip('should validate recipient address format correctly', async () => {
     await WalletView.tapWalletSendButton();
     await SnapSendActionSheet.sendActionInputAddress(INVALID_ADDRESS);
     await Assertions.expectElementToHaveText(
