@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusDto,
+  SeasonTierDto,
   SubscriptionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
@@ -11,6 +12,12 @@ export interface RewardsState {
   // Subscription state
   subscriptionId: string | null;
   currentTierId: string | null;
+
+  // Season state
+  seasonName: string | null;
+  seasonStartDate: Date | null;
+  seasonEndDate: Date | null;
+  seasonTiers: SeasonTierDto[];
 
   // Balance state
   balanceTotal: number | null;
@@ -32,6 +39,10 @@ export const initialState: RewardsState = {
   balanceTotal: 0,
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
+  seasonName: null,
+  seasonStartDate: null,
+  seasonEndDate: null,
+  seasonTiers: [],
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -56,6 +67,13 @@ const rewardsSlice = createSlice({
     },
 
     setSeasonStatus: (state, action: PayloadAction<SeasonStatusDto | null>) => {
+      // Season state
+      state.seasonName = action.payload?.season.name || null;
+      state.seasonStartDate = action.payload?.season.startDate || null;
+      state.seasonEndDate = action.payload?.season.endDate || null;
+      state.seasonTiers = action.payload?.season.tiers || [];
+
+      // Balance state
       state.balanceTotal =
         action.payload?.balance &&
         typeof action.payload.balance.total === 'number'

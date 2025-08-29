@@ -9,8 +9,13 @@ import {
   selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
+  selectSeasonName,
+  selectSeasonTiers,
+  selectSeasonEndDate,
+  selectSeasonStartDate,
 } from '../../../../reducers/rewards/selectors';
 import { RewardsTab } from '../../../../reducers/rewards/types';
+import { SeasonTierDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseRewardsStoreResult {
   activeTab: RewardsTab | null;
@@ -26,6 +31,12 @@ export interface UseRewardsStoreResult {
     refereeCount: number;
   };
   seasonStatusLoading: boolean;
+  season: {
+    name: string | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    tiers: SeasonTierDto[];
+  };
 }
 
 export const useRewardsStore = (): UseRewardsStoreResult => {
@@ -38,6 +49,11 @@ export const useRewardsStore = (): UseRewardsStoreResult => {
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const balanceUpdatedAt = useSelector(selectBalanceUpdatedAt);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const seasonName = useSelector(selectSeasonName);
+  const seasonStartDate = useSelector(selectSeasonStartDate);
+  const seasonEndDate = useSelector(selectSeasonEndDate);
+  const seasonTiers = useSelector(selectSeasonTiers);
+
   return {
     activeTab,
     subscriptionId,
@@ -52,5 +68,11 @@ export const useRewardsStore = (): UseRewardsStoreResult => {
       refereeCount: referralCount,
     },
     seasonStatusLoading,
+    season: {
+      name: seasonName,
+      startDate: seasonStartDate,
+      endDate: seasonEndDate,
+      tiers: seasonTiers,
+    },
   };
 };

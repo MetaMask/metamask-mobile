@@ -27,3 +27,14 @@ export const selectBalanceUpdatedAt = (state: RootState) =>
 
 export const selectSeasonStatusLoading = (state: RootState) =>
   state.rewards.seasonStatusLoading;
+
+export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
+
+export const selectSeasonStartDate = (state: RootState) =>
+  state.rewards.seasonStartDate;
+
+export const selectSeasonEndDate = (state: RootState) =>
+  state.rewards.seasonEndDate;
+
+export const selectSeasonTiers = (state: RootState) =>
+  state.rewards.seasonTiers;
