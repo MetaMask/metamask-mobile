@@ -2164,6 +2164,9 @@ workflows:
                 #!/usr/bin/env bash
                 set -ex
 
+                #pull latest brach changes for version bump
+                git pull
+
                 # Set base paths for release builds
                 if [ "$IS_DEV_BUILD" = "true" ]; then
                     APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
@@ -2175,9 +2178,9 @@ workflows:
                 # Generate new names based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${VERSION_NAME}-${VERSION_NUMBER}"
                 fi
 
                 # Rename APK
@@ -2429,8 +2432,6 @@ workflows:
         machine_type_id: elite-xl
   build_android_flask_prod:
     envs:
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
       - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
       - APP_NAME: 'flask'
@@ -2444,8 +2445,6 @@ workflows:
         machine_type_id: elite-xl
   build_android_flask_test:
     envs:
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
       - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
@@ -2460,8 +2459,6 @@ workflows:
   build_android_flask_e2e:
     envs:
       - YARN_COMMAND: 'build:android:flask:e2e'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
       - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
@@ -2475,8 +2472,6 @@ workflows:
         machine_type_id: elite-xl
   build_android_main_prod:
     envs:
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
@@ -2491,8 +2486,6 @@ workflows:
   build_android_main_beta:
     envs:
       - YARN_COMMAND: 'build:android:main:beta'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
@@ -2506,8 +2499,6 @@ workflows:
   build_android_main_rc:
     envs:
       - YARN_COMMAND: 'build:android:main:rc'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
@@ -2521,8 +2512,6 @@ workflows:
   build_android_main_test:
     envs:
       - YARN_COMMAND: 'build:android:main:test'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
@@ -2536,8 +2525,6 @@ workflows:
   build_android_main_e2e:
     envs:
       - YARN_COMMAND: 'build:android:main:e2e'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
@@ -2552,8 +2539,6 @@ workflows:
   build_android_main_exp:
     envs:
       - YARN_COMMAND: 'build:android:main:exp'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
@@ -2568,8 +2553,6 @@ workflows:
     envs:
       - METAMASK_BUILD_TYPE: 'beta'
       - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
       - APP_NAME: 'prod'
@@ -2609,8 +2592,6 @@ workflows:
   build_android_main_local:
     envs:
       - IS_DEV_BUILD: 'true'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'prod'
       - BUILD_COMMAND: 'yarn build:android:main:local'
     after_run:
@@ -2630,8 +2611,6 @@ workflows:
   build_android_flask_local:
     envs:
       - IS_DEV_BUILD: 'true'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: 'flask'
       - BUILD_COMMAND: 'yarn build:android:flask:local'
     after_run:
@@ -2651,8 +2630,6 @@ workflows:
   build_android_qa_local:
     envs:
       - IS_DEV_BUILD: 'true'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'qa'
       - BUILD_COMMAND: 'yarn build:android:qa:local'
     after_run:
@@ -2671,8 +2648,6 @@ workflows:
         machine_type_id: elite-xl
   build_android_qa_prod:
     envs:
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'qa'
@@ -2995,6 +2970,9 @@ workflows:
                 #!/usr/bin/env bash
                 set -ex
 
+                #pull latest brach changes for version bump
+                git pull
+
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
                   BUILD_DIR="ios/build/Build/Products/${CONFIGURATION}-iphonesimulator"
@@ -3009,9 +2987,9 @@ workflows:
                 # Generate new name based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${VERSION_NAME}-${VERSION_NUMBER}"
                 fi
 
                 # Copy binary with new name (preserve original)
@@ -3085,8 +3063,6 @@ workflows:
   build_ios_main_prod:
     envs:
       - CONFIGURATION: 'Release'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
       - YARN_COMMAND: 'build:ios:main:prod'
@@ -3096,8 +3072,6 @@ workflows:
     envs:
       - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:beta'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
@@ -3106,8 +3080,6 @@ workflows:
     envs:
       - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:rc'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
@@ -3116,8 +3088,6 @@ workflows:
     envs:
       - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:exp'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
@@ -3126,8 +3096,6 @@ workflows:
     envs:
       - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:test'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
@@ -3137,8 +3105,6 @@ workflows:
       - CONFIGURATION: 'Release'
       - IS_SIM_BUILD: 'true'
       - SHARE_WITH_DETOX: 'true'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
       - YARN_COMMAND: 'build:ios:main:e2e'
@@ -3159,8 +3125,6 @@ workflows:
       - CONFIGURATION: 'Release'
       - METAMASK_BUILD_TYPE: "beta"
       - METAMASK_ENVIRONMENT: 'production'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
     after_run:
@@ -3172,8 +3136,6 @@ workflows:
   build_ios_flask_prod:
     envs:
       - CONFIGURATION: 'Release'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:prod'
@@ -3182,8 +3144,6 @@ workflows:
   build_ios_flask_test:
     envs:
       - CONFIGURATION: 'Release'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:test'
@@ -3194,8 +3154,6 @@ workflows:
       - CONFIGURATION: 'Release'
       - IS_SIM_BUILD: 'true'
       - SHARE_WITH_DETOX: 'true'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:e2e'
@@ -3204,8 +3162,6 @@ workflows:
   build_ios_main_local:
     envs:
       - CONFIGURATION: 'Debug'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
       - INFO_PLIST_NAME: 'Info.plist'
       - YARN_COMMAND: 'build:ios:main:local'
@@ -3224,8 +3180,6 @@ workflows:
   build_ios_flask_local:
     envs:
       - CONFIGURATION: 'Debug'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
       - YARN_COMMAND: 'build:ios:flask:local'
@@ -3243,8 +3197,6 @@ workflows:
   build_ios_qa_local:
     envs:
       - CONFIGURATION: 'Debug'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
       - YARN_COMMAND: 'build:ios:qa:local'
@@ -3262,8 +3214,6 @@ workflows:
   build_ios_qa_prod:
     envs:
       - CONFIGURATION: 'Release'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
       - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
       - YARN_COMMAND: 'build:ios:qa:prod'
