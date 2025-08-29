@@ -23,7 +23,7 @@ import Address from '../../../../../UI/info-row/info-value/address';
 
 import Logger from '../../../../../../../../../util/Logger';
 import { shortenString } from '../../../../../../../../../util/notifications/methods/common';
-import { isNumberValue } from '../../../../../../../../../util/number';
+import { isNumberValue } from '../../../../../../../../../util/number/legacy';
 import { useTheme } from '../../../../../../../../../util/theme';
 import { calcTokenAmount } from '../../../../../../../../../util/transactions';
 

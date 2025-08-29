@@ -21,7 +21,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   weiToFiat,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
 import ActionView from '../../../../../UI/ActionView';
-import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../../util/number/legacy';
 import TokenImage from '../../../../../UI/TokenImage';
 import Device from '../../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';

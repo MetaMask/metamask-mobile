@@ -38,7 +38,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import {
   decodeTransferData,

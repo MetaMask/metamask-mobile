@@ -2,7 +2,7 @@ import { GasFeeController } from '@metamask/gas-fee-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { NetworkController } from '@metamask/network-controller';
 
-import { addHexPrefix } from '../../../../util/number';
+import { addHexPrefix } from '../../../../util/number/legacy';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import AppConstants from '../../../AppConstants';
@@ -13,7 +13,7 @@ import { GasFeeControllerInit } from './gas-fee-controller-init';
 
 jest.mock('@metamask/gas-fee-controller');
 jest.mock('../../../../util/networks');
-jest.mock('../../../../util/number');
+jest.mock('../../../../util/number/legacy');
 
 /**
  * Build a mock NetworkController.

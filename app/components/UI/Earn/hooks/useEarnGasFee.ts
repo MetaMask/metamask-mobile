@@ -7,7 +7,7 @@ import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { hexToBN } from '../../../../util/number';
+import { hexToBN } from '../../../../util/number/legacy';
 import { useStakeContext } from '../../Stake/hooks/useStakeContext';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';

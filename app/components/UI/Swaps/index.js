@@ -25,7 +25,7 @@ import {
   toTokenMinimalUnit,
   weiToFiat,
   safeNumberToBN,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';

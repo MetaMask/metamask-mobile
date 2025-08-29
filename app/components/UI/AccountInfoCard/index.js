@@ -22,7 +22,7 @@ import {
   safeToChecksumAddress,
 } from '../../../util/address';
 import Device from '../../../util/device';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
+import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number/legacy';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   getActiveTabUrl,

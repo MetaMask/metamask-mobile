@@ -9,7 +9,7 @@ import { getTicker } from '../../../util/transactions';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import {
   selectEvmTicker,
   selectNetworkConfigurationByChainId,

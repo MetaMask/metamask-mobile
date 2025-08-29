@@ -50,7 +50,7 @@ import {
   addHexPrefix,
   fromTokenMinimalUnitString,
   toTokenMinimalUnit,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { addTransaction } from '../../../../../../util/transaction-controller';

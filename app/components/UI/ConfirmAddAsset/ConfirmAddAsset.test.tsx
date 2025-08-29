@@ -5,7 +5,7 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import useBalance from '../Ramp/Aggregator/hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../util/number';
+import { toTokenMinimalUnit } from '../../../util/number/legacy';
 import { userEvent } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import { RootState } from '../../../reducers';

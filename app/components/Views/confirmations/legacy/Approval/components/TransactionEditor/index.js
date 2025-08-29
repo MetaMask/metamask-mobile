@@ -8,7 +8,7 @@ import {
   fromWei,
   renderFromWei,
   toHexadecimal,
-} from '../../../../../../../util/number';
+} from '../../../../../../../util/number/legacy';
 import { isValidAddress, addHexPrefix } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { strings } from '../../../../../../../../locales/i18n';

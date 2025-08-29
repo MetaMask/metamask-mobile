@@ -7,7 +7,7 @@ import type {
 } from '../../types';
 import AppConstants from '../../../AppConstants';
 import Logger from '../../../../util/Logger';
-import { addHexPrefix } from '../../../../util/number';
+import { addHexPrefix } from '../../../../util/number/legacy';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { type GasFeeControllerMessenger } from '../../messengers/gas-fee-controller-messenger/gas-fee-controller-messenger';
 

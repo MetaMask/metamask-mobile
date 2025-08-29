@@ -7,7 +7,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 
 export interface Token {
   address: string;

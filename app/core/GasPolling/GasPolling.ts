@@ -11,7 +11,7 @@ import {
 import { selectEvmTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../selectors/tokenRatesController';
-import { fromWei, isBN, toGwei } from '../../util/number';
+import { fromWei, isBN, toGwei } from '../../util/number/legacy';
 import {
   parseTransactionEIP1559,
   parseTransactionLegacy,

@@ -5,7 +5,7 @@ import I18n from '../../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { selectConversionRateByChainId } from '../../../../../../selectors/currencyRateController';
 import { getDecimalChainId } from '../../../../../../util/networks';
-import { fromWei, hexToBN } from '../../../../../../util/number';
+import { fromWei, hexToBN } from '../../../../../../util/number/legacy';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
 import useVaultMetadata from '../../../../../UI/Stake/hooks/useVaultMetadata';
