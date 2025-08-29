@@ -90,7 +90,6 @@ interface NetworkProps {
 
 const NetworkModals = (props: NetworkProps) => {
   const {
-    navigation,
     isVisible,
     onClose,
     networkConfiguration: {
@@ -103,8 +102,6 @@ const NetworkModals = (props: NetworkProps) => {
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
     showPopularNetworkModal,
-    shouldNetworkSwitchPopToWallet,
-    onNetworkSwitch,
     safeChains,
     onReject,
     onAccept,
@@ -339,19 +336,6 @@ const NetworkModals = (props: NetworkProps) => {
     return NetworkController.addNetwork(networkConfig);
   };
 
-  const handleNavigation = (
-    onSwitchNetwork: () => void,
-    networkSwitchPopToWallet: boolean,
-  ) => {
-    if (onSwitchNetwork) {
-      onSwitchNetwork();
-    } else {
-      networkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
-    }
-  };
-
   const switchNetwork = async () => {
     const { MultichainNetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
@@ -384,13 +368,6 @@ const NetworkModals = (props: NetworkProps) => {
     }
     onClose();
 
-    if (onNetworkSwitch) {
-      handleNavigation(onNetworkSwitch, shouldNetworkSwitchPopToWallet);
-    } else {
-      shouldNetworkSwitchPopToWallet
-        ? navigation.navigate('WalletView')
-        : navigation.goBack();
-    }
     dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
     onAccept?.();
   };

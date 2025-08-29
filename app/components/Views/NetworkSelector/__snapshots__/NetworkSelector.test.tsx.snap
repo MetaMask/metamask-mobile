@@ -1381,6 +1381,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "justifyContent": "center",
                                   "marginBottom": 0,
                                   "marginHorizontal": 16,
+                                  "marginTop": 0,
                                   "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
@@ -4358,6 +4359,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   "justifyContent": "center",
                                   "marginBottom": 12,
                                   "marginHorizontal": 16,
+                                  "marginTop": 0,
                                   "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
