@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import {
   ActivityIndicator,
   Linking,
@@ -116,8 +117,8 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
-  selectTokenNetworkFilter,
   selectUseTokenDetection,
+  selectTokenNetworkFilter,
 } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
@@ -448,6 +449,17 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const enabledNetworksHasTestNet = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return enabledNetworks.some((network) => isTestNet(network));
+    }
+    return Object.keys(tokenNetworkFilter).some((network) =>
+      isTestNet(network),
+    );
+  }, [enabledNetworks, tokenNetworkFilter]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -709,7 +721,6 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -774,7 +785,7 @@ const Wallet = ({
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
     handleNetworkFilter();
@@ -1060,7 +1071,7 @@ const Wallet = ({
 
   const defiEnabled =
     isEvmSelected &&
-    !isTestNet(chainId) &&
+    !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
