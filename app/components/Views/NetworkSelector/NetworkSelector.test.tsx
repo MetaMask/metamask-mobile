@@ -124,6 +124,10 @@ jest.mock('../../../core/Engine', () => ({
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
     },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+    },
   },
 }));
 
