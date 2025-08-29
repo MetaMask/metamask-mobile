@@ -132,10 +132,6 @@ export const TokenListItem = React.memo(
 
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
-    if (asset?.chainId === '0x1' && asset?.address === '0x0000000000000000000000000000000000000000') {
-      console.log('ASSET', asset);
-    }
-
     const chainId = asset?.chainId as Hex;
 
     const currentCurrency = useSelector(selectCurrentCurrency);
