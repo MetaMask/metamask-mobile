@@ -111,7 +111,7 @@ const NetworkManager = () => {
   const defaultTabProps = useMemo(
     () => ({
       key: 'default-tab',
-      tabLabel: strings('wallet.default'),
+      tabLabel: strings('wallet.popular'),
       navigation,
     }),
     [navigation],

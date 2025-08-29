@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.55.0",
+  "version": "7.56.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -185,7 +185,6 @@
     "multihashes/**/base-x": "3.0.11",
     "@keystonehq/ur-decoder/**/base-x": "3.0.11",
     "@ethereumjs/tx": "^5.4.0",
-    "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0",
     "appium-adb/@appium/support/form-data": "^4.0.4",
     "appium/@appium/support/form-data": "^4.0.0",
     "cipher-base": "1.0.5",
@@ -263,8 +262,8 @@
     "@metamask/multichain-api-middleware": "^1.0.0",
     "@metamask/multichain-network-controller": "^0.10.0",
     "@metamask/multichain-transactions-controller": "^2.0.0",
-    "@metamask/network-controller": "^24.0.0",
-    "@metamask/network-enablement-controller": "0.1.0",
+    "@metamask/network-controller": "^24.1.0",
+    "@metamask/network-enablement-controller": "^0.4.0",
     "@metamask/notification-services-controller": "^16.0.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^13.1.0",
