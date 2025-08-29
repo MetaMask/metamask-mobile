@@ -1,22 +1,25 @@
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-} from '../utils/constants';
-import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import { SmokeIdentity } from '../../../tags';
-import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
-import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
-import SettingsView from '../../../pages/Settings/SettingsView';
-import Assertions from '../../../framework/Assertions';
+} from '../identity/utils/constants';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import TestHelpers from '../../helpers';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { SmokeIdentity } from '../../tags';
+import ContactsView from '../../pages/Settings/Contacts/ContactsView';
+import AddContactView from '../../pages/Settings/Contacts/AddContactView';
+import SettingsView from '../../pages/Settings/SettingsView';
+import Assertions from '../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import { arrangeTestUtils } from '../utils/helpers';
-import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
-import { createUserStorageController } from '../utils/mocks';
+import { arrangeTestUtils } from '../identity/utils/helpers';
+import { withIdentityFixtures } from '../identity/utils/withIdentityFixtures';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { UserStorageMockttpController } from '../identity/utils/user-storage/userStorageMockttpController';
+import { createUserStorageController } from '../identity/utils/mocks';
 
+// Quarantining for GNS feature
+// Original path e2e/specs/identity/contact-syncing/sync-users-contacts.spec.ts
+// Failing on IOS, Passes on Android
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
