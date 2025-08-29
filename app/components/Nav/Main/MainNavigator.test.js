@@ -5,291 +5,147 @@ import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import MainNavigator from './MainNavigator';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
-import Routes from '../../../constants/navigation/Routes';
 
-// Mock the selectors
-jest.mock('../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(),
-  PerpsScreenStack: () => null,
-  PerpsModalStack: () => null,
-}));
-
+// Mock the rewards selector
 jest.mock('../../../selectors/featureFlagController/rewards', () => ({
   selectRewardsEnabledFlag: jest.fn(),
 }));
 
-// Mock getVersion to return a valid version string
+// Mock react-native-device-info
 jest.mock('react-native-device-info', () => ({
   getVersion: () => '1.0.0',
 }));
 
-// Mock child components strategically to avoid deep dependency issues
+// Mock problematic components to avoid deep Redux dependencies
 jest.mock('../../Views/Wallet', () => {
   const React = require('react');
+  const { View } = require('react-native');
   return function MockWallet() {
-    return React.createElement('View', { testID: 'wallet-component' });
+    return React.createElement(View, { testID: 'wallet-view' });
   };
 });
 
 jest.mock('../../Views/Browser', () => {
   const React = require('react');
+  const { View } = require('react-native');
   return function MockBrowser() {
-    return React.createElement('View', { testID: 'browser-component' });
+    return React.createElement(View, { testID: 'browser-view' });
   };
 });
 
 jest.mock('../../Views/Settings', () => {
   const React = require('react');
+  const { View } = require('react-native');
   return function MockSettings() {
-    return React.createElement('View', { testID: 'settings-component' });
+    return React.createElement(View, { testID: 'settings-view' });
   };
 });
 
-// Mock only essential external dependencies for rewards testing
-jest.mock('../../UI/Ramp/Aggregator/routes', () => () => null);
-jest.mock('../../UI/Bridge/routes', () => ({
-  BridgeScreenStack: () => null,
-  BridgeModalStack: () => null,
-}));
-jest.mock('../../UI/CollectibleModal', () => 'CollectiblesDetails');
-jest.mock('../../UI/DeprecatedNetworkModal', () => 'DeprecatedNetworkDetails');
-jest.mock('../../Views/confirmations/components/send', () => ({
-  Send: () => null,
-}));
-jest.mock('../../Views/confirmations/utils/send', () => ({
-  isSendRedesignEnabled: jest.fn(() => false),
-}));
-jest.mock(
-  '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView',
-  () => 'PerpsPositionTransactionView',
-);
-jest.mock(
-  '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView',
-  () => 'PerpsOrderTransactionView',
-);
-jest.mock(
-  '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView',
-  () => 'PerpsFundingTransactionView',
-);
-jest.mock('../../Views/Settings/GeneralSettings', () => ({
-  __esModule: true,
-  default: () => null,
-  navigationOptions: {},
-}));
-jest.mock(
-  '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync',
-  () => ({
-    __esModule: true,
-    default: () => null,
-    navigationOptions: {},
-  }),
-);
-jest.mock(
-  '../../UI/DeFiPositions/DeFiProtocolPositionDetails',
-  () => 'DeFiProtocolPositionDetails',
-);
-jest.mock('../../UI/Card/routes', () => () => null);
+// Mock TabBar to render tab items with testIDs for testing
+jest.mock('../../../component-library/components/Navigation/TabBar', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockTabBar({ state, descriptors }) {
+    if (!state || !descriptors) {
+      return React.createElement(View, { testID: 'tab-bar' });
+    }
 
-// Mock other dependencies
-jest.mock(
-  '../../../component-library/components/Navigation/TabBar',
-  () => 'TabBar',
-);
-jest.mock('../../../util/test/utils', () => ({
-  isTest: jest.fn(() => false),
-}));
+    return React.createElement(
+      View,
+      { testID: 'tab-bar' },
+      state.routes.map((route) => {
+        const descriptor = descriptors[route.key];
+        if (!descriptor || !descriptor.options) {
+          return React.createElement(View, {
+            key: route.key,
+            testID: `tab-bar-item-${route.name}`,
+          });
+        }
 
-// Mock complex components that have their own navigation
-const MockHomeTabs = () => null;
-const MockAssetModalFlow = () => null;
-const MockWebview = () => null;
-const MockSendView = () => null;
-const MockSendFlowView = () => null;
-const MockAddBookmarkView = () => null;
-const MockOfflineModeView = () => null;
-const MockNotificationsModeView = () => null;
-const MockNftDetailsModeView = () => null;
-const MockNftDetailsFullImageModeView = () => null;
-const MockPaymentRequestView = () => null;
-const MockSwaps = () => null;
-const MockSetPasswordFlow = () => null;
-const MockNotificationsOptInStack = () => null;
-
-// Mock these components in the module
-jest.doMock('./MainNavigator', () => {
-  const originalModule = jest.requireActual('./MainNavigator');
-  return {
-    ...originalModule,
-    HomeTabs: MockHomeTabs,
-    AssetModalFlow: MockAssetModalFlow,
-    Webview: MockWebview,
-    SendView: MockSendView,
-    SendFlowView: MockSendFlowView,
-    AddBookmarkView: MockAddBookmarkView,
-    OfflineModeView: MockOfflineModeView,
-    NotificationsModeView: MockNotificationsModeView,
-    NftDetailsModeView: MockNftDetailsModeView,
-    NftDetailsFullImageModeView: MockNftDetailsFullImageModeView,
-    PaymentRequestView: MockPaymentRequestView,
-    Swaps: MockSwaps,
-    SetPasswordFlow: MockSetPasswordFlow,
-    NotificationsOptInStack: MockNotificationsOptInStack,
-    SettingsFlow: () => null,
+        const { options } = descriptor;
+        const tabBarIconKey = options.tabBarIconKey;
+        const key = `tab-bar-item-${tabBarIconKey}`;
+        return React.createElement(View, { key: route.key, testID: key });
+      }),
+    );
   };
 });
 
-const mockStore = configureMockStore();
+const mockStore = configureMockStore([]);
 
-const createMockState = (overrides = {}) => ({
-  // Minimal state for MainNavigator rewards testing
-  settings: {
-    primaryCurrency: 'usd',
-  },
-  user: {
-    isConnectionRemoved: false,
-  },
-  browser: {
-    tabs: [],
-  },
-  engine: {
-    backgroundState: {
-      MultichainNetworkController: {
-        isEvmSelected: true,
-      },
-      AccountTrackerController: {
-        accountsByChainId: {},
-      },
-      AccountsController: {
-        internalAccounts: {
-          selectedAccount: 'account-1',
-          accounts: {
-            'account-1': {
-              id: 'account-1',
-              address: '0x123',
-              metadata: {
-                name: 'Test Account',
+describe('MainNavigator - Rewards Integration', () => {
+  const createMockState = () => ({
+    // Minimal state for navigation testing
+    settings: { primaryCurrency: 'usd' },
+    user: { isConnectionRemoved: false },
+    browser: { tabs: [] },
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {},
+        MultichainNetworkController: {
+          isEvmSelected: true,
+        },
+        AccountTrackerController: {
+          accountsByChainId: {},
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: 'account-1',
+            accounts: {
+              'account-1': {
+                id: 'account-1',
+                address: '0x123',
+                metadata: { name: 'Test Account' },
               },
             },
           },
         },
       },
     },
-  },
-  ...overrides,
-});
+  });
 
-const renderMainNavigator = (mockState = createMockState()) => {
-  const store = mockStore(mockState);
-  return render(
-    <Provider store={store}>
-      <NavigationContainer>
-        <MainNavigator />
-      </NavigationContainer>
-    </Provider>,
-  );
-};
-
-describe('MainNavigator - Rewards Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Set default mock values - Perps disabled, focus on rewards
-    selectPerpsEnabledFlag.mockReturnValue(false);
     selectRewardsEnabledFlag.mockReturnValue(false);
   });
 
-  describe('Rewards Feature Flag Behavior', () => {
-    it('should render Settings tab when rewards feature flag is disabled', () => {
-      selectRewardsEnabledFlag.mockReturnValue(false);
+  const renderMainNavigator = () => {
+    const store = mockStore(createMockState());
+    return render(
+      <Provider store={store}>
+        <NavigationContainer>
+          <MainNavigator />
+        </NavigationContainer>
+      </Provider>,
+    );
+  };
 
-      expect(() => renderMainNavigator()).not.toThrow();
-      // When rewards is disabled, Settings tab should be rendered in the tab navigator
-      // The MainNavigator should successfully render without the rewards tab
-    });
+  it('should show Settings tab when rewards feature flag is off', () => {
+    selectRewardsEnabledFlag.mockReturnValue(false);
+    const { getByTestId, queryByTestId } = renderMainNavigator();
 
-    it('should render Rewards tab when rewards feature flag is enabled', () => {
-      selectRewardsEnabledFlag.mockReturnValue(true);
-
-      expect(() => renderMainNavigator()).not.toThrow();
-      // When rewards is enabled, Rewards tab should replace Settings tab
-      // The MainNavigator should successfully render with the rewards tab
-    });
-
-    it('should conditionally switch between Rewards and Settings tabs', () => {
-      // Test rewards disabled -> Settings tab
-      selectRewardsEnabledFlag.mockReturnValue(false);
-      const { rerender } = renderMainNavigator();
-      expect(() => renderMainNavigator()).not.toThrow();
-
-      // Test rewards enabled -> Rewards tab
-      selectRewardsEnabledFlag.mockReturnValue(true);
-      expect(() => {
-        rerender(
-          <Provider store={mockStore(createMockState())}>
-            <NavigationContainer>
-              <MainNavigator />
-            </NavigationContainer>
-          </Provider>,
-        );
-      }).not.toThrow();
-    });
+    // Settings tab should be visible
+    expect(getByTestId('tab-bar-item-Setting')).toBeTruthy();
+    // Rewards tab should not be present
+    expect(queryByTestId('tab-bar-item-Rewards')).toBeNull();
+    // Verify other core tabs are present
+    expect(getByTestId('tab-bar-item-Wallet')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Browser')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Actions')).toBeTruthy();
   });
 
-  describe('Rewards Route Configuration', () => {
-    it('should use correct Routes.REWARDS_VIEW constant', () => {
-      selectRewardsEnabledFlag.mockReturnValue(true);
+  it('should show Rewards tab when rewards feature flag is on', () => {
+    selectRewardsEnabledFlag.mockReturnValue(true);
+    const { getByTestId, queryByTestId } = renderMainNavigator();
 
-      expect(() => renderMainNavigator()).not.toThrow();
-      // Verify that the component uses Routes.REWARDS_VIEW for rewards navigation
-      // This ensures consistency with the routing constants
-    });
-
-    it('should properly integrate with tab navigation structure', () => {
-      selectRewardsEnabledFlag.mockReturnValue(true);
-
-      expect(() => renderMainNavigator()).not.toThrow();
-      // The rewards tab should be properly integrated into the tab navigator
-      // alongside other core tabs (Wallet, Browser, Actions, Activity)
-    });
-  });
-
-  describe('Rewards Feature Flag Error Handling', () => {
-    it('should handle undefined rewards feature flag gracefully', () => {
-      selectRewardsEnabledFlag.mockReturnValue(undefined);
-
-      // Should gracefully handle undefined values (falsy behavior)
-      expect(() => renderMainNavigator()).not.toThrow();
-    });
-
-    it('should handle rewards feature flag selector errors', () => {
-      selectRewardsEnabledFlag.mockImplementation(() => {
-        throw new Error('Rewards selector error');
-      });
-
-      // The component should handle selector errors appropriately
-      expect(() => renderMainNavigator()).toThrow();
-    });
-  });
-
-  describe('Rewards Redux Integration', () => {
-    it('should properly connect to rewards feature flag selector', () => {
-      renderMainNavigator();
-
-      // Verify that the component uses the rewards feature flag selector
-      expect(selectRewardsEnabledFlag).toHaveBeenCalled();
-    });
-
-    it('should work with different rewards feature flag states', () => {
-      // Test with rewards explicitly enabled in state
-      const rewardsEnabledState = createMockState();
-      expect(() => renderMainNavigator(rewardsEnabledState)).not.toThrow();
-
-      // Test with custom state modifications
-      const customState = createMockState({
-        user: { isConnectionRemoved: true },
-      });
-      expect(() => renderMainNavigator(customState)).not.toThrow();
-    });
+    // Rewards tab should be visible
+    expect(getByTestId('tab-bar-item-Rewards')).toBeTruthy();
+    // Settings tab should not be present
+    expect(queryByTestId('tab-bar-item-Setting')).toBeNull();
+    // Verify other core tabs are present
+    expect(getByTestId('tab-bar-item-Wallet')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Browser')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Actions')).toBeTruthy();
   });
 });
