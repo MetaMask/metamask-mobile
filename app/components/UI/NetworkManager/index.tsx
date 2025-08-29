@@ -35,7 +35,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
@@ -46,6 +45,7 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 // internal dependencies
 import createStyles from './index.styles';
@@ -53,8 +53,6 @@ import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
 } from './index.types';
-import { MAINNET } from '../../../constants/network';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 export const createNetworkManagerNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -77,7 +75,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 
 const NetworkManager = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
-  const sheetRef = useRef<ReusableModalRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
@@ -88,6 +86,7 @@ const NetworkManager = () => {
   const { selectedCount } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
+  const { disableNetwork } = useNetworkEnablement();
 
   const [showNetworkMenuModal, setNetworkMenuModal] =
     useState<NetworkMenuModalState>(initialNetworkMenuModal);
@@ -191,7 +190,7 @@ const NetworkManager = () => {
   }, []);
 
   const handleEditNetwork = useCallback(() => {
-    sheetRef.current?.dismissModal(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
@@ -219,29 +218,15 @@ const NetworkManager = () => {
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(async () => {
+  const confirmRemoveRpc = useCallback(() => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
       const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      const selectedNetworkClientId =
-        NetworkController.state.selectedNetworkClientId;
-      const isSelectedNetwork =
-        NetworkController.state.networkConfigurationsByChainId[
-          chainId
-        ].rpcEndpoints.some(
-          (rpcEndpoint) =>
-            rpcEndpoint.networkClientId === selectedNetworkClientId,
-        );
-
-      if (isSelectedNetwork) {
-        // if we delete selected network, switch to mainnet before removing the selected network
-        await NetworkController.setActiveNetwork(MAINNET);
-      }
-
       NetworkController.removeNetwork(chainId);
+      disableNetwork(showConfirmDeleteModal.caipChainId);
 
       MetaMetrics.getInstance().addTraitsToUser(
         removeItemFromChainIdList(chainId),
@@ -249,7 +234,7 @@ const NetworkManager = () => {
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal]);
+  }, [showConfirmDeleteModal, disableNetwork]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -274,10 +259,13 @@ const NetworkManager = () => {
     return hasSelectedPopularNetworks ? 0 : 1;
   }, [selectedCount]);
 
+  const dismissModal = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
-    <ReusableModal ref={sheetRef} style={containerStyle}>
+    <BottomSheet ref={sheetRef} style={containerStyle} shouldNavigateBack>
       <View style={styles.sheet}>
-        <View style={styles.notch} />
         <Text
           variant={TextVariant.HeadingMD}
           style={styles.networkTabsSelectorTitle}
@@ -291,8 +279,16 @@ const NetworkManager = () => {
             onChangeTab={onChangeTab}
             initialPage={defaultTabIndex}
           >
-            <NetworkMultiSelector {...defaultTabProps} openModal={openModal} />
-            <CustomNetworkSelector {...customTabProps} openModal={openModal} />
+            <NetworkMultiSelector
+              {...defaultTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
+            <CustomNetworkSelector
+              {...customTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
           </ScrollableTabView>
         </View>
       </View>
@@ -309,14 +305,13 @@ const NetworkManager = () => {
               iconName={IconName.Edit}
               onPress={handleEditNetwork}
             />
-            {isRemoveGlobalNetworkSelectorEnabled() ||
-            showNetworkMenuModal.displayEdit ? (
+            {showNetworkMenuModal.displayEdit && (
               <AccountAction
                 actionTitle={strings('app_settings.delete')}
                 iconName={IconName.Trash}
                 onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
               />
-            ) : null}
+            )}
           </View>
         </BottomSheet>
       )}
@@ -345,7 +340,7 @@ const NetworkManager = () => {
           </View>
         </BottomSheet>
       )}
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 
