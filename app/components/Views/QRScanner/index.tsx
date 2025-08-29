@@ -26,7 +26,6 @@ import {
   MM_WALLETCONNECT_DEEPLINK,
 } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
 import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
@@ -38,6 +37,7 @@ import {
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
+import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -234,7 +234,7 @@ const QRScanner = ({
         }
 
         // Checking if it can be handled like deeplinks
-        const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
+        const handledByDeeplink = await DeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           // TODO: Check is pop is still valid.
           // TODO: Replace "any" with type

@@ -2,7 +2,6 @@ import { PROTOCOLS } from '../../../constants/deeplinks';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
@@ -11,15 +10,14 @@ import connectWithWC from './connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import handleEthereumUrl from '../Handlers/handleEthereumUrl';
 
 async function parseDeeplink({
-  deeplinkManager: instance,
   url,
   origin,
   browserCallBack,
   onHandled,
 }: {
-  deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
   browserCallBack?: (url: string) => void;
@@ -47,7 +45,6 @@ async function parseDeeplink({
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS:
         handleUniversalLink({
-          instance,
           handled,
           urlObj,
           browserCallBack,
@@ -62,7 +59,7 @@ async function parseDeeplink({
 
       case PROTOCOLS.ETHEREUM:
         handled();
-        instance._handleEthereumUrl(url, origin).catch((err) => {
+        handleEthereumUrl({ url, origin }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
         break;
@@ -70,14 +67,13 @@ async function parseDeeplink({
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
-        handleDappUrl({ instance, handled, urlObj, browserCallBack });
+        handleDappUrl({ handled, urlObj, browserCallBack });
         break;
 
       // Specific to the MetaMask app
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handleMetaMaskDeeplink({
-          instance,
           handled,
           wcURL,
           origin,
