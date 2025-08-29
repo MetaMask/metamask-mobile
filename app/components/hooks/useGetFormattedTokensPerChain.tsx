@@ -5,11 +5,8 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEqual } from 'lodash';
 import { selectAllTokens } from '../../selectors/tokensController';
 import { selectAllTokenBalances } from '../../selectors/tokenBalancesController';
-import {
-  balanceToFiatNumber,
-  renderFromTokenMinimalUnit,
-  toHexadecimal,
-} from '../../util/number';
+import { balanceToFiatNumber, toHexadecimal } from '../../util/number';
+import { renderFromTokenMinimalUnit } from '../../util/number/bigInt';
 import {
   selectEvmChainId,
   selectNetworkConfigurations,
