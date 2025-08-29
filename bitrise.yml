@@ -571,6 +571,31 @@ workflows:
             - paths: |-
                 ../.nvm/
                 ../../../root/.nvm/
+  extract_version_info:
+    steps:
+      - script@1:
+          title: Extract Version Info from Android build.gradle
+          inputs:
+            - content: |
+                #!/bin/bash
+                set -e
+                
+                # Path to Android build.gradle file
+                BUILD_GRADLE_PATH="$PROJECT_LOCATION_ANDROID/app/build.gradle"
+                
+                # Extract versionName (remove quotes)
+                NAME1=$(grep -o 'versionName "[^"]*"' "$BUILD_GRADLE_PATH" | sed 's/versionName "\(.*\)"/\1/')
+                
+                # Extract versionCode
+                NUMBER1=$(grep -o 'versionCode [0-9]*' "$BUILD_GRADLE_PATH" | sed 's/versionCode \([0-9]*\)/\1/')
+                
+                # Validate that we found both values
+                if [ -z "$VERSION_NAME" ] || [ -z "$VERSION_NUMBER" ]; then
+                    echo "Error: Could not extract version information from $BUILD_GRADLE_PATH"
+                    echo "VERSION_NAME: $NAME1"
+                    echo "VERSION_NUMBER: $NUMBER1"
+                    exit 1
+                fi
   install_applesimutils:
     steps:
       - script@1:
@@ -2174,9 +2199,9 @@ workflows:
                 # Generate new names based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER1}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${VERSION_NAME}-${VERSION_NUMBER}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME1}-${NUMBER1}"
                 fi
 
                 # Rename APK
@@ -2557,6 +2582,8 @@ workflows:
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
+    before_run:
+      - extract_version_info      
     after_run:
       - _android_build_template
     meta:
@@ -3008,9 +3035,9 @@ workflows:
                 # Generate new name based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER1}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${VERSION_NAME}-${VERSION_NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${NAME1}-${NUMBER1}"
                 fi
 
                 # Copy binary with new name (preserve original)
@@ -3119,6 +3146,8 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
+    before_run:
+      - extract_version_info
     after_run:
       - _ios_build_template
   build_ios_main_test:
