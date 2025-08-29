@@ -27,6 +27,7 @@ import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
 import {
   MOCK_ENTROPY_SOURCE,
   MOCK_ENTROPY_SOURCE_2,
+  MOCK_ENTROPY_SOURCE_3,
 } from '../../../app/util/test/keyringControllerTestUtils';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
@@ -49,7 +50,7 @@ export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
 // AccountTreeController Wallet and Group IDs - reused across fixtures
 export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
 export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;
-export const HD_KEYRING_WALLET_ID = 'keyring:01JNG66ATK17YSN0TSS6H51EE3';
+export const ENTROPY_WALLET_3_ID = `entropy:${MOCK_ENTROPY_SOURCE_3}`;
 export const QR_HARDWARE_WALLET_ID = 'keyring:QR Hardware Wallet Device';
 export const SIMPLE_KEYRING_WALLET_ID = 'keyring:Simple Key Pair';
 
@@ -1881,24 +1882,24 @@ class FixtureBuilder {
               },
             },
           },
-          // HD Keyring (KeyringTypes.hd)
-          [HD_KEYRING_WALLET_ID]: {
-            id: HD_KEYRING_WALLET_ID,
-            type: 'Keyring',
+          // Third Entropy-based Multichain Wallet (HD Keyring)
+          [ENTROPY_WALLET_3_ID]: {
+            id: ENTROPY_WALLET_3_ID,
+            type: 'Entropy',
             metadata: {
-              name: 'HD Key Tree',
-              keyringType: 'HD Key Tree', // KeyringTypes.hd
+              name: 'Secret Recovery Phrase 3',
+              entropySource: MOCK_ENTROPY_SOURCE_3,
             },
             groups: {
-              [`${HD_KEYRING_WALLET_ID}/ethereum`]: {
-                id: `${HD_KEYRING_WALLET_ID}/ethereum`,
+              [`${ENTROPY_WALLET_3_ID}/account-1`]: {
+                id: `${ENTROPY_WALLET_3_ID}/account-1`,
                 type: 'MultipleAccount',
                 accounts: [
                   '6f9d7e2b-d483-6cfe-a348-2g14d4e5f6c3', // HD Account 1
                   '7a0e8c3c-e594-7dg0-b459-3h25e5f6d7d4', // HD Account 2
                 ],
                 metadata: {
-                  name: 'Ethereum Accounts',
+                  name: 'Account 1',
                 },
               },
             },
@@ -2032,6 +2033,23 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.AccountTreeController,
       stateToMerge,
     );
+
+    // Also update KeyringController to ensure compatibility with legacy UI
+    // This creates the accounts that the legacy account selection UI expects when multichain accounts are disabled
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'], // Imported account
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
     return this;
   }
 
