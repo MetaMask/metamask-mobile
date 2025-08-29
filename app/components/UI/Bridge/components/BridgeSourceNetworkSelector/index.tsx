@@ -31,6 +31,7 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { getNativeSourceToken } from '../../hooks/useInitialSourceToken';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -109,20 +110,23 @@ export const BridgeSourceNetworkSelector: React.FC<
 
     // If there's only 1 network selected, set the source token to native token of that chain and switch chains
     if (candidateSourceChainIds.length === 1) {
+      const selectedChainId = candidateSourceChainIds[0] as Hex | CaipChainId;
       const evmNetworkConfiguration =
-        evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
+        evmNetworkConfigurations[selectedChainId as Hex];
       if (evmNetworkConfiguration) {
         await onSetRpcTarget(evmNetworkConfiguration);
       }
 
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (!evmNetworkConfiguration) {
-        await onNonEvmNetworkChange(candidateSourceChainIds[0] as CaipChainId);
+        await onNonEvmNetworkChange(selectedChainId as CaipChainId);
       }
       ///: END:ONLY_INCLUDE_IF
 
-      // Reset the source token, if undefined will be the native token of the selected chain
-      dispatch(setSourceToken(undefined));
+      // Set the source token to the native token of the selected chain
+      // This ensures the token is set correctly even before the network switch completes
+      const nativeToken = getNativeSourceToken(selectedChainId);
+      dispatch(setSourceToken(nativeToken));
     }
 
     // Return to previous screen with selected networks
