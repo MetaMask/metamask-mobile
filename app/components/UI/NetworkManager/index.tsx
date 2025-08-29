@@ -35,7 +35,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import AccountAction from '../../Views/AccountAction';
-import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
@@ -76,7 +75,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 
 const NetworkManager = () => {
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
-  const sheetRef = useRef<ReusableModalRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
@@ -191,7 +190,7 @@ const NetworkManager = () => {
   }, []);
 
   const handleEditNetwork = useCallback(() => {
-    sheetRef.current?.dismissModal(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
@@ -260,10 +259,13 @@ const NetworkManager = () => {
     return hasSelectedPopularNetworks ? 0 : 1;
   }, [selectedCount]);
 
+  const dismissModal = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
-    <ReusableModal ref={sheetRef} style={containerStyle}>
+    <BottomSheet ref={sheetRef} style={containerStyle} shouldNavigateBack>
       <View style={styles.sheet}>
-        <View style={styles.notch} />
         <Text
           variant={TextVariant.HeadingMD}
           style={styles.networkTabsSelectorTitle}
@@ -277,8 +279,16 @@ const NetworkManager = () => {
             onChangeTab={onChangeTab}
             initialPage={defaultTabIndex}
           >
-            <NetworkMultiSelector {...defaultTabProps} openModal={openModal} />
-            <CustomNetworkSelector {...customTabProps} openModal={openModal} />
+            <NetworkMultiSelector
+              {...defaultTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
+            <CustomNetworkSelector
+              {...customTabProps}
+              openModal={openModal}
+              dismissModal={dismissModal}
+            />
           </ScrollableTabView>
         </View>
       </View>
@@ -330,7 +340,7 @@ const NetworkManager = () => {
           </View>
         </BottomSheet>
       )}
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 
