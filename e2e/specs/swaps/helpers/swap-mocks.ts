@@ -3,7 +3,7 @@ import { TestSpecificMock } from '../../../framework';
 import {
   interceptProxyUrl,
   setupMockRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_WETH_RESPONSE,
