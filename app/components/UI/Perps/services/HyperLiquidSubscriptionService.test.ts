@@ -1421,21 +1421,20 @@ describe('HyperLiquidSubscriptionService', () => {
     const mockCallback = jest.fn();
 
     // Mock allMids with zero prices
-    mockSubscriptionClient.allMids.mockImplementation(
-      (_params: any, callback: any) => {
-        setTimeout(() => {
-          callback({
-            mids: {
-              BTC: '0',
-              ETH: '0',
-            },
-          });
-        }, 0);
-        return Promise.resolve({
-          unsubscribe: jest.fn().mockResolvedValue(undefined),
+    mockSubscriptionClient.allMids.mockImplementation((callback: any) => {
+      // Send first update
+      setTimeout(() => {
+        callback({
+          mids: {
+            BTC: '0',
+            ETH: '0',
+          },
         });
-      },
-    );
+      }, 0);
+      return Promise.resolve({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+    });
 
     const unsubscribe = service.subscribeToPrices({
       symbols: ['BTC', 'ETH'],
@@ -1464,31 +1463,29 @@ describe('HyperLiquidSubscriptionService', () => {
     const mockCallback = jest.fn();
 
     // Mock allMids to send multiple zero price updates
-    mockSubscriptionClient.allMids.mockImplementation(
-      (_params: any, callback: any) => {
-        // Send first update
-        setTimeout(() => {
-          callback({
-            mids: {
-              BTC: '0',
-            },
-          });
-        }, 0);
-
-        // Send second update (still zero)
-        setTimeout(() => {
-          callback({
-            mids: {
-              BTC: '0',
-            },
-          });
-        }, 20);
-
-        return Promise.resolve({
-          unsubscribe: jest.fn().mockResolvedValue(undefined),
+    mockSubscriptionClient.allMids.mockImplementation((callback: any) => {
+      // Send first update
+      setTimeout(() => {
+        callback({
+          mids: {
+            BTC: '0',
+          },
         });
-      },
-    );
+      }, 0);
+
+      // Send second update (still zero)
+      setTimeout(() => {
+        callback({
+          mids: {
+            BTC: '0',
+          },
+        });
+      }, 20);
+
+      return Promise.resolve({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+    });
 
     const unsubscribe = service.subscribeToPrices({
       symbols: ['BTC'],
