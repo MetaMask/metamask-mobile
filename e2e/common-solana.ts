@@ -23,9 +23,7 @@ export async function withSolanaAccountEnabled(
   },
   test: () => Promise<void>,
 ) {
-  let fixtureBuilder = new FixtureBuilder()
-    .withSolanaFixture()
-    .withSolanaFeatureSheetDisplayed();
+  let fixtureBuilder = new FixtureBuilder().withSolanaFixture();
 
   if (solanaAccountPermitted) {
     fixtureBuilder = fixtureBuilder.withSolanaAccountPermission();

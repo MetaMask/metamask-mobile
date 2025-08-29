@@ -22,10 +22,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   it('should create two Solana accounts from the bottom sheet', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withSolanaFixture()
-          .withSolanaFeatureSheetDisplayed()
-          .build(),
+        fixture: new FixtureBuilder().withSolanaFixture().build(),
         restartDevice: true,
       },
       async () => {
@@ -71,11 +68,7 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
   it('should be able to rename Solana account', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withSolanaFixture()
-          .withSolanaFeatureSheetDisplayed()
-          .ensureSolanaModalSuppressed()
-          .build(),
+        fixture: new FixtureBuilder().withSolanaFixture().build(),
         restartDevice: true,
       },
       async () => {
