@@ -2176,7 +2176,7 @@ workflows:
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${VERSION_NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
                 fi
 
                 # Rename APK
