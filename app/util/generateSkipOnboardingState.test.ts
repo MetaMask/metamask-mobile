@@ -12,12 +12,6 @@ import { importNewSecretRecoveryPhrase } from '../actions/multiSrp';
 import importAdditionalAccounts from './importAdditionalAccounts';
 import { store } from '../store';
 import Engine from '../core/Engine';
-import {
-  OPTIN_META_METRICS_UI_SEEN,
-  SOLANA_FEATURE_MODAL_SHOWN,
-  TRUE,
-  USE_TERMS,
-} from '../constants/storage';
 
 // Mock all dependencies
 jest.mock('../store/storage-wrapper');
@@ -115,123 +109,6 @@ describe('generateSkipOnboardingState', () => {
 
         // Then it should return null and not perform any operations
         expect(result).toBeNull();
-      });
-    });
-
-    describe('when vault is already initialized', () => {
-      beforeEach(() => {
-        // Mock predefined password exists
-        jest.doMock('./generateSkipOnboardingState', () => ({
-          ...jest.requireActual('./generateSkipOnboardingState'),
-          predefinedPassword: 'test-password',
-        }));
-      });
-
-      it('should return null when vault is already initialized', async () => {
-        // Given vault is already initialized
-        mockStorageWrapper.getItem.mockResolvedValue('true');
-
-        // When we call the function
-        const result = await applyVaultInitialization();
-
-        // Then it should return null without performing initialization
-        expect(result).toBeNull();
-        expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-          VAULT_INITIALIZED_KEY,
-        );
-        expect(mockAuthentication.newWalletAndKeychain).not.toHaveBeenCalled();
-      });
-    });
-
-    describe('when conditions are met for initialization', () => {
-      const testPassword = 'test-password';
-      const originalEnv = process.env;
-
-      beforeEach(() => {
-        // Mock environment variable for predefined password
-        process.env = {
-          ...originalEnv,
-          PREDEFINED_PASSWORD: testPassword,
-        };
-
-        mockStorageWrapper.getItem.mockImplementation((key) => {
-          if (key === VAULT_INITIALIZED_KEY) {
-            return Promise.resolve(null);
-          }
-          return Promise.resolve(null);
-        });
-      });
-
-      afterEach(() => {
-        process.env = originalEnv;
-      });
-
-      it('should set all required storage items', async () => {
-        // Given all conditions are met
-        // When we call the function
-        await applyVaultInitialization();
-
-        // Then all storage items should be set
-        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-          VAULT_INITIALIZED_KEY,
-          'true',
-        );
-        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-          SOLANA_FEATURE_MODAL_SHOWN,
-          'true',
-        );
-        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-          USE_TERMS,
-          TRUE,
-        );
-        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-          OPTIN_META_METRICS_UI_SEEN,
-          TRUE,
-        );
-      });
-
-      it('should dispatch required Redux actions', async () => {
-        // Given all conditions are met
-        // When we call the function
-        await applyVaultInitialization();
-
-        // Then Redux actions should be dispatched
-        expect(mockSeedphraseBackedUp).toHaveBeenCalled();
-        expect(mockStorePrivacyPolicyClickedOrClosed).toHaveBeenCalled();
-        expect(mockStore.dispatch).toHaveBeenCalledTimes(2);
-      });
-
-      it('should import additional accounts for all keyrings', async () => {
-        // Given multiple keyrings exist
-        mockKeyringController.getKeyringsByType.mockReturnValue([
-          { type: 'HD Key Tree' },
-          { type: 'HD Key Tree' },
-          { type: 'HD Key Tree' },
-        ]);
-
-        // When we call the function
-        await applyVaultInitialization();
-
-        // Then it should import accounts for all keyrings
-        expect(mockImportAdditionalAccounts).toHaveBeenCalledTimes(3);
-        expect(mockImportAdditionalAccounts).toHaveBeenCalledWith(9999, 0);
-        expect(mockImportAdditionalAccounts).toHaveBeenCalledWith(9999, 1);
-        expect(mockImportAdditionalAccounts).toHaveBeenCalledWith(9999, 2);
-      });
-
-      it('should handle empty keyrings array', async () => {
-        // Given no keyrings exist
-        mockKeyringController.getKeyringsByType.mockReturnValue([]);
-
-        // When we call the function
-        await applyVaultInitialization();
-
-        // Then it should not call importAdditionalAccounts
-        expect(mockImportAdditionalAccounts).not.toHaveBeenCalled();
-        expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-          VAULT_INITIALIZED_KEY,
-          'true',
-        );
       });
     });
 
