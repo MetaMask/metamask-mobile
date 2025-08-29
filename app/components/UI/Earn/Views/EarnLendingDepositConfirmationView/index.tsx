@@ -611,35 +611,48 @@ const EarnLendingDepositConfirmationView = () => {
   };
 
   const increaseTokenAllowance = async (networkClientId: string) => {
-    if (!earnToken?.experience?.market?.protocol || !earnToken?.chainId) return;
+    const protocol = earnToken?.experience?.market?.protocol;
+    const chainId = earnToken?.chainId;
+    const underlyingTokenAddress =
+      earnToken?.experience?.market?.underlying?.address;
 
-    setIsApprovalLoading(true);
-
-    const allowanceIncreaseTransaction =
-      await Engine.context.EarnController.executeLendingTokenApprove({
-        protocol: earnToken?.experience?.market?.protocol,
-        amount: amountTokenMinimalUnit,
-        chainId: earnToken.chainId,
-        underlyingTokenAddress:
-          earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {
-          gasLimit: 'none',
-        },
-        txOptions: {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          type: TransactionType.tokenMethodIncreaseAllowance,
-        },
-      });
-
-    if (!allowanceIncreaseTransaction) {
-      setIsApprovalLoading(false);
-      setIsConfirmButtonDisabled(false);
+    if (!protocol || !chainId || !underlyingTokenAddress) {
       return;
     }
 
-    return allowanceIncreaseTransaction;
+    setIsApprovalLoading(true);
+
+    try {
+      const allowanceIncreaseTransaction =
+        await Engine.context.EarnController.executeLendingTokenApprove({
+          protocol,
+          amount: amountTokenMinimalUnit,
+          chainId,
+          underlyingTokenAddress,
+          gasOptions: { gasLimit: 'none' },
+          txOptions: {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
+            origin: ORIGIN_METAMASK,
+            type: TransactionType.tokenMethodIncreaseAllowance,
+          },
+        });
+
+      if (!allowanceIncreaseTransaction) {
+        return;
+      }
+
+      return allowanceIncreaseTransaction;
+    } catch (error: Error | unknown) {
+      Logger.error(
+        error as Error,
+        '[increaseTokenAllowance] Token allowance increase failed',
+      );
+      return;
+    } finally {
+      setIsApprovalLoading(false);
+      setIsConfirmButtonDisabled(false);
+    }
   };
 
   const depositTokens = async (networkClientId: string) => {
@@ -761,6 +774,7 @@ const EarnLendingDepositConfirmationView = () => {
 
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
+      Logger.error(error as Error, '[handleConfirm] Confirmation failed');
       // allow user to try again
       setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
