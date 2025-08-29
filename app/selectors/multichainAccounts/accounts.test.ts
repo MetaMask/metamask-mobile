@@ -16,6 +16,7 @@ import {
   selectInternalAccountByAccountGroupAndScope,
   selectInternalAccountsByGroupId,
   selectInternalAccountListSpreadByScopesByGroupId,
+  selectAccountGroupsByAddress,
 } from './accounts';
 import {
   AccountWalletType,
@@ -1455,6 +1456,82 @@ describe('accounts selectors', () => {
         stateWithNoMatchingAccounts,
       );
       expect(result[0].accounts).toEqual([]);
+    });
+  });
+
+  describe.only('selectAccountGroupsByAddress', () => {
+    const mockState = createMockState(
+      {
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                [ACCOUNT_GROUP_ID_1]: {
+                  accounts: [mockEvmAccount.id],
+                  id: ACCOUNT_GROUP_ID_1,
+                },
+                [ACCOUNT_GROUP_ID_2]: {
+                  accounts: [mockBitcoinAccount.id],
+                  id: ACCOUNT_GROUP_ID_2,
+                },
+              },
+            },
+            [WALLET_ID_2]: {
+              id: WALLET_ID_2,
+              metadata: { name: 'Wallet 2' },
+              groups: {
+                [ACCOUNT_GROUP_ID_3]: {
+                  accounts: [mockSolanaAccount.id],
+                  id: ACCOUNT_GROUP_ID_3,
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        [mockEvmAccount.id]: mockEvmAccount,
+        [mockSolanaAccount.id]: mockSolanaAccount,
+        [mockBitcoinAccount.id]: mockBitcoinAccount,
+      },
+    );
+
+    it('returns empty array when no addresses are provided', () => {
+      const getAccountGroupsByAddress = selectAccountGroupsByAddress(mockState);
+      const result = getAccountGroupsByAddress([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('returns empty array when state has no matching accounts', () => {
+      const getAccountGroupsByAddress = selectAccountGroupsByAddress(mockState);
+      const result = getAccountGroupsByAddress(['0xNonExistent']);
+      expect(result).toHaveLength(0);
+    });
+
+    it('ignores duplicate addresses in input array', () => {
+      const getAccountGroupsByAddress = selectAccountGroupsByAddress(mockState);
+      const result = getAccountGroupsByAddress([
+        mockEvmAccount.address,
+        mockEvmAccount.address,
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
+    });
+
+    it('returns the account group objects with the specified addresses', () => {
+      const getAccountGroupsByAddress = selectAccountGroupsByAddress(mockState);
+      const result = getAccountGroupsByAddress([
+        mockEvmAccount.address,
+        mockSolanaAccount.address,
+        mockBitcoinAccount.address,
+      ]);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
+      expect(result[1].id).toBe(ACCOUNT_GROUP_ID_2);
+      expect(result[2].id).toBe(ACCOUNT_GROUP_ID_3);
     });
   });
 });

@@ -288,18 +288,16 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
  * @returns An array of InternalAccount objects that match any of the provided addresses
  */
 export const selectInternalAccountByAddresses = createDeepEqualSelector(
-  [
-    selectInternalAccountsById,
-    (_state: RootState, addresses: string[]) => addresses,
-  ],
-  (accountsMap, addresses): InternalAccount[] => {
-    const accountsByAddress = new Map<string, InternalAccount>();
-    for (const account of Object.values(accountsMap)) {
-      accountsByAddress.set(account.address, account);
-    }
+  [selectInternalAccountsById],
+  (accountsMap) =>
+    (addresses: string[]): InternalAccount[] => {
+      const accountsByAddress = new Map<string, InternalAccount>();
+      for (const account of Object.values(accountsMap)) {
+        accountsByAddress.set(account.address, account);
+      }
 
-    return addresses
-      .map((address) => accountsByAddress.get(address))
-      .filter((account): account is InternalAccount => account !== undefined);
-  },
+      return addresses
+        .map((address) => accountsByAddress.get(address))
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
 );

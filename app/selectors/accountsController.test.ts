@@ -952,10 +952,9 @@ describe('selectInternalAccountByAddresses', () => {
       },
     } as RootState;
 
-    const result = selectInternalAccountByAddresses(state, [
-      '0xAddress1',
-      '0xAddress3',
-    ]);
+    const getInternalAccountsByAddresses =
+      selectInternalAccountByAddresses(state);
+    const result = getInternalAccountsByAddresses(['0xAddress1', '0xAddress3']);
     expect(result).toEqual([account1, account3]);
   });
 
@@ -976,7 +975,9 @@ describe('selectInternalAccountByAddresses', () => {
       },
     } as RootState;
 
-    const result = selectInternalAccountByAddresses(state, ['0xAddress3']);
+    const getInternalAccountsByAddresses =
+      selectInternalAccountByAddresses(state);
+    const result = getInternalAccountsByAddresses(['0xAddress3']);
     expect(result).toEqual([]);
   });
 });
