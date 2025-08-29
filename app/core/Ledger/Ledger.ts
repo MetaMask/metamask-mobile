@@ -229,7 +229,7 @@ export const checkAccountNameExists = async (accountName: string) => {
     accountsController.state.internalAccounts.accounts,
   );
   const existingAccount = accounts.find(
-    (account) => account.metadata.name === accountName,
+    (account) => account.metadata.name === accountName, // HardwareWallet/Accounts: Needs to be updated to use the new accountGroup name*/
   );
   return !!existingAccount;
 };
@@ -265,6 +265,7 @@ export const unlockLedgerWalletAccount = async (index: number) => {
   const account = accountsController.getAccountByAddress(unlockAccount);
 
   if (account && name !== account.metadata.name) {
+    // HardwareWallet/Accounts: Needs to be updated to use the new accountGroup name*/
     accountsController.setAccountName(account.id, name);
   }
 };

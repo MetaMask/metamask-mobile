@@ -47,6 +47,7 @@ const KeyringAccountListItem = ({
             )}
           </Text>
           <Text variant={TextVariant.BodyMD}>{account.metadata.name}</Text>
+          {/* (Who owns this flow) Accounts?: Needs to be updated to use the new accountGroup name */}
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
             {strings(
               'app_settings.snaps.keyring_account_list_item.public_address',

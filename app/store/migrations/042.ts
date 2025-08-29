@@ -72,8 +72,8 @@ function mergeInternalAccounts(state: ValidState) {
         ...existingAccount.metadata,
         ...account.metadata,
         name: deriveAccountName(
-          existingAccount.metadata.name,
-          account.metadata.name,
+          existingAccount.metadata.name, // Does this need to be updated to use the new accountGroup name?
+          account.metadata.name, // Does this need to be updated to use the new accountGroup name?
         ),
       };
       existingAccount.methods = ETH_EOA_METHODS;

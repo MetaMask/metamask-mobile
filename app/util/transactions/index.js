@@ -698,7 +698,7 @@ export function getTransactionToName({
     (networkAddressBook &&
       networkAddressBook[checksummedToAddress] &&
       networkAddressBook[checksummedToAddress].name) ||
-    (matchingAccount && matchingAccount.metadata.name);
+    (matchingAccount && matchingAccount.metadata.name); // Transactions: Needs to be updated to use the new accountGroup name
 
   return transactionToName;
 }

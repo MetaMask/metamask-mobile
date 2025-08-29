@@ -156,6 +156,7 @@ const SRPListItem = ({
                           color={TextColor.Default}
                         >
                           {item.metadata.name}
+                          {/* // Accounts: Needs to be updated to use the new accountGroup name*/}
                         </Text>
                       </View>
                     );

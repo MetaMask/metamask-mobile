@@ -16,7 +16,7 @@ export function getUniqueAccountName(
   let candidateName = nameSuggestion;
 
   const isNameTaken = (name: string) =>
-    accounts.some((account) => account.metadata.name === name);
+    accounts.some((account) => account.metadata.name === name); // Accounts: Needs to be updated to use the new accountGroup name*/
 
   while (isNameTaken(candidateName)) {
     suffix += 1;

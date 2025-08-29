@@ -104,6 +104,9 @@ const AddNewAccount = ({
       Object.values(internalAccounts).some(
         (account) =>
           account.metadata.name.toLowerCase() === accountName?.toLowerCase(),
+        {
+          /* // Accounts: Needs to be updated to use the new accountGroup name*/
+        },
       ),
     [accountName, internalAccounts],
   );

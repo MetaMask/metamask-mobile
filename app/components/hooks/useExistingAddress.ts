@@ -54,7 +54,7 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
   if (accountWithMatchingAddress) {
     return {
       address: accountWithMatchingAddress.address,
-      name: accountWithMatchingAddress.metadata.name,
+      name: accountWithMatchingAddress.metadata.name, // Accounts: Needs to be updated to use the new accountGroup name*/
     };
   }
 

@@ -169,7 +169,7 @@ const useAccounts = ({
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           id: internalAccount.id,
-          name: internalAccount.metadata.name,
+          name: internalAccount.metadata.name, // Accounts: Needs to be updated to use the new accountGroup name*/
           address: formattedAddress,
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
