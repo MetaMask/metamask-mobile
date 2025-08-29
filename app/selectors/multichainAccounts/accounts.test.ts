@@ -1459,7 +1459,7 @@ describe('accounts selectors', () => {
     });
   });
 
-  describe.only('selectAccountGroupsByAddress', () => {
+  describe('selectAccountGroupsByAddress', () => {
     const mockState = createMockState(
       {
         accountTree: {
