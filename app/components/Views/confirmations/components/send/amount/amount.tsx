@@ -137,6 +137,7 @@ export const Amount = () => {
               textAlign="right"
               textVariant={TextVariant.DisplayLG}
               value={amount}
+              showSoftInputOnFocus={false}
             />
           </View>
           <Text

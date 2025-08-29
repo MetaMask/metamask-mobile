@@ -1,5 +1,4 @@
 import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
@@ -7,7 +6,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 export interface Account {
   name: string;
@@ -35,14 +35,10 @@ export const withMultichainAccountDetailsEnabled = async (
   testFn: () => Promise<void>,
 ) => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails();
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetails(),
+    );
   };
   return await withFixtures(
     {

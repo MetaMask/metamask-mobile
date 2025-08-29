@@ -9,6 +9,7 @@ import JazzIcon from 'react-native-jazzicon';
 import AvatarBase from '../../foundation/AvatarBase';
 import { toDataUrl } from '../../../../../../util/blockies';
 import { Maskicon } from '@metamask/design-system-react-native';
+import { stringToBytes } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -18,6 +19,15 @@ import {
   DEFAULT_AVATARACCOUNT_TYPE,
   DEFAULT_AVATARACCOUNT_SIZE,
 } from './AvatarAccount.constants';
+
+function getJazziconSeed(address: string) {
+  // TODO: Consider making this more strict, but this should do for now.
+  if (!address.startsWith('0x')) {
+    return Array.from(stringToBytes(address.normalize('NFKC').toLowerCase()));
+  }
+  // Default behaviour for EIP155 namespace to match existing Jazzicons
+  return parseInt(address.slice(2, 10), 16);
+}
 
 const AvatarAccount = ({
   type: avatarType = DEFAULT_AVATARACCOUNT_TYPE,
@@ -37,7 +47,8 @@ const AvatarAccount = ({
         return (
           <JazzIcon
             size={Number(size)}
-            address={accountAddress}
+            // @ts-expect-error The underlying PRNG supports the seed being an array but the component is typed wrong.
+            seed={getJazziconSeed(accountAddress)}
             containerStyle={styles.artStyle}
           />
         );

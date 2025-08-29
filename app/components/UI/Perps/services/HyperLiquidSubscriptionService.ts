@@ -779,8 +779,13 @@ export class HyperLiquidSubscriptionService {
               funding: isPerpsContext(ctx)
                 ? parseFloat(ctx.funding?.toString() || '0')
                 : 0,
+              // Convert openInterest from token units to USD by multiplying by current price
+              // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
               openInterest: isPerpsContext(ctx)
-                ? parseFloat(ctx.openInterest?.toString() || '0')
+                ? parseFloat(ctx.openInterest?.toString() || '0') *
+                  parseFloat(
+                    ctx.midPx?.toString() || ctx.markPx?.toString() || '0',
+                  )
                 : 0,
               volume24h: parseFloat(ctx.dayNtlVlm?.toString() || '0'),
               oraclePrice: isPerpsContext(ctx)
