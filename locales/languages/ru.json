@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Вы можете отключить функцию «Показать носитель NFT» в",
     "show_display_nft_media_content_5": "Настройки > Безопасность и конфиденциальность."
   },
-  "solana_new_feature_content": {
-    "title": "появился solana",
-    "title_description": "Импортируйте свой кошелек, исследуйте, торгуйте и отправляйте. Теперь в MetaMask есть поддержка Solana.",
-    "not_now": "Не сейчас",
-    "view_solana_account": "Смотреть счет Solana",
-    "learn_more": "Узнайте больше о счетах Solana",
-    "import_your_wallet": "Импортируйте свой кошелек"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Шлюз IPFS",
     "ipfs_gateway_banner_content1": "Это веб-сайт IPFS. Чтобы увидеть его, нужно включить",
