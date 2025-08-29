@@ -27,7 +27,7 @@ import {
 import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../identity/utils/mocks';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { createLogger } from '../../../framework/logger';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
