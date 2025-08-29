@@ -16,7 +16,7 @@ permissions:
 jobs:
   ios-build:
     name: Test iOS QA Build App
-    runs-on: macos-15
+    runs-on: [self-hosted,macOS,m2pro,anka-vm,metamask-mobile]
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -25,6 +25,10 @@ jobs:
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      # Belt-and-suspenders for Ruby I/O defaults:
+      RUBYOPT: -EUTF-8:UTF-8
     steps:
       # Get the source code from the repository
       - name: Checkout repo
@@ -52,7 +56,7 @@ jobs:
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
         with:
           platform: ios
           setup-simulator: false
@@ -75,7 +79,7 @@ jobs:
       - name: Setup iOS Environment
         run: |
           echo "🚀 Finishing iOS Setup..."
-          yarn setup:github-ci --build-ios --no-build-android
+          yarn setup:github-ci --build-ios --no-build-android --no-install-pods
           echo "🏗 Building iOS APP..."
           yarn build:ios:qa
         shell: bash
