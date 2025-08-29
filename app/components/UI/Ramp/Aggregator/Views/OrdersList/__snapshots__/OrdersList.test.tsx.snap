@@ -382,16 +382,109 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -557,16 +650,109 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -732,16 +918,109 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -907,16 +1186,109 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -1082,16 +1454,109 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -1599,16 +2064,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -1774,16 +2332,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -1949,16 +2600,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -2124,16 +2868,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -2299,16 +3136,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -2474,16 +3404,109 @@ exports[`OrdersList renders correctly 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -3390,16 +4413,109 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -3810,16 +4926,109 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -4327,16 +5536,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -4502,16 +5804,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -4677,16 +6072,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -4852,16 +6340,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -5027,16 +6608,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
@@ -5202,16 +6876,109 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               }
               testID="listitemcolumn"
             >
-              <Image
-                resizeMode="stretch"
-                source={1}
+              <View
+                onLayout={[Function]}
                 style={
                   {
-                    "height": 28,
-                    "width": 28,
+                    "alignSelf": "flex-start",
+                    "position": "relative",
                   }
                 }
-              />
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 16,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Regular",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                          }
+                        }
+                      >
+                        ?
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
             </View>
             <View
               accessible={false}
