@@ -37,7 +37,7 @@ export type NetworkListItem =
   | SelectAllNetworksListItem;
 
 export interface NetworkMultiSelectorListProps {
-  onSelectNetwork?: (caipChainId: CaipChainId) => void;
+  onSelectNetwork?: (caipChainId: CaipChainId, onComplete?: () => void) => void;
   networks?: Network[];
   additionalNetworks?: Network[];
   isLoading?: boolean;

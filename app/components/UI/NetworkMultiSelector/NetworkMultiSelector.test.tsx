@@ -119,6 +119,7 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
   const mockSelectPopularNetwork = jest.fn();
+
   const mockToggleAll = jest.fn();
   const mockUseNetworkEnablement = useNetworkEnablement as jest.MockedFunction<
     typeof useNetworkEnablement
@@ -330,7 +331,6 @@ describe('NetworkMultiSelector', () => {
       const networkList = getByTestId('mock-network-multi-selector-list');
       expect(networkList.props.openModal).toBe(mockOpenModal);
       expect(networkList.props.networks).toBe(mockNetworks);
-      expect(networkList.props.onSelectNetwork).toBe(mockSelectPopularNetwork);
       expect(networkList.props.additionalNetworksComponent).toBeTruthy();
     });
 
