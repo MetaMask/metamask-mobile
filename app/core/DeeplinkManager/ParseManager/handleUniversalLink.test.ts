@@ -394,6 +394,8 @@ describe('handleUniversalLinks', () => {
           pathname: `/${ACTIONS.DAPP}/example.com/path`,
           origin,
         };
+        const expectedTransformedUrl = 'https://example.com/path?param=value';
+
         await handleUniversalLink({
           handled,
           urlObj: dappUrlObj,
@@ -404,7 +406,7 @@ describe('handleUniversalLinks', () => {
 
         expect(handled).toHaveBeenCalled();
         expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
-          url: dappUrl,
+          url: expectedTransformedUrl,
           callback: mockBrowserCallBack,
         });
       },
