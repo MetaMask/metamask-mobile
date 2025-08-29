@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -21,6 +21,7 @@ import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionM
 import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { onboardingFlowImportSRP } from '../../utils/Flows.js';
+import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
 test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -43,6 +44,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   WalletActionModal.device = device;
   SwapScreen.device = device;
   TabBarModal.device = device;
+  BridgeScreen.device = device;
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
 
@@ -51,16 +53,16 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   );
   swapLoadTimer.start();
   // await TabBarModal.tapActionButton();
-  await WalletActionModal.tapSwapButton();
+  await WalletMainScreen.tapSwapButton();
   swapLoadTimer.stop();
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await SwapScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
-  await SwapScreen.enterSourceTokenAmount('1');
-  await SwapScreen.tapGetQuotes('Ethereum');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
+  await BridgeScreen.enterSourceTokenAmount('1');
+
   swapTimer.start();
-  await SwapScreen.isQuoteDisplayed('Ethereum');
+  await BridgeScreen.isQuoteDisplayed();
   swapTimer.stop();
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(swapLoadTimer);

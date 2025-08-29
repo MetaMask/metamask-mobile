@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -18,7 +18,7 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import TokenOverviewScreen from '../../../wdio/screen-objects/TokenOverviewScreen.js';
-import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../utils/Flows.js';
 import SendScreen from '../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
@@ -50,8 +50,8 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   SendScreen.device = device;
   ConfirmationScreen.device = device;
   AmountScreen.device = device;
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
-  await importSRPFlow(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   const timer1 = new TimerHelper(
