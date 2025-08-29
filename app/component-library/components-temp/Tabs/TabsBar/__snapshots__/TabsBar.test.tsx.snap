@@ -54,9 +54,7 @@ exports[`TabsBar applies custom styling correctly 1`] = `
               {
                 "display": "flex",
               },
-              {
-                "padding": 20,
-              },
+              undefined,
             ]
           }
         >
@@ -137,9 +135,7 @@ exports[`TabsBar applies custom styling correctly 1`] = `
               {
                 "display": "flex",
               },
-              {
-                "padding": 20,
-              },
+              undefined,
             ]
           }
         >
@@ -219,9 +215,7 @@ exports[`TabsBar applies custom styling correctly 1`] = `
               {
                 "display": "flex",
               },
-              {
-                "padding": 20,
-              },
+              undefined,
             ]
           }
         >

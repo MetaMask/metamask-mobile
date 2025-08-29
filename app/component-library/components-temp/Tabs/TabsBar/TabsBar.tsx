@@ -32,42 +32,34 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const underlineAnimated = useRef(new Animated.Value(0)).current;
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
+  const isInitialized = useRef(false);
 
-  // Set initial underline position when layouts are available
+  // Animate underline when active tab changes
   useEffect(() => {
     const activeTabLayout = tabLayouts.current[activeIndex];
-    if (
-      activeTabLayout &&
-      underlineAnimated._value === 0 &&
-      underlineWidthAnimated._value === 0
-    ) {
-      // Set initial position without animation on first render
-      underlineAnimated.setValue(activeTabLayout.x);
-      underlineWidthAnimated.setValue(activeTabLayout.width);
-    }
-  }, [activeIndex, underlineAnimated, underlineWidthAnimated]);
-
-  // Animate underline when active tab changes (after initial render)
-  useEffect(() => {
-    const activeTabLayout = tabLayouts.current[activeIndex];
-    if (
-      activeTabLayout &&
-      (underlineAnimated._value !== 0 || underlineWidthAnimated._value !== 0)
-    ) {
-      Animated.parallel([
-        Animated.spring(underlineAnimated, {
-          toValue: activeTabLayout.x,
-          useNativeDriver: false,
-          tension: 300,
-          friction: 30,
-        }),
-        Animated.spring(underlineWidthAnimated, {
-          toValue: activeTabLayout.width,
-          useNativeDriver: false,
-          tension: 300,
-          friction: 30,
-        }),
-      ]).start();
+    if (activeTabLayout) {
+      if (!isInitialized.current) {
+        // Set initial position without animation on first render
+        underlineAnimated.setValue(activeTabLayout.x);
+        underlineWidthAnimated.setValue(activeTabLayout.width);
+        isInitialized.current = true;
+      } else {
+        // Animate for subsequent tab changes
+        Animated.parallel([
+          Animated.spring(underlineAnimated, {
+            toValue: activeTabLayout.x,
+            useNativeDriver: false,
+            tension: 300,
+            friction: 30,
+          }),
+          Animated.spring(underlineWidthAnimated, {
+            toValue: activeTabLayout.width,
+            useNativeDriver: false,
+            tension: 300,
+            friction: 30,
+          }),
+        ]).start();
+      }
 
       // Scroll to active tab if needed
       if (scrollEnabled && scrollViewRef.current) {
@@ -84,13 +76,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
     tabLayouts.current[index] = { x, width };
 
     // If this is the active tab and we haven't initialized the underline yet, set it immediately
-    if (
-      index === activeIndex &&
-      underlineAnimated._value === 0 &&
-      underlineWidthAnimated._value === 0
-    ) {
+    if (index === activeIndex && !isInitialized.current) {
       underlineAnimated.setValue(x);
       underlineWidthAnimated.setValue(width);
+      isInitialized.current = true;
     }
   };
 
@@ -120,7 +109,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
               <Box
                 key={tab.key}
                 onLayout={(event) => handleTabLayout(index, event)}
-                style={tabStyle}
               >
                 <Tab
                   label={tab.label}
@@ -156,7 +144,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
             <Box
               key={tab.key}
               onLayout={(event) => handleTabLayout(index, event)}
-              style={tabStyle}
             >
               <Tab
                 label={tab.label}
