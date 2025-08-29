@@ -149,6 +149,9 @@ function OrdersList() {
             color={TextColor.Muted}
             style={styles.emptyMessage}
           >
+            {currentFilter === 'ALL'
+              ? strings('fiat_on_ramp_aggregator.empty_orders_list')
+              : null}
             {currentFilter === 'PURCHASE'
               ? strings('fiat_on_ramp_aggregator.empty_buy_orders_list')
               : null}
