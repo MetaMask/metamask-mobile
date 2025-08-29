@@ -111,7 +111,7 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
@@ -807,6 +807,9 @@ const MainNavigator = () => {
     () => perpsEnabledFlag && isEvmSelected,
     [perpsEnabledFlag, isEvmSelected],
   );
+  const { enabled: isSendRedesignEnabled } = useSelector(
+    selectSendRedesignFlags,
+  );
 
   return (
     <Stack.Navigator
@@ -854,7 +857,7 @@ const MainNavigator = () => {
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? Send : SendFlowView}
+        component={isSendRedesignEnabled ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
