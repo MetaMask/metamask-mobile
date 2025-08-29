@@ -155,8 +155,6 @@ import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddre
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
-
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
@@ -727,19 +725,6 @@ const MultichainAccountDetailsActions = () => {
   );
 };
 
-const SolanaNewFeatureContentView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-      component={SolanaNewFeatureContent}
-    />
-  </Stack.Navigator>
-);
-
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -940,11 +925,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
           component={MultichainPrivateKeyList}
-        />
-        <Stack.Screen
-          name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-          component={SolanaNewFeatureContentView}
-          options={{ animationEnabled: true }}
         />
         <Stack.Screen
           options={{

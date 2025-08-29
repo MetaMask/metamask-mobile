@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectCurrencyRates,
@@ -14,13 +14,18 @@ import {
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
+import { EVM_SCOPE } from '../../Earn/constants/networks';
 
 const useBalance = (chainId?: Hex) => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const selectedChainId = useSelector(selectEvmChainId);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
   );
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : '';
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const balanceChainId = chainId || selectedChainId;
