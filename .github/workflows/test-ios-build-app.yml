@@ -8,6 +8,7 @@ on:
         required: false
         default: '7'
         type: string
+  pull_request:
 
 permissions:
   contents: write
