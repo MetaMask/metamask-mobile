@@ -18,6 +18,28 @@ const MigratedStorage = {
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
+        try {
+          const state = JSON.parse(res);
+          const user =
+            typeof state?.user === 'string'
+              ? JSON.parse(state.user)
+              : state?.user;
+          const engine =
+            typeof state?.engine === 'string'
+              ? JSON.parse(state.engine)
+              : state?.engine;
+
+          if (user?.existingUser) {
+            Logger.log(
+              'Is vault defined',
+              !!engine?.backgroundState?.KeyringController?.vault,
+            );
+          }
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: `Failed to parse state for ${key}`,
+          });
+        }
         // Using new storage system
         return res;
       }
