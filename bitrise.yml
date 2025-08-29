@@ -2139,6 +2139,7 @@ workflows:
   _android_build_template:
     before_run:
       - code_setup
+      - extract_version_info
     after_run:
       - notify_failure
     steps:
@@ -2581,9 +2582,7 @@ workflows:
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'
-    before_run:
-      - extract_version_info      
+      - OUTPUT_PATH: 'prodRelease'    
     after_run:
       - _android_build_template
     meta:
@@ -2970,6 +2969,7 @@ workflows:
   _ios_build_template:
     before_run:
       - code_setup
+      - extract_version_info
     after_run:
       - notify_failure
     steps:
@@ -3146,8 +3146,6 @@ workflows:
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
-    before_run:
-      - extract_version_info
     after_run:
       - _ios_build_template
   build_ios_main_test:
