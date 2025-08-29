@@ -524,8 +524,6 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
             ...accountNativeBalance,
           },
         };
-
-        return list;
       }
 
       return list;
