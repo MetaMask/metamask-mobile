@@ -189,6 +189,7 @@ await setupMockPostRequest(
 2. Loads all default mocks from `defaults/index.ts`
 3. Applies test-specific mocks (if provided)
 4. Calls `mockNotificationServices()` for notification-related mocks
+5. Calls `setupRemoteFeatureFlagsMock()` for default remote feature flags mocks
 
 ### Notification Services Mocking
 
@@ -291,6 +292,112 @@ await withFixtures(
 );
 ```
 
+## Remote Feature Flags Mocking
+
+MetaMask Mobile uses remote feature flags to control features dynamically. The E2E framework provides specialized helpers for mocking these flags.
+
+### setupRemoteFeatureFlagsMock Helper
+
+Use `setupRemoteFeatureFlagsMock` from `e2e/api-mocking/helpers/remoteFeatureFlagsHelper` to mock feature flags:
+
+```typescript
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    { rewards: true, confirmation_redesign: { signatures: true } },
+    'main', // distribution (optional, defaults to 'main')
+  );
+};
+```
+
+### Predefined Feature Flag Mocks
+
+Common feature flag configurations are available in `e2e/api-mocking/mock-responses/feature-flags-mocks.ts`:
+
+```typescript
+import {
+  oldConfirmationsRemoteFeatureFlags,
+  confirmationsRedesignedFeatureFlags,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
+
+// For legacy confirmations (old UI)
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+  );
+};
+
+// For new confirmations UI
+const testSpecificMock = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  );
+};
+```
+
+### Feature Flag Override Patterns
+
+The helper supports both simple and nested flag overrides:
+
+```typescript
+// Simple boolean flags
+await setupRemoteFeatureFlagsMock(mockServer, {
+  rewards: true,
+  carouselBanners: false,
+});
+
+// Nested object flags (deep merge support)
+await setupRemoteFeatureFlagsMock(mockServer, {
+  confirmation_redesign: {
+    signatures: true,
+    transfer: false,
+  },
+  bridgeConfig: {
+    support: true,
+    refreshRate: 5000,
+  },
+});
+
+// Combining predefined configs with overrides
+await setupRemoteFeatureFlagsMock(mockServer, {
+  ...Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+  rewards: true, // Override specific flags
+});
+```
+
+### Distribution and Environment Support
+
+Feature flags can vary by distribution (main/flask) and environment (dev/prod):
+
+```typescript
+// Flask distribution with custom flags
+await setupRemoteFeatureFlagsMock(mockServer, { perpsEnabled: true }, 'flask');
+
+// The helper automatically handles both dev and prod environment URLs
+```
+
+### Best Practices for Feature Flags
+
+1. **Use Object.assign with arrays**: When combining multiple feature flag arrays, use `Object.assign({}, ...arrays)` to properly merge objects:
+
+```typescript
+// Correct - properly merges flag objects
+Object.assign({}, ...oldConfirmationsRemoteFeatureFlags)
+
+// Incorrect - spreads array items directly
+...oldConfirmationsRemoteFeatureFlags
+```
+
+2. **Prefer predefined configurations**: Use existing configurations from `feature-flags-mocks.ts` when possible rather than defining flags inline.
+
+3. **Test both flag states**: Create tests for both enabled and disabled feature flag states when the feature behavior differs significantly.
+
+4. **Use descriptive test names**: Include feature flag state in test descriptions when relevant (e.g., "should show new UI with confirmation_redesign enabled").
+
 ## Debugging Mocks
 
 ### Live Request Validation
@@ -312,3 +419,4 @@ Add debug logging to see which mocks are being hit:
 1. **Mock not triggering**: Check URL pattern matching
 2. **Wrong response**: Verify mock takes precedence (test-specific > default)
 3. **POST body validation failing**: Check `ignoreFields` and expected request body format
+4. **Feature flags not applying**: Ensure you're using `Object.assign({}, ...arrays)` when combining flag arrays

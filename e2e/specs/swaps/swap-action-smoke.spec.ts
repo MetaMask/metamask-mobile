@@ -6,7 +6,7 @@ import Assertions from '../../framework/Assertions';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import { SmokeTrade } from '../../tags.js';
+import { SmokeTrade } from '../../tags';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
@@ -114,8 +114,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   );
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-    console.log('capturedEvents', capturedEvents);
-
     const testCases = [
       {
         type: 'swap',

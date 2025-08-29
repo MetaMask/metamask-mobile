@@ -151,10 +151,10 @@ import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
+import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddressQR/ShareAddressQR';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
@@ -677,6 +677,12 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR}
+        component={ShareAddressQR}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT}
         component={DeleteAccount}
         initialParams={route?.params}
@@ -701,19 +707,6 @@ const MultichainAccountDetailsActions = () => {
     </Stack.Navigator>
   );
 };
-
-const SolanaNewFeatureContentView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-      component={SolanaNewFeatureContent}
-    />
-  </Stack.Navigator>
-);
 
 const MultichainWalletDetails = () => {
   const route = useRoute();
@@ -915,11 +908,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
           component={MultichainPrivateKeyList}
-        />
-        <Stack.Screen
-          name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-          component={SolanaNewFeatureContentView}
-          options={{ animationEnabled: true }}
         />
         <Stack.Screen
           options={{

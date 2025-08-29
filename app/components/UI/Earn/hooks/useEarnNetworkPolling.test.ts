@@ -38,7 +38,6 @@ import useTokenListPolling from '../../../hooks/AssetPolling/useTokenListPolling
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../../hooks/AssetPolling/useTokenRatesPolling';
-import useAccountTrackerPolling from '../../../hooks/AssetPolling/useAccountTrackerPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
 import Engine from '../../../../core/Engine';
 
@@ -57,7 +56,6 @@ describe('useEarnNetworkPolling', () => {
   const mockUseTokenBalancesPolling = jest.mocked(useTokenBalancesPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
-  const mockUseAccountTrackerPolling = jest.mocked(useAccountTrackerPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
 
   const mockFindNetworkClientIdByChainId = jest.mocked(
@@ -77,6 +75,22 @@ describe('useEarnNetworkPolling', () => {
     engine: {
       backgroundState: {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: 'keyring:test-wallet/ethereum',
+            wallets: {
+              'keyring:test-wallet': {
+                id: 'test-wallet',
+                name: 'Test Wallet',
+                groups: {
+                  'keyring:test-wallet/ethereum': {
+                    accounts: [mockSelectedAccount.id],
+                  },
+                },
+              },
+            },
+          },
+        },
         PreferencesController: {
           useTokenDetection: true,
         },
@@ -138,9 +152,6 @@ describe('useEarnNetworkPolling', () => {
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
       chainIds: expect.any(Array),
     });
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: expect.any(Array),
-    });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
       chainIds: expect.any(Array),
       address: mockSelectedAccount.address,
@@ -165,36 +176,10 @@ describe('useEarnNetworkPolling', () => {
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
       chainIds: [],
     });
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: [],
-    });
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
       chainIds: [],
       address: mockSelectedAccount.address,
     });
-  });
-
-  it('should call NetworkController.findNetworkClientIdByChainId for each lending chain', () => {
-    renderHookWithProvider(() => useEarnNetworkPolling(), {
-      state: mockState,
-    });
-
-    // Should be called for each chain ID in LENDING_CHAIN_IDS
-    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalled();
-  });
-
-  it('should handle network client ID lookup errors gracefully', () => {
-    mockFindNetworkClientIdByChainId.mockImplementation((chainId: string) => {
-      throw new Error(`Network client not found for chain ${chainId}`);
-    });
-
-    expect(() => {
-      renderHookWithProvider(() => useEarnNetworkPolling(), {
-        state: mockState,
-      });
-    }).not.toThrow();
-
-    expect(console.warn).toHaveBeenCalled();
   });
 
   it('should call TokenDetectionController.detectTokens when component mounts', () => {
@@ -244,6 +229,12 @@ describe('useEarnNetworkPolling', () => {
             internalAccounts: {
               ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
               selectedAccount: '',
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              selectedAccountGroup: '',
+              wallets: {},
             },
           },
         },
@@ -380,7 +371,6 @@ describe('useEarnNetworkPolling', () => {
     expect(mockUseTokenBalancesPolling).toHaveBeenCalled();
     expect(mockUseCurrencyRatePolling).toHaveBeenCalled();
     expect(mockUseTokenRatesPolling).toHaveBeenCalled();
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalled();
     expect(mockUseTokenDetectionPolling).toHaveBeenCalled();
   });
 });
