@@ -346,8 +346,12 @@ export class HyperLiquidSubscriptionService {
           const accountChanged =
             JSON.stringify(accountState) !== JSON.stringify(this.cachedAccount);
 
-          // Only update and notify if data actually changed
-          if (positionsChanged) {
+          // Always notify position subscribers on first update or when data changes
+          // This ensures the loading state is properly updated
+          const shouldNotifyPositions =
+            positionsChanged || this.cachedPositions.length === 0;
+
+          if (shouldNotifyPositions) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
               callback(positionsWithTPSL);
