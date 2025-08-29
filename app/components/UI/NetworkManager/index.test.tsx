@@ -292,54 +292,59 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
   );
 });
 
-jest.mock('../ReusableModal', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (
-      { children, style }: { children: React.ReactNode; style?: unknown },
-      ref: React.Ref<{ dismissModal: (cb?: () => void) => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        dismissModal: mockDismissModal,
-      }));
-
-      return (
-        <RNView testID="reusable-modal" style={style}>
-          {children}
-        </RNView>
-      );
-    },
-  );
-});
+// Remove ReusableModal mock as component uses BottomSheet
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View: RNView } = jest.requireActual('react-native');
+
+    let sheetCounter = 0;
+
     return ReactActual.forwardRef(
       (
         {
           children,
-          _onClose,
-        }: { children: React.ReactNode; _onClose?: unknown },
+          style,
+          shouldNavigateBack,
+        }: {
+          children: React.ReactNode;
+          style?: unknown;
+          shouldNavigateBack?: boolean;
+        },
         ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
+          onOpenBottomSheet: (cb?: () => void) => void;
+          onCloseBottomSheet: (cb?: () => void) => void;
         }>,
       ) => {
+        const sheetId = ++sheetCounter;
+        const isMainSheet = shouldNavigateBack !== false; // Main sheet has shouldNavigateBack=true or undefined
+
         ReactActual.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: mockOnOpenBottomSheet,
-          onCloseBottomSheet: mockOnCloseBottomSheet,
+          onOpenBottomSheet: (cb?: () => void) => {
+            mockOnOpenBottomSheet();
+            cb?.();
+          },
+          onCloseBottomSheet: (cb?: () => void) => {
+            if (isMainSheet) {
+              mockDismissModal(cb);
+            } else {
+              mockOnCloseBottomSheet();
+            }
+            cb?.();
+          },
         }));
 
-        // Auto-trigger onOpenBottomSheet when mounted to simulate opening
-        ReactActual.useEffect(() => {
-          mockOnOpenBottomSheet();
-        }, []);
+        const testID = isMainSheet
+          ? 'main-bottom-sheet'
+          : `bottom-sheet-${sheetId}`;
 
-        return <RNView testID="bottom-sheet">{children}</RNView>;
+        return (
+          <RNView testID={testID} style={style}>
+            {children}
+          </RNView>
+        );
       },
     );
   },
@@ -527,7 +532,7 @@ describe('NetworkManager Component', () => {
       const { getByText, getByTestId } = renderComponent();
 
       expect(getByText('wallet.networks')).toBeOnTheScreen();
-      expect(getByTestId('reusable-modal')).toBeOnTheScreen();
+      expect(getByTestId('main-bottom-sheet')).toBeOnTheScreen();
       expect(getByTestId('scrollable-tab-view')).toBeOnTheScreen();
       expect(getByTestId('network-multi-selector')).toBeOnTheScreen();
       expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
@@ -535,7 +540,7 @@ describe('NetworkManager Component', () => {
 
     it('should apply correct container styles with safe area insets', () => {
       const { getByTestId } = renderComponent();
-      const modal = getByTestId('reusable-modal');
+      const modal = getByTestId('main-bottom-sheet');
 
       expect(modal.props.style).toEqual([
         {
@@ -658,6 +663,7 @@ describe('NetworkManager Component', () => {
         fireEvent.press(editButton);
       });
 
+      // The main BottomSheet's onCloseBottomSheet should be called with callback
       expect(mockDismissModal).toHaveBeenCalledWith(expect.any(Function));
       expect(mockNavigate).toHaveBeenCalledWith('AddNetwork', {
         shouldNetworkSwitchPopToWallet: false,
