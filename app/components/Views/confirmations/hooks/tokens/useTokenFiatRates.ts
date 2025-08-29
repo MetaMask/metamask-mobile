@@ -5,6 +5,7 @@ import { selectCurrencyRates } from '../../../../../selectors/currencyRateContro
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
+import { toChecksumAddress } from '../../../../../util/address';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -20,14 +21,8 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const result = useMemo(
     () =>
       safeRequests.map(({ address, chainId }) => {
-        const chainTokens = Object.values(
-          tokenMarketDataByAddressByChainId[chainId] ?? {},
-        );
-
-        const token = chainTokens.find(
-          (t) => t.tokenAddress.toLowerCase() === address.toLowerCase(),
-        );
-
+        const chainTokens = tokenMarketDataByAddressByChainId[chainId] ?? {};
+        const token = chainTokens[toChecksumAddress(address)];
         const networkConfiguration = networkConfigurations[chainId];
 
         const conversionRate =
