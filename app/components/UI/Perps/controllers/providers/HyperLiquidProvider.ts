@@ -1569,7 +1569,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // 2. That remaining size meets minimum order requirements
       }
 
-      // Validate minimum order value if we have the necessary data
+      // Validate minimum order value ONLY for partial closes
+      // Full closes (when size is undefined) have no minimum
       if (params.currentPrice && params.size) {
         const closeSize = parseFloat(params.size);
         const price = parseFloat(params.currentPrice.toString());
@@ -1580,6 +1581,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           ? TRADING_DEFAULTS.amount.testnet
           : TRADING_DEFAULTS.amount.mainnet;
 
+        // Only enforce minimum for partial closes
+        // Full closes (size undefined) can be any amount
         if (orderValueUSD < minimumOrderSize) {
           return {
             isValid: false,
@@ -1589,8 +1592,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
           };
         }
       }
-      // Note: For full closes (when size is undefined), the validation
-      // should be done in the UI layer where the full position size is known.
+      // Note: For full closes (when size is undefined), there is no minimum
+      // This allows users to close positions worth less than $10 completely
 
       return { isValid: true };
     } catch (error) {
