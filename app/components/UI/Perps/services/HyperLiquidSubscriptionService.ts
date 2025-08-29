@@ -76,14 +76,12 @@ export class HyperLiquidSubscriptionService {
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
   private accountSubscriberCount = 0;
-  private cachedPositions: Position[] = [];
+  private cachedPositions: Position[] | null = null;
   private cachedOrders: Order[] = [];
   private cachedAccount: AccountState | null = null;
-  private hasNotifiedInitialEmptyPositions = false; // Track if we've sent initial empty state
-  private hasNotifiedInitialPrices = false; // Track if we've sent initial price notifications
 
   // Global price data cache
-  private cachedPriceData = new Map<string, PriceUpdate>();
+  private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
   // Order book data cache
   private orderBookCache = new Map<
@@ -168,6 +166,7 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
+
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
       if (includeMarketData) {
@@ -180,11 +179,9 @@ export class HyperLiquidSubscriptionService {
 
     // Send cached data immediately if available
     symbols.forEach((symbol) => {
-      const cachedPrice = this.cachedPriceData.get(symbol);
+      const cachedPrice = this.cachedPriceData?.get(symbol);
       if (cachedPrice) {
         callback([cachedPrice]);
-        // Mark that we've sent initial price data for this subscriber
-        this.hasNotifiedInitialPrices = true;
       }
     });
 
@@ -350,31 +347,16 @@ export class HyperLiquidSubscriptionService {
           const accountChanged =
             JSON.stringify(accountState) !== JSON.stringify(this.cachedAccount);
 
-          // Always notify position subscribers on first update or when data changes
-          // This ensures the loading state is properly updated
+          // Only notify position subscribers on first update (when cachedPositions is null) or when data changes
+          // This prevents repeated notifications when positions remain empty
           const shouldNotifyPositions =
-            positionsChanged ||
-            (!this.hasNotifiedInitialEmptyPositions &&
-              this.cachedPositions.length === 0);
+            positionsChanged || this.cachedPositions === null; // Only notify if we haven't sent initial data yet
 
           if (shouldNotifyPositions) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
               callback(positionsWithTPSL);
             });
-
-            // Mark that we've sent the initial empty state if this was the first notification
-            if (
-              !this.hasNotifiedInitialEmptyPositions &&
-              positionsWithTPSL.length === 0
-            ) {
-              this.hasNotifiedInitialEmptyPositions = true;
-            }
-
-            // Reset the flag if we now have actual positions
-            if (positionsWithTPSL.length > 0) {
-              this.hasNotifiedInitialEmptyPositions = false;
-            }
           }
 
           if (ordersChanged) {
@@ -426,7 +408,7 @@ export class HyperLiquidSubscriptionService {
       this.positionSubscriberCount = 0;
       this.orderSubscriberCount = 0;
       this.accountSubscriberCount = 0;
-      this.cachedPositions = [];
+      this.cachedPositions = null;
       this.cachedOrders = [];
       this.cachedAccount = null;
       DevLogger.log('Shared webData2 subscription cleaned up');
@@ -447,7 +429,7 @@ export class HyperLiquidSubscriptionService {
     this.positionSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedPositions.length > 0) {
+    if (this.cachedPositions && this.cachedPositions.length > 0) {
       callback(this.cachedPositions);
     }
 
@@ -696,27 +678,27 @@ export class HyperLiquidSubscriptionService {
 
         // Update cache for ALL available symbols
         Object.entries(data.mids).forEach(([symbol, price]) => {
+          // Initialize the Map if it doesn't exist
+          if (!this.cachedPriceData) {
+            this.cachedPriceData = new Map<string, PriceUpdate>();
+          }
+
           const priceUpdate = this.createPriceUpdate(symbol, price.toString());
           this.cachedPriceData.set(symbol, priceUpdate);
         });
 
-        // Always notify price subscribers on first update or when data changes
-        // This ensures the UI can properly display price data and enable order buttons
-        if (
-          !this.hasNotifiedInitialPrices ||
-          Object.keys(data.mids).length > 0
-        ) {
-          this.notifyAllPriceSubscribers();
-
-          // Mark that we've sent initial price notifications
-          if (!this.hasNotifiedInitialPrices) {
-            this.hasNotifiedInitialPrices = true;
-          }
-        }
+        // Always notify price subscribers when we receive price data
+        // This ensures subscribers get updates and the UI can display current prices
+        this.notifyAllPriceSubscribers();
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
         DevLogger.log('HyperLiquid: Global allMids subscription established');
+
+        // Notify existing subscribers with any cached data now that subscription is established
+        if (this.cachedPriceData && this.cachedPriceData.size > 0) {
+          this.notifyAllPriceSubscribers();
+        }
 
         // Trace WebSocket connection
         trace({
@@ -806,12 +788,18 @@ export class HyperLiquidSubscriptionService {
             this.marketDataCache.set(symbol, marketData);
 
             // Update cached price data with new 24h change if we have current price
-            const currentCachedPrice = this.cachedPriceData.get(symbol);
+            const currentCachedPrice = this.cachedPriceData?.get(symbol);
             if (currentCachedPrice) {
               const updatedPrice = this.createPriceUpdate(
                 symbol,
                 currentCachedPrice.price,
               );
+
+              // Ensure the Map exists
+              if (!this.cachedPriceData) {
+                this.cachedPriceData = new Map<string, PriceUpdate>();
+              }
+
               this.cachedPriceData.set(symbol, updatedPrice);
               this.notifyAllPriceSubscribers();
             }
@@ -823,7 +811,6 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log(
           `HyperLiquid: Market data subscription established for ${symbol}`,
         );
-
         // Trace WebSocket connection for market data
         trace({
           name: TraceName.PerpsWebSocketConnected,
@@ -914,12 +901,18 @@ export class HyperLiquidSubscriptionService {
             });
 
             // Update cached price data with new order book data
-            const currentCachedPrice = this.cachedPriceData.get(symbol);
+            const currentCachedPrice = this.cachedPriceData?.get(symbol);
             if (currentCachedPrice) {
               const updatedPrice = this.createPriceUpdate(
                 symbol,
                 currentCachedPrice.price,
               );
+
+              // Ensure the Map exists
+              if (!this.cachedPriceData) {
+                this.cachedPriceData = new Map<string, PriceUpdate>();
+              }
+
               this.cachedPriceData.set(symbol, updatedPrice);
               this.notifyAllPriceSubscribers();
             }
@@ -960,6 +953,13 @@ export class HyperLiquidSubscriptionService {
    * Optimized to batch updates per subscriber
    */
   private notifyAllPriceSubscribers(): void {
+    // If no price data exists yet, don't notify
+    if (!this.cachedPriceData) {
+      return;
+    }
+
+    const priceData = this.cachedPriceData;
+
     // Group updates by subscriber to batch notifications
     const subscriberUpdates = new Map<
       (prices: PriceUpdate[]) => void,
@@ -967,7 +967,7 @@ export class HyperLiquidSubscriptionService {
     >();
 
     this.priceSubscribers.forEach((subscriberSet, symbol) => {
-      const priceUpdate = this.cachedPriceData.get(symbol);
+      const priceUpdate = priceData.get(symbol);
       if (priceUpdate) {
         subscriberSet.forEach((callback) => {
           if (!subscriberUpdates.has(callback)) {
@@ -1002,7 +1002,7 @@ export class HyperLiquidSubscriptionService {
     this.marketDataSubscribers.clear();
 
     // Clear cached data
-    this.cachedPriceData.clear();
+    this.cachedPriceData = null;
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();
