@@ -45,8 +45,8 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
-import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 interface PerpsTabViewProps {}
 
@@ -76,7 +76,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const { isEligible } = usePerpsEligibility();
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 

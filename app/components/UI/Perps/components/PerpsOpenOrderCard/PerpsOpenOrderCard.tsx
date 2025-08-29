@@ -30,8 +30,9 @@ import type {
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 /**
  * PerpsOpenOrderCard Component
@@ -70,7 +71,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
-  const { isEligible } = usePerpsEligibility();
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {

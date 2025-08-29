@@ -67,8 +67,9 @@ import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
-import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -89,7 +90,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const hasTrackedAssetView = useRef(false);
 
-  const { isEligible } = usePerpsEligibility();
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Start measuring screen load time on mount
   useEffect(() => {

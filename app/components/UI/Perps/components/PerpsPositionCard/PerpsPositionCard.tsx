@@ -27,9 +27,10 @@ import {
 } from '../../utils/formatUtils';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import styleSheet from './PerpsPositionCard.styles';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -52,7 +53,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  const { isEligible } = usePerpsEligibility();
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(

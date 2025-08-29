@@ -270,6 +270,15 @@ export interface LiveDataConfig {
   maxUpdatesPerSecond?: number; // hard limit to prevent UI blocking
 }
 
+export interface PerpsControllerConfig {
+  /**
+   * Fallback blocked regions to use when RemoteFeatureFlagController
+   * fails to fetch or returns undefined. Only used when remote feature
+   * flag is undefined - empty array from remote is considered valid.
+   */
+  fallbackBlockedRegions?: string[];
+}
+
 export interface PriceUpdate {
   coin: string; // Asset symbol
   price: string; // Current mid price (average of best bid and ask)
