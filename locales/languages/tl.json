@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Maaari mong i-off ang I-display ang NFT media sa",
     "show_display_nft_media_content_5": "Settings > Seguridad at pagkapribado."
   },
-  "solana_new_feature_content": {
-    "title": "narito na ang solana",
-    "title_description": "I-import ang iyong wallet, tuklasin, i-trade, at ipadala ito. Live na ang Suporta sa Native Solana sa MetaMask.",
-    "not_now": "Hindi sa ngayon",
-    "view_solana_account": "Tingnan ang Solana account",
-    "learn_more": "Matuto pa tungkol sa mga Solana account",
-    "import_your_wallet": "I-import ang iyong wallet"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
     "ipfs_gateway_banner_content1": "Ito ay isang website ng IPFS. Upang makita ang site na ito, kailangan mong i-on ang",

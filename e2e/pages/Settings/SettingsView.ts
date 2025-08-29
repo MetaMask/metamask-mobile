@@ -7,6 +7,10 @@ import {
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 class SettingsView {
+  get title(): DetoxElement {
+    return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
+  }
+
   get generalSettingsButton(): DetoxElement {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }

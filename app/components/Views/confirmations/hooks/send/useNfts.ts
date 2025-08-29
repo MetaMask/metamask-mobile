@@ -129,7 +129,13 @@ export function useEVMNfts(): Nft[] {
         }
       }
 
-      setTransformedNfts(transformedResults);
+      // Filter ERC1155 NFTs temporarily
+      // This will be removed with https://github.com/MetaMask/metamask-mobile/issues/18923
+      const filteredResults = transformedResults.filter(
+        (nft) => nft.standard !== 'ERC1155',
+      );
+
+      setTransformedNfts(filteredResults);
     };
 
     processNfts();

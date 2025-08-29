@@ -25,7 +25,7 @@ const authMocks = getAuthMocks();
 
 export const DEFAULT_MOCKS = {
   GET: [
-    ...authMocks.GET,
+    ...(authMocks.GET || []),
     ...(DAPP_SCANNING_MOCKS.GET || []),
     ...(PRICE_API_MOCKS.GET || []),
     ...(WEB_3_AUTH_MOCKS.GET || []),
@@ -248,7 +248,7 @@ export const DEFAULT_MOCKS = {
     },
   ],
   POST: [
-    ...authMocks.POST,
+    ...(authMocks.POST || []),
     ...(WALLETCONNECT_MOCKS.POST || []),
     ...(METAMETRICS_API_MOCKS.POST || []),
     {

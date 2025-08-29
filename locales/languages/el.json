@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Μπορείτε να απενεργοποιήσετε την επιλογή Προβολή μέσων NFT στις",
     "show_display_nft_media_content_5": "Ρυθμίσεις > Ασφάλεια και απόρρητο."
   },
-  "solana_new_feature_content": {
-    "title": "η solana είναι εδώ",
-    "title_description": "Εισάγετε το πορτοφόλι σας, εξερευνήστε, κάντε συναλλαγές και στείλτε το. Η εγγενής υποστήριξη της Solana είναι πλέον διαθέσιμη στο MetaMask.",
-    "not_now": "Όχι τώρα",
-    "view_solana_account": "Προβολή λογαριασμού στην Solana",
-    "learn_more": "Μάθετε περισσότερα για τους λογαριασμούς στην Solana",
-    "import_your_wallet": "Εισάγετε το πορτοφόλι σας"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Πύλη IPFS",
     "ipfs_gateway_banner_content1": "Αυτός είναι ένας ιστότοπος με IPFS. Για να δείτε αυτόν τον ιστότοπο, πρέπει να ενεργοποιήσετε την",

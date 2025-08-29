@@ -3,13 +3,16 @@ import React from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
 import FooterButtonGroup from './FooterButtonGroup';
 import {
   FooterButtonGroupActions,
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
+import { RootState } from '../../../../../../../reducers';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -17,16 +20,30 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
 ]);
 
-const mockSubscribeOnceIf = jest.fn();
+const mockSelectedAccount =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount
+  ];
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      controllerMessenger: {
-        subscribeOnceIf: mockSubscribeOnceIf,
+      AccountTreeController: {
+        accountTree: {
+          selectedAccountGroup: 'keyring:test-wallet/ethereum',
+          wallets: {
+            'keyring:test-wallet': {
+              groups: {
+                'keyring:test-wallet/ethereum': {
+                  accounts: [mockSelectedAccount.id],
+                },
+              },
+            },
+          },
+        },
       },
     },
   },

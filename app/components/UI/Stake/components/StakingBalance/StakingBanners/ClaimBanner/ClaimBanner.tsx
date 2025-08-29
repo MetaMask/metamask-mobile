@@ -17,7 +17,7 @@ import Text, {
 import { useStyles } from '../../../../../../../component-library/hooks';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
 import {
   MetaMetricsEvents,
@@ -33,6 +33,7 @@ import { renderFromWei } from '../../../../../../../util/number';
 import { TokenI } from '../../../../../Tokens/types';
 import { getDecimalChainId } from '../../../../../../../util/networks';
 import { trace, TraceName } from '../../../../../../../util/trace';
+import { EVM_SCOPE } from '../../../../../Earn/constants/networks';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -45,7 +46,9 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
   const { MultichainNetworkController } = Engine.context;
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const [shouldAttemptClaim, setShouldAttemptClaim] = useState(false);
   const { attemptPoolStakedClaimTransaction } = usePoolStakedClaim();
   const { stakingContract } = useStakeContext();
@@ -70,7 +73,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
 
   const attemptClaim = useCallback(async () => {
     try {
-      if (!activeAccount?.address) return;
+      if (!selectedAccount?.address) return;
 
       trace({ name: TraceName.EarnClaimConfirmationScreen });
       trackEvent(
@@ -89,7 +92,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
         // metadata object being defined by the time the confirmation is displayed
         // to the user.
         await attemptPoolStakedClaimTransaction(
-          activeAccount?.address,
+          selectedAccount?.address,
           pooledStakesData,
         );
         navigation.navigate('StakeScreens', {
@@ -102,7 +105,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
       }
 
       const txRes = await attemptPoolStakedClaimTransaction(
-        activeAccount?.address,
+        selectedAccount?.address,
         pooledStakesData,
       );
 
@@ -135,7 +138,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
       setIsSubmittingClaimTransaction(false);
     }
   }, [
-    activeAccount,
+    selectedAccount,
     pooledStakesData,
     attemptPoolStakedClaimTransaction,
     createEventBuilder,

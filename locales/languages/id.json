@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Anda dapat menonaktifkan Tampilkan media NFT di",
     "show_display_nft_media_content_5": "Pengaturan > Keamanan dan privasi."
   },
-  "solana_new_feature_content": {
-    "title": "solana ada di sini",
-    "title_description": "Impor dompet, jelajahi, perdagangkan, dan kirimkan. Dukungan Solana asli kini tersedia di MetaMask.",
-    "not_now": "Tidak sekarang",
-    "view_solana_account": "Lihat akun Solana",
-    "learn_more": "Pelajari selengkapnya tentang akun Solana",
-    "import_your_wallet": "Impor dompet"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "gateway IPFS",
     "ipfs_gateway_banner_content1": "Ini adalah situs web IPFS. Untuk melihat situs ini, Anda perlu mengaktifkan",

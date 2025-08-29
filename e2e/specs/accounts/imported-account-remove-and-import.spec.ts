@@ -10,10 +10,10 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -22,14 +22,10 @@ const TEST_PRIVATE_KEY =
 const ACCOUNT_INDEX = 1;
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  const { urlEndpoint, response } =
-    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureMultichainAccountsAccountDetails(false),
+  );
 };
 
 describe(

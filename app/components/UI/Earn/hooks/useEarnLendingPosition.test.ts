@@ -1,10 +1,6 @@
 import { act } from 'react';
 import Engine from '../../../../core/Engine';
 import { RootState } from '../../../../reducers';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountAddress,
-} from '../../../../selectors/accountsController';
 import { earnSelectors } from '../../../../selectors/earnController/earn';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import {
@@ -23,9 +19,11 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountAddress: jest.fn(),
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x456',
+  })),
 }));
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
@@ -125,10 +123,6 @@ describe('useEarnLendingPositions', () => {
     },
   };
 
-  const mockSelectedAccount = {
-    address: '0x456',
-  };
-
   const mockLendingOutputToken: EarnTokenDetails = {
     address: '0x789',
     chainId: '0x1',
@@ -189,12 +183,6 @@ describe('useEarnLendingPositions', () => {
         outputToken: mockLendingOutputToken,
       },
     );
-    (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue(
-      mockSelectedAccount,
-    );
-    (
-      selectSelectedInternalAccountAddress as unknown as jest.Mock
-    ).mockReturnValue(mockSelectedAccount.address);
     (selectAllTokens as unknown as jest.Mock).mockReturnValue([mockAsset]);
   });
 

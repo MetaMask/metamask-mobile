@@ -21,7 +21,6 @@ import ScrollableTabView, {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import TabBar from '../../../component-library/components-temp/TabBar';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
@@ -29,7 +28,6 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../reducers/legalNotices';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
@@ -161,7 +159,6 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
-import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -430,9 +427,6 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const solanaOnboardingModalEnabled = useSelector(
-    selectSolanaOnboardingModalEnabled,
-  );
 
   /**
    * Object containing the balance of the current selected account
@@ -611,24 +605,6 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
-
-  const checkAndNavigateToSolanaFeature = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(
-      SOLANA_FEATURE_MODAL_SHOWN,
-    );
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
-    }
-  }, [navigate]);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  useEffect(() => {
-    if (solanaOnboardingModalEnabled) {
-      checkAndNavigateToSolanaFeature();
-    }
-  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
-  ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
     addTraitsToUser({

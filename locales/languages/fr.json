@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Vous pouvez désactiver l’affichage des médias NFT dans",
     "show_display_nft_media_content_5": "Paramètres > Sécurité et confidentialité."
   },
-  "solana_new_feature_content": {
-    "title": "solana est arrivé",
-    "title_description": "Importez votre portefeuille, explorez, échangez et envoyez des crypto-monnaies. La prise en charge native de Solana est désormais disponible sur MetaMask.",
-    "not_now": "Pas maintenant",
-    "view_solana_account": "Voir le compte Solana",
-    "learn_more": "En savoir plus sur les comptes Solana",
-    "import_your_wallet": "Importez votre portefeuille"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Passerelle IPFS",
     "ipfs_gateway_banner_content1": "Il s’agit d’un site web IPFS. Pour voir ce site, vous devez activer la",

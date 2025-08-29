@@ -114,8 +114,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   );
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-    console.log('capturedEvents', capturedEvents);
-
     const testCases = [
       {
         type: 'swap',

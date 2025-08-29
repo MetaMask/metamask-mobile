@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { defaultGanacheOptions } from '../framework/Constants';
 import { CustomNetworks } from './networks.e2e';
-import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../api-mocking/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
+import {
+  confirmationsRedesignedFeatureFlags,
+  oldConfirmationsRemoteFeatureFlags,
+} from '../api-mocking/mock-responses/feature-flags-mocks';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -57,13 +60,10 @@ export interface NetworkTestConfig {
  * Shared mock configuration for all network tests using redesigned patterns
  */
 export const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
-  const { urlEndpoint, response } = mockEvents.GET.suggestedGasFeesApiGanache;
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+  );
 };
 
 /**
@@ -72,22 +72,10 @@ export const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
 export const redesignedTestSpecificMock = async (
   mockServer: Mockttp,
 ): Promise<void> => {
-  const { urlEndpoint, response } =
-    mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
-
-  const gasFeesConfig = mockEvents.GET.suggestedGasFeesApiGanache;
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: gasFeesConfig.urlEndpoint,
-    response: gasFeesConfig.response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+  );
 };
 
 /**

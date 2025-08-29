@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
+import { createLogger, LogLevel } from '../../framework/logger';
 
 interface MockEvent {
   urlEndpoint: string;
@@ -11,6 +11,11 @@ interface MockEvent {
 interface MockEvents {
   [key: string]: MockEvent[];
 }
+
+const logger = createLogger({
+  name: 'BridgeMocks',
+  level: LogLevel.INFO,
+});
 
 /**
  * Utility function to handle direct fetch requests
@@ -39,7 +44,7 @@ const handleDirectFetch = async (
       body: responseBody,
     };
   } catch (error) {
-    console.error('Error forwarding request:', url);
+    logger.error('Error forwarding request:', url);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
@@ -59,7 +64,7 @@ export const startMockServer = async (events: MockEvents, port: number) => {
   port = port || (await portfinder.getPortPromise());
 
   await mockServer.start(port);
-  console.log(`Mockttp server running at http://localhost:${port}`);
+  logger.info(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
     .forGet('/health-check')
@@ -111,9 +116,9 @@ export const startMockServer = async (events: MockEvents, port: number) => {
       );
 
       if (matchingEvent) {
-        console.log(`Mocking ${method} request to: ${urlEndpoint}`);
-        console.log(`Response status: ${matchingEvent.responseCode}`);
-        console.log('Response:', matchingEvent.response);
+        logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
+        logger.info(`Response status: ${matchingEvent.responseCode}`);
+        logger.debug('Response:', matchingEvent.response);
 
         return {
           statusCode: matchingEvent.responseCode,

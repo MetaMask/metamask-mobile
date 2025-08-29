@@ -1,6 +1,11 @@
 import { SolScope } from '@metamask/keyring-api';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { isCaipChainId } from '@metamask/utils';
+import { createLogger } from '../framework/logger';
+
+const logger = createLogger({
+  name: 'MultichainUtilities',
+});
 
 /**
  * Session result structure from multichain test dapp
@@ -356,34 +361,28 @@ export default class MultichainUtilities {
    * @param sessionResult - Session result to log
    * @param testName - Name of the test for context
    */
-  // eslint-disable-next-line no-console
   static logSessionDetails(
     sessionResult: SessionResult,
     testName: string = 'Session Test',
   ): void {
-    // eslint-disable-next-line no-console
-    console.log(`\n📊 ${testName} - Session Details:`);
-    // eslint-disable-next-line no-console
-    console.log('Success:', sessionResult.success);
+    logger.info(`\n📊 ${testName} - Session Details:`);
+    logger.info('Success:', sessionResult.success);
 
     if (sessionResult.success && sessionResult.sessionScopes) {
       const chainIds = this.getEVMChainIdsFromSession(sessionResult);
-      // eslint-disable-next-line no-console
-      console.log('EVM Chains:', chainIds.length);
+      logger.info('EVM Chains:', chainIds.length);
 
       chainIds.forEach((chainId) => {
         const scope = this.getEIP155Scope(chainId);
         const scopeData = sessionResult.sessionScopes?.[scope];
         const networkName = this.getNetworkName(chainId);
-        // eslint-disable-next-line no-console
-        console.log(
+        logger.info(
           `  • ${networkName} (${scope}): ${
             scopeData?.accounts?.length || 0
           } accounts`,
         );
       });
     }
-    // eslint-disable-next-line no-console
-    console.log('');
+    logger.info('');
   }
 }

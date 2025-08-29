@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "NFT medyasını Görüntüle seçeneğini şuradan kapatabilirsiniz:",
     "show_display_nft_media_content_5": "Ayarlar > Güvenlik ve gizlilik."
   },
-  "solana_new_feature_content": {
-    "title": "solana burada",
-    "title_description": "Cüzdanınızı içe aktarın, keşfedin, işlem yapın ve gönderin. Yerel Solana desteği artık MetaMask'te hizmetinizde.",
-    "not_now": "Şimdi değil",
-    "view_solana_account": "Solana hesabını görüntüle",
-    "learn_more": "Solana hesapları hakkında daha fazla bilgi edinin",
-    "import_your_wallet": "Cüzdanınızı içe aktarın"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS ağ geçidi",
     "ipfs_gateway_banner_content1": "Bu bir IPFS web sitesidir. Bu siteyi görmek için",

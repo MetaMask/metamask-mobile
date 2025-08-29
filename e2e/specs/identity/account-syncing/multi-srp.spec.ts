@@ -30,7 +30,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
   const SECOND_ACCOUNT_NAME = 'Account 2';
   const SRP_2_FIRST_ACCOUNT = 'Account 3';
-  const SRP_2_SECOND_ACCOUNT = 'My Fourth Account';
+  const SRP_2_SECOND_ACCOUNT = 'Number 4';
 
   /**
    * This test verifies account syncing when adding accounts across multiple SRPs:

@@ -94,7 +94,6 @@ describe(RegressionWalletUX('Carousel Tests'), () => {
   it('should handle slide interactions', async () => {
     // First slide was already dismissed in the previous test
     // Dismissing the second slide as it's opening portfolio
-    console.log('here');
     await WalletView.closeCarouselSlide(SLIDES[1].id);
 
     await Assertions.expectElementToHaveText(

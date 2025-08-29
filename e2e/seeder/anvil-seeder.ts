@@ -3,6 +3,11 @@ import {
   contractConfiguration,
 } from '../../app/util/test/smart-contracts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
+import { createLogger } from '../framework/logger';
+
+const logger = createLogger({
+  name: 'AnvilSeeder',
+});
 
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 interface DeployOptions {
@@ -66,8 +71,7 @@ export class AnvilSeeder {
     });
 
     const receipt = await publicClient.getTransactionReceipt({ hash });
-    // eslint-disable-next-line no-console
-    console.log('Deployed smart contract', {
+    logger.info('Deployed smart contract', {
       contractName,
       contractAddress: receipt.contractAddress,
     });
@@ -121,8 +125,7 @@ export class AnvilSeeder {
     });
 
     await publicClient.getTransactionReceipt({ hash: transaction });
-    // eslint-disable-next-line no-console
-    console.log('Completed transfer', { to, value });
+    logger.info('Completed transfer', { to, value });
   }
 
   /**
