@@ -80,6 +80,7 @@ export class HyperLiquidSubscriptionService {
   private cachedOrders: Order[] = [];
   private cachedAccount: AccountState | null = null;
   private hasNotifiedInitialEmptyPositions = false; // Track if we've sent initial empty state
+  private hasNotifiedInitialPrices = false; // Track if we've sent initial price notifications
 
   // Global price data cache
   private cachedPriceData = new Map<string, PriceUpdate>();
@@ -182,6 +183,8 @@ export class HyperLiquidSubscriptionService {
       const cachedPrice = this.cachedPriceData.get(symbol);
       if (cachedPrice) {
         callback([cachedPrice]);
+        // Mark that we've sent initial price data for this subscriber
+        this.hasNotifiedInitialPrices = true;
       }
     });
 
@@ -697,8 +700,19 @@ export class HyperLiquidSubscriptionService {
           this.cachedPriceData.set(symbol, priceUpdate);
         });
 
-        // Notify all price subscribers with their requested symbols
-        this.notifyAllPriceSubscribers();
+        // Always notify price subscribers on first update or when data changes
+        // This ensures the UI can properly display price data and enable order buttons
+        if (
+          !this.hasNotifiedInitialPrices ||
+          Object.keys(data.mids).length > 0
+        ) {
+          this.notifyAllPriceSubscribers();
+
+          // Mark that we've sent initial price notifications
+          if (!this.hasNotifiedInitialPrices) {
+            this.hasNotifiedInitialPrices = true;
+          }
+        }
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;

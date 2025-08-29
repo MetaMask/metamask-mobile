@@ -1416,4 +1416,97 @@ describe('HyperLiquidSubscriptionService', () => {
 
     unsubscribe();
   });
+
+  it('should notify price subscribers on first update even with zero prices', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock allMids with zero prices
+    mockSubscriptionClient.allMids.mockImplementation(
+      (_params: any, callback: any) => {
+        setTimeout(() => {
+          callback({
+            mids: {
+              BTC: '0',
+              ETH: '0',
+            },
+          });
+        }, 0);
+        return Promise.resolve({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+      },
+    );
+
+    const unsubscribe = service.subscribeToPrices({
+      symbols: ['BTC', 'ETH'],
+      callback: mockCallback,
+    });
+
+    // Wait for processing
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // Should call callback with zero prices to enable UI state
+    expect(mockCallback).toHaveBeenCalledWith([
+      expect.objectContaining({
+        coin: 'BTC',
+        price: '0',
+      }),
+      expect.objectContaining({
+        coin: 'ETH',
+        price: '0',
+      }),
+    ]);
+
+    unsubscribe();
+  });
+
+  it('should not repeatedly notify price subscribers with zero prices', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock allMids to send multiple zero price updates
+    mockSubscriptionClient.allMids.mockImplementation(
+      (_params: any, callback: any) => {
+        // Send first update
+        setTimeout(() => {
+          callback({
+            mids: {
+              BTC: '0',
+            },
+          });
+        }, 0);
+
+        // Send second update (still zero)
+        setTimeout(() => {
+          callback({
+            mids: {
+              BTC: '0',
+            },
+          });
+        }, 20);
+
+        return Promise.resolve({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+      },
+    );
+
+    const unsubscribe = service.subscribeToPrices({
+      symbols: ['BTC'],
+      callback: mockCallback,
+    });
+
+    // Wait for both updates to process
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Should only be called once with zero prices (initial notification)
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(mockCallback).toHaveBeenCalledWith([
+      expect.objectContaining({
+        coin: 'BTC',
+        price: '0',
+      }),
+    ]);
+
+    unsubscribe();
+  });
 });
