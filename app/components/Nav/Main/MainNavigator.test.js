@@ -293,11 +293,3 @@ describe('MainNavigator - Rewards Integration', () => {
     });
   });
 });
-
-// FOCUSED TESTING SCOPE:
-// These tests specifically verify rewards-related functionality in MainNavigator:
-// 1. Rewards feature flag conditional rendering (Rewards tab vs Settings tab)
-// 2. Proper route configuration for rewards navigation
-// 3. Error handling for rewards feature flag scenarios
-// 4. Redux integration for rewards feature flag selector
-// 5. Tab navigation structure with rewards integration
