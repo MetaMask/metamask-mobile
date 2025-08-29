@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAccounts } from '../../../../hooks/useAccounts';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   selectDestAddress,
   setDestAddress,
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import Cell, {
@@ -25,11 +25,13 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
-import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
-import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
 import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectInternalAccountByAccountGroupAndScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -55,7 +57,7 @@ const createStyles = ({ colors }: Theme) =>
 
 const DestinationAccountSelector = () => {
   const dispatch = useDispatch();
-  const { accounts, ensByAccountAddress } = useAccounts();
+  const { accounts } = useAccounts();
   const theme = useTheme();
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
@@ -91,7 +93,6 @@ const DestinationAccountSelector = () => {
     isMultichainAccountsState2Enabled,
   ]);
 
-  const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
@@ -102,14 +103,27 @@ const DestinationAccountSelector = () => {
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
 
+  const destToken = useSelector(selectDestToken);
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+
   const handleSelectAccount = useCallback(
-    (caipAccountId: CaipAccountId | undefined) => {
-      const address = caipAccountId
-        ? parseCaipAccountId(caipAccountId).address
-        : undefined;
-      dispatch(setDestAddress(address));
+    (accountGroup: AccountGroupObject | undefined) => {
+      if (!destToken) return;
+
+      if (accountGroup) {
+        const destChainId = formatChainIdToCaip(destToken.chainId);
+        const account = getInternalAccountByAccountGroupAndScope(
+          destChainId,
+          accountGroup.id,
+        );
+        dispatch(setDestAddress(account?.address));
+      } else {
+        dispatch(setDestAddress(undefined));
+      }
     },
-    [dispatch],
+    [dispatch, getInternalAccountByAccountGroupAndScope, destToken],
   );
 
   const handleClearDestAddress = useCallback(() => {
@@ -131,16 +145,10 @@ const DestinationAccountSelector = () => {
       (!hasInitialized.current && !destAddress) ||
       !doesDestAddrMatchNetworkType
     ) {
-      handleSelectAccount(filteredAccounts[0].caipAccountId);
+      dispatch(setDestAddress(filteredAccounts[0].address));
       hasInitialized.current = true;
     }
-  }, [
-    filteredAccounts,
-    destAddress,
-    handleSelectAccount,
-    isEvmToSolana,
-    isSolanaToEvm,
-  ]);
+  }, [filteredAccounts, destAddress, isEvmToSolana, isSolanaToEvm, dispatch]);
 
   return (
     <Box style={styles.container}>
@@ -170,13 +178,9 @@ const DestinationAccountSelector = () => {
         </View>
       ) : (
         <Box>
-          <CaipAccountSelectorList
-            accounts={filteredAccounts}
+          <MultichainAccountSelectorList
+            selectedAccountGroups={[]}
             onSelectAccount={handleSelectAccount}
-            ensByAccountAddress={ensByAccountAddress}
-            selectedAddresses={[]}
-            privacyMode={privacyMode}
-            isSelectWithoutMenu
           />
         </Box>
       )}
