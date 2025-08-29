@@ -1228,6 +1228,7 @@ export class Engine {
         allowedEvents: [],
       }),
       fetch,
+      appType: 'mobile',
     });
 
     // Backwards compatibility for existing references

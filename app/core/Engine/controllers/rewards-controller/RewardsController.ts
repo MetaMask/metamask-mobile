@@ -1,5 +1,9 @@
 import { BaseController } from '@metamask/base-controller';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  LoginResponseDto,
+  LastAuthenticatedAccountDto,
+} from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
@@ -67,8 +71,20 @@ export class RewardsController extends BaseController<
       },
     });
 
+    this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
   }
+
+  /**
+   * Register action handlers for this controller
+   */
+  #registerActionHandlers(): void {
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getLastAuthenticatedAccount',
+      this.getLastAuthenticatedAccount.bind(this),
+    );
+  }
+
   /**
    * Initialize event subscriptions based on feature flag state
    */
@@ -254,6 +270,16 @@ export class RewardsController extends BaseController<
         state.lastAuthenticatedAccount = address;
         state.lastAuthTime = currentTime;
       });
+
+      // Publish event for successful authentication
+      this.messagingSystem.publish(
+        'RewardsController:selectedAccountAuthChange',
+        {
+          account,
+          subscriptionId: subscription.id,
+          error: false,
+        },
+      );
     } catch (error: unknown) {
       // Handle 401 (not opted in) or other errors silently
       if (error instanceof Error && error.message.includes('401')) {
@@ -267,15 +293,55 @@ export class RewardsController extends BaseController<
           state.lastAuthenticatedAccount = address;
           state.lastAuthTime = Date.now();
         });
+
+        // Publish event for failed authentication (not opted in)
+        this.messagingSystem.publish(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account,
+            subscriptionId: null,
+            error: false,
+          },
+        );
       } else {
         Logger.log(
           'RewardsController: Silent auth failed:',
           error instanceof Error ? error.message : String(error),
         );
+
+        // Publish event for failed authentication (other errors)
+        this.messagingSystem.publish(
+          'RewardsController:selectedAccountAuthChange',
+          {
+            account,
+            subscriptionId: null,
+            error: true,
+          },
+        );
       }
       // For other errors, we don't update the state to allow retries
     } finally {
       this.#isProcessingSilentAuth = false;
+    }
+  }
+
+  /**
+   * Get the last authenticated account and its subscription information.
+   * @returns The last authenticated account address, subscription ID, and auth timestamp.
+   */
+  async getLastAuthenticatedAccount(): Promise<LastAuthenticatedAccountDto> {
+    try {
+      return {
+        address: this.state.lastAuthenticatedAccount,
+        subscriptionId: this.state.subscription?.id ?? null,
+        lastAuthTime: this.state.lastAuthTime,
+      };
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'RewardsController: Failed to get last authenticated account info',
+      );
+      throw error;
     }
   }
 }
