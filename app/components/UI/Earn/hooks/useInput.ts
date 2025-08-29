@@ -9,7 +9,7 @@ import {
   fromTokenMinimalUnit,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 import { Keys } from '../../../Base/Keypad/constants';

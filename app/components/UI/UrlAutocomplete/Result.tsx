@@ -23,7 +23,7 @@ import AvatarToken from '../../../component-library/components/Avatars/Avatar/va
 import { isSwapsAllowed } from '../Swaps/utils';
 import AppConstants from '../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { addCurrencySymbol } from '../../../util/number';
+import { addCurrencySymbol } from '../../../util/number/legacy';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 
 interface ResultProps {

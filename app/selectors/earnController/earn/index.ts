@@ -16,7 +16,11 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { hexToBN, renderFiat, weiToFiatNumber } from '../../../util/number';
+import {
+  hexToBN,
+  renderFiat,
+  weiToFiatNumber,
+} from '../../../util/number/legacy';
 import { selectSelectedInternalAccountAddress } from '../../accountsController';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
-import { hexToBN } from '../../../../util/number';
+import { hexToBN } from '../../../../util/number/legacy';
 import { useStakeContext } from '../../Stake/hooks/useStakeContext';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';

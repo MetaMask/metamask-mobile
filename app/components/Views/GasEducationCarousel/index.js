@@ -22,7 +22,7 @@ import { useTheme } from '../../../util/theme';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
-import { BNToHex, hexToBN } from '../../../util/number';
+import { BNToHex, hexToBN } from '../../../util/number/legacy';
 import {
   calculateEIP1559GasFeeHexes,
   getTicker,

@@ -5,7 +5,7 @@ import Engine from '../../../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from './components/TransactionEditor';
 import Modal from 'react-native-modal';
-import { safeBNToHex } from '../../../../../util/number';
+import { safeBNToHex } from '../../../../../util/number/legacy';
 import { getTransactionOptionsTitle } from '../../../../UI/Navbar';
 import { resetTransaction } from '../../../../../actions/transaction';
 import { connect } from 'react-redux';

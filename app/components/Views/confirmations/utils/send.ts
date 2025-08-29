@@ -4,7 +4,7 @@ import { TransactionParams } from '@metamask/transaction-controller';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { generateTransferData } from '../../../../util/transactions';
-import { toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { toTokenMinimalUnit, toWei } from '../../../../util/number/legacy';
 import { AssetType } from '../types/token';
 import { isNativeToken } from '../utils/generic';
 

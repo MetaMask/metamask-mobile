@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 import {
   addCurrencySymbol,
   renderFromTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { TOKENS_REQUIRING_ALLOWANCE_RESET } from '../../constants/token';
 

@@ -13,7 +13,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RequestStatus } from '@metamask/bridge-controller';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../../util/number/legacy';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import {
   isQuoteExpired,

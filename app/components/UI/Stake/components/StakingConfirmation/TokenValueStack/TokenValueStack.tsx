@@ -17,7 +17,7 @@ import NetworkMainAssetLogo from '../../../../NetworkMainAssetLogo';
 import styleSheet from './TokenValueStack.styles';
 import images from '../../../../../../images/image-icons';
 import { TokenValueStackProps } from './TokenValueStack.types';
-import { renderFromWei } from '../../../../../../util/number';
+import { renderFromWei } from '../../../../../../util/number/legacy';
 
 const TokenValueStack = ({
   amountWei,

@@ -13,7 +13,7 @@ import {
   renderFromWei,
   weiToFiat,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 
 const useBalance = (chainId?: Hex) => {
   const accountsByChainId = useSelector(selectAccountsByChainId);

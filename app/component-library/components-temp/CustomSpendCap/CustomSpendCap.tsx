@@ -6,7 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import { TOKEN_APPROVAL_SPENDING_CAP } from '../../../constants/urls';
 import formatNumber from '../../../util/formatNumber';
-import { isNumber } from '../../../util/number';
+import { isNumber } from '../../../util/number/legacy';
 import Button, { ButtonVariants } from '../../components/Buttons/Button';
 import Icon, { IconName, IconSize } from '../../components/Icons/Icon';
 import Text, { TextVariant } from '../../components/Texts/Text';

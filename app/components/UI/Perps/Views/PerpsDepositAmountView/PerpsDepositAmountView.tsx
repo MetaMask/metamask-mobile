@@ -68,7 +68,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   renderFromTokenMinimalUnit,
   renderFromWei,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,

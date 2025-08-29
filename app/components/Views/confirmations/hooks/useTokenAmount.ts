@@ -16,7 +16,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { toBigNumber } from '../../../../util/number';
+import { toBigNumber } from '../../../../util/number/legacy';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';

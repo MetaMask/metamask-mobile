@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import YouReceiveCard from './YouReceiveCard';
 import { YouReceiveCardProps } from './YouReceiveCard.types';
-import { renderFromWei } from '../../../../../../util/number';
+import { renderFromWei } from '../../../../../../util/number/legacy';
 import { strings } from '../../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();

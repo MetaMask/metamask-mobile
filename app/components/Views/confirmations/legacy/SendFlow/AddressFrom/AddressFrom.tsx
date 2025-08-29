@@ -9,7 +9,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import { renderFromWei, hexToBN } from '../../../../../../util/number';
+import { renderFromWei, hexToBN } from '../../../../../../util/number/legacy';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import { AddressFrom } from '../../../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';

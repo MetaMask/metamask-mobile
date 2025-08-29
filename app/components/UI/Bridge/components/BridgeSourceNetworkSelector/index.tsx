@@ -12,7 +12,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { addCurrencySymbol, renderNumber } from '../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderNumber,
+} from '../../../../../util/number/legacy';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,

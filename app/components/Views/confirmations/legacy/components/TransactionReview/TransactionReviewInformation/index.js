@@ -19,7 +19,7 @@ import {
   renderFromWei,
   BNToHex,
   hexToBN,
-} from '../../../../../../../util/number';
+} from '../../../../../../../util/number/legacy';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   getTicker,

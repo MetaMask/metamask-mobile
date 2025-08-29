@@ -9,7 +9,7 @@ import {
   isDecimal,
   toTokenMinimalUnit,
   toWei,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../types/token';

@@ -11,7 +11,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import useBalance from '../../Stake/hooks/useBalance';
 import usePooledStakes from '../../Stake/hooks/usePooledStakes';
 import { TokenI } from '../../Tokens/types';

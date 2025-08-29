@@ -9,7 +9,7 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(),
 }));
 
-jest.mock('../../../../../util/number', () => ({
+jest.mock('../../../../../util/number/legacy', () => ({
   renderFromTokenMinimalUnit: jest.fn(),
 }));
 
@@ -101,7 +101,7 @@ import {
   getDefaultNetworkByChainId,
   getNetworkImageSource,
 } from '../../../../../util/networks';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number/legacy';
 
 const mockGetDefaultNetworkByChainId =
   getDefaultNetworkByChainId as jest.MockedFunction<

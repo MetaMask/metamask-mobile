@@ -6,7 +6,7 @@ import {
   limitToMaximumDecimalPlaces,
   renderFiat,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import useBalance from '../../Stake/hooks/useBalance';
 import { EarnTokenDetails } from '../types/lending.types';
 import useEarnDepositGasFee from './useEarnGasFee';
