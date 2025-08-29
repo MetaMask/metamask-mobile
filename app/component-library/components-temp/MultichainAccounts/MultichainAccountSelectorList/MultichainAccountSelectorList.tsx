@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -32,6 +33,7 @@ const MultichainAccountSelectorList = ({
   selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
+  filterAccountGroup,
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -95,11 +97,42 @@ const MultichainAccountSelectorList = ({
   }, [isMultichainAccountsEnabled, accountSections]);
 
   const filteredWalletSections = useMemo((): WalletSection[] => {
-    if (!debouncedSearchText.trim()) {
-      return walletSections;
+    let sections = walletSections;
+
+    // Apply custom filter function first if provided
+    if (filterAccountGroup) {
+      sections = sections
+        .map((section) => ({
+          ...section,
+          data: section.data.filter((accountGroup) => {
+            // Get only the internal accounts that belong to this account group
+            const groupInternalAccounts = accountGroup.accounts.reduce(
+              (acc, accountId) => {
+                const internalAccount = internalAccountsById[accountId];
+                if (internalAccount) {
+                  acc[accountId] = internalAccount;
+                }
+                return acc;
+              },
+              {} as Record<string, InternalAccount>,
+            );
+
+            return filterAccountGroup(accountGroup, groupInternalAccounts);
+          }),
+        }))
+        .filter((section) => section.data.length > 0);
     }
 
-    return walletSections
+    return sections;
+  }, [walletSections, filterAccountGroup, internalAccountsById]);
+
+  const searchFilteredWalletSections = useMemo((): WalletSection[] => {
+    // Apply search filter to the already filtered sections
+    if (!debouncedSearchText.trim()) {
+      return filteredWalletSections;
+    }
+
+    return filteredWalletSections
       .map((section) => ({
         ...section,
         data: section.data.filter((accountGroup) =>
@@ -107,16 +140,16 @@ const MultichainAccountSelectorList = ({
         ),
       }))
       .filter((section) => section.data.length > 0);
-  }, [walletSections, debouncedSearchText, matchesSearch]);
+  }, [filteredWalletSections, debouncedSearchText, matchesSearch]);
 
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
-    if (filteredWalletSections.length === 0) {
+    if (searchFilteredWalletSections.length === 0) {
       return [];
     }
 
     const items: FlattenedMultichainAccountListItem[] = [];
 
-    filteredWalletSections.forEach((section) => {
+    searchFilteredWalletSections.forEach((section) => {
       items.push({
         type: 'header',
         data: { title: section.title, walletName: section.walletName },
@@ -137,7 +170,7 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [filteredWalletSections]);
+  }, [searchFilteredWalletSections]);
 
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
