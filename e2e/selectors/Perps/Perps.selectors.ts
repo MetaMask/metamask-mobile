@@ -351,6 +351,17 @@ export const PerpsOpenOrderCardSelectorsIDs = {
 };
 
 // ========================================
+// PERPS CLOSE POSITION VIEW SELECTORS
+// ========================================
+
+export const PerpsClosePositionViewSelectorsIDs = {
+  ORDER_TYPE_BUTTON: 'order-type-button',
+  DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
+  CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
+  CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
+};
+
+// ========================================
 // PERPS MARKET TABS SELECTORS
 // ========================================
 

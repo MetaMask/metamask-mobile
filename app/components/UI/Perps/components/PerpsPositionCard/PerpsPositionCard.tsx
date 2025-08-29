@@ -1,38 +1,33 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
-import Routes from '../../../../../constants/navigation/Routes';
+import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsNavigationParamList,
   Position,
 } from '../../controllers/types';
+import { usePerpsMarkets, usePerpsTPSLUpdate } from '../../hooks';
 import {
   formatPnl,
-  formatPrice,
   formatPositionSize,
+  formatPrice,
 } from '../../utils/formatUtils';
-import styleSheet from './PerpsPositionCard.styles';
-import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import {
-  usePerpsMarkets,
-  usePerpsTPSLUpdate,
-  usePerpsClosePosition,
-} from '../../hooks';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../PerpsClosePositionBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import styleSheet from './PerpsPositionCard.styles';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -53,7 +48,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
     null,
   );
@@ -65,18 +59,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       if (onPositionUpdate) {
         onPositionUpdate();
       }
-    },
-  });
-
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Positions update automatically via WebSocket
-      // Call parent's position update callback if provided
-      if (onPositionUpdate) {
-        onPositionUpdate();
-      }
-      setIsClosePositionVisible(false);
-      setSelectedPosition(null);
     },
   });
 
@@ -110,9 +92,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const handleClosePress = () => {
-    DevLogger.log('PerpsPositionCard: Opening close position bottom sheet');
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
+    DevLogger.log('PerpsPositionCard: Navigating to close position screen');
+    navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
@@ -359,29 +340,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             initialTakeProfitPrice={selectedPosition.takeProfitPrice}
             initialStopLossPrice={selectedPosition.stopLossPrice}
             isUpdating={isUpdating}
-          />
-        </Modal>
-      )}
-
-      {/* Close Position Bottom Sheet - Wrapped in Modal to render from root */}
-      {isClosePositionVisible && selectedPosition && (
-        <Modal visible transparent animationType="fade">
-          <PerpsClosePositionBottomSheet
-            isVisible
-            onClose={() => {
-              setIsClosePositionVisible(false);
-              setSelectedPosition(null);
-            }}
-            onConfirm={async (size, orderType, limitPrice) => {
-              await handleClosePosition(
-                selectedPosition,
-                size,
-                orderType,
-                limitPrice,
-              );
-            }}
-            position={selectedPosition}
-            isClosing={isClosing}
           />
         </Modal>
       )}

@@ -33,13 +33,13 @@ const styleSheet = (params: { theme: Theme }) => {
       top: 0,
     },
     thumb: {
-      width: 28,
-      height: 28,
+      width: 32,
+      height: 32,
       backgroundColor: colors.background.default,
-      borderRadius: 14,
+      borderRadius: 16,
       position: 'absolute',
-      top: -11,
-      left: -14,
+      top: -13,
+      left: -16,
       shadowColor: colors.shadow.default,
       shadowOffset: {
         width: 0,
