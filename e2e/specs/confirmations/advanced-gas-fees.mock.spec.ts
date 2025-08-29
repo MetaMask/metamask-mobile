@@ -61,9 +61,9 @@ describe(
           await TransactionConfirmationView.tapLowPriorityGasOption();
           await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
           await TransactionConfirmationView.tapMarketPriorityGasOption();
-          await Assertions.expectTextDisplayed('1.5');
-          await TransactionConfirmationView.tapAggressivePriorityGasOption();
           await Assertions.expectTextDisplayed('2');
+          await TransactionConfirmationView.tapAggressivePriorityGasOption();
+          await Assertions.expectTextDisplayed('3');
 
           await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
           await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();

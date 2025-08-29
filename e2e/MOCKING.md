@@ -189,6 +189,7 @@ await setupMockPostRequest(
 2. Loads all default mocks from `defaults/index.ts`
 3. Applies test-specific mocks (if provided)
 4. Calls `mockNotificationServices()` for notification-related mocks
+5. Calls `setupRemoteFeatureFlagsMock()` for default remote feature flags mocks
 
 ### Notification Services Mocking
 
