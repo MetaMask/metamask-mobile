@@ -1,0 +1,81 @@
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+index 33bf8b8..ae9dc66 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+@@ -576,25 +576,25 @@ class NativeRampsSdk {
+ }
+ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_context = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
+     __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.request.use((request) => {
+-        var _a, _b, _c, _d;
++        var _a, _b, _c;
+         if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
+             if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get' ||
+                 ((_b = request.method) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'patch') {
+                 request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
+             }
+-            else if (((_c = request.method) === null || _c === void 0 ? void 0 : _c.toLowerCase()) !== 'post') {
+-                if (!((_d = request.data) === null || _d === void 0 ? void 0 : _d.apiKey)) {
++            else {
++                if (!((_c = request.data) === null || _c === void 0 ? void 0 : _c.apiKey)) {
+                     request.data = Object.assign(Object.assign({}, (request.data || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
+                 }
+             }
+-            if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
+-                request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").accessToken;
+-            }
+-            if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
+-                (0, exports.logRequest)(request);
+-            }
+-            return request;
+         }
++        if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
++            request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").accessToken;
++        }
++        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
++            (0, exports.logRequest)(request);
++        }
++        return request;
+     });
+     __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.response.use((response) => {
+         if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+index bdf7716..4683163 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+@@ -1082,6 +1082,36 @@ vitest_1.vi.mock('axios', async () => {
+             await (0, vitest_1.expect)(verboseSdk.sendUserOtp('test@example.com')).rejects.toThrow('Test error');
+             logErrorSpy.mockRestore();
+         });
++        (0, vitest_1.it)('should configure interceptors to handle all HTTP methods including POST', () => {
++            const requestInterceptor = vitest_1.vi.fn();
++            const mockAxiosWithInterceptor = {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: requestInterceptor },
++                    response: { use: vitest_1.vi.fn() },
++                },
++            };
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosWithInterceptor);
++            new NativeRampsSdk_1.NativeRampsSdk({
++                apiKey: 'test-key',
++                context: NativeRampsSdk_1.Context.Browser,
++            });
++            (0, vitest_1.expect)(requestInterceptor).toHaveBeenCalledWith(vitest_1.expect.any(Function));
++            const interceptorFn = requestInterceptor.mock.calls[0][0];
++            const postRequest = {
++                method: 'post',
++                data: { email: 'test@example.com' },
++                headers: {},
++            };
++            const result = interceptorFn(postRequest);
++            (0, vitest_1.expect)(result.data).toEqual({
++                email: 'test@example.com',
++                apiKey: 'test-key',
++            });
++        });
+     });
+     (0, vitest_1.describe)('error handling edge cases', () => {
+         (0, vitest_1.it)('throws error for invalid environment in payment widget base URL', () => {
