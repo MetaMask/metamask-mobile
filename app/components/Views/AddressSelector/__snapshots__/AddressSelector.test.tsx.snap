@@ -477,7 +477,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 }
                                 testID="header-title"
                               >
-                                Select Address
+                                Select an address
                               </Text>
                             </View>
                             <View
