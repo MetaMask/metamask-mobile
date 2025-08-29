@@ -14,4 +14,5 @@ export interface CustomNetworkItem {
 
 export interface CustomNetworkSelectorProps {
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
+  dismissModal: () => void;
 }
