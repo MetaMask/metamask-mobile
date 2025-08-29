@@ -16,6 +16,26 @@ export interface DepositCryptoCurrency {
   symbol: string;
 }
 
+export const MUSD_TOKEN: DepositCryptoCurrency = {
+  assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  chainId: ETHEREUM_MAINNET.chainId,
+  name: 'MetaMask USD',
+  symbol: 'mUSD',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+};
+
+export const MUSD_LINEA_TOKEN: DepositCryptoCurrency = {
+  assetId: 'eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  chainId: LINEA_MAINNET.chainId,
+  name: 'MetaMask USD',
+  symbol: 'mUSD',
+  decimals: 6,
+  iconUrl:
+    'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/59144/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+};
+
 export const USDC_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: ETHEREUM_MAINNET.chainId,
@@ -119,6 +139,8 @@ export const USDT_SOLANA_TOKEN: DepositCryptoCurrency = {
 };
 
 export const ALL_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
+  MUSD_TOKEN,
+  MUSD_LINEA_TOKEN,
   USDC_TOKEN,
   USDC_LINEA_TOKEN,
   USDC_BASE_TOKEN,
@@ -141,6 +163,8 @@ export const CONDITIONALLY_SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
 ];
 
 export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
+  // MUSD_TOKEN,
+  // MUSD_LINEA_TOKEN,
   USDC_TOKEN,
   // USDC_LINEA_TOKEN,
   // USDC_BASE_TOKEN,
