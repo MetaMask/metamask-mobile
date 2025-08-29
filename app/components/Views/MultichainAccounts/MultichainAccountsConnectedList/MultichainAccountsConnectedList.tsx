@@ -58,25 +58,29 @@ const MultichainAccountsConnectedList = ({
           data={selectedAccountGroups}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          removeClippedSubviews={false}
+          ListFooterComponent={
+            <TouchableOpacity
+              style={styles.editAccountsContainer}
+              onPress={handleEditAccountsButtonPress}
+              testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
+            >
+              <Avatar
+                style={styles.editAccountIcon}
+                variant={AvatarVariant.Icon}
+                name={IconName.Edit}
+              />
+              <TextComponent
+                color={TextColor.Primary}
+                variant={TextVariant.BodyMDMedium}
+              >
+                {strings('accounts.edit_accounts_title')}
+              </TextComponent>
+            </TouchableOpacity>
+          }
         />
       </View>
-      <TouchableOpacity
-        style={styles.editAccountsContainer}
-        onPress={handleEditAccountsButtonPress}
-        testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
-      >
-        <Avatar
-          style={styles.editAccountIcon}
-          variant={AvatarVariant.Icon}
-          name={IconName.Edit}
-        />
-        <TextComponent
-          color={TextColor.Primary}
-          variant={TextVariant.BodyMDMedium}
-        >
-          {strings('accounts.edit_accounts_title')}
-        </TextComponent>
-      </TouchableOpacity>
     </View>
   );
 };
