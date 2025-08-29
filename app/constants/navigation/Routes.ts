@@ -162,6 +162,7 @@ const Routes = {
       EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
+      SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
