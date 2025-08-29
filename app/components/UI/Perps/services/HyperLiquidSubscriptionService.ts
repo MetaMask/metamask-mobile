@@ -31,6 +31,7 @@ import type {
 import {
   adaptPositionFromSDK,
   adaptOrderFromSDK,
+  adaptAccountStateFromSDK,
 } from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
@@ -64,6 +65,7 @@ export class HyperLiquidSubscriptionService {
 
   // Global singleton subscriptions
   private globalAllMidsSubscription?: Subscription;
+  private globalAllMidsPromise?: Promise<void>; // Track in-progress subscription
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
   private globalL2BookSubscriptions = new Map<string, Subscription>();
   private symbolSubscriberCounts = new Map<string, number>();
@@ -329,20 +331,10 @@ export class HyperLiquidSubscriptionService {
           });
 
           // Extract account data from clearinghouseState (with null checks)
-          const accountState: AccountState = {
-            totalBalance:
-              data.clearinghouseState?.marginSummary?.accountValue || '0',
-            availableBalance: data.clearinghouseState?.withdrawable || '0',
-            marginUsed:
-              data.clearinghouseState?.marginSummary?.totalMarginUsed || '0',
-            // Calculate unrealized PnL from all positions
-            unrealizedPnl: positionsWithTPSL
-              .reduce((total, pos) => {
-                const pnl = parseFloat(pos.unrealizedPnl || '0');
-                return total + pnl;
-              }, 0)
-              .toString(),
-          };
+          const accountState: AccountState = adaptAccountStateFromSDK(
+            data.clearinghouseState,
+            data.spotState,
+          );
 
           //TODO: @abretonc7s - We need to revisit this logic for increased performance.
           // Check if data actually changed
@@ -655,7 +647,8 @@ export class HyperLiquidSubscriptionService {
    * Ensure global allMids subscription is active (singleton pattern)
    */
   private ensureGlobalAllMidsSubscription(): void {
-    if (this.globalAllMidsSubscription) {
+    // Check both the subscription AND the promise to prevent race conditions
+    if (this.globalAllMidsSubscription || this.globalAllMidsPromise) {
       return;
     }
 
@@ -672,7 +665,8 @@ export class HyperLiquidSubscriptionService {
       startTime: Date.now(),
     };
 
-    subscriptionClient
+    // Store the promise immediately to prevent duplicate calls
+    this.globalAllMidsPromise = subscriptionClient
       .allMids((data: WsAllMids) => {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
@@ -701,6 +695,9 @@ export class HyperLiquidSubscriptionService {
         });
       })
       .catch((error) => {
+        // Clear the promise on error so it can be retried
+        this.globalAllMidsPromise = undefined;
+
         DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
 
         // Trace WebSocket error

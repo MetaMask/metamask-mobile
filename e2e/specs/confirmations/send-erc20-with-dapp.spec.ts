@@ -11,33 +11,21 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
-        mockEvents.GET.suggestedGasFeesApiGanache;
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode: 200,
-      });
-      await setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: gasUrlEndpoint,
-        response: gasResponse,
-        responseCode: 200,
-      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
