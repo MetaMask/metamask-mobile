@@ -19,6 +19,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -39,6 +40,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -59,6 +61,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -79,6 +82,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -99,6 +103,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -119,6 +124,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -139,6 +145,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     amount: '123345',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
@@ -156,6 +163,7 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
     cryptocurrency: 'ETH',
     currency: 'USD',
+    network: '1',
     data: {
       cryptoCurrency: {
         decimals: 18,
