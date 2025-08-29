@@ -18,7 +18,6 @@ class WalletActionsBottomSheet {
   get swapButton(): DetoxElement {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
-      1,
     );
   }
 

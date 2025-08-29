@@ -1,20 +1,20 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import { LocalNodeType } from '../../framework/types.js';
-import SoftAssert from '../../utils/SoftAssert.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import Assertions from '../../framework/Assertions.js';
-import { defaultGanacheOptions } from '../../framework/Constants.js';
-import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import { SmokeTrade } from '../../tags.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import { EventPayload, getEventsPayloads } from '../analytics/helpers.js';
-import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI.js';
-import { loginToApp } from '../../viewHelper.js';
-import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.js';
-import { logger } from '../../framework/logger.js';
-import { testSpecificMock } from '../swaps/helpers/swap-mocks.js';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNodeType } from '../../framework/types';
+import SoftAssert from '../../utils/SoftAssert';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import { defaultGanacheOptions } from '../../framework/Constants';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import { SmokeTrade } from '../../tags';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { loginToApp } from '../../viewHelper';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { logger } from '../../framework/logger';
+import { testSpecificMock } from './helpers/swap-mocks';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
@@ -114,8 +114,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
   );
 
   it.skip('should validate segment/metametric events for a successful swap', async (): Promise<void> => {
-    console.log('capturedEvents', capturedEvents);
-
     const testCases = [
       {
         type: 'swap',
