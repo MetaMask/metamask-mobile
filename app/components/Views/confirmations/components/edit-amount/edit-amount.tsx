@@ -15,6 +15,7 @@ import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 const MAX_LENGTH = 28;
 
@@ -124,27 +125,27 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
-  const displayValue = `${fiatSymbol}${amountFiat}`;
-
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
         <View style={styles.inputContainer}>
+          <Text style={styles.input}>{fiatSymbol}</Text>
           <TextInput
             testID="edit-amount-input"
-            value={displayValue}
             style={styles.input}
             ref={inputRef}
+            defaultValue={amountFiat}
             showSoftInputOnFocus={false}
             onPress={handleInputPress}
             onChangeText={handleChange}
+            keyboardType="number-pad"
           />
         </View>
         {children?.(amountHuman)}
       </View>
       {showKeyboard && (
         <DepositKeyboard
-          value={amountFiat.toString()}
+          value={amountFiat}
           hasInput={hasAmount}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
