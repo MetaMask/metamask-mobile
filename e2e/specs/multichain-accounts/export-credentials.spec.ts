@@ -1,12 +1,11 @@
-'use strict';
-import { SmokeWalletPlatform } from '../../tags.js';
+import { RegressionWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
   goToAccountDetails,
   withMultichainAccountDetailsEnabled,
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import Assertions from '../../utils/Assertions.js';
+import Assertions from '../../framework/Assertions';
 import ExportCredentials from '../../pages/MultichainAccounts/ExportCredentials';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import { completeSrpQuiz } from '../multisrp/utils';
@@ -16,9 +15,14 @@ import TestHelpers from '../../helpers';
 const PASSWORD = '123123123';
 
 const checkCredentials = async () => {
-  await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeTab);
+  await Assertions.expectElementToBeVisible(
+    RevealPrivateKey.revealCredentialQRCodeTab,
+  );
   await RevealPrivateKey.tapToRevealPrivateCredentialQRCode();
-  await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeImage);
+  await Assertions.expectElementToBeVisible(
+    RevealPrivateKey.revealCredentialQRCodeImage,
+  );
+  await RevealPrivateKey.scrollToDone();
   await RevealPrivateKey.tapDoneButton();
 };
 
@@ -34,22 +38,25 @@ const exportSrp = async () => {
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 
-describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
-  it('exports private key', async () => {
-    await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HD_ACCOUNT);
-      await exportPrivateKey();
+describe(
+  RegressionWalletPlatform('Multichain Accounts: Account Details'),
+  () => {
+    beforeEach(async () => {
+      await TestHelpers.reverseServerPort();
     });
-  });
 
-  it('exports SRP', async () => {
-    await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HD_ACCOUNT);
-      await exportSrp();
+    it('exports private key', async () => {
+      await withMultichainAccountDetailsEnabled(async () => {
+        await goToAccountDetails(HD_ACCOUNT);
+        await exportPrivateKey();
+      });
     });
-  });
-});
+
+    it('exports SRP', async () => {
+      await withMultichainAccountDetailsEnabled(async () => {
+        await goToAccountDetails(HD_ACCOUNT);
+        await exportSrp();
+      });
+    });
+  },
+);

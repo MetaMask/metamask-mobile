@@ -25,7 +25,7 @@ import Icon, {
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-const MAXIMUM_DATE = new Date(2025, 11, 31);
+const MAXIMUM_DATE = new Date(Date.now());
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
@@ -69,8 +69,12 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     const handleOpenPicker = useCallback(() => {
       handleOnPress?.();
+      // if opened with no value set the default date
+      if (!value || value.trim() === '') {
+        setPendingDateSelection(DEFAULT_DATE);
+      }
       setShowDatePicker(true);
-    }, [handleOnPress]);
+    }, [handleOnPress, value]);
 
     const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
@@ -89,8 +93,11 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
     );
 
     const valueAsDate = useMemo(() => {
+      if (!value || value.trim() === '') {
+        return null;
+      }
       const dateValue = new Date(Number(value));
-      return isNaN(dateValue.getTime()) ? DEFAULT_DATE : dateValue;
+      return isNaN(dateValue.getTime()) ? null : dateValue;
     }, [value]);
 
     const preventModalDismissal = () => {
@@ -108,7 +115,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
               }
               label={label}
               placeholder={formatDateForDisplay(DEFAULT_DATE)}
-              value={formatDateForDisplay(valueAsDate)}
+              value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
               error={error}
               containerStyle={containerStyle}
               ref={ref || fieldRef}
@@ -121,7 +128,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker
-            value={valueAsDate}
+            value={valueAsDate || DEFAULT_DATE}
             mode="date"
             display="default"
             onChange={(_, date) => processSelectedDate(date)}
@@ -156,7 +163,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                       />
                     </View>
                     <DateTimePicker
-                      value={valueAsDate}
+                      value={valueAsDate || DEFAULT_DATE}
                       mode="date"
                       display="spinner"
                       onChange={(_, date) =>

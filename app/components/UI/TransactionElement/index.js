@@ -40,26 +40,22 @@ import {
   useBridgeTxHistoryData,
 } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
 import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
-import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
-import { decimalToHex } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import {
+  getSwapBridgeTxActivityTitle,
+  handleUnifiedSwapsTxHistoryItemClick,
+} from '../Bridge/utils/transaction-history';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import Routes from '../../../constants/navigation/Routes';
 import {
   getFontFamily,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  formatChainIdToCaip,
-  formatChainIdToHex,
-  isSolanaChainId,
-} from '@metamask/bridge-controller';
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -104,7 +100,7 @@ const createStyles = (colors, typography) =>
       paddingTop: 10,
     },
     listItemDate: {
-      marginBottom: 0,
+      marginBottom: 10,
       paddingBottom: 0,
     },
     listItemContent: {
@@ -253,9 +249,11 @@ class TransactionElement extends PureComponent {
       tx.type === TransactionType.swap &&
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
-      this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        evmTxMeta: tx,
-      });
+      handleUnifiedSwapsTxHistoryItemClick(
+        this.props.navigation,
+        tx,
+        this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
+      );
     } else {
       this.setState({ detailsModalVisible: true });
     }
@@ -289,8 +287,7 @@ class TransactionElement extends PureComponent {
             'transactions.from_device_label',
             // eslint-disable-next-line no-mixed-spaces-and-tabs
           )}`
-        : `${toDateFormat(tx.time)}
-      `
+        : `${toDateFormat(tx.time)}`
     }`;
   };
 
@@ -707,6 +704,11 @@ const mapStateToProps = (state, ownProps) => ({
   swapsTokens: swapsControllerTokens(state),
   ticker: selectTickerByChainId(state, ownProps.txChainId),
   conversionRate: selectConversionRateByChainId(state, ownProps.txChainId),
+  contractExchangeRates: selectContractExchangeRatesByChainId(
+    state,
+    ownProps.txChainId,
+  ),
+  tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
 });
 
 TransactionElement.contextType = ThemeContext;

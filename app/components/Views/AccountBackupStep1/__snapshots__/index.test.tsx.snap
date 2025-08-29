@@ -1,11 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountBackupStep1 render matches snapshot 1`] = `
-<RCTSafeAreaView
+exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
   style={
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
+      "paddingTop": 24,
     }
   }
 >
@@ -19,6 +28,7 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flex": 1,
+        "paddingTop": 24,
       }
     }
     testID="protect-your-account-screen"
@@ -205,7 +215,7 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -238,5 +248,1009 @@ exports[`AccountBackupStep1 render matches snapshot 1`] = `
       </View>
     </View>
   </RCTScrollView>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
+`;
+
+exports[`AccountBackupStep1 Snapshots android render matches snapshot with status bar height to zero 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingTop": 24,
+    }
+  }
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "paddingTop": 24,
+      }
+    }
+    testID="protect-your-account-screen"
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Step 2 of 3
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
+            }
+          >
+            Secure your wallet
+          </Text>
+          <Image
+            source={1}
+            style={
+              {
+                "height": 250,
+                "marginHorizontal": "auto",
+                "width": 250,
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Don’t risk losing your funds. Protect your wallet by saving your
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="seedphrase-link"
+              >
+                Secret Recovery Phrase
+              </Text>
+               
+              in a place you trust.
+               
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
+          }
+        >
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
+`;
+
+exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingTop": 0,
+    }
+  }
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "paddingTop": 0,
+      }
+    }
+    testID="protect-your-account-screen"
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Step 2 of 3
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
+            }
+          >
+            Secure your wallet
+          </Text>
+          <Image
+            source={1}
+            style={
+              {
+                "height": 250,
+                "marginHorizontal": "auto",
+                "width": 250,
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Don’t risk losing your funds. Protect your wallet by saving your
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="seedphrase-link"
+              >
+                Secret Recovery Phrase
+              </Text>
+               
+              in a place you trust.
+               
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
+          }
+        >
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
+`;
+
+exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingTop": 24,
+    }
+  }
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "paddingTop": 24,
+      }
+    }
+    testID="protect-your-account-screen"
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Step 2 of 3
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
+            }
+          >
+            Secure your wallet
+          </Text>
+          <Image
+            source={1}
+            style={
+              {
+                "height": 250,
+                "marginHorizontal": "auto",
+                "width": 250,
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Don’t risk losing your funds. Protect your wallet by saving your
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="seedphrase-link"
+              >
+                Secret Recovery Phrase
+              </Text>
+               
+              in a place you trust.
+               
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
+          }
+        >
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
+`;
+
+exports[`AccountBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "off",
+      "right": "off",
+      "top": "additive",
+    }
+  }
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingTop": 24,
+    }
+  }
+>
+  <RCTScrollView
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "paddingTop": 24,
+      }
+    }
+    testID="protect-your-account-screen"
+  >
+    <View>
+      <View
+        style={
+          {
+            "flex": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Step 2 of 3
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "flex-start",
+              "marginBottom": 10,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "alignSelf": "flex-start",
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+                "marginBottom": 16,
+                "textAlign": "left",
+              }
+            }
+          >
+            Secure your wallet
+          </Text>
+          <Image
+            source={1}
+            style={
+              {
+                "height": 250,
+                "marginHorizontal": "auto",
+                "width": 250,
+              }
+            }
+          />
+          <View
+            style={
+              {
+                "alignSelf": "flex-start",
+                "flexDirection": "column",
+                "justifyContent": "center",
+                "marginTop": 32,
+                "rowGap": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Don’t risk losing your funds. Protect your wallet by saving your
+               
+              <Text
+                accessibilityRole="text"
+                onPress={[Function]}
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="seedphrase-link"
+              >
+                Secret Recovery Phrase
+              </Text>
+               
+              in a place you trust.
+               
+            </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#686e7d",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+            </Text>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "flex-end",
+              "marginBottom": 16,
+              "rowGap": 16,
+            }
+          }
+        >
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#121314",
+                  "borderRadius": 12,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Get started
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "stretch",
+                  "backgroundColor": "#3c4d9d0f",
+                  "borderColor": "transparent",
+                  "borderRadius": 12,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="remind-me-later-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Remind me later
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RNCSafeAreaView>
 `;

@@ -40,7 +40,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by token, site or address"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
@@ -203,7 +203,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by token, site or address"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
@@ -258,7 +258,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
         style={
           {
             "backgroundColor": "#ffffff",
-            "borderRadius": 16,
+            "borderRadius": 8,
             "height": 32,
             "overflow": "hidden",
             "width": 32,

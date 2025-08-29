@@ -1,4 +1,4 @@
-import { SmokeAccounts } from '../../../tags';
+import { RegressionAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
@@ -6,11 +6,11 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import { loginToApp } from '../../../viewHelper';
 import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe(
-  SmokeAccounts('AES Crypto - Encryption and decryption with password'),
+  RegressionAccounts('AES Crypto - Encryption and decryption with password'),
   (): void => {
     const PASSWORD_ONE: string = '123123123';
     const PASSWORD_TWO: string = '456456456';
@@ -35,7 +35,9 @@ describe(
           await SettingsView.tapAesCryptoTestForm();
 
           await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
-          await Assertions.checkIfVisible(AesCryptoTestForm.responseText);
+          await Assertions.expectElementToBeVisible(
+            AesCryptoTestForm.responseText,
+          );
           await AesCryptoTestForm.decrypt(PASSWORD_ONE);
           await Assertions.expectElementToHaveLabel(
             AesCryptoTestForm.decryptResponse as Promise<IndexableNativeElement>,

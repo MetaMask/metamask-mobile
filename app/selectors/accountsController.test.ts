@@ -1,6 +1,6 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
-import { Hex, isValidChecksumAddress } from '@metamask/utils';
+import { Hex, isValidChecksumAddress, CaipChainId } from '@metamask/utils';
 import {
   BtcAccountType,
   EthAccountType,
@@ -8,6 +8,8 @@ import {
   EthMethod,
   SolMethod,
   SolAccountType,
+  SolScope,
+  BtcScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
@@ -15,14 +17,13 @@ import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
-  selectHasCreatedBtcMainnetAccount,
-  hasCreatedBtcTestnetAccount,
   selectCanSignTransactions,
   selectSolanaAccountAddress,
   selectSolanaAccount,
   selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountId,
   selectInternalEvmAccounts,
+  selectInternalAccountsByScope,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -31,6 +32,7 @@ import {
   createMockInternalAccount,
   createMockUuidFromAddress,
   internalAccount2,
+  internalSolanaAccount1,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { AGREED } from '../constants/storage';
@@ -186,9 +188,6 @@ describe('Accounts Controller Selectors', () => {
   });
 });
 
-const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
-
 function getStateWithAccount(account: InternalAccount) {
   return {
     engine: {
@@ -206,46 +205,6 @@ function getStateWithAccount(account: InternalAccount) {
     },
   } as RootState;
 }
-
-const btcMainnetAccount = createMockInternalAccount(
-  MOCK_BTC_MAINNET_ADDRESS,
-  'Bitcoin Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-const btcTestnetAccount = createMockInternalAccount(
-  MOCK_BTC_TESTNET_ADDRESS,
-  'Bitcoin Testnet Account',
-  KeyringTypes.snap,
-  BtcAccountType.P2wpkh,
-);
-
-describe('Bitcoin Account Selectors', () => {
-  describe('hasCreatedBtcMainnetAccount', () => {
-    it('returns true when a BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC mainnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(selectHasCreatedBtcMainnetAccount(state)).toBe(false);
-    });
-  });
-
-  describe('hasCreatedBtcTestnetAccount', () => {
-    it('returns true when a BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcTestnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no BTC testnet account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
-    });
-  });
-});
 
 describe('Solana Account Selectors', () => {
   beforeEach(() => {
@@ -403,14 +362,14 @@ describe('selectCanSignTransactions', () => {
     methods: [SolMethod.SignAndSendTransaction],
   };
 
-  const btcAccountWithSendBitcoin = {
+  const btcAccountWithSignPsbt = {
     ...createMockInternalAccount(
       'bc1q123',
-      'BTC Account with Send',
+      'BTC Account with SignPsbt',
       KeyringTypes.snap,
       BtcAccountType.P2wpkh,
     ),
-    methods: [BtcMethod.SendBitcoin],
+    methods: [BtcMethod.SignPsbt],
   };
 
   const accountWithoutSigningMethods = {
@@ -448,8 +407,8 @@ describe('selectCanSignTransactions', () => {
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
-  it('returns true for BTC account with SendBitcoin method', () => {
-    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+  it('returns true for BTC account with SignPsbt method', () => {
+    const state = getStateWithAccount(btcAccountWithSignPsbt);
     expect(selectCanSignTransactions(state)).toBe(true);
   });
 
@@ -777,5 +736,169 @@ describe('selectInternalEvmAccounts', () => {
     } as RootState);
 
     expect(result).toHaveLength(4);
+  });
+});
+
+describe('selectInternalAccountsByScope', () => {
+  it('returns all EVM accounts when wildcard eip155:0 is requested', () => {
+    const scaSepolia: InternalAccount = createMockInternalAccount(
+      '0xSCA4337',
+      'SCA Sepolia',
+      KeyringTypes.hd,
+      EthAccountType.Erc4337,
+    );
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                // EOA with eip155:0 by default
+                [internalAccount1.id]: internalAccount1,
+                // SCA mapped to an EVM testnet scope by test utils
+                [scaSepolia.id]: scaSepolia,
+                // Non-EVM should be excluded
+                [internalSolanaAccount1.id]: internalSolanaAccount1,
+              },
+              selectedAccount: internalAccount1.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:0');
+    expect(result).toEqual(
+      expect.arrayContaining([internalAccount1, scaSepolia]),
+    );
+    expect(
+      result.find((a) => a.id === internalSolanaAccount1.id),
+    ).toBeUndefined();
+    expect(result).toHaveLength(2);
+  });
+
+  it('includes SCA with eip155:0 when requesting specific EVM scope (eip155:1)', () => {
+    const eoaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-eoa`,
+    };
+    const scaMainnet: InternalAccount = {
+      ...createMockInternalAccount(
+        '0xSCA4337',
+        'SCA Mainnet',
+        KeyringTypes.hd,
+        EthAccountType.Erc4337,
+      ),
+      scopes: ['eip155:0' as CaipChainId],
+    };
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [eoaAccount.id]: eoaAccount,
+                [scaMainnet.id]: scaMainnet,
+              },
+              selectedAccount: eoaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    expect(result).toEqual(expect.arrayContaining([eoaAccount, scaMainnet]));
+    expect(result).toHaveLength(2);
+  });
+
+  it('excludes SCA with different specific chain when requesting eip155:1 (no wildcard)', () => {
+    const eoaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-eoa`,
+    };
+    const scaSepolia: InternalAccount = createMockInternalAccount(
+      '0xSCA4337',
+      'SCA Sepolia',
+      KeyringTypes.hd,
+      EthAccountType.Erc4337,
+    );
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [eoaAccount.id]: eoaAccount,
+                [scaSepolia.id]: scaSepolia,
+              },
+              selectedAccount: eoaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    expect(result).toEqual([eoaAccount]);
+  });
+
+  it('returns only accounts with the exact non-EVM scope', () => {
+    const solanaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-sol`,
+      scopes: [SolScope.Mainnet],
+    };
+    const anotherSolanaAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-sol2`,
+      scopes: [SolScope.Mainnet],
+    };
+    const btcAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-btc`,
+      scopes: [BtcScope.Mainnet],
+    };
+
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [solanaAccount.id]: solanaAccount,
+                [anotherSolanaAccount.id]: anotherSolanaAccount,
+                [btcAccount.id]: btcAccount,
+              },
+              selectedAccount: solanaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, SolScope.Mainnet);
+    expect(result).toEqual(
+      expect.arrayContaining([solanaAccount, anotherSolanaAccount]),
+    );
+    expect(result).toHaveLength(2);
+  });
+
+  it('returns an empty array when no accounts match the requested scope', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, BtcScope.Mainnet);
+    expect(result).toEqual([]);
   });
 });

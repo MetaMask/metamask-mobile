@@ -182,10 +182,11 @@ exports[`AddBookmark should render correctly 1`] = `
           style={
             [
               {
-                "flex": 0,
                 "flexDirection": "row",
+                "gap": 16,
                 "paddingHorizontal": 16,
                 "paddingVertical": 16,
+                "width": "100%",
               },
               undefined,
             ]
@@ -194,60 +195,39 @@ exports[`AddBookmark should render correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
+            activeOpacity={1}
             disabled={false}
             onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "white",
-                    "borderColor": undefined,
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginRight": 8,
-                    },
-                  ],
-                ],
-                null,
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#3c4d9d0f",
+                "borderColor": "transparent",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
             }
             testID="add-bookmark-cancel-button"
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": undefined,
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Cancel
@@ -256,62 +236,38 @@ exports[`AddBookmark should render correctly 1`] = `
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
-            activeOpacity={0.2}
+            activeOpacity={1}
             disabled={false}
+            loading={false}
             onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
             style={
-              [
-                [
-                  {
-                    "borderRadius": 12,
-                    "justifyContent": "center",
-                    "padding": 15,
-                  },
-                  {
-                    "backgroundColor": "transparent",
-                    "borderColor": "blue",
-                    "borderWidth": 1,
-                  },
-                  [
-                    {
-                      "flex": 1,
-                    },
-                    {
-                      "marginLeft": 8,
-                    },
-                    {},
-                    {},
-                  ],
-                ],
-                null,
-              ]
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#121314",
+                "borderRadius": 12,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
+              }
             }
             testID="add-bookmark-confirm-button"
           >
             <Text
+              accessibilityRole="text"
               style={
-                [
-                  {
-                    "color": "#007aff",
-                    "fontSize": 17,
-                    "fontWeight": "500",
-                    "textAlign": "center",
-                  },
-                  null,
-                  [
-                    {
-                      "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
-                      "fontWeight": "600",
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "blue",
-                    },
-                    undefined,
-                  ],
-                  null,
-                ]
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Add

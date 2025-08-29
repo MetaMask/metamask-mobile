@@ -16,8 +16,12 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
+import BTC_TESTNET from './bitcoin-testnet-logo.png';
+import BTC_MUTINYNET from './bitcoin-mutinynet-logo.png';
+import BTC_SIGNET from './bitcoin-signet-logo.svg';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
+import HL from './HL_symbol_mint_green.png';
 import XRPLEVM_TOKEN from './xrp-logo.png';
 import SEI from './sei.png';
 import MONAD_TESTNET from './monad-testnet-logo.png';
@@ -34,6 +38,8 @@ import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
+import FRAX from './frax.png';
+import AAVE from './aave-token-round.png';
 
 export default {
   PALM,
@@ -46,6 +52,7 @@ export default {
   BNB,
   AETH,
   AVAX,
+  AAVE,
   'LINEA-GOERLI': LINEA_TESTNET,
   'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
@@ -56,6 +63,9 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  'BTC-TESTNET': BTC_TESTNET,
+  'BTC-MUTINYNET': BTC_MUTINYNET,
+  'BTC-SIGNET': BTC_SIGNET,
   BASE,
   'MEGAETH-TESTNET': MEGAETH_TESTNET,
   XRP: XRPLEVM_TOKEN,
@@ -74,4 +84,6 @@ export default {
   EDU,
   ABSTRACT,
   OMNI: OMNI_TOKEN,
+  HL,
+  FRAX,
 };

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
+import { useSelector } from 'react-redux';
 
 /**
  * ConfirmationAssetPollingProvider wraps children with asset polling functionality
@@ -18,18 +20,24 @@ export const ConfirmationAssetPollingProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const transactionMetaData = useTransactionMetadataRequest();
+  const transactionMeta = useTransactionMetadataRequest();
+  const bridgeChains = useSelector(selectEnabledSourceChains);
 
-  if (!transactionMetaData) {
+  const pollChainIds = useMemo(
+    () =>
+      bridgeChains.filter((chain) => chain.isEvm).map((chain) => chain.chainId),
+    [bridgeChains],
+  ) as Hex[];
+
+  if (!transactionMeta) {
     return children;
   }
 
   return (
     <>
       <AssetPollingProvider
-        chainId={transactionMetaData.chainId}
-        networkClientId={transactionMetaData.networkClientId}
-        address={transactionMetaData.txParams.from as Hex}
+        chainIds={pollChainIds}
+        address={transactionMeta.txParams.from as Hex}
       />
       {children}
     </>

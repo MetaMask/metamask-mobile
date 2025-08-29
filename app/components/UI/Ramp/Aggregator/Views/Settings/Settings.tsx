@@ -1,10 +1,10 @@
 // Third party dependencies
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
-import { useRampSDK } from '../../sdk';
+import { useRampSDK, withRampSDK } from '../../sdk';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
 import Text, {
@@ -28,21 +28,13 @@ import styles from './Settings.styles';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn from '../../../../../../component-library/components/List/ListItemColumn';
-import { useDepositSDK } from '../../../Deposit/sdk';
-import withRampAndDepositSDK from '../../../utils/withRampAndDepositSDK';
-
-const depositProviderName = 'Transak';
 
 function Settings() {
   const navigation = useNavigation();
   const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
-  const { clearAuthToken, isAuthenticated, checkExistingToken } =
-    useDepositSDK();
   const { colors } = useAppTheme();
   const style = styles();
   const trackEvent = useAnalytics();
-
-  const [displayLogoutMessage, setDisplayLogoutMessage] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -55,21 +47,12 @@ function Settings() {
     );
   }, [colors, navigation]);
 
-  useEffect(() => {
-    checkExistingToken();
-  }, [checkExistingToken]);
-
   const handleResetRegion = useCallback(() => {
     trackEvent('RAMP_REGION_RESET', {
       location: 'Settings Screen',
     });
     setSelectedRegion(null);
   }, [setSelectedRegion, trackEvent]);
-
-  const handleResetDepositAuth = useCallback(async () => {
-    await clearAuthToken();
-    setDisplayLogoutMessage(true);
-  }, [clearAuthToken]);
 
   return (
     <KeyboardAvoidingView
@@ -111,35 +94,6 @@ function Settings() {
                 <ActivationKeys />
               </Row>
             ) : null}
-
-            {isAuthenticated ? (
-              <Row>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  onPress={handleResetDepositAuth}
-                  label={strings(
-                    'app_settings.fiat_on_ramp.deposit_provider_logout_button',
-                    {
-                      depositProviderName,
-                    },
-                  )}
-                />
-              </Row>
-            ) : null}
-            {displayLogoutMessage ? (
-              <Row>
-                <Text>
-                  {strings(
-                    'app_settings.fiat_on_ramp.deposit_provider_logged_out',
-                    {
-                      depositProviderName,
-                    },
-                  )}
-                </Text>
-              </Row>
-            ) : null}
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -147,4 +101,4 @@ function Settings() {
   );
 }
 
-export default withRampAndDepositSDK(Settings);
+export default withRampSDK(Settings);

@@ -38,6 +38,7 @@ const createStyles = (colors, shadows) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
     },
     noTabsTitle: {
       ...fontStyles.normal,

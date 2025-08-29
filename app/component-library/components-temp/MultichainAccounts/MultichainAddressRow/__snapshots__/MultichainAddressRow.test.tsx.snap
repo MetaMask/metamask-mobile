@@ -1,0 +1,218 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "space-between",
+        "paddingBottom": 16,
+        "paddingLeft": 16,
+        "paddingRight": 16,
+        "paddingTop": 16,
+      },
+      undefined,
+    ]
+  }
+  testID="multichain-address-row"
+>
+  <View
+    collapsable={false}
+    pointerEvents="none"
+    style={
+      {
+        "backgroundColor": "#457a391a",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderRadius": 8,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "width": 32,
+      }
+    }
+    testID="multichain-address-row-network-icon"
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "mock-image-url",
+        }
+      }
+      style={
+        {
+          "height": 32,
+          "width": 32,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
+  <View
+    style={
+      [
+        {
+          "alignItems": "flex-start",
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexDirection": "column",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          },
+          undefined,
+        ]
+      }
+      testID="multichain-address-row-network-name"
+    >
+      Ethereum Mainnet
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        [
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist Medium",
+            "fontSize": 14,
+            "fontWeight": 400,
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          },
+          undefined,
+        ]
+      }
+      testID="multichain-address-row-address"
+    >
+      0x12345...67890
+    </Text>
+  </View>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "borderRadius": 2,
+              "height": 32,
+              "justifyContent": "center",
+              "opacity": 1,
+              "width": 32,
+            },
+            undefined,
+          ]
+        }
+        testID="multichain-address-row-qr-button"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="QrCode"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 20,
+                "width": 20,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;

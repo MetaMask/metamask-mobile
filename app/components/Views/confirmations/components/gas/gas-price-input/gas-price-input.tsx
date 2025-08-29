@@ -1,20 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { add0x, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
+import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import {
-  decGWEIToHexWEI,
-  hexWEIToDecGWEI,
-} from '../../../../../../util/conversions';
-import styleSheet from './gas-price-input.styles';
+import { convertGasInputToHexWEI } from '../../../utils/gas';
 import { validateGasPrice } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
+import styleSheet from './gas-price-input.styles';
 
 export const GasPriceInput = ({
   onChange,
@@ -40,7 +38,7 @@ export const GasPriceInput = ({
     (text: string) => {
       validateGasPriceCallback(text);
       setValue(text);
-      const updatedGasPrice = add0x(decGWEIToHexWEI(text) as Hex);
+      const updatedGasPrice = convertGasInputToHexWEI(text);
       onChange(updatedGasPrice);
     },
     [onChange, validateGasPriceCallback],

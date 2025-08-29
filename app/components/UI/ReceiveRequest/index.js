@@ -1,12 +1,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { SafeAreaView, Dimensions, Alert } from 'react-native';
 import {
-  SafeAreaView,
-  Dimensions,
-  StyleSheet,
-  View,
-  Alert,
-} from 'react-native';
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
@@ -18,9 +21,7 @@ import { generateUniversalLinkAddress } from '../../../util/payment-link-generat
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-import { fontStyles } from '../../../styles/common';
 import GlobalAlert from '../GlobalAlert';
-import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
@@ -34,78 +35,23 @@ import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
 import PNG_MM_LOGO_PATH from '../../../images/branding/fox.png';
 import { isEthAddress } from '../../../util/address';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
-const { height: windowHeight, width: windowWidth } = Dimensions.get('window');
+const { height: windowHeight } = Dimensions.get('window');
 
-const createStyles = (theme) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: theme.colors.background.default,
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      marginTop: windowHeight * 0.05 + 160,
-      marginBottom: 20,
-      height: windowHeight * 0.95 - 180,
-    },
-    body: {
-      alignItems: 'center',
-      paddingHorizontal: 15,
-      height: '100%',
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'space-around',
-    },
-    qrWrapper: {
-      margin: 8,
-      padding: 8,
-      backgroundColor: theme.brandColors.white,
-    },
-    addressWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      margin: 15,
-      padding: 9,
-      paddingHorizontal: 15,
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 30,
-    },
-    copyButton: {
-      backgroundColor: theme.colors.background.default,
-      color: theme.colors.primary.default,
-      borderRadius: 12,
-      overflow: 'hidden',
-      paddingVertical: 3,
-      paddingHorizontal: 6,
-      marginHorizontal: 6,
-      borderWidth: 1,
-      borderColor: theme.colors.primary.default,
-    },
-    qrCode: {
-      padding: 24,
-      borderRadius: 16,
-      borderWidth: 2,
-      borderColor: theme.colors.background.alternative,
-    },
-    actionRow: {
-      flexDirection: 'row',
-      marginBottom: 15,
-    },
-    actionButton: {
-      flex: 1,
-      marginHorizontal: 8,
-      width: '100%',
-    },
-    title: {
-      ...fontStyles.normal,
-      color: theme.colors.text.default,
-      fontSize: 18,
-      flexDirection: 'row',
-      alignSelf: 'center',
-    },
-    titleWrapper: {
-      marginTop: 10,
-    },
-  });
+const createStyles = (theme) => ({
+  wrapper: {
+    backgroundColor: theme.colors.background.default,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    marginTop: windowHeight * 0.05 + 160,
+    marginBottom: 20,
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    height: windowHeight * 0.95 - 180,
+    width: '100%',
+  },
+});
 
 /**
  * PureComponent that renders receive options
@@ -153,6 +99,10 @@ class ReceiveRequest extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if the evm network is selected
+     */
+    isEvmNetworkSelected: PropTypes.bool,
   };
 
   state = {
@@ -247,30 +197,41 @@ class ReceiveRequest extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper}>
-        <View style={styles.body}>
-          <View style={styles.qrCode}>
-            <QRCode
-              logo={PNG_MM_LOGO_PATH}
-              logoSize={35}
-              logoMargin={5}
-              value={qrValue}
-              size={windowWidth / 2}
-            />
-          </View>
+        <Box twClassName="flex-1">
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            twClassName="px-4 py-6"
+          >
+            <Box twClassName="p-6 border border-muted rounded-2xl">
+              <QRCode
+                logo={PNG_MM_LOGO_PATH}
+                logoSize={32}
+                logoBorderRadius={8}
+                value={qrValue}
+                size={200}
+              />
+            </Box>
 
-          <QRAccountDisplay accountAddress={this.props.selectedAddress} />
+            <Box twClassName="mt-6 mb-4">
+              <QRAccountDisplay accountAddress={this.props.selectedAddress} />
+            </Box>
+          </Box>
+        </Box>
 
-          <View style={styles.actionRow}>
-            <StyledButton
-              type={'normal'}
+        {this.props.isEvmNetworkSelected && (
+          <Box twClassName="px-4 pb-4">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
               onPress={this.onReceive}
-              containerStyle={styles.actionButton}
               testID={RequestPaymentModalSelectorsIDs.REQUEST_BUTTON}
             >
               {strings('receive_request.request_payment')}
-            </StyledButton>
-          </View>
-        </View>
+            </Button>
+          </Box>
+        )}
 
         <GlobalAlert />
       </SafeAreaView>
@@ -289,6 +250,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isEvmNetworkSelected: selectIsEvmNetworkSelected(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

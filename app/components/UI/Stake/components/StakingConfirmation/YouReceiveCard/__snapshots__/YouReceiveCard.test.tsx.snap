@@ -83,11 +83,11 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "backgroundColor": "#1c7e331a",
-              "borderColor": "#1c7e33",
+              "backgroundColor": "#457a391a",
+              "borderColor": "#457a39",
               "borderRadius": 999,
               "borderWidth": 0,
-              "color": "#1c7e33",
+              "color": "#457a39",
               "padding": 16,
               "paddingHorizontal": 8,
               "paddingVertical": 2,
@@ -107,7 +107,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#1c7e33",
+                  "color": "#457a39",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

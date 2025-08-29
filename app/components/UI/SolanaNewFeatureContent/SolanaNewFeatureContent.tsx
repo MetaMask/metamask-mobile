@@ -1,28 +1,29 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, Linking, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 
-import FoxVipers from '../../../images/Fox_Vipers.png';
-import { baseStyles, colors as importedColors } from '../../../styles/common';
+import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
+import { strings } from '../../../../locales/i18n';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import createStyles from './SolanaNewFeatureContent.styles';
-import StorageWrapper from '../../../store/storage-wrapper';
+import Routes from '../../../constants/navigation/Routes';
 import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import { SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE } from '../../../constants/urls';
-import Routes from '../../../constants/navigation/Routes';
-import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import FoxVipers from '../../../images/Fox_Vipers.png';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import createStyles from './SolanaNewFeatureContent.styles';
 
 const SolanaNewFeatureContent = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -57,7 +58,11 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
 
-    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
+    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true', {
+      // Not emitting event as solana import flow has not finished
+      // Prevents any confusion in areas that are listening for app open modals to close
+      emitEvent: false,
+    });
     navigate(Routes.MULTI_SRP.IMPORT);
   };
 
@@ -76,21 +81,16 @@ const SolanaNewFeatureContent = () => {
       <ScrollView
         style={baseStyles.flexGrow}
         contentContainerStyle={styles.scroll}
+        bounces
+        scrollEnabled
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wrapper}>
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLG}
-            color={importedColors.gettingStartedTextColor}
-          >
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {strings('solana_new_feature_content.title')}
           </Text>
           <View style={styles.ctas}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={importedColors.gettingStartedTextColor}
-              style={styles.titleDescription}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
               {strings('solana_new_feature_content.title_description')}
             </Text>
 
@@ -112,39 +112,45 @@ const SolanaNewFeatureContent = () => {
                 resizeMode="contain"
               />
             </View>
-
-            <View style={styles.createWrapper}>
-              <Button
-                variant={ButtonVariants.Primary}
-                onPress={() => importAccountWithSRP()}
-                testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
-                }
-                label={strings('solana_new_feature_content.import_your_wallet')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.importWalletButton}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                onPress={() => handleClose()}
-                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.notNowButton}
-                label={
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={importedColors.gettingStartedTextColor}
-                  >
-                    {strings('solana_new_feature_content.not_now')}
-                  </Text>
-                }
-              />
-            </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.createWrapper}>
+        <ButtonBase
+          onPress={() => importAccountWithSRP()}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
+          }
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.importWalletButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.importWalletButtonText}
+            >
+              {strings('solana_new_feature_content.import_your_wallet')}
+            </Text>
+          }
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          onPress={() => handleClose()}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.notNowButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.notNowButtonText}
+            >
+              {strings('solana_new_feature_content.not_now')}
+            </Text>
+          }
+        />
+      </View>
     </View>
   );
 };

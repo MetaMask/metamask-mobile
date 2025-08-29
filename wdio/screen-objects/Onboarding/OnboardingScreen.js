@@ -1,16 +1,25 @@
-import {
-  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_TEXT,
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_TEXT,
-  WALLET_SETUP_SCREEN_TITLE_ID,
-} from '../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen {
+
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get title() {
-    return Selectors.getXpathElementByResourceId(OnboardingSelectorIDs.SCREEN_TITLE);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(OnboardingSelectorIDs.SCREEN_TITLE);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.SCREEN_TITLE);
+    }
   }
 
   get description() {
@@ -20,27 +29,50 @@ class OnBoardingScreen {
   }
 
   get createNewWalletButton() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingSelectorIDs.NEW_WALLET_BUTTON,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+    }
   }
 
-  get importWalletButton() {
-    return Selectors.getXpathElementByResourceId(
-      OnboardingSelectorIDs.IMPORT_SEED_BUTTON,
-    );
+  get existingWalletButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+    }
   }
 
   async isScreenTitleVisible() {
-    await expect(this.title).toBeDisplayed();
+    if (!this._device) {
+      await expect(this.title).toBeDisplayed();
+    } else {
+      const element = await this.title;
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+    }
   }
 
-  async clickImportWalletButton() {
-    await Gestures.waitAndTap(this.importWalletButton);
+  async tapHaveAnExistingWallet() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.existingWalletButton);
+    } else {
+      const button = await this.existingWalletButton;
+      await button.tap();
+    }
   }
 
   async tapCreateNewWalletButton() {
-    await Gestures.waitAndTap(this.createNewWalletButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.createNewWalletButton);
+    } else {
+      const button = await this.createNewWalletButton;
+      await button.tap();
+    }
   }
 }
 

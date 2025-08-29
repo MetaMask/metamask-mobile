@@ -1,6 +1,5 @@
-'use strict';
-import { SmokeWalletPlatform } from '../../tags';
-import Assertions from '../../utils/Assertions';
+import { RegressionWalletPlatform } from '../../tags';
+import Assertions from '../../framework/Assertions';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';
@@ -13,7 +12,7 @@ import TestHelpers from '../../helpers';
 
 const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();
-  await Assertions.checkIfTextIsDisplayed(expectedAddress);
+  await Assertions.expectTextDisplayed(expectedAddress);
   await ShareAddress.tapCopyButton();
 };
 
@@ -21,26 +20,29 @@ const editName = async (newName: string) => {
   await AccountDetails.tapEditAccountName();
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
-  await Assertions.checkIfTextIsDisplayed(newName);
+  await Assertions.expectTextDisplayed(newName);
 };
 
-describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
-  beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
-  it('renames the account', async () => {
-    await withMultichainAccountDetailsEnabled(async () => {
-      await goToAccountDetails(HD_ACCOUNT);
-      await editName('Account 1-edited');
+describe(
+  RegressionWalletPlatform('Multichain Accounts: Account Details'),
+  () => {
+    beforeEach(async () => {
+      await TestHelpers.reverseServerPort();
     });
-  });
 
-  it('copies the account address', async () => {
-    await checkAddress(HD_ACCOUNT.address);
-  });
+    it('renames the account', async () => {
+      await withMultichainAccountDetailsEnabled(async () => {
+        await goToAccountDetails(HD_ACCOUNT);
+        await editName('Account 1-edited');
+      });
+    });
 
-  it.skip('renames the wallet', async () => {
-    // TODO: implement
-  });
-});
+    it('copies the account address', async () => {
+      await checkAddress(HD_ACCOUNT.address);
+    });
+
+    it.skip('renames the wallet', async () => {
+      // TODO: implement
+    });
+  },
+);

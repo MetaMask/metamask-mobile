@@ -9,13 +9,7 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import Icon, {
-  IconSize,
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
@@ -66,8 +60,11 @@ export const PortfolioBalance = React.memo(() => {
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        <View>
-          {selectedAccountMultichainBalance?.displayBalance ? (
+        {selectedAccountMultichainBalance?.displayBalance ? (
+          <TouchableOpacity
+            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+            testID="balance-container"
+          >
             <View style={styles.balanceContainer}>
               <SensitiveText
                 isHidden={privacyMode}
@@ -75,31 +72,17 @@ export const PortfolioBalance = React.memo(() => {
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
                 variant={TextVariant.DisplayLG}
               >
-                {selectedAccountMultichainBalance.displayBalance}
+                {selectedAccountMultichainBalance?.displayBalance}
               </SensitiveText>
-              <TouchableOpacity
-                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-                testID="balance-container"
-              >
-                <Icon
-                  style={styles.privacyIcon}
-                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                  size={IconSize.Md}
-                  color={IconColor.Default}
-                  testID={
-                    privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID
-                  }
-                />
-              </TouchableOpacity>
             </View>
-          ) : (
-            <View style={styles.loaderWrapper}>
-              <Loader />
-            </View>
-          )}
 
-          {renderAggregatedPercentage()}
-        </View>
+            {renderAggregatedPercentage()}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.loaderWrapper}>
+            <Loader />
+          </View>
+        )}
       </View>
     </View>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -17,9 +18,10 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
-import GeneralAlertBanner from '../general-alert-banner';
+import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
+import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
@@ -40,10 +42,14 @@ const ConfirmWrapped = ({
           <QRHardwareContextProvider>
             <LedgerContextProvider>
               <Title />
-              <ScrollView style={styles.scrollView} nestedScrollEnabled>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                nestedScrollEnabled
+              >
                 <TouchableWithoutFeedback>
                   <>
-                    <GeneralAlertBanner />
+                    <AlertBanner />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -69,20 +75,36 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
 
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
+
+  useEffect(() => {
+    if (!isRedesignedEnabled) {
+      navigation.setOptions({
+        // Intentionally empty title to avoid flicker
+        ...getNavbar({ title: '', theme, onReject }),
+        headerShown: true,
+      });
+    }
+  }, [isRedesignedEnabled, theme, onReject, navigation]);
+
+  useEffect(() => {
+    if (isFullScreenConfirmation) {
+      // Keep this navigation option to prevent Android navigation flickering
+      navigation.setOptions({
+        headerShown: true,
+      });
+    }
+  }, [isFullScreenConfirmation, navigation]);
 
   if (!isRedesignedEnabled) {
-    navigation.setOptions({
-      headerShown: false,
-    });
-    return null;
+    return (
+      <View style={styles.spinnerContainer}>
+        <AnimatedSpinner size={SpinnerSize.MD} />
+      </View>
+    );
   }
 
   if (isFullScreenConfirmation) {
-    // Keep this navigation option to prevent Android navigation flickering
-    navigation.setOptions({
-      headerShown: true,
-    });
     return (
       <View style={styles.flatContainer} testID={ConfirmationUIType.FLAT}>
         <ConfirmWrapped styles={styles} route={route} />

@@ -359,7 +359,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -415,7 +415,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -435,7 +435,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -449,14 +449,31 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               style={
                                 {
                                   "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "bold",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              Enter six-digit code
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
+                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                              Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
                             <View
                               style={
@@ -466,9 +483,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                     "justifyContent": "space-between",
                                   },
                                   {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
+                                    "gap": 5,
+                                    "marginTop": 8,
                                   },
                                 ]
                               }
@@ -479,13 +495,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -513,13 +528,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -547,13 +561,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -581,13 +594,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -615,13 +627,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -649,13 +660,12 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -728,7 +738,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9ca1af",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -762,7 +772,6 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -1181,7 +1190,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1237,7 +1246,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1257,7 +1266,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -1271,14 +1280,31 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "bold",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              Enter six-digit code
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
+                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                              Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
                             <View
                               style={
@@ -1288,9 +1314,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                     "justifyContent": "space-between",
                                   },
                                   {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
+                                    "gap": 5,
+                                    "marginTop": 8,
                                   },
                                 ]
                               }
@@ -1301,13 +1326,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1335,13 +1359,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1369,13 +1392,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1403,13 +1425,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1437,13 +1458,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1471,13 +1491,12 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -1550,7 +1569,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9ca1af",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1568,12 +1587,13 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#4459ff",
+                                      "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
+                                      "textDecorationLine": "underline",
                                     }
                                   }
                                 >
@@ -1603,7 +1623,6 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2022,7 +2041,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2078,7 +2097,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -2098,7 +2117,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -2112,14 +2131,31 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               style={
                                 {
                                   "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "bold",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              Enter six-digit code
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
+                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                              Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
                             <View
                               style={
@@ -2129,9 +2165,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                     "justifyContent": "space-between",
                                   },
                                   {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
+                                    "gap": 5,
+                                    "marginTop": 8,
                                   },
                                 ]
                               }
@@ -2142,13 +2177,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2176,13 +2210,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2210,13 +2243,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2244,13 +2276,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2278,13 +2309,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2312,13 +2342,12 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -2391,7 +2420,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9ca1af",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2425,7 +2454,6 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2844,7 +2872,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2900,7 +2928,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -2920,7 +2948,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -2934,14 +2962,31 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               style={
                                 {
                                   "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "bold",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              Enter six-digit code
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
+                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                              Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
                             <View
                               style={
@@ -2951,9 +2996,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                     "justifyContent": "space-between",
                                   },
                                   {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
+                                    "gap": 5,
+                                    "marginTop": 8,
                                   },
                                 ]
                               }
@@ -2964,13 +3008,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3000,13 +3043,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3036,13 +3078,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3072,13 +3113,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3108,13 +3148,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3144,13 +3183,12 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3239,7 +3277,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9ca1af",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3257,12 +3295,13 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#4459ff",
+                                      "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                       "marginLeft": 4,
+                                      "textDecorationLine": "underline",
                                     }
                                   }
                                 >
@@ -3710,7 +3749,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -3766,7 +3805,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -3786,7 +3825,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#9ca1af",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -3800,14 +3839,31 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               style={
                                 {
                                   "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 24,
+                                  "fontWeight": "bold",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 32,
+                                  "marginTop": 24,
+                                }
+                              }
+                            >
+                              Enter six-digit code
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
+                                  "marginTop": 8,
                                 }
                               }
                             >
-                              Enter the 6-digit code we sent to test@email.com. If you don't see it in your inbox, check your spam folder.
+                              Enter the code we sent to test@email.com. If you don't see it, check your spam folder.
                             </Text>
                             <View
                               style={
@@ -3817,9 +3873,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                     "justifyContent": "space-between",
                                   },
                                   {
-                                    "marginLeft": "auto",
-                                    "marginRight": "auto",
-                                    "marginTop": 40,
+                                    "gap": 5,
+                                    "marginTop": 8,
                                   },
                                 ]
                               }
@@ -3830,13 +3885,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3864,13 +3918,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3898,13 +3951,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3932,13 +3984,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -3966,13 +4017,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -4000,13 +4050,12 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
                                       "justifyContent": "center",
-                                      "margin": 5,
                                       "width": 50,
                                     },
                                     false,
@@ -4079,7 +4128,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#9ca1af",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -4113,7 +4162,6 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={

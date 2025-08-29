@@ -9,6 +9,15 @@ BASE_DIR="./e2e/specs"
 
 echo "Searching for tests with pattern: $TEST_SUITE_TAG"
 
+GITHUB_CI=${GITHUB_CI:-false}
+
+# Determine grep options based on environment - The GHA test suites have deterministic Tags
+if [[ "${GITHUB_CI}" == "true" || "${GITHUB_CI}" == "1" ]]; then
+    GREP_OPTS="-l -w -F"
+else
+    GREP_OPTS="-l"
+fi
+
 # Initialize an array to store matching files
 declare -a matching_files
 
@@ -18,7 +27,7 @@ while IFS= read -r file; do
         matching_files+=("$file")
         echo "Found matching test: $file"
     fi
-done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep -l "$TEST_SUITE_TAG" {} \; | sort -u)
+done < <(find "$BASE_DIR" -type f \( -name "*.spec.js" -o -name "*.spec.ts" \) -not -path "*/quarantine/*" -exec grep $GREP_OPTS "$TEST_SUITE_TAG" {} \; | sort -u)
 
 # Check if any files were found
 if [ ${#matching_files[@]} -eq 0 ]; then
@@ -40,9 +49,13 @@ TEST_FILES="${matching_files[*]}"
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
     echo "Detected iOS workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:ios:run:qa-release $TEST_FILES
+    yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $TEST_FILES
+elif [[ "${GITHUB_CI}" == "true" || "${GITHUB_CI}" == "1" ]]; then
+    echo "Detected GitHub Actions workflow - using GitHub CI configuration"
+    IGNORE_BOXLOGS_DEVELOPMENT="true" \
+    yarn test:e2e:android:run:github:qa-release $TEST_FILES
 else
     echo "Detected Android workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
-    yarn test:e2e:android:run:qa-release $TEST_FILES
+    yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $TEST_FILES
 fi

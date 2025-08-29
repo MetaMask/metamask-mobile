@@ -1,6 +1,7 @@
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetId,
+  CaipChainId,
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
   Hex,
   isCaipChainId,
@@ -10,7 +11,7 @@ import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
+
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -19,9 +20,13 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
+import TextComponent, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import { RootState } from '../../../../../reducers';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -73,6 +78,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
+import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -99,7 +105,10 @@ export const TokenListItem = React.memo(
       selectSelectedInternalAccountAddress,
     );
 
-    const selectEvmAsset = useMemo(makeSelectAssetByAddressAndChainId, []);
+    const selectEvmAsset = useMemo(
+      () => makeSelectAssetByAddressAndChainId(),
+      [],
+    );
 
     const evmAsset = useSelector((state: RootState) =>
       selectEvmAsset(state, {
@@ -111,7 +120,7 @@ export const TokenListItem = React.memo(
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const selectedAccount = useSelector(selectSelectedInternalAccount);
-    const selectNonEvmAsset = useMemo(makeSelectNonEvmAssetById, []);
+    const selectNonEvmAsset = useMemo(() => makeSelectNonEvmAssetById(), []);
 
     const nonEvmAsset = useSelector((state: RootState) =>
       selectNonEvmAsset(state, {
@@ -125,9 +134,6 @@ export const TokenListItem = React.memo(
 
     const chainId = asset?.chainId as Hex;
 
-    const primaryCurrency = useSelector(
-      (state: RootState) => state.settings.primaryCurrency,
-    );
     const currentCurrency = useSelector(selectCurrentCurrency);
     const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
@@ -189,7 +195,13 @@ export const TokenListItem = React.memo(
                     parseFloat(asset.balance),
                     oneHundredThousandths,
                     I18n.locale,
-                    { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+                    {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits:
+                        MULTICHAIN_NETWORK_DECIMAL_PLACES[
+                          chainId as CaipChainId
+                        ] || 5,
+                    },
                   )
                 : TOKEN_BALANCE_LOADING,
             },
@@ -200,6 +212,7 @@ export const TokenListItem = React.memo(
         tokenBalances,
         conversionRate,
         currentCurrency,
+        chainId,
       ],
     );
 
@@ -209,39 +222,54 @@ export const TokenListItem = React.memo(
     const shouldNotShowBalanceOnTestnets =
       isTestNet(chainId) && !showFiatOnTestnets;
 
-    // Set main and secondary balances based on the primary currency and asset type.
-    if (primaryCurrency === 'ETH') {
-      // TECH_DEBT: this should not be primary currency for multichain, not ETH
-      // Default to displaying the formatted balance value and its fiat equivalent.
-      mainBalance = balanceValueFormatted?.toUpperCase();
-      secondaryBalance = balanceFiat?.toUpperCase();
-      // For ETH as a native currency, adjust display based on network safety.
-      if (asset?.isETH) {
-        // Main balance always shows the formatted balance value for ETH.
-        mainBalance = balanceValueFormatted?.toUpperCase();
-        // Display fiat value as secondary balance only for original native tokens on safe networks.
-        secondaryBalance = shouldNotShowBalanceOnTestnets
-          ? undefined
-          : balanceFiat?.toUpperCase();
-      }
+    // Reorganized layout: Fiat -> Percentage -> Token Amount
+    // Main balance shows fiat value
+    if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
+      mainBalance = undefined;
     } else {
-      secondaryBalance = balanceValueFormatted?.toUpperCase();
-      if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
-        mainBalance = undefined;
+      mainBalance =
+        balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+    }
+
+    // Secondary balance shows percentage change (if available and not on testnet)
+    const hasPercentageChange =
+      !isTestNet(chainId) &&
+      showPercentageChange &&
+      pricePercentChange1d !== null &&
+      pricePercentChange1d !== undefined &&
+      Number.isFinite(pricePercentChange1d);
+
+    // Determine the color for percentage change
+    let percentageColor = TextColor.Alternative;
+    if (hasPercentageChange) {
+      if (pricePercentChange1d === 0) {
+        percentageColor = TextColor.Alternative;
+      } else if (pricePercentChange1d > 0) {
+        percentageColor = TextColor.Success;
       } else {
-        mainBalance =
-          balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
+        percentageColor = TextColor.Error;
       }
     }
+
+    const percentageText = hasPercentageChange
+      ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+          2,
+        )}%`
+      : undefined;
+
+    secondaryBalance = percentageText;
+    let secondaryBalanceColorToUse: TextColor | undefined = percentageColor;
 
     if (evmAsset?.hasBalanceError) {
       mainBalance = evmAsset.symbol;
       secondaryBalance = strings('wallet.unable_to_load');
+      secondaryBalanceColorToUse = undefined; // Don't apply percentage color to error messages
     }
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+      secondaryBalanceColorToUse = undefined; // Don't apply percentage color to error messages
     }
 
     asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
@@ -384,7 +412,9 @@ export const TokenListItem = React.memo(
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
+        secondaryBalanceColor={secondaryBalanceColorToUse}
         privacyMode={privacyMode}
+        hideSecondaryBalanceInPrivacyMode={false}
       >
         <BadgeWrapper
           style={styles.badge}
@@ -405,14 +435,21 @@ export const TokenListItem = React.memo(
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
           <View style={styles.assetName}>
-            <Text variant={TextVariant.BodyMD} numberOfLines={1}>
+            <TextComponent variant={TextVariant.BodyMDMedium} numberOfLines={1}>
               {asset.name || asset.symbol}
-            </Text>
+            </TextComponent>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
           </View>
           <View style={styles.percentageChange}>
-            {!isTestNet(chainId) && showPercentageChange ? (
-              <PercentageChange value={pricePercentChange1d ?? 0} />
+            {balanceValueFormatted ? (
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.balanceFiat}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {balanceValueFormatted?.toUpperCase()}
+              </SensitiveText>
             ) : null}
             {renderEarnCta()}
           </View>

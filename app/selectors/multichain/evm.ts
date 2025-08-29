@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   selectSelectedInternalAccountFormattedAddress,
@@ -39,12 +39,16 @@ import { selectTokensBalances } from '../tokenBalancesController';
 import { isZero } from '../../util/lodash';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
 import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
-import { isTestNet } from '../../util/networks';
+import {
+  isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { selectTokenList } from '../tokenListController';
 import { safeToChecksumAddress, toFormattedAddress } from '../../util/address';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 
 interface NativeTokenBalance {
   balance: string;
@@ -197,7 +201,8 @@ export const selectNativeTokensAcrossChainsForAddress = createSelector(
         nativeTokenInfoByChainId &&
         nativeTokenInfoByChainId.isStaked &&
         nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0)
+        nativeTokenInfoByChainId.stakedBalance !== toHex(0) &&
+        nativeTokenInfoByChainId.stakedBalance !== '0'
       ) {
         // Staked tokens
         tokensByChain[nativeChainId].push({
@@ -405,18 +410,43 @@ export const selectEvmTokens = createDeepEqualSelector(
   selectIsPopularNetwork,
   selectIsEvmNetworkSelected,
   selectChainId,
+  selectEnabledNetworksByNamespace,
   (
     tokensToDisplay,
     isAllNetworks,
     isPopularNetwork,
     isEvmSelected,
     currentChainId,
+    enabledNetworksByNamespace,
   ) => {
     // Apply network filtering
-    const filteredTokens =
-      isAllNetworks && isPopularNetwork && isEvmSelected
-        ? tokensToDisplay
-        : tokensToDisplay.filter((token) => token.chainId === currentChainId);
+    let filteredTokens: TokenI[];
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      const enabledEip155Networks =
+        enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
+
+      if (!enabledEip155Networks) {
+        // Fall back to default behavior when network enablement data is unavailable
+        filteredTokens =
+          isAllNetworks && isPopularNetwork && isEvmSelected
+            ? tokensToDisplay
+            : tokensToDisplay.filter(
+                (token: TokenI) => token.chainId === currentChainId,
+              );
+      } else {
+        filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
+          const chainId = currentToken.chainId || '';
+          return enabledEip155Networks[chainId as Hex];
+        });
+      }
+    } else {
+      filteredTokens =
+        isAllNetworks && isPopularNetwork && isEvmSelected
+          ? tokensToDisplay
+          : tokensToDisplay.filter(
+              (token: TokenI) => token.chainId === currentChainId,
+            );
+    }
 
     // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
     const nativeTokens: TokenI[] = [];
@@ -426,7 +456,11 @@ export const selectEvmTokens = createDeepEqualSelector(
       const token = currToken as TokenI & { chainId: string };
 
       // Skip tokens if they are on a test network and the current chain is not a test network
-      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+      if (
+        isTestNet(token.chainId) &&
+        !isTestNet(currentChainId) &&
+        !isRemoveGlobalNetworkSelectorEnabled()
+      ) {
         continue;
       }
 

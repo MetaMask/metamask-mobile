@@ -94,7 +94,7 @@ exports[`OrderListItem should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#1c7e33",
+            "color": "#457a39",
             "fontFamily": "Geist Bold",
             "fontSize": 14,
             "letterSpacing": 0,

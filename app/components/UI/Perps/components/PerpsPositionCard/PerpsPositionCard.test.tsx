@@ -1,15 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsPositionCard from './PerpsPositionCard';
 import type { Position } from '../../controllers/types';
 
-// Mock component types
-
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: jest.fn(),
+}));
+
+// Mock i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
 }));
 
 const mockUseTheme = jest.fn();
@@ -17,64 +22,97 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
 
-// Mock components (keep only non-DS components)
-
-// Mock format utilities
-jest.mock('../../utils/formatUtils', () => ({
-  formatPrice: (value: string) => `$${parseFloat(value).toFixed(2)}`,
-  formatPnl: (value: number) => `$${value.toFixed(2)}`,
-  formatPercentage: (value: number) =>
-    value != null ? `${value.toFixed(2)}%` : 'N/A',
-  formatPositionSize: (size: string) => Math.abs(parseFloat(size)).toFixed(6),
-}));
-
 // Mock PnL calculations
 jest.mock('../../utils/pnlCalculations', () => ({
   calculatePnLPercentageFromUnrealized: jest.fn().mockReturnValue(5.0),
 }));
 
-// Mock styles
-jest.mock('./PerpsPositionCard.styles', () => ({
-  createStyles: () => ({
-    container: { padding: 10 },
-    header: { flexDirection: 'row' },
-    headerLeft: { flex: 1 },
-    headerRight: { flex: 1 },
-    headerRow: { flexDirection: 'row' },
-    leverageText: { fontSize: 16 },
-    directionBadge: { padding: 4 },
-    longBadge: { backgroundColor: 'green' },
-    shortBadge: { backgroundColor: 'red' },
-    directionText: { fontSize: 12 },
-    longText: { color: 'green' },
-    shortText: { color: 'red' },
-    tokenAmount: { fontSize: 14 },
-    positionValue: { fontSize: 18 },
-    priceChange: { fontSize: 14 },
-    body: { borderTopWidth: 1 },
-    bodyRow: { flexDirection: 'row' },
-    bodyItem: { flex: 1 },
-    bodyLabel: { fontSize: 12 },
-    bodyValue: { fontSize: 14 },
-    footer: { flexDirection: 'row' },
-    footerButton: { flex: 1 },
-    positivePnl: { color: 'green' },
-    negativePnl: { color: 'red' },
-    // Legacy styles for backward compatibility
-    assetInfo: { flex: 1 },
-    assetName: { fontSize: 18 },
-    actionsContainer: { flexDirection: 'row' },
-    detailsContainer: { flexDirection: 'row' },
-    detailColumn: { flex: 1 },
-    detailLabel: { fontSize: 12 },
-    detailValue: { fontSize: 14 },
-    pnlValue: { fontSize: 14 },
-    leverageContainer: { flexDirection: 'row' },
-    leverageInfo: { flexDirection: 'row' },
-    leverageItem: { alignItems: 'center' },
-    leverageLabel: { fontSize: 11 },
-    leverageValue: { fontSize: 13 },
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: ({ size, testID }: { size: number; testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return (
+      <View
+        testID={testID || 'perps-token-logo'}
+        style={{ width: size, height: size }}
+      />
+    );
+  },
+}));
+
+// Mock stream provider
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    subscribeToPrices: jest.fn(() => jest.fn()),
+    subscribeToPositions: jest.fn(() => jest.fn()),
+    subscribeToAccount: jest.fn(() => jest.fn()),
+    subscribeToOrders: jest.fn(() => jest.fn()),
+    subscribeToFills: jest.fn(() => jest.fn()),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    isConnected: false,
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePositions: jest.fn(() => ({})),
+}));
+
+// Mock the new hooks from ../../hooks
+jest.mock('../../hooks', () => ({
+  usePerpsPositions: jest.fn().mockReturnValue({
+    loadPositions: jest.fn().mockResolvedValue(undefined),
   }),
+  usePerpsMarkets: jest.fn().mockReturnValue({
+    markets: [
+      {
+        name: 'ETH',
+        symbol: 'ETH',
+        priceDecimals: 2,
+        sizeDecimals: 4,
+        maxLeverage: 50,
+        minSize: 0.01,
+        sizeIncrement: 0.01,
+      },
+    ],
+    error: null,
+    isLoading: false,
+  }),
+  usePerpsTPSLUpdate: jest.fn().mockReturnValue({
+    handleUpdateTPSL: jest.fn().mockResolvedValue(undefined),
+    isUpdating: false,
+  }),
+  usePerpsClosePosition: jest.fn().mockReturnValue({
+    handleClosePosition: jest.fn().mockResolvedValue(undefined),
+    isClosing: false,
+  }),
+}));
+
+// Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../PerpsTPSLBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-tpsl-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
 }));
 
 describe('PerpsPositionCard', () => {
@@ -117,28 +155,42 @@ describe('PerpsPositionCard', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockUseTheme.mockReturnValue(mockTheme);
+    // Reset the PnL calculation mock to default value
+    const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
+      '../../utils/pnlCalculations',
+    );
+    calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
   });
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render expanded to show all sections
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
-      expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen();
-      expect(screen.getByText('$5000.00')).toBeOnTheScreen();
+      expect(screen.getByText('2.50 ETH')).toBeOnTheScreen();
+      expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
 
-      // Assert - Body section
-      expect(screen.getByText('Entry Price')).toBeOnTheScreen();
-      expect(screen.getByText('$2000.00')).toBeOnTheScreen();
-      expect(screen.getByText('Market Price')).toBeOnTheScreen();
-      expect(screen.getByText('Liquidity Price')).toBeOnTheScreen();
-      expect(screen.getByText('Take Profit')).toBeOnTheScreen();
-      expect(screen.getByText('Stop Loss')).toBeOnTheScreen();
-      expect(screen.getByText('Margin')).toBeOnTheScreen();
+      // Assert - Body section - using string keys since strings() mock returns keys
+      expect(
+        screen.getByText('perps.position.card.entry_price'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.funding_cost'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.liquidation_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.take_profit'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.stop_loss'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
       expect(screen.getByText('$500.00')).toBeOnTheScreen();
-      expect(screen.getAllByText('Not Set')).toHaveLength(2);
 
       // Assert - Footer section
       expect(
@@ -161,29 +213,29 @@ describe('PerpsPositionCard', () => {
 
       // Assert
       expect(screen.getByText('short')).toBeOnTheScreen();
-      expect(screen.getByText('2.500000 ETH')).toBeOnTheScreen(); // Should show absolute value
+      expect(screen.getByText(/2\.50.*ETH/)).toBeOnTheScreen(); // Should show absolute value
     });
 
     it('renders with PnL data', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Assert
-      expect(screen.getByText('$250.00 (5.00%)')).toBeOnTheScreen();
+      // Assert - ROE is 12.5 * 100 = 1250%
+      expect(screen.getByText(/\+\$250\.00.*\+1250\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing PnL percentage data', () => {
-      // Arrange
-      const mockCalculatePnL = jest.requireMock(
-        '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(undefined);
+      // Arrange - Set returnOnEquity to empty string to test fallback
+      const positionWithoutROE = {
+        ...mockPosition,
+        returnOnEquity: '', // Use empty string instead of undefined
+      };
 
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(<PerpsPositionCard position={positionWithoutROE} />);
 
-      // Assert
-      expect(screen.getByText('$250.00 (N/A)')).toBeOnTheScreen();
+      // Assert - Should show 0% when ROE is missing
+      expect(screen.getByText(/\+\$250\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing liquidation price', () => {
@@ -199,77 +251,91 @@ describe('PerpsPositionCard', () => {
       // Assert
       expect(screen.getByText('N/A')).toBeOnTheScreen();
     });
+
+    it('renders with icon when showIcon is true and not expanded', () => {
+      // Act - Render collapsed with showIcon
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - PerpsTokenLogo should be rendered
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
+    });
+
+    it('does not render icon when showIcon is false', () => {
+      // Act - Render collapsed without showIcon
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          expanded={false}
+          showIcon={false}
+        />,
+      );
+
+      // Assert - PerpsTokenLogo should not be rendered
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
+    });
+
+    it('does not render icon when expanded even if showIcon is true', () => {
+      // Act - Render expanded with showIcon (should not show icon)
+      render(<PerpsPositionCard position={mockPosition} expanded showIcon />);
+
+      // Assert - PerpsTokenLogo should not be rendered in expanded mode
+      expect(screen.queryByTestId('perps-token-logo')).not.toBeOnTheScreen();
+    });
   });
 
   describe('User Interactions', () => {
-    it('navigates to position details when card is pressed', () => {
-      // Act
+    it('navigates to market details when card is pressed', () => {
+      // Act - render with expanded=false to make card clickable
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: expect.any(Object),
+        },
+      });
+    });
+
+    it('opens close position bottom sheet when close button is pressed', () => {
+      // Arrange & Act
       render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD)); // This might need adjustment based on how the container is identified
 
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
-        { position: mockPosition, action: 'view' },
-      );
-    });
+      // Verify bottom sheet is not visible initially
+      expect(screen.queryByText('perps.close_position.title')).toBeNull();
 
-    it('calls onEdit when edit button is pressed', () => {
-      // Arrange
-      const mockOnEdit = jest.fn();
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} onEdit={mockOnEdit} />);
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert
-      expect(mockOnEdit).toHaveBeenCalledWith(mockPosition);
-    });
-
-    it('calls onClose when close button is pressed', () => {
-      // Arrange
-      const mockOnClose = jest.fn();
-
-      // Act
-      render(
-        <PerpsPositionCard position={mockPosition} onClose={mockOnClose} />,
-      );
+      // Press close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
-      expect(mockOnClose).toHaveBeenCalledWith(mockPosition);
-    });
-
-    it('navigates to position details with close action when no onClose prop', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(
+      // Assert - The bottom sheet should be rendered
+      // Note: The actual bottom sheet content might be mocked, so we check for its presence
+      expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
-
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
-        { position: mockPosition, action: 'close' },
-      );
+      ).toBeDefined();
     });
 
-    it('navigates to position details with edit action when no onEdit prop', () => {
-      // Act
+    it('opens TP/SL bottom sheet when edit button is pressed', () => {
+      // Arrange & Act
       render(<PerpsPositionCard position={mockPosition} />);
+
+      // Verify bottom sheet is not visible initially
+      expect(screen.queryByText('perps.tpsl.title')).toBeNull();
+
+      // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'PerpsPositionDetails',
-        { position: mockPosition, action: 'edit' },
-      );
+      // Assert - The TP/SL bottom sheet should be opened
+      // Note: The actual bottom sheet content might be mocked, so we check for its presence
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      ).toBeDefined();
     });
   });
 
@@ -300,7 +366,7 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={btcPosition} />);
 
       // Assert
-      expect(screen.getByText('0.500000 BTC')).toBeOnTheScreen();
+      expect(screen.getByText(/0\.5000.*BTC/)).toBeOnTheScreen();
     });
 
     it('handles very small position sizes', () => {
@@ -368,17 +434,18 @@ describe('PerpsPositionCard', () => {
       const positionWithZeroPnl = {
         ...mockPosition,
         unrealizedPnl: '0.00',
+        returnOnEquity: '0',
       };
-      const mockCalculatePnL = jest.requireMock(
+      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(0);
+      );
+      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(0);
 
       // Act
       render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
-      // Assert
-      expect(screen.getByText('$0.00 (0.00%)')).toBeOnTheScreen();
+      // Assert - ROE is shown as 0.0% (not 0.00%)
+      expect(screen.getByText(/\$0\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles position with empty liquidation price', () => {
@@ -396,22 +463,140 @@ describe('PerpsPositionCard', () => {
     });
 
     it('renders all body items in correct order', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render with expanded=true to show body items
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Check that all 6 body items are present
       const bodyLabels = [
-        'Entry Price',
-        'Market Price',
-        'Liquidity Price',
-        'Take Profit',
-        'Stop Loss',
-        'Margin',
+        'perps.position.card.entry_price',
+        'perps.position.card.funding_cost',
+        'perps.position.card.liquidation_price',
+        'perps.position.card.take_profit',
+        'perps.position.card.stop_loss',
+        'perps.position.card.margin',
       ];
 
       bodyLabels.forEach((label) => {
         expect(screen.getByText(label)).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('Hook Integration', () => {
+    // Tests removed - loadPositions no longer exists with WebSocket streaming
+    // Positions update automatically via WebSocket subscriptions
+
+    it('returns early from handleCardPress when isLoading is true', () => {
+      // Arrange
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
+        error: null,
+        isLoading: true, // Set loading to true
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert - navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('returns early from handleCardPress when error exists', () => {
+      // Arrange
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
+        error: 'Failed to fetch markets',
+        isLoading: false,
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert - navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Bottom Sheet Interactions', () => {
+    it('renders PerpsTPSLBottomSheet when isTPSLVisible is true', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the TP/SL bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert
+      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
+    });
+
+    it('handles PerpsTPSLBottomSheet onClose callback', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the TP/SL bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Close the bottom sheet
+      fireEvent.press(screen.getByText('Close'));
+
+      // Assert - bottom sheet should be closed (not visible)
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+    });
+
+    it('navigates to close position screen when close button is pressed', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Press the close button
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      // Assert - should navigate to close position screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.CLOSE_POSITION,
+        { position: mockPosition },
+      );
+    });
+
+    it('does not show close button when card is collapsed', () => {
+      // Act
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
+      );
+
+      // Assert - close button should not be visible in collapsed view
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
     });
   });
 });

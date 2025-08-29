@@ -69,6 +69,12 @@ jest.mock('../../../../selectors/accountsController', () => ({
   ),
 }));
 
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(
+    () => () => MOCK_SELECTED_ACCOUNT,
+  ),
+}));
+
 // Mock Engine with proper hoisting
 jest.mock('../../../../core/Engine', () => {
   const mockKeyringController = {
@@ -90,11 +96,19 @@ jest.mock('../constants/hyperLiquidConfig', () => ({
   getChainId: jest.fn((isTestnet: boolean) => (isTestnet ? '421614' : '42161')),
 }));
 
+// Mock DevLogger
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
+  },
+}));
+
 import { HyperLiquidWalletService } from './HyperLiquidWalletService';
 import type { CaipAccountId } from '@metamask/utils';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { store } from '../../../../store';
 import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 describe('HyperLiquidWalletService', () => {
   let service: HyperLiquidWalletService;
@@ -152,16 +166,55 @@ describe('HyperLiquidWalletService', () => {
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
         jest
-          .mocked(selectSelectedInternalAccountAddress)
-          .mockReturnValueOnce(undefined);
+          .mocked(selectSelectedInternalAccountByScope)
+          .mockReturnValueOnce(() => undefined);
 
         await expect(
           walletAdapter.request({
             method: 'eth_requestAccounts',
             params: [],
           }),
-        ).rejects.toThrow(
-          'No account selected. Please ensure MetaMask has an active account.',
+        ).rejects.toThrow('No account selected');
+      });
+    });
+
+    describe('eth_chainId method', () => {
+      it('should return mainnet chain ID in hex format', async () => {
+        const result = await walletAdapter.request({
+          method: 'eth_chainId',
+          params: [],
+        });
+
+        expect(result).toBe('0xa4b1'); // 42161 in hex
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'HyperLiquidWalletService: eth_chainId requested',
+          {
+            isTestnet: false,
+            decimalChainId: '42161',
+            hexChainId: '0xa4b1',
+          },
+        );
+      });
+
+      it('should return testnet chain ID in hex format when in testnet mode', async () => {
+        const testnetService = new HyperLiquidWalletService({
+          isTestnet: true,
+        });
+        const testnetAdapter = testnetService.createWalletAdapter();
+
+        const result = await testnetAdapter.request({
+          method: 'eth_chainId',
+          params: [],
+        });
+
+        expect(result).toBe('0x66eee'); // 421614 in hex
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'HyperLiquidWalletService: eth_chainId requested',
+          {
+            isTestnet: true,
+            decimalChainId: '421614',
+            hexChainId: '0x66eee',
+          },
         );
       });
     });
@@ -220,8 +273,8 @@ describe('HyperLiquidWalletService', () => {
       it('should throw error when no account selected', async () => {
         // Mock selector to return null for this test
         jest
-          .mocked(selectSelectedInternalAccountAddress)
-          .mockReturnValueOnce(undefined);
+          .mocked(selectSelectedInternalAccountByScope)
+          .mockReturnValueOnce(() => undefined);
 
         await expect(
           walletAdapter.request({
@@ -243,7 +296,7 @@ describe('HyperLiquidWalletService', () => {
               mockTypedData,
             ],
           }),
-        ).rejects.toThrow('Signing address does not match selected account');
+        ).rejects.toThrow('No account selected');
       });
 
       it('should handle keyring controller errors', async () => {
@@ -297,11 +350,11 @@ describe('HyperLiquidWalletService', () => {
     it('should throw error when getting account ID with no selected account', async () => {
       // Mock selector to return null for this test
       jest
-        .mocked(selectSelectedInternalAccountAddress)
-        .mockReturnValueOnce(undefined);
+        .mocked(selectSelectedInternalAccountByScope)
+        .mockReturnValueOnce(() => undefined);
 
       await expect(service.getCurrentAccountId()).rejects.toThrow(
-        'No account selected. Please ensure MetaMask has an active account.',
+        'No account selected',
       );
     });
 

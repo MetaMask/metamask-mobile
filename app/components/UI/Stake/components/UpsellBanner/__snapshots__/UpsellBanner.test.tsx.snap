@@ -39,7 +39,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c7e33",
+          "color": "#457a39",
           "fontFamily": "Geist Bold",
           "fontSize": 32,
           "letterSpacing": 0,
@@ -102,14 +102,14 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
-      onPress={[MockFunction]}
+      onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -171,7 +171,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#1c7e33",
+        "color": "#457a39",
         "fontFamily": "Geist Bold",
         "fontSize": 32,
         "letterSpacing": 0,
@@ -199,14 +199,14 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
-    onPress={[MockFunction]}
+    onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#3c4d9d1a",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,

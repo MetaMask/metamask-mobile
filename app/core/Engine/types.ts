@@ -89,6 +89,12 @@ import {
   NetworkState,
 } from '@metamask/network-controller';
 import {
+  NetworkEnablementController,
+  NetworkEnablementControllerActions,
+  NetworkEnablementControllerEvents,
+  NetworkEnablementControllerState,
+} from '@metamask/network-enablement-controller';
+import {
   PhishingController,
   PhishingControllerActions,
   PhishingControllerEvents,
@@ -269,6 +275,13 @@ import {
   PerpsControllerActions,
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
+import { RewardsController } from './controllers/rewards-controller/RewardsController';
+import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
+import type {
+  RewardsControllerState,
+  RewardsControllerEvents,
+  RewardsControllerActions,
+} from './controllers/rewards-controller/types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -293,16 +306,27 @@ import {
   AccountTreeControllerActions,
   AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
+import {
+  MultichainAccountService,
+  MultichainAccountServiceActions,
+  MultichainAccountServiceEvents,
+} from '@metamask/multichain-account-service';
 
 /**
  * Controllers that area always instantiated
  */
-type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+type RequiredControllers = Omit<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are sometimes not instantiated
  */
-type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+type OptionalControllers = Pick<
+  Controllers,
+  'PPOMController' | 'RewardsDataService'
+>;
 
 /**
  * Controllers that are defined with state.
@@ -339,6 +363,7 @@ type GlobalActions =
   | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
+  | NetworkEnablementControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -358,6 +383,7 @@ type GlobalActions =
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
+  | MultichainAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -379,6 +405,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
+  | RewardsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -395,6 +422,7 @@ type GlobalEvents =
   | GasFeeControllerEvents
   | KeyringControllerEvents
   | NetworkControllerEvents
+  | NetworkEnablementControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
@@ -412,6 +440,7 @@ type GlobalEvents =
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
+  | MultichainAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -435,6 +464,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | PerpsControllerEvents
+  | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -468,6 +498,7 @@ export type Controllers = {
   KeyringController: KeyringController;
   LoggingController: LoggingController;
   NetworkController: NetworkController;
+  NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
@@ -509,6 +540,7 @@ export type Controllers = {
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
+  MultichainAccountService: MultichainAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -516,6 +548,8 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   PerpsController: PerpsController;
+  RewardsController: RewardsController;
+  RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
@@ -539,6 +573,7 @@ export type EngineState = {
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
+  NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   PhishingController: PhishingControllerState;
@@ -583,6 +618,7 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
+  RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
@@ -630,6 +666,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
+  | 'MultichainAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
   | 'AccountsController'
@@ -641,7 +678,11 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
-  | 'PerpsController';
+  | 'PerpsController'
+  | 'BridgeController'
+  | 'BridgeStatusController'
+  | 'NetworkEnablementController'
+  | 'RewardsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

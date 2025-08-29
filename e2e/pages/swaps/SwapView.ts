@@ -3,16 +3,17 @@ import {
   SwapViewSelectorsTexts,
 } from '../../selectors/swaps/SwapsView.selectors.js';
 
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
+import { logger } from '../../framework/logger';
 
 class SwapView {
-  get quoteSummary() {
+  get quoteSummary(): DetoxElement {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.QUOTE_SUMMARY);
   }
 
-  get gasFee() {
+  get gasFee(): DetoxElement {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.GAS_FEE);
   }
 
@@ -30,11 +31,11 @@ class SwapView {
     return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
   }
 
-  get viewDetailsButton() {
+  get viewDetailsButton(): DetoxElement {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.VIEW_ALL_QUOTES);
   }
 
-  async isPriceWarningDisplayed() {
+  async isPriceWarningDisplayed(): Promise<boolean> {
     try {
       const label = (await this.iUnderstandLabel) as Detox.NativeElement;
       await waitFor(label).toBeVisible().withTimeout(5000);
@@ -54,22 +55,30 @@ class SwapView {
     return title;
   }
 
-  async tapSwapButton() {
-    await Gestures.waitAndTap(this.swapButton);
+  async tapSwapButton(): Promise<void> {
+    await Gestures.waitAndTap(this.swapButton, {
+      elemDescription: 'Swap Button in Swap View',
+    });
   }
 
-  async tapIUnderstandPriceWarning() {
+  async tapIUnderstandPriceWarning(): Promise<void> {
     const isDisplayed = await this.isPriceWarningDisplayed();
     if (isDisplayed) {
-      await Gestures.waitAndTap(this.iUnderstandLabel);
+      await Gestures.waitAndTap(this.iUnderstandLabel, {
+        elemDescription: 'I Understand Label in Swap View',
+      });
     } else {
       // eslint-disable-next-line no-console
-      console.log('Price warning not displayed');
+      logger.warn(
+        'SwapView: tapIUnderstandPriceWarning - I Understand label is not displayed, skipping tap.',
+      );
     }
   }
 
-  async tapViewDetailsAllQuotes() {
-    await Gestures.waitAndTap(this.viewDetailsButton);
+  async tapViewDetailsAllQuotes(): Promise<void> {
+    await Gestures.waitAndTap(this.viewDetailsButton, {
+      elemDescription: 'View Details Button in Swap View',
+    });
   }
 }
 

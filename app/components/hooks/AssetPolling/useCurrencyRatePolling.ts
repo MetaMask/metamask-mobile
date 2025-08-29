@@ -1,67 +1,49 @@
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import usePolling from '../usePolling';
-import {
-  selectAllPopularNetworkConfigurations,
-  selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { isPortfolioViewEnabled } from '../../../util/networks';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { usePollingNetworks } from './use-polling-networks';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
-  const networkConfigurationsPopularNetworks = useSelector(
-    selectAllPopularNetworkConfigurations,
-  );
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const currentChainId = useSelector(selectEvmChainId);
-  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
-  // if all networks are selected, poll all popular networks
-  const networkConfigurationsToPoll =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map((network) => ({
-          nativeCurrency: network.nativeCurrency,
-        }))
-      : [
+  const pollingNetworks = usePollingNetworks();
+  const pollingInput =
+    pollingNetworks.length > 0
+      ? [
           {
-            nativeCurrency:
-              networkConfigurations[currentChainId].nativeCurrency,
+            nativeCurrencies: [
+              ...new Set(pollingNetworks.map((c) => c.nativeCurrency)),
+            ],
           },
-        ];
+        ]
+      : [];
 
-  // get all native currencies to poll
-  const nativeCurrenciesToPoll = isEvmSelected
-    ? [
-        {
-          nativeCurrencies: [
-            ...new Set(
-              networkConfigurationsToPoll.map((n) => n.nativeCurrency),
-            ),
-          ],
-        },
-      ]
-    : [];
+  let overridePollingInput: { nativeCurrencies: string[] }[] | undefined;
+  if (chainIds) {
+    const nativeCurrencies = [
+      ...new Set(
+        chainIds
+          .map((chainId) => {
+            const networkConfiguration = networkConfigurations[chainId];
+            const nativeCurrency = networkConfiguration?.nativeCurrency;
+            return nativeCurrency;
+          })
+          .filter((c): c is NonNullable<typeof c> => Boolean(c)),
+      ),
+    ];
+
+    overridePollingInput = [{ nativeCurrencies }];
+  }
 
   const { CurrencyRateController } = Engine.context;
 
-  let providedChainIdsNativeCurrencies;
-  if (chainIds) {
-    providedChainIdsNativeCurrencies = chainIds.map((chainId) => ({
-      nativeCurrencies: [networkConfigurations[chainId].nativeCurrency],
-    }));
-  }
-
-  const input = providedChainIdsNativeCurrencies ?? nativeCurrenciesToPoll;
+  const input = overridePollingInput ?? pollingInput;
 
   usePolling({
     startPolling: CurrencyRateController.startPolling.bind(

@@ -18,7 +18,6 @@ import {
   isBtcTestnetAddress,
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
-  nonEvmNetworkChainIdByAccountAddress,
   lastSelectedAccountAddressInEvmNetwork,
   lastSelectedAccountAddressByNonEvmNetworkChainId,
   shortenTransactionId,
@@ -116,7 +115,7 @@ const mockBTCAccount: InternalAccount = {
     },
   },
   options: {},
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   type: BtcAccountType.P2wpkh,
 };
 
@@ -245,23 +244,6 @@ describe('MultiChain utils', () => {
     it('returns unformatted address for BTC accounts', () => {
       const formatted = getFormattedAddressFromInternalAccount(mockBTCAccount);
       expect(formatted).toBe(MOCK_BTC_MAINNET_ADDRESS);
-    });
-  });
-
-  describe('nonEvmNetworkChainIdByAccountAddress', () => {
-    it('returns Solana mainnet chain id for Solana addresses', () => {
-      expect(nonEvmNetworkChainIdByAccountAddress(SOL_ADDRESS)).toBe(
-        SolScope.Mainnet,
-      );
-    });
-
-    it('returns Bitcoin mainnet chain id for Bitcoin addresses', () => {
-      expect(
-        nonEvmNetworkChainIdByAccountAddress(MOCK_BTC_MAINNET_ADDRESS),
-      ).toBe(BtcScope.Mainnet);
-      expect(
-        nonEvmNetworkChainIdByAccountAddress(MOCK_BTC_MAINNET_ADDRESS_2),
-      ).toBe(BtcScope.Mainnet);
     });
   });
 

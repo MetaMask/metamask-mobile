@@ -4,64 +4,128 @@ import { SolanaNewFeatureSheetSelectorsIDs } from '../../../e2e/selectors/wallet
 import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 
 
 class SolanaNewFeatureSheet {
+
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
   // Sheet container
   get container() {
-    return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
+    }
   }
 
   // Import Account button
   get importAccountButton() {
-    return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
+    }
   }
 
   get learnMoreButton() {
-    return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
+    }
   }
 
   get notNowButton() {
-    return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
+    }
   }
 
   get addAccountButton() {
-    return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
+    }
   }
 
   get carouselLogo() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
+    }
   }
 
   // Interaction methods
   async tapImportAccountButton() {
-    await Gestures.waitAndTap(this.importAccountButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.importAccountButton);
+    } else {
+      await this.importAccountButton.tap();
+    }
   }
 
   async tapViewAccountButton() {
-    await Gestures.waitAndTap(this.importAccountButton);//Create account testID is used for both create and view account actions
+    if (!this._device) {
+      await Gestures.waitAndTap(this.importAccountButton);//Create account testID is used for both create and view account actions
+    } else {
+      await this.importAccountButton.tap();
+    }
   }
 
   async tapAddAccountButton() {
-    await Gestures.waitAndTap(this.addAccountButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.addAccountButton);
+    } else {
+      await this.addAccountButton.tap();
+    }
   }
 
   async tapLearnMoreButton() {
-    await Gestures.waitAndTap(this.learnMoreButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.learnMoreButton);
+    } else {
+      await this.learnMoreButton.tap();
+    }
   }
 
 
   async tapNotNowButton() {
-    await Gestures.waitAndTap(this.notNowButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.notNowButton);
+    } else {
+      const button = await this.notNowButton;
+      await button.tap();
+    }
   }
 
   async isVisible() {
-    await expect(this.container).toBeDisplayed();
+    if (!this._device) {
+      await expect(this.importAccountButton).toBeDisplayed();
+    } else {
+      const element = await this.importAccountButton;
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async isNotVisible() {
-    await expect(this.container).not.toBeDisplayed();
+    if (!this._device) {
+      await expect(this.container).not.toBeDisplayed();
+    } else {
+      await expect(this.container).not.toBeVisible();
+    }
   }
 
 }

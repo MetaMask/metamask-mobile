@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TextField should render default settings correctly 1`] = `
-<View
+<Component
+  onPress={[Function]}
   style={
     {
       "alignItems": "center",
@@ -30,8 +31,14 @@ exports[`TextField should render default settings correctly 1`] = `
       isStateStylesDisabled={true}
       onBlur={[Function]}
       onFocus={[Function]}
+      style={
+        {
+          "backgroundColor": "inherit",
+          "height": 38,
+        }
+      }
       textVariant="sBodyMD"
     />
   </View>
-</View>
+</Component>
 `;

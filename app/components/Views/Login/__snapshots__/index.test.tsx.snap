@@ -139,37 +139,57 @@ exports[`Login renders matching snapshot 1`] = `
               "flexDirection": "column",
               "justifyContent": "flex-start",
               "marginBottom": 10,
-              "rowGap": 2,
+              "rowGap": 8,
               "width": "100%",
             }
           }
         >
-          <View
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": -4,
               }
             }
+            testID="label"
           >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-              testID="label"
-            >
-              Password
-            </Text>
-          </View>
+            Password
+          </Text>
           <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -201,20 +221,20 @@ exports[`Login renders matching snapshot 1`] = `
                 onChangeText={[Function]}
                 onFocus={[Function]}
                 onSubmitEditing={[Function]}
-                placeholder="Enter password"
-                placeholderTextColor="#9ca1af"
+                placeholder="Enter MetaMask password"
+                placeholderTextColor="#686e7d"
                 returnKeyType="done"
                 secureTextEntry={true}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "inherit",
                     "borderColor": "transparent",
                     "borderWidth": 1,
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
-                    "height": 24,
+                    "height": 46,
                     "letterSpacing": 0,
                     "opacity": 1,
                     "paddingVertical": 0,
@@ -261,7 +281,7 @@ exports[`Login renders matching snapshot 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={true}
-            onPress={[Function]}
+            loading={false}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
@@ -295,24 +315,28 @@ exports[`Login renders matching snapshot 1`] = `
               Unlock
             </Text>
           </TouchableOpacity>
-          <Text
-            accessibilityRole="link"
+          <TouchableOpacity
+            accessibilityRole="button"
             accessible={true}
+            activeOpacity={1}
+            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
+                "alignItems": "center",
+                "alignSelf": "center",
                 "backgroundColor": "transparent",
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
                 "marginVertical": 14,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
               }
             }
-            suppressHighlighting={true}
             testID="reset-wallet-button"
           >
             <Text
@@ -329,7 +353,7 @@ exports[`Login renders matching snapshot 1`] = `
             >
               Forgot password?
             </Text>
-          </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -490,37 +514,57 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               "flexDirection": "column",
               "justifyContent": "flex-start",
               "marginBottom": 10,
-              "rowGap": 2,
+              "rowGap": 8,
               "width": "100%",
             }
           }
         >
-          <View
+          <Text
+            accessibilityRole="text"
             style={
               {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "justifyContent": "space-between",
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "marginBottom": -4,
               }
             }
+            testID="label"
           >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-              testID="label"
-            >
-              Password
-            </Text>
-          </View>
+            Password
+          </Text>
           <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
             style={
               {
                 "alignItems": "center",
@@ -552,20 +596,20 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 onChangeText={[Function]}
                 onFocus={[Function]}
                 onSubmitEditing={[Function]}
-                placeholder="Enter password"
-                placeholderTextColor="#9ca1af"
+                placeholder="Enter MetaMask password"
+                placeholderTextColor="#686e7d"
                 returnKeyType="done"
                 secureTextEntry={true}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "inherit",
                     "borderColor": "transparent",
                     "borderWidth": 1,
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
                     "fontSize": 16,
                     "fontWeight": "400",
-                    "height": 24,
+                    "height": 46,
                     "letterSpacing": 0,
                     "opacity": 1,
                     "paddingVertical": 0,
@@ -612,6 +656,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={false}
+            loading={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -645,24 +690,28 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               Unlock
             </Text>
           </TouchableOpacity>
-          <Text
-            accessibilityRole="link"
+          <TouchableOpacity
+            accessibilityRole="button"
             accessible={true}
+            activeOpacity={1}
+            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
+                "alignItems": "center",
+                "alignSelf": "center",
                 "backgroundColor": "transparent",
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
+                "borderRadius": 12,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
                 "marginVertical": 14,
+                "overflow": "hidden",
+                "paddingHorizontal": 16,
               }
             }
-            suppressHighlighting={true}
             testID="reset-wallet-button"
           >
             <Text
@@ -679,7 +728,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             >
               Forgot password?
             </Text>
-          </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

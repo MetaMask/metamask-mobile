@@ -99,7 +99,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#1c7e33"
+                color="#457a39"
                 fill="currentColor"
                 height={24}
                 name="Check"
@@ -158,7 +158,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#1c7e33"
+                color="#457a39"
                 fill="currentColor"
                 height={24}
                 name="Check"
@@ -217,7 +217,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#1c7e33"
+                color="#457a39"
                 fill="currentColor"
                 height={24}
                 name="Check"

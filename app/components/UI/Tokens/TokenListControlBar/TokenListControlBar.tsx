@@ -1,37 +1,14 @@
-import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import { useTheme } from '../../../../util/theme';
-import createStyles from '../styles';
-import { isTestNet } from '../../../../util/networks';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../../selectors/networkController';
-import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { strings } from '../../../../../locales/i18n';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { selectNetworkName } from '../../../../selectors/networkInfos';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  createTokenBottomSheetFilterNavDetails,
-  createTokensBottomSheetNavDetails,
-} from '../TokensBottomSheet';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import TextComponent, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
+import BaseControlBar from '../../shared/BaseControlBar/BaseControlBar';
+import { useStyles } from '../../../hooks/useStyles';
+import createControlBarStyles from '../../shared/ControlBarStyles';
 
 interface TokenListControlBarProps {
   goToAddToken: () => void;
@@ -40,70 +17,28 @@ interface TokenListControlBarProps {
 export const TokenListControlBar = ({
   goToAddToken,
 }: TokenListControlBarProps) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  const currentChainId = useSelector(selectChainId);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const { styles } = useStyles(createControlBarStyles, undefined);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const networkName = useSelector(selectNetworkName);
 
-  const navigation =
-    useNavigation<
-      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-    >();
-
-  const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
-
-  const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-  }, [navigation]);
-
-  const showSortControls = useCallback(() => {
-    navigation.navigate(...createTokensBottomSheetNavDetails({}));
-  }, [navigation]);
+  const additionalButtons = (
+    <ButtonIcon
+      testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+      size={ButtonIconSizes.Lg}
+      onPress={goToAddToken}
+      iconName={IconName.Add}
+      isDisabled={!isEvmSelected}
+      style={styles.controlIconButton}
+      disabled={!isEvmSelected}
+    />
+  );
 
   return (
-    <View style={styles.actionBarWrapper}>
-      <View style={styles.controlButtonOuterWrapper}>
-        <ButtonBase
-          testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-          label={
-            <TextComponent variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-              {isAllNetworks && isPopularNetwork && isEvmSelected
-                ? strings('wallet.popular_networks')
-                : networkName ?? strings('wallet.current_network')}
-            </TextComponent>
-          }
-          isDisabled={isDisabled}
-          onPress={isEvmSelected ? showFilterControls : () => null}
-          endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
-          style={
-            isDisabled ? styles.controlButtonDisabled : styles.controlButton
-          }
-          disabled={isDisabled}
-        />
-        <View style={styles.controlButtonInnerWrapper}>
-          <ButtonIcon
-            testID={WalletViewSelectorsIDs.SORT_BY}
-            size={ButtonIconSizes.Lg}
-            onPress={showSortControls}
-            iconName={IconName.SwapVertical}
-            style={styles.controlIconButton}
-          />
-          <ButtonIcon
-            testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-            size={ButtonIconSizes.Lg}
-            onPress={goToAddToken}
-            iconName={IconName.Add}
-            isDisabled={!isEvmSelected}
-            style={styles.controlIconButton}
-            disabled={!isEvmSelected}
-          />
-        </View>
-      </View>
-    </View>
+    <BaseControlBar
+      networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
+      additionalButtons={additionalButtons}
+      useEvmSelectionLogic
+      customWrapper="outer"
+    />
   );
 };
 

@@ -1,19 +1,46 @@
 import { StyleSheet } from 'react-native';
-import type { Colors } from '../../../../../util/theme/models';
+import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
+    // Legacy container for backward compatibility
     container: {
       backgroundColor: colors.background.section,
+      borderRadius: 12,
+      marginVertical: 6,
+    },
+    // Container styles for different states
+    expandedContainer: {
+      backgroundColor: colors.background.alternative, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
     },
+    collapsedContainer: {
+      borderRadius: 8,
+      paddingVertical: 12,
+      marginVertical: 2, // Reduced spacing between cards
+    },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: 8,
+      alignItems: 'center',
+    },
+    headerExpanded: {
+      marginBottom: 16, // Extra spacing for expanded cards before the divider
+    },
+    // Icon section styles
+    perpIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
     },
     headerLeft: {
       flex: 1,
@@ -27,19 +54,32 @@ export const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
+    // Right accessory styles
+    rightAccessory: {
+      marginLeft: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     body: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingVertical: 8,
-      marginBottom: 8,
+      paddingVertical: 16,
+      marginBottom: 16,
     },
     bodyRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    bodyRowLast: {
+      marginBottom: 0,
     },
     bodyItem: {
       flex: 1,
       alignItems: 'flex-start',
+    },
+    bodyItemLabel: {
+      marginBottom: 4,
     },
     footer: {
       flexDirection: 'row',
@@ -48,5 +88,9 @@ export const createStyles = (colors: Colors) =>
     },
     footerButton: {
       flex: 1,
+      borderColor: colors.border.default,
     },
   });
+};
+
+export default styleSheet;

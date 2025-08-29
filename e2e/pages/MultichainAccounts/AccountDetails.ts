@@ -1,69 +1,83 @@
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../selectors/MultichainAccounts/AccountDetails.selectors';
 import { ExportCredentialsIds } from '../../selectors/MultichainAccounts/ExportCredentials.selectors';
 
 class AccountDetails {
-  get container() {
+  get container(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
   }
 
-  get shareAddress() {
+  get shareAddress(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK);
   }
 
-  get editAccountName() {
+  get editAccountName(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
   }
 
-  get editWalletName() {
+  get editWalletName(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
   }
 
-  get backButton() {
+  get backButton(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
 
-  get deleteAccountLink() {
+  get deleteAccountLink(): DetoxElement {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
-  get exportPrivateKeyButton() {
+  get exportPrivateKeyButton(): DetoxElement {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get exportSrpButton() {
+  get exportSrpButton(): DetoxElement {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
-  async tapShareAddress() {
-    await Gestures.waitAndTap(this.shareAddress);
+  async tapShareAddress(): Promise<void> {
+    await Gestures.waitAndTap(this.shareAddress, {
+      elemDescription: 'Share Address Link in Account Details',
+    });
   }
 
-  async tapEditAccountName() {
-    await Gestures.waitAndTap(this.editAccountName);
+  async tapEditAccountName(): Promise<void> {
+    await Gestures.waitAndTap(this.editAccountName, {
+      elemDescription: 'Edit Account Name Link in Account Details',
+    });
   }
 
-  async tapEditWalletName() {
-    await Gestures.waitAndTap(this.editWalletName);
+  async tapEditWalletName(): Promise<void> {
+    await Gestures.waitAndTap(this.editWalletName, {
+      elemDescription: 'Edit Wallet Name Link in Account Details',
+    });
   }
 
-  async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button in Account Details',
+    });
   }
 
-  async tapDeleteAccountLink() {
-    await Gestures.waitAndTap(this.deleteAccountLink);
+  async tapDeleteAccountLink(): Promise<void> {
+    await Gestures.waitAndTap(this.deleteAccountLink, {
+      elemDescription: 'Delete Account Link in Account Details',
+    });
   }
 
-  async tapExportPrivateKeyButton() {
-    await Gestures.waitAndTap(this.exportPrivateKeyButton);
+  async tapExportPrivateKeyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.exportPrivateKeyButton, {
+      elemDescription: 'Export Private Key Button in Account Details',
+    });
   }
 
-  async tapExportSrpButton() {
-    await Gestures.waitAndTap(this.exportSrpButton);
+  async tapExportSrpButton(): Promise<void> {
+    await Gestures.waitAndTap(this.exportSrpButton, {
+      elemDescription: 'Export SRP Button in Account Details',
+    });
   }
 }
 

@@ -1,6 +1,6 @@
 import { default as LegacyUIQuoteView } from '../../../pages/swaps/QuoteView';
 import SwapView from '../../../pages/swaps/SwapView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
 
 export async function submitSwapLegacyUI(
@@ -31,21 +31,20 @@ export async function submitSwapLegacyUI(
 
   // Make sure slippage is zero for wrapped tokens
   if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       LegacyUIQuoteView.maxSlippage,
       'Max slippage 0%',
     );
   }
   await LegacyUIQuoteView.tapOnGetQuotes();
-  await Assertions.checkIfVisible(SwapView.quoteSummary);
-  await Assertions.checkIfVisible(SwapView.gasFee);
+  await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
+  await Assertions.expectElementToBeVisible(SwapView.gasFee);
   await SwapView.tapIUnderstandPriceWarning();
   await SwapView.tapSwapButton();
   // Wait for Swap to complete
   try {
-    await Assertions.checkIfTextIsDisplayed(
+    await Assertions.expectTextDisplayed(
       SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-      30000,
     );
   } catch (e) {
     // eslint-disable-next-line no-console

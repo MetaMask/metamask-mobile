@@ -1,4 +1,10 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, StatusBar, Dimensions } from 'react-native';
+
+const IMAGE_MAX_WIDTH = 343;
+const IMAGE_ASPECT_RATIO = 343 / 302;
+const HORIZONTAL_PADDING = 16;
+const CONTAINER_WIDTH = Dimensions.get('window').width - HORIZONTAL_PADDING * 2;
+const WALLET_IMAGE_WIDTH = Math.min(CONTAINER_WIDTH, IMAGE_MAX_WIDTH);
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -7,10 +13,7 @@ const styles = StyleSheet.create({
   root: {
     height: '100%',
     paddingHorizontal: 16,
-    paddingTop: Platform.select({
-      ios: 0,
-      android: 32,
-    }),
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
   },
   content: {
     flex: 1,
@@ -22,6 +25,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 'auto',
     alignSelf: 'center',
     marginVertical: 16,
+    width: WALLET_IMAGE_WIDTH,
+    height: Math.round(WALLET_IMAGE_WIDTH / IMAGE_ASPECT_RATIO),
   },
   description: {
     fontSize: 14,

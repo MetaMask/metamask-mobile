@@ -36,7 +36,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
@@ -129,7 +128,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     showTabs,
     linkType,
     isInTabsView,
-    wizardStep,
     updateTabInfo,
     addToBrowserHistory,
     bookmarks,
@@ -183,18 +181,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const ensIgnoreListRef = useRef<string[]>([]);
     const backgroundBridgeRef = useRef<{
       url: string;
-      hostname: string;
       sendNotificationEip1193: (payload: unknown) => void;
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }>();
     const fromHomepage = useRef(false);
-    const wizardScrollAdjustedRef = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
-      const hostname = new URLParse(resolvedUrlRef.current).hostname;
+      const hostname = new URLParse(resolvedUrlRef.current).origin;
       const permittedAcc = getPermittedEvmAddressesByHostname(
         permissionsControllerState,
         hostname,
@@ -205,7 +201,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       (state: RootState) => {
         const permissionsControllerState =
           selectPermissionControllerState(state);
-        const hostname = new URLParse(resolvedUrlRef.current).hostname;
+        const hostname = new URLParse(resolvedUrlRef.current).origin;
         const permittedAccountIds = getPermittedCaipAccountIdsByHostname(
           permissionsControllerState,
           hostname,
@@ -478,7 +474,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const triggerDappViewedEvent = useCallback((urlToTrigger: string) => {
       const permissionsControllerState =
         Engine.context.PermissionController.state;
-      const hostname = new URLParse(urlToTrigger).hostname;
+      const hostname = new URLParse(urlToTrigger).origin;
       const connectedAccounts = getPermittedCaipAccountIdsByHostname(
         permissionsControllerState,
         hostname,
@@ -676,7 +672,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         return;
       }
       if (!resolvedUrlRef.current) return;
-      const hostname = new URLParse(resolvedUrlRef.current).hostname;
+      const hostname = new URLParse(resolvedUrlRef.current).origin;
       const permissionsControllerState =
         Engine.context.PermissionController.state;
       const permittedAccounts = getPermittedCaipAccountIdsByHostname(
@@ -736,7 +732,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-        const hostName = new URLParse(siteInfo.url).hostname;
+        const hostName = new URLParse(siteInfo.url).origin;
         // Prevent url from being set when the url bar is focused
         !isUrlBarFocused &&
           urlBarRef.current?.setNativeProps({ text: hostName });
@@ -901,6 +897,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Check if any iFrame URLs are prohibited
+     */
+    const checkIFrameUrls = useCallback(
+      async (iframeUrls: string[]) => {
+        for (const iframeUrl of iframeUrls) {
+          const { origin: iframeOrigin } = new URLParse(iframeUrl);
+          const isAllowed = await isAllowedOrigin(iframeOrigin);
+          if (!isAllowed) {
+            handleNotAllowedUrl(iframeOrigin);
+            return;
+          }
+        }
+      },
+      [isAllowedOrigin, handleNotAllowedUrl],
+    );
+
+    /**
      * Handle message from website
      */
     const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
@@ -917,6 +930,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
         const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
         if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
+          return;
+        }
+        if (
+          dataParsed.type === 'IFRAME_DETECTED' &&
+          Array.isArray(dataParsed.iframeUrls) &&
+          dataParsed.iframeUrls.length > 0
+        ) {
+          const validIframeUrls = dataParsed.iframeUrls.filter(
+            (url: unknown): url is string =>
+              typeof url === 'string' && url.trim().length > 0,
+          );
+          if (validIframeUrls.length > 0) {
+            checkIFrameUrls(validIframeUrls);
+          }
           return;
         }
         if (dataParsed.name) {
@@ -947,14 +974,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           webview: webviewRef,
           url: urlBridge,
           getRpcMethodMiddleware: ({
-            hostname,
             getProviderState,
           }: {
-            hostname: string;
             getProviderState: () => void;
           }) =>
             getRpcMethodMiddleware({
-              hostname,
+              hostname: new URL(urlBridge).origin,
               getProviderState,
               navigation,
               // Website info
@@ -966,8 +991,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               // Show autocomplete
               fromHomepage,
               toggleUrlModal,
-              // Wizard
-              wizardScrollAdjusted: wizardScrollAdjustedRef,
               tabId,
               injectHomePageScripts,
               // TODO: This properties were missing, and were not optional
@@ -984,31 +1007,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const sendActiveAccount = useCallback(
       async (targetUrl?: string) => {
-        try {
-          const urlToCheck = targetUrl || resolvedUrlRef.current;
-          if (!urlToCheck) return;
-          const hostname = new URLParse(urlToCheck).hostname;
-          const permissionsControllerState =
-            Engine.context.PermissionController.state;
+        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+        const urlToCheck =
+          targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
 
-          // Get permitted accounts specifically for the target hostname
-          const permittedAccountsForTarget = getPermittedEvmAddressesByHostname(
-            permissionsControllerState,
-            hostname,
-          );
-
-          // Only send account information if the target URL has explicit permissions
-          if (permittedAccountsForTarget.length > 0) {
-            notifyAllConnections({
-              method: NOTIFICATION_NAMES.accountsChanged,
-              params: permittedAccountsForTarget,
-            });
-          }
-        } catch (err) {
-          Logger.log(err as Error, 'Error in sendActiveAccount');
+        if (!urlToCheck) {
+          // If no URL to check, send empty accounts
+          notifyAllConnections({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: [],
+          });
           return;
         }
-        // Use the target URL if provided, otherwise use current resolved URL
+
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        let origin = ''; // notifyAllConnections will return empty array if ''
+        try {
+          origin = new URLParse(urlToCheck).origin;
+        } catch (err) {
+          Logger.log('Error parsing WebView URL', err);
+        }
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          origin,
+        );
+
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
       },
       [notifyAllConnections],
     );
@@ -1027,6 +1056,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           ...webStates.current[nativeEvent.url],
           started: true,
         };
+        if (nativeEvent.url.startsWith('http://')) {
+          /*
+            If the user is initially redirected to the page using the HTTP protocol,
+            which then automatically redirects to HTTPS, we receive `onLoadStart` for the HTTP URL
+            and `onLoadEnd` for the HTTPS URL. In this case, the URL bar will not be updated.
+            To fix this, we also mark the HTTPS version of the URL as started.
+          */
+          const urlWithHttps = nativeEvent.url.replace(
+            regex.urlHttpToHttps,
+            'https://',
+          );
+          webStates.current[urlWithHttps] = {
+            ...webStates.current[urlWithHttps],
+            started: true,
+          };
+        }
 
         // Cancel loading the page if we detect its a phishing page
         const isAllowed = await isAllowedOrigin(urlOrigin);
@@ -1035,8 +1080,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        // Only send active account for the specific URL being navigated to
-        // This ensures we only send account info to sites that have explicit permissions
         sendActiveAccount(nativeEvent.url);
 
         iconRef.current = undefined;
@@ -1216,22 +1259,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       triggerDappViewedEvent(resolvedUrlRef.current);
     }, [onSubmitEditing, triggerDappViewedEvent]);
 
-    /**
-     * Render the onboarding wizard browser step
-     */
-    const renderOnboardingWizard = () => {
-      if ([7].includes(wizardStep)) {
-        if (!wizardScrollAdjustedRef.current) {
-          setTimeout(() => {
-            reload();
-          }, 1);
-          wizardScrollAdjustedRef.current = true;
-        }
-        return <OnboardingWizard navigation={navigation} />;
-      }
-      return null;
-    };
-
     const handleOnFileDownload = useCallback(
       async ({
         nativeEvent: { downloadUrl },
@@ -1299,7 +1326,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       // Unfocus the url bar and hide the autocomplete results
       urlBarRef.current?.hide();
       const hostName =
-        new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
+        new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, []);
 
@@ -1315,7 +1342,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       hideAutocomplete();
       // Reset the url bar to the current url
       const hostName =
-        new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
+        new URLParse(resolvedUrlRef.current).origin || resolvedUrlRef.current;
       urlBarRef.current?.setNativeProps({ text: hostName });
     }, [hideAutocomplete]);
 
@@ -1395,6 +1422,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             event,
           )}`,
         );
+
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
           const payload = {
@@ -1484,6 +1512,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         onShouldStartLoadWithRequest
                       }
                       allowsInlineMediaPlayback
+                      {...(process.env.IS_TEST === 'true'
+                        ? { javaScriptEnabled: true }
+                        : {})}
                       testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                       applicationNameForUserAgent={'WebView MetaMaskMobile'}
                       onFileDownload={handleOnFileDownload}
@@ -1520,7 +1551,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 onNewTabPress={onNewTabPress}
                 toggleOptionsIfNeeded={toggleOptionsIfNeeded}
                 activeUrl={resolvedUrlRef.current}
-                isHomepage={isHomepage}
                 getMaskedUrl={getMaskedUrl}
                 title={titleRef}
                 reload={reload}
@@ -1531,7 +1561,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             )}
 
             {renderBottomBar()}
-            {isTabActive && renderOnboardingWizard()}
           </View>
         </View>
       </ErrorBoundary>
@@ -1544,7 +1573,6 @@ const mapStateToProps = (state: RootState) => ({
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  wizardStep: state.wizard.step,
   activeChainId: selectEvmChainId(state),
 });
 

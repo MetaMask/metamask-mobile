@@ -1,7 +1,10 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -9,7 +12,7 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import { fontStyles } from '../../../styles/common';
+
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import {
@@ -28,7 +31,9 @@ interface AssetElementProps {
   balanceVariant?: TextVariant;
   secondaryBalance?: string;
   secondaryBalanceVariant?: TextVariant;
+  secondaryBalanceColor?: TextColor;
   privacyMode?: boolean;
+  hideSecondaryBalanceInPrivacyMode?: boolean;
   disabled?: boolean;
 }
 
@@ -37,7 +42,6 @@ const createStyles = (colors: Colors) =>
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 16,
       height: 64,
       alignItems: 'center',
     },
@@ -51,7 +55,9 @@ const createStyles = (colors: Colors) =>
     secondaryBalance: {
       color: colors.text.alternative,
       paddingHorizontal: 0,
-      ...fontStyles.normal,
+    },
+    secondaryBalanceCustomColor: {
+      paddingHorizontal: 0,
     },
   });
 
@@ -62,10 +68,12 @@ const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
   secondaryBalance,
+  secondaryBalanceColor,
   asset,
   onPress,
   onLongPress,
   privacyMode = false,
+  hideSecondaryBalanceInPrivacyMode = true,
   disabled = false,
 }) => {
   const { colors } = useTheme();
@@ -98,7 +106,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyMD
+                : TextVariant.BodyMDMedium
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
@@ -115,8 +123,13 @@ const AssetElement: React.FC<AssetElementProps> = ({
         {secondaryBalance ? (
           <SensitiveText
             variant={TextVariant.BodySMMedium}
-            style={styles.secondaryBalance}
-            isHidden={privacyMode}
+            style={
+              secondaryBalanceColor
+                ? styles.secondaryBalanceCustomColor
+                : styles.secondaryBalance
+            }
+            color={secondaryBalanceColor}
+            isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
             length={SensitiveTextLength.Short}
             testID={SECONDARY_BALANCE_TEST_ID}
           >

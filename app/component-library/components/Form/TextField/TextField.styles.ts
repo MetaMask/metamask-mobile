@@ -7,6 +7,8 @@ import { Theme } from '../../../../util/theme/models';
 // Internal dependencies
 import { TextFieldStyleSheetVars } from './TextField.types';
 
+const BORDER_WIDTH = 1;
+
 /**
  * Style sheet function for TextField component.
  *
@@ -30,23 +32,32 @@ const styleSheet = (params: {
   }
 
   return StyleSheet.create({
-    base: Object.assign({
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderRadius: 8,
-      height: Number(size),
-      borderWidth: 1,
-      borderColor,
-      opacity: isDisabled ? 0.5 : 1,
-      paddingHorizontal: 16,
-      backgroundColor: theme.colors.background.default,
-      ...StyleSheet.flatten(style),
-    } as ViewStyle) as ViewStyle,
+    base: Object.assign(
+      {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 8,
+        height: Number(size),
+        borderWidth: BORDER_WIDTH,
+        borderColor,
+        paddingHorizontal: 16,
+        opacity: isDisabled ? 0.5 : 1,
+        backgroundColor: theme.colors.background.default,
+      },
+      StyleSheet.flatten(style),
+    ) as ViewStyle,
     startAccessory: {
       marginRight: 8,
     },
-    input: {
+    inputContainer: {
       flex: 1,
+    },
+    // This is needed to override the background color of the input and inherit configurable parent background color
+    // eslint-disable-next-line react-native/no-color-literals
+    input: {
+      backgroundColor: 'inherit',
+      // subtract border width from height so it won't overflow the container
+      height: Number(size) - BORDER_WIDTH * 2,
     },
     endAccessory: {
       marginLeft: 8,

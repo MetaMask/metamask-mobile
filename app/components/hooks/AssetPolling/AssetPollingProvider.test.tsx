@@ -5,7 +5,6 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
-import useAccountTrackerPolling from './useAccountTrackerPolling';
 
 import { AssetPollingProvider } from './AssetPollingProvider';
 
@@ -16,8 +15,9 @@ jest.mock('./useTokenListPolling', () => jest.fn());
 jest.mock('./useTokenBalancesPolling', () => jest.fn());
 jest.mock('./useAccountTrackerPolling', () => jest.fn());
 
+const CHAIN_IDS_MOCK = ['0x1', '0x2'];
+
 describe('AssetPollingProvider', () => {
-  const mockUseAccountTrackerPolling = jest.mocked(useAccountTrackerPolling);
   const mockUseCurrencyRatePolling = jest.mocked(useCurrencyRatePolling);
   const mockUseTokenRatesPolling = jest.mocked(useTokenRatesPolling);
   const mockUseTokenDetectionPolling = jest.mocked(useTokenDetectionPolling);
@@ -31,7 +31,6 @@ describe('AssetPollingProvider', () => {
   it('calls all polling hooks', () => {
     render(<AssetPollingProvider />);
 
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalled();
     expect(mockUseCurrencyRatePolling).toHaveBeenCalled();
     expect(mockUseTokenRatesPolling).toHaveBeenCalled();
     expect(mockUseTokenDetectionPolling).toHaveBeenCalled();
@@ -42,35 +41,30 @@ describe('AssetPollingProvider', () => {
   it('calls polling hooks with correct params if provided', () => {
     render(
       <AssetPollingProvider
-        chainId="0x1"
-        networkClientId="networkClientId"
+        chainIds={['0x1', '0x2']}
         address="0x1234567890abcdef"
       />,
     );
 
     expect(mockUseCurrencyRatePolling).toHaveBeenCalledWith({
-      chainIds: ['0x1'],
+      chainIds: CHAIN_IDS_MOCK,
     });
 
     expect(mockUseTokenRatesPolling).toHaveBeenCalledWith({
-      chainIds: ['0x1'],
+      chainIds: CHAIN_IDS_MOCK,
     });
 
     expect(mockUseTokenDetectionPolling).toHaveBeenCalledWith({
-      chainIds: ['0x1'],
+      chainIds: CHAIN_IDS_MOCK,
       address: '0x1234567890abcdef',
     });
 
     expect(mockUseTokenListPolling).toHaveBeenCalledWith({
-      chainIds: ['0x1'],
+      chainIds: CHAIN_IDS_MOCK,
     });
 
     expect(mockUseTokenBalancesPolling).toHaveBeenCalledWith({
-      chainIds: ['0x1'],
-    });
-
-    expect(mockUseAccountTrackerPolling).toHaveBeenCalledWith({
-      networkClientIds: ['networkClientId'],
+      chainIds: CHAIN_IDS_MOCK,
     });
   });
 });

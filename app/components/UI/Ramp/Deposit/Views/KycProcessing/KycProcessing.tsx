@@ -33,6 +33,7 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { getCryptoCurrencyFromTransakId } from '../../utils';
 import { KycStatus } from '../../constants';
 import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
@@ -46,10 +47,14 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
+  const trackEvent = useAnalytics();
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
-  const { handleApprovedKycFlow } = useDepositRouting({
+  const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
@@ -73,7 +78,7 @@ const KycProcessing = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.kyc_processing.title') },
+        { title: strings('deposit.kyc_processing.navbar_title') },
         theme,
       ),
     );
@@ -87,24 +92,40 @@ const KycProcessing = () => {
     return () => stopPolling();
   }, [kycForms, startPolling, stopPolling]);
 
-  const handleRetryVerification = useCallback(() => {
-    // TODO: Implement retry logic for KYC verification?
-  }, []);
-
   const handleContinue = useCallback(async () => {
     try {
-      await handleApprovedKycFlow(quote);
+      await routeAfterAuthentication(quote);
     } catch (error) {
       Logger.error(error as Error, {
         message: 'KycProcessing::handleContinue error',
         quote,
       });
     }
-  }, [handleApprovedKycFlow, quote]);
+  }, [routeAfterAuthentication, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
   const kycStatus = userDetails?.kyc?.l1?.status;
+
+  useEffect(() => {
+    if (kycStatus === KycStatus.REJECTED) {
+      trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    } else if (kycStatus === KycStatus.APPROVED) {
+      trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    }
+  }, [
+    kycStatus,
+    hasPendingForms,
+    trackEvent,
+    quote.quoteId,
+    userDetails?.kyc?.l1?.type,
+  ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (
@@ -132,7 +153,7 @@ const KycProcessing = () => {
           <ScreenLayout.Content style={styles.footerContent}>
             <Button
               size={ButtonSize.Lg}
-              onPress={handleRetryVerification}
+              onPress={handleContinue}
               label={strings('deposit.kyc_processing.error_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
