@@ -20,7 +20,7 @@ import Text, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { TokenStandard } from '../../../types/token';
+import { AssetType, TokenStandard } from '../../../types/token';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -44,7 +44,9 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
-  const assetSymbol = asset?.ticker ?? asset?.symbol;
+  const assetSymbol = isNFT
+    ? undefined
+    : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles, theme } = useStyles(styleSheet, {
     inputError: Boolean(amountError),
@@ -102,6 +104,10 @@ export const Amount = () => {
     updateValue,
   ]);
 
+  const balanceUnit =
+    assetSymbol ??
+    (parseInt(balance) === 1 ? strings('send.unit') : strings('send.units'));
+
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
@@ -131,6 +137,7 @@ export const Amount = () => {
               textAlign="right"
               textVariant={TextVariant.DisplayLG}
               value={amount}
+              showSoftInputOnFocus={false}
             />
           </View>
           <Text
@@ -154,9 +161,9 @@ export const Amount = () => {
           </TagBase>
         )}
         <View style={styles.balanceSection}>
-          <Text color={TextColor.Alternative}>{`${balance} ${
-            assetSymbol ?? strings('send.units')
-          } ${strings('send.available')}`}</Text>
+          <Text
+            color={TextColor.Alternative}
+          >{`${balance} ${balanceUnit} ${strings('send.available')}`}</Text>
         </View>
       </View>
       <AmountKeyboard

@@ -161,6 +161,7 @@ const Routes = {
       EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
+      SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
@@ -218,6 +219,7 @@ const Routes = {
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
     TUTORIAL: 'PerpsTutorial',
+    CLOSE_POSITION: 'PerpsClosePosition',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
@@ -274,10 +276,12 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
+    ADDRESS_LIST: 'MultichainAddressList',
+    PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

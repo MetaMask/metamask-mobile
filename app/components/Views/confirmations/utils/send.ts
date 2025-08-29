@@ -1,10 +1,11 @@
 import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
-import { SnapId } from '@metamask/snaps-sdk';
-import { TransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -12,14 +13,10 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
-import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
-
-export const isSendRedesignEnabled = () =>
-  process.env.MM_SEND_REDESIGN_ENABLED === 'true';
 
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
@@ -36,9 +33,10 @@ export const handleSendPageNavigation = (
     params?: object,
   ) => void,
   location: string,
+  isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
 ) => {
-  if (isSendRedesignEnabled()) {
+  if (isSendRedesignEnabled) {
     captureSendStartedEvent(location);
     let screen = Routes.SEND.ASSET;
     if (asset) {
@@ -114,24 +112,22 @@ export const submitEvmTransaction = async ({
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
+
+  let transactionType;
+  if (asset.isNative) {
+    transactionType = TransactionType.simpleSend;
+  } else if (asset.standard === TokenStandard.ERC20) {
+    transactionType = TransactionType.tokenMethodTransfer;
+  } else if (asset.standard === TokenStandard.ERC721) {
+    transactionType = TransactionType.tokenMethodTransferFrom;
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    transactionType = TransactionType.tokenMethodSafeTransferFrom;
+  }
+
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
     networkClientId,
-  });
-};
-
-// todo: we need to figure out passing toAddress, amount also to the snap
-export const submitNonEvmTransaction = async ({
-  asset,
-  fromAccount,
-}: {
-  asset: AssetType;
-  fromAccount: InternalAccount;
-}) => {
-  await sendMultichainTransaction(fromAccount.metadata?.snap?.id as SnapId, {
-    account: fromAccount.id,
-    scope: asset.chainId as CaipChainId,
-    assetId: asset.address as CaipAssetType,
+    type: transactionType,
   });
 };
 

@@ -1,4 +1,4 @@
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -11,7 +11,9 @@ import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAn
 import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { Mockttp } from 'mockttp';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =
@@ -21,9 +23,16 @@ const IMPORTED_ACCOUNT_2_PRIVATE_KEY =
 const IMPORTED_ACCOUNT_0_INDEX = 0;
 const IMPORTED_ACCOUNT_1_INDEX = 1;
 
-describe(Regression('reveal private key'), () => {
+describe(RegressionAccounts('reveal private key'), () => {
   const PASSWORD = '123123123';
   const INCORRECT_PASSWORD = 'wrongpassword';
+
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      remoteFeatureMultichainAccountsAccountDetails(false),
+    );
+  };
 
   it('reveals the correct private key for selected hd account from settings', async () => {
     await withFixtures(
@@ -32,11 +41,7 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -86,11 +91,7 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -132,11 +133,7 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -178,11 +175,7 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();

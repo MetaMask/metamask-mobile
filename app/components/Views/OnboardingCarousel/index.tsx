@@ -53,6 +53,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { lightTheme } from '@metamask/design-tokens';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -148,7 +149,7 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
     bar: {
       width: 10,
       height: 2,
-      backgroundColor: constColors.btnBlack,
+      backgroundColor: lightTheme.colors.text.default,
       opacity: 0.4,
       marginHorizontal: 2,
     },
@@ -168,6 +169,9 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
     metricsData: {
       textAlign: 'center',
       paddingVertical: 16,
+    },
+    blackButton: {
+      backgroundColor: constColors.btnBlack,
     },
   });
 
@@ -387,11 +391,19 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
         <View style={styles.ctas}>
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('onboarding_carousel.get_started')}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={constColors.btnBlackText}
+              >
+                {strings('onboarding_carousel.get_started')}
+              </Text>
+            }
             onPress={onPressGetStarted}
             width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
+            style={styles.blackButton}
           />
         </View>
       </OnboardingScreenWithBg>

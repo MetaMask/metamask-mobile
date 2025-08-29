@@ -238,6 +238,8 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
+import { rewardsControllerInit } from './controllers/rewards-controller';
+import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -294,6 +296,7 @@ export class Engine {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   multichainRouter: MultichainRouter;
+  rewardsDataService: RewardsDataService;
   /**
    * Creates a CoreController instance
    */
@@ -448,10 +451,11 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
+      async ({ chainId, endpointUrl, error }) => {
         onRpcEndpointDegraded({
           chainId,
           endpointUrl,
+          error,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
@@ -1197,6 +1201,7 @@ export class Engine {
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
+        RewardsController: rewardsControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1213,6 +1218,18 @@ export class Engine {
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
     const perpsController = controllersByName.PerpsController;
+    const rewardsController = controllersByName.RewardsController;
+
+    // Initialize and store RewardsDataService
+    this.rewardsDataService = new RewardsDataService({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RewardsDataService',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      fetch,
+    });
+
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.gasFeeController = gasFeeController;
@@ -1276,7 +1293,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-
     // Notify Snaps that the app is active when the Engine is initialized.
     this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
@@ -1454,6 +1470,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1465,6 +1483,10 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1584,6 +1606,7 @@ export class Engine {
       SeedlessOnboardingController: seedlessOnboardingController,
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
+      RewardsController: rewardsController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -2328,6 +2351,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     } = instance.datamodel.state;
 
     return {
@@ -2384,6 +2408,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     };
   },
 

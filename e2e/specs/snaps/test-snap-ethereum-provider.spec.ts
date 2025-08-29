@@ -6,8 +6,10 @@ import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 jest.setTimeout(150_000);
 
@@ -17,8 +19,11 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+          );
         },
       },
       async () => {
