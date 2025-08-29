@@ -25,7 +25,6 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
-// Removed multichain account group naming logic to keep hook lean
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -44,7 +43,6 @@ const useAccounts = ({
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  // Removed account group naming selectors to avoid extra work in a widely used hook
 
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
@@ -168,12 +166,10 @@ const useAccounts = ({
           balanceError: undefined,
         };
 
-        const accountName = internalAccount.metadata.name;
-
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
           id: internalAccount.id,
-          name: accountName,
+          name: internalAccount.metadata.name,
           address: formattedAddress,
           type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
