@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
@@ -12,21 +12,40 @@ import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 const Root = () => {
   const navigation = useNavigation();
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
-  const { checkExistingToken, getStarted, isAuthenticated } = useDepositSDK();
+  const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
 
-  const handleRouting = useCallback(async () => {
-    if (!getStarted) return;
+  useEffect(() => {
+    const initializeFlow = async () => {
+      if (hasCheckedToken.current || !getStarted) return;
 
-    const createdOrder = orders.find(
-      (order) => order.state === FIAT_ORDER_STATES.CREATED,
-    );
+      const isAuthenticatedFromToken = await checkExistingToken();
+      hasCheckedToken.current = true;
 
-    if (createdOrder) {
-      if (!isAuthenticated) {
-        const [routeName, params] = createEnterEmailNavDetails({
-          redirectToRootAfterAuth: true,
+      const createdOrder = orders.find(
+        (order) => order.state === FIAT_ORDER_STATES.CREATED,
+      );
+
+      if (createdOrder) {
+        if (!isAuthenticatedFromToken) {
+          const [routeName, params] = createEnterEmailNavDetails({
+            redirectToRootAfterAuth: true,
+          });
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: routeName,
+                params: { ...params, animationEnabled: false },
+              },
+            ],
+          });
+          return;
+        }
+
+        const [routeName, params] = createBankDetailsNavDetails({
+          orderId: createdOrder.id,
         });
         navigation.reset({
           index: 0,
@@ -34,35 +53,16 @@ const Root = () => {
             { name: routeName, params: { ...params, animationEnabled: false } },
           ],
         });
-        return;
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+        });
       }
-
-      const [routeName, params] = createBankDetailsNavDetails({
-        orderId: createdOrder.id,
-      });
-      navigation.reset({
-        index: 0,
-        routes: [
-          { name: routeName, params: { ...params, animationEnabled: false } },
-        ],
-      });
-    } else {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: initialRoute, params: { animationEnabled: false } }],
-      });
-    }
-  }, [getStarted, isAuthenticated, orders, navigation, initialRoute]);
-
-  useEffect(() => {
-    const initializeFlow = async () => {
-      if (hasCheckedToken.current) return;
-      await checkExistingToken();
-      hasCheckedToken.current = true;
-      await handleRouting();
     };
+
     initializeFlow();
-  }, [checkExistingToken, handleRouting]);
+  }, [checkExistingToken, getStarted, orders, navigation, initialRoute]);
 
   return <GetStarted />;
 };

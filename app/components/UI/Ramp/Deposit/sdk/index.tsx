@@ -171,7 +171,7 @@ export const DepositSDKProvider = ({
       }
       return false;
     } catch (error) {
-      console.error('Error checking existing token:', error);
+      Logger.error(error as Error, 'Error checking existing token:');
       return false;
     }
   }, []);
@@ -190,7 +190,7 @@ export const DepositSDKProvider = ({
         }
         return false;
       } catch (error) {
-        console.error('Error setting auth token:', error);
+        Logger.error(error as Error, 'Error setting auth token:');
         return false;
       }
     },

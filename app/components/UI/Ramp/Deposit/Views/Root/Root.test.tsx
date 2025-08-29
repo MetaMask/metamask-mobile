@@ -13,7 +13,6 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 const mockReset = jest.fn();
 const mockCheckExistingToken = jest.fn();
 let mockGetStarted = true;
-let mockIsAuthenticated = true;
 const mockSelectedRegion = {
   isoCode: 'US',
   flag: '🇺🇸',
@@ -38,7 +37,6 @@ jest.mock('../../sdk', () => {
     useDepositSDK: () => ({
       checkExistingToken: mockCheckExistingToken,
       getStarted: mockGetStarted,
-      isAuthenticated: mockIsAuthenticated,
       selectedRegion: mockSelectedRegion,
     }),
   };
@@ -75,7 +73,6 @@ describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetStarted = true;
-    mockIsAuthenticated = true;
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue([]);
@@ -119,7 +116,7 @@ describe('Root Component', () => {
     });
   });
 
-  it('redirects to bank details when there is a created order', async () => {
+  it('redirects to bank details when there is a created order and user is authenticated', async () => {
     const mockOrders = [
       {
         id: 'test-created-order-id',
@@ -131,7 +128,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(false);
+    mockCheckExistingToken.mockResolvedValue(true); // User is authenticated
     render(Root);
 
     await waitFor(() => {
@@ -162,8 +159,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(false);
-    mockIsAuthenticated = false;
+    mockCheckExistingToken.mockResolvedValue(false); // User is not authenticated
     render(Root);
 
     await waitFor(() => {
