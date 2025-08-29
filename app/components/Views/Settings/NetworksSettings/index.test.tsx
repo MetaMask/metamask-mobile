@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
@@ -40,18 +41,6 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
-
-// Mock react-navigation
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-    }),
-  };
-});
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,9 +106,14 @@ describe('NetworksSettings', () => {
 
   describe('onNetworkPress', () => {
     it('navigates to ADD_NETWORK with correct parameters when network is pressed', () => {
-      // Given a rendered NetworksSettings component
+      // Given a rendered NetworksSettings component with mocked navigation
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByText } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
@@ -139,8 +133,13 @@ describe('NetworksSettings', () => {
 
     it('passes the correct network parameter for custom networks', () => {
       // Given a rendered NetworksSettings component with custom networks
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByText } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
@@ -162,8 +161,13 @@ describe('NetworksSettings', () => {
   describe('onAddNetwork', () => {
     it('navigates to ADD_NETWORK with shouldNetworkSwitchPopToWallet: false when add network button is pressed', () => {
       // Given a rendered NetworksSettings component
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByTestId } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
@@ -182,8 +186,13 @@ describe('NetworksSettings', () => {
 
     it('does not pass network parameter when adding new network', () => {
       // Given a rendered NetworksSettings component
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByTestId } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
@@ -208,8 +217,13 @@ describe('NetworksSettings', () => {
   describe('navigation parameter consistency', () => {
     it('ensures both methods use the same shouldNetworkSwitchPopToWallet value', () => {
       // Given a rendered NetworksSettings component
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByText, getByTestId } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
@@ -236,8 +250,13 @@ describe('NetworksSettings', () => {
 
     it('verifies shouldNetworkSwitchPopToWallet is always false for networks settings', () => {
       // Given a rendered NetworksSettings component
+      const mockNavigation = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      };
+
       const { getByTestId } = renderScreen(
-        NetworksSettings,
+        (props) => <NetworksSettings {...props} navigation={mockNavigation} />,
         { name: 'Network Settings' },
         {
           state: initialState,
