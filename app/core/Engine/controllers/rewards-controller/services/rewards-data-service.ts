@@ -5,6 +5,7 @@ import type {
   LoginResponseDto,
   EstimatePointsDto,
   EstimatedPointsDto,
+  GetPerpsDiscountDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
@@ -25,9 +26,15 @@ export interface RewardsDataServiceEstimatePointsAction {
   handler: RewardsDataService['estimatePoints'];
 }
 
+export interface RewardsDataServiceGetPerpsDiscountAction {
+  type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
+  handler: RewardsDataService['getPerpsDiscount'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
-  | RewardsDataServiceEstimatePointsAction;
+  | RewardsDataServiceEstimatePointsAction
+  | RewardsDataServiceGetPerpsDiscountAction;
 
 type AllowedActions = never;
 
@@ -74,6 +81,10 @@ export class RewardsDataService {
       `${SERVICE_NAME}:estimatePoints`,
       this.estimatePoints.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsDiscount`,
+      this.getPerpsDiscount.bind(this),
+    );
   }
 
   /**
@@ -97,7 +108,7 @@ export class RewardsDataService {
     // Add client identification header (matches web3_clientVersion format)
     try {
       const appVersion = getVersion();
-      headers['metamask-client'] = `${this.#appType}-${appVersion}`;
+      headers['rewards-client-id'] = `${this.#appType}-${appVersion}`;
     } catch (error) {
       // Continue without client header if version retrieval fails
       console.warn('Failed to retrieve app version for client header:', error);
@@ -189,5 +200,25 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as EstimatedPointsDto;
+  }
+
+  /**
+   * Get Perps fee discount for a given address.
+   * @param params - The request parameters containing the CAIP-10 address.
+   * @returns The Perps discount rewards string for the given address.
+   */
+  async getPerpsDiscount(params: GetPerpsDiscountDto): Promise<string> {
+    const response = await this.makeRequest(
+      `/public/rewards/perps-fee-discount/${params.address}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get Perps discount failed: ${response.status}`);
+    }
+
+    return await response.text();
   }
 }

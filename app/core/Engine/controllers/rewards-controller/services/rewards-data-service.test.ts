@@ -110,13 +110,20 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('should register the getPerpsDiscount action handler', () => {
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsDiscount',
+        expect.any(Function),
+      );
+    });
+
     it('should store the messenger and fetch function', () => {
       // Test that the service was created without errors
       expect(rewardsDataService).toBeInstanceOf(RewardsDataService);
     });
 
-    it('should register both action handlers', () => {
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledTimes(2);
+    it('should register all action handlers', () => {
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -148,7 +155,7 @@ describe('RewardsDataService', () => {
           body: JSON.stringify(mockLoginBody),
           headers: {
             'Content-Type': 'application/json',
-            'metamask-client': 'mobile-7.50.1',
+            'rewards-client-id': 'mobile-7.50.1',
           },
           signal: expect.any(AbortSignal),
         },
@@ -246,7 +253,7 @@ describe('RewardsDataService', () => {
             body: JSON.stringify(mockSwapEstimateBody),
             headers: {
               'Content-Type': 'application/json',
-              'metamask-client': 'mobile-7.50.1',
+              'rewards-client-id': 'mobile-7.50.1',
             },
             signal: expect.any(AbortSignal),
           },
@@ -267,7 +274,7 @@ describe('RewardsDataService', () => {
             body: JSON.stringify(mockPerpsEstimateBody),
             headers: {
               'Content-Type': 'application/json',
-              'metamask-client': 'mobile-7.50.1',
+              'rewards-client-id': 'mobile-7.50.1',
             },
             signal: expect.any(AbortSignal),
           },
@@ -629,6 +636,249 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getPerpsDiscount', () => {
+    // CAIP-10 account string for Ethereum mainnet
+    const testAddress = 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6';
+    const mockDiscountResponse = '5.5';
+
+    beforeEach(() => {
+      // Mock successful fetch response
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockResolvedValue(mockDiscountResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    describe('successful requests', () => {
+      it('should successfully get Perps discount for address', async () => {
+        const result = await rewardsDataService.getPerpsDiscount({
+          address: testAddress,
+        });
+
+        expect(result).toEqual(mockDiscountResponse);
+        expect(mockFetch).toHaveBeenCalledWith(
+          `${AppConstants.REWARDS_API_URL}/public/rewards/perps-fee-discount/${testAddress}`,
+          {
+            credentials: 'omit',
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'rewards-client-id': 'mobile-7.50.1',
+            },
+            signal: expect.any(AbortSignal),
+          },
+        );
+      });
+
+      it('should use correct API endpoint with address parameter', async () => {
+        const customAddress = '0x1234567890abcdef1234567890abcdef12345678';
+        await rewardsDataService.getPerpsDiscount({ address: customAddress });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          `https://api.rewards.test/public/rewards/perps-fee-discount/${customAddress}`,
+          expect.any(Object),
+        );
+      });
+
+      it('should use GET method', async () => {
+        await rewardsDataService.getPerpsDiscount({ address: testAddress });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            method: 'GET',
+          }),
+        );
+      });
+
+      it('should set credentials to omit', async () => {
+        await rewardsDataService.getPerpsDiscount({ address: testAddress });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            credentials: 'omit',
+          }),
+        );
+      });
+
+      it('should include proper headers', async () => {
+        await rewardsDataService.getPerpsDiscount({ address: testAddress });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json',
+              'rewards-client-id': 'mobile-7.50.1',
+            }),
+          }),
+        );
+      });
+    });
+
+    describe('error handling', () => {
+      it('should throw error when response is not ok', async () => {
+        const mockResponse = {
+          ok: false,
+          status: 404,
+        } as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Get Perps discount failed: 404');
+      });
+
+      it('should throw error for 400 bad request', async () => {
+        const mockResponse = {
+          ok: false,
+          status: 400,
+        } as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Get Perps discount failed: 400');
+      });
+
+      it('should throw error for 401 unauthorized', async () => {
+        const mockResponse = {
+          ok: false,
+          status: 401,
+        } as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Get Perps discount failed: 401');
+      });
+
+      it('should throw error for 500 server error', async () => {
+        const mockResponse = {
+          ok: false,
+          status: 500,
+        } as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Get Perps discount failed: 500');
+      });
+
+      it('should throw error when fetch fails', async () => {
+        const fetchError = new Error('Network connection failed');
+        mockFetch.mockRejectedValue(fetchError);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Network connection failed');
+      });
+
+      it('should throw error when response text parsing fails', async () => {
+        const mockResponse = {
+          ok: true,
+          text: jest.fn().mockRejectedValue(new Error('Invalid response')),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Invalid response');
+      });
+    });
+
+    describe('timeout handling', () => {
+      it('should handle timeout correctly', async () => {
+        const abortError = new Error('The operation was aborted');
+        abortError.name = 'AbortError';
+        mockFetch.mockRejectedValue(abortError);
+
+        await expect(
+          rewardsDataService.getPerpsDiscount({ address: testAddress }),
+        ).rejects.toThrow('Request timeout after 10000ms');
+      });
+
+      it('should include AbortSignal in request', async () => {
+        await rewardsDataService.getPerpsDiscount({ address: testAddress });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.any(String),
+          expect.objectContaining({
+            signal: expect.any(AbortSignal),
+          }),
+        );
+      });
+    });
+
+    describe('response parsing', () => {
+      it('should parse successful text response correctly', async () => {
+        const customDiscountResponse = '10.25';
+        const mockResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(customDiscountResponse),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        const result = await rewardsDataService.getPerpsDiscount({
+          address: testAddress,
+        });
+
+        expect(result).toEqual(customDiscountResponse);
+        expect(result).toBe('10.25');
+      });
+
+      it('should handle zero discount response', async () => {
+        const zeroDiscountResponse = '0';
+        const mockResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(zeroDiscountResponse),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        const result = await rewardsDataService.getPerpsDiscount({
+          address: testAddress,
+        });
+
+        expect(result).toEqual(zeroDiscountResponse);
+        expect(result).toBe('0');
+      });
+
+      it('should handle empty string response', async () => {
+        const emptyResponse = '';
+        const mockResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(emptyResponse),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        const result = await rewardsDataService.getPerpsDiscount({
+          address: testAddress,
+        });
+
+        expect(result).toEqual(emptyResponse);
+        expect(result).toBe('');
+      });
+
+      it('should handle numeric string responses', async () => {
+        const numericResponse = '123.45';
+        const mockResponse = {
+          ok: true,
+          text: jest.fn().mockResolvedValue(numericResponse),
+        } as unknown as Response;
+        mockFetch.mockResolvedValue(mockResponse);
+
+        const result = await rewardsDataService.getPerpsDiscount({
+          address: testAddress,
+        });
+
+        expect(result).toEqual(numericResponse);
+        expect(typeof result).toBe('string');
+      });
+    });
+  });
+
   describe('authentication integration', () => {
     it('should make requests without authentication by default', async () => {
       const mockResponse = {
@@ -646,7 +896,7 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           headers: {
             'Content-Type': 'application/json',
-            'metamask-client': 'mobile-7.50.1',
+            'rewards-client-id': 'mobile-7.50.1',
             // Should not include rewards-api-key header
           },
         }),
@@ -685,7 +935,7 @@ describe('RewardsDataService', () => {
   });
 
   describe('Client Header', () => {
-    it('should include metamask-client header in requests', async () => {
+    it('should include rewards-client-id header in requests', async () => {
       // Mock successful response
       const mockResponse = {
         ok: true,
@@ -704,7 +954,7 @@ describe('RewardsDataService', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'metamask-client': 'mobile-7.50.1',
+            'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
       );
@@ -741,9 +991,9 @@ describe('RewardsDataService', () => {
         }),
       );
 
-      // Should not include metamask-client header when version retrieval fails
+      // Should not include rewards-client-id header when version retrieval fails
       const callArgs = mockFetch.mock.calls[0][1];
-      expect(callArgs?.headers).not.toHaveProperty('metamask-client');
+      expect(callArgs?.headers).not.toHaveProperty('rewards-client-id');
 
       // Restore original function
       require('react-native-device-info').getVersion = originalGetVersion;

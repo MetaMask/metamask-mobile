@@ -193,6 +193,17 @@ export interface RewardsControllerGetLastAuthenticatedAccountAction {
 }
 
 /**
+ * Request for getting Perps discount
+ */
+export interface GetPerpsDiscountDto {
+  /**
+   * Account address in CAIP-10 format
+   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
+   */
+  address: string;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
