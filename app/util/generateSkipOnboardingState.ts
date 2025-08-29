@@ -2,7 +2,6 @@ import StorageWrapper from '../store/storage-wrapper';
 import { seedphraseBackedUp } from '../actions/user';
 import {
   OPTIN_META_METRICS_UI_SEEN,
-  SOLANA_FEATURE_MODAL_SHOWN,
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
@@ -90,8 +89,6 @@ async function applyVaultInitialization() {
     // removes the necessity of the user to see the privacy policy modal
     store.dispatch(storePrivacyPolicyClickedOrClosed());
 
-    // removes the necessity of the user to see the solana feature modal
-    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     // removes the necessity of the user to see the terms of use modal
     await StorageWrapper.setItem(USE_TERMS, TRUE);
 
