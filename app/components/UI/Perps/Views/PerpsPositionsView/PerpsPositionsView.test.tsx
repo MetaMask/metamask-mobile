@@ -428,10 +428,9 @@ describe('PerpsPositionsView', () => {
     });
 
     // The close position flow is integrated into the component through
-    // the handleClosePositionClick function which is passed to PerpsPositionCard
-    // as the onClose prop. This function sets the selected position and opens
-    // the PerpsClosePositionBottomSheet. The actual testing of this flow
-    // is covered by the PerpsClosePositionBottomSheet tests.
+    // the close button in PerpsPositionCard navigates to the close position screen.
+    // The navigation and close position flow is now handled by the
+    // PerpsClosePositionView screen.
 
     it('refreshes positions after successful close', async () => {
       // Mock successful close

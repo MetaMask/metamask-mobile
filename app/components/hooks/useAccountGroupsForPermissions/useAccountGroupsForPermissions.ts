@@ -62,54 +62,21 @@ const hasSupportedScopes = (
 };
 
 /**
- * Checks if an account group fulfills the requested CAIP account IDs
- *
- * @param accountGroup - Account group to check for requested account IDs
- * @param requestedCaipAccountIds - Array of requested CAIP account IDs to match against
- * @returns True if any account in the group matches the requested CAIP account IDs
- */
-const fulfillsRequestedAccountIds = (
-  accountGroup: AccountGroupWithInternalAccounts,
-  requestedCaipAccountIds: CaipAccountId[],
-): boolean => {
-  if (!requestedCaipAccountIds.length || accountGroup.accounts.length === 0) {
-    return false;
-  }
-
-  return accountGroup.accounts.some((account) => {
-    try {
-      return isInternalAccountInPermittedAccountIds(
-        account,
-        requestedCaipAccountIds,
-      );
-    } catch {
-      return false;
-    }
-  });
-};
-
-/**
  * Hook that manages account groups for CAIP-25 permissions, providing both connected
- * and supported account groups based on existing permissions, requested chains/namespaces,
- * and specific account IDs with prioritization support.
+ * and supported account groups based on existing permissions and requested chains/namespaces.
  *
  * This hook handles the complex logic of:
  * - Filtering account groups that support requested chains/namespaces
- * - Prioritizing account groups that fulfill specific requested account IDs
  * - Mapping existing CAIP-25 permissions to account groups
  * - Converting between different account ID formats
- * - Preventing duplicate account groups in results
  *
  * @param existingPermission - The current CAIP-25 caveat value containing existing permissions
- * @param requestedCaipAccountIds - Array of specific CAIP account IDs being requested (prioritized in results)
  * @param requestedCaipChainIds - Array of CAIP chain IDs being requested for permission
  * @param requestedNamespacesWithoutWallet - Array of CAIP namespaces being requested (excluding wallet namespace)
- * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs.
- *          Account groups that fulfill requestedCaipAccountIds appear first in both arrays.
+ * @returns Object containing connected account groups, supported account groups, and existing connected CAIP account IDs
  */
 export const useAccountGroupsForPermissions = (
   existingPermission: Caip25CaveatValue,
-  requestedCaipAccountIds: CaipAccountId[],
   requestedCaipChainIds: CaipChainId[],
   requestedNamespacesWithoutWallet: CaipNamespace[],
 ) => {
@@ -124,58 +91,44 @@ export const useAccountGroupsForPermissions = (
       getCaipAccountIdsFromCaip25CaveatValue(existingPermission);
     const requestedNamespaceSet = new Set(requestedNamespacesWithoutWallet);
 
-    const connectedAccountGroups: AccountGroupWithInternalAccounts[] = [];
-    const supportedAccountGroups: AccountGroupWithInternalAccounts[] = [];
-    // Priority groups are groups that fulfill the requested account IDs and should be shown first
-    const priorityConnectedGroups: AccountGroupWithInternalAccounts[] = [];
-    const prioritySupportedGroups: AccountGroupWithInternalAccounts[] = [];
+    const { filteredConnectedAccountGroups, filteredSupportedAccountGroups } =
+      accountGroups.reduce(
+        (acc, accountGroup) => {
+          const isConnected = hasConnectedAccounts(
+            accountGroup,
+            connectedAccountIds,
+          );
+          const isSupported = hasSupportedScopes(
+            accountGroup,
+            requestedCaipChainIds,
+            requestedNamespaceSet,
+          );
 
-    accountGroups.forEach((accountGroup) => {
-      const isConnected = hasConnectedAccounts(
-        accountGroup,
-        connectedAccountIds,
-      );
-      const isSupported = hasSupportedScopes(
-        accountGroup,
-        requestedCaipChainIds,
-        requestedNamespaceSet,
-      );
-      const fulfillsRequestedAccounts = fulfillsRequestedAccountIds(
-        accountGroup,
-        requestedCaipAccountIds,
-      );
+          if (isConnected) {
+            acc.filteredConnectedAccountGroups.push(accountGroup);
+          }
+          if (isSupported) {
+            acc.filteredSupportedAccountGroups.push(accountGroup);
+          }
 
-      if (isConnected) {
-        if (fulfillsRequestedAccounts) {
-          priorityConnectedGroups.push(accountGroup);
-        } else {
-          connectedAccountGroups.push(accountGroup);
-        }
-      }
-      if (isSupported || fulfillsRequestedAccounts) {
-        if (fulfillsRequestedAccounts) {
-          prioritySupportedGroups.push(accountGroup);
-        } else if (isSupported) {
-          supportedAccountGroups.push(accountGroup);
-        }
-      }
-    });
+          return acc;
+        },
+        {
+          filteredConnectedAccountGroups:
+            [] as AccountGroupWithInternalAccounts[],
+          filteredSupportedAccountGroups:
+            [] as AccountGroupWithInternalAccounts[],
+        },
+      );
 
     return {
-      supportedAccountGroups: [
-        ...prioritySupportedGroups,
-        ...supportedAccountGroups,
-      ],
-      connectedAccountGroups: [
-        ...priorityConnectedGroups,
-        ...connectedAccountGroups,
-      ],
+      supportedAccountGroups: filteredSupportedAccountGroups,
+      connectedAccountGroups: filteredConnectedAccountGroups,
       connectedCaipAccountIds: connectedAccountIds,
     };
   }, [
     existingPermission,
     accountGroups,
-    requestedCaipAccountIds,
     requestedCaipChainIds,
     requestedNamespacesWithoutWallet,
   ]);

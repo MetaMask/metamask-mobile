@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, SafeAreaView } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
@@ -30,6 +30,7 @@ import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupWithInternalAccounts } from '../../../../../selectors/multichainAccounts/accounts.type';
 import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface MultichainAccountConnectMultiSelectorProps {
   accountGroups: AccountGroupWithInternalAccounts[];
@@ -58,55 +59,46 @@ const MultichainAccountConnectMultiSelector = ({
 }: MultichainAccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
 
-  const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
-    AccountGroupId[]
-  >([]);
+  const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
+    Set<AccountGroupId>
+  >(() => new Set());
+
+  useEffect(() => {
+    setSelectedAccountGroupIdsSet(new Set(defaultSelectedAccountGroupIds));
+  }, [defaultSelectedAccountGroupIds]);
 
   const accountGroups = useSelector(selectAccountGroups);
 
-  const selectedAccountGroups = useMemo(
-    () =>
-      accountGroups.filter((group) =>
-        selectedAccountGroupIds.includes(group.id),
-      ),
-    [accountGroups, selectedAccountGroupIds],
-  );
-
-  useEffect(() => {
-    setSelectedAccountGroupIds(defaultSelectedAccountGroupIds);
-  }, [setSelectedAccountGroupIds, defaultSelectedAccountGroupIds]);
-
   const onSelectAccountGroupId = useCallback(
     (accountGroup: AccountGroupObject) => {
-      const updatedSelectedAccountGroupIds = selectedAccountGroupIds.filter(
-        (selectedAccountGroupId: AccountGroupId) =>
-          selectedAccountGroupId !== accountGroup.id,
-      );
-
-      if (
-        updatedSelectedAccountGroupIds.length === selectedAccountGroupIds.length
-      ) {
-        setSelectedAccountGroupIds([
-          ...selectedAccountGroupIds,
-          accountGroup.id,
-        ]);
-      } else {
-        setSelectedAccountGroupIds(updatedSelectedAccountGroupIds);
-      }
+      setSelectedAccountGroupIdsSet((prev) => {
+        const next = new Set(prev);
+        if (next.has(accountGroup.id)) {
+          next.delete(accountGroup.id);
+        } else {
+          next.add(accountGroup.id);
+        }
+        return next;
+      });
     },
-    [selectedAccountGroupIds, setSelectedAccountGroupIds],
+    [],
+  );
+
+  const areAnyAccountsSelected = selectedAccountGroupIdsSet.size !== 0;
+  const areNoAccountsSelected = selectedAccountGroupIdsSet.size === 0;
+
+  const selectedAccountGroups = useMemo(
+    () => accountGroups.filter((g) => selectedAccountGroupIdsSet.has(g.id)),
+    [accountGroups, selectedAccountGroupIdsSet],
   );
 
   const handleSubmit = useCallback(() => {
-    onSubmit(selectedAccountGroupIds);
-  }, [onSubmit, selectedAccountGroupIds]);
+    onSubmit(Array.from(selectedAccountGroupIdsSet));
+  }, [onSubmit, selectedAccountGroupIdsSet]);
 
   const handleDisconnect = useCallback(() => {
     onSubmit([]);
   }, [onSubmit]);
-
-  const areAnyAccountsSelected = selectedAccountGroupIds?.length !== 0;
-  const areNoAccountsSelected = selectedAccountGroupIds?.length === 0;
 
   const renderCtaButtons = useCallback(
     () => (
@@ -181,8 +173,10 @@ const MultichainAccountConnectMultiSelector = ({
           <View style={styles.sdkInfoContainer}>
             <View style={styles.sdkInfoDivier} />
             <Text color={TextColor.Muted}>
-              SDK {connection?.originatorInfo?.platform} v
-              {connection?.originatorInfo?.apiVersion}
+              {strings('permissions.sdk_connection', {
+                originator_platform: connection?.originatorInfo?.platform,
+                api_version: connection?.originatorInfo?.apiVersion,
+              })}
             </Text>
           </View>
         )}

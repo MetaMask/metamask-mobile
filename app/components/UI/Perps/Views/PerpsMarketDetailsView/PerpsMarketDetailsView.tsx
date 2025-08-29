@@ -66,6 +66,8 @@ import { isNotificationsFeatureEnabled } from '../../../../../util/notifications
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
+import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   isNavigationFromOrderSuccess?: boolean;
@@ -88,6 +90,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
   }, [startMeasure]);
 
+  // Set navigation header with proper back button
+  useEffect(() => {
+    if (market) {
+      navigation.setOptions(
+        getPerpsMarketDetailsNavbar(navigation, market.symbol),
+      );
+    }
+  }, [navigation, market]);
+
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_HOUR,
   );
@@ -99,7 +110,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
-  const [activeTabId, setActiveTabId] = useState('position');
   const [refreshing, setRefreshing] = useState(false);
 
   const account = usePerpsAccount();
@@ -108,7 +118,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { depositWithConfirmation } = usePerpsTrading();
 
   // Get real-time open orders via WebSocket
-  const ordersData = usePerpsLiveOrders(); // Instant updates (no debouncing)
+  const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
@@ -133,14 +143,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
 
   // Check if user has an existing position for this market
-  const {
-    isLoading: isLoadingPosition,
-    existingPosition,
-    refreshPosition,
-  } = useHasExistingPosition({
-    asset: market?.symbol || '',
-    loadOnMount: true,
-  });
+  const { isLoading: isLoadingPosition, existingPosition } =
+    useHasExistingPosition({
+      asset: market?.symbol || '',
+      loadOnMount: true,
+    });
 
   // Track screen load and position data loaded
   useEffect(() => {
@@ -208,50 +215,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
-      // Always refresh chart data regardless of active tab
+      // Only refresh candle data
+      // Position and market stats update automatically via WebSocket
       if (candleData) {
         await refreshCandleData();
       }
-
-      switch (activeTabId) {
-        case 'position':
-          // Refresh position data
-          await refreshPosition();
-          break;
-
-        case 'orders':
-          // Orders update automatically via WebSocket, no refresh needed
-          break;
-
-        case 'statistics':
-          // Refresh market statistics (24h high/low from candle data)
-          await marketStats.refresh();
-          // Also refresh position as it affects some stats
-          await refreshPosition();
-          break;
-
-        default:
-          // Fallback: refresh position
-          await refreshPosition();
-      }
     } catch (error) {
-      console.error(`Failed to refresh ${activeTabId} data:`, error);
+      console.error('Failed to refresh candle data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    activeTabId,
-    refreshPosition,
-    marketStats,
-    candleData,
-    refreshCandleData,
-  ]);
+  }, [candleData, refreshCandleData]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      // Fallback to markets list if no previous screen
+      navigation.navigate(Routes.PERPS.MARKETS);
+    }
   };
 
   const handleLongPress = () => {
@@ -380,8 +365,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
-              onPositionUpdate={refreshPosition}
-              onActiveTabChange={setActiveTabId}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />
