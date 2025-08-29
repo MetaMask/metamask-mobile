@@ -1,7 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
-import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
 import { createLogger } from '../framework/logger';
-import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
+import {
+  findMatchingPostEvent,
+  processPostRequestBody,
+} from './helpers/mockHelpers';
 import {
   MockApiEndpoint,
   MockEventsObject,
@@ -306,11 +310,11 @@ export const validateLiveRequests = (mockServer: MockServer): void => {
 
     const totalCount = mockServer._liveRequests.length;
     const uniqueCount = uniqueRequests.length;
-    // This is temporary, we will remove this in the future when we expect no unknown live request to happen in a test
-    logger.warn(
+    const message =
       `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
-        "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.",
-    );
+      "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.";
+    logger.error(message);
+    throw new Error(message);
   }
 };
 

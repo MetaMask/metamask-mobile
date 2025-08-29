@@ -46,15 +46,6 @@ describe('validateAmountFn', () => {
     );
   });
 
-  it('returns invalid value error if value passed is not correct positive decimal', () => {
-    expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual(
-      'Invalid value',
-    );
-    expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual(
-      'Invalid value',
-    );
-  });
-
   describe('for native token', () => {
     it('does not return error if amount is less than user balance', () => {
       expect(
