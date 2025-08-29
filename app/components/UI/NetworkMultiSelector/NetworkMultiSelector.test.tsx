@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { NetworkEnablementController } from '@metamask/network-enablement-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -110,6 +110,9 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
     TextVariant: {
       BodyMD: 'BodyMD',
     },
+    TextColor: {
+      Default: 'Default',
+    },
   };
 });
 
@@ -164,7 +167,7 @@ describe('NetworkMultiSelector', () => {
       networkEnablementController: {} as NetworkEnablementController,
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
-      toggleNetwork: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
@@ -184,7 +187,7 @@ describe('NetworkMultiSelector', () => {
       selectCustomNetwork: jest.fn(),
       selectNetwork: jest.fn(),
       deselectAll: jest.fn(),
-      toggleAll: mockToggleAll,
+      selectAllPopularNetworks: mockToggleAll,
       resetCustomNetworks: jest.fn(),
       customNetworksToReset: [],
     });
@@ -220,66 +223,11 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('renders select all text', () => {
-      const { getByTestId } = render(
-        <NetworkMultiSelector openModal={mockOpenModal} />,
-      );
-      expect(
-        getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT),
-      ).toBeTruthy();
-    });
-
     it('renders NetworkMultiSelectorList', () => {
       const { getByTestId } = render(
         <NetworkMultiSelector openModal={mockOpenModal} />,
       );
       expect(getByTestId('mock-network-multi-selector-list')).toBeTruthy();
-    });
-  });
-
-  describe('select all functionality', () => {
-    it('displays "select all" text when not all networks are selected', () => {
-      const { getByTestId } = render(
-        <NetworkMultiSelector openModal={mockOpenModal} />,
-      );
-
-      const selectAllText = getByTestId(
-        NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT,
-      );
-      expect(selectAllText.props.children).toBe('networks.select_all');
-    });
-
-    it('displays "deselect all" text when all networks are selected', () => {
-      mockUseNetworksByNamespace.mockReturnValue({
-        networks: mockNetworks,
-        selectedNetworks: mockNetworks,
-        selectedCount: 2,
-        areAllNetworksSelected: true,
-        areAnyNetworksSelected: true,
-        networkCount: 2,
-      });
-
-      const { getByTestId } = render(
-        <NetworkMultiSelector openModal={mockOpenModal} />,
-      );
-
-      const selectAllText = getByTestId(
-        NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT,
-      );
-      expect(selectAllText.props.children).toBe('networks.deselect_all');
-    });
-
-    it('calls toggleAll when select all text is pressed', () => {
-      const { getByTestId } = render(
-        <NetworkMultiSelector openModal={mockOpenModal} />,
-      );
-
-      const selectAllText = getByTestId(
-        NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT,
-      );
-      fireEvent.press(selectAllText);
-
-      expect(mockToggleAll).toHaveBeenCalled();
     });
   });
 
@@ -304,7 +252,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -339,7 +287,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -397,7 +345,7 @@ describe('NetworkMultiSelector', () => {
         networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),

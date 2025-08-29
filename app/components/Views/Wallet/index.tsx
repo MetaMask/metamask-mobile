@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import {
   ActivityIndicator,
   Linking,
@@ -20,7 +21,6 @@ import ScrollableTabView, {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import TabBar from '../../../component-library/components-temp/TabBar';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
@@ -28,7 +28,6 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../reducers/legalNotices';
-import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
@@ -116,8 +115,8 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
-  selectTokenNetworkFilter,
   selectUseTokenDetection,
+  selectTokenNetworkFilter,
 } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
@@ -160,7 +159,6 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
-import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -429,9 +427,6 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const solanaOnboardingModalEnabled = useSelector(
-    selectSolanaOnboardingModalEnabled,
-  );
 
   /**
    * Object containing the balance of the current selected account
@@ -448,6 +443,17 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const enabledNetworksHasTestNet = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return enabledNetworks.some((network) => isTestNet(network));
+    }
+    return Object.keys(tokenNetworkFilter).some((network) =>
+      isTestNet(network),
+    );
+  }, [enabledNetworks, tokenNetworkFilter]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -600,24 +606,6 @@ const Wallet = ({
     navigate,
   ]);
 
-  const checkAndNavigateToSolanaFeature = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(
-      SOLANA_FEATURE_MODAL_SHOWN,
-    );
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
-    }
-  }, [navigate]);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  useEffect(() => {
-    if (solanaOnboardingModalEnabled) {
-      checkAndNavigateToSolanaFeature();
-    }
-  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
-  ///: END:ONLY_INCLUDE_IF
-
   useEffect(() => {
     addTraitsToUser({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
@@ -709,7 +697,6 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -774,7 +761,7 @@ const Wallet = ({
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
     handleNetworkFilter();
@@ -1060,7 +1047,7 @@ const Wallet = ({
 
   const defiEnabled =
     isEvmSelected &&
-    !isTestNet(chainId) &&
+    !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 

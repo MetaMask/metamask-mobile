@@ -585,6 +585,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           [
                                             {
                                               "backgroundColor": "inherit",
+                                              "height": 38,
                                             },
                                             {
                                               "flex": 1,

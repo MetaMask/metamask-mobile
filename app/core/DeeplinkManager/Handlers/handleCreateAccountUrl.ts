@@ -85,6 +85,9 @@ export function handleCreateAccountUrl({
 
   // if there are account in scope bu non of them have funds, navigate to ramps
   navigation.navigate(Routes.RAMP.BUY, {
-    chainId,
+    screen: Routes.RAMP.GET_STARTED,
+    params: {
+      chainId,
+    },
   });
 }

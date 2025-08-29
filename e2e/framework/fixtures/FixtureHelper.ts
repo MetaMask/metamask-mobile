@@ -18,6 +18,7 @@ import {
   stopMockServer,
   validateLiveRequests,
 } from '../../api-mocking/mock-server';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -343,6 +344,10 @@ export const createMockAPIServer = async (
 
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
+
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);

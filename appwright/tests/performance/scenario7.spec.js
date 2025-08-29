@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -9,7 +9,6 @@ import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/Creat
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
@@ -35,7 +34,6 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   OnboardingSheet.device = device;
-  SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   ImportFromSeedScreen.device = device;
@@ -50,25 +48,25 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworksScreen.device = device;
   BridgeScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
   timer1.start();
 
-  await WalletActionModal.tapBridgeButton();
+  await WalletMainScreen.tapSwapButton();
   await BridgeScreen.isVisible();
   timer1.stop();
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
-  await BridgeScreen.enterSourceTokenAmount('0.0001');
+  await BridgeScreen.enterSourceTokenAmount('0.001');
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
 
   timer2.start();
-  await BridgeScreen.isQuoteDisplayed('Solana');
+  await BridgeScreen.isQuoteDisplayed();
   timer2.stop();
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);

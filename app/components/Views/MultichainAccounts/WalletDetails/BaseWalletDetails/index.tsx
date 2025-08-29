@@ -71,7 +71,7 @@ export const BaseWalletDetails = ({
   );
 
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
-    useWalletBalances(accounts);
+    useWalletBalances(wallet.id);
 
   const accountAvatarType = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
@@ -145,10 +145,8 @@ export const BaseWalletDetails = ({
     index: number;
   }) => {
     const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
-    const balanceData = multichainBalancesForAllAccounts[account.id];
-    const isAccountBalanceLoading =
-      !balanceData || balanceData.isLoadingAccount;
-    const accountBalance = balanceData?.displayBalance;
+    const accountBalance = multichainBalancesForAllAccounts[account.id];
+    const isAccountBalanceLoading = !accountBalance;
 
     return (
       <AccountItem

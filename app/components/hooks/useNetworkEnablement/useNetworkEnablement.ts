@@ -24,14 +24,12 @@ import { selectChainId } from '../../../selectors/networkController';
  * ```tsx
  * const {
  *   enableNetwork,
- *   toggleNetwork,
  *   tryEnableEvmNetwork,
  *   isNetworkEnabled
  * } = useNetworkEnablement();
  *
  * // Direct network operations
  * enableNetwork('eip155:1'); // Enable Ethereum mainnet
- * toggleNetwork('eip155:137'); // Toggle Polygon on/off
  *
  * // Conditional enablement for transactions/swaps
  * tryEnableEvmNetwork('0x1'); // Enable if global selector is enabled and network is disabled
@@ -67,6 +65,13 @@ export const useNetworkEnablement = () => {
     [networkEnablementController],
   );
 
+  const enableAllPopularNetworks = useMemo(
+    () => () => {
+      networkEnablementController.enableAllPopularNetworks();
+    },
+    [networkEnablementController],
+  );
+
   const hasOneEnabledNetwork = useMemo(
     () =>
       Object.values(enabledNetworksForCurrentNamespace).filter(Boolean)
@@ -97,19 +102,6 @@ export const useNetworkEnablement = () => {
     [enabledNetworksByNamespace],
   );
 
-  const toggleNetwork = useMemo(
-    () => (chainId: CaipChainId) => {
-      const networkEnabled = isNetworkEnabled(chainId);
-
-      if (networkEnabled) {
-        disableNetwork(chainId);
-      } else {
-        enableNetwork(chainId);
-      }
-    },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
-  );
-
   const tryEnableEvmNetwork = useCallback(
     (chainId?: string) => {
       if (chainId && isHexString(chainId)) {
@@ -130,7 +122,7 @@ export const useNetworkEnablement = () => {
     networkEnablementController,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
+    enableAllPopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
     tryEnableEvmNetwork,

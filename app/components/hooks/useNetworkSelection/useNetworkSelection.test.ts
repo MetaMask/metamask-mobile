@@ -128,8 +128,8 @@ describe('useNetworkSelection', () => {
       disableNetwork: mockDisableNetwork,
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
-      toggleNetwork: mockEnableAllPopularNetworks,
-      tryEnableEvmNetwork: jest.fn(),
+      enableAllPopularNetworks: mockEnableAllPopularNetworks,
+      tryEnableEvmNetwork: jest.fn,
     });
 
     mockUseSelector.mockReturnValue(mockPopularNetworkConfigurations);
@@ -224,7 +224,7 @@ describe('useNetworkSelection', () => {
         >['networkEnablementController'],
         enableNetwork: mockEnableNetwork,
         disableNetwork: mockDisableNetwork,
-        toggleNetwork: mockEnableAllPopularNetworks,
+        enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -274,7 +274,7 @@ describe('useNetworkSelection', () => {
         >['networkEnablementController'],
         enableNetwork: mockEnableNetwork,
         disableNetwork: mockDisableNetwork,
-        toggleNetwork: mockEnableAllPopularNetworks,
+        enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -418,7 +418,7 @@ describe('useNetworkSelection', () => {
         >['networkEnablementController'],
         enableNetwork: mockEnableNetwork,
         disableNetwork: mockDisableNetwork,
-        toggleNetwork: mockEnableAllPopularNetworks,
+        enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
