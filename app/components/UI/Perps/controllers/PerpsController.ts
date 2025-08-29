@@ -68,6 +68,8 @@ import type {
   HistoricalPortfolioResult,
 } from './types';
 import { getEnvironment } from './utils';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
+import type { RemoteFeatureFlagControllerStateChangeEvent } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.d.cts';
 
 /**
  * Error codes for PerpsController
@@ -93,9 +95,6 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
   DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
   PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
 };
-
-// Unknown is the default/fallback in case the location API call fails
-const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
 // Temporary to avoids estimation failures due to insufficient balance.
 const DEPOSIT_GAS_LIMIT = toHex(100000);
@@ -324,7 +323,8 @@ export type AllowedActions =
 export type AllowedEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent;
+  | TransactionControllerTransactionFailedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
 /**
  * PerpsController messenger constraints
@@ -371,6 +371,12 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
+    // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
+    this.messagingSystem.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      this.refreshEligibilityOnFeatureFlagChange.bind(this),
+    );
+
     this.providers = new Map();
 
     this.initializeProviders().catch((error) => {
@@ -382,16 +388,34 @@ export class PerpsController extends BaseController<
         timestamp: new Date().toISOString(),
       });
     });
+  }
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PerpsController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
+  /**
+   * Respond to RemoteFeatureFlagController state changes
+   * Refreshes user eligibility based on geo-blocked regions defined in remote feature flag.
+   */
+  private refreshEligibilityOnFeatureFlagChange(
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+  ): void {
+    const perpsGeoBlockedRegionsFeatureFlag =
+      remoteFeatureFlagControllerState.remoteFeatureFlags
+        ?.perpsPerpTradingGeoBlockedCountries;
+
+    const blockedRegions = (
+      perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
+    )?.blockedRegions;
+
+    if (blockedRegions && Array.isArray(blockedRegions)) {
+      this.refreshEligibility(blockedRegions).catch((error) => {
+        DevLogger.log('PerpsController: Error refreshing eligibility', {
+          error:
+            error instanceof Error
+              ? error.message
+              : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          timestamp: new Date().toISOString(),
+        });
       });
-    });
+    }
   }
 
   /**
@@ -1793,20 +1817,22 @@ export class PerpsController extends BaseController<
   /**
    * Refresh eligibility status
    */
-  async refreshEligibility(
-    blockedLocations = DEFAULT_GEO_BLOCKED_REGIONS,
-  ): Promise<void> {
+  async refreshEligibility(geoBlockedRegions: string[]): Promise<void> {
     // Default to false in case of error.
     let isEligible = false;
 
     try {
       DevLogger.log('PerpsController: Refreshing eligibility');
 
+      // Returns UNKNOWN if we can't fetch the geo location
       const geoLocation = await this.#fetchGeoLocation();
 
-      isEligible = blockedLocations.every(
-        (blockedLocation) => !geoLocation.startsWith(blockedLocation),
-      );
+      // Only set to eligible if we have valid geolocation and it's not blocked
+      if (geoLocation !== 'UNKNOWN') {
+        isEligible = geoBlockedRegions.every(
+          (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
+        );
+      }
     } catch (error) {
       DevLogger.log('PerpsController: Eligibility refresh failed', {
         error:
