@@ -3512,16 +3512,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: true
-      VERSION_NAME: $VERSION_NAME
+      VERSION_NAME: 7.55.0
     - opts:
         is_expand: true
-      VERSION_NUMBER: $VERSION_NUMBER
+      VERSION_NUMBER: 2330
     - opts:
         is_expand: true
-      FLASK_VERSION_NAME: $FLASK_VERSION_NAME
+      FLASK_VERSION_NAME: 7.55.0
     - opts:
         is_expand: true
-      FLASK_VERSION_NUMBER: $FLASK_VERSION_NUMBER
+      FLASK_VERSION_NUMBER: 2330
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
