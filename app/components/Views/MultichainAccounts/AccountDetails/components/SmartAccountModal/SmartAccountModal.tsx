@@ -35,8 +35,6 @@ interface RootNavigationParamList extends ParamListBase {
 
 type SmartAccountModalProp = RouteProp<RootNavigationParamList, 'SmartAccount'>;
 
-
-
 const SmartAccountModal = () => {
   const route = useRoute<SmartAccountModalProp>();
   const { account } = route.params;
