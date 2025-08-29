@@ -19,7 +19,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';

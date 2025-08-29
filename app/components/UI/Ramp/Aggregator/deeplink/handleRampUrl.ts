@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from './utils/getRedirectPathAndParams';
 import { RampType } from '../types';
@@ -8,23 +7,20 @@ import {
   createSellNavigationDetails,
 } from '../routes/utils';
 import Logger from '../../../../../util/Logger';
+import NavigationService from '../../../../../core/NavigationService';
 
 interface RampUrlOptions {
   rampPath: string;
   rampType: RampType;
-  navigation: NavigationProp<ParamListBase>;
 }
 
-export default function handleRampUrl({
-  rampPath,
-  rampType,
-  navigation,
-}: RampUrlOptions) {
+export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
   try {
+    const navigation = NavigationService.navigation;
     const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
 
     if (redirectPaths.length > 0) {
-      return handleRedirection(redirectPaths, pathParams, rampType, navigation);
+      return handleRedirection(redirectPaths, pathParams, rampType);
     }
 
     let rampIntent;

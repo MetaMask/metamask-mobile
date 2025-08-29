@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { isCaipChainId } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import ReduxService from '../../redux';
@@ -9,6 +8,7 @@ import { WalletClientType } from '../../SnapKeyring/MultichainWalletSnapClient';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../components/UI/Bridge/utils/tokenUtils';
+import NavigationService from '../../NavigationService/NavigationService';
 
 const getClientType = (chainId: string) => {
   let clientType: WalletClientType;
@@ -23,13 +23,8 @@ const getClientType = (chainId: string) => {
   return clientType;
 };
 
-export function handleCreateAccountUrl({
-  path,
-  navigation,
-}: {
-  path: string;
-  navigation: NavigationProp<ParamListBase>;
-}) {
+export function handleCreateAccountUrl({ path }: { path: string }) {
+  const navigation = NavigationService.navigation;
   const chainId = new URLSearchParams(path).get('chainId');
 
   if (!chainId || !isCaipChainId(chainId)) {

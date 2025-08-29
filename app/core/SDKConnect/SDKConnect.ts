@@ -356,12 +356,11 @@ export class SDKConnect {
   }
 
   public static async init({ context }: { context?: string }) {
-    const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
 
     analytics.setGlobalProperty('platform', 'mobile');
     analytics.enable();
-    await init({ navigation, context, instance });
+    await init({ context, instance });
     await instance.postInit();
   }
 
