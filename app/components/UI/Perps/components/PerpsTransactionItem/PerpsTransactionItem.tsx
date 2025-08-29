@@ -31,7 +31,11 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       testID={PerpsTransactionSelectorsIDs.TRANSACTION_ITEM_AVATAR}
       style={styles.tokenIconContainer}
     >
-      <PerpsTokenLogo symbol={item.asset} size={36} />
+      <PerpsTokenLogo
+        symbol={item.asset}
+        size={36}
+        recyclingKey={`${item.asset}-${item.id}`}
+      />
     </View>
 
     <View
