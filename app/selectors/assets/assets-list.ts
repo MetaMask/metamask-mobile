@@ -100,9 +100,8 @@ const selectStakedAssets = createDeepEqualSelector(
     currencyRates,
     currentCurrency,
   ) => {
-    const accounts = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) => {
-        const xxx = Object.entries(chainAccounts)
+    const stakedAssets = Object.entries(accountsByChainId).flatMap(
+      ([chainId, chainAccounts]) => Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
               accountInformation.stakedBalance &&
@@ -138,9 +137,10 @@ const selectStakedAssets = createDeepEqualSelector(
               type: account?.type,
               assetId: nativeToken.address,
               isNative: true,
+              isStaked: true,
               address: nativeToken.address,
               image: nativeToken.image,
-              name: nativeToken.name,
+              name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
               accountId: account?.id,
               decimals: nativeToken.decimals,
@@ -154,20 +154,17 @@ const selectStakedAssets = createDeepEqualSelector(
                   }
                 : undefined,
               chainId,
-            };
+            } as Asset;
 
             return {
               chainId,
               accountId: account?.id as string,
               stakedAsset,
             };
-          });
-
-        return xxx;
-      },
+          }),
     );
 
-    return accounts;
+    return stakedAssets;
   },
 );
 
@@ -200,6 +197,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets);
 
+    const stakedAssetsArray = [];
     for (const asset of assets) {
       if (asset.isNative) {
         const stakedAsset = stakedAssets.find(
@@ -208,14 +206,14 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
             item.accountId === asset.accountId,
         );
         if (stakedAsset) {
-          assets.push({
+          stakedAssetsArray.push({
             ...stakedAsset.stakedAsset,
-            isStaked: true,
-            nativeAsset: asset,
           } as Asset);
         }
       }
     }
+
+    assets.push(...stakedAssetsArray);
 
     // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
@@ -228,24 +226,35 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
       tokenSortConfig,
     );
 
-    return tokensSorted.map(({ assetId, chainId }) => ({
-      address: assetId,
-      chainId,
-      isStaked: false, // TODO: Resolve this when we support staked balances
-    }));
+    return tokensSorted.map(
+      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => ({
+        address: assetId,
+        chainId,
+        isStaked,
+      }),
+    );
   },
 );
 
 export const selectAsset = createDeepEqualSelector(
   [
     selectAssetsBySelectedAccountGroup,
+    selectStakedAssets,
     (
       _state: RootState,
       params: { address: string; chainId: string; isStaked?: boolean },
     ) => params,
   ],
-  (assets, { address, chainId }) => {
-    const asset = assets[chainId]?.find((item) => item.assetId === address);
+  (assets, stakedAssets, { address, chainId, isStaked }) => {
+    const asset = isStaked
+      ? stakedAssets.find(
+          (item) =>
+            item.chainId === chainId && item.stakedAsset.assetId === address,
+        )?.stakedAsset
+      : assets[chainId]?.find(
+          (item: Asset & { isStaked?: boolean }) =>
+            item.assetId === address && item.isStaked === isStaked,
+        );
 
     return asset ? assetToToken(asset) : undefined;
   },
@@ -287,7 +296,6 @@ function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
       asset.isNative &&
       asset.symbol === 'ETH',
     isStaked: asset.isStaked,
-    nativeAsset: undefined,
     chainId: asset.chainId,
     isNative: asset.isNative,
     ticker: asset.symbol,

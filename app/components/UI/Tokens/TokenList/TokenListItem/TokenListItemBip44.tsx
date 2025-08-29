@@ -145,16 +145,9 @@ export const TokenListItemBip44 = React.memo(
           .build(),
       );
 
-      navigation.navigate(
-        'Asset',
-        token.isStaked
-          ? {
-              ...token.nativeAsset,
-            }
-          : {
-              ...token,
-            },
-      );
+      navigation.navigate('Asset', {
+        ...token,
+      });
     };
 
     const renderNetworkAvatar = useCallback(() => {
