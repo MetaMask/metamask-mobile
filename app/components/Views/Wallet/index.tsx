@@ -171,6 +171,7 @@ import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -824,6 +825,7 @@ const Wallet = ({
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -846,6 +848,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         isCardholder,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -861,6 +864,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     isCardholder,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
