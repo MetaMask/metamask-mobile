@@ -94,7 +94,7 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
     jest.setTimeout(2500000);
   });
 
-  it.only('sends native asset', async () => {
+  it('sends native asset', async () => {
     await withFixtures(
       {
         dapps: [
