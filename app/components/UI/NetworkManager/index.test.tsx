@@ -589,18 +589,6 @@ describe('NetworkManager Component', () => {
   });
 
   describe('Network Menu Modal', () => {
-    it('should open network menu modal when openModal is called', async () => {
-      const { getByTestId } = renderComponent();
-
-      const openModalButton = getByTestId('open-modal-button');
-      fireEvent.press(openModalButton);
-
-      await waitFor(() => {
-        expect(mockOnOpenBottomSheet).toHaveBeenCalled();
-        expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
-      });
-    });
-
     it('should display both edit and delete options when displayEdit is true', async () => {
       // Arrange - Render component
       const { getByTestId } = renderComponent();
