@@ -20,6 +20,7 @@ import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
+import AppConstants from '../../../core/AppConstants';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -140,13 +141,13 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   };
 
   const onPressTermsOfUse = () => {
-    const url = 'https://consensys.io/terms-of-use';
-    goTo(url, 'metamask.io');
+    const url = AppConstants.URLS.TERMS_OF_USE_URL;
+    goTo(url, strings('app_information.terms_of_use'));
   };
 
   const onPressPrivacyNotice = () => {
-    const url = 'https://consensys.io/privacy-notice';
-    goTo(url, 'metamask.io');
+    const url = AppConstants.URLS.PRIVACY_NOTICE;
+    goTo(url, strings('app_information.privacy_policy'));
   };
 
   const { themeAppearance } = useTheme();
