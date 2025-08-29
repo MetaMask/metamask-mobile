@@ -60,7 +60,15 @@ async function applyVaultInitialization() {
         break;
       }
 
-      await importNewSecretRecoveryPhrase(srp);
+      try {
+        await importNewSecretRecoveryPhrase(srp);
+      } catch (error) {
+        // Skip already imported SRPs or invalid ones, but continue with the rest
+        console.warn(
+          'Failed to import SRP, skipping:',
+          error instanceof Error ? error.message : String(error),
+        );
+      }
     }
     const KeyringController = Engine.context.KeyringController;
     const allKeyrings = KeyringController.getKeyringsByType(
