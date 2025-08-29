@@ -395,7 +395,6 @@ jobs:
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
             echo "TEST_PLATFORM=android"
-            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
           } >> "$GITHUB_ENV"
       
@@ -487,7 +486,6 @@ jobs:
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
-            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
           } >> "$GITHUB_ENV"
       
@@ -609,10 +607,12 @@ jobs:
           fi
           
           # Set outputs
-          echo "overall_status=$OVERALL_STATUS" >> "$GITHUB_OUTPUT"
-          echo "android_status=$ANDROID_RESULT" >> "$GITHUB_OUTPUT"
-          echo "ios_status=$IOS_RESULT" >> "$GITHUB_OUTPUT"
-          echo "trigger_status=$TRIGGER_RESULT" >> "$GITHUB_OUTPUT"
+          {
+            echo "overall_status=$OVERALL_STATUS"
+            echo "android_status=$ANDROID_RESULT"
+            echo "ios_status=$IOS_RESULT"
+            echo "trigger_status=$TRIGGER_RESULT"
+          } >> "$GITHUB_OUTPUT"
 
   # Slack Notification Job
   slack-notification:
@@ -637,7 +637,6 @@ jobs:
           IOS_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.ios_devices[] | "\(.name) (\(.os_version))"')
           
           # Get status from all-status job
-          OVERALL_RESULT="${{ needs.all-status.outputs.overall_status }}"
           ANDROID_STATUS="${{ needs.all-status.outputs.android_status }}"
           IOS_STATUS="${{ needs.all-status.outputs.ios_status }}"
           
@@ -682,9 +681,11 @@ jobs:
           SUMMARY+="---------------\n\n"
           SUMMARY+="<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Results>"
           
-          echo "summary<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$SUMMARY" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "summary<<EOF"
+            echo "$SUMMARY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           
           echo "Test summary generated"
       
