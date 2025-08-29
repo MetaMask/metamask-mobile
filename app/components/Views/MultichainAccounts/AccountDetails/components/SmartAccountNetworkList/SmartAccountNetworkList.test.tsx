@@ -1,16 +1,9 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import SmartAccountNetworkList from './SmartAccountNetworkList';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/confirm-data-helpers';
 
-const mockAccountsState = {
-  engine: {
-    backgroundState: {
-      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
-  },
-};
+const mockAccountsState = {};
 
 const mockAddress = '0x1234567890123456789012345678901234567890';
 
@@ -37,6 +30,10 @@ describe('SmartAccountNetworkList', () => {
         {
           chainId: '0x1:mainnet',
           name: 'Ethereum Mainnet',
+          isEvm: true,
+          nativeCurrency: 'eip155:1/slip44:60',
+          blockExplorerUrls: [],
+          defaultBlockExplorerUrlIndex: 0,
           isSupported: true,
           upgradeContractAddress: '0x123',
         },
