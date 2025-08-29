@@ -133,9 +133,9 @@ jobs:
         id: create-json-report
         continue-on-error: true
         run: |
-          # Install xml2js dependency
-          npm install xml2js
-
+          # Install xml2js dependency using legacy peer deps to avoid conflicts
+          npm install xml2js --legacy-peer-deps
+          
           # Run the mobile test report generator
           TEST_RESULTS_PATH=all-test-results \
           TEST_RUNS_PATH=test/test-results/test-runs-ios.json \

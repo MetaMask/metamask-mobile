@@ -178,15 +178,10 @@ jobs:
         id: create-json-report
         continue-on-error: true
         run: |
-          # Install xml2js in a temporary location to avoid dependency conflicts
-          mkdir -p /tmp/report-deps
-          cd /tmp/report-deps
-          npm init -y
-          npm install xml2js@^0.5.0
+          # Install xml2js dependency using legacy peer deps to avoid conflicts
+          npm install xml2js --legacy-peer-deps
           
-          # Run the mobile test report generator with the temporary node_modules
-          cd ${{ github.workspace }}
-          NODE_PATH=/tmp/report-deps/node_modules \
+          # Run the mobile test report generator
           TEST_RESULTS_PATH=all-test-results \
           TEST_RUNS_PATH=test/test-results/test-runs-android.json \
           RUN_ID=${{ github.run_id }} \
