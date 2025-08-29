@@ -23,6 +23,7 @@ import type {
 } from '../types';
 import { PolymarketProvider } from '../providers/PolymarketProvider';
 import Engine from '../../../../core/Engine';
+import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
 
 /**
  * Get environment type for geo-blocking URLs
@@ -240,13 +241,19 @@ export class PredictController extends BaseController<
       });
     });
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PredictController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
+    fetchGeoBlockedRegionsFromContentful().then((blockedRegions) => {
+      this.refreshEligibility(
+        blockedRegions
+          ? blockedRegions.map((r) => r.region)
+          : DEFAULT_GEO_BLOCKED_REGIONS,
+      ).catch((error) => {
+        DevLogger.log('PredictController: Error refreshing eligibility', {
+          error:
+            error instanceof Error
+              ? error.message
+              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+          timestamp: new Date().toISOString(),
+        });
       });
     });
   }
