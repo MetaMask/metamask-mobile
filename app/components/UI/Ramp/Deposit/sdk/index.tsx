@@ -59,10 +59,12 @@ if (isDevelopmentOrInternalBuild) {
   environment = SdkEnvironment.Staging;
 }
 
+const context =
+  Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid;
 export const DEPOSIT_ENVIRONMENT = environment;
 export const DepositSDKNoAuth = new NativeRampsSdk(
   {
-    context: Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid,
+    context,
   },
   environment,
 );
@@ -142,8 +144,7 @@ export const DepositSDKProvider = ({
       const sdkInstance = new NativeRampsSdk(
         {
           apiKey: providerApiKey,
-          context:
-            Platform.OS === 'ios' ? Context.MobileIOS : Context.MobileAndroid,
+          context,
         },
         environment,
       );
