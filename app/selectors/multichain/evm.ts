@@ -20,7 +20,7 @@ import {
   selectNetworkConfigurations,
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
-import { renderFromWei, weiToFiat } from '../../util/number';
+import { renderFromWei, weiToFiat } from '../../util/number/legacy';
 import {
   hexToBN,
   toChecksumHexAddress,

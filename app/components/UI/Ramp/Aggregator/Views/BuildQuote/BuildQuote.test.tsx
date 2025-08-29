@@ -21,7 +21,7 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../../../util/number/legacy';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';

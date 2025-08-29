@@ -9,7 +9,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
-import { addCurrencySymbol } from '../../../../util/number';
+import { addCurrencySymbol } from '../../../../util/number/legacy';
 import Text, {
   TextColor,
   TextVariant,

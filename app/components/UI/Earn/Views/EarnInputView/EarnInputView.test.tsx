@@ -19,7 +19,7 @@ import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { toWei, weiToFiatNumber } from '../../../../../util/number';
+import { toWei, weiToFiatNumber } from '../../../../../util/number/legacy';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,

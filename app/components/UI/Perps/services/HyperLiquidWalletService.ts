@@ -11,7 +11,7 @@ import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { toHexadecimal } from '../../../../util/number';
+import { toHexadecimal } from '../../../../util/number/legacy';
 
 /**
  * Service for MetaMask wallet integration with HyperLiquid SDK

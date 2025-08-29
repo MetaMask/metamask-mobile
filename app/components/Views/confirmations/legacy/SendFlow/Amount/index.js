@@ -44,7 +44,7 @@ import {
   toHexadecimal,
   hexToBN,
   formatValueToMatchTokenDecimals,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import {
   getTicker,
   generateTransferData,

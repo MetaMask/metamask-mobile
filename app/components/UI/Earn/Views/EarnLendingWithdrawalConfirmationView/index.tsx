@@ -26,7 +26,7 @@ import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { renderFromTokenMinimalUnit } from '../../../../../util/number';
+import { renderFromTokenMinimalUnit } from '../../../../../util/number/legacy';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';

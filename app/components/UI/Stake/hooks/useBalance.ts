@@ -13,7 +13,7 @@ import {
   renderFromWei,
   weiToFiat,
   weiToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { EVM_SCOPE } from '../../Earn/constants/networks';
 

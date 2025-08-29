@@ -19,7 +19,7 @@ import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
-import { addCurrencySymbol } from '../../../../util/number';
+import { addCurrencySymbol } from '../../../../util/number/legacy';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
 

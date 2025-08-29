@@ -20,7 +20,7 @@ import {
   renderFromWei,
   toHexadecimal,
   weiToFiat,
-} from '../../../../../util/number';
+} from '../../../../../util/number/legacy';
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';

@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-import { hexToBN } from '../../../../../util/number';
+import { hexToBN } from '../../../../../util/number/legacy';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { AssetType, TokenStandard } from '../../types/token';
