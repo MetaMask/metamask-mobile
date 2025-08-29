@@ -2174,9 +2174,9 @@ workflows:
                 # Generate new names based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${VERSION_NAME}-${VERSION_NUMBER}"
                 fi
 
                 # Rename APK
@@ -3008,9 +3008,9 @@ workflows:
                 # Generate new name based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${VERSION_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${VERSION_NAME}-${VERSION_NUMBER}"
                 fi
 
                 # Copy binary with new name (preserve original)
