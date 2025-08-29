@@ -317,7 +317,7 @@ describe('MultichainAccountConnect', () => {
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
   });
 
-  it('should handle cancel button press correctly', () => {
+  it('handles cancel button press correctly', () => {
     Engine.context.PermissionController.rejectPermissionsRequest =
       mockRejectPermissionsRequest;
     const { getByTestId } = renderWithProvider(
@@ -354,7 +354,7 @@ describe('MultichainAccountConnect', () => {
     expect(mockCreateEventBuilder).toHaveBeenCalled();
   });
 
-  it('should handle confirm button press correctly', async () => {
+  it('handles confirm button press correctly', async () => {
     const mockAcceptPermissionsRequestLocal = jest
       .fn()
       .mockResolvedValue(undefined);
@@ -411,7 +411,7 @@ describe('MultichainAccountConnect', () => {
 
   describe('Phishing detection', () => {
     describe('dapp scanning is enabled', () => {
-      it('should not show phishing modal for safe URLs', async () => {
+      it('does not show phishing modal for safe URLs', async () => {
         const { queryByText } = renderWithProvider(
           <MultichainAccountConnect
             route={{
@@ -451,7 +451,7 @@ describe('MultichainAccountConnect', () => {
       jest.clearAllMocks();
     });
 
-    it('should handle MMSDK remote connection origin correctly', () => {
+    it('handles MMSDK remote connection origin correctly', () => {
       const mockOrigin = 'https://example-dapp.com';
       const mockChannelId = `metamask-sdk://connect?redirect=${mockOrigin}`;
 
@@ -497,7 +497,7 @@ describe('MultichainAccountConnect', () => {
       });
     });
 
-    it('should handle WalletConnect origin correctly', () => {
+    it('handles WalletConnect origin correctly', () => {
       const mockChannelId = 'walletconnect-origin.com';
 
       mockGetConnection.mockReturnValue(undefined);
