@@ -114,6 +114,10 @@ jest.mock('../Engine', () => ({
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
     },
+
+    MultichainAccountService: {
+      init: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
