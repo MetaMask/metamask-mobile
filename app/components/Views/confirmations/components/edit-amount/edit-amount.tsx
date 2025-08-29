@@ -15,7 +15,6 @@ import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
-import Text from '../../../../../component-library/components/Texts/Text';
 
 const MAX_LENGTH = 28;
 
@@ -79,18 +78,13 @@ export function EditAmount({
     }
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
-  const handleChange = useCallback(
-    (amount: string) => {
-      const normalizedAmount = amount.replace(new RegExp(fiatSymbol, 'g'), '');
+  const handleChange = useCallback((amount: string) => {
+    if (amount.length >= MAX_LENGTH) {
+      return;
+    }
 
-      if (normalizedAmount.length >= MAX_LENGTH) {
-        return;
-      }
-
-      setAmountFiat(normalizedAmount);
-    },
-    [fiatSymbol],
-  );
+    setAmountFiat(amount);
+  }, []);
 
   const handleKeyboardDone = useCallback(() => {
     updateTokenAmount(amountHuman);
@@ -129,7 +123,11 @@ export function EditAmount({
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
         <View style={styles.inputContainer}>
-          <Text style={styles.input}>{fiatSymbol}</Text>
+          <TextInput
+            style={styles.input}
+            defaultValue={fiatSymbol}
+            editable={false}
+          />
           <TextInput
             testID="edit-amount-input"
             style={styles.input}
@@ -139,6 +137,7 @@ export function EditAmount({
             onPress={handleInputPress}
             onChangeText={handleChange}
             keyboardType="number-pad"
+            maxLength={MAX_LENGTH}
           />
         </View>
         {children?.(amountHuman)}

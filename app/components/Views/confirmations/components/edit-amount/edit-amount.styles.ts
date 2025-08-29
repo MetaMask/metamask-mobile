@@ -31,6 +31,7 @@ const styleSheet = (params: {
       alignItems: 'center',
       paddingBottom: 16,
       minHeight: 100,
+      gap: 5,
     },
     input: {
       textAlign: 'center',
@@ -39,7 +40,6 @@ const styleSheet = (params: {
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.theme.colors.text.default,
-      lineHeight: getFontSize(params.vars.amountLength) * 1.3,
     },
   });
 
