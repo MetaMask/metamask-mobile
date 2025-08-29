@@ -79,6 +79,7 @@ export class HyperLiquidSubscriptionService {
   private cachedPositions: Position[] = [];
   private cachedOrders: Order[] = [];
   private cachedAccount: AccountState | null = null;
+  private hasNotifiedInitialEmptyPositions = false; // Track if we've sent initial empty state
 
   // Global price data cache
   private cachedPriceData = new Map<string, PriceUpdate>();
@@ -349,13 +350,28 @@ export class HyperLiquidSubscriptionService {
           // Always notify position subscribers on first update or when data changes
           // This ensures the loading state is properly updated
           const shouldNotifyPositions =
-            positionsChanged || this.cachedPositions.length === 0;
+            positionsChanged ||
+            (!this.hasNotifiedInitialEmptyPositions &&
+              this.cachedPositions.length === 0);
 
           if (shouldNotifyPositions) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
               callback(positionsWithTPSL);
             });
+
+            // Mark that we've sent the initial empty state if this was the first notification
+            if (
+              !this.hasNotifiedInitialEmptyPositions &&
+              positionsWithTPSL.length === 0
+            ) {
+              this.hasNotifiedInitialEmptyPositions = true;
+            }
+
+            // Reset the flag if we now have actual positions
+            if (positionsWithTPSL.length > 0) {
+              this.hasNotifiedInitialEmptyPositions = false;
+            }
           }
 
           if (ordersChanged) {

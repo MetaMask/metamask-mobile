@@ -970,6 +970,9 @@ describe('HyperLiquidSubscriptionService', () => {
       // This ensures the UI can transition from loading to empty state for new users without cached positions
       expect(mockCallback).toHaveBeenCalledWith([]);
 
+      // Verify it was only called once (not repeatedly)
+      expect(mockCallback).toHaveBeenCalledTimes(1);
+
       unsubscribe();
     });
   });
@@ -1366,5 +1369,51 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe1();
       unsubscribe2();
     });
+  });
+
+  it('should not repeatedly notify subscribers with empty positions', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock webData2 to send multiple empty updates
+    mockSubscriptionClient.webData2.mockImplementation(
+      (_params: any, callback: any) => {
+        // Send first update
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 0);
+
+        // Send second update (still empty)
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 20);
+
+        return Promise.resolve({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+      },
+    );
+
+    const unsubscribe = service.subscribeToPositions({
+      callback: mockCallback,
+    });
+
+    // Wait for both updates to process
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Should only be called once with empty positions (initial notification)
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(mockCallback).toHaveBeenCalledWith([]);
+
+    unsubscribe();
   });
 });
