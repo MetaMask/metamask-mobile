@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
 import ToastModal from '../../pages/wallet/ToastModal';
@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 
-describe(Regression('Custom RPC Tests'), () => {
+describe(RegressionAssets('Custom RPC Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

@@ -5,7 +5,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
@@ -46,6 +45,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      setOptions: jest.fn(),
     }),
     useRoute: () => ({
       params: mockRouteParams,
@@ -613,14 +613,15 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
-    it('refreshes position data when position tab is active', async () => {
+    it('refreshes candle data when position tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: false,
         error: null,
         existingPosition: null,
-        refreshPosition: mockRefreshPosition,
+        refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
       });
 
       const { getByTestId } = renderWithProvider(
@@ -632,76 +633,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh (position tab is active by default)
       await refreshControl.props.onRefresh();
 
-      // Should refresh both candle data and position data
+      // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-    });
-
-    it('refreshes orders data when orders tab is active', async () => {
-      const mockRefreshPosition = jest.fn();
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: {
-          coin: 'BTC',
-          size: '0.5',
-          entryPrice: '44000',
-          positionValue: '22000',
-          unrealizedPnl: '50',
-          marginUsed: '500',
-          leverage: { type: 'isolated', value: 5 },
-          liquidationPrice: '40000',
-          maxLeverage: 20,
-          returnOnEquity: '1.14',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceOpen: '0',
-            sinceChange: '0',
-          },
-        },
-        refreshPosition: mockRefreshPosition,
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Switch to orders tab
-      const ordersTab = getByTestId('perps-market-tabs-orders-tab');
-      fireEvent.press(ordersTab);
-
-      // Get the ScrollView component
-      const scrollView = getByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
-      );
-      const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
-      await refreshControl.props.onRefresh();
-
-      // Should refresh candle data
-      // Note: Orders refresh automatically via WebSocket, no manual refresh needed
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      // Should not refresh position data when orders tab is active
+      // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('refreshes statistics data when statistics tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
@@ -736,28 +682,26 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Switch to statistics tab
+      // Act - Switch to statistics tab
       const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
       fireEvent.press(statisticsTab);
 
-      // Get the ScrollView component
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data, market stats, and position data
+      // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshMarketStats).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-      // Should not refresh orders data when statistics tab is active
+      // Market stats, positions, and orders update via WebSocket, no manual refresh
+      expect(mockRefreshMarketStats).not.toHaveBeenCalled();
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
     });
 
-    it('calls refresh functions for chart data and position by default', async () => {
+    it('refreshes candle data by default', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -776,18 +720,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data and position data (default behavior)
+      // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('handles refresh state correctly during refresh operation', async () => {
@@ -866,22 +808,6 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Navigation functionality', () => {
-    it('calls navigation.goBack when back button is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      const backButton = getByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON);
-      fireEvent.press(backButton);
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
     it('navigates to long order screen when long button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
