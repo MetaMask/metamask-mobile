@@ -103,6 +103,7 @@ import migration98 from './098';
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
+import { ControllerStorage } from '../persistConfig';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -220,22 +221,107 @@ export const migrationList: MigrationsList = {
 export const asyncifyMigrations = (
   inputMigrations: MigrationsList,
   onMigrationsComplete?: (state: unknown) => void,
-) =>
-  Object.entries(inputMigrations).reduce(
+) => {
+  const versions = Object.keys(inputMigrations)
+    .map((v) => Number(v))
+    .filter((v) => Number.isFinite(v))
+    .sort((a, b) => a - b);
+  const lastVersion = versions[versions.length - 1];
+  let didInflate = false;
+
+  type StateWithEngine = Record<string, unknown> & {
+    engine?: { backgroundState?: Record<string, unknown> };
+  };
+
+  const inflateFromControllers = async (state: unknown) => {
+    try {
+      const fsState = (await ControllerStorage.getKey()) as
+        | {
+            backgroundState?: Record<string, unknown>;
+          }
+        | undefined;
+
+      const s = state as StateWithEngine;
+      const fsControllers = fsState?.backgroundState || {};
+
+      // Only inflate from filesystem for post-096 flow
+      if (Object.keys(fsControllers).length === 0) {
+        return state;
+      }
+
+      const inflated: StateWithEngine = {
+        ...(s as object),
+        engine: {
+          ...(s.engine || {}),
+          backgroundState: fsControllers,
+        },
+      } as StateWithEngine;
+      return inflated as unknown;
+    } catch {
+      return state;
+    }
+  };
+
+  const deflateToControllersAndStrip = async (state: unknown) => {
+    try {
+      const s = state as StateWithEngine;
+      const migratedControllers = s.engine?.backgroundState || {};
+      const entries = Object.entries(migratedControllers) as [
+        string,
+        unknown,
+      ][];
+      await Promise.all(
+        entries.map(async ([controllerName, controllerState]) => {
+          try {
+            await ControllerStorage.setItem(
+              `persist:${controllerName}`,
+              JSON.stringify(controllerState),
+            );
+          } catch {
+            // swallow to avoid blocking overall migration
+          }
+        }),
+      );
+
+      // Return state without engine slice (kept out of redux)
+      const { engine: _engine, ...rest } = s;
+      return rest as unknown;
+    } catch {
+      // If anything goes wrong, return original state as-is
+      return state;
+    }
+  };
+
+  return Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
-      // Handle migrations as async
       const asyncMigration = async (
         incomingState: Promise<unknown> | unknown,
       ) => {
-        const state = await incomingState;
+        let state = await incomingState;
+
+        if (!didInflate && Number(migrationNumber) > 98) {
+          state = await inflateFromControllers(state);
+          didInflate = true;
+        }
+
         const migratedState = await migrationFunction(state);
 
-        // If this is the last migration and we have a callback, run it
         if (
           onMigrationsComplete &&
           Number(migrationNumber) === Object.keys(inputMigrations).length - 1
         ) {
           onMigrationsComplete(migratedState);
+        }
+
+        if (Number(migrationNumber) === lastVersion && lastVersion > 98) {
+          const s2 = migratedState as StateWithEngine;
+          const hasControllers = Boolean(
+            s2.engine?.backgroundState &&
+              Object.keys(s2.engine.backgroundState).length > 0,
+          );
+          if (hasControllers) {
+            return await deflateToControllersAndStrip(migratedState);
+          }
         }
 
         return migratedState;
@@ -245,6 +331,7 @@ export const asyncifyMigrations = (
     },
     {} as Record<string, AsyncMigrationFunction>,
   );
+};
 
 // Convert all migrations to async
 export const migrations = asyncifyMigrations(migrationList, (state) => {
