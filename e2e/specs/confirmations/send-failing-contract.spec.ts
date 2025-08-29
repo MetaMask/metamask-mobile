@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -10,17 +10,32 @@ import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
-describe(SmokeConfirmations('Failing contracts'), () => {
+describe(RegressionConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
 
   it('sends a failing contract transaction', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
+        mockEvents.GET.suggestedGasFeesApiGanache;
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: gasUrlEndpoint,
+        response: gasResponse,
+        responseCode: 200,
+      });
     };
+
     await withFixtures(
       {
         dapps: [
