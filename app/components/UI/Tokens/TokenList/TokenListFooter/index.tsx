@@ -9,7 +9,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { isZero } from '../../../../../util/lodash';
 import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
-import { createBuyNavigationDetails } from '../../../Ramp/Aggregator/routes/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -33,6 +32,8 @@ import {
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { RootState } from '../../../../../reducers';
+import Routes from '../../../../../constants/navigation/Routes';
+import { trace, TraceName } from '../../../../../util/trace';
 ///: END:ONLY_INCLUDE_IF
 
 export const TokenListFooter = () => {
@@ -72,17 +73,29 @@ export const TokenListFooter = () => {
     isNetworkRampSupported &&
     isNativeTokenRampSupported;
 
-  const goToBuy = () => {
-    navigation.navigate(...createBuyNavigationDetails());
+  const goToDeposit = () => {
+    navigation.navigate(Routes.DEPOSIT.ID);
+
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+      ).build(),
+    );
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy Native Token',
-          location: 'Home Screen',
+          text: 'Deposit',
+          location: 'TokenListFooter',
           chain_id_destination: getDecimalChainId(chainId),
+          ramp_type: 'DEPOSIT',
         })
         .build(),
     );
+
+    trace({
+      name: TraceName.LoadDepositExperience,
+    });
   };
 
   return (
@@ -94,7 +107,7 @@ export const TokenListFooter = () => {
             variant={TextVariant.HeadingSM}
             style={styles.buyTitle}
           >
-            {strings('wallet.token_is_needed_to_continue', {
+            {strings('wallet.fund_your_wallet_to_get_started', {
               tokenSymbol: mainToken.symbol,
             })}
           </TextComponent>
@@ -103,8 +116,8 @@ export const TokenListFooter = () => {
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             style={styles.buyButton}
-            onPress={goToBuy}
-            label={strings('wallet.next')}
+            onPress={goToDeposit}
+            label={strings('wallet.add_funds')}
           />
         </View>
       )}

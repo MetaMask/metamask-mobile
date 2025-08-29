@@ -46,6 +46,7 @@ export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
+
 // AccountTreeController Wallet and Group IDs - reused across fixtures
 export const ENTROPY_WALLET_1_ID = `entropy:${MOCK_ENTROPY_SOURCE}`;
 export const ENTROPY_WALLET_2_ID = `entropy:${MOCK_ENTROPY_SOURCE_2}`;

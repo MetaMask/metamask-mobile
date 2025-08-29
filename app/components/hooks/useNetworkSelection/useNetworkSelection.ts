@@ -7,6 +7,7 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../select
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import { useNavigation } from '@react-navigation/native';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -37,9 +38,11 @@ export const useNetworkSelection = ({
     namespace,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
     enabledNetworksByNamespace,
+    enableAllPopularNetworks,
   } = useNetworkEnablement();
+
+  const navigation = useNavigation();
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
@@ -89,20 +92,28 @@ export const useNetworkSelection = ({
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      enableNetwork(chainId);
-      resetCustomNetworks(chainId);
+    async (chainId: CaipChainId) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks(chainId);
+      navigation.goBack();
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, navigation],
   );
+
+  const selectAllPopularNetworks = useCallback(async () => {
+    await enableAllPopularNetworks();
+    await resetCustomNetworks();
+    navigation.goBack();
+  }, [enableAllPopularNetworks, navigation, resetCustomNetworks]);
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      toggleNetwork(chainId);
-      resetCustomNetworks();
+    async (chainId: CaipChainId) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks();
+      navigation.goBack();
     },
-    [toggleNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, navigation],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
@@ -135,26 +146,13 @@ export const useNetworkSelection = ({
     });
   }, [networks, disableNetwork]);
 
-  /** Toggles selection of all networks */
-  const toggleAll = useCallback(() => {
-    const areAllSelected = networks.every(({ isSelected }) => isSelected);
-    if (areAllSelected) {
-      deselectAll();
-    } else {
-      networks.forEach(({ caipChainId }) => {
-        enableNetwork(caipChainId);
-      });
-      resetCustomNetworks();
-    }
-  }, [networks, deselectAll, enableNetwork, resetCustomNetworks]);
-
   return {
     selectCustomNetwork,
     selectPopularNetwork,
     selectNetwork,
     deselectAll,
-    toggleAll,
     resetCustomNetworks,
     customNetworksToReset,
+    selectAllPopularNetworks,
   };
 };
