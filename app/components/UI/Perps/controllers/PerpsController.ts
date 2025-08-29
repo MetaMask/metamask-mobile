@@ -53,6 +53,7 @@ import type {
   OrderFill,
   OrderParams,
   OrderResult,
+  PerpsControllerConfig,
   Position,
   SubscribeAccountParams,
   SubscribeOrderFillsParams,
@@ -343,6 +344,7 @@ export type PerpsControllerMessenger = RestrictedMessenger<
 export interface PerpsControllerOptions {
   messenger: PerpsControllerMessenger;
   state?: Partial<PerpsControllerState>;
+  clientConfig?: PerpsControllerConfig;
 }
 
 /**
@@ -362,14 +364,22 @@ export class PerpsController extends BaseController<
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
+  private readonly clientConfig: PerpsControllerConfig;
 
-  constructor({ messenger, state = {} }: PerpsControllerOptions) {
+  constructor({
+    messenger,
+    state = {},
+    clientConfig = { fallbackBlockedRegions: [] },
+  }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
       metadata,
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
+
+    // Store client configuration
+    this.clientConfig = clientConfig;
 
     // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
     this.messagingSystem.subscribe(
@@ -393,6 +403,7 @@ export class PerpsController extends BaseController<
   /**
    * Respond to RemoteFeatureFlagController state changes
    * Refreshes user eligibility based on geo-blocked regions defined in remote feature flag.
+   * Uses fallback configuration when remote feature flag is undefined.
    */
   private refreshEligibilityOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
@@ -401,21 +412,49 @@ export class PerpsController extends BaseController<
       remoteFeatureFlagControllerState.remoteFeatureFlags
         ?.perpsPerpTradingGeoBlockedCountries;
 
-    const blockedRegions = (
+    // Extract blockedRegions from feature flag
+    const remoteBlockedRegions = (
       perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
     )?.blockedRegions;
 
-    if (blockedRegions && Array.isArray(blockedRegions)) {
-      this.refreshEligibility(blockedRegions).catch((error) => {
-        DevLogger.log('PerpsController: Error refreshing eligibility', {
-          error:
-            error instanceof Error
-              ? error.message
-              : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          timestamp: new Date().toISOString(),
-        });
-      });
+    // Determine effective blocked regions:
+    // 1. If remote returns undefined/null, use fallback
+    // 2. If remote returns empty array [], respect it (all regions allowed)
+    // 3. If remote returns populated array, use it
+    let effectiveBlockedRegions: string[];
+
+    // User is blocked by default if both remote and local region lists are undefined
+    if (
+      remoteBlockedRegions === undefined &&
+      this.clientConfig?.fallbackBlockedRegions === undefined
+    ) {
+      return;
     }
+    // Remote flag unavailable - use fallback
+    else if (remoteBlockedRegions === undefined) {
+      effectiveBlockedRegions = this.clientConfig?.fallbackBlockedRegions ?? [];
+    }
+    // Use remote value since empty array is valid.
+    else if (Array.isArray(remoteBlockedRegions)) {
+      effectiveBlockedRegions = remoteBlockedRegions;
+    }
+    // Invalid data type - use fallback
+    // Defensive approach in case invalid format is added to LaunchDarkly
+    else {
+      effectiveBlockedRegions = this.clientConfig?.fallbackBlockedRegions ?? [];
+    }
+
+    // Always refresh eligibility with determined regions
+    this.refreshEligibility(effectiveBlockedRegions).catch((error) => {
+      DevLogger.log('PerpsController: Error refreshing eligibility', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        blockedRegions: effectiveBlockedRegions,
+        timestamp: new Date().toISOString(),
+      });
+    });
   }
 
   /**

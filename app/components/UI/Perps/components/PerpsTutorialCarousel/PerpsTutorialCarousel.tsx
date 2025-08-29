@@ -36,7 +36,8 @@ import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-import { usePerpsEligibility } from '../../hooks/usePerpsEligibility';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -128,7 +129,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const hasTrackedStarted = useRef(false);
   const tutorialStartTime = useRef(Date.now());
 
-  const { isEligible } = usePerpsEligibility();
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const tutorialScreens = useMemo(
     () => getTutorialScreens(isEligible),
