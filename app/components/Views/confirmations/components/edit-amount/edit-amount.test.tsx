@@ -70,8 +70,8 @@ describe('EditAmount', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('edit-amount-input')).toHaveProp(
-      'value',
-      `$${VALUE_MOCK}`,
+      'defaultValue',
+      `${VALUE_MOCK}`,
     );
   });
 
@@ -110,7 +110,7 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5');
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
   });
 
   it('displays keyboard automatically when autoKeyboard is true', () => {
@@ -159,7 +159,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(input).toHaveProp('value', '$600.27');
+    expect(input).toHaveProp('defaultValue', '600.27');
   });
 
   it('does nothing if percentage button pressed with no pay token selected', async () => {
@@ -200,7 +200,7 @@ describe('EditAmount', () => {
       });
     }
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5.12');
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5.12');
   });
 
   it('limits length to 28', async () => {
@@ -217,8 +217,8 @@ describe('EditAmount', () => {
     }
 
     expect(getByTestId('edit-amount-input')).toHaveProp(
-      'value',
-      '$123456789012345678901234567',
+      'defaultValue',
+      '123456789012345678901234567',
     );
   });
 });
