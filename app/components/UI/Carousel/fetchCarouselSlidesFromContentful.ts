@@ -12,6 +12,8 @@ export interface ContentfulCarouselSlideFields {
   startDate?: string;
   endDate?: string;
   priorityPlacement?: boolean;
+  cardPlacement?: number | string;
+  variableName?: string;
 }
 
 export type ContentfulSlideSkeleton =
@@ -119,6 +121,8 @@ function mapContentfulEntriesToSlides(
       startDate,
       endDate,
       priorityPlacement,
+      cardPlacement,
+      variableName,
     } = entry.fields;
 
     const slide: CarouselSlide = {
@@ -136,6 +140,8 @@ function mapContentfulEntriesToSlides(
       testIDCloseButton: `carousel_slide_close_${entry.sys.id}`,
       startDate,
       endDate,
+      cardPlacement,
+      variableName,
     };
 
     if (priorityPlacement) {

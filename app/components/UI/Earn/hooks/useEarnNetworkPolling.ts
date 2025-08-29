@@ -7,7 +7,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../../selectors/preferencesController';
-import useAccountTrackerPolling from '../../../hooks/AssetPolling/useAccountTrackerPolling';
 import useCurrencyRatePolling from '../../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenBalancesPolling from '../../../hooks/AssetPolling/useTokenBalancesPolling';
 import useTokenDetectionPolling from '../../../hooks/AssetPolling/useTokenDetectionPolling';
@@ -58,39 +57,25 @@ export const useEarnNetworkPolling = () => {
     (state: RootState) => state.engine?.backgroundState?.TokensController,
   );
   const [lendingChainIds, setLendingChainIds] = useState<Hex[]>([]);
-  const [lendingNetworkClientIds, setLendingNetworkClientIds] = useState<
-    string[]
-  >([]);
 
   useTokenListPolling({ chainIds: lendingChainIds });
   useTokenBalancesPolling({ chainIds: lendingChainIds });
   useCurrencyRatePolling({ chainIds: lendingChainIds });
   useTokenRatesPolling({ chainIds: lendingChainIds });
-  useAccountTrackerPolling({ networkClientIds: lendingNetworkClientIds });
   useTokenDetectionPolling({
     chainIds: useTokenDetection ? lendingChainIds : [],
     address: selectedAccount?.address as Hex,
   });
 
   useEffect(() => {
-    const { NetworkController } = Engine.context;
     const validChainIds: Hex[] = [];
-    const validNetworkClientIds: string[] = [];
 
     LENDING_CHAIN_IDS.forEach((chainId) => {
-      try {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(chainId);
-        validChainIds.push(chainId);
-        validNetworkClientIds.push(networkClientId);
-      } catch (error) {
-        console.warn(`Network client not found for chain ${chainId}:`, error);
-      }
+      validChainIds.push(chainId);
     });
 
     setLendingChainIds(validChainIds);
-    setLendingNetworkClientIds(validNetworkClientIds);
-  }, [setLendingChainIds, setLendingNetworkClientIds]);
+  }, [setLendingChainIds]);
 
   // Import tokens from all lending chains
   useEffect(() => {

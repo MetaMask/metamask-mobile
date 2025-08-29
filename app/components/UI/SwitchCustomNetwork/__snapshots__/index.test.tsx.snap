@@ -144,7 +144,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
             }
           }
         >
-          app.uniswap.org
+          https://app.uniswap.org
         </Text>
         <Text
           accessibilityRole="text"

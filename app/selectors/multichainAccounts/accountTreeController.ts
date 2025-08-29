@@ -17,6 +17,7 @@ import {
 } from '@metamask/account-tree-controller';
 import { CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountGroupWithInternalAccounts } from './accounts.type';
 
 // Stable empty references to prevent unnecessary re-renders
 const EMPTY_ARR: readonly never[] = Object.freeze([]);
@@ -301,4 +302,30 @@ export const selectSelectedAccountGroupId = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState: AccountTreeControllerState) =>
     accountTreeState?.accountTree?.selectedAccountGroup || null,
+);
+
+/**
+ * Retrieve account groups with their internal accounts populated.
+ *
+ * @param accountGroups - Array of all account groups.
+ * @param internalAccounts - Array of internal accounts.
+ * @returns Array of account groups with internal accounts instead of account IDs.
+ */
+export const selectAccountGroupWithInternalAccounts = createSelector(
+  [selectAccountGroups, selectInternalAccounts],
+  (
+    accountGroups: readonly AccountGroupObject[],
+    internalAccounts: readonly InternalAccount[],
+  ): readonly AccountGroupWithInternalAccounts[] =>
+    accountGroups.map((accountGroup) => ({
+      ...accountGroup,
+      accounts: accountGroup.accounts
+        .map((accountId: string) => {
+          const internalAccount = internalAccounts.find(
+            (account) => account.id === accountId,
+          );
+          return internalAccount;
+        })
+        .filter((account): account is InternalAccount => account !== undefined),
+    })),
 );

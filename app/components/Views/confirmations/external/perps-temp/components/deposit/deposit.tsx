@@ -15,8 +15,6 @@ import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
-const AMOUNT_PREFIX = '$';
-
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [inputChanged, setInputChanged] = useState(false);
@@ -31,7 +29,6 @@ export function PerpsDeposit() {
   return (
     <>
       <EditAmount
-        prefix={AMOUNT_PREFIX}
         autoKeyboard
         onKeyboardShow={() => setIsKeyboardVisible(true)}
         onKeyboardHide={() => setIsKeyboardVisible(false)}

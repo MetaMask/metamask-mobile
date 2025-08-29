@@ -2,6 +2,7 @@ import { Theme } from '../../../../../util/theme/models';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
+  lightweightChartsLib: string,
 ): string => `<!DOCTYPE html>
 <html>
 <head>
@@ -27,24 +28,16 @@ export const createTradingViewChartTemplate = (
 </head>
 <body>
     <div id="container"></div>
+    <!-- Load Lightweight Charts Library (Local) -->
+    <script>
+        ${lightweightChartsLib}
+    </script>
     <script>
         // Global variables
         window.chart = null;
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
-        // Step 1: Load TradingView library dynamically
-        function loadTradingView() {
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
-            script.onload = function() {
-                setTimeout(createChart, 500); // Small delay to ensure library is ready
-            };
-            script.onerror = function() {
-                console.error('TradingView: Failed to load library');
-            };
-            document.head.appendChild(script);
-        }
         // Step 2: Create chart
         function createChart() {
             if (!window.LightweightCharts) {
@@ -305,7 +298,8 @@ export const createTradingViewChartTemplate = (
             window.dispatchEvent(new MessageEvent('message', event));
         });
         // Start loading after a small delay
-        setTimeout(loadTradingView, 500);
+        // Library is already loaded inline, so start creating chart
+        createChart();
     </script>
 </body>
 </html>`;

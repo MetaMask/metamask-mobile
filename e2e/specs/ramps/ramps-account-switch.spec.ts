@@ -7,7 +7,7 @@ import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import { SmokeTrade } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNodeType } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
@@ -52,7 +52,7 @@ const setupRampsAccountSwitchTest = async (
   );
 };
 
-describe(SmokeTrade('Ramps with Account Switching'), () => {
+describe(RegressionTrade('Ramps with Account Switching'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
