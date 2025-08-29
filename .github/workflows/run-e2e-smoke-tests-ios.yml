@@ -117,8 +117,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: '*-ios-*-test-results'
-          merge-multiple: true
+          pattern: "*-ios-*-test-results"
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
