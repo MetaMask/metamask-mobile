@@ -84,6 +84,7 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
 );
 
+// TODO: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
 const selectStakedAssets = createDeepEqualSelector(
   [
     (state: RootState) =>
@@ -101,7 +102,8 @@ const selectStakedAssets = createDeepEqualSelector(
     currentCurrency,
   ) => {
     const stakedAssets = Object.entries(accountsByChainId).flatMap(
-      ([chainId, chainAccounts]) => Object.entries(chainAccounts)
+      ([chainId, chainAccounts]) =>
+        Object.entries(chainAccounts)
           .filter(
             ([_, accountInformation]) =>
               accountInformation.stakedBalance &&
