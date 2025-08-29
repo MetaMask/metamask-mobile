@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
 import _ from 'lodash';
-import { createLogger, MockApiEndpoint } from '../framework';
-import { getDecodedProxiedURL } from '../specs/notifications/utils/helpers';
+import { createLogger, MockApiEndpoint } from '../../framework';
+import { getDecodedProxiedURL } from '../../specs/notifications/utils/helpers';
 
 const logger = createLogger({
   name: 'TestSpecificMockHelpers',
