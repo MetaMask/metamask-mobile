@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useMemo, useCallback, useState } from 'react';
 import { Image } from 'expo-image';
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -18,17 +18,21 @@ export const usePerpsImagePrefetch = (
     batchSize?: number; // Number of images to prefetch at once
   },
 ) => {
-  const prefetchedSymbols = useRef<Set<string>>(new Set());
-  const isPrefetching = useRef(false);
+  const [prefetchedSymbols, setPrefetchedSymbols] = useState<Set<string>>(
+    new Set(),
+  );
+  const [isPrefetching, setIsPrefetching] = useState(false);
+  const prefetchedRef = useRef<Set<string>>(new Set());
+  const isPrefetchingRef = useRef(false);
 
   useEffect(() => {
-    if (!symbols?.length || isPrefetching.current) {
+    if (!symbols?.length || isPrefetchingRef.current) {
       return;
     }
 
     // Filter out already prefetched symbols
     const symbolsToPrefetch = symbols.filter(
-      (symbol) => !prefetchedSymbols.current.has(symbol.toUpperCase()),
+      (symbol) => !prefetchedRef.current.has(symbol.toUpperCase()),
     );
 
     if (symbolsToPrefetch.length === 0) {
@@ -36,7 +40,8 @@ export const usePerpsImagePrefetch = (
     }
 
     const prefetchImages = async () => {
-      isPrefetching.current = true;
+      isPrefetchingRef.current = true;
+      setIsPrefetching(true);
       const batchSize = options?.batchSize || 25; // Increased default for ~173 markets
 
       try {
@@ -59,11 +64,21 @@ export const usePerpsImagePrefetch = (
           );
 
           // Track successfully prefetched symbols
+          const newPrefetched: string[] = [];
           results.forEach((result, index) => {
             if (result.status === 'fulfilled' && result.value) {
-              prefetchedSymbols.current.add(batch[index].toUpperCase());
+              const symbol = batch[index].toUpperCase();
+              prefetchedRef.current.add(symbol);
+              newPrefetched.push(symbol);
             }
           });
+
+          // Update state to trigger re-render
+          if (newPrefetched.length > 0) {
+            setPrefetchedSymbols(
+              (prev) => new Set([...prev, ...newPrefetched]),
+            );
+          }
 
           // Log progress in development
           if (__DEV__) {
@@ -85,7 +100,8 @@ export const usePerpsImagePrefetch = (
       } catch (error) {
         DevLogger.log('Error prefetching images:', error);
       } finally {
-        isPrefetching.current = false;
+        isPrefetchingRef.current = false;
+        setIsPrefetching(false);
       }
     };
 
@@ -93,8 +109,8 @@ export const usePerpsImagePrefetch = (
   }, [symbols, options?.batchSize]);
 
   return {
-    prefetchedCount: prefetchedSymbols.current.size,
-    isPrefetching: isPrefetching.current,
+    prefetchedCount: prefetchedSymbols.size,
+    isPrefetching,
   };
 };
 
