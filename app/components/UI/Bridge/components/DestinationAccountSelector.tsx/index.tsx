@@ -28,6 +28,8 @@ import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
+import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -60,10 +62,34 @@ const DestinationAccountSelector = () => {
 
   // Filter accounts using BIP-44 aware multichain selectors via account IDs
   const validDestIds = useSelector(selectValidDestInternalAccountIds);
+  const accountGroups = useSelector(selectAccountGroups);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const filteredAccounts = useMemo(() => {
     if (!validDestIds || validDestIds.size === 0) return [];
-    return accounts.filter((account) => validDestIds.has(account.id));
-  }, [accounts, validDestIds]);
+    return accounts
+      .filter((account) => validDestIds.has(account.id))
+      .map((account) => {
+        // Use account group name if available, otherwise use account name
+        let accountName = account.name;
+        if (isMultichainAccountsState2Enabled) {
+          const accountGroup = accountGroups.find((group) =>
+            group.accounts.includes(account.id),
+          );
+          accountName = accountGroup?.metadata.name || account.name;
+        }
+        return {
+          ...account,
+          name: accountName,
+        };
+      });
+  }, [
+    accounts,
+    validDestIds,
+    accountGroups,
+    isMultichainAccountsState2Enabled,
+  ]);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
