@@ -3,8 +3,6 @@ import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
-import { useAlerts } from '../../context/alert-system-context';
-import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
@@ -15,26 +13,30 @@ import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { Alert } from '../../types/alerts';
 
 const MAX_LENGTH = 28;
 
 export interface EditAmountProps {
+  alerts?: Alert[];
   autoKeyboard?: boolean;
   children?: (amountHuman: string) => React.ReactNode;
+  onChange?: (amount: string) => void;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
   onKeyboardDone?: () => void;
 }
 
 export function EditAmount({
+  alerts,
   autoKeyboard = false,
   children,
+  onChange,
   onKeyboardShow,
   onKeyboardHide,
   onKeyboardDone,
 }: EditAmountProps) {
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const { fieldAlerts } = useAlerts();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
@@ -48,8 +50,7 @@ export function EditAmount({
   const fiatRate = useTokenFiatRate(tokenAddress, chainId);
 
   const inputRef = createRef<TextInput>();
-  const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
-  const hasAlert = alerts.length > 0 && inputChanged;
+  const hasAlert = Boolean(alerts?.length) && inputChanged;
   const fiatSymbol = getCurrencySymbol(fiatCurrency);
   const amountLength = amountFiat.length;
 
@@ -61,7 +62,7 @@ export function EditAmount({
   const { tokenFiatAmount } = payToken ?? {};
   const hasAmount = amountFiat !== '0';
 
-  const amountHuman = new BigNumber(amountFiat.replace(/,/g, '.'))
+  const amountHuman = new BigNumber(amountFiat)
     .dividedBy(fiatRate ?? 1)
     .toString(10);
 
@@ -84,12 +85,19 @@ export function EditAmount({
     }
 
     setAmountFiat(amount);
+    setInputChanged(true);
   }, []);
+
+  useEffect(() => {
+    if (!inputChanged) {
+      return;
+    }
+    onChange?.(amountHuman);
+  }, [amountHuman, inputChanged, onChange]);
 
   const handleKeyboardDone = useCallback(() => {
     updateTokenAmount(amountHuman);
     inputRef.current?.blur();
-    setInputChanged(true);
     setShowKeyboard(false);
     setIsFooterVisible?.(true);
     onKeyboardHide?.();

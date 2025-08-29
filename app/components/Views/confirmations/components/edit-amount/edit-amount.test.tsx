@@ -6,16 +6,11 @@ import { EditAmount, EditAmountProps } from './edit-amount';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { act, fireEvent } from '@testing-library/react-native';
-import {
-  AlertsContextParams,
-  useAlerts,
-} from '../../context/alert-system-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../hooks/useTokenAmount');
-jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
 
@@ -37,7 +32,6 @@ function render(props: EditAmountProps = {}) {
 
 describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
-  const useAlertsMock = jest.mocked(useAlerts);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const updateTokenAmountMock = jest.fn();
@@ -49,10 +43,6 @@ describe('EditAmount', () => {
       fiatUnformatted: '0',
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
-
-    useAlertsMock.mockReturnValue({
-      fieldAlerts: [],
-    } as unknown as AlertsContextParams);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { balanceFiat: '0' },
