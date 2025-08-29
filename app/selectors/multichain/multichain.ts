@@ -40,7 +40,6 @@ import {
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../featureFlagController';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -489,11 +488,6 @@ export const makeSelectNonEvmAssetById = () =>
       };
     },
   );
-
-export const selectSolanaOnboardingModalEnabled = createDeepEqualSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => Boolean(remoteFeatureFlags.solanaOnboardingModal),
-);
 
 export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
   selectInternalAccounts,

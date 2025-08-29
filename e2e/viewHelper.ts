@@ -22,7 +22,6 @@ import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
-import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
@@ -81,11 +80,7 @@ export const closeOnboardingModals = async (fromResetWallet = false) => {
   }
 
   if (!fromResetWallet) {
-    // Handle Solana New feature sheet
-    await Assertions.expectElementToBeVisible(
-      SolanaNewFeatureSheet.notNowButton,
-    );
-    await SolanaNewFeatureSheet.tapNotNowButton();
+    // Nothing to do here for now
   }
 };
 

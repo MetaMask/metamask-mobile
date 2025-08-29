@@ -255,9 +255,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
-    solanaOnboardingModal: true,
-  },
-  {
     sendRedesign: {
       enabled: true,
     },

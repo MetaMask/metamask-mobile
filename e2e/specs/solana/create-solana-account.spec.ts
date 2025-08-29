@@ -9,7 +9,6 @@ import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSh
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
@@ -31,7 +30,6 @@ describe(SmokeNetworkExpansion('Create Solana account'), () => {
       },
       async () => {
         await loginToApp();
-        await SolanaNewFeatureSheet.tapNotNowButton();
 
         await WalletView.tapIdenticon();
         await Assertions.expectElementToBeVisible(
