@@ -109,7 +109,7 @@ abstract class StreamChannel<T> {
   }
 
   protected getCachedData(): T | null {
-    // Override in subclasses
+    // Override in subclasses to return null for no cache, or actual data
     return null;
   }
 
@@ -351,7 +351,9 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('orders') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('orders');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Order[] {
@@ -407,7 +409,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('positions') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('positions');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Position[] {

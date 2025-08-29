@@ -120,7 +120,7 @@ describe('useAccountNames', () => {
 
     const { result } = renderHook(() => useAccountNames(requests));
 
-    expect(result.current).toEqual(['Account 1']);
+    expect(result.current).toEqual(['Group 1']);
   });
 
   it('returns undefined for non-matching addresses', () => {
