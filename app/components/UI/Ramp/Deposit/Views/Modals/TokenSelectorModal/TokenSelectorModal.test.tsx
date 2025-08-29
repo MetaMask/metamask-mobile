@@ -7,6 +7,15 @@ import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
+const mockSetCryptoCurrency = jest.fn();
+const mockUseDepositSDK = jest.fn();
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,
@@ -53,17 +62,23 @@ const mockTokens = [
 ];
 
 describe('TokenSelectorModal Component', () => {
-  const mockHandleSelectAssetId = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({
       selectedAssetId:
         'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      handleSelectAssetId: mockHandleSelectAssetId,
     });
     (useSupportedTokens as jest.Mock).mockReturnValue(mockTokens);
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
+
+    // Mock the context with the required values
+    mockUseDepositSDK.mockReturnValue({
+      setCryptoCurrency: mockSetCryptoCurrency,
+      selectedRegion: { isoCode: 'US' },
+      fiatCurrency: { id: 'USD' },
+      isAuthenticated: false,
+      cryptoCurrency: mockTokens[0], // Add the missing cryptoCurrency
+    });
   });
 
   it('renders correctly and matches snapshot', () => {
@@ -81,9 +96,38 @@ describe('TokenSelectorModal Component', () => {
     fireEvent.press(tetherElement);
 
     await waitFor(() => {
-      expect(mockHandleSelectAssetId).toHaveBeenCalledWith(
-        'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      );
+      expect(mockSetCryptoCurrency).toHaveBeenCalledWith(mockTokens[1]);
+    });
+  });
+
+  it('displays network filter selector when pressing "All networks" button', async () => {
+    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
+
+    const allNetworksButton = getByText('All networks');
+    fireEvent.press(allNetworksButton);
+
+    await waitFor(() => {
+      expect(getByText('Deselect all')).toBeTruthy();
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event when token is selected', async () => {
+    const { getByText } = renderWithProvider(TokenSelectorModal);
+
+    const tetherElement = getByText('USDT');
+    fireEvent.press(tetherElement);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+        ramp_type: 'DEPOSIT',
+        region: 'US',
+        chain_id: 'eip155:1',
+        currency_destination:
+          'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        currency_source: 'USD',
+        is_authenticated: false,
+      });
     });
   });
 
@@ -99,17 +143,5 @@ describe('TokenSelectorModal Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
-  });
-
-  it('displays network filter selector when pressing "All networks" button', async () => {
-    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
-
-    const allNetworksButton = getByText('All networks');
-    fireEvent.press(allNetworksButton);
-
-    await waitFor(() => {
-      expect(getByText('Deselect all')).toBeTruthy();
-    });
-    expect(toJSON()).toMatchSnapshot();
   });
 });
