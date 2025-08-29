@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -50,25 +50,25 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworksScreen.device = device;
   BridgeScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
 
   const timer1 = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
   timer1.start();
 
-  await WalletActionModal.tapBridgeButton();
+  await WalletMainScreen.tapSwapButton();
   await BridgeScreen.isVisible();
   timer1.stop();
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
-  await BridgeScreen.enterSourceTokenAmount('0.0001');
+  await BridgeScreen.enterSourceTokenAmount('0.001');
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
 
   timer2.start();
-  await BridgeScreen.isQuoteDisplayed('Solana');
+  await BridgeScreen.isQuoteDisplayed();
   timer2.stop();
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
