@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type BN4 from 'bnjs4';
 import { useRampSDK } from '../sdk';
 import parseAmount from '../utils/parseAmount';
-import { toTokenMinimalUnit } from '../../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../../util/number/legacy';
 import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
 /**

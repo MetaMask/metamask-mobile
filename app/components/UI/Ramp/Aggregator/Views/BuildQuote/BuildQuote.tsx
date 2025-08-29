@@ -83,7 +83,7 @@ import styleSheet from './BuildQuote.styles';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';

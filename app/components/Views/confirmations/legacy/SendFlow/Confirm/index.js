@@ -20,7 +20,7 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import {
   getTicker,
   decodeTransferData,

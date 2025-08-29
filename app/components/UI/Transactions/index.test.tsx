@@ -153,7 +153,7 @@ jest.mock('../../../util/transactions', () => ({
   validateTransactionActionBalance: jest.fn(() => false),
 }));
 
-jest.mock('../../../util/number', () => ({
+jest.mock('../../../util/number/legacy', () => ({
   addHexPrefix: jest.fn((val) => `0x${val}`),
   hexToBN: jest.fn(() => ({ toString: () => '100' })),
   renderFromWei: jest.fn(() => '0.001'),

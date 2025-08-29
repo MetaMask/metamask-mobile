@@ -22,7 +22,7 @@ import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AppConstants from '../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { addCurrencySymbol } from '../../../util/number';
+import { addCurrencySymbol } from '../../../util/number/legacy';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 
 interface ResultProps {

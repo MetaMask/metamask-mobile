@@ -17,7 +17,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
 import { createDeepEqualSelector } from '../util';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number/legacy';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,

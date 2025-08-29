@@ -2,14 +2,14 @@ import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
   balanceToFiatNumber,
-} from '../../../../util/number';
+} from '../../../../util/number/legacy';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';
 import { deriveBalanceFromAssetMarketDetails } from './deriveBalanceFromAssetMarketDetails';
 
 // Mock utility functions
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../util/number/legacy', () => ({
   renderFromTokenMinimalUnit: jest.fn(),
   addCurrencySymbol: jest.fn(),
   balanceToFiatNumber: jest.fn(),

@@ -21,7 +21,7 @@ import {
   TRANSFER_FROM_FUNCTION_SIGNATURE,
   TRANSFER_FUNCTION_SIGNATURE,
 } from '../../../../util/transactions';
-import { BNToHex, hexToBN, toWei } from '../../../../util/number';
+import { BNToHex, hexToBN, toWei } from '../../../../util/number/legacy';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';

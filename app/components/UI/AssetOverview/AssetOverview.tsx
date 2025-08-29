@@ -36,7 +36,7 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
   toHexadecimal,
-} from '../../../util/number';
+} from '../../../util/number/legacy';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
 import { createWebviewNavDetails } from '../../Views/SimpleWebview';

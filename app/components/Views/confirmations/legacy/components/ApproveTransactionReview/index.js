@@ -26,7 +26,7 @@ import {
   hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/legacy';
 import {
   getTicker,
   getNormalizedTxState,

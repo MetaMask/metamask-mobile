@@ -1,4 +1,4 @@
-import { isNumber } from '../../../../util/number';
+import { isNumber } from '../../../../util/number/legacy';
 
 const findFirstDigitIndex = (str: string) => {
   for (let i = 0; i < str.length; i++) {
