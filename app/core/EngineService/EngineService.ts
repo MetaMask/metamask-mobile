@@ -59,6 +59,13 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+
+    if (reduxState?.user?.existingUser) {
+      Logger.log(
+        'Is vault defined at KeyringController',
+        !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
+      );
+    }
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
