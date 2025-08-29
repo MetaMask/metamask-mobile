@@ -126,13 +126,13 @@ describe('MainNavigator - Rewards Integration', () => {
     const { getByTestId, queryByTestId } = renderMainNavigator();
 
     // Settings tab should be visible
-    expect(getByTestId('tab-bar-item-Setting')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Setting')).toBeDefined();
     // Rewards tab should not be present
     expect(queryByTestId('tab-bar-item-Rewards')).toBeNull();
     // Verify other core tabs are present
-    expect(getByTestId('tab-bar-item-Wallet')).toBeTruthy();
-    expect(getByTestId('tab-bar-item-Browser')).toBeTruthy();
-    expect(getByTestId('tab-bar-item-Actions')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Actions')).toBeDefined();
   });
 
   it('should show Rewards tab when rewards feature flag is on', () => {
@@ -140,12 +140,12 @@ describe('MainNavigator - Rewards Integration', () => {
     const { getByTestId, queryByTestId } = renderMainNavigator();
 
     // Rewards tab should be visible
-    expect(getByTestId('tab-bar-item-Rewards')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Rewards')).toBeDefined();
     // Settings tab should not be present
     expect(queryByTestId('tab-bar-item-Setting')).toBeNull();
     // Verify other core tabs are present
-    expect(getByTestId('tab-bar-item-Wallet')).toBeTruthy();
-    expect(getByTestId('tab-bar-item-Browser')).toBeTruthy();
-    expect(getByTestId('tab-bar-item-Actions')).toBeTruthy();
+    expect(getByTestId('tab-bar-item-Wallet')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Browser')).toBeDefined();
+    expect(getByTestId('tab-bar-item-Actions')).toBeDefined();
   });
 });
