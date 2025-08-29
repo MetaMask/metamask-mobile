@@ -22,7 +22,6 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -191,7 +190,7 @@ export function* handleDeeplinkSaga() {
     if (deeplink) {
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
+        DeeplinkManager.parse(deeplink, {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         });
       }, 200);
