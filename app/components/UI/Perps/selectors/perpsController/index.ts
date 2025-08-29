@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
+import { selectIsFirstTimeUser } from '../../controllers/selectors';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -42,8 +43,10 @@ const selectPerpsNetwork = createSelector(
     perpsControllerState?.isTestnet ? 'testnet' : 'mainnet',
 );
 
-// Import the existing selector logic
-import { selectIsFirstTimeUser } from '../../controllers/selectors';
+const selectPerpsBalances = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.perpsBalances || {},
+);
 
 const selectIsFirstTimePerpsUser = createSelector(
   selectPerpsControllerState,
@@ -56,5 +59,6 @@ export {
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectPerpsBalances,
   selectIsFirstTimePerpsUser,
 };

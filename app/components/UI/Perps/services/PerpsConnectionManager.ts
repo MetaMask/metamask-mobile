@@ -6,6 +6,10 @@ import { selectPerpsNetwork } from '../selectors/perpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 
+// Constants for throttle timing
+const BALANCE_UPDATE_THROTTLE_MS = 15000; // Update at most every 15 seconds to reduce state updates
+const INITIAL_DATA_DELAY_MS = 100; // Delay to allow initial data to load
+
 /**
  * Singleton manager for Perps connection state
  * This ensures that both PerpsScreenStack and PerpsModalStack
@@ -25,6 +29,8 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+  private lastBalanceUpdateTime = 0;
+  private balanceUpdateThrottleMs = BALANCE_UPDATE_THROTTLE_MS;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -347,9 +353,37 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Update persisted perps balances in controller state
+   * This is called when account or position data changes
+   */
+  private updatePerpsBalances(): void {
+    const now = Date.now();
+    // Throttle updates to prevent too frequent state changes
+    if (now - this.lastBalanceUpdateTime < this.balanceUpdateThrottleMs) {
+      return;
+    }
+
+    try {
+      const controller = Engine.context.PerpsController;
+      const currentAccount = controller.state.accountState;
+
+      if (currentAccount) {
+        // Update persisted balances
+        controller.updatePerpsBalances(currentAccount);
+        this.lastBalanceUpdateTime = now;
+
+        DevLogger.log('PerpsConnectionManager: Updated persisted balances');
+      }
+    } catch (error) {
+      DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
+    }
+  }
+
+  /**
    * Pre-load critical WebSocket subscriptions to populate cache
    * This ensures positions and orders are available immediately when components mount
    * Uses the StreamManager singleton to ensure single WebSocket connections
+   * Also sets up balance update subscriptions for portfolio integration
    */
   private async preloadSubscriptions(): Promise<void> {
     // Only pre-load once per session
@@ -375,6 +409,18 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
+      // Add subscriptions that update persisted balances for portfolio
+      // Account updates (includes totalValue and unrealizedPnl) - throttled
+      const balanceAccountCleanup = streamManager.account.subscribe({
+        callback: () => this.updatePerpsBalances(),
+        throttleMs: this.balanceUpdateThrottleMs,
+      });
+
+      // Position updates (immediate, no throttling for actual position changes)
+      const balancePositionCleanup = streamManager.positions.subscribe({
+        callback: () => this.updatePerpsBalances(),
+        throttleMs: 0, // No throttling for position changes
+      });
       // Price channel prewarm is async and subscribes to all market prices
       const priceCleanup = await streamManager.prices.prewarm();
 
@@ -383,11 +429,15 @@ class PerpsConnectionManagerClass {
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
+        balanceAccountCleanup,
+        balancePositionCleanup,
         priceCleanup,
       );
 
       // Give subscriptions a moment to receive initial data
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) =>
+        setTimeout(resolve, INITIAL_DATA_DELAY_MS),
+      );
 
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
