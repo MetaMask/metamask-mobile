@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { createDeepEqualSelector } from './util';
+import { createDeepEqualResultSelector, createDeepEqualSelector } from './util';
 import { selectPendingSmartTransactionsBySender } from './smartTransactionsController';
 
 const selectTransactionControllerState = (state: RootState) =>
@@ -50,10 +50,20 @@ export const selectSwapsTransactions = createSelector(
     transactionControllerState.swapsTransactions ?? {},
 );
 
-export const selectTransactionMetadataById = createDeepEqualSelector(
+export const selectTransactionMetadataById = createDeepEqualResultSelector(
   selectTransactionsStrict,
   (_: RootState, id: string) => id,
-  (transactions, id) => transactions.find((tx) => tx.id === id),
+  (transactions, id) => {
+    const transaction = transactions.find((tx) => tx.id === id);
+    return transaction
+      ? {
+          ...transaction,
+          gasFeeEstimates: undefined,
+          simulationData: undefined,
+          defaultGasEstimates: undefined,
+        }
+      : undefined;
+  },
 );
 
 export const selectTransactionBatchMetadataById = createDeepEqualSelector(

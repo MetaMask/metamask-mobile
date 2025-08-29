@@ -110,8 +110,7 @@ export const TransactionControllerInit: ControllerInitFunction<
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
-        isSimulationEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
+        isSimulationEnabled: () => false,
         messenger: controllerMessenger,
         pendingTransactions: {
           isResubmitEnabled: () => false,

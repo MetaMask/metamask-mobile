@@ -25,6 +25,7 @@ import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
+import { PayContextProvider } from '../../context/pay-context/pay-context';
 
 const ConfirmWrapped = ({
   styles,
@@ -38,27 +39,29 @@ const ConfirmWrapped = ({
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
-        <AlertsContextProvider alerts={alerts}>
-          <QRHardwareContextProvider>
-            <LedgerContextProvider>
-              <Title />
-              <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-                nestedScrollEnabled
-              >
-                <TouchableWithoutFeedback>
-                  <>
-                    <AlertBanner />
-                    <Info route={route} />
-                  </>
-                </TouchableWithoutFeedback>
-              </ScrollView>
-              <Footer />
-              <Splash />
-            </LedgerContextProvider>
-          </QRHardwareContextProvider>
-        </AlertsContextProvider>
+        <PayContextProvider>
+          <AlertsContextProvider alerts={alerts}>
+            <QRHardwareContextProvider>
+              <LedgerContextProvider>
+                <Title />
+                <ScrollView
+                  style={styles.scrollView}
+                  contentContainerStyle={styles.scrollViewContent}
+                  nestedScrollEnabled
+                >
+                  <TouchableWithoutFeedback>
+                    <>
+                      <AlertBanner />
+                      <Info route={route} />
+                    </>
+                  </TouchableWithoutFeedback>
+                </ScrollView>
+                <Footer />
+                <Splash />
+              </LedgerContextProvider>
+            </QRHardwareContextProvider>
+          </AlertsContextProvider>
+        </PayContextProvider>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );

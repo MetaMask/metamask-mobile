@@ -8,8 +8,10 @@ import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmou
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
+import { profiler } from '../../components/edit-amount/profiler';
 
 export function useInsufficientPayTokenBalanceAlert(): Alert[] {
+  profiler.start('useInsufficientPayTokenBalanceAlert');
   const { type } = useTransactionMetadataRequest() ?? {};
   const { totalHuman } = useTransactionPayTokenAmounts();
   const { payToken } = useTransactionPayToken();
@@ -19,6 +21,8 @@ export function useInsufficientPayTokenBalanceAlert(): Alert[] {
     new BigNumber(balance ?? '0').isLessThan(
       new BigNumber(totalHuman ?? '0'),
     ) && type === TransactionType.perpsDeposit;
+
+  profiler.stop('useInsufficientPayTokenBalanceAlert');
 
   return useMemo(() => {
     if (!isInsufficient) {

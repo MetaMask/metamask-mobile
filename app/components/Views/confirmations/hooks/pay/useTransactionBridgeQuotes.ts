@@ -3,8 +3,9 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
 import { useEffect } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectPendingTokenAmount,
   setTransactionBridgeQuotes,
   setTransactionBridgeQuotesLoading,
 } from '../../../../../core/redux/slices/confirmationMetrics';
@@ -13,10 +14,12 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
+import { profiler } from '../../components/edit-amount/profiler';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
+  profiler.start('useTransactionBridgeQuotes');
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataOrThrow();
   const { alerts } = useAlerts();
@@ -38,12 +41,15 @@ export function useTransactionBridgeQuotes() {
 
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
+  const pendingTokenAmount = useSelector(selectPendingTokenAmount);
+
   const requests: BridgeQuoteRequest[] = useDeepMemo(() => {
     if (
       !sourceTokenAddress ||
       !sourceChainId ||
       !sourceAmounts ||
-      hasBlockingAlert
+      hasBlockingAlert ||
+      pendingTokenAmount
     ) {
       return [];
     }
@@ -68,6 +74,7 @@ export function useTransactionBridgeQuotes() {
     sourceChainId,
     sourceTokenAddress,
     targetChainId,
+    pendingTokenAmount,
   ]);
 
   const { pending: loading, value: quotes } = useAsyncResult(async () => {
@@ -97,6 +104,8 @@ export function useTransactionBridgeQuotes() {
       })),
     );
   }, [dispatch, quotes, transactionId]);
+
+  profiler.stop('useTransactionBridgeQuotes');
 
   return { loading, quotes };
 }

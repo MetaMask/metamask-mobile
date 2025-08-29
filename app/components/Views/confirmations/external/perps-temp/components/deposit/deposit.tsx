@@ -46,13 +46,13 @@ export function PerpsDeposit() {
             <InfoSection>
               <PayWithRow />
             </InfoSection>
-            {isFullView && (
+            {/* {isFullView && (
               <InfoSection>
                 <GasFeeFiatRow />
                 <BridgeTimeRow />
                 <TotalRow />
               </InfoSection>
-            )}
+            )} */}
           </>
         )}
       </EditAmount>

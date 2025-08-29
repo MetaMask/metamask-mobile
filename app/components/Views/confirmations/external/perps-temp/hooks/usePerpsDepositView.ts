@@ -1,5 +1,3 @@
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSelector } from 'react-redux';
@@ -16,7 +14,7 @@ export function usePerpsDepositView({
 }: {
   isKeyboardVisible: boolean;
 }) {
-  usePerpsDepositInit();
+  // usePerpsDepositInit();
 
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const { amountUnformatted } = useTokenAmount();
@@ -34,16 +32,6 @@ export function usePerpsDepositView({
     !isKeyboardVisible &&
     !amountValue.isZero() &&
     (isQuotesLoading || Boolean(quotes?.length));
-
-  useAutomaticTransactionPayToken({
-    balanceOverrides: [
-      {
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
-        balance: 10,
-        chainId: CHAIN_IDS.ARBITRUM,
-      },
-    ],
-  });
 
   return {
     isFullView,

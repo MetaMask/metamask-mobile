@@ -10,6 +10,10 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectPendingTokenAmount } from '../../../../../core/redux/slices/confirmationMetrics';
+import { profiler } from '../../components/edit-amount/profiler';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -34,6 +38,7 @@ export interface TransactionToken {
  * Necessary for MetaMask Pay to generate suitable bridge or swap transactions.
  */
 export function useTransactionRequiredTokens() {
+  profiler.start('useTransactionRequiredTokens');
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
@@ -50,33 +55,46 @@ export function useTransactionRequiredTokens() {
     [gasToken, tokenTransferToken],
   );
 
-  const finalTokens = getPartialTokens(requiredTokens, balanceTokens, chainId);
+  const finalTokens = useMemo(
+    () => getPartialTokens(requiredTokens, balanceTokens, chainId),
+    [requiredTokens, balanceTokens, chainId],
+  );
+
   const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
     log('Required tokens', result);
   }, [result]);
 
+  profiler.stop('useTransactionRequiredTokens');
   return result;
 }
 
 function useTokenTransferToken(): TransactionTokenBase | undefined {
+  const pendingTokenAmount = useSelector((state: RootState) =>
+    selectPendingTokenAmount(state),
+  );
+
+  const transferAmount = pendingTokenAmount
+    ? toHex(new BigNumber(pendingTokenAmount).decimalPlaces(0).toString(10))
+    : undefined;
+
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
-  const { data, to } = txParams;
+  const { to } = txParams;
 
-  let transferAmount: Hex | undefined;
+  // let transferAmount: Hex | undefined;
 
-  try {
-    const result = new Interface(abiERC20).decodeFunctionData(
-      'transfer',
-      data ?? '0x',
-    );
+  // try {
+  //   const result = new Interface(abiERC20).decodeFunctionData(
+  //     'transfer',
+  //     data ?? '0x',
+  //   );
 
-    transferAmount = toHex(result._value);
-  } catch {
-    // Intentionally empty
-  }
+  //   transferAmount = toHex(result._value);
+  // } catch {
+  //   // Intentionally empty
+  // }
 
   return useMemo(() => {
     if (!transferAmount || !to) {

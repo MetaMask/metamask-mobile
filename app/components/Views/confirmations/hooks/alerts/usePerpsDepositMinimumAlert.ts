@@ -7,16 +7,20 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
+import { useSelector } from 'react-redux';
+import { selectPendingTokenAmount } from '../../../../../core/redux/slices/confirmationMetrics';
 
 export const MINIMUM_DEPOSIT_USD = 10;
 
 export function usePerpsDepositMinimumAlert(): Alert[] {
   const { type } = useTransactionMetadataRequest() ?? {};
   const { amountUnformatted } = useTokenAmount();
+  const pendingTokenAmount = useSelector(selectPendingTokenAmount);
 
   const underMinimum =
-    new BigNumber(amountUnformatted ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
-    type === TransactionType.perpsDeposit;
+    new BigNumber(pendingTokenAmount ?? amountUnformatted ?? '0').isLessThan(
+      MINIMUM_DEPOSIT_USD,
+    ) && type === TransactionType.perpsDeposit;
 
   return useMemo(() => {
     if (!underMinimum) {

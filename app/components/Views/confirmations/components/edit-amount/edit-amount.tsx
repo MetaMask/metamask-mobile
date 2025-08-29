@@ -1,20 +1,23 @@
-import React, { createRef, useCallback, useEffect, useState } from 'react';
-import { TextInput, View } from 'react-native';
-import { useTokenAmount } from '../../hooks/useTokenAmount';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
 import { useAlerts } from '../../context/alert-system-context';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
-import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { setPendingTokenAmount } from '../../../../../core/redux/slices/confirmationMetrics';
+import { usePayContext } from '../../context/pay-context/pay-context';
+import { profiler } from './profiler';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 
 const MAX_LENGTH = 28;
 
@@ -33,21 +36,21 @@ export function EditAmount({
   onKeyboardHide,
   onKeyboardDone,
 }: EditAmountProps) {
+  const dispatch = useDispatch();
   const fiatCurrency = useSelector(selectCurrentCurrency);
   const { fieldAlerts } = useAlerts();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
-  const { payToken } = useTransactionPayToken();
-  const { fiatUnformatted, updateTokenAmount } = useTokenAmount();
+  const { payToken } = usePayContext();
+  // const { fiatUnformatted, updateTokenAmount } = useTokenAmount();
   const transactionMeta = useTransactionMetadataRequest();
-  const [amountFiat, setAmountFiat] = useState<string>(fiatUnformatted ?? '0');
+  const [amountFiat, setAmountFiat] = useState<string>('0');
 
   const tokenAddress = transactionMeta?.txParams?.to as Hex;
   const chainId = transactionMeta?.chainId as Hex;
   const fiatRate = useTokenFiatRate(tokenAddress, chainId);
 
-  const inputRef = createRef<TextInput>();
   const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
   const hasAlert = alerts.length > 0 && inputChanged;
   const fiatSymbol = getCurrencySymbol(fiatCurrency);
@@ -66,11 +69,10 @@ export function EditAmount({
     .toString(10);
 
   const handleInputPress = useCallback(() => {
-    inputRef.current?.focus();
     setShowKeyboard(true);
     setIsFooterVisible?.(false);
     onKeyboardShow?.();
-  }, [inputRef, onKeyboardShow, setIsFooterVisible]);
+  }, [onKeyboardShow, setIsFooterVisible]);
 
   useEffect(() => {
     if (autoKeyboard && !inputChanged) {
@@ -78,35 +80,31 @@ export function EditAmount({
     }
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
-  const handleChange = useCallback(
-    (amount: string) => {
-      const normalizedAmount = amount.replace(new RegExp(fiatSymbol, 'g'), '');
+  const handleChange = useCallback((amount: string) => {
+    if (amount.length >= MAX_LENGTH) {
+      return;
+    }
 
-      if (normalizedAmount.length >= MAX_LENGTH) {
-        return;
-      }
+    setAmountFiat(amount);
+  }, []);
 
-      setAmountFiat(normalizedAmount);
-    },
-    [fiatSymbol],
-  );
+  useAsyncResult(async () => {
+    profiler.start('dispatch');
+    dispatch(setPendingTokenAmount(amountHuman));
+    profiler.stop('dispatch');
+  }, [dispatch, amountHuman]);
 
   const handleKeyboardDone = useCallback(() => {
-    updateTokenAmount(amountHuman);
-    inputRef.current?.blur();
+    profiler.log();
+    profiler.reset();
+
+    //updateTokenAmount(amountHuman);
     setInputChanged(true);
     setShowKeyboard(false);
     setIsFooterVisible?.(true);
     onKeyboardHide?.();
     onKeyboardDone?.();
-  }, [
-    amountHuman,
-    inputRef,
-    onKeyboardDone,
-    onKeyboardHide,
-    setIsFooterVisible,
-    updateTokenAmount,
-  ]);
+  }, [onKeyboardDone, onKeyboardHide, setIsFooterVisible]);
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
@@ -124,27 +122,23 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
-  const displayValue = `${fiatSymbol}${amountFiat}`;
-
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
         <View style={styles.inputContainer}>
-          <TextInput
+          <Text
             testID="edit-amount-input"
-            value={displayValue}
             style={styles.input}
-            ref={inputRef}
-            showSoftInputOnFocus={false}
             onPress={handleInputPress}
-            onChangeText={handleChange}
-          />
+          >
+            {amountFiat}
+          </Text>
         </View>
         {children?.(amountHuman)}
       </View>
       {showKeyboard && (
         <DepositKeyboard
-          value={amountFiat.toString()}
+          value={amountFiat}
           hasInput={hasAmount}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}

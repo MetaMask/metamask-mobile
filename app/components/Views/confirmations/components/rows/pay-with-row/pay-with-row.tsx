@@ -2,10 +2,7 @@ import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenIcon } from '../../token-icon';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { TouchableOpacity } from 'react-native';
-import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
-import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   AlignItems,
@@ -28,14 +25,14 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import { usePayContext } from '../../../context/pay-context/pay-context';
 
 export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { payToken } = useTransactionPayToken();
-  const { totalFiat } = useTransactionRequiredFiat();
+  const { payToken, totalFiat } = usePayContext();
 
-  useTransactionBridgeQuotes();
+  // useTransactionBridgeQuotes();
 
   const handleClick = useCallback(() => {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {

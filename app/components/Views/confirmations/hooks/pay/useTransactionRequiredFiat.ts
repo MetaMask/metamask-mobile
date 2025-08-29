@@ -1,9 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
+import { TransactionToken } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { createProjectLogger } from '@metamask/utils';
+import { profiler } from '../../components/edit-amount/profiler';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -14,10 +15,14 @@ export const PAY_BRIDGE_FEE = 0.005;
  * Calculate the fiat value of any tokens required by the transaction.
  * Necessary for MetaMask Pay to calculate how much of the selected pay token is needed.
  */
-export function useTransactionRequiredFiat() {
+export function useTransactionRequiredFiat({
+  requiredTokens,
+}: {
+  requiredTokens: TransactionToken[];
+}) {
+  profiler.start('useTransactionRequiredFiat');
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
-  const requiredTokens = useTransactionRequiredTokens();
 
   const fiatRequests = useMemo(
     () =>
@@ -71,6 +76,8 @@ export function useTransactionRequiredFiat() {
       totalFiat,
     });
   }, [values, totalFiat]);
+
+  profiler.stop('useTransactionRequiredFiat');
 
   return {
     values,

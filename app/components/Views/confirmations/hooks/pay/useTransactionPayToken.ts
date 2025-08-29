@@ -6,10 +6,17 @@ import {
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RootState } from '../../../../../reducers';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { Hex } from '@metamask/utils';
+import { useDeepMemo } from '../useDeepMemo';
+import { BridgeToken } from '../../../../UI/Bridge/types';
+
+export type TransactionPayToken = BridgeToken & {
+  address: Hex;
+  chainId: Hex;
+};
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -24,40 +31,29 @@ export function useTransactionPayToken() {
   const chainId = selectedPayToken?.chainId || transactionChainId;
   const tokens = useTokensWithBalance({ chainIds: [chainId] });
 
-  const setPayToken = useCallback(
-    (payToken: TransactionPayToken) => {
-      dispatch(
-        setTransactionPayToken({
-          transactionId: transactionId as string,
-          payToken,
-        }),
-      );
-    },
-    [dispatch, transactionId],
+  const token = useDeepMemo(
+    () =>
+      tokens.find(
+        (t) =>
+          t.chainId === chainId &&
+          t.address.toLowerCase() === selectedPayToken?.address.toLowerCase(),
+      ),
+    [tokens, chainId, selectedPayToken],
   );
 
-  const token = tokens.find(
-    (t) =>
-      t.chainId === chainId &&
-      t.address.toLowerCase() ===
-        (selectedPayToken?.address.toLowerCase() ??
-          EMPTY_ADDRESS.toLowerCase()),
+  const payToken = useMemo(
+    () =>
+      token
+        ? {
+            ...token,
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          }
+        : undefined,
+    [token],
   );
-
-  if (!selectedPayToken || !token) {
-    return {
-      setPayToken,
-    };
-  }
-
-  const payToken = {
-    ...token,
-    address: token.address as Hex,
-    chainId: token.chainId as Hex,
-  };
 
   return {
     payToken,
-    setPayToken,
   };
 }

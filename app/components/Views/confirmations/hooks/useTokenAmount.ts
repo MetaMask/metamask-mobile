@@ -29,9 +29,10 @@ import { ERC20_DEFAULT_DECIMALS, fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
 import { useTransactionMetadataOrThrow } from './transactions/useTransactionMetadataRequest';
 import useNetworkInfo from './useNetworkInfo';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
+import { profiler } from '../components/edit-amount/profiler';
 
 interface TokenAmountProps {
   /**
@@ -114,13 +115,22 @@ export const useTokenAmount = ({
   const tokenAddress =
     safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
 
+  profiler.start('useTokenDecimals');
   const { value: decimals, pending } = useTokenDecimals(
     tokenAddress,
     chainId,
     networkClientId,
   );
+  profiler.stop('useTokenDecimals');
 
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
+  const data = txParams?.data;
+
+  profiler.start('parseStandardTokenTransactionData');
+  const transactionData = useMemo(
+    () => parseStandardTokenTransactionData(data),
+    [data],
+  );
+  profiler.stop('parseStandardTokenTransactionData');
   const recipient = transactionData?.args?._to;
 
   const updateTokenAmount = useCallback(
@@ -139,6 +149,8 @@ export const useTokenAmount = ({
         data: newData,
         updateType: false,
       });
+
+      console.log('#MATT UPDATE EDIATBLE PARAMS DONE', Date.now());
     },
     [decimals, recipient, transactionId],
   );
@@ -157,6 +169,7 @@ export const useTokenAmount = ({
     };
   }
 
+  profiler.start('useTokenAmount calculation');
   const value = amountWei
     ? toBigNumber.dec(amountWei)
     : transactionData?.args?._value || txParams?.value || '0';
@@ -206,6 +219,7 @@ export const useTokenAmount = ({
       break;
     }
   }
+  profiler.stop('useTokenAmount calculation');
 
   return {
     amount: formatAmount(I18n.locale, amount),

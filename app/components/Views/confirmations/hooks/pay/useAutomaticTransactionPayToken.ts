@@ -1,15 +1,22 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
+import {
+  TransactionToken,
+  useTransactionRequiredTokens,
+} from './useTransactionRequiredTokens';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { orderBy } from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { profiler } from '../../components/edit-amount/profiler';
+import { useDeepMemo } from '../useDeepMemo';
+import { usePayContext } from '../../context/pay-context/pay-context';
+import { setTransactionPayToken } from '../../../../../core/redux/slices/confirmationMetrics';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -21,77 +28,97 @@ export interface BalanceOverride {
 
 export function useAutomaticTransactionPayToken({
   balanceOverrides,
+  requiredTokens,
+  totalFiat,
 }: {
   balanceOverrides?: BalanceOverride[];
-} = {}) {
-  const [isUpdated, setIsUpdated] = useState(false);
+  requiredTokens: TransactionToken[];
+  totalFiat: number;
+}) {
+  profiler.start('useAutomaticTransactionPayToken');
+  const dispatch = useDispatch();
+  const isUpdated = useRef(false);
 
-  const supportedChainIds = useSelector(selectEnabledSourceChains).map(
-    (chain) => chain.chainId,
-  );
+  const supportedChains = useSelector(selectEnabledSourceChains);
 
-  const { totalFiat } = useTransactionRequiredFiat();
-  const tokens = useTokensWithBalance({ chainIds: supportedChainIds });
-  const requiredTokens = useTransactionRequiredTokens();
-  const { chainId } = useTransactionMetadataRequest() ?? {};
-  const { setPayToken } = useTransactionPayToken();
+  const chainIds = useMemo(() => {
+    console.log('#MATT NEW CHAINS');
+    return supportedChains.map((chain) => chain.chainId);
+  }, [supportedChains]);
 
-  const targetToken =
-    requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
-    requiredTokens[0];
+  profiler.start('useTokensWithBalance automatic');
+  const tokens = useTokensWithBalance({ chainIds });
+  profiler.stop('useTokensWithBalance automatic');
 
-  const balanceOverride = balanceOverrides?.find(
-    (token) =>
-      token.address.toLowerCase() === targetToken?.address?.toLowerCase() &&
-      token.chainId === chainId,
-  );
+  const { chainId, id: transactionId } = useTransactionMetadataRequest() ?? {};
 
-  const requiredBalance = balanceOverride?.balance ?? totalFiat;
+  let automaticToken = undefined;
 
-  const sufficientBalanceTokens = orderBy(
-    tokens.filter((token) => (token.tokenFiatAmount ?? 0) >= requiredBalance),
-    (token) => token?.tokenFiatAmount ?? 0,
-    'desc',
-  );
+  if (!isUpdated.current) {
+    const targetToken =
+      requiredTokens.find((token) => token.address !== NATIVE_TOKEN_ADDRESS) ??
+      requiredTokens[0];
 
-  const requiredToken = sufficientBalanceTokens.find(
-    (token) =>
-      token.address === targetToken?.address && token.chainId === chainId,
-  );
+    const balanceOverride = balanceOverrides?.find(
+      (token) =>
+        token.address.toLowerCase() === targetToken?.address?.toLowerCase() &&
+        token.chainId === chainId,
+    );
 
-  const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
-    (token) => token.chainId === chainId,
-  );
+    const requiredBalance = balanceOverride?.balance ?? totalFiat;
 
-  const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
-    (token) => token.chainId !== chainId,
-  );
+    const sufficientBalanceTokens = orderBy(
+      tokens.filter((token) => (token.tokenFiatAmount ?? 0) >= requiredBalance),
+      (token) => token?.tokenFiatAmount ?? 0,
+      'desc',
+    );
 
-  const targetTokenFallback = targetToken
-    ? {
-        address: targetToken.address,
-        chainId,
-      }
-    : undefined;
+    const requiredToken = sufficientBalanceTokens.find(
+      (token) =>
+        token.address === targetToken?.address && token.chainId === chainId,
+    );
 
-  const automaticToken =
-    requiredToken ??
-    sameChainHighestBalanceToken ??
-    alternateChainHighestBalanceToken ??
-    targetTokenFallback;
+    const sameChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId === chainId,
+    );
+
+    const alternateChainHighestBalanceToken = sufficientBalanceTokens?.find(
+      (token) => token.chainId !== chainId,
+    );
+
+    const targetTokenFallback = targetToken
+      ? {
+          address: targetToken.address,
+          chainId,
+        }
+      : undefined;
+
+    automaticToken =
+      requiredToken ??
+      sameChainHighestBalanceToken ??
+      alternateChainHighestBalanceToken ??
+      targetTokenFallback;
+  }
 
   useEffect(() => {
-    if (isUpdated || !automaticToken || !requiredTokens?.length) {
+    if (isUpdated.current || !automaticToken || !requiredTokens?.length) {
       return;
     }
 
-    setPayToken({
-      address: automaticToken.address as Hex,
-      chainId: automaticToken.chainId as Hex,
-    });
+    dispatch(
+      setTransactionPayToken({
+        transactionId: transactionId ?? '',
+        payToken: {
+          address: automaticToken.address as Hex,
+          chainId: automaticToken.chainId as Hex,
+        },
+      }),
+    );
 
-    setIsUpdated(true);
+    isUpdated.current = true;
 
     log('Automatically selected pay token', automaticToken);
-  }, [automaticToken, isUpdated, requiredTokens, setPayToken]);
+  }, [automaticToken, dispatch, isUpdated, requiredTokens, transactionId]);
+
+  profiler.stop('useAutomaticTransactionPayToken');
 }

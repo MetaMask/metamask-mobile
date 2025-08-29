@@ -22,9 +22,9 @@ function useTransactionAlerts(): Alert[] {
   const signedOrSubmittedAlert = useSignedOrSubmittedAlert();
   const pendingTransactionAlert = usePendingTransactionAlert();
   const batchedUnusedApprovalsAlert = useBatchedUnusedApprovalsAlert();
-  const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert();
-  const insufficientPayTokenBalanceAlert =
-    useInsufficientPayTokenBalanceAlert();
+  // const perpsDepositMinimumAlert = usePerpsDepositMinimumAlert();
+  // const insufficientPayTokenBalanceAlert =
+  //   useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
 
   return useMemo(
@@ -33,8 +33,8 @@ function useTransactionAlerts(): Alert[] {
       ...batchedUnusedApprovalsAlert,
       ...pendingTransactionAlert,
       ...signedOrSubmittedAlert,
-      ...perpsDepositMinimumAlert,
-      ...insufficientPayTokenBalanceAlert,
+      // ...perpsDepositMinimumAlert,
+      // ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
     ],
     [
@@ -42,8 +42,8 @@ function useTransactionAlerts(): Alert[] {
       batchedUnusedApprovalsAlert,
       pendingTransactionAlert,
       signedOrSubmittedAlert,
-      perpsDepositMinimumAlert,
-      insufficientPayTokenBalanceAlert,
+      // perpsDepositMinimumAlert,
+      // insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
     ],
   );

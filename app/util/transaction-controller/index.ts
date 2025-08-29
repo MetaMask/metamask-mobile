@@ -147,7 +147,7 @@ export function updateEditableParams(
 
   // This is a temporary fix to ensure legacy transaction confirmations does not override expected gas properties
   // Once redesign is complete, this can be removed
-  sanitizeTransactionParamsGasValues(id, txParams);
+  //sanitizeTransactionParamsGasValues(id, txParams);
 
   return TransactionController.updateEditableParams(...args);
 }
