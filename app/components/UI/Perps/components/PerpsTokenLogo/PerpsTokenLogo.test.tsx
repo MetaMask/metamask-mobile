@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
-import { Image } from 'react-native';
+import { render, waitFor, act } from '@testing-library/react-native';
+import { Image } from 'expo-image';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
 jest.mock('../../../../../util/theme', () => ({
@@ -114,7 +114,7 @@ describe('PerpsTokenLogo', () => {
 
     const image = UNSAFE_getByType(Image);
     expect(image.props.source.uri).toBe(
-      'https://app.hyperliquid.xyz/coins/BTC.png',
+      'https://app.hyperliquid.xyz/coins/BTC.svg',
     );
     expect(image.props.style).toEqual(
       expect.objectContaining({
@@ -125,18 +125,22 @@ describe('PerpsTokenLogo', () => {
   });
 
   it('handles image error by showing Avatar fallback', async () => {
+    // Arrange
     const { UNSAFE_getByType, rerender } = render(
       <PerpsTokenLogo symbol="FAIL" testID="image-error" />,
     );
 
     const image = UNSAFE_getByType(Image);
 
-    // Simulate image error
-    image.props.onError();
+    // Act - Simulate image error
+    await act(async () => {
+      image.props.onError();
+    });
 
     // Force re-render to see the fallback
     rerender(<PerpsTokenLogo symbol="FAIL" testID="image-error" />);
 
+    // Assert
     await waitFor(() => {
       expect(mockAvatar).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -184,14 +188,14 @@ describe('PerpsTokenLogo', () => {
     );
   });
 
-  it('uses PNG format for image URLs', () => {
+  it('uses SVG format for image URLs', () => {
     const { UNSAFE_getByType } = render(
-      <PerpsTokenLogo symbol="ETH" testID="png-format" />,
+      <PerpsTokenLogo symbol="ETH" testID="svg-format" />,
     );
 
     const image = UNSAFE_getByType(Image);
-    expect(image.props.source.uri).toContain('.png');
-    expect(image.props.source.uri).not.toContain('.svg');
+    expect(image.props.source.uri).toContain('.svg');
+    expect(image.props.source.uri).not.toContain('.png');
   });
 
   it('converts symbol to uppercase in URL', () => {
@@ -200,6 +204,6 @@ describe('PerpsTokenLogo', () => {
     );
 
     const image = UNSAFE_getByType(Image);
-    expect(image.props.source.uri).toContain('BTC.png');
+    expect(image.props.source.uri).toContain('BTC.svg');
   });
 });

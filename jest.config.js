@@ -62,6 +62,7 @@ const config = {
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
+    '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
   },
   // Disable jest cache
   cache: false,
