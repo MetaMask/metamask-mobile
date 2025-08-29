@@ -129,6 +129,7 @@ describe('useNetworkSelection', () => {
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
       enableAllPopularNetworks: mockEnableAllPopularNetworks,
+      tryEnableEvmNetwork: jest.fn,
     });
 
     mockUseSelector.mockReturnValue(mockPopularNetworkConfigurations);
@@ -258,6 +259,7 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -323,6 +325,7 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -466,6 +469,7 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
+        tryEnableEvmNetwork: jest.fn(),
       });
 
       const { result } = renderHook(() =>
