@@ -1,40 +1,21 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import xml2js from 'xml2js';
 
-// ESM equivalent of __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Environment configuration
 const env = {
   TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'android-merged-test-report',
-  TEST_RUNS_PATH: process.env.TEST_RUNS_PATH || 'test/test-results/test-runs-mobile.json',
+  TEST_RUNS_PATH: process.env.TEST_RUNS_PATH || 'test/test-results/test-runs.json',
   RUN_ID: process.env.RUN_ID ? parseInt(process.env.RUN_ID) : Date.now(),
   PR_NUMBER: process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 0,
   GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true',
 };
 
-// XML parser
 const xmlParser = new xml2js.Parser();
-
-// Utility functions
-const consoleBold = (text) => `\x1b[1m${text}\x1b[0m`;
 
 function formatTime(ms) {
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
   return `${Math.floor(ms / 60000)}m ${Math.floor((ms % 60000) / 1000)}s`;
-}
-
-function normalizeTestPath(path) {
-  // Normalize mobile test paths to match Extension format
-  return path
-    .replace(/\\/g, '/')
-    .replace(/^e2e\//, 'test/e2e/')
-    .replace(/\.spec\.(js|ts)$/, '.spec.ts');
 }
 
 async function parseJUnitXML(filePath) {
@@ -105,24 +86,6 @@ function createTestCase(test) {
 }
 
 async function processTestDirectory(dirPath, directory) {
-  // Parse job info from directory name
-  let jobName, category, shard;
-
-  const format1 = directory.match(/^smoke-(.+)-android-(\d+)-test-results$/);
-  const format2 = directory.match(/^(.+)-android-smoke-(\d+)-test-results$/);
-
-  if (format1) {
-    [, category, shard] = format1;
-    jobName = `smoke-${category}-android-${shard}`;
-  } else if (format2) {
-    [, category, shard] = format2;
-    jobName = `${category}-android-smoke-${shard}`;
-  } else {
-    console.warn(`Skipping directory with unexpected format: ${directory}`);
-    return null;
-  }
-
-  const jobId = Date.now() + parseInt(shard);
   const junitPath = path.join(dirPath, 'junit.xml');
 
   try {
@@ -133,6 +96,9 @@ async function processTestDirectory(dirPath, directory) {
       if (!suite.$ || !suite.testcase) continue;
 
       const properties = extractProperties(suite);
+      // Get job name from properties, fallback to directory if not present
+      const jobName = properties.JOB_NAME || directory;
+      const jobId = Date.now() + Math.random() * 1000; // Generate unique ID
       const testSuite = createTestSuite(suite, jobName, jobId, properties);
 
       // Process test cases
@@ -145,11 +111,14 @@ async function processTestDirectory(dirPath, directory) {
       // Extract file path from first test case classname
       const firstTestCase = testcases.find(tc => tc.$ && tc.$.classname);
       const filePath = firstTestCase
-        ? normalizeTestPath(firstTestCase.$.classname)
-        : `test/e2e/specs/${category}/unknown.spec.ts`;
+        ? firstTestCase.$.classname
+        : 'unknown';
+
+      // Remove shard number from job name
+      const testRunName = jobName.replace(/\s+\(\d+\)$/, '');
 
       results.push({
-        testRunName: `smoke-${category}-android`,
+        testRunName,
         testFile: {
           path: filePath,
           tests: testSuite.tests,
@@ -250,9 +219,6 @@ function processTestRunRetries(testRuns) {
 }
 
 function displayResults(testRuns) {
-  console.log(`\n✅ Mobile test report generated: ${env.TEST_RUNS_PATH}`);
-  console.log(`📊 Processed ${testRuns.length} test run(s)`);
-
   for (const testRun of testRuns) {
     const total = testRun.testFiles.reduce(
       (acc, file) => ({
@@ -266,7 +232,7 @@ function displayResults(testRuns) {
     );
 
     const status = total.failed > 0 ? '❌' : '✅';
-    console.log(`${consoleBold(testRun.name)} ${status}`);
+    console.log(`${testRun.name} ${status}`);
 
     const times = testRun.testFiles
       .map(file =>
@@ -281,10 +247,10 @@ function displayResults(testRuns) {
     const latestEnd = Math.max(...times.map(t => t.end));
     const executionTime = latestEnd - earliestStart;
 
-    console.log(`${consoleBold(`${total.tests} tests`)} completed in ${consoleBold(formatTime(executionTime))}`);
-    console.log(`  - ${total.passed} passed ✅`);
-    if (total.failed > 0) console.log(`  - ${total.failed} failed ❌`);
-    if (total.skipped > 0) console.log(`  - ${total.skipped} skipped ⏩`);
+    console.log(`${`${total.tests} tests`} completed in ${formatTime(executionTime)}`);
+    console.log(`  - ${total.passed} passed`);
+    if (total.failed > 0) console.log(`  - ${total.failed} failed`);
+    if (total.skipped > 0) console.log(`  - ${total.skipped} skipped`);
 
     if (total.failed > 0) {
       console.log('\n❌ Failed tests:');
@@ -314,6 +280,8 @@ function displayResults(testRuns) {
 
 async function main() {
   try {
+    console.log(`Mobile test report`);
+
     // Process test directories from the already extracted path
     const testDirectories = await fs.readdir(env.TEST_RESULTS_PATH);
     console.log(`Found ${testDirectories.length} directories in ${env.TEST_RESULTS_PATH}`);
@@ -334,23 +302,20 @@ async function main() {
 
     // Group and process test runs
     const testRuns = groupTestRuns(allResults);
+    console.log(`Processing ${testRuns.length} test run(s)...\n`);
     const processedRuns = processTestRunRetries(testRuns);
-
-    // Create output directory
-    const outputDir = path.dirname(env.TEST_RUNS_PATH);
-    await fs.mkdir(outputDir, { recursive: true });
-
-    // Write results
-    await fs.writeFile(env.TEST_RUNS_PATH, JSON.stringify(processedRuns, null, 2));
-
-    // Display summary
     displayResults(processedRuns);
 
+    // Create output directory
+    console.log(`Generating Mobile test report: ${env.TEST_RUNS_PATH}`);
+    const outputDir = path.dirname(env.TEST_RUNS_PATH);
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(env.TEST_RUNS_PATH, JSON.stringify(processedRuns, null, 2));
+    console.log(`Done`);
+
   } catch (error) {
-    // Log error but don't fail the CI job - we still want other steps to run
     console.error(`❌ Error creating the mobile test report: ${error.message}`);
-    console.error(error);
-    // Note: Not calling core.setFailed() so CI can continue
+    process.exit(1);
   }
 }
 

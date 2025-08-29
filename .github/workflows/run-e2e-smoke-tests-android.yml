@@ -152,12 +152,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Download all test results
         uses: actions/download-artifact@v4
         with:
           path: all-test-results/
-          pattern: "*-android-*-test-results"
+          pattern: '*-android-*-test-results'
+          merge-multiple: true
 
       - name: Post Test Report
         uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
@@ -169,7 +175,28 @@ jobs:
           list-suites: "failed"
           list-tests: "failed"
 
-      - name: Upload merged report
+      - name: Create mobile test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Install xml2js dependency
+          npm install xml2js
+
+          # Run the mobile test report generator
+          TEST_RESULTS_PATH=all-test-results \
+          TEST_RUNS_PATH=test/test-results/test-runs-android.json \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          node .github/scripts/create-e2e-test-report.mjs
+
+      - name: Upload test runs JSON
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-android-report
+          path: test/test-results/test-runs-android.json
+
+      - name: Upload merged XML report
         uses: actions/upload-artifact@v4
         with:
           name: android-merged-test-report
