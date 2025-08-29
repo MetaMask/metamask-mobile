@@ -19,7 +19,7 @@ export interface DepositCryptoCurrency {
 export const MUSD_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
   chainId: ETHEREUM_MAINNET.chainId,
-  name: 'mUSD',
+  name: 'MetaMask USD',
   symbol: 'mUSD',
   decimals: 6,
   iconUrl:
@@ -29,7 +29,7 @@ export const MUSD_TOKEN: DepositCryptoCurrency = {
 export const MUSD_LINEA_TOKEN: DepositCryptoCurrency = {
   assetId: 'eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
   chainId: LINEA_MAINNET.chainId,
-  name: 'mUSD',
+  name: 'MetaMask USD',
   symbol: 'mUSD',
   decimals: 6,
   iconUrl:
@@ -163,8 +163,8 @@ export const CONDITIONALLY_SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
 ];
 
 export const SUPPORTED_DEPOSIT_TOKENS: DepositCryptoCurrency[] = [
-  MUSD_TOKEN,
-  MUSD_LINEA_TOKEN,
+  // MUSD_TOKEN,
+  // MUSD_LINEA_TOKEN,
   USDC_TOKEN,
   // USDC_LINEA_TOKEN,
   // USDC_BASE_TOKEN,

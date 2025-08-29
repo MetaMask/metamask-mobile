@@ -79,7 +79,6 @@ import {
   DepositFiatCurrency,
   EUR_CURRENCY,
   DEBIT_CREDIT_PAYMENT_METHOD,
-  MUSD_TOKEN,
 } from '../../constants';
 import {
   createNavigationDetails,
@@ -110,8 +109,10 @@ const BuildQuote = () => {
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
   );
-  const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(MUSD_TOKEN);
+  const [cryptoCurrency, setCryptoCurrency] = useState<DepositCryptoCurrency>(
+    supportedTokens[0],
+  );
+
   const [fiatCurrency, setFiatCurrency] =
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
