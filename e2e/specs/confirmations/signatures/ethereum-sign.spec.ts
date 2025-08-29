@@ -8,13 +8,22 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmations } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 
 describe(SmokeConfirmations('Ethereum Sign'), () => {
   it('Sign in with Ethereum', async () => {
-    const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
     };
 
     await withFixtures(

@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "永续合约交易",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "总余额",
     "available_balance": "可用余额",
     "margin_used": "已用保证金",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "无可用图表数据"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

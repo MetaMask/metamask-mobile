@@ -1,4 +1,4 @@
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
@@ -13,7 +13,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ToastModal from '../../pages/wallet/ToastModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
-describe(Regression('change password'), () => {
+describe(RegressionAccounts('change password'), () => {
   const PASSWORD = '123123123';
   const NEWPASSWORD = '123412341234';
 

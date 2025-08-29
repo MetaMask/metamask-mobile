@@ -1,9 +1,8 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import type { OrderResult, Position } from '../controllers/types';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { strings } from '../../../../../locales/i18n';
-import type { Position, OrderResult } from '../controllers/types';
 
 // Mock dependencies
 jest.mock('./usePerpsTrading');
@@ -152,10 +151,6 @@ describe('usePerpsClosePosition', () => {
           result.current.handleClosePosition(mockPosition),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
-
-      expect(strings).toHaveBeenCalledWith(
-        'perps.close_position.error_unknown',
-      );
     });
 
     it('should handle exceptions thrown by closePosition', async () => {

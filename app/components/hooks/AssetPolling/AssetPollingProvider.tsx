@@ -12,11 +12,11 @@ import useAccountTrackerPolling from './useAccountTrackerPolling';
 // poll and return particular data. This polls globally in the meantime.
 export const AssetPollingProvider = memo(
   ({
-    chainId,
+    chainIds,
     networkClientId,
     address,
   }: {
-    chainId?: Hex;
+    chainIds?: Hex[];
     networkClientId?: string;
     address?: Hex;
   }) => {
@@ -27,13 +27,13 @@ export const AssetPollingProvider = memo(
     );
 
     const chainParams = useMemo(
-      () => (chainId ? { chainIds: [chainId] } : undefined),
-      [chainId],
+      () => (chainIds ? { chainIds } : undefined),
+      [chainIds],
     );
 
     const tokenDetectionParams = useMemo(
-      () => (chainId && address ? { chainIds: [chainId], address } : undefined),
-      [chainId, address],
+      () => (chainIds && address ? { chainIds, address } : undefined),
+      [chainIds, address],
     );
 
     useAccountTrackerPolling(accountTrackerParams);

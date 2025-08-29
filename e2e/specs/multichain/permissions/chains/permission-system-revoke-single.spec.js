@@ -1,5 +1,5 @@
 import TestHelpers from '../../../../helpers';
-import { SmokeNetworkExpansion } from '../../../../tags';
+import { RegressionNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -10,7 +10,7 @@ import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../framework/Assertions';
 import { DappVariants } from '../../../../framework/Constants';
 
-describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
+describe(RegressionNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

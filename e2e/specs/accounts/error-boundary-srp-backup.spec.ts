@@ -6,7 +6,7 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { DappVariants, defaultGanacheOptions } from '../../framework/Constants';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { SmokeAccounts } from '../../tags';
+import { RegressionAccounts } from '../../tags';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
@@ -15,7 +15,7 @@ import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 
 const PASSWORD = '123123123';
 
-describe(SmokeAccounts('Error Boundary Screen'), () => {
+describe(RegressionAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

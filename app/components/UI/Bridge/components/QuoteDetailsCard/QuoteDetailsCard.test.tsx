@@ -44,6 +44,33 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
+// Mock the bridge selectors
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBridgeFeatureFlags: () => ({
+    priceImpactThreshold: {
+      normal: 3.0,
+      gasless: 1.5,
+    },
+  }),
+  selectIsEvmSolanaBridge: () => true,
+  selectSourceToken: () => ({
+    chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    symbol: 'SOL',
+    decimals: 9,
+    name: 'Solana',
+  }),
+  selectDestToken: () => ({
+    chainId: 'evm:1',
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'ETH',
+    decimals: 18,
+    name: 'Ethereum',
+  }),
+  selectSourceAmount: () => '1.0',
+}));
+
 // want to make the source token solana and dest token evm
 const testState = createBridgeTestState({
   bridgeReducerOverrides: {
@@ -183,7 +210,6 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays network names', () => {
-    // want to make the source token solana and dest token evm
     const initialTestState = createBridgeTestState();
 
     const { getByText } = renderScreen(
@@ -194,8 +220,7 @@ describe('QuoteDetailsCard', () => {
       { state: initialTestState },
     );
 
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('Optimism')).toBeDefined();
+    expect(getByText('Solana')).toBeDefined();
   });
 
   it('displays slippage value', () => {

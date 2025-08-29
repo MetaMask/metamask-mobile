@@ -62,6 +62,10 @@ class WalletView {
     );
   }
 
+  get navbarCardButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -136,9 +140,13 @@ class WalletView {
     );
   }
   get testCollectible(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+  }
+  get testCollectibleFallback(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
+      1,
+    );
   }
 
   getCarouselSlide(id: string): DetoxElement {
@@ -187,6 +195,12 @@ class WalletView {
 
   async tapNetworksButtonOnNavBar(): Promise<void> {
     await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+  }
+
+  async tapNavbarCardButton(): Promise<void> {
+    await Gestures.waitAndTap(this.navbarCardButton, {
+      elemDescription: 'Card Button on Navbar',
+    });
   }
 
   async tapNftTab(): Promise<void> {
@@ -246,9 +260,15 @@ class WalletView {
   }
 
   async tapOnNftName(): Promise<void> {
-    await Gestures.waitAndTap(this.testCollectible, {
-      elemDescription: 'NFT Name',
-    });
+    try {
+      await Gestures.waitAndTap(this.testCollectible, {
+        elemDescription: 'NFT Name',
+      });
+    } catch {
+      await Gestures.waitAndTap(this.testCollectibleFallback, {
+        elemDescription: 'NFT Name Fallback',
+      });
+    }
   }
 
   async tapImportTokensButton(): Promise<void> {
@@ -476,8 +496,8 @@ class WalletView {
   }
 
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  get walletFundButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_FUND_BUTTON);
   }
 
   get walletSwapButton(): DetoxElement {
@@ -498,9 +518,9 @@ class WalletView {
     );
   }
 
-  async tapWalletBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBuyButton, {
-      elemDescription: 'Wallet Buy Button',
+  async tapWalletFundButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletFundButton, {
+      elemDescription: 'Wallet Fund Button',
     });
   }
 

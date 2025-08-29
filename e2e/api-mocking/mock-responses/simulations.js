@@ -21,12 +21,15 @@ export const SEND_ETH_SIMULATION_MOCK = {
       {
         transactions: [SEND_ETH_TRANSACTION_MOCK],
         suggestFees: { withFeeTransfer: true, withTransfer: true },
-        withCallTrace: true,
-        withLogs: true,
       },
     ],
   },
-  ignoreFields: ['params.0.blockOverrides', 'id'],
+  ignoreFields: [
+    'params.0.blockOverrides',
+    'id',
+    'params.0.transactions',
+    'params.0.suggestFees',
+  ],
   urlEndpoint: LOCALHOST_SENTINEL_URL,
   response: {
     jsonrpc: '2.0',

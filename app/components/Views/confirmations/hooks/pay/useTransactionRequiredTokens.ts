@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { Hex, add0x, createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { toHex } from '@metamask/controller-utils';
@@ -13,9 +13,20 @@ import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
-export interface TransactionToken {
+interface TransactionTokenBase {
   address: Hex;
   amount: Hex;
+  skipIfBalance?: boolean;
+}
+
+export interface TransactionToken {
+  address: Hex;
+  amountRaw: string;
+  amountHuman: string;
+  balanceRaw: string;
+  balanceHuman: string;
+  decimals: number;
+  skipIfBalance: boolean;
 }
 
 /**
@@ -31,23 +42,15 @@ export function useTransactionRequiredTokens() {
   });
 
   const gasToken = useGasToken();
-  const valueToken = useValueToken();
   const tokenTransferToken = useTokenTransferToken();
 
   const requiredTokens = useMemo(
     () =>
-      [gasToken, valueToken, tokenTransferToken].filter(
-        (t) => t,
-      ) as TransactionToken[],
-    [gasToken, valueToken, tokenTransferToken],
+      [gasToken, tokenTransferToken].filter((t) => t) as TransactionTokenBase[],
+    [gasToken, tokenTransferToken],
   );
 
-  const finalTokens = getPartialTokens(
-    getUniqueTokens(requiredTokens),
-    balanceTokens,
-    chainId,
-  );
-
+  const finalTokens = getPartialTokens(requiredTokens, balanceTokens, chainId);
   const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
@@ -57,7 +60,7 @@ export function useTransactionRequiredTokens() {
   return result;
 }
 
-function useTokenTransferToken(): TransactionToken | undefined {
+function useTokenTransferToken(): TransactionTokenBase | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
   const { data, to } = txParams;
@@ -87,24 +90,7 @@ function useTokenTransferToken(): TransactionToken | undefined {
   }, [transferAmount, to]);
 }
 
-function useValueToken(): TransactionToken | undefined {
-  const transactionMetadata = useTransactionMetadataOrThrow();
-  const { txParams } = transactionMetadata;
-  const { value } = txParams;
-
-  return useMemo(() => {
-    if (!value) {
-      return undefined;
-    }
-
-    return {
-      address: NATIVE_TOKEN_ADDRESS,
-      amount: value as Hex,
-    };
-  }, [value]);
-}
-
-function useGasToken(): TransactionToken | undefined {
+function useGasToken(): TransactionTokenBase | undefined {
   const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
 
   return useMemo(() => {
@@ -112,12 +98,16 @@ function useGasToken(): TransactionToken | undefined {
       return undefined;
     }
 
-    return { address: NATIVE_TOKEN_ADDRESS, amount: maxGasCost };
+    return {
+      address: NATIVE_TOKEN_ADDRESS,
+      amount: maxGasCost,
+      skipIfBalance: true,
+    };
   }, [maxGasCost]);
 }
 
 function getPartialTokens(
-  tokens: TransactionToken[],
+  tokens: TransactionTokenBase[],
   balanceTokens: BridgeToken[],
   chainId: Hex,
 ): TransactionToken[] {
@@ -128,53 +118,21 @@ function getPartialTokens(
         t.chainId === chainId,
     );
 
-    if (!balanceToken?.balance) {
-      acc.push({
-        ...token,
-      });
-
-      return acc;
-    }
-
-    const { balance } = balanceToken;
-    const decimals = balanceToken.decimals ?? 18;
-
-    const requiredBalance = new BigNumber(token.amount, 16)
-      .shiftedBy(-decimals)
-      .minus(balance);
-
-    const requiredBalanceRaw = add0x(
-      requiredBalance.shiftedBy(decimals).toString(16),
-    );
-
-    if (requiredBalance.lte(0)) {
-      return acc;
-    }
+    const balanceHuman = balanceToken?.balance ?? '0';
+    const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
+    const amountRaw = new BigNumber(token.amount, 16);
+    const amountHuman = amountRaw.shiftedBy(-decimals);
+    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
 
     acc.push({
-      ...token,
-      amount: requiredBalanceRaw,
+      address: token.address,
+      amountHuman: amountHuman.toString(10),
+      amountRaw: amountRaw.toFixed(0),
+      balanceHuman,
+      balanceRaw: balanceRaw.toFixed(0),
+      decimals,
+      skipIfBalance: token.skipIfBalance ?? false,
     });
-
-    return acc;
-  }, [] as TransactionToken[]);
-}
-
-function getUniqueTokens(targets: TransactionToken[]): TransactionToken[] {
-  return targets.reduce((acc, target) => {
-    const existingToken = acc.find(
-      (t) => t.address.toLowerCase() === target.address.toLowerCase(),
-    );
-
-    if (existingToken) {
-      existingToken.amount = add0x(
-        new BigNumber(existingToken.amount, 16)
-          .plus(new BigNumber(target.amount, 16))
-          .toString(16),
-      );
-    } else {
-      acc.push({ ...target });
-    }
 
     return acc;
   }, [] as TransactionToken[]);

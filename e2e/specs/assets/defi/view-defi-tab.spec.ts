@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
+import { RegressionNetworkAbstractions } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
@@ -6,15 +6,24 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../selectors/wallet/WalletView.selectors';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { loginToApp } from '../../../viewHelper';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
-describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
+describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
   it('open the DeFi tab with an address that has no positions', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.defiPositionsWithNoData],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.defiPositionsWithNoData;
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -42,8 +51,14 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.defiPositionsError],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } = mockEvents.GET.defiPositionsError;
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -75,8 +90,15 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.defiPositionsWithData],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.defiPositionsWithData;
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
         languageAndLocale: {
           language: 'en',

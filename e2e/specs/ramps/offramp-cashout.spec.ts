@@ -4,21 +4,19 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   EventPayload,
   findEvent,
   getEventsPayloads,
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
-import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const PaymentMethods = {
   SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
@@ -27,37 +25,28 @@ const expectedEvents = {
   OFFRAMP_PAYMENT_METHOD_SELECTED: 'Off-ramp Payment Method Selected',
 };
 
-let mockServer: Mockttp;
-let mockServerPort: number;
-
 describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
   const eventsToCheck: EventPayload[] = [];
-
-  beforeAll(async () => {
-    const segmentMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    };
-
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
-  });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
   it('should change cashout destination', async () => {
+    const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+          .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+        },
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           const offRampPaymentMethodSelected = findEvent(
             events,
             expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED,
@@ -69,8 +58,8 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSellButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectTextNotDisplayed('SEPA Bank Transfer');
         await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');

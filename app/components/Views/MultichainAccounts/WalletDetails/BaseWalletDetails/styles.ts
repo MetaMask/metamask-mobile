@@ -98,6 +98,7 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContent: {
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
+      backgroundColor: colors.background.default,
     },
   });
 };

@@ -14,7 +14,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsPrices } from '../../hooks/usePerpsPrices';
@@ -45,7 +45,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
   // Get real-time price data but memoize to prevent re-renders
-  const priceData = usePerpsPrices([asset], true); // Include order book for limit orders
+  const priceData = usePerpsPrices([asset], {
+    includeOrderBook: true, // Include order book for limit orders
+  });
   const currentPriceData = priceData[asset];
 
   // Store price data in state to control when it updates
@@ -265,7 +267,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             onChange={handleKeypadChange}
             currency="USD"
             decimals={2}
-            style={styles.keypad}
           />
         </View>
       </View>

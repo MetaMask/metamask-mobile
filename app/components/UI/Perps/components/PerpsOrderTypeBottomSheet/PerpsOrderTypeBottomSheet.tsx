@@ -11,6 +11,12 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { OrderType } from '../../controllers/types';
 
 interface PerpsOrderTypeBottomSheetProps {
@@ -18,6 +24,8 @@ interface PerpsOrderTypeBottomSheetProps {
   onClose: () => void;
   onSelect: (orderType: OrderType) => void;
   currentOrderType: OrderType;
+  asset?: string;
+  direction?: 'long' | 'short';
 }
 
 const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
@@ -25,10 +33,13 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   onClose,
   onSelect,
   currentOrderType,
+  asset = 'BTC',
+  direction = 'long',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { track } = usePerpsEventTracking();
 
   useEffect(() => {
     if (isVisible) {
@@ -50,6 +61,21 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   ];
 
   const handleSelect = (type: OrderType) => {
+    // Track order type selected only if it's different from current
+    if (type !== currentOrderType) {
+      track(MetaMetricsEvents.PERPS_ORDER_TYPE_SELECTED, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ORDER_TYPE]:
+          type === 'market'
+            ? PerpsEventValues.ORDER_TYPE.MARKET
+            : PerpsEventValues.ORDER_TYPE.LIMIT,
+      });
+    }
+
     onSelect(type);
     onClose();
   };

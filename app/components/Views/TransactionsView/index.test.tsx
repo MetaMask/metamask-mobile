@@ -47,6 +47,7 @@ jest.mock('@metamask/transaction-controller', () => ({
 
 jest.mock('@metamask/controller-utils', () => ({
   toChecksumHexAddress: jest.fn((address) => address?.toUpperCase()),
+  toHex: jest.fn((value) => `0x${parseInt(value, 10).toString(16)}`),
   NetworkType: {
     mainnet: 'mainnet',
     rpc: 'rpc',
@@ -83,6 +84,8 @@ jest.mock('../../../selectors/multichain', () => ({
   })),
 }));
 
+const mockSelectIsPopularNetwork = jest.fn(() => false);
+
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(() => '0x1'),
   selectIsPopularNetwork: jest.fn(() => false),
@@ -111,6 +114,20 @@ jest.mock('../../../selectors/transactionController', () => ({
   selectSortedTransactions: jest.fn(() => []),
 }));
 
+const mockSelectEnabledNetworksByNamespace = jest.fn(() => ({
+  eip155: {
+    '0x1': true,
+  },
+}));
+
+jest.mock('../../../selectors/networkEnablementController', () => ({
+  selectEnabledNetworksByNamespace: jest.fn(() => ({
+    eip155: {
+      '0x1': true,
+    },
+  })),
+}));
+
 jest.mock('@metamask/keyring-api', () => ({
   EthMethod: {
     PersonalSign: 'personal_sign',
@@ -123,6 +140,17 @@ jest.mock('@metamask/keyring-api', () => ({
   SolAccountType: {
     DataAccount: 'solana:dataAccount',
   },
+  BtcAccountType: {
+    P2wpkh: 'bip122:p2wpkh',
+  },
+  BtcScope: {
+    Mainnet: 'bip122:000000000019d6689c085ae165831e93',
+    Testnet: 'bip122:000000000933ea01ad0ee984209779ba',
+  },
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    Devnet: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+  },
   isEvmAccountType: jest.fn(() => true),
 }));
 
@@ -131,6 +159,12 @@ jest.mock('../../../util/networks/customNetworks', () => ({
     { chainId: '0x89' }, // Polygon
     { chainId: '0xa4b1' }, // Arbitrum
   ],
+}));
+
+const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn(() => false);
+
+jest.mock('../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Transactions', () => () => null);
@@ -788,6 +822,135 @@ describe('TransactionsView', () => {
       });
 
       expect(sortTransactions).toHaveBeenCalledWith(duplicateTransactions);
+    });
+  });
+
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    // Common test configurations
+    const createMockTransactions = (
+      transactions: { id: string; chainId: string }[],
+    ) =>
+      transactions.map(({ id, chainId }) =>
+        createMockTransaction({ id, chainId }),
+      );
+
+    const setupSelectors = (transactions: MockTransaction[]) => {
+      (
+        selectSortedTransactions as jest.MockedFunction<
+          typeof selectSortedTransactions
+        >
+      ).mockReturnValue(transactions);
+      (
+        selectSelectedInternalAccount as jest.MockedFunction<
+          typeof selectSelectedInternalAccount
+        >
+      ).mockReturnValue(createMockAccount());
+    };
+
+    const runTestWithTimers = () => {
+      renderTransactionsView();
+      act(() => {
+        jest.runAllTimers();
+      });
+    };
+
+    beforeEach(() => {
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    });
+
+    describe('when feature flag is enabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+      });
+
+      it('should filter transactions based on enabledNetworksByNamespace', async () => {
+        const mockTransactions = createMockTransactions([
+          { id: 'tx-1', chainId: '0x1' }, // Enabled network
+          { id: 'tx-2', chainId: '0x89' }, // Disabled network
+          { id: 'tx-3', chainId: '0xa4b1' }, // Disabled network
+        ]);
+
+        setupSelectors(mockTransactions);
+        mockSelectEnabledNetworksByNamespace.mockReturnValue({
+          eip155: {
+            '0x1': true, // Only mainnet is enabled
+          },
+        });
+
+        runTestWithTimers();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
+      });
+
+      it('should handle empty enabledNetworksByNamespace gracefully', async () => {
+        const mockTransactions = createMockTransactions([
+          { id: 'tx-1', chainId: '0x1' },
+          { id: 'tx-2', chainId: '0x89' },
+        ]);
+
+        setupSelectors(mockTransactions);
+        mockSelectEnabledNetworksByNamespace.mockReturnValue({
+          eip155: {
+            '0x1': false, // No enabled networks
+          },
+        });
+
+        runTestWithTimers();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
+      });
+
+      it('should have proper selector setup', () => {
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+        expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
+        expect(mockSelectIsPopularNetwork).toBeDefined();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      });
+
+      it('should use popular network filtering when isPopularNetwork is true', async () => {
+        const mockTransactions = createMockTransactions([
+          { id: 'tx-1', chainId: '0x1' }, // Mainnet
+          { id: 'tx-2', chainId: '0xe708' }, // Linea
+          { id: 'tx-3', chainId: '0x89' }, // Polygon (in PopularList)
+          { id: 'tx-4', chainId: '0x999' }, // Unknown chain
+        ]);
+
+        setupSelectors(mockTransactions);
+        mockSelectIsPopularNetwork.mockReturnValue(true);
+
+        runTestWithTimers();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
+      });
+
+      it('should use chainId filtering when isPopularNetwork is false', async () => {
+        const mockTransactions = createMockTransactions([
+          { id: 'tx-1', chainId: '0x1' }, // Current chainId
+          { id: 'tx-2', chainId: '0x89' }, // Different chainId
+        ]);
+
+        setupSelectors(mockTransactions);
+        mockSelectIsPopularNetwork.mockReturnValue(false);
+
+        runTestWithTimers();
+
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+        expect(sortTransactions).toHaveBeenCalledWith(mockTransactions);
+      });
+
+      it('should still have proper selector setup', () => {
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+        expect(mockSelectEnabledNetworksByNamespace).toBeDefined();
+        expect(mockSelectIsPopularNetwork).toBeDefined();
+      });
     });
   });
 });

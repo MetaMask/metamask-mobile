@@ -121,7 +121,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1149,7 +1149,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1401,7 +1401,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -2065,14 +2065,14 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

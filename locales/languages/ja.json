@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "パーペチュアル取引",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "合計残高",
     "available_balance": "利用可能残高",
     "margin_used": "利用中証拠金",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "利用可能なチャートデータがありません"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

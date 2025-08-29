@@ -15,7 +15,6 @@ import Assertions from '../../framework/Assertions';
 import Ganache from '../../../app/util/test/ganache';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import SettingsView from '../../pages/Settings/SettingsView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
@@ -110,8 +109,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
       NetworkEducationModal.container as DetoxElement,
     );
     await Assertions.expectElementToBeVisible(WalletView.container);
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await WalletView.tapWalletSwapButton();
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
@@ -365,8 +363,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapWallet();
     await Assertions.expectElementToBeVisible(WalletView.container);
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await WalletView.tapWalletSwapButton();
     await device.disableSynchronization();
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
@@ -400,8 +397,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await WalletView.tapWalletSwapButton();
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('OP Mainnet');
     await QuoteView.tapToken(destChainId, 'ETH');

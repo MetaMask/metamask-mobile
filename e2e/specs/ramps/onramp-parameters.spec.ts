@@ -1,10 +1,10 @@
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import { SmokeTrade } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
@@ -12,61 +12,47 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import Matchers from '../../framework/Matchers';
 import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
-let mockServer: Mockttp;
-let mockServerPort: number;
 const eventsToCheck: EventPayload[] = [];
 
 const setupOnRampTest = async (testFn: () => Promise<void>) => {
+  const selectedRegion = RampsRegions[RampsRegionsEnum.SPAIN];
+
   await withFixtures(
     {
       fixture: new FixtureBuilder()
         .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.UNITED_STATES])
+        .withRampsSelectedRegion(selectedRegion)
         .withMetaMetricsOptIn()
         .build(),
-      mockServerInstance: mockServer,
       restartDevice: true,
-      endTestfn: async ({ mockServer: mockServerInstance }) => {
-        const events = await getEventsPayloads(mockServerInstance);
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+      },
+      endTestfn: async ({ mockServer }) => {
+        const events = await getEventsPayloads(mockServer);
         eventsToCheck.push(...events);
       },
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
     },
   );
 };
 
-const segmentMock = {
-  POST: [mockEvents.POST.segmentTrack],
-};
-
-describe(SmokeTrade('On-Ramp Parameters'), () => {
+describe(RegressionTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
-  });
-
-  // We need to manually stop the mock server after all the tests as each test
-  // will create a new instance of the mockServer and the segment validation
-  // does not require the app to be launched
-  afterAll(async () => {
-    if (mockServer) {
-      await stopMockServer(mockServer);
-    }
   });
 
   it('should select currency and verify display', async () => {
@@ -97,11 +83,12 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
-      const paymentMethod =
-        device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+      const paymentMethod = 'Apple Pay'; // This is now mocked so the dropdown will display the correct options even on Android
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-      await Assertions.expectTextNotDisplayed(paymentMethod);
+      await Assertions.expectElementToNotBeVisible(
+        Matchers.getElementByText(paymentMethod),
+      );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
   });

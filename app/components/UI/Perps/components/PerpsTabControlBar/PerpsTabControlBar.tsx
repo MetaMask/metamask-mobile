@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -75,6 +75,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     }
   }, [getAccountState, startPulseAnimation, compareAndUpdateBalance]);
 
+  // Track last positions hash to detect actual changes
+  const lastPositionsHashRef = useRef<string>('');
+
   // Auto-refresh setup with WebSocket subscription + polling fallback
   useEffect(() => {
     // Initial load
@@ -85,13 +88,25 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 
     try {
       unsubscribePositions = subscribeToPositions({
-        callback: (_positions) => {
-          // Position updates often include balance changes
-          // Refresh account state when positions change
-          DevLogger.log(
-            'PerpsTabControlBar: Position update received, refreshing balance',
+        callback: (positions) => {
+          // Create a simple hash of positions to detect actual changes
+          const positionsHash = JSON.stringify(
+            positions.map((p) => ({
+              coin: p.coin,
+              size: p.size,
+              entryPrice: p.entryPrice,
+              unrealizedPnl: p.unrealizedPnl,
+            })),
           );
-          getAccountBalance();
+
+          // Only refresh if positions actually changed
+          if (positionsHash !== lastPositionsHashRef.current) {
+            DevLogger.log(
+              'PerpsTabControlBar: Position change detected, refreshing balance',
+            );
+            lastPositionsHashRef.current = positionsHash;
+            getAccountBalance();
+          }
         },
       });
     } catch (error) {
@@ -124,7 +139,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           color={TextColor.Alternative}
           style={styles.titleText}
         >
-          {strings('perps.hyperliquid_usdc_balance')}
+          {strings('perps.perp_account_balance')}
         </Text>
         <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>

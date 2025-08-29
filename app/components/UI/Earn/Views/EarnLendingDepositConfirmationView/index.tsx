@@ -40,6 +40,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import Logger from '../../../../../util/Logger';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -582,6 +583,7 @@ const EarnLendingDepositConfirmationView = () => {
         await Engine.context.EarnController.executeLendingTokenApprove({
           protocol: earnToken?.experience?.market?.protocol,
           amount: '0',
+          chainId: earnToken.chainId,
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
           gasOptions: {
@@ -617,6 +619,7 @@ const EarnLendingDepositConfirmationView = () => {
       await Engine.context.EarnController.executeLendingTokenApprove({
         protocol: earnToken?.experience?.market?.protocol,
         amount: amountTokenMinimalUnit,
+        chainId: earnToken.chainId,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
         gasOptions: {
@@ -640,43 +643,53 @@ const EarnLendingDepositConfirmationView = () => {
   };
 
   const depositTokens = async (networkClientId: string) => {
-    if (!earnToken?.experience?.market?.protocol) return;
+    const protocol = earnToken?.experience?.market?.protocol;
+    const chainId = earnToken?.chainId;
+    const underlyingTokenAddress = earnToken?.experience?.market?.underlying
+      ?.address as string;
 
-    // start trace between user intiating deposit and generic confirmation bottom sheet showing
+    if (!protocol || !chainId) {
+      return;
+    }
+
     trace({
       name: TraceName.EarnDepositConfirmationScreen,
       data: {
-        chainId: earnToken?.chainId || '',
+        chainId,
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
     });
 
     setIsDepositLoading(true);
 
-    const depositTransaction =
-      await Engine.context.EarnController.executeLendingDeposit({
-        amount: amountTokenMinimalUnit,
-        protocol: earnToken?.experience?.market?.protocol,
-        underlyingTokenAddress:
-          earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {
-          gasLimit: 'none',
-        },
-        txOptions: {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          type: TransactionType.lendingDeposit,
-        },
-      });
+    try {
+      const depositTransaction =
+        await Engine.context.EarnController.executeLendingDeposit({
+          amount: amountTokenMinimalUnit,
+          protocol,
+          chainId,
+          underlyingTokenAddress,
+          gasOptions: { gasLimit: 'none' },
+          txOptions: {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
+            origin: ORIGIN_METAMASK,
+            type: TransactionType.lendingDeposit,
+          },
+        });
 
-    if (!depositTransaction) {
+      if (!depositTransaction) {
+        return;
+      }
+
+      return depositTransaction;
+    } catch (error: Error | unknown) {
+      Logger.error(error as Error, '[depositTokens] Lending deposit failed');
+      return;
+    } finally {
       setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
-      return;
     }
-
-    return depositTransaction;
   };
 
   const handleConfirm = async () => {

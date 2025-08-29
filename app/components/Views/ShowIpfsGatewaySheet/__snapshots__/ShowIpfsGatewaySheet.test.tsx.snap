@@ -385,8 +385,8 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -558,7 +558,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,

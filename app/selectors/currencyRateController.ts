@@ -42,15 +42,15 @@ export const selectCurrencyRates = createSelector(
 
 export const selectCurrencyRateForChainId = createSelector(
   [
-    (state, chainId: Hex) => {
-      const currencyRates = selectCurrencyRates(state);
-      const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
-      const conversionRate =
-        currencyRates?.[networkConfig?.nativeCurrency]?.conversionRate || 0;
-      return conversionRate;
-    },
+    selectCurrencyRates,
+    (_state: RootState, chainId: Hex) => chainId,
+    (state: RootState, chainId: Hex) =>
+      selectNetworkConfigurationByChainId(state, chainId),
   ],
-  (conversionRate): number => conversionRate,
+  (currencyRates, _chainId, networkConfig): number =>
+    (networkConfig?.nativeCurrency &&
+      currencyRates?.[networkConfig.nativeCurrency]?.conversionRate) ||
+    0,
   {
     memoize: weakMapMemoize,
     argsMemoize: weakMapMemoize,
@@ -106,4 +106,20 @@ export const selectUsdConversionRate = createSelector(
   selectCurrentCurrency,
   (currencyRates, currentCurrency) =>
     currencyRates?.[currentCurrency]?.usdConversionRate,
+);
+
+export const selectUSDConversionRateByChainId = createSelector(
+  [
+    selectCurrencyRates,
+    (_state: RootState, chainId: string) => chainId,
+    (state: RootState, chainId: string) =>
+      selectNetworkConfigurationByChainId(state, chainId),
+  ],
+  (currencyRates, _chainId, networkConfiguration) => {
+    if (!networkConfiguration) {
+      return undefined;
+    }
+    const { nativeCurrency } = networkConfiguration;
+    return currencyRates?.[nativeCurrency]?.usdConversionRate;
+  },
 );

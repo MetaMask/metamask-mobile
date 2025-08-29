@@ -34,6 +34,7 @@ import { BrowserTab, TokenI } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
 import { Hex } from '@metamask/utils';
 import { appendURLParams } from '../../../util/browser';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 interface Option {
   label: string;
   onPress: () => void;
@@ -106,13 +107,19 @@ const AssetOptions = (props: Props) => {
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title,
-        },
-      });
+      (async () => {
+        if (await InAppBrowser.isAvailable()) {
+          await InAppBrowser.open(url);
+        } else {
+          navigation.navigate('Webview', {
+            screen: 'SimpleWebview',
+            params: {
+              url,
+              title,
+            },
+          });
+        }
+      })();
     });
   };
 

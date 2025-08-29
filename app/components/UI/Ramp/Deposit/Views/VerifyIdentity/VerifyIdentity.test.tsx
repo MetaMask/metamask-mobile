@@ -4,17 +4,14 @@ import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { endTrace } from '../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockDispatch = jest.fn();
 const mockLinkingOpenURL = jest.fn();
-
-const mockQuote = {
-  quoteId: 'test-quote-id',
-} as BuyQuote;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -27,9 +24,6 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
-    }),
-    useRoute: () => ({
-      params: { quote: mockQuote },
     }),
   };
 });
@@ -53,12 +47,9 @@ jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
-const mockNavigateToEnterEmail = jest.fn();
-
-jest.mock('../../hooks/useDepositRouting', () => ({
-  useDepositRouting: () => ({
-    navigateToEnterEmail: mockNavigateToEnterEmail,
-  }),
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  endTrace: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {
@@ -96,13 +87,13 @@ describe('VerifyIdentity Component', () => {
     );
   });
 
-  it('calls navigateToEnterEmail when "Agree and continue" button is pressed', async () => {
+  it('navigates to EnterEmail when "Agree and continue" button is pressed', async () => {
     render(VerifyIdentity);
     fireEvent.press(screen.getByRole('button', { name: 'Agree and continue' }));
     await waitFor(() => {
-      expect(mockNavigateToEnterEmail).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createEnterEmailNavDetails({}),
+      );
     });
   });
 
@@ -145,5 +136,26 @@ describe('VerifyIdentity Component', () => {
     expect(mockLinkingOpenURL).toHaveBeenCalledWith(
       'https://consensys.net/privacy-policy',
     );
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(VerifyIdentity);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'VerifyIdentity',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'VerifyIdentity',
+      },
+    });
   });
 });

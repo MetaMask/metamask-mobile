@@ -1,0 +1,178 @@
+# MetaMask Mobile Pull Request (PR) Creation Guidelines
+
+These rules apply whenever creating PRs in the MetaMask Mobile repository or suggesting PR creation steps to others. Follow them to ensure consistent quality and smooth reviews.
+
+## Core Principles
+
+- Prefer small, focused PRs that are easy to review.
+- Make PR titles and descriptions clear, specific, and actionable.
+- Always use the repository PR template and complete every section.
+- Ensure correct labels and branch naming for automation and triage.
+
+## 1. PR Title Requirements
+
+PR titles must follow Conventional Commits and clearly describe the change.
+
+- Allowed types (with brief descriptions):
+  - `feat:` For new features or significant enhancements.
+  - `fix:` For bug fixes or corrections.
+  - `docs:` For documentation changes only.
+  - `style:` For code style changes (formatting, whitespace, etc.) that do not affect logic.
+  - `refactor:` For code changes that neither fix a bug nor add a feature (e.g., code restructuring).
+  - `test:` For adding or updating tests.
+  - `chore:` For routine tasks, maintenance, or changes to build tools and dependencies.
+  - `perf:` For performance improvements.
+  - `ci:` For changes to CI configuration or scripts.
+  - `build:` For changes affecting the build system or external dependencies.
+  - `revert:` For reverting previous commits.
+- Keep titles concise (ideally under ~72 characters) and specific.
+- Use imperative mood after the type (e.g., "add", "fix", "refactor").
+
+### Examples
+
+| ✅ Good                                                    | ❌ Bad           |
+| ---------------------------------------------------------- | ---------------- |
+| `feat: add NFT gallery to collectibles tab`                | `Add some stuff` |
+| `fix: resolve wallet connection timeout on cold start`     | `fixing bug`     |
+| `refactor: extract transaction formatter into utility`     | `refactor code`  |
+| `test: add e2e spec for onboarding SRP import flow`        | `tests`          |
+| `docs: update contributing guide with design-system usage` | `update docs`    |
+| `chore: bump react-native to 0.74.5`                       | `upgrade rn`     |
+
+### Title DO / DON'T
+
+- ✅ DO: Start with a valid type prefix and a short, descriptive phrase
+- ✅ DO: Reference scope briefly in the phrase if useful (e.g., "collectibles", "onboarding")
+- ❌ DON'T: Include issue numbers or long explanations in the title (put in description)
+- ❌ DON'T: Use ambiguous words like "stuff", "things", "fixes" without context
+
+## 2. PR Template Compliance
+
+You must use the template at `.github/pull-request-template.md`. Fill out all sections thoroughly.
+
+- **Description**: What changed and why. Include context, constraints, and trade-offs.
+- **Changelog entry**: Provide a user-facing change summary in past participle (e.g., "Added", "Fixed"). If not user-facing, write `CHANGELOG entry: null`.
+- **Related issues**: Use `Fixes: #NUMBER`, `Closes: #NUMBER`, or `Refs: #NUMBER` as appropriate.
+- **Manual testing steps (Gherkin format)**: Provide reproducible steps reviewers/QA can follow.
+- **Screenshots/Recordings**: Required for UI changes (before/after when relevant).
+- **Pre-merge checklist**: Ensure all items are checked (lint/tests pass, docs updated, feature flags set, etc.).
+
+### Gherkin Example
+
+```gherkin
+Scenario: Import an existing wallet via SRP on fresh install
+  Given the app is freshly installed
+  And I am on the Welcome screen
+  When I tap "Import using Secret Recovery Phrase"
+  And I enter a valid 12-word SRP
+  And I set a new password
+  Then I should land on the Home screen
+  And I should see the default account with a balance
+```
+
+### Changelog Examples
+
+```text
+CHANGELOG entry: Added NFT gallery to Collectibles tab.
+CHANGELOG entry: Fixed wallet connection timeout on cold start.
+CHANGELOG entry: null
+```
+
+## 3. Required Labels and Assignment
+
+### PR Assignment
+
+- **Always assign the PR to yourself (the author)** immediately after creation.
+- This ensures proper ownership tracking and notifications.
+
+### Required Labels
+
+Apply labels to enable automation and proper routing. Some labels can block merging.
+
+- **Team labels** (for internal devs): `team-mobile-ux`, `team-mobile-platform`, etc.
+- **QA labels**:
+  - `needs-qa` (blocks merging until QA passes)
+  - `No QA Needed`
+  - `Run E2E Smoke`
+  - `No E2E Smoke Needed`
+  - `Spot check on release build`
+- **Blocking labels** (cannot merge while applied): `needs-qa`, `issues-found`, `blocked`, `DO-NOT-MERGE`
+- Add any relevant area/scope labels used by the repo (e.g., platform-specific or feature-specific labels).
+
+### Label and Assignment DO / DON'T
+
+- ✅ DO: Assign the PR to yourself as the author
+- ✅ DO: Add a QA label for every PR
+- ✅ DO: Add the correct team label for routing
+- ✅ DO: Remove blocking labels when conditions are resolved
+- ❌ DON'T: Leave PR unassigned
+- ❌ DON'T: Merge while `needs-qa` or `DO-NOT-MERGE` is present
+
+## 4. Branch Naming Conventions
+
+Use descriptive branch names prefixed by the commit type.
+
+- Format: `<type>/<short-kebab-description>`
+- Examples:
+  - `feat/add-nft-gallery`
+  - `fix/wallet-connection-issue`
+  - `chore/update-linting-config`
+  - `refactor/tx-formatter-utils`
+
+### Branch DO / DON'T
+
+- ✅ DO: Keep names short, lowercase, and kebab-cased
+- ✅ DO: Use a type that matches your PR title prefix
+- ❌ DON'T: Use ambiguous or personal names like `dev/john` or `work-in-progress`
+
+## 5. PR Best Practices
+
+- Submit PRs as Draft initially to allow CI to run and gather early feedback.
+- Only mark "Ready for review" after:
+  - The PR is assigned to yourself (the author)
+  - The PR template is fully completed
+  - Lint, unit tests, and type-checks pass
+  - Required screenshots/recordings are attached
+  - Required labels are applied
+- Target the `main` branch unless otherwise required by release process.
+- Keep PRs focused on a single feature or fix; avoid mixing refactors with functional changes.
+- Include tests when applicable (unit, integration, or e2e) and update snapshots as needed.
+- Add or update JSDoc for public functions/types when relevant.
+
+### DO / DON'T Summary
+
+- ✅ DO: Assign the PR to yourself immediately after creation
+- ✅ DO: Keep the diff small and focused
+- ✅ DO: Include reproducible manual testing steps
+- ✅ DO: Update documentation and changelog entries
+- ✅ DO: Request review from the correct team
+- ❌ DON'T: Leave the PR unassigned
+- ❌ DON'T: Skip template sections
+- ❌ DON'T: Merge with failing checks or missing QA validation when required
+- ❌ DON'T: Push unrelated formatting or drive-by changes
+
+## Examples for MetaMask Mobile Context
+
+- Title: `feat: add NFT gallery to collectibles tab`
+- Branch: `feat/add-nft-gallery`
+- Assignee: The PR author (yourself)
+- Labels: `team-mobile-ux`, `needs-qa`, `Run E2E Smoke`
+- Changelog: `Added NFT gallery to Collectibles tab.`
+- Manual testing (Gherkin): see example above
+
+## Enforcement
+
+- PRs must use `.github/pull-request-template.md` with all sections completed.
+- PRs must be assigned to their author immediately after creation.
+- Titles must follow Conventional Commits.
+- Missing or incorrect labels that block merging must be resolved before merge.
+- PRs that do not follow these rules should be converted back to Draft with a comment referencing this rule.
+- Automated checks should fail PRs that are missing required sections, assignment, or labels when possible.
+
+## References
+
+- Conventional Commits: `https://www.conventionalcommits.org/`
+- Repository PR Template: `.github/pull-request-template.md`
+- CONTRIBUTING: `CONTRIBUTING.md` (if present in repo)
+- MetaMask Mobile testing docs: `docs/testing/`
+- E2E framework and specs: `e2e/`

@@ -1,9 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import CandlestickChartComponent from './PerpsCandlectickChart';
 
 // Minimal mock - only what we actually test
@@ -62,26 +68,44 @@ jest.mock('react-native-wagmi-charts', () => {
     />
   );
 
-  MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID={PerpsCandlestickChartSelectorsIDsMock.CROSSHAIR}>
-      {children}
-    </View>
-  );
-
-  MockChart.Tooltip = () => (
-    <View testID={PerpsCandlestickChartSelectorsIDsMock.TOOLTIP} />
-  );
-
   return { CandlestickChart: MockChart };
 });
 
-// Mock Dimensions with fixed value
+// Mock Dimensions with fixed value and prevent animation warnings
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   Dimensions: {
     get: () => ({ width: 750, height: 1334 }), // Fixed test dimensions
   },
+  Animated: {
+    ...jest.requireActual('react-native').Animated,
+    View: jest.requireActual('react-native').View,
+    timing: () => ({
+      start: jest.fn(),
+    }),
+    sequence: () => ({
+      start: jest.fn(),
+    }),
+    Value: jest.fn(() => ({
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      removeAllListeners: jest.fn(),
+    })),
+  },
 }));
+
+// Mock the skeleton component to prevent animation warnings
+jest.mock('./PerpsCandlestickChartSkeleton', () => () => {
+  const { View } = jest.requireActual('react-native');
+  const {
+    PerpsCandlestickChartSelectorsIDs: PerpsCandlestickChartSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
+  return (
+    <View testID={PerpsCandlestickChartSelectorsIDsMock.LOADING_SKELETON} />
+  );
+});
 
 // Minimal test wrapper with only what we need
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -97,7 +121,7 @@ const renderWithWrapper = (component: React.ReactElement) =>
 describe('CandlestickChartComponent', () => {
   const mockCandleData = {
     coin: 'BTC',
-    interval: '1h',
+    interval: CandlePeriod.ONE_HOUR,
     candles: [
       {
         time: 1640995200000,
@@ -122,8 +146,9 @@ describe('CandlestickChartComponent', () => {
     candleData: mockCandleData,
     isLoading: false,
     height: 300,
-    selectedInterval: '1h',
-    onIntervalChange: jest.fn(),
+    selectedDuration: TimeDuration.ONE_DAY,
+    onDurationChange: jest.fn(),
+    onGearPress: jest.fn(),
   };
 
   beforeEach(() => {
@@ -139,10 +164,12 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
+      ).toBeOnTheScreen();
     });
 
-    it('shows interval selector when loading', () => {
+    it('shows time duration selector when loading', () => {
       // Arrange
       const props = { ...defaultProps, isLoading: true };
 
@@ -150,21 +177,22 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
+      expect(screen.getByText('1D')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
 
-    it('calls onIntervalChange when interval button is pressed during loading', () => {
+    it('calls onDurationChange when duration button is pressed during loading', () => {
       // Arrange
-      const onIntervalChange = jest.fn();
-      const props = { ...defaultProps, isLoading: true, onIntervalChange };
+      const onDurationChange = jest.fn();
+      const props = { ...defaultProps, isLoading: true, onDurationChange };
 
       // Act
       renderWithWrapper(<CandlestickChartComponent {...props} />);
-      fireEvent.press(screen.getByText('5M'));
+      fireEvent.press(screen.getByText('1W'));
 
       // Assert
-      expect(onIntervalChange).toHaveBeenCalledWith('5m');
+      expect(onDurationChange).toHaveBeenCalledWith('1w');
     });
   });
 
@@ -194,7 +222,7 @@ describe('CandlestickChartComponent', () => {
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
-    it('shows interval selector when no data', () => {
+    it('shows time duration selector when no data', () => {
       // Arrange
       const props = { ...defaultProps, candleData: null };
 
@@ -202,8 +230,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
+      expect(screen.getByText('1D')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
   });
 
@@ -219,9 +248,7 @@ describe('CandlestickChartComponent', () => {
       expect(
         screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CANDLES),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CROSSHAIR),
-      ).toBeOnTheScreen();
+
       expect(
         screen.getByTestId(PerpsCandlestickChartSelectorsIDs.TOOLTIP),
       ).toBeOnTheScreen();
@@ -269,15 +296,15 @@ describe('CandlestickChartComponent', () => {
       ).toBeOnTheScreen();
     });
 
-    it('uses default selectedInterval when not provided', () => {
+    it('uses default selectedDuration when not provided', () => {
       // Arrange
-      const { selectedInterval, ...propsWithoutInterval } = defaultProps;
+      const { selectedDuration, ...propsWithoutDuration } = defaultProps;
 
       // Act
-      render(<CandlestickChartComponent {...propsWithoutInterval} />);
+      render(<CandlestickChartComponent {...propsWithoutDuration} />);
 
       // Assert
-      expect(screen.getByText('1H')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
     });
 
     it('uses default isLoading when not provided', () => {
@@ -288,93 +315,91 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...propsWithoutLoading} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
-      expect(screen.queryByText('Loading chart data...')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON,
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 
-  describe('Interval Selector', () => {
-    it('renders all available intervals', () => {
+  describe('Duration Selector', () => {
+    it('renders all available durations', () => {
       // Arrange
-      const expectedIntervals = [
-        '1M',
-        '5M',
-        '15M',
-        '30M',
-        '1H',
-        '2H',
-        '4H',
-        '8H',
-      ];
+      const expectedDurations = ['1HR', '1D', '1W', '1M', 'YTD', 'Max'];
 
       // Act
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expectedIntervals.forEach((interval) => {
-        expect(screen.getByText(interval)).toBeOnTheScreen();
+      expectedDurations.forEach((duration) => {
+        expect(screen.getByText(duration)).toBeOnTheScreen();
       });
     });
 
-    it('highlights selected interval', () => {
+    it('highlights selected duration', () => {
       // Arrange
-      const props = { ...defaultProps, selectedInterval: '5m' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: TimeDuration.ONE_WEEK,
+      };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('5M')).toBeOnTheScreen();
+      expect(screen.getByText('1W')).toBeOnTheScreen();
     });
 
-    it('calls onIntervalChange when interval button is pressed', () => {
+    it('calls onDurationChange when duration button is pressed', () => {
       // Arrange
-      const onIntervalChange = jest.fn();
-      const props = { ...defaultProps, onIntervalChange };
+      const onDurationChange = jest.fn();
+      const props = { ...defaultProps, onDurationChange };
 
       // Act
       render(<CandlestickChartComponent {...props} />);
-      fireEvent.press(screen.getByText('5M'));
+      fireEvent.press(screen.getByText('1W'));
 
       // Assert
-      expect(onIntervalChange).toHaveBeenCalledWith('5m');
+      expect(onDurationChange).toHaveBeenCalledWith('1w');
     });
 
-    it('does not call onIntervalChange when callback is not provided', () => {
+    it('does not call onDurationChange when callback is not provided', () => {
       // Arrange
-      const { onIntervalChange, ...propsWithoutCallback } = defaultProps;
+      const { onDurationChange, ...propsWithoutCallback } = defaultProps;
 
       // Act
       render(<CandlestickChartComponent {...propsWithoutCallback} />);
 
-      // Assert - Should not throw error when pressing interval button
+      // Assert - Should not throw error when pressing duration button
       expect(() => {
-        fireEvent.press(screen.getByText('5M'));
+        fireEvent.press(screen.getByText('1W'));
       }).not.toThrow();
     });
 
     it.each([
+      ['1HR', '1hr'],
+      ['1D', '1d'],
+      ['1W', '1w'],
       ['1M', '1m'],
-      ['5M', '5m'],
-      ['15M', '15m'],
-      ['30M', '30m'],
-      ['1H', '1h'],
-      ['2H', '2h'],
-      ['4H', '4h'],
-      ['8H', '8h'],
+      ['YTD', 'ytd'],
+      ['Max', 'max'],
     ] as const)(
-      'calls onIntervalChange with correct value for %s',
+      'calls onDurationChange with correct value for %s',
       (label, expectedValue) => {
         // Arrange
-        const onIntervalChange = jest.fn();
-        const props = { ...defaultProps, onIntervalChange };
+        const onDurationChange = jest.fn();
+        const props = { ...defaultProps, onDurationChange };
 
         // Act
         render(<CandlestickChartComponent {...props} />);
         fireEvent.press(screen.getByText(label));
 
         // Assert
-        expect(onIntervalChange).toHaveBeenCalledWith(expectedValue);
+        expect(onDurationChange).toHaveBeenCalledWith(expectedValue);
       },
     );
   });
@@ -385,7 +410,9 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
       // The transformed data is used internally by the CandlestickChart.Provider
     });
 
@@ -411,8 +438,8 @@ describe('CandlestickChartComponent', () => {
       const chart = screen.getByTestId(
         PerpsCandlestickChartSelectorsIDs.CONTAINER,
       );
-      expect(chart).toHaveProp('data-height', 280); // 400 - 120 (PADDING.VERTICAL)
-      expect(chart).toHaveProp('data-width', 702); // 750 - 48 (PADDING.HORIZONTAL * 2)
+      expect(chart).toHaveProp('data-height', 280);
+      expect(chart).toHaveProp('data-width', 685);
     });
 
     it('handles missing candle data gracefully', () => {
@@ -475,7 +502,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles large screen sizes', () => {
@@ -483,7 +512,9 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -492,7 +523,7 @@ describe('CandlestickChartComponent', () => {
       // Arrange
       const candleDataWithStrings = {
         coin: 'BTC',
-        interval: '1h',
+        interval: CandlePeriod.ONE_HOUR,
         candles: [
           {
             time: 1640995200000,
@@ -510,18 +541,25 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
-    it('handles invalid interval selection gracefully', () => {
+    it('handles invalid duration selection gracefully', () => {
       // Arrange
-      const props = { ...defaultProps, selectedInterval: 'invalid' };
+      const props = {
+        ...defaultProps,
+        selectedDuration: 'invalid' as TimeDuration,
+      };
 
       // Act
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByTestId('candlestick-provider')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.PROVIDER),
+      ).toBeOnTheScreen();
     });
 
     it('handles undefined candleData gracefully', () => {
@@ -533,6 +571,203 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
+    });
+  });
+
+  describe('TP/SL Lines', () => {
+    it('renders TP/SL lines when tpslLines prop is provided with valid prices', async () => {
+      // Arrange
+      const propsWithTPSL = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPSL} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-/);
+        expect(tpslElements).toHaveLength(2); // One for TP, one for SL
+      });
+    });
+
+    it('does not render TP/SL lines when tpslLines prop is not provided', () => {
+      // Arrange & Act
+      render(<CandlestickChartComponent {...defaultProps} />);
+
+      // Assert
+      const tpslElements = screen.queryAllByTestId(/auxiliary-line-/);
+      expect(tpslElements).toHaveLength(0);
+    });
+
+    it('renders only TP line when only takeProfitPrice is provided', async () => {
+      // Arrange
+      const propsWithTPOnly = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPOnly} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-tp/);
+        expect(tpslElements).toHaveLength(1);
+        const slElements = screen.queryAllByTestId(/auxiliary-line-sl/);
+        expect(slElements).toHaveLength(0);
+      });
+    });
+
+    it('renders only SL line when only stopLossPrice is provided', async () => {
+      // Arrange
+      const propsWithSLOnly = {
+        ...defaultProps,
+        tpslLines: {
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithSLOnly} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-sl/);
+        expect(tpslElements).toHaveLength(1);
+        const tpElements = screen.queryAllByTestId(/auxiliary-line-tp/);
+        expect(tpElements).toHaveLength(0);
+      });
+    });
+
+    it('renders entry price line when entryPrice is provided', async () => {
+      // Arrange
+      const propsWithEntry = {
+        ...defaultProps,
+        tpslLines: {
+          entryPrice: '45500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithEntry} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
+        expect(entryElements).toHaveLength(1);
+      });
+    });
+
+    it('renders liquidation price line when liquidationPrice is provided', async () => {
+      // Arrange
+      const propsWithLiquidation = {
+        ...defaultProps,
+        tpslLines: {
+          liquidationPrice: '44200', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithLiquidation} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const liquidationElements = screen.getAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
+        expect(liquidationElements).toHaveLength(1);
+      });
+    });
+
+    it('does not render liquidation price line when liquidationPrice is null', async () => {
+      // Arrange
+      const propsWithNullLiquidation = {
+        ...defaultProps,
+        tpslLines: {
+          liquidationPrice: null,
+          entryPrice: '45500', // Include another line to ensure component renders
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithNullLiquidation} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const liquidationElements = screen.queryAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
+        expect(liquidationElements).toHaveLength(0);
+
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
+        expect(entryElements).toHaveLength(1); // Entry line should still render
+      });
+    });
+
+    it('renders current price line when currentPrice is provided', async () => {
+      // Arrange
+      const propsWithCurrent = {
+        ...defaultProps,
+        tpslLines: {
+          currentPrice: '45800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithCurrent} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const currentElements = screen.getAllByTestId(/auxiliary-line-current/);
+        expect(currentElements).toHaveLength(1);
+      });
+    });
+
+    it('renders all lines when TP, SL, entry, liquidation, and current prices are provided', async () => {
+      // Arrange
+      const propsWithAll = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+          entryPrice: '45500', // Within chart range (44000-47000)
+          liquidationPrice: '44200', // Within chart range (44000-47000)
+          currentPrice: '45800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithAll} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-/);
+        expect(tpslElements).toHaveLength(5); // One for TP, one for SL, one for entry, one for liquidation, one for current
+
+        const tpElements = screen.getAllByTestId(/auxiliary-line-tp/);
+        expect(tpElements).toHaveLength(1);
+
+        const slElements = screen.getAllByTestId(/auxiliary-line-sl/);
+        expect(slElements).toHaveLength(1);
+
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
+        expect(entryElements).toHaveLength(1);
+
+        const liquidationElements = screen.getAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
+        expect(liquidationElements).toHaveLength(1);
+
+        const currentElements = screen.getAllByTestId(/auxiliary-line-current/);
+        expect(currentElements).toHaveLength(1);
+      });
     });
   });
 });

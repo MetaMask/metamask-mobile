@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
@@ -13,7 +13,7 @@ import Assertions from '../../framework/Assertions';
 const PASSWORD = '12345678';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeWalletPlatform('Start Exploring'), () => {
+describe(RegressionWalletPlatform('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

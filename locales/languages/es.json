@@ -761,7 +761,7 @@
   },
   "perps": {
     "title": "Operaciones con contratos perpetuos",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Saldo total",
     "available_balance": "Saldo disponible",
@@ -1124,7 +1124,7 @@
     "chart": {
       "no_data": "No hay datos gráficos disponibles"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

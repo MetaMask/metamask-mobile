@@ -77,7 +77,7 @@ jest.mock('react-native', () => {
 describe('PerpsTabControlBar', () => {
   // Helper function to get TouchableOpacity
   const getTouchableOpacity = () => {
-    const balanceText = screen.getByText('Hyperliquid USDC balance');
+    const balanceText = screen.getByText('Perp account balance');
     const touchableOpacity = balanceText.parent?.parent;
     if (!touchableOpacity) {
       throw new Error('TouchableOpacity not found');
@@ -162,15 +162,15 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders correctly with all elements', () => {
+    it('renders correctly with all elements', async () => {
       render(<PerpsTabControlBar />);
 
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance
 
       // Find TouchableOpacity by its content
-      const touchableOpacity = screen.getByText('Hyperliquid USDC balance')
-        .parent?.parent;
+      const touchableOpacity = screen.getByText('Perp account balance').parent
+        ?.parent;
       expect(touchableOpacity).toBeTruthy();
     });
 
@@ -187,7 +187,7 @@ describe('PerpsTabControlBar', () => {
       });
     });
 
-    it('renders without onManageBalancePress prop', () => {
+    it('renders without onManageBalancePress prop', async () => {
       expect(() => render(<PerpsTabControlBar />)).not.toThrow();
 
       // TouchableOpacity should be present
@@ -195,7 +195,7 @@ describe('PerpsTabControlBar', () => {
       expect(touchableOpacity).toBeTruthy();
     });
 
-    it('applies animated styles to balance text', () => {
+    it('applies animated styles to balance text', async () => {
       render(<PerpsTabControlBar />);
 
       // Verify that the useColorPulseAnimation hook is called
@@ -243,7 +243,7 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('WebSocket Subscription and Polling', () => {
-    it('subscribes to position updates on mount', () => {
+    it('subscribes to position updates on mount', async () => {
       render(<PerpsTabControlBar />);
 
       expect(mockSubscribeToPositions).toHaveBeenCalledWith({
@@ -267,7 +267,7 @@ describe('PerpsTabControlBar', () => {
       });
 
       // Simulate position update
-      act(() => {
+      await act(async () => {
         positionCallback?.([
           { id: '1', symbol: 'BTC' },
         ] as unknown as Position[]);
@@ -293,7 +293,7 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Press Handler', () => {
-    it('calls onManageBalancePress when pressed', () => {
+    it('calls onManageBalancePress when pressed', async () => {
       render(
         <PerpsTabControlBar onManageBalancePress={mockOnManageBalancePress} />,
       );
@@ -304,7 +304,7 @@ describe('PerpsTabControlBar', () => {
       expect(mockOnManageBalancePress).toHaveBeenCalled();
     });
 
-    it('does not throw when pressed without onManageBalancePress', () => {
+    it('does not throw when pressed without onManageBalancePress', async () => {
       render(<PerpsTabControlBar />);
 
       const touchableOpacity = getTouchableOpacity();
@@ -324,7 +324,7 @@ describe('PerpsTabControlBar', () => {
       });
 
       // Should still render without crashing
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Should show default value
     });
 
@@ -365,13 +365,13 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar />);
 
       // Should still render without crashing
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
   });
 
   describe('Cleanup and Memory Management', () => {
-    it('cleans up subscription on unmount', () => {
+    it('cleans up subscription on unmount', async () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToPositions.mockReturnValue(mockUnsubscribe);
 
@@ -382,7 +382,7 @@ describe('PerpsTabControlBar', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
-    it('stops animation on unmount', () => {
+    it('stops animation on unmount', async () => {
       const { unmount } = render(<PerpsTabControlBar />);
 
       unmount();
@@ -390,7 +390,7 @@ describe('PerpsTabControlBar', () => {
       expect(mockStopAnimation).toHaveBeenCalled();
     });
 
-    it('handles cleanup when subscription returns null', () => {
+    it('handles cleanup when subscription returns null', async () => {
       mockSubscribeToPositions.mockReturnValue(null);
 
       const { unmount } = render(<PerpsTabControlBar />);
@@ -435,16 +435,26 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar />);
 
-      // Simulate multiple rapid position updates
-      act(() => {
+      // Simulate multiple rapid position updates with different values
+      await act(async () => {
         positionCallback?.([
-          { id: '1', symbol: 'BTC' },
+          {
+            coin: 'BTC',
+            size: '1.0',
+            entryPrice: '50000',
+            unrealizedPnl: '100',
+          },
         ] as unknown as Position[]);
         positionCallback?.([
-          { id: '2', symbol: 'ETH' },
+          {
+            coin: 'ETH',
+            size: '2.0',
+            entryPrice: '3000',
+            unrealizedPnl: '200',
+          },
         ] as unknown as Position[]);
         positionCallback?.([
-          { id: '3', symbol: 'SOL' },
+          { coin: 'SOL', size: '3.0', entryPrice: '100', unrealizedPnl: '300' },
         ] as unknown as Position[]);
       });
 

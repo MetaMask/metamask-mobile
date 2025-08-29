@@ -1,5 +1,5 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
-import { getLocalTestDappUrl } from '../../fixtures/utils';
+import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import Browser from './BrowserView';
@@ -75,7 +75,7 @@ class SolanaTestDApp {
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
 
-    await Browser.navigateToURL(getLocalTestDappUrl());
+    await Browser.navigateToURL(getTestDappLocalUrl());
 
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()

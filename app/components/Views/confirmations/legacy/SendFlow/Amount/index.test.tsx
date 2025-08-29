@@ -12,6 +12,10 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
 const mockTransactionTypes = TransactionTypes;
 
 const MOCK_NFTS = [

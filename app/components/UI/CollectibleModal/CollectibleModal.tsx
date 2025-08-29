@@ -29,6 +29,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 const CollectibleModal = () => {
@@ -82,7 +83,7 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    navigateToSendPage(collectible);
+    navigateToSendPage(InitSendLocation.CollectibleModal, collectible);
   }, [contractName, collectible, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

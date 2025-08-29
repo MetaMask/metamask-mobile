@@ -104,4 +104,13 @@ export const createStyles = ({ colors }: Theme) =>
     loadingText: {
       marginTop: 12,
     },
+    warningContainer: {
+      marginTop: 12,
+      padding: 12,
+      backgroundColor: colors.error.muted,
+      borderRadius: 8,
+    },
+    warningText: {
+      textAlign: 'center',
+    },
   });

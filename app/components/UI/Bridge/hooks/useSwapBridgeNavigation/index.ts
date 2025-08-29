@@ -4,7 +4,7 @@ import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
@@ -22,7 +22,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import {
   selectIsBridgeEnabledSource,
   selectIsUnifiedSwapsEnabled,
-  setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
@@ -36,19 +35,18 @@ export enum SwapBridgeNavigationLocation {
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
- * @param token token object containing address and chainId we want to set as source.
+ * @param sourceToken token object containing address and chainId we want to set as source.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  token: tokenBase,
+  sourceToken: tokenBase,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
-  token?: BridgeToken;
+  sourceToken?: BridgeToken;
 }) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
@@ -82,31 +80,34 @@ export const useSwapBridgeNavigation = ({
             }
           : undefined;
 
-      const candidateBridgeToken =
+      const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const bridgeToken = isBridgeEnabledSource
-        ? candidateBridgeToken
+      const sourceToken = isBridgeEnabledSource
+        ? candidateSourceToken
         : undefined;
 
-      if (!bridgeToken) {
+      if (!sourceToken) {
         return;
       }
-      dispatch(setBridgeViewMode(bridgeViewMode));
-      navigation.navigate('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          token: bridgeToken,
-          sourcePage,
-        } as BridgeRouteParams,
+
+      const params: BridgeRouteParams = {
+        sourceToken,
+        sourcePage,
+        bridgeViewMode,
+      };
+
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
+        params,
       });
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
             location,
-            chain_id_source: getDecimalChainId(bridgeToken.chainId),
-            token_symbol_source: bridgeToken?.symbol,
-            token_address_source: bridgeToken?.address,
+            chain_id_source: getDecimalChainId(sourceToken.chainId),
+            token_symbol_source: sourceToken?.symbol,
+            token_address_source: sourceToken?.address,
           })
           .build(),
       );
@@ -124,7 +125,6 @@ export const useSwapBridgeNavigation = ({
       createEventBuilder,
       location,
       isBridgeEnabledSource,
-      dispatch,
     ],
   );
 
@@ -142,7 +142,7 @@ export const useSwapBridgeNavigation = ({
   const { addPopularNetwork, networkModal } = useAddNetwork();
 
   // Swaps
-  const handleSwapsNavigation = useCallback(
+  const handleLegacySwapsNavigation = useCallback(
     async (currentToken?: BridgeToken) => {
       const swapToken = currentToken ??
         tokenBase ?? {
@@ -233,7 +233,7 @@ export const useSwapBridgeNavigation = ({
       }
       ///: END:ONLY_INCLUDE_IF
 
-      await handleSwapsNavigation(currentToken);
+      await handleLegacySwapsNavigation(currentToken);
     },
     [
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -241,7 +241,7 @@ export const useSwapBridgeNavigation = ({
       selectedChainId,
       goToBridge,
       ///: END:ONLY_INCLUDE_IF
-      handleSwapsNavigation,
+      handleLegacySwapsNavigation,
       isUnifiedSwapsEnabled,
     ],
   );

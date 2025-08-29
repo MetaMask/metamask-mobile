@@ -141,7 +141,7 @@ jest.mock('../../../../UI/Bridge/components/TokenInputArea', () => {
 });
 
 // Mock Keypad component
-jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
+jest.mock('../../../../Base/Keypad', () => {
   const View = jest.requireActual('react-native').View;
   const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
   const Text = jest.requireActual('react-native').Text;
@@ -217,6 +217,15 @@ jest.mock('../../hooks', () => ({
     },
   })),
   useWithdrawValidation: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 const mockStore = configureMockStore();

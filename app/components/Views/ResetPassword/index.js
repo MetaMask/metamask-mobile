@@ -649,10 +649,12 @@ class ResetPassword extends PureComponent {
   };
 
   learnMore = () => {
-    this.props.navigation.push('Webview', {
+    this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: this.props.isSeedlessOnboardingLoginFlow
+          ? 'https://support.metamask.io/configure/wallet/passwords-and-metamask/'
+          : 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
         title: 'support.metamask.io',
       },
     });
@@ -808,13 +810,34 @@ class ResetPassword extends PureComponent {
     }));
   };
 
+  learnMoreSocialLogin = () => {
+    this.props.navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
+      },
+    });
+  };
+
   handleConfirmAction = () => {
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings('reset_password.warning_password_change_title'),
-        description: strings(
-          'reset_password.warning_password_change_description',
+        description: this.props.isSeedlessOnboardingLoginFlow ? (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {strings('reset_password.warning_password_change_description')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              onPress={this.learnMoreSocialLogin}
+            >
+              {strings('reset_password.learn_more')}
+            </Text>
+          </Text>
+        ) : (
+          `${strings('reset_password.warning_password_change_description')}.`
         ),
         type: 'error',
         icon: IconName.Danger,

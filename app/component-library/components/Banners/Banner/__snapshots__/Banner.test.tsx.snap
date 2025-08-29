@@ -159,7 +159,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 0,
           "borderWidth": 1,
@@ -391,7 +391,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 0,
           "borderWidth": 1,

@@ -25,6 +25,7 @@ const balanceChangesMock = [
     },
     amount: new BigNumber(100),
     fiatAmount: 100,
+    usdAmount: 100,
   },
 ] as BalanceChange[];
 const headingMock = 'You received';
@@ -75,6 +76,7 @@ describe('BalanceChangeList', () => {
         },
         amount: new BigNumber(100),
         fiatAmount: 100,
+        usdAmount: 100,
       },
       {
         asset: {
@@ -83,6 +85,7 @@ describe('BalanceChangeList', () => {
         },
         amount: new BigNumber(1000),
         fiatAmount: 1000,
+        usdAmount: 1000,
       },
     ] as BalanceChange[];
 

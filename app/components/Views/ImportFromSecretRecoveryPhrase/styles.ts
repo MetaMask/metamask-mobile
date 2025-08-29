@@ -58,12 +58,14 @@ const createStyles = (colors: any) =>
     seedPhraseDefaultInput: {
       borderWidth: 0,
       paddingHorizontal: 0,
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       height: 66,
     },
     textAreaInput: {
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,
@@ -158,7 +160,14 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textAlignVertical: 'center',
-      paddingHorizontal: 8,
+      paddingLeft: 8,
+      overflow: 'hidden', // Ensure content doesn't overflow
+    },
+    inputItem: {
+      flex: 1,
+      minWidth: 0, // Allow flex shrinking below content size
+      maxWidth: '100%', // Ensure text doesn't overflow container
+      paddingRight: 8, // Add some padding to prevent text from touching edges
     },
     seedPhraseInputItem: {
       width: '31.33%', // 100% / 3 = 33.33%, minus some space

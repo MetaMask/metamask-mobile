@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletUX } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacyView from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import { loginToApp } from '../../viewHelper';
@@ -11,7 +11,7 @@ import BrowserView from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import { DappVariants } from '../../framework/Constants';
 
-describe(Regression('Clear Privacy data'), () => {
+describe(RegressionWalletUX('Clear Privacy data'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });

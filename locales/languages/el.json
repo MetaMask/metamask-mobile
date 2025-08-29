@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Συναλλαγές με συμβόλαια αόριστης διάρκειας",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Συνολικό υπόλοιπο",
     "available_balance": "Διαθέσιμο υπόλοιπο",
     "margin_used": "Περιθώριο που χρησιμοποιήθηκε",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "Δεν υπάρχουν διαθέσιμα δεδομένα γραφήματος"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

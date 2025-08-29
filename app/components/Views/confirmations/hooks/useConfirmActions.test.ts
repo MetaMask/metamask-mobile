@@ -17,6 +17,9 @@ import * as SmartTransactionsSelector from '../../../../selectors/smartTransacti
 // eslint-disable-next-line import/no-namespace
 import * as TransactionActions from '../../../../actions/transaction';
 import { useConfirmActions } from './useConfirmActions';
+import { cloneDeep } from 'lodash';
+import { RootState } from '../../../../reducers';
+import { ConfirmationMetricsState } from '../../../../core/redux/slices/confirmationMetrics';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -45,6 +48,8 @@ jest.mock('./signatures/useSignatureMetrics', () => ({
     captureSignatureMetrics: mockCaptureSignatureMetrics,
   }),
 }));
+
+const TRANSACTION_ID_MOCK = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
 
 const flushPromises = async () => await new Promise(process.nextTick);
 
@@ -243,16 +248,15 @@ describe('useConfirmAction', () => {
     jest
       .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
       .mockReturnValue(true);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
+      TRANSACTION_ID_MOCK,
       stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
+        .pendingApprovals[TRANSACTION_ID_MOCK].requestData,
       { deleteAfterResult: true, handleErrors: false, waitForResult: false },
     );
   });
@@ -261,17 +265,41 @@ describe('useConfirmAction', () => {
     jest
       .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
       .mockReturnValue(false);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
+      TRANSACTION_ID_MOCK,
       stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
+        .pendingApprovals[TRANSACTION_ID_MOCK].requestData,
       { deleteAfterResult: true, handleErrors: false, waitForResult: true },
+    );
+  });
+
+  it('does not wait for result if bridge quotes', async () => {
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    state.confirmationMetrics = {
+      transactionBridgeQuotesById: {
+        [TRANSACTION_ID_MOCK]: [{}],
+      },
+    } as unknown as ConfirmationMetricsState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
+      TRANSACTION_ID_MOCK,
+      expect.any(Object),
+      expect.objectContaining({ waitForResult: false }),
     );
   });
 });

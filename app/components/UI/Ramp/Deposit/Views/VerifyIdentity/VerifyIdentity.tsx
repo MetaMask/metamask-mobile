@@ -7,23 +7,18 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './VerifyIdentity.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { useDepositRouting } from '../../hooks/useDepositRouting';
 import {
   TRANSAK_TERMS_URL_US,
   TRANSAK_TERMS_URL_WORLD,
@@ -31,30 +26,23 @@ import {
   TRANSAK_URL,
 } from '../../constants/constants';
 import { useDepositSDK } from '../../sdk';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { endTrace, TraceName } from '../../../../../../util/trace';
 
-export interface VerifyIdentityParams {
-  quote: BuyQuote;
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
-}
-
-export const createVerifyIdentityNavDetails =
-  createNavigationDetails<VerifyIdentityParams>(Routes.DEPOSIT.VERIFY_IDENTITY);
+export const createVerifyIdentityNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.VERIFY_IDENTITY,
+);
 
 const VerifyIdentity = () => {
   const navigation = useNavigation();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
-  const { quote, cryptoCurrencyChainId, paymentMethodId } =
-    useParams<VerifyIdentityParams>();
-
   const { selectedRegion } = useDepositSDK();
 
-  const { navigateToEnterEmail } = useDepositRouting({
-    cryptoCurrencyChainId,
-    paymentMethodId,
-  });
+  const navigateToEnterEmail = useCallback(() => {
+    navigation.navigate(...createEnterEmailNavDetails({}));
+  }, [navigation]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -64,11 +52,25 @@ const VerifyIdentity = () => {
         theme,
       ),
     );
+
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.VERIFY_IDENTITY,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.VERIFY_IDENTITY,
+      },
+    });
   }, [navigation, theme]);
 
   const handleSubmit = useCallback(async () => {
-    navigateToEnterEmail({ quote });
-  }, [navigateToEnterEmail, quote]);
+    navigateToEnterEmail();
+  }, [navigateToEnterEmail]);
 
   const handleTransakLink = useCallback(() => {
     Linking.openURL(TRANSAK_URL);

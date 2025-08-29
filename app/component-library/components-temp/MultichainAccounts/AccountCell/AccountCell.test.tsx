@@ -2,14 +2,13 @@ import React from 'react';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountCell } from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { createMockAccountGroup } from '../test-utils';
 
-const mockAccountGroup: AccountGroupObject = {
-  id: 'keyring:test-group/ethereum' as const,
-  accounts: ['account-1', 'account-2'],
-  metadata: {
-    name: 'Test Account Group',
-  },
-};
+const mockAccountGroup = createMockAccountGroup(
+  'keyring:test-group/ethereum',
+  'Test Account Group',
+  ['account-1'],
+);
 
 const renderAccountCell = (
   props: {

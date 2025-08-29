@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
-
-const selectPerpsEligibility = (state: RootState) =>
-  state.engine.backgroundState.PerpsController?.isEligible;
+import { selectPerpsEligibility } from '../selectors/perpsController';
 
 export const usePerpsEligibility = () => {
   const [isLoading, setIsLoading] = useState(false);

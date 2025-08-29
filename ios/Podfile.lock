@@ -2323,6 +2323,10 @@ PODS:
     - React-utils (= 0.76.9)
   - ReactNativePayments (2.0.0):
     - React
+  - rive-react-native (9.3.4):
+    - React-Core
+    - RiveRuntime (= 6.9.4)
+  - RiveRuntime (6.9.4)
   - RNCAsyncStorage (1.24.0):
     - DoubleConversion
     - glog
@@ -2873,6 +2877,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
+  - rive-react-native (from `../node_modules/rive-react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -2925,6 +2930,7 @@ SPEC REPOS:
     - OpenSSL-Universal
     - PromisesObjC
     - React-Codegen
+    - RiveRuntime
     - Sentry
     - SocketRocket
 
@@ -3158,6 +3164,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
+  rive-react-native:
+    :path: "../node_modules/rive-react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -3352,6 +3360,8 @@ SPEC CHECKSUMS:
   ReactCodegen: f853a20cc9125c5521c8766b4b49375fec20648b
   ReactCommon: 300d8d9c5cb1a6cd79a67cf5d8f91e4d477195f9
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
+  rive-react-native: 9c7100fec9480d23dc69b4f4fb321de6bb742c4a
+  RiveRuntime: 56c2133fa5c5c570dd93818d8c2772ae6f126806
   RNCAsyncStorage: 9b86b860b6253f5eacf34af7d740037091358dab
   RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
   RNCClipboard: f1fe5a8005c651c204e60b43cf0cd67e2244ab70

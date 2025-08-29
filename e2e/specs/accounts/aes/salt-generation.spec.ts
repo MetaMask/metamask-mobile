@@ -1,4 +1,4 @@
-import { SmokeAccounts } from '../../../tags';
+import { RegressionAccounts } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -9,7 +9,7 @@ import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
-describe(SmokeAccounts('AES Crypto - Salt generation'), () => {
+describe(RegressionAccounts('AES Crypto - Salt generation'), () => {
   const SALT_BYTES_COUNT = 32;
 
   beforeAll(async () => {

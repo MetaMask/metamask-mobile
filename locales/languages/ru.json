@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Торговля бессрочными контрактами",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Общий баланс",
     "available_balance": "Доступный баланс",
     "margin_used": "Использованная маржа",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "Нет данных графиков"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

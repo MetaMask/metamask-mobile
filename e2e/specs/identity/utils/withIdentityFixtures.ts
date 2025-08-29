@@ -1,7 +1,6 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import {
-  mockAuthServices,
   createUserStorageController,
   setupAccountMockedBalances,
 } from './mocks';
@@ -12,13 +11,10 @@ import {
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
 import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { TestSpecificMock } from '../../../framework/types';
 
 export interface IdentityFixtureOptions {
   fixture?: object;
   restartDevice?: boolean;
-  testSpecificMock?: TestSpecificMock;
   userStorageFeatures?: (keyof typeof pathRegexps)[];
   userStorageOverrides?: Partial<
     Record<keyof typeof pathRegexps, UserStorageMockttpControllerOverrides>
@@ -39,9 +35,6 @@ export async function withIdentityFixtures(
   const {
     fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
     restartDevice = true,
-    testSpecificMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    },
     mockBalancesAccounts = [],
     userStorageFeatures = [
       USER_STORAGE_FEATURE_NAMES.accounts,
@@ -50,6 +43,25 @@ export async function withIdentityFixtures(
     userStorageOverrides,
     sharedUserStorageController,
   } = options;
+
+  let userStorageController: UserStorageMockttpController;
+
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    if (mockBalancesAccounts.length > 0) {
+      await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
+    }
+
+    if (sharedUserStorageController) {
+      userStorageController = sharedUserStorageController;
+    } else {
+      userStorageController = createUserStorageController();
+    }
+
+    for (const feature of userStorageFeatures) {
+      const overrides = userStorageOverrides?.[feature] || {};
+      await userStorageController.setupPath(feature, mockServer, overrides);
+    }
+  };
 
   await withFixtures(
     {
@@ -60,25 +72,6 @@ export async function withIdentityFixtures(
     async ({ mockServer }) => {
       if (!mockServer) {
         throw new Error('Mock server is not defined');
-      }
-
-      // mock auth services
-      await mockAuthServices(mockServer);
-      if (mockBalancesAccounts.length > 0) {
-        await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
-      }
-
-      let userStorageController: UserStorageMockttpController;
-
-      if (sharedUserStorageController) {
-        userStorageController = sharedUserStorageController;
-      } else {
-        userStorageController = createUserStorageController();
-      }
-
-      for (const feature of userStorageFeatures) {
-        const overrides = userStorageOverrides?.[feature] || {};
-        await userStorageController.setupPath(feature, mockServer, overrides);
       }
 
       await testFn({

@@ -18,7 +18,7 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
-import GeneralAlertBanner from '../general-alert-banner';
+import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { getNavbar } from '../UI/navbar/navbar';
@@ -42,10 +42,14 @@ const ConfirmWrapped = ({
           <QRHardwareContextProvider>
             <LedgerContextProvider>
               <Title />
-              <ScrollView style={styles.scrollView} nestedScrollEnabled>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                nestedScrollEnabled
+              >
                 <TouchableWithoutFeedback>
                   <>
-                    <GeneralAlertBanner />
+                    <AlertBanner />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>
@@ -71,7 +75,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
 
   if (!isRedesignedEnabled) {
     navigation.setOptions({

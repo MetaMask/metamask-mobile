@@ -24,6 +24,7 @@ import {
   parsePercentageString,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsMarketHeader.styles';
+import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -63,6 +64,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
+            testID={PerpsMarketHeaderSelectorsIDs.BACK_BUTTON}
           />
         </View>
       )}

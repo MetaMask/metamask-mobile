@@ -24,7 +24,7 @@ const TransactionBatch = () => {
   return (
     <View>
       <AccountNetworkInfo />
-      {!isWalletInitiated && <OriginRow isSignatureRequest={false} />}
+      {!isWalletInitiated && <OriginRow />}
       <GasFeesDetailsRow disableUpdate />
     </View>
   );

@@ -266,6 +266,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
 exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
 <TouchableOpacity
   disabled={false}
+  onPress={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -293,34 +294,39 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         }
       }
     >
-      <TouchableOpacity
-        disabled={false}
-        style={
-          {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "height": 24,
-            "marginRight": -8,
-            "opacity": 1,
-          }
-        }
+      <View
+        pointerEvents="auto"
       >
-        <View
-          accessibilityRole="checkbox"
+        <TouchableOpacity
+          disabled={false}
+          onPressIn={[Function]}
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#121314",
-              "borderRadius": 4,
-              "borderWidth": 2,
-              "height": 20,
-              "justifyContent": "center",
-              "width": 20,
+              "flexDirection": "row",
+              "height": 24,
+              "marginRight": -8,
+              "opacity": 1,
             }
           }
-        />
-      </TouchableOpacity>
+        >
+          <View
+            accessibilityRole="checkbox"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#121314",
+                "borderRadius": 4,
+                "borderWidth": 2,
+                "height": 20,
+                "justifyContent": "center",
+                "width": 20,
+              }
+            }
+          />
+        </TouchableOpacity>
+      </View>
       <View
         accessible={false}
         style={
@@ -572,9 +578,346 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
 </TouchableOpacity>
 `;
 
+exports[`Cell should render CellMultiSelectWithMenu given the type MultiSelectWithMenu 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flexDirection": "row",
+    }
+  }
+>
+  <TouchableOpacity
+    disabled={false}
+    style={
+      {
+        "flex": 1,
+        "opacity": 1,
+        "padding": 16,
+        "position": "relative",
+        "zIndex": 1,
+      }
+    }
+    testID="multiselect-with-menu"
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "column",
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
+          "zIndex": 2,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <TouchableOpacity
+          disabled={false}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "height": 24,
+              "opacity": 1,
+            }
+          }
+        >
+          <View
+            accessibilityRole="checkbox"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#121314",
+                "borderRadius": 4,
+                "borderWidth": 2,
+                "height": 20,
+                "justifyContent": "center",
+                "width": 20,
+              }
+            }
+          />
+        </TouchableOpacity>
+        <View
+          accessible={false}
+          style={
+            {
+              "width": 16,
+            }
+          }
+          testID="listitem-gap"
+        />
+        <View
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 32,
+                "marginRight": 16,
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+            testID="cellbase-avatar"
+          >
+            <View
+              style={
+                [
+                  {
+                    "overflow": "hidden",
+                  },
+                  {
+                    "backgroundColor": "#03415D",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "width": 32,
+                  },
+                  {
+                    "borderRadius": 8,
+                  },
+                ]
+              }
+            >
+              <RNSVGSvgView
+                bbHeight={32}
+                bbWidth={32}
+                focusable={false}
+                height={32}
+                style={
+                  [
+                    {
+                      "backgroundColor": "transparent",
+                      "borderWidth": 0,
+                    },
+                    {
+                      "flex": 0,
+                      "height": 32,
+                      "width": 32,
+                    },
+                  ]
+                }
+                width={32}
+              >
+                <RNSVGGroup
+                  fill={
+                    {
+                      "payload": 4278190080,
+                      "type": 0,
+                    }
+                  }
+                >
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294034178,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.969445349895139,
+                        0.24530738587880202,
+                        -0.24530738587880202,
+                        0.969445349895139,
+                        5.859157984305513,
+                        -4.030755338091121,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294711613,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.6320293026648508,
+                        -0.7749444887041796,
+                        0.7749444887041796,
+                        0.6320293026648508,
+                        -13.273357615151873,
+                        5.849890884095565,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294745088,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.33873792024529126,
+                        0.9408807689542256,
+                        -0.9408807689542256,
+                        0.33873792024529126,
+                        50.8847515111068,
+                        5.120153954341607,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                </RNSVGGroup>
+              </RNSVGSvgView>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              numberOfLines={1}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              testID="cellbase-avatar-title"
+            >
+              Orangefox.eth
+            </Text>
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 10,
+                  "borderWidth": 1,
+                  "height": 24,
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingHorizontal": 4,
+                }
+              }
+              testID="celltag-label"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Imported
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "paddingRight": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+      testID="button-menu-select-with-menu-button-test-id"
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={16}
+        name="MoreVertical"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
 exports[`Cell should render CellSelect given the type Select 1`] = `
 <TouchableOpacity
   disabled={false}
+  onPress={[Function]}
   style={
     {
       "backgroundColor": "#ffffff",
@@ -841,4 +1184,346 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
     </View>
   </View>
 </TouchableOpacity>
+`;
+
+exports[`Cell should render CellSelectWithMenu given the type SelectWithMenu 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flexDirection": "row",
+    }
+  }
+>
+  <TouchableOpacity
+    disabled={false}
+    style={
+      {
+        "flex": 1,
+        "opacity": 1,
+        "padding": 16,
+        "position": "relative",
+        "zIndex": 1,
+      }
+    }
+    testID="select-with-menu"
+  >
+    <View
+      accessibilityRole="none"
+      accessible={true}
+      style={
+        {
+          "alignItems": "flex-start",
+          "flexDirection": "column",
+          "padding": 16,
+          "paddingBottom": 0,
+          "paddingLeft": 0,
+          "paddingRight": 0,
+          "paddingTop": 0,
+          "zIndex": 2,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 32,
+                "marginRight": 16,
+                "overflow": "hidden",
+                "width": 32,
+              }
+            }
+            testID="cellbase-avatar"
+          >
+            <View
+              style={
+                [
+                  {
+                    "overflow": "hidden",
+                  },
+                  {
+                    "backgroundColor": "#03415D",
+                    "borderRadius": 16,
+                    "height": 32,
+                    "width": 32,
+                  },
+                  {
+                    "borderRadius": 8,
+                  },
+                ]
+              }
+            >
+              <RNSVGSvgView
+                bbHeight={32}
+                bbWidth={32}
+                focusable={false}
+                height={32}
+                style={
+                  [
+                    {
+                      "backgroundColor": "transparent",
+                      "borderWidth": 0,
+                    },
+                    {
+                      "flex": 0,
+                      "height": 32,
+                      "width": 32,
+                    },
+                  ]
+                }
+                width={32}
+              >
+                <RNSVGGroup
+                  fill={
+                    {
+                      "payload": 4278190080,
+                      "type": 0,
+                    }
+                  }
+                >
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294034178,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.969445349895139,
+                        0.24530738587880202,
+                        -0.24530738587880202,
+                        0.969445349895139,
+                        5.859157984305513,
+                        -4.030755338091121,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294711613,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.6320293026648508,
+                        -0.7749444887041796,
+                        0.7749444887041796,
+                        0.6320293026648508,
+                        -13.273357615151873,
+                        5.849890884095565,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                  <RNSVGRect
+                    fill={
+                      {
+                        "payload": 4294745088,
+                        "type": 0,
+                      }
+                    }
+                    height={32}
+                    matrix={
+                      [
+                        0.33873792024529126,
+                        0.9408807689542256,
+                        -0.9408807689542256,
+                        0.33873792024529126,
+                        50.8847515111068,
+                        5.120153954341607,
+                      ]
+                    }
+                    propList={
+                      [
+                        "fill",
+                      ]
+                    }
+                    width={32}
+                    x={0}
+                    y={0}
+                  />
+                </RNSVGGroup>
+              </RNSVGSvgView>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              numberOfLines={1}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              testID="cellbase-avatar-title"
+            >
+              Orangefox.eth
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flexDirection": "row",
+                  "marginBottom": 0,
+                  "zIndex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                0x2990079bcdEe240329a520d2444386FC119da21a
+              </Text>
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={10}
+                name="ArrowDown"
+                style={
+                  {
+                    "height": 10,
+                    "paddingLeft": 8,
+                    "paddingTop": 24,
+                    "width": 10,
+                  }
+                }
+                width={10}
+              />
+            </View>
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 10,
+                  "borderWidth": 1,
+                  "height": 24,
+                  "justifyContent": "center",
+                  "marginTop": 4,
+                  "paddingHorizontal": 4,
+                }
+              }
+              testID="celltag-label"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                Imported
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "paddingRight": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+      testID="button-menu-select-test-id"
+    >
+      <SvgMock
+        color="#121314"
+        fill="currentColor"
+        height={16}
+        name="MoreVertical"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
 `;

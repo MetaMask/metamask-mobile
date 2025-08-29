@@ -48,6 +48,12 @@ class ConnectedAccountsModal {
     );
   }
 
+  get navigateToEditAccountsPermissionsButton(): DetoxElement {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
+    );
+  }
+
   get navigateToEditNetworksPermissionsButton(): DetoxElement {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
@@ -157,6 +163,12 @@ class ConnectedAccountsModal {
   async tapDisconnectAllAccountsAndNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton, {
       elemDescription: 'Disconnect all accounts and networks button',
+    });
+  }
+
+  async tapNavigateToEditAccountsPermissionsButton(): Promise<void> {
+    await Gestures.waitAndTap(this.navigateToEditAccountsPermissionsButton, {
+      elemDescription: 'Navigate to edit accounts permissions button',
     });
   }
 

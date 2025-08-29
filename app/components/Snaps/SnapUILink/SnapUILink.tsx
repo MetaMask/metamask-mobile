@@ -64,6 +64,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
         name={IconName.Export}
         color={IconColor.Primary}
         size={IconSize.Sm}
+        testID="snaps-ui-link-icon"
       />
     </Component>
   );

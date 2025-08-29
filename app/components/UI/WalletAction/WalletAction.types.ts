@@ -12,13 +12,11 @@ export enum WalletActionType {
   Receive = 'Receive',
   Earn = 'Earn',
   Perps = 'Perps',
-  PerpsSandbox = 'PerpsSandbox',
 }
 
 export interface WalletActionDetail {
   title: string;
   description: string;
-  disabledDescription: string;
 }
 
 export interface WalletActionProps {

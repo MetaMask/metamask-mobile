@@ -13,6 +13,7 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Interface } from '@ethersproject/abi';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { toHex } from '@metamask/controller-utils';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 
@@ -51,7 +52,23 @@ describe('useTransactionRequiredTokens', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useTokensWithBalanceMock.mockReturnValue([]);
+
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        balance: '0',
+        symbol: 'TST',
+        decimals: 4,
+        chainId: '0x1',
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        balance: '0',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: '0x1',
+      },
+    ]);
   });
 
   it('returns gas token', () => {
@@ -66,51 +83,13 @@ describe('useTransactionRequiredTokens', () => {
 
     expect(tokens).toStrictEqual(
       expect.arrayContaining([
-        {
+        expect.objectContaining({
           address: EMPTY_ADDRESS,
-          amount: '0xf',
-        },
-      ]),
-    );
-  });
-
-  it('returns value token', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: '0x0',
-          value: '0x123',
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        {
-          address: EMPTY_ADDRESS,
-          amount: '0x123',
-        },
-      ]),
-    );
-  });
-
-  it('returns combined gas and value tokens', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: '0x2',
-          gas: '0x3',
-          value: '0x4',
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        {
-          address: EMPTY_ADDRESS,
-          amount: '0xa',
-        },
+          amountHuman: '0.000000000000000015',
+          amountRaw: '15',
+          decimals: 18,
+          skipIfBalance: true,
+        }),
       ]),
     );
   });
@@ -130,16 +109,26 @@ describe('useTransactionRequiredTokens', () => {
 
     expect(tokens).toStrictEqual(
       expect.arrayContaining([
-        {
+        expect.objectContaining({
           address: TOKEN_ADDRESS_MOCK,
-          amount: '0x123',
-        },
+          amountHuman: '0.0291',
+          amountRaw: '291',
+          decimals: 4,
+          skipIfBalance: false,
+        }),
       ]),
     );
   });
 
-  it('subtracts balance from tokens', () => {
+  it('returns token balances', () => {
     useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        balance: '0',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: '0x1',
+      },
       {
         address: TOKEN_ADDRESS_MOCK,
         balance: '3',
@@ -165,7 +154,12 @@ describe('useTransactionRequiredTokens', () => {
       expect.arrayContaining([
         {
           address: TOKEN_ADDRESS_MOCK,
-          amount: toHex(70000),
+          amountHuman: '10',
+          amountRaw: '100000',
+          balanceHuman: '3',
+          balanceRaw: '30000',
+          decimals: 4,
+          skipIfBalance: false,
         },
       ]),
     );

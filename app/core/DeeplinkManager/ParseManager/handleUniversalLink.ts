@@ -48,6 +48,7 @@ async function handleUniversalLink({
   source: string;
 }) {
   const validatedUrl = new URL(url);
+
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
@@ -69,7 +70,7 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   if (
-    !Object.keys(SUPPORTED_ACTIONS).includes(action.toUpperCase()) ||
+    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
     !isSupportedDomain
   ) {
     isInvalidLink = true;
@@ -114,8 +115,9 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: string =
-      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
+    const [, action] = validatedUrl.pathname.split('/');
+    const sanitizedAction = action?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
       linkType: linkType(),

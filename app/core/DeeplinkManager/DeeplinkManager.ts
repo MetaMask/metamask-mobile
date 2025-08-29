@@ -12,6 +12,7 @@ import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import Routes from '../../constants/navigation/Routes';
+import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -99,6 +100,13 @@ class DeeplinkManager {
   _handleSwap(swapPath: string) {
     handleSwapUrl({
       swapPath,
+    });
+  }
+
+  _handleCreateAccount(createAccountPath: string) {
+    handleCreateAccountUrl({
+      path: createAccountPath,
+      navigation: this.navigation,
     });
   }
   // NOTE: keeping this for backwards compatibility

@@ -284,6 +284,7 @@ export const internalSolanaAccount1: InternalAccount = {
     mockSolanaAddress,
     'Solana Account',
     KeyringTypes.snap,
+    SolAccountType.DataAccount,
   ),
   options: {
     imported: true,

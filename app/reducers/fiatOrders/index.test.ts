@@ -20,6 +20,7 @@ import fiatOrderReducer, {
   getCustomOrderIds,
   getHasOrders,
   getOrders,
+  getAllDepositOrders,
   getPendingOrders,
   getProviderName,
   getRampNetworks,
@@ -1290,6 +1291,86 @@ describe('selectors', () => {
       });
 
       expect(getOrders(state)).toEqual([]);
+    });
+  });
+
+  describe('getAllDepositOrders', () => {
+    const mockDepositOrder1 = {
+      ...mockOrder1,
+      id: 'deposit-order-1',
+      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      state: 'CREATED' as FiatOrder['state'],
+      network: '1',
+      account: MOCK_ADDRESS_1,
+    };
+
+    const mockDepositOrder2 = {
+      ...mockOrder1,
+      id: 'deposit-order-2',
+      provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      state: 'PENDING' as FiatOrder['state'],
+      network: '56',
+      account: MOCK_ADDRESS_2,
+    };
+
+    const mockAggregatorOrder = {
+      ...mockOrder1,
+      id: 'aggregator-order-1',
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+      state: 'COMPLETED' as FiatOrder['state'],
+      network: '1',
+      account: MOCK_ADDRESS_1,
+    };
+
+    it('should return all deposit orders regardless of network or account', () => {
+      const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {
+                mainnet: {
+                  status: 'available',
+                  EIPS: {},
+                },
+              },
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  blockExplorerUrls: ['https://etherscan.com'],
+                  chainId: '0x1',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Ethereum network',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      type: 'Custom',
+                      url: 'https://mainnet.infura.io/v3',
+                    },
+                  ],
+                },
+              },
+            },
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_1,
+          },
+        },
+        fiatOrders: {
+          orders: [mockDepositOrder1, mockDepositOrder2, mockAggregatorOrder],
+        },
+      });
+
+      const result = getAllDepositOrders(state);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((o) => o.id)).toEqual([
+        'deposit-order-1',
+        'deposit-order-2',
+      ]);
+      expect(
+        result.every(
+          (order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT,
+        ),
+      ).toBe(true);
     });
   });
 

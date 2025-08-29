@@ -2,7 +2,7 @@ import { waitFor, screen } from '@testing-library/react-native';
 import Root from './Root';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { getOrders } from '../../../../../../reducers/fiatOrders';
+import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -44,7 +44,7 @@ jest.mock('../../sdk', () => {
 
 jest.mock('../../../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../../../reducers/fiatOrders'),
-  getOrders: jest.fn(),
+  getAllDepositOrders: jest.fn(),
   fiatOrdersGetStartedDeposit: jest.fn((_state: unknown) => true),
   setFiatOrdersGetStartedDeposit: jest.fn(),
   fiatOrdersRegionSelectorDeposit: jest.fn(
@@ -73,7 +73,9 @@ describe('Root Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetStarted = true;
-    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValue([]);
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue([]);
   });
 
   it('render matches snapshot', () => {
@@ -123,9 +125,9 @@ describe('Root Component', () => {
       },
     ] as FiatOrder[];
 
-    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValue(
-      mockOrders,
-    );
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue(mockOrders);
     mockCheckExistingToken.mockResolvedValue(false);
     render(Root);
 

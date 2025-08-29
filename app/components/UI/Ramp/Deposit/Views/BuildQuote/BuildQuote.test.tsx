@@ -10,6 +10,7 @@ import {
   DEBIT_CREDIT_PAYMENT_METHOD,
   WIRE_TRANSFER_PAYMENT_METHOD,
 } from '../../constants';
+import { trace, endTrace } from '../../../../../../util/trace';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -24,6 +25,7 @@ const mockInteractionManager = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockSetParams = jest.fn();
 const mockGetQuote = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
 const mockNavigateToVerifyIdentity = jest.fn();
@@ -31,6 +33,7 @@ const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -56,8 +59,10 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+      setParams: mockSetParams,
     }),
     useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -99,6 +104,12 @@ jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
 jest.mock('react-native', () => {
   const actualReactNative = jest.requireActual('react-native');
   return {
@@ -131,8 +142,10 @@ describe('BuildQuote Component', () => {
       tokenAmount: '0.00',
     });
     mockUseAccountTokenCompatible.mockReturnValue(true);
-    // Ensure trackEvent mock is reset
+    mockUseRoute.mockReturnValue({ params: {} });
     mockTrackEvent.mockClear();
+    (trace as jest.MockedFunction<typeof trace>).mockClear();
+    (endTrace as jest.MockedFunction<typeof endTrace>).mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -587,6 +600,127 @@ describe('BuildQuote Component', () => {
           currency_source: 'USD',
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
+        });
+      });
+    });
+    it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
+      });
+    });
+  });
+
+  describe('Tracing functionality', () => {
+    beforeEach(() => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      mockEndTrace.mockClear();
+      mockTrace.mockClear();
+    });
+
+    it('should call endTrace for LoadDepositExperience when component mounts', () => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+
+      render(BuildQuote);
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Load Deposit Experience',
+        data: {
+          destination: 'BuildQuote',
+        },
+      });
+    });
+
+    it('should call trace for DepositContinueFlow when continue is pressed normally', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          tags: {
+            amount: 0,
+            currency: 'USDC',
+            paymentMethod: 'credit_debit_card',
+            authenticated: false,
+          },
+        });
+      });
+    });
+
+    it('should NOT call trace for DepositContinueFlow when shouldRouteImmediately is true', async () => {
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalled();
+      });
+
+      expect(mockTrace).not.toHaveBeenCalledWith({
+        name: 'Deposit Continue Flow',
+        tags: expect.any(Object),
+      });
+    });
+
+    it('should call endTrace for DepositContinueFlow with error when quote fetch fails', async () => {
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+      const mockTrace = trace as jest.MockedFunction<typeof trace>;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockRejectedValue(new Error('Failed to fetch quote'));
+
+      render(BuildQuote);
+
+      await act(async () => {
+        const continueButton = screen.getByText('Continue');
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          tags: expect.any(Object),
+        });
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: 'Deposit Continue Flow',
+          data: {
+            error: 'Failed to fetch quote',
+          },
         });
       });
     });

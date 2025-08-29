@@ -3,9 +3,9 @@ import TestHelpers from '../../helpers';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import Assertions from '../../framework/Assertions';
-import { Regression } from '../../tags';
+import { RegressionWalletUX } from '../../tags';
 
-describe(Regression('Term of Use Modal'), () => {
+describe(RegressionWalletUX('Term of Use Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.launchApp();

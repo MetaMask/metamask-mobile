@@ -1,37 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SrpInput should render default settings correctly 1`] = `
-<View
-  style={
-    {
-      "alignItems": "center",
-      "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
-      "borderRadius": 8,
-      "borderWidth": 1,
-      "flexDirection": "row",
-      "height": 40,
-      "opacity": 1,
-      "paddingHorizontal": 16,
-    }
-  }
-  testID="textfield"
->
+<TouchableWithoutFeedback>
   <View
     style={
       {
-        "backgroundColor": "inherit",
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 40,
+        "opacity": 1,
+        "paddingHorizontal": 16,
       }
     }
+    testID="textfield"
   >
-    <ForwardRef
-      autoFocus={false}
-      isDisabled={false}
-      isStateStylesDisabled={true}
-      onBlur={[Function]}
-      onFocus={[Function]}
-      textVariant="sBodyMD"
-    />
+    <View
+      style={
+        {
+          "backgroundColor": "inherit",
+        }
+      }
+    >
+      <ForwardRef
+        autoFocus={false}
+        isDisabled={false}
+        isStateStylesDisabled={true}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        textVariant="sBodyMD"
+      />
+    </View>
   </View>
-</View>
+</TouchableWithoutFeedback>
 `;

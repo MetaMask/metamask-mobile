@@ -5,11 +5,11 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionAssets } from '../../tags';
 
 import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
 
-describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
+describe(RegressionAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

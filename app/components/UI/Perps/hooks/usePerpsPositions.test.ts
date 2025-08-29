@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsPositions } from './usePerpsPositions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,12 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
   },
+}));
+jest.mock('../providers/PerpsConnectionProvider', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isInitialized: true,
+    isConnected: true,
+  })),
 }));
 
 describe('usePerpsPositions', () => {
@@ -31,16 +37,17 @@ describe('usePerpsPositions', () => {
       { coin: 'BTC', size: '0.1', unrealizedPnl: '50' },
     ]);
 
-    const { result, waitForNextUpdate } = renderHook(() => usePerpsPositions());
+    const { result } = renderHook(() => usePerpsPositions());
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.positions).toEqual([]);
 
-    await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(mockGetPositions).toHaveBeenCalled();
     expect(result.current.positions).toHaveLength(2);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });
 
@@ -57,24 +64,25 @@ describe('usePerpsPositions', () => {
     mockGetPositions.mockRejectedValue(testError);
     const onError = jest.fn();
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsPositions({ onError }),
-    );
+    const { result } = renderHook(() => usePerpsPositions({ onError }));
 
-    await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(result.current.error).toBe('Failed to fetch positions');
     expect(result.current.positions).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
     expect(onError).toHaveBeenCalledWith('Failed to fetch positions');
   });
 
   it('should refresh positions with isRefresh flag', async () => {
     mockGetPositions.mockResolvedValue([]);
 
-    const { result, waitForNextUpdate } = renderHook(() => usePerpsPositions());
+    const { result } = renderHook(() => usePerpsPositions());
 
-    await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     // Reset mock to track refresh call
     mockGetPositions.mockClear();
@@ -96,11 +104,11 @@ describe('usePerpsPositions', () => {
     const positions = [{ coin: 'ETH', size: '1.5', unrealizedPnl: '100' }];
     mockGetPositions.mockResolvedValue(positions);
 
-    const { waitForNextUpdate } = renderHook(() =>
-      usePerpsPositions({ onSuccess }),
-    );
+    const { result } = renderHook(() => usePerpsPositions({ onSuccess }));
 
-    await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
     expect(onSuccess).toHaveBeenCalledWith(positions);
   });

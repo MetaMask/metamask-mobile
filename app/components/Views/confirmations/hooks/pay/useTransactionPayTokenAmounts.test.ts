@@ -14,6 +14,8 @@ jest.mock('./useTransactionRequiredFiat');
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('./useTransactionPayToken');
 
+const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
+const TOKEN_ADDRESS_2_MOCK = '0xabcdef1234567890abcdef1234567890abcdef12';
 const CHAIN_ID_MOCK = '0x1';
 
 function runHook({ noTokens }: { noTokens?: boolean } = {}) {
@@ -37,13 +39,19 @@ describe('useTransactionPayTokenAmounts', () => {
     jest.resetAllMocks();
 
     useTransactionRequiredFiatMock.mockReturnValue({
-      fiatValues: [16.123, 40.456],
-      fiatTotal: 56.579,
-    });
+      values: [
+        { address: TOKEN_ADDRESS_1_MOCK, totalFiat: 16.123 },
+        { address: TOKEN_ADDRESS_2_MOCK, totalFiat: 40.456 },
+      ],
+      totalFiat: 56.579,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
 
     useTokenFiatRatesMock.mockReturnValue([4]);
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '123.456',
+      balanceHuman: '123.456',
+      decimals: 4,
       payToken: {
         address: tokenAddress1Mock,
         chainId: CHAIN_ID_MOCK,
@@ -54,22 +62,164 @@ describe('useTransactionPayTokenAmounts', () => {
 
   it('returns source amounts', () => {
     const sourceAmounts = runHook();
-    expect(sourceAmounts).toEqual(['40308', '101140']);
+
+    expect(sourceAmounts.amounts).toStrictEqual([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        amountHuman: '4.03075',
+        amountRaw: '40308',
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        amountHuman: '10.114',
+        amountRaw: '101140',
+      },
+    ]);
+  });
+
+  it('returns source amounts even if balance sufficient', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountFiat: 40.455,
+          balanceFiat: 40.456,
+          totalFiat: 41,
+          skipIfBalance: false,
+        },
+      ],
+      totalFiat: 58,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts.amounts).toStrictEqual([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        amountHuman: '10.25',
+        amountRaw: '102500',
+      },
+    ]);
+  });
+
+  it('skips token if can skip and balance sufficient', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          amountFiat: 16.123,
+          balanceFiat: 16.124,
+          totalFiat: 17,
+          skipIfBalance: true,
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountFiat: 40.456,
+          balanceFiat: 40.455,
+          totalFiat: 41,
+          skipIfBalance: false,
+        },
+      ],
+      totalFiat: 58,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts.amounts).toStrictEqual([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        amountHuman: '10.25',
+        amountRaw: '102500',
+      },
+    ]);
+  });
+
+  it('skips token if balance sufficient and pay token is same token', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: tokenAddress1Mock,
+          amountFiat: 16.123,
+          balanceFiat: 16.124,
+          totalFiat: 17,
+          skipIfBalance: false,
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountFiat: 40.456,
+          balanceFiat: 40.455,
+          totalFiat: 41,
+          skipIfBalance: false,
+        },
+      ],
+      totalFiat: 58,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts.amounts).toStrictEqual([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        amountHuman: '10.25',
+        amountRaw: '102500',
+      },
+    ]);
+  });
+
+  it('skips token if balance sufficient and other token balance is insufficient', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          amountFiat: 16.123,
+          balanceFiat: 16.124,
+          totalFiat: 17,
+          skipIfBalance: false,
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountFiat: 40.456,
+          balanceFiat: 40.455,
+          totalFiat: 41,
+          skipIfBalance: false,
+        },
+      ],
+      totalFiat: 58,
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts.amounts).toStrictEqual([
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        amountHuman: '10.25',
+        amountRaw: '102500',
+      },
+    ]);
   });
 
   it('returns undefined if no fiat rate', () => {
     useTokenFiatRatesMock.mockReturnValue([]);
 
     const sourceAmounts = runHook();
-    expect(sourceAmounts).toBeUndefined();
+    expect(sourceAmounts.amounts).toBeUndefined();
   });
 
-  it('uses 18 decimals if token not found', () => {
-    const sourceAmounts = runHook({ noTokens: true });
+  it('returns undefined if no pay token selected', () => {
+    useTransactionPayTokenMock.mockReturnValue({ setPayToken: jest.fn() });
 
-    expect(sourceAmounts).toEqual([
-      '4030750000000000000',
-      '10114000000000000000',
-    ]);
+    const sourceAmounts = runHook();
+    expect(sourceAmounts.amounts).toBeUndefined();
+  });
+
+  it('returns total amounts', () => {
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts).toEqual(
+      expect.objectContaining({
+        totalHuman: '14.14475',
+        totalRaw: '141448',
+      }),
+    );
   });
 });

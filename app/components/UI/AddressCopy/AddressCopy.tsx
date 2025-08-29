@@ -3,17 +3,17 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 
 // External dependencies
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import Icon, {
-  IconColor,
+import { View } from 'react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+  IconColor,
+} from '@metamask/design-system-react-native';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
-import { View } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -27,9 +27,15 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 interface AddressCopyProps {
   account: InternalAccount;
   iconColor?: IconColor;
+  hitSlop?: {
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+  };
 }
 
-const AddressCopy = ({ account, iconColor }: AddressCopyProps) => {
+const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
@@ -65,19 +71,17 @@ const AddressCopy = ({ account, iconColor }: AddressCopyProps) => {
       createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS).build(),
     );
   };
+
   return (
     <View style={styles.address}>
-      <TouchableOpacity
-        style={styles.copyButton}
+      <ButtonIcon
+        iconName={IconName.Copy}
+        size={ButtonIconSize.Lg}
+        iconProps={iconColor && { color: iconColor }}
         onPress={copyAccountToClipboard}
         testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}
-      >
-        <Icon
-          name={IconName.Copy}
-          size={IconSize.Lg}
-          color={iconColor || IconColor.Default}
-        />
-      </TouchableOpacity>
+        hitSlop={hitSlop}
+      />
     </View>
   );
 };

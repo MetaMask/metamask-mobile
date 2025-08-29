@@ -16,6 +16,12 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { merge } from 'lodash';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
+import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -83,7 +89,9 @@ describe('Footer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: true,
       isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
     });
     (useAlerts as jest.Mock).mockReturnValue({
@@ -180,10 +188,12 @@ describe('Footer', () => {
     ).toBe(true);
   });
 
-  it('disables confirm button if there is a blocker alert', () => {
+  it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: true,
       isTransactionValueUpdating: true,
       setIsTransactionValueUpdating: jest.fn(),
+      setIsFooterVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -191,6 +201,46 @@ describe('Footer', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
+  });
+
+  it('disables confirm button if quotes are loading', () => {
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: {
+            [transactionIdMock]: true,
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('hides footer when isFooterVisible is false', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: false,
+      isTransactionValueUpdating: false,
+      setIsTransactionValueUpdating: jest.fn(),
+      setIsFooterVisible: jest.fn(),
+    });
+
+    const { queryByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(
+      queryByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).toBeNull();
   });
 
   describe('Confirm Alert Modal', () => {

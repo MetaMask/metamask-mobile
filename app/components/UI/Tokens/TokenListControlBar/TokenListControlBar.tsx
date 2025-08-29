@@ -3,10 +3,9 @@ import { View } from 'react-native';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
-import { isTestNet } from '../../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 import { useSelector } from 'react-redux';
 import {
-  selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../../selectors/networkController';
@@ -22,8 +21,10 @@ import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../TokensBottomSheet';
+import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -43,22 +44,30 @@ export const TokenListControlBar = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const currentChainId = useSelector(selectChainId);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+
+  const { enabledNetworks, getNetworkInfo, isDisabled } =
+    useCurrentNetworkInfo();
+
+  const currentNetworkName = getNetworkInfo(0)?.networkName;
 
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
 
-  const isDisabled = isTestNet(currentChainId) || !isPopularNetwork;
-
-  const showFilterControls = useCallback(() => {
-    navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
-  }, [navigation]);
+  const handleFilterControls = useCallback(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      navigation.navigate(...createNetworkManagerNavDetails({}));
+    } else if (isEvmSelected) {
+      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+    } else {
+      return null;
+    }
+  }, [navigation, isEvmSelected]);
 
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
@@ -70,14 +79,32 @@ export const TokenListControlBar = ({
         <ButtonBase
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
           label={
-            <TextComponent variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-              {isAllNetworks && isPopularNetwork && isEvmSelected
-                ? strings('wallet.popular_networks')
-                : networkName ?? strings('wallet.current_network')}
-            </TextComponent>
+            <>
+              {isRemoveGlobalNetworkSelectorEnabled() ? (
+                <TextComponent
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.controlButtonText}
+                  numberOfLines={1}
+                >
+                  {enabledNetworks.length > 1
+                    ? strings('networks.enabled_networks')
+                    : currentNetworkName ?? strings('wallet.current_network')}
+                </TextComponent>
+              ) : (
+                <TextComponent
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.controlButtonText}
+                  numberOfLines={1}
+                >
+                  {isAllNetworks && isAllPopularEVMNetworks && isEvmSelected
+                    ? strings('wallet.popular_networks')
+                    : networkName ?? strings('wallet.current_network')}
+                </TextComponent>
+              )}
+            </>
           }
           isDisabled={isDisabled}
-          onPress={isEvmSelected ? showFilterControls : () => null}
+          onPress={isEvmSelected ? handleFilterControls : () => null}
           endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
           style={
             isDisabled ? styles.controlButtonDisabled : styles.controlButton
@@ -89,7 +116,7 @@ export const TokenListControlBar = ({
             testID={WalletViewSelectorsIDs.SORT_BY}
             size={ButtonIconSizes.Lg}
             onPress={showSortControls}
-            iconName={IconName.SwapVertical}
+            iconName={IconName.Filter}
             style={styles.controlIconButton}
           />
           <ButtonIcon

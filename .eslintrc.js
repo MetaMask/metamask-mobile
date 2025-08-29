@@ -47,6 +47,13 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
+        '@typescript-eslint/no-shadow': [
+          'warn',
+          {
+            builtinGlobals: true,
+            allow: ['Text'],
+          },
+        ],
       },
     },
     {

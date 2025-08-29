@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder, {
@@ -12,15 +12,18 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
-import { setEthAccounts } from '@metamask/chain-agnostic-permission';
+import {
+  setEthAccounts,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
 // TODO: Fix this test and remove the skip
 // More info: https://github.com/MetaMask/metamask-mobile/issues/12501
-describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
+describe(RegressionNetworkAbstractions('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -28,8 +31,8 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
 
   const buildERC20PermsForAddress = () => {
     const perms = buildPermissions(['0x539']);
-    perms['endowment:caip25'].caveats[0].value = setEthAccounts(
-      perms['endowment:caip25'].caveats[0].value,
+    perms[Caip25EndowmentPermissionName].caveats[0].value = setEthAccounts(
+      perms[Caip25EndowmentPermissionName].caveats[0].value,
       [DEFAULT_FIXTURE_ACCOUNT],
     );
 
