@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 import { View } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -43,6 +49,11 @@ const MultichainAccountSelectorList = ({
 
   const [searchText, setSearchText] = useState('');
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [lastCreatedAccountId, setLastCreatedAccountId] = useState<
+    string | null
+  >(null);
+  const internalListRef = useRef(null);
+  const listRefToUse = listRef || internalListRef;
 
   const selectedIdSet = useMemo(
     () => new Set(selectedAccountGroups.map((g) => g.id)),
@@ -91,6 +102,7 @@ const MultichainAccountSelectorList = ({
       title: section.title,
       data: section.data,
       walletName: section.title,
+      walletId: section.wallet.id,
     }));
   }, [isMultichainAccountsEnabled, accountSections]);
 
@@ -132,12 +144,37 @@ const MultichainAccountSelectorList = ({
 
       items.push({
         type: 'footer',
-        data: { walletName: section.walletName },
+        data: { walletName: section.walletName, walletId: section.walletId },
       });
     });
 
     return items;
   }, [filteredWalletSections]);
+
+  // Listen for account creation and scroll to new account
+  useEffect(() => {
+    if (lastCreatedAccountId && listRefToUse.current) {
+      // Find the index of the newly created account
+      const newAccountIndex = flattenedData.findIndex(
+        (item) => item.type === 'cell' && item.data.id === lastCreatedAccountId,
+      );
+
+      if (newAccountIndex !== -1) {
+        listRefToUse.current?.scrollToIndex({
+          index: newAccountIndex,
+          animated: true,
+          viewPosition: 0.5, // Center the item in the visible area
+        });
+      }
+
+      setLastCreatedAccountId(null);
+    }
+  }, [lastCreatedAccountId, flattenedData, listRefToUse]);
+
+  // Handle account creation callback
+  const handleAccountCreated = useCallback((newAccountId: string) => {
+    setLastCreatedAccountId(newAccountId);
+  }, []);
 
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
@@ -168,14 +205,19 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'footer': {
-            return <AccountListFooter />;
+            return (
+              <AccountListFooter
+                walletId={item.data.walletId}
+                onAccountCreated={handleAccountCreated}
+              />
+            );
           }
 
           default:
             return null;
         }
       },
-      [selectedIdSet, handleSelectAccount],
+      [selectedIdSet, handleSelectAccount, handleAccountCreated],
     );
 
   const keyExtractor = useCallback(
@@ -207,11 +249,6 @@ const MultichainAccountSelectorList = ({
     [debouncedSearchText],
   );
 
-  const flashListKey = useMemo(
-    () => `flashlist-${debouncedSearchText}-${flattenedData.length}`,
-    [debouncedSearchText, flattenedData.length],
-  );
-
   return (
     <>
       <View style={styles.searchContainer}>
@@ -240,8 +277,7 @@ const MultichainAccountSelectorList = ({
           </View>
         ) : (
           <FlashList
-            key={flashListKey}
-            ref={listRef}
+            ref={listRefToUse}
             data={flattenedData}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
