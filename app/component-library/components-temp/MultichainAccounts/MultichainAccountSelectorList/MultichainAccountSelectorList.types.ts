@@ -1,6 +1,7 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
 import { FlashListProps, FlashListRef } from '@shopify/flash-list';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * Flattened item type for the account list
@@ -31,6 +32,14 @@ export interface MultichainAccountSelectorListProps
    * Reference to the FlashList component
    */
   listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
+  /**
+   * Optional filter function to filter account groups based on their internal accounts
+   * Returns true to include the account group, false to exclude it
+   */
+  filterAccountGroup?: (
+    accountGroup: AccountGroupObject,
+    internalAccounts: Record<string, InternalAccount>,
+  ) => boolean;
 }
 
 /**
