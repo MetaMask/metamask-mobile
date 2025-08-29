@@ -18,6 +18,9 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
+import { useSelectedGasFeeToken } from './gas/useGasFeeToken';
+import { cloneDeep } from 'lodash';
+import { updateTransaction } from '../../../../util/transaction-controller';
 
 export const useConfirmActions = () => {
   const {
@@ -33,17 +36,14 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
-
-  const {
-    chainId,
-    id: transactionId,
-    type,
-  } = useTransactionMetadataRequest() ?? {};
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId, type } = transactionMetadata ?? {};
 
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const selectedGasFeeToken = useSelectedGasFeeToken();
   const dispatch = useDispatch();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -56,6 +56,28 @@ export const useConfirmActions = () => {
 
   const waitForResult =
     isSignatureReq || (!shouldUseSmartTransaction && !quotes?.length);
+
+  const handleSmartTransaction = useCallback(() => {
+    if (!selectedGasFeeToken || !transactionMetadata?.txParams) {
+      return;
+    }
+
+    const updatedTransactionMeta = cloneDeep(transactionMetadata);
+
+    updatedTransactionMeta.batchTransactions = [
+      selectedGasFeeToken.transferTransaction,
+    ];
+    updatedTransactionMeta.txParams.gas = selectedGasFeeToken.gas;
+    updatedTransactionMeta.txParams.maxFeePerGas =
+      selectedGasFeeToken.maxFeePerGas;
+    updatedTransactionMeta.txParams.maxPriorityFeePerGas =
+      selectedGasFeeToken.maxPriorityFeePerGas;
+
+    updateTransaction(
+      updatedTransactionMeta,
+      'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
+    );
+  }, [selectedGasFeeToken, transactionMetadata]);
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false) => {
@@ -79,6 +101,10 @@ export const useConfirmActions = () => {
   );
 
   const onConfirm = useCallback(async () => {
+    if (shouldUseSmartTransaction) {
+      handleSmartTransaction();
+    }
+
     if (ledgerSigningInProgress) {
       openLedgerSignModal();
       return;
@@ -111,19 +137,21 @@ export const useConfirmActions = () => {
       dispatch(resetTransaction());
     }
   }, [
-    captureSignatureMetrics,
-    dispatch,
-    isFullScreenConfirmation,
+    shouldUseSmartTransaction,
+    ledgerSigningInProgress,
     isQRSigningInProgress,
+    onRequestConfirm,
+    waitForResult,
+    isFullScreenConfirmation,
+    type,
     isSignatureReq,
     isTransactionReq,
-    ledgerSigningInProgress,
-    navigation,
-    onRequestConfirm,
+    handleSmartTransaction,
     openLedgerSignModal,
     setScannerVisible,
-    waitForResult,
-    type,
+    navigation,
+    captureSignatureMetrics,
+    dispatch,
   ]);
 
   return { onConfirm, onReject };

@@ -9,6 +9,8 @@ import { transferTransactionStateMock } from '../../../__mocks__/transfer-transa
 
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
+jest.mock('../../../hooks/useTokenAsset');
+
 const mockUseGasFeeToken = useGasFeeToken as jest.MockedFunction<
   typeof useGasFeeToken
 >;
