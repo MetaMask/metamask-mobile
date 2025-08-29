@@ -102,14 +102,9 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
 };
 
 export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
-  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
+  _remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
 ): SendRedesignFlags => {
-  const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
-
-  const isEnabled = getFeatureFlagValue(
-    process.env.MM_SEND_REDESIGN_ENABLED,
-    remoteValues?.enabled !== false,
-  );
+  const isEnabled = getFeatureFlagValue('true', true);
 
   return {
     enabled: isEnabled,
