@@ -83,6 +83,9 @@ class AuthenticationService {
 
   private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
