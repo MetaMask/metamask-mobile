@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp, navigateToSettings } from '../../viewHelper';
@@ -9,7 +9,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
-describe(Regression('Balance Privacy Toggle'), (): void => {
+describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(150000);
   });

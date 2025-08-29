@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/wallet/LoginView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -14,7 +14,9 @@ import Assertions from '../../framework/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
 
 describe(
-  Regression('Log in into the app, change password then delete wallet flow'),
+  RegressionWalletPlatform(
+    'Log in into the app, change password then delete wallet flow',
+  ),
   () => {
     const PASSWORD = '123123123';
 

@@ -1,4 +1,4 @@
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -12,7 +12,7 @@ import { logger } from '../../framework/logger';
 import { loginToApp, navigateToSettings } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
-(isIOS ? describe : describe.skip)(Regression('Auto-Lock'), () => {
+(isIOS ? describe : describe.skip)(RegressionAccounts('Auto-Lock'), () => {
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await withFixtures(
       {

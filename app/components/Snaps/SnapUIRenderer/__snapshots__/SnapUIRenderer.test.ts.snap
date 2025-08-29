@@ -220,6 +220,35 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -262,7 +291,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -347,6 +376,35 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -390,7 +448,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -411,6 +469,35 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -454,7 +541,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -539,6 +626,35 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -581,7 +697,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -602,6 +718,35 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -644,7 +789,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -1633,6 +1778,35 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   My Input
                 </Text>
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -1763,7 +1937,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
                           "paddingVertical": 0,
@@ -1886,6 +2060,35 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
               }
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -1928,7 +2131,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
-                        "height": 24,
+                        "height": 46,
                         "letterSpacing": 0,
                         "opacity": 1,
                         "paddingVertical": 0,
@@ -2065,7 +2268,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

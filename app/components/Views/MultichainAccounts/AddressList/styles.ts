@@ -8,9 +8,7 @@ const styleSheet = () =>
 
     container: {
       flex: 1,
-      padding: 16,
     },
-
     header: {
       display: 'flex',
       flexDirection: 'row',

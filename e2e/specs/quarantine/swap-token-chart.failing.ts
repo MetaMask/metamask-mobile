@@ -17,7 +17,7 @@ import {
   getFixturesServerPort,
   getMockServerPort,
 } from '../../framework/fixtures/FixtureUtils';
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
@@ -31,7 +31,7 @@ import { defaultGanacheOptions } from '../../framework/Constants';
 const fixtureServer: FixtureServer = new FixtureServer();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(Regression('Swap from Token view'), (): void => {
+describe(RegressionAssets('Swap from Token view'), (): void => {
   let localNode: Ganache;
   let mockServer: Mockttp;
 

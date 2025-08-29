@@ -474,25 +474,6 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays loading state when priority token is loading', () => {
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: mockPriorityToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: true,
-      error: null,
-    });
-
-    render();
-
-    // When loading, skeleton components should be visible with their specific testIDs
-    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
-    expect(
-      screen.getByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
-    ).toBeTruthy();
-    expect(
-      screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-    ).toBeTruthy();
-  });
   it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
     render();
 

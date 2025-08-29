@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+
 import {
   ActivityIndicator,
   Linking,
@@ -116,8 +117,8 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
-  selectTokenNetworkFilter,
   selectUseTokenDetection,
+  selectTokenNetworkFilter,
 } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
@@ -173,6 +174,7 @@ import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -219,7 +221,6 @@ interface WalletProps {
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
 }
-
 interface WalletTokensTabViewProps {
   navigation: WalletProps['navigation'];
   onChangeTab: (value: ChangeTabProperties) => void;
@@ -232,7 +233,13 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => isPerpsFlagEnabled && isEvmSelected,
+    [isPerpsFlagEnabled, isEvmSelected],
+  );
+
   const {
     navigation,
     onChangeTab,
@@ -443,6 +450,17 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const enabledNetworksHasTestNet = useMemo(() => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      return enabledNetworks.some((network) => isTestNet(network));
+    }
+    return Object.keys(tokenNetworkFilter).some((network) =>
+      isTestNet(network),
+    );
+  }, [enabledNetworks, tokenNetworkFilter]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -704,13 +722,13 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -768,7 +786,7 @@ const Wallet = ({
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
     handleNetworkFilter();
@@ -1057,7 +1075,7 @@ const Wallet = ({
 
   const defiEnabled =
     isEvmSelected &&
-    !isTestNet(chainId) &&
+    !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 
@@ -1104,7 +1122,10 @@ const Wallet = ({
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
             receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
-          <Carousel style={styles.carouselContainer} />
+          {isCarouselBannersEnabled && (
+            <Carousel style={styles.carouselContainer} />
+          )}
+
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -1135,6 +1156,7 @@ const Wallet = ({
       onReceive,
       onSend,
       route.params,
+      isCarouselBannersEnabled,
     ],
   );
   const renderLoader = useCallback(
