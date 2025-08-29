@@ -199,10 +199,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityToken'),
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: '0x1234567890123456789012345678901234567890',
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -210,7 +213,10 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityTokenLastFetched'),
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -244,10 +250,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityToken'),
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: '0x1234567890123456789012345678901234567890',
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -335,14 +344,18 @@ describe('useGetPriorityCardToken', () => {
     const useReduxMocks = jest.requireMock('react-redux');
     useReduxMocks.useDispatch.mockReturnValue(testMockDispatch);
 
-    // Track selector calls for debugging
-    const selectorCalls: string[] = [];
-
     // Mock useSelector to consistently return cached values
+    // We need to track which selector is being called and return appropriate values
+    let selectorCallCount = 0;
+    const expectedSelectorCalls = [
+      'selectAllTokenBalances', // First call for token balances
+      'selectCardPriorityToken', // Second call for cached priority token
+      'selectCardPriorityTokenLastFetched', // Third call for last fetched timestamp
+    ];
+
     useReduxMocks.useSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         const selectorString = selector.toString();
-        selectorCalls.push(selectorString.substring(0, 50) + '...');
 
         if (selectorString.includes('selectAllTokenBalances')) {
           return {
@@ -353,23 +366,34 @@ describe('useGetPriorityCardToken', () => {
             },
           };
         }
-        if (
-          selectorString.includes('selectCardPriorityToken') &&
-          !selectorString.includes('LastFetched')
-        ) {
+
+        // For the address-based selectors, they will contain references to the state structure
+        // Let's be more explicit about what we return
+        if (selectorString.includes('priorityTokensByAddress')) {
           return cachedToken;
         }
-        if (
-          selectorString.includes('selectCardPriorityTokenLastFetched') ||
-          selectorString.includes('LastFetched')
-        ) {
+
+        if (selectorString.includes('lastFetchedByAddress')) {
           return recentTimestamp;
         }
-        return null;
-      },
-    );
 
-    // Mock the SDK with test-specific functions
+        // Fallback: if we can't identify the selector, assume it's asking for cached data
+        const currentCall =
+          expectedSelectorCalls[
+            selectorCallCount % expectedSelectorCalls.length
+          ];
+        selectorCallCount++;
+
+        switch (currentCall) {
+          case 'selectCardPriorityToken':
+            return cachedToken;
+          case 'selectCardPriorityTokenLastFetched':
+            return recentTimestamp;
+          default:
+            return null;
+        }
+      },
+    ); // Mock the SDK with test-specific functions
     const sdkMocks = jest.requireMock('../sdk');
     sdkMocks.useCardSDK.mockReturnValue({
       sdk: {
@@ -480,9 +504,12 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+          }),
         }),
       }),
     );
@@ -533,10 +560,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -627,10 +657,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -698,10 +731,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -777,10 +813,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -858,10 +897,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -883,10 +925,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -911,10 +956,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -1026,12 +1074,15 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.NotEnabled,
-          isStaked: false,
-          chainId: LINEA_CHAIN_ID,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled,
+            isStaked: false,
+            chainId: LINEA_CHAIN_ID,
+          }),
         }),
       }),
     );
@@ -1039,7 +1090,10 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -1071,14 +1125,20 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
-        payload: null,
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          token: null,
+        }),
       }),
     );
 
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -1131,10 +1191,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+          }),
         }),
       }),
     );
@@ -1142,7 +1205,10 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -1172,8 +1238,11 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1', // First supported token as fallback
-          allowanceState: AllowanceState.NotEnabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1', // First supported token as fallback
+            allowanceState: AllowanceState.NotEnabled,
+          }),
         }),
       }),
     );

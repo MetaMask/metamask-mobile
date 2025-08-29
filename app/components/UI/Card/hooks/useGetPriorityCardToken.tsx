@@ -129,8 +129,10 @@ export const useGetPriorityCardToken = (
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
-  const priorityToken = useSelector(selectCardPriorityToken);
-  const lastFetched = useSelector(selectCardPriorityTokenLastFetched);
+  const priorityToken = useSelector(selectCardPriorityToken(selectedAddress));
+  const lastFetched = useSelector(
+    selectCardPriorityTokenLastFetched(selectedAddress),
+  );
 
   // Helper to check if cache is still valid (less than 5 minutes old)
   const isCacheValid = useCallback(() => {
@@ -208,22 +210,52 @@ export const useGetPriorityCardToken = (
             } as CardTokenAllowance;
 
             // Update cache with fallback token
-            dispatch(setCardPriorityToken(fallbackToken));
-            dispatch(setCardPriorityTokenLastFetched(new Date()));
+            dispatch(
+              setCardPriorityToken({
+                address: selectedAddress,
+                token: fallbackToken,
+              }),
+            );
+            dispatch(
+              setCardPriorityTokenLastFetched({
+                address: selectedAddress,
+                lastFetched: new Date(),
+              }),
+            );
 
             return fallbackToken;
           }
 
-          dispatch(setCardPriorityToken(null));
-          dispatch(setCardPriorityTokenLastFetched(new Date()));
+          dispatch(
+            setCardPriorityToken({
+              address: selectedAddress,
+              token: null,
+            }),
+          );
+          dispatch(
+            setCardPriorityTokenLastFetched({
+              address: selectedAddress,
+              lastFetched: new Date(),
+            }),
+          );
           return null;
         }
 
         const validAllowances = filterNonZeroAllowances(cardTokenAllowances);
         if (validAllowances.length === 0) {
           const defaultToken = cardTokenAllowances[0] || null;
-          dispatch(setCardPriorityToken(defaultToken));
-          dispatch(setCardPriorityTokenLastFetched(new Date()));
+          dispatch(
+            setCardPriorityToken({
+              address: selectedAddress,
+              token: defaultToken,
+            }),
+          );
+          dispatch(
+            setCardPriorityTokenLastFetched({
+              address: selectedAddress,
+              lastFetched: new Date(),
+            }),
+          );
           return defaultToken;
         }
 
@@ -278,8 +310,18 @@ export const useGetPriorityCardToken = (
         }
 
         // Update cache with the final token and current timestamp
-        dispatch(setCardPriorityToken(finalToken));
-        dispatch(setCardPriorityTokenLastFetched(new Date()));
+        dispatch(
+          setCardPriorityToken({
+            address: selectedAddress,
+            token: finalToken,
+          }),
+        );
+        dispatch(
+          setCardPriorityTokenLastFetched({
+            address: selectedAddress,
+            lastFetched: new Date(),
+          }),
+        );
 
         return finalToken;
       } catch (err) {
