@@ -77,7 +77,7 @@ export class HyperLiquidSubscriptionService {
   private orderSubscriberCount = 0;
   private accountSubscriberCount = 0;
   private cachedPositions: Position[] | null = null;
-  private cachedOrders: Order[] = [];
+  private cachedOrders: Order[] | null = null;
   private cachedAccount: AccountState | null = null;
 
   // Global price data cache
@@ -359,7 +359,11 @@ export class HyperLiquidSubscriptionService {
             });
           }
 
-          if (ordersChanged) {
+          // Only notify order subscribers on first update (when cachedOrders is null) or when data changes
+          const shouldNotifyOrders =
+            ordersChanged || this.cachedOrders === null; // Only notify if we haven't sent initial data yet
+
+          if (shouldNotifyOrders) {
             this.cachedOrders = orders;
             this.orderSubscribers.forEach((callback) => {
               callback(orders);
@@ -409,7 +413,7 @@ export class HyperLiquidSubscriptionService {
       this.orderSubscriberCount = 0;
       this.accountSubscriberCount = 0;
       this.cachedPositions = null;
-      this.cachedOrders = [];
+      this.cachedOrders = null;
       this.cachedAccount = null;
       DevLogger.log('Shared webData2 subscription cleaned up');
     }
@@ -533,7 +537,7 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedOrders.length > 0) {
+    if (this.cachedOrders && this.cachedOrders.length > 0) {
       callback(this.cachedOrders);
     }
 
@@ -1003,6 +1007,9 @@ export class HyperLiquidSubscriptionService {
 
     // Clear cached data
     this.cachedPriceData = null;
+    this.cachedPositions = null;
+    this.cachedOrders = null;
+    this.cachedAccount = null;
     this.marketDataCache.clear();
     this.orderBookCache.clear();
     this.symbolSubscriberCounts.clear();
