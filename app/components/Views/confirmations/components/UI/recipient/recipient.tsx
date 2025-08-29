@@ -15,14 +15,17 @@ import Avatar, {
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 export interface RecipientType {
-  name: string;
   address: string;
-  fiatValue?: string;
+  accountName?: string;
+  accountGroupName?: string;
+  contactName?: string;
+  walletName?: string;
 }
 
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
+  isBIP44?: boolean;
   accountAvatarType: AvatarAccountType;
   onPress?: (recipient: RecipientType) => void;
 }
@@ -30,6 +33,7 @@ interface RecipientProps {
 export function Recipient({
   recipient,
   isSelected,
+  isBIP44,
   accountAvatarType,
   onPress,
 }: RecipientProps) {
@@ -41,6 +45,11 @@ export function Recipient({
 
   return (
     <Pressable
+      testID={
+        isSelected
+          ? `selected-${recipient.address}`
+          : `recipient-${recipient.address}`
+      }
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2 px-4',
@@ -60,25 +69,17 @@ export function Recipient({
         </Box>
         <Box twClassName="ml-4 h-12 justify-center">
           <Text
+            testID={`recipient-address-${recipient.address}`}
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
           >
-            {recipient.name}
+            {isBIP44
+              ? recipient.accountGroupName || recipient.contactName
+              : recipient.accountName || recipient.contactName}
           </Text>
         </Box>
       </Box>
-      {recipient.fiatValue && (
-        <Box twClassName="h-12 justify-center items-end">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            numberOfLines={1}
-          >
-            {recipient.fiatValue}
-          </Text>
-        </Box>
-      )}
     </Pressable>
   );
 }

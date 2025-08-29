@@ -1,2 +1,8 @@
 # https://github.com/advisories/GHSA-c76h-2ccp-4975 This is temporarily ignored, will be fixed by updating yarn to v3 in this PR: https://github.com/MetaMask/metamask-mobile/pull/14477
 GHSA-c76h-2ccp-4975
+
+# Appwright nested dependency vulnerabilities - these are in @puppeteer/browsers and geckodriver
+# https://github.com/advisories/GHSA-pq67-2wwv-3xjx
+GHSA-pq67-2wwv-3xjx
+# https://github.com/advisories/GHSA-8cj5-5rvv-wf4v
+GHSA-8cj5-5rvv-wf4v

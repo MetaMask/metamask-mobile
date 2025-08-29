@@ -300,5 +300,19 @@ describe('AvatarAccount', () => {
       // Assert - Single snapshot for visual regression testing
       expect(toJSON()).toMatchSnapshot();
     });
+
+    it('maintains expected visual structure for non-EVM', () => {
+      // Arrange & Act - Only keeping one essential snapshot for visual regression
+      const { toJSON } = render(
+        <AvatarAccount
+          accountAddress="CYWSQQ2iiFL6EZzuqvMM9o22CZX3N8PowvvkpBXqLK4e"
+          type={AvatarAccountType.JazzIcon}
+          size={AvatarSize.Md}
+        />,
+      );
+
+      // Assert - Single snapshot for visual regression testing
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 });

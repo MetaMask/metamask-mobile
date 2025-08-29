@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { AssetType } from '../../../types/token';
+import { AssetType, Nft } from '../../../types/token';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
+import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
+import { useEVMNfts } from '../../../hooks/send/useNfts';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { Asset } from './asset';
 
 const mockTokens: AssetType[] = [
@@ -37,12 +41,41 @@ const mockTokens: AssetType[] = [
   },
 ];
 
-jest.mock('../../../hooks/send/evm/useSelectedEVMAccountTokens', () => ({
-  useSelectedEVMAccountTokens: jest.fn(),
+const mockNfts: Nft[] = [
+  {
+    address: '0x1234567890123456789012345678901234567890',
+    standard: 'ERC721',
+    name: 'Cool NFT #1',
+    collectionName: 'Cool Collection',
+    image: 'https://example.com/nft1.png',
+    chainId: '0x1',
+    tokenId: '1',
+    accountId: 'account1',
+    networkBadgeSource: { uri: 'https://example.com/badge.png' },
+  },
+  {
+    address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+    standard: 'ERC1155',
+    name: 'Awesome NFT #2',
+    collectionName: 'Awesome Collection',
+    image: 'https://example.com/nft2.png',
+    chainId: '0x1',
+    tokenId: '2',
+    accountId: 'account1',
+    networkBadgeSource: { uri: 'https://example.com/badge.png' },
+  },
+];
+
+jest.mock('../../../hooks/send/useAccountTokens', () => ({
+  useAccountTokens: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/useTokenSearch', () => ({
   useTokenSearch: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useNfts', () => ({
+  useEVMNfts: jest.fn(),
 }));
 
 jest.mock('../../../hooks/send/metrics/useAssetSelectionMetrics', () => ({
@@ -78,28 +111,24 @@ jest.mock(
 );
 
 jest.mock('../../token-list', () => ({
-  TokenList: ({
-    tokens,
-    hasActiveFilters,
-    onClearFilters,
-  }: {
-    tokens: AssetType[];
-    hasActiveFilters?: boolean;
-    onClearFilters?: () => void;
-  }) => {
-    const { View, Text, Pressable } = jest.requireActual('react-native');
+  TokenList: ({ tokens }: { tokens: AssetType[] }) => {
+    const { View, Text } = jest.requireActual('react-native');
 
     return (
       <View testID="token-list">
         <Text>TokenList with {tokens.length} tokens</Text>
-        {hasActiveFilters && (
-          <Text testID="has-active-filters">Has active filters</Text>
-        )}
-        {onClearFilters && (
-          <Pressable testID="clear-filters-button" onPress={onClearFilters}>
-            <Text>Clear filters</Text>
-          </Pressable>
-        )}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../nft-list', () => ({
+  NftList: ({ nfts }: { nfts: Nft[] }) => {
+    const { View, Text } = jest.requireActual('react-native');
+
+    return (
+      <View testID="nft-list">
+        <Text>NftList with {nfts.length} nfts</Text>
       </View>
     );
   },
@@ -161,19 +190,17 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'send.search_tokens_and_nfts': 'Search tokens and NFTs',
       'send.tokens': 'Tokens',
       'send.nfts': 'NFTs',
+      'send.no_tokens_match_filters': 'No tokens match your filters',
+      'send.clear_filters': 'Clear all filters',
+      'send.no_assets_available': 'No assets available',
     };
     return mockStrings[key] || key;
   }),
 }));
 
-import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
-import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
-
-const mockUseSelectedEVMAccountTokens = jest.mocked(
-  useSelectedEVMAccountTokens,
-);
+const mockUseAccountTokens = jest.mocked(useAccountTokens);
 const mockUseTokenSearch = jest.mocked(useTokenSearch);
+const mockUseEVMNfts = jest.mocked(useEVMNfts);
 const mockUseAssetSelectionMetrics = jest.mocked(useAssetSelectionMetrics);
 const mockSetSearchQuery = jest.fn();
 const mockClearSearch = jest.fn();
@@ -185,12 +212,14 @@ describe('Asset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockUseSelectedEVMAccountTokens.mockReturnValue(mockTokens);
+    mockUseAccountTokens.mockReturnValue(mockTokens);
+    mockUseEVMNfts.mockReturnValue(mockNfts);
 
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: mockTokens,
+      filteredNfts: mockNfts,
       clearSearch: mockClearSearch,
     });
 
@@ -207,7 +236,9 @@ describe('Asset', () => {
 
     expect(screen.getByTestId('search-input')).toBeOnTheScreen();
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
     expect(screen.getByTestId('token-list')).toBeOnTheScreen();
+    expect(screen.getByTestId('nft-list')).toBeOnTheScreen();
     expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
   });
 
@@ -224,6 +255,12 @@ describe('Asset', () => {
     expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
   });
 
+  it('renders NftList with filtered nfts', () => {
+    render(<Asset />);
+
+    expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
+  });
+
   it('handles search input changes', () => {
     render(<Asset />);
 
@@ -238,6 +275,7 @@ describe('Asset', () => {
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -259,6 +297,7 @@ describe('Asset', () => {
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -275,6 +314,7 @@ describe('Asset', () => {
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -288,6 +328,7 @@ describe('Asset', () => {
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -306,6 +347,7 @@ describe('Asset', () => {
     render(<Asset />);
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
 
   it('renders filtered tokens in TokenList', () => {
@@ -314,6 +356,7 @@ describe('Asset', () => {
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens,
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -336,6 +379,7 @@ describe('Asset', () => {
       searchQuery: '',
       setSearchQuery: mockSetSearchQueryLocal,
       filteredTokens: tokens,
+      filteredNfts: mockNfts,
       clearSearch: mockClearSearchLocal,
     }));
 
@@ -345,17 +389,15 @@ describe('Asset', () => {
 
     fireEvent.press(screen.getByTestId('apply-network-filter'));
 
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByText('TokenList with 1 tokens')).toBeOnTheScreen();
   });
 
   it('handles network filter state changes', () => {
     render(<Asset />);
 
-    expect(screen.queryByTestId('has-active-filters')).toBeNull();
-
     fireEvent.press(screen.getByTestId('apply-network-filter'));
 
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
   });
 
   it('exposes clear filter controls', () => {
@@ -366,32 +408,36 @@ describe('Asset', () => {
     expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
   });
 
-  it('shows hasActiveFilters when search query exists', () => {
+  it('renders tokens and nfts when search query exists and results found', () => {
     mockUseTokenSearch.mockReturnValue({
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
     render(<Asset />);
 
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('TokenList with 1 tokens')).toBeOnTheScreen();
   });
 
-  it('shows hasActiveFilters when network filter is active', () => {
+  it('renders tokens and nfts when network filter is active and results found', () => {
     render(<Asset />);
 
     fireEvent.press(screen.getByTestId('apply-network-filter'));
 
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
+    expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
   });
 
-  it('shows hasActiveFilters when both search and network filters are active', () => {
+  it('renders tokens and nfts when both search and network filters are active and results found', () => {
     mockUseTokenSearch.mockReturnValue({
       searchQuery: 'ETH',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -399,48 +445,54 @@ describe('Asset', () => {
 
     fireEvent.press(screen.getByTestId('apply-network-filter'));
 
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('TokenList with 1 tokens')).toBeOnTheScreen();
   });
 
-  it('does not show hasActiveFilters when no filters are active', () => {
+  it('does not show filter indicators when no filters are active', () => {
     render(<Asset />);
 
-    expect(screen.queryByTestId('has-active-filters')).toBeNull();
+    expect(screen.queryByText('Clear all filters')).toBeNull();
+    expect(screen.queryByText('No tokens match your filters')).toBeNull();
   });
 
-  it('provides onClearFilters to TokenList when filters are active', () => {
+  it('shows clear filters button only when no results and filters are active', () => {
     mockUseTokenSearch.mockReturnValue({
-      searchQuery: 'ETH',
+      searchQuery: 'xyz',
       setSearchQuery: mockSetSearchQuery,
-      filteredTokens: [mockTokens[0]],
+      filteredTokens: [],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
     render(<Asset />);
 
-    expect(screen.getByTestId('clear-filters-button')).toBeOnTheScreen();
+    expect(screen.getByText('Clear all filters')).toBeOnTheScreen();
   });
 
-  it('calls clearSearch when onClearFilters is triggered', () => {
+  it('calls clearSearch when clear filters button is pressed in no results state', () => {
     mockUseTokenSearch.mockReturnValue({
-      searchQuery: 'ETH',
+      searchQuery: 'xyz',
       setSearchQuery: mockSetSearchQuery,
-      filteredTokens: [mockTokens[0]],
+      filteredTokens: [],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
     render(<Asset />);
 
-    fireEvent.press(screen.getByTestId('clear-filters-button'));
+    const clearFiltersButton = screen.getByText('Clear all filters');
+    fireEvent.press(clearFiltersButton);
 
     expect(mockClearSearch).toHaveBeenCalledTimes(1);
   });
 
-  it('calls both clearSearch and clearNetworkFilters when both are active', () => {
+  it('calls both clearSearch and clearNetworkFilters when both are active in no results state', () => {
     mockUseTokenSearch.mockReturnValue({
-      searchQuery: 'ETH',
+      searchQuery: 'xyz',
       setSearchQuery: mockSetSearchQuery,
-      filteredTokens: [mockTokens[0]],
+      filteredTokens: [],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
@@ -449,7 +501,8 @@ describe('Asset', () => {
     fireEvent.press(screen.getByTestId('expose-clear-function'));
     fireEvent.press(screen.getByTestId('apply-network-filter'));
 
-    fireEvent.press(screen.getByTestId('clear-filters-button'));
+    const clearFiltersButton = screen.getByText('Clear all filters');
+    fireEvent.press(clearFiltersButton);
 
     expect(mockClearSearch).toHaveBeenCalledTimes(1);
   });
@@ -463,7 +516,7 @@ describe('Asset', () => {
     expect(mockSetSearchQuery).toHaveBeenCalledWith('ETH');
 
     fireEvent.press(screen.getByTestId('apply-network-filter'));
-    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+    expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
   });
 
   it('maintains asset list size tracking with network filtering', () => {
@@ -471,6 +524,7 @@ describe('Asset', () => {
       searchQuery: '',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: mockTokens,
+      filteredNfts: mockNfts,
       clearSearch: mockClearSearch,
     });
 
@@ -484,11 +538,133 @@ describe('Asset', () => {
       searchQuery: '',
       setSearchQuery: mockSetSearchQuery,
       filteredTokens: [mockTokens[0]],
+      filteredNfts: [],
       clearSearch: mockClearSearch,
     });
 
     render(<Asset />);
 
     expect(mockSetAssetListSize).toHaveBeenCalledWith('1');
+  });
+
+  it('shows no results message with clear filters button when filters are active and no results', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'xyz',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByText('No tokens match your filters')).toBeOnTheScreen();
+    expect(screen.getByText('Clear all filters')).toBeOnTheScreen();
+  });
+
+  it('shows no assets available message when no filters and no results', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByText('No assets available')).toBeOnTheScreen();
+    expect(screen.queryByText('Clear all filters')).toBeNull();
+  });
+
+  it('calls handleClearAllFilters when clear filters button is pressed', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'xyz',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('expose-clear-function'));
+
+    const clearFiltersButton = screen.getByText('Clear all filters');
+    fireEvent.press(clearFiltersButton);
+
+    expect(mockClearSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show tokens section when no filtered tokens', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: mockNfts,
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.queryByText('Tokens')).toBeNull();
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
+    expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
+  });
+
+  it('does not show nfts section when no filtered nfts', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: mockTokens,
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.queryByText('NFTs')).toBeNull();
+    expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
+  });
+
+  it('handles empty asset list size correctly', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [],
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(mockSetAssetListSize).toHaveBeenCalledWith('');
+  });
+
+  it('works correctly with empty nfts from useEVMNfts', () => {
+    mockUseEVMNfts.mockReturnValue([]);
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: mockTokens,
+      filteredNfts: [],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.queryByText('NFTs')).toBeNull();
+    expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
+  });
+
+  it('renders both tokens and nfts sections when both have results', () => {
+    render(<Asset />);
+
+    expect(screen.getByText('Tokens')).toBeOnTheScreen();
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
+    expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
+    expect(screen.getByText('NftList with 2 nfts')).toBeOnTheScreen();
   });
 });

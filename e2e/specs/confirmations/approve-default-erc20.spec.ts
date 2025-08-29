@@ -11,20 +11,22 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('approve default ERC20 token amount from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
