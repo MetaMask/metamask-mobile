@@ -26,12 +26,17 @@ import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { createLogger } from './framework/logger';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+
+const logger = createLogger({
+  name: 'ViewHelper',
+});
 
 /**
  * Accepts the terms of use modal.
@@ -76,8 +81,7 @@ export const closeOnboardingModals = async (fromResetWallet = false) => {
       description: 'Toast Modal should not be visible',
     });
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('The marketing toast is not visible');
+    logger.error('The marketing toast is not visible');
   }
 
   if (!fromResetWallet) {
@@ -106,10 +110,7 @@ export const skipNotificationsDeviceSettings = async () => {
       EnableDeviceNotificationsAlert.stepOneContainer,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    /* eslint-disable no-console */
-
-    console.log('The notification device alert modal is not visible');
+    logger.error('The notification device alert modal is not visible');
   }
 };
 
@@ -131,9 +132,7 @@ export const dismissProtectYourWalletModal: () => Promise<void> = async () => {
       ProtectYourWalletModal.collapseWalletModal,
     );
   } catch {
-    // TODO: remove once the logger pr is merged
-    // eslint-disable-next-line no-console
-    console.log('The protect your wallet modal is not visible');
+    logger.error('The protect your wallet modal is not visible');
   }
 };
 
@@ -371,8 +370,7 @@ export const switchToSepoliaNetwork = async () => {
     await Assertions.expectElementToBeVisible(ToastModal.container);
     await Assertions.expectElementToNotBeVisible(ToastModal.container);
   } catch {
-    // eslint-disable-next-line no-console
-    console.log('Toast is not visible');
+    logger.error('Toast is not visible');
   }
 };
 
