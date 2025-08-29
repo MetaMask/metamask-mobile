@@ -80,7 +80,7 @@ jobs:
       - name: Setup iOS Environment
         run: |
           echo "🚀 Finishing iOS Setup..."
-          yarn setup:github-ci --build-ios --no-build-android --no-install-pods
+          yarn setup:github-ci --build-ios --no-build-android --build-on-github-ci
           echo "🏗 Building iOS APP..."
           yarn build:ios:qa
         shell: bash
@@ -92,9 +92,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
-
-          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
-
+          NODE_OPTIONS: "--max_old_space_size=8192" # Increase memory limit for build, specially on GH Runners
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
