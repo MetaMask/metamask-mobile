@@ -966,8 +966,9 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for processing
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Should not call callback without position data
-      expect(mockCallback).not.toHaveBeenCalled();
+      // Should call callback with empty positions to fix loading state
+      // This ensures the UI can transition from loading to empty state for new users without cached positions
+      expect(mockCallback).toHaveBeenCalledWith([]);
 
       unsubscribe();
     });
