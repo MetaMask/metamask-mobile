@@ -3,7 +3,6 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { AccountGroupType, AccountGroupId } from '@metamask/account-api';
 import { Box } from '@metamask/design-system-react-native';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
@@ -15,31 +14,14 @@ import MultichainAccountConnect from './MultichainAccountConnect';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
 import { AccountConnectProps } from '../../AccountConnect/AccountConnect.types';
 import { ToastContextWrapper } from '../../../../component-library/components/Toast';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 const Stack = createStackNavigator();
-
-const createMockInternalAccount = (
-  id: string,
-  name: string,
-  address: string,
-): InternalAccount => ({
-  id,
-  address,
-  type: 'eip155:eoa',
-  scopes: ['eip155:1', 'eip155:137'],
-  options: {},
-  methods: ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
-  metadata: {
-    name,
-    keyring: { type: 'simple' },
-    importTime: Date.now(),
-  },
-});
 
 const createMockAccountGroupWithInternalAccounts = (
   id: string,
   name: string,
-  accountId: string,
+  _accountId: string,
   address: string,
 ): AccountGroupWithInternalAccounts => ({
   id: id as AccountGroupId,
@@ -49,7 +31,7 @@ const createMockAccountGroupWithInternalAccounts = (
     pinned: false,
     hidden: false,
   },
-  accounts: [createMockInternalAccount(accountId, name, address)],
+  accounts: [createMockInternalAccount(address, name)],
 });
 
 const mockAccountGroup1 = createMockAccountGroupWithInternalAccounts(

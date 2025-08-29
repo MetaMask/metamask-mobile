@@ -70,20 +70,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-// Mock ToastContext
-const mockShowToast = jest.fn();
-jest.mock('../../../../component-library/components/Toast', () => {
-  const actualReact = jest.requireActual('react');
-  return {
-    ToastContext: actualReact.createContext({
-      toastRef: { current: { showToast: mockShowToast } },
-    }),
-    ToastVariants: {
-      Network: 'network',
-    },
-  };
-});
-
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
 const mockRemoveChannel = jest.fn();
