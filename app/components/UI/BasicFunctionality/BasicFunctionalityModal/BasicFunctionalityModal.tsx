@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
@@ -32,9 +33,7 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import Engine from '../../../../core/Engine';
-///: END:ONLY_INCLUDE_IF
 
 interface Props {
   route: {
@@ -73,7 +72,6 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
       const newBasicFunctionalityState = !isEnabled;
       dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
-
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Call MultichainAccountService to update provider states and trigger alignment
       try {
@@ -88,7 +86,6 @@ const BasicFunctionalityModal = ({ route }: Props) => {
         // Note: We continue with the flow even if this fails to avoid blocking the user
       }
       ///: END:ONLY_INCLUDE_IF
-
       trackEvent(
         createEventBuilder(
           newBasicFunctionalityState

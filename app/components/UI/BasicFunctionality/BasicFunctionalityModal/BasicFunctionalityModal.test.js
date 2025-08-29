@@ -1,46 +1,20 @@
 // Third party dependencies.
 import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 // Internal dependencies.
 import BasicFunctionalityModal from './BasicFunctionalityModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../../core/Engine';
 
 /**
  * @typedef {import('../../../../reducers').RootState} RootState
  * @typedef {import('redux').DeepPartial<RootState>} MockRootState
  */
 
-// Mock Engine for keyring-snaps conditional code coverage
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    MultichainAccountService: {
-      setBasicFunctionality: jest.fn(),
-    },
-  },
-}));
-///: END:ONLY_INCLUDE_IF
-
 /** @type {MockRootState} */
 const mockInitialState = {
-  settings: {
-    basicFunctionalityEnabled: false,
-  },
-  engine: {
-    backgroundState: {
-      UserStorageController: {
-        isBackupAndSyncEnabled: false,
-      },
-      NotificationServicesController: {
-        isNotificationServicesEnabled: false,
-      },
-    },
-  },
-};
-
-/** @type {MockRootState} */
-const mockEnabledState = {
   settings: {
     basicFunctionalityEnabled: true,
   },
@@ -85,35 +59,78 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+// Mock Engine with MultichainAccountService
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    MultichainAccountService: {
+      setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
 describe('BasicFunctionalityModal', () => {
-  it('should render correctly when disabled', () => {
+  const mockRoute = {
+    params: {
+      caller: 'Settings',
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <BasicFunctionalityModal route={{ params: {} }} />,
+      <BasicFunctionalityModal route={mockRoute} />,
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly when enabled', () => {
-    const { toJSON } = renderWithProvider(
-      <BasicFunctionalityModal route={{ params: {} }} />,
-      { state: mockEnabledState },
+  // Test coverage for the new MultichainAccountService integration
+  it('should call MultichainAccountService.setBasicFunctionality when basic functionality is toggled', async () => {
+    const mockSetBasicFunctionality = jest
+      .spyOn(Engine.context.MultichainAccountService, 'setBasicFunctionality')
+      .mockResolvedValue(undefined);
+
+    const { getByText } = renderWithProvider(
+      <BasicFunctionalityModal route={mockRoute} />,
+      { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    // Find and press the turn off button (when basicFunctionality is enabled)
+    const turnOffButton = getByText('Turn off');
+    fireEvent.press(turnOffButton);
+
+    await waitFor(() => {
+      expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+    });
   });
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  it('should initialize with MultichainAccountService available', () => {
-    const Engine = require('../../../../core/Engine');
+  it('should handle MultichainAccountService.setBasicFunctionality errors gracefully', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
+      // Mock implementation to suppress console.error during test
+    });
+    const mockSetBasicFunctionality = jest
+      .spyOn(Engine.context.MultichainAccountService, 'setBasicFunctionality')
+      .mockRejectedValue(new Error('Test error'));
 
-    renderWithProvider(<BasicFunctionalityModal route={{ params: {} }} />, {
-      state: mockInitialState,
+    const { getByText } = renderWithProvider(
+      <BasicFunctionalityModal route={mockRoute} />,
+      { state: mockInitialState },
+    );
+
+    const turnOffButton = getByText('Turn off');
+    fireEvent.press(turnOffButton);
+
+    await waitFor(() => {
+      expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to call MultichainAccountService.setBasicFunctionality:',
+        expect.any(Error),
+      );
     });
 
-    // Verify Engine service is available - this covers the conditional import block
-    expect(
-      Engine.context.MultichainAccountService.setBasicFunctionality,
-    ).toBeDefined();
+    consoleSpy.mockRestore();
   });
-  ///: END:ONLY_INCLUDE_IF
 });
