@@ -1,19 +1,30 @@
 import {
   Asset,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
+  getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 
 import I18n from '../../../locales/i18n';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { sortAssets } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { selectIsAllNetworks, selectChainId } from '../networkController';
+import {
+  selectIsAllNetworks,
+  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+} from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
 import { createDeepEqualSelector } from '../util';
+import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../currencyRateController';
+import { selectAccountsByChainId } from '../accountTrackerController';
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (state: RootState) => {
@@ -73,6 +84,93 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
 );
 
+const selectStakedAssets = createDeepEqualSelector(
+  [
+    (state: RootState) =>
+      state.engine.backgroundState.AccountsController.internalAccounts.accounts,
+    selectAccountsByChainId,
+    selectEvmNetworkConfigurationsByChainId,
+    selectCurrencyRates,
+    selectCurrentCurrency,
+  ],
+  (
+    internalAccounts,
+    accountsByChainId,
+    networkConfigurationsByChainId,
+    currencyRates,
+    currentCurrency,
+  ) => {
+    const accounts = Object.entries(accountsByChainId).flatMap(
+      ([chainId, chainAccounts]) => {
+        const xxx = Object.entries(chainAccounts)
+          .filter(
+            ([_, accountInformation]) =>
+              accountInformation.stakedBalance &&
+              hexToBigInt(accountInformation.stakedBalance) > 0,
+          )
+          .map(([address, accountInformation]) => {
+            const stakedBalance = accountInformation.stakedBalance as Hex;
+
+            const nativeCurrency =
+              networkConfigurationsByChainId[chainId as Hex]?.nativeCurrency ||
+              'NATIVE';
+
+            const nativeToken = {
+              address: getNativeTokenAddress(chainId as Hex),
+              decimals: 18,
+              name: nativeCurrency === 'ETH' ? 'Ethereum' : nativeCurrency,
+              symbol: nativeCurrency,
+              image: '../images/eth-logo-new.png',
+            };
+
+            const conversionRate =
+              currencyRates[nativeCurrency]?.conversionRate;
+
+            const fiatBalance = conversionRate
+              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              : undefined;
+
+            const account = Object.values(internalAccounts).find(
+              (account) => account.address === address.toLowerCase(),
+            );
+
+            const stakedAsset = {
+              type: account?.type,
+              assetId: nativeToken.address,
+              isNative: true,
+              address: nativeToken.address,
+              image: nativeToken.image,
+              name: nativeToken.name,
+              symbol: nativeToken.symbol,
+              accountId: account?.id,
+              decimals: nativeToken.decimals,
+              rawBalance: stakedBalance,
+              balance: fromWei(stakedBalance),
+              fiat: fiatBalance
+                ? {
+                    balance: Number(fiatBalance),
+                    currency: currentCurrency,
+                    conversionRate,
+                  }
+                : undefined,
+              chainId,
+            };
+
+            return {
+              chainId,
+              accountId: account?.id as string,
+              stakedAsset,
+            };
+          });
+
+        return xxx;
+      },
+    );
+
+    return accounts;
+  },
+);
+
 export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   [
     selectAssetsBySelectedAccountGroup,
@@ -80,6 +178,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     selectTokenSortConfig,
     selectIsAllNetworks,
     selectChainId,
+    selectStakedAssets,
   ],
   (
     bip44Assets,
@@ -87,6 +186,7 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     tokenSortConfig,
     isAllNetworks,
     currentChainId,
+    stakedAssets,
   ) => {
     const enabledNetworks = isAllNetworks
       ? Object.values(enabledNetworksByNamespace).flatMap((network) =>
@@ -99,6 +199,23 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets);
+
+    for (const asset of assets) {
+      if (asset.isNative) {
+        const stakedAsset = stakedAssets.find(
+          (item) =>
+            item.chainId === asset.chainId &&
+            item.accountId === asset.accountId,
+        );
+        if (stakedAsset) {
+          assets.push({
+            ...stakedAsset.stakedAsset,
+            isStaked: true,
+            nativeAsset: asset,
+          } as Asset);
+        }
+      }
+    }
 
     // Current sorting options
     // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
@@ -137,7 +254,7 @@ export const selectAsset = createDeepEqualSelector(
 const oneHundredThousandths = 0.00001;
 const oneHundredths = 0.01;
 
-function assetToToken(asset: Asset): TokenI {
+function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
   return {
     address: asset.assetId,
     aggregators: [],
@@ -169,7 +286,7 @@ function assetToToken(asset: Asset): TokenI {
       asset.type.startsWith('eip155') &&
       asset.isNative &&
       asset.symbol === 'ETH',
-    isStaked: false,
+    isStaked: asset.isStaked,
     nativeAsset: undefined,
     chainId: asset.chainId,
     isNative: asset.isNative,
