@@ -2118,11 +2118,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $NAME
-            - new_version_code: $NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
       - file-downloader@1:
           inputs:
             - source: $KEYSTORE_FILE_PATH
