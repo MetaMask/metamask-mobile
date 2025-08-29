@@ -1,4 +1,4 @@
-import migration92 from './096';
+import migration92 from './098';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
@@ -10,7 +10,7 @@ const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
 jest.mock('../../util/device');
 const mockDevice = Device as jest.Mocked<typeof Device>;
 
-describe('Migration 96', () => {
+describe('Migration 98', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDevice.isIos.mockReturnValue(true);
