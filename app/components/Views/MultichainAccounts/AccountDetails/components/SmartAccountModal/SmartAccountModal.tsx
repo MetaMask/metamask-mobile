@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ScrollView, FlatList } from 'react-native';
+import React, { useLayoutEffect, useState } from 'react';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Text, {
   TextColor,
@@ -7,15 +7,10 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  EIP7702NetworkConfiguration,
-  useEIP7702Networks,
-} from '../../../../confirmations/hooks/7702/useEIP7702Networks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import SmartAccountNetworkList from '../SmartAccountNetworkList/SmartAccountNetworkList';
 import styleSheet from './SmartAccountModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
@@ -40,16 +35,22 @@ interface RootNavigationParamList extends ParamListBase {
 
 type SmartAccountModalProp = RouteProp<RootNavigationParamList, 'SmartAccount'>;
 
+
+
 const SmartAccountModal = () => {
   const route = useRoute<SmartAccountModalProp>();
   const { account } = route.params;
   const { styles } = useStyles(styleSheet, {});
-  const {
-    network7702List,
-  }: { network7702List: EIP7702NetworkConfiguration[] } = useEIP7702Networks(
-    account.address,
-  );
   const navigation = useNavigation();
+
+  // Delay rendering NetworkList until after initial layout
+  const [showNetworkList, setShowNetworkList] = useState(false);
+
+  useLayoutEffect(() => {
+    // Render network list after layout is stable
+    const timer = setTimeout(() => setShowNetworkList(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLearnMore = () => {
     navigation.navigate('Webview', {
@@ -79,7 +80,7 @@ const SmartAccountModal = () => {
       >
         {strings('multichain_accounts.account_details.smart_account')}
       </HeaderBase>
-      <ScrollView style={styles.container} testID="smart-account-scroll-view">
+      <View style={styles.container}>
         <View style={styles.contentContainer} testID="smart-account-content">
           <Box style={styles.cardContainer}>
             <Text variant={TextVariant.BodyMDMedium}>
@@ -98,18 +99,12 @@ const SmartAccountModal = () => {
               </Text>
             </Box>
           </Box>
-
-          <FlatList
-            style={styles.networkList}
-            data={network7702List}
-            keyExtractor={(item) => item.chainId}
-            testID="network-flat-list"
-            renderItem={({ item }) => (
-              <AccountNetworkRow network={item} address={account.address as Hex} />
-            )}
-          />
         </View>
-      </ScrollView>
+
+        {showNetworkList && (
+          <SmartAccountNetworkList address={account.address} />
+        )}
+      </View>
     </SafeAreaView>
   );
 };

@@ -32,6 +32,7 @@ jest.mock('../../../../util/address', () => ({
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-wallet/0',
   'Test Account Group',
+  ['account-1'],
 );
 const mockAccount = createMockInternalAccount(
   'account-1',
@@ -298,6 +299,20 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
       groupId: mockAccountGroup.id,
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
+    });
+  });
+
+  it('navigates to Smart Account Details when Smart Account link is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+
+    const smartAccountLink = getByTestId(AccountDetailsIds.SMART_ACCOUNT_LINK);
+    fireEvent.press(smartAccountLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith('SmartAccountDetails', {
+      account: expect.any(Object),
     });
   });
 });

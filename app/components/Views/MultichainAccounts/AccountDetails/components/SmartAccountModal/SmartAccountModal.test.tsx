@@ -15,8 +15,9 @@ jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
   useEIP7702Networks: jest.fn(),
 }));
 
-jest.mock('../../../../confirmations/components/modals/switch-account-type-modal/account-network-row', () =>
-  jest.fn(() => null)
+jest.mock(
+  '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row',
+  () => jest.fn(() => null),
 );
 
 const mockNavigate = jest.fn();

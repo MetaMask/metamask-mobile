@@ -169,7 +169,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
-import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccount/SmartAccountModal';
+import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -648,6 +648,14 @@ const MultichainAccountGroupDetails = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
         component={AccountGroupDetails}
         initialParams={route?.params}
+      />
+      <Stack.Screen
+        name="SmartAccountDetails"
+        component={SmartAccountModal}
+        options={{
+          headerShown: false,
+          animationEnabled: true,
+        }}
       />
     </Stack.Navigator>
   );
