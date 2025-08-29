@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -9,7 +9,6 @@ import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/Creat
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
@@ -31,7 +30,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   OnboardingSheet.device = device;
-  SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   WalletMainScreen.device = device;
