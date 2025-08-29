@@ -8,7 +8,6 @@ import {
   setDestAddress,
   selectIsEvmToSolana,
   selectIsSolanaToEvm,
-  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Box } from '../../../Box/Box';
 import Cell, {
@@ -28,9 +27,9 @@ import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
-import { EthScope } from '@metamask/keyring-api';
-import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
+import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -61,20 +60,36 @@ const DestinationAccountSelector = () => {
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
 
-  // Filter accounts to only those compatible with destination network
-  const destToken = useSelector(selectDestToken);
+  // Filter accounts using BIP-44 aware multichain selectors via account IDs
+  const validDestIds = useSelector(selectValidDestInternalAccountIds);
+  const accountGroups = useSelector(selectAccountGroups);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
   const filteredAccounts = useMemo(() => {
-    if (!destToken) return [];
-
-    const destCaipChainId = formatChainIdToCaip(destToken.chainId);
-    const isEvmChain = !isNonEvmChainId(destCaipChainId);
-
-    return accounts.filter(
-      (account) =>
-        account.scopes?.includes(destCaipChainId) ||
-        (isEvmChain && account.scopes?.includes(EthScope.Eoa)),
-    );
-  }, [accounts, destToken]);
+    if (!validDestIds || validDestIds.size === 0) return [];
+    return accounts
+      .filter((account) => validDestIds.has(account.id))
+      .map((account) => {
+        // Use account group name if available, otherwise use account name
+        let accountName = account.name;
+        if (isMultichainAccountsState2Enabled) {
+          const accountGroup = accountGroups.find((group) =>
+            group.accounts.includes(account.id),
+          );
+          accountName = accountGroup?.metadata.name || account.name;
+        }
+        return {
+          ...account,
+          name: accountName,
+        };
+      });
+  }, [
+    accounts,
+    validDestIds,
+    accountGroups,
+    isMultichainAccountsState2Enabled,
+  ]);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);

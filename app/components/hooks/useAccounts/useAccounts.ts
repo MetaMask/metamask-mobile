@@ -25,8 +25,7 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { useMultichainBalancesForAllAccounts } from '../useMultichainBalances';
-import { selectAccountGroups } from '../../../selectors/multichainAccounts/accountTreeController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
+// Removed multichain account group naming logic to keep hook lean
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -45,10 +44,7 @@ const useAccounts = ({
   const currentChainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const accountGroups = useSelector(selectAccountGroups);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
+  // Removed account group naming selectors to avoid extra work in a widely used hook
 
   const { multichainBalancesForAllAccounts } =
     useMultichainBalancesForAllAccounts();
@@ -172,13 +168,7 @@ const useAccounts = ({
           balanceError: undefined,
         };
 
-        let accountName = internalAccount.metadata.name;
-        if (isMultichainAccountsState2Enabled) {
-          accountName =
-            accountGroups.find(({ accounts: groupAccounts }) =>
-              groupAccounts.includes(internalAccount.id),
-            )?.metadata.name || internalAccount.metadata.name;
-        }
+        const accountName = internalAccount.metadata.name;
 
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
@@ -226,8 +216,6 @@ const useAccounts = ({
     selectedInternalAccount?.address,
     accountBalances, // Use the memoized balances instead of multichainBalancesForAllAccounts
     isMultiAccountBalancesEnabled,
-    accountGroups,
-    isMultichainAccountsState2Enabled,
   ]);
 
   useEffect(() => {
