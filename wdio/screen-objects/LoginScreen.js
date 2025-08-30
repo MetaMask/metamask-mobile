@@ -12,7 +12,19 @@ class LoginScreen {
   }
 
   get passwordInput() {
-    return Selectors.getXpathElementByResourceId(LoginViewSelectors.PASSWORD_INPUT);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(LoginViewSelectors.PASSWORD_INPUT);
+    } else {
+if (AppwrightSelectors.isAndroid(this._device)) {
+  return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+
+      } else {
+        return  AppwrightSelectors.getElementByID(this._device, 'textfield');
+            
+      }
+
+
+    }
   }
 
   get unlockButton() {
