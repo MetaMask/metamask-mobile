@@ -766,12 +766,6 @@ describe('useGetPriorityCardToken', () => {
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle address change and refetch', async () => {
-    // Skip this complex test that might cause memory issues
-    // TODO: Simplify this test in the future
-    expect(true).toBe(true);
-  });
-
   it('should automatically fetch priority token on mount when address is provided', async () => {
     mockFetchAllowances.mockResolvedValue(mockSDKTokensData);
     mockGetPriorityToken.mockResolvedValue(mockCardToken);
