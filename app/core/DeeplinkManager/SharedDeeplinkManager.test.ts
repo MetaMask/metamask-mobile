@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import DeeplinkManager from './DeeplinkManager';
 import { store } from '../../store';
@@ -17,9 +16,7 @@ jest.mock('../../core/NavigationService', () => ({
 }));
 
 describe('SharedDeeplinkManager', () => {
-  const mockDispatch = jest.fn();
   const mockStore = store as jest.Mocked<typeof store>;
-  const mockNavigate = jest.fn() as unknown as NavigationProp<ParamListBase>;
 
   beforeEach(() => {
     const mockedState = {
@@ -28,34 +25,11 @@ describe('SharedDeeplinkManager', () => {
 
     mockStore.getState.mockReturnValue(mockedState);
 
-    SharedDeeplinkManager.init({
-      navigation: mockNavigate,
-      dispatch: mockDispatch,
-    });
+    SharedDeeplinkManager.init();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('should call init method on the DeeplinkManager instance after initialization', () => {
-    const spyInit = jest.spyOn(SharedDeeplinkManager, 'init');
-
-    const navigation = {
-      navigate: jest.fn(),
-    } as unknown as NavigationProp<ParamListBase>;
-
-    const dispatch = jest.fn();
-
-    SharedDeeplinkManager.init({
-      navigation,
-      dispatch,
-    });
-
-    expect(spyInit).toHaveBeenCalledWith({
-      navigation,
-      dispatch,
-    });
   });
 
   it('should return instance of DeeplinkManager when calling getInstance', () => {

@@ -15,6 +15,7 @@ import {
   appLockStateMachine,
   lockKeyringAndApp,
   startAppServices,
+  initializeSDKServices,
   handleDeeplinkSaga,
 } from './';
 import { NavigationActionType } from '../../actions/navigation';
@@ -22,7 +23,12 @@ import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
+import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import branch from 'react-native-branch';
+import { handleDeeplink } from '../../core/DeeplinkManager/Handlers/handleDeeplink';
 import { setCompletedOnboarding } from '../../actions/onboarding';
+import SDKConnect from '../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 
 const mockBioStateMachineId = '123';
 
@@ -46,6 +52,8 @@ jest.mock('../../core/EngineService', () => ({
 jest.mock('../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     start: jest.fn(),
+    pendingDeeplink: null,
+    clearPendingDeeplink: jest.fn(),
   },
 }));
 
@@ -74,14 +82,55 @@ jest.mock('../../core/Engine', () => ({
 }));
 
 jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  parse: jest.fn(),
+  __esModule: true,
+  default: {
+    init: jest.fn(),
+    parse: jest.fn(),
+  },
 }));
 
-jest.mock('../../core/AppStateEventListener', () => ({
-  AppStateEventProcessor: {
-    start: jest.fn(),
-    pendingDeeplink: null,
-    clearPendingDeeplink: jest.fn(),
+// Use real DeeplinkManager to verify Branch/linking behavior triggered by startAppServices
+
+// Branch and Linking mocks for DeeplinkManager.start tests
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    subscribe: jest.fn(),
+    getLatestReferringParams: jest.fn(),
+  },
+}));
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock('../../core/DeeplinkManager/Handlers/handleDeeplink', () => ({
+  handleDeeplink: jest.fn(),
+}));
+
+// (AppStateEventListener mock defined above)
+
+jest.mock('../../core/SDKConnect/SDKConnect', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({
+      postInit: jest.fn().mockResolvedValue(undefined),
+      state: {
+        _initialized: true,
+        _postInitialized: true,
+      },
+    }),
+  },
+}));
+
+jest.mock('../../core/WalletConnect/WalletConnectV2', () => ({
+  __esModule: true,
+  default: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -192,8 +241,12 @@ describe('startAppServices', () => {
     jest.clearAllMocks();
   });
 
-  it('should start app services', async () => {
+  it('should start app services when gates open', async () => {
     await expectSaga(startAppServices)
+      .withState({
+        onboarding: { completedOnboarding: false },
+        user: {},
+      })
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
@@ -213,6 +266,8 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
   });
 
   it('should not start app services if persisted data is not loaded', async () => {
@@ -224,6 +279,32 @@ describe('startAppServices', () => {
     // Verify services are not started
     expect(EngineService.start).not.toHaveBeenCalled();
     expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+
+  // The SDKConnect init gating is now bundled within startAppServices
+});
+
+describe('initializeSDKServices', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('initializes WalletConnect V2 and SDKConnect', async () => {
+    await expectSaga(initializeSDKServices).run();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+  });
+
+  it('still calls WalletConnect V2 if SDKConnect.init throws', async () => {
+    (SDKConnect.init as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+
+    await expectSaga(initializeSDKServices).run();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
   });
 });
 
@@ -258,6 +339,8 @@ describe('handleDeeplinkSaga', () => {
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
+      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(SDKConnect.init).not.toHaveBeenCalled();
     });
   });
 
@@ -291,6 +374,8 @@ describe('handleDeeplinkSaga', () => {
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
+        expect(WC2Manager.init).not.toHaveBeenCalled();
+        expect(SDKConnect.init).not.toHaveBeenCalled();
       });
     });
     describe('when app is unlocked', () => {
@@ -310,6 +395,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is passed in and true', () => {
@@ -331,6 +418,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -367,8 +456,53 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
         });
       });
     });
+  });
+});
+
+describe('DeeplinkManager.start Branch deeplink handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('initializes SharedDeeplinkManager', async () => {
+    DeeplinkManager.start();
+    expect(SharedDeeplinkManager.init).toHaveBeenCalled();
+  });
+
+  it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(branch.getLatestReferringParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('processes cold start deeplink when non-branch link is found', async () => {
+    const mockDeeplink = 'https://link.metamask.io/home';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+non_branch_link': mockDeeplink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+  });
+
+  it('subscribes to Branch deeplink events', async () => {
+    DeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalled();
+  });
+
+  it('processes deeplink from subscription callback when uri is provided', async () => {
+    DeeplinkManager.start();
+    expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://link.metamask.io/home';
+    callback({ uri: mockUri });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
 });
