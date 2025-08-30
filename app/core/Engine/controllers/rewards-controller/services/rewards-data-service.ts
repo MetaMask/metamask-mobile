@@ -73,6 +73,11 @@ export interface RewardsDataServiceFetchGeoLocationAction {
   handler: RewardsDataService['fetchGeoLocation'];
 }
 
+export interface RewardsDataServiceValidateReferralCodeAction {
+  type: `${typeof SERVICE_NAME}:validateReferralCode`;
+  handler: RewardsDataService['validateReferralCode'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceEstimatePointsAction
@@ -82,7 +87,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceSeasonStatusAction
   | RewardsDataServiceReferralDetailsAction
-  | RewardsDataServiceFetchGeoLocationAction;
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction;
 
 type AllowedActions = never;
 
@@ -156,6 +162,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:fetchGeoLocation`,
       this.fetchGeoLocation.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:validateReferralCode`,
+      this.validateReferralCode.bind(this),
     );
   }
 
@@ -290,10 +300,11 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Get Perps discount failed: ${response.status}`);
     }
+
+    return await response.text();
   }
 
-  /*
-    return await response.text();
+  /**
    * Generate a challenge for authentication.
    * @param body - The challenge request body containing the address.
    * @returns The challenge response DTO.
@@ -433,5 +444,27 @@ export class RewardsDataService {
       Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
       return location;
     }
+  }
+
+  /**
+   * Validate a referral code.
+   * @param code - The referral code to validate.
+   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
+   */
+  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+    const response = await this.makeRequest(
+      `/referral/validate?code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to validate referral code. Please try again shortly.`,
+      );
+    }
+
+    return (await response.json()) as { valid: boolean };
   }
 }

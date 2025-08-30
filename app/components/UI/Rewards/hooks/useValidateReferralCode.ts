@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { debounce } from 'lodash';
+import Engine from '../../../../core/Engine';
+import { handleRewardsErrorMessage } from '../utils';
 
 export interface UseValidateReferralCodeResult {
   /**
@@ -17,7 +19,7 @@ export interface UseValidateReferralCodeResult {
   /**
    * Function to validate a referral code without setting it
    */
-  validateCode: (code: string) => string;
+  validateCode: (code: string) => Promise<string>;
   /**
    * Function to clear the current referral code and error
    */
@@ -44,10 +46,9 @@ export const useValidateReferralCode = (
   const [error, setError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
 
-  // Base32 validation function
-  const validateCode = useCallback((code: string): string => {
+  const validateCode = useCallback(async (code: string): Promise<string> => {
     if (!code.trim()) {
-      return ''; // No error for empty code since it's optional
+      return '';
     }
 
     if (code.length !== 6) {
@@ -60,14 +61,26 @@ export const useValidateReferralCode = (
       return 'Invalid code';
     }
 
+    try {
+      const response = await Engine.controllerMessenger.call(
+        'RewardsDataService:validateReferralCode',
+        code,
+      );
+      if (!response.valid) {
+        return 'Invalid code';
+      }
+    } catch (e) {
+      return handleRewardsErrorMessage(e);
+    }
+
     return '';
   }, []);
 
   // Debounced validation
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedValidation = useCallback(
-    debounce((code: string) => {
-      const validationError = validateCode(code);
+    debounce(async (code: string) => {
+      const validationError = await validateCode(code);
       setError(validationError);
       setIsValidating(false);
     }, debounceMs),

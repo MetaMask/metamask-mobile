@@ -109,7 +109,7 @@ const Onboarding5: React.FC = () => {
         </Box>
 
         {/* Referral Code Input */}
-        <Box twClassName="w-full mb-2">
+        <Box twClassName="w-full mb-2 relative">
           <TextField
             placeholder="Enter referral code (optional)"
             value={referralCode}
@@ -122,10 +122,7 @@ const Onboarding5: React.FC = () => {
           />
           {/* End accessory is not working */}
           {isValidatingReferralCode ? (
-            <Box
-              alignItems={BoxAlignItems.End}
-              twClassName="w-full pr-2 mt-[-34px]"
-            >
+            <Box twClassName="absolute top-4 right-4">
               <ActivityIndicator />
             </Box>
           ) : null}
