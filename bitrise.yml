@@ -596,6 +596,10 @@ workflows:
                     echo "VERSION_NUMBER: $NUMBER1"
                     exit 1
                 fi
+
+                # Export as environment variables
+                envman add --key NAME1 --value "$NAME1"
+                envman add --key NUMBER1 --value "$NUMBER1"
   install_applesimutils:
     steps:
       - script@1:
