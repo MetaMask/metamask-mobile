@@ -5,7 +5,7 @@ import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import TimerHelper from '../../utils/TimersHelper.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-
+import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
@@ -17,6 +17,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {
   LoginScreen.device = device;
+
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
@@ -26,6 +27,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
+  BridgeScreen.device = device;
 
   await LoginScreen.typePassword('123123123');
   await LoginScreen.tapUnlockButton();
@@ -36,16 +38,16 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   );
   swapLoadTimer.start();
   // await TabBarModal.tapActionButton();
-  await WalletActionModal.tapSwapButton();
+  await WalletMainScreen.tapSwapButton();
   swapLoadTimer.stop();
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await SwapScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
-  await SwapScreen.enterSourceTokenAmount('1');
-  await SwapScreen.tapGetQuotes('Ethereum');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
+  await BridgeScreen.enterSourceTokenAmount('1');
+
   swapTimer.start();
-  await SwapScreen.isQuoteDisplayed('Ethereum');
+  await BridgeScreen.isQuoteDisplayed();
   swapTimer.stop();
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(swapLoadTimer);

@@ -9,6 +9,7 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
+import { useSendScope } from './useSendScope';
 
 export function useEVMNfts(): Nft[] {
   const { NftController, AssetsContractController, NetworkController } =
@@ -16,8 +17,8 @@ export function useEVMNfts(): Nft[] {
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const allNFTS = useSelector(selectAllNfts);
-
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
+  const { isSolanaOnly } = useSendScope();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
@@ -128,7 +129,13 @@ export function useEVMNfts(): Nft[] {
         }
       }
 
-      setTransformedNfts(transformedResults);
+      // Filter ERC1155 NFTs temporarily
+      // This will be removed with https://github.com/MetaMask/metamask-mobile/issues/18923
+      const filteredResults = transformedResults.filter(
+        (nft) => nft.standard !== 'ERC1155',
+      );
+
+      setTransformedNfts(filteredResults);
     };
 
     processNfts();
@@ -139,6 +146,10 @@ export function useEVMNfts(): Nft[] {
     AssetsContractController,
     NetworkController,
   ]);
+
+  if (isSolanaOnly) {
+    return [];
+  }
 
   return transformedNfts;
 }

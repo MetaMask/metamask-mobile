@@ -46,6 +46,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     isTrigger: false,
     reduceOnly: false,
   })),
+  adaptAccountStateFromSDK: jest.fn(() => ({
+    availableBalance: '1000.00',
+    totalBalance: '10000.00',
+    marginUsed: '500.00',
+    unrealizedPnl: '100.00',
+    returnOnEquity: '20.0',
+    totalValue: '10100.00',
+  })),
 }));
 
 // Mock DevLogger
@@ -110,9 +118,10 @@ describe('HyperLiquidSubscriptionService', () => {
             ctx: {
               prevDayPx: '49000',
               funding: '0.01',
-              openInterest: '1000000',
+              openInterest: '1000000', // Raw token units from API
               dayNtlVlm: '50000000',
               oraclePx: '50100',
+              midPx: '50000', // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
             },
           });
         }, 0);
@@ -1012,9 +1021,10 @@ describe('HyperLiquidSubscriptionService', () => {
               ctx: {
                 prevDayPx: 45000,
                 funding: 0.0001,
-                openInterest: 1000000,
+                openInterest: 1000000, // Raw token units from API
                 dayNtlVlm: 5000000,
                 oraclePx: 50100,
+                midPx: 50000, // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
               },
             });
           }, 10);
@@ -1045,7 +1055,7 @@ describe('HyperLiquidSubscriptionService', () => {
           price: expect.any(String),
           timestamp: expect.any(Number),
           funding: 0.0001,
-          openInterest: 1000000,
+          openInterest: 50000000000, // 1M tokens * $50K price = $50B
           volume24h: 5000000,
         }),
       ]);
