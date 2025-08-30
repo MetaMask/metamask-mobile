@@ -1,4 +1,5 @@
-import { Connection } from './connection';
+import { Connection } from '../services/connection';
+import { Metadata } from './metadata';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -17,7 +18,7 @@ export interface IHostApplicationAdapter {
    */
   showConnectionApproval(
     connectionId: string,
-    dappMetadata: Connection['dappMetadata'],
+    dappMetadata: Metadata['dapp'],
   ): Promise<void>;
 
   /**

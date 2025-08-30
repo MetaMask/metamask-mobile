@@ -1,11 +1,11 @@
-import { Connection } from '../types/connection';
-import { DappMetadata } from '../types/dapp-metadata';
+import { Connection } from '../services/connection';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
+import { Metadata } from '../types/metadata';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionApproval(
     _connectionId: string,
-    _dappMetadata: DappMetadata,
+    _dappMetadata: Metadata['dapp'],
   ): Promise<void> {
     console.warn(
       '[SDKConnectV2] HostApplicationAdapter.showConnectionApproval called but is not yet implemented.',
