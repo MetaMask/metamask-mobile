@@ -32,6 +32,7 @@ import {
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsPerformance } from '../../hooks';
+import { usePerpsImagePrefetch } from '../../hooks/usePerpsImagePrefetch';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -112,7 +113,6 @@ const PerpsMarketListView = ({
     isLoading: isLoadingMarkets,
     error,
     refresh: refreshMarkets,
-    isRefreshing: isRefreshingMarkets,
   } = usePerpsMarkets({
     enablePolling: false,
   });
@@ -145,11 +145,12 @@ const PerpsMarketListView = ({
     startMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
   }, [startMeasure]);
 
+  // Refresh function kept for error retry only
   const handleRefresh = () => {
     refreshMarkets();
   };
 
-  const handleBackPressed = () => {
+  const handleGoBack = () => {
     // Navigate back to the main Perps tab
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -186,6 +187,17 @@ const PerpsMarketListView = ({
     );
   }, [markets, searchQuery]);
 
+  // Prefetch market icons for better performance
+  const marketSymbols = useMemo(
+    () => filteredMarkets.map((market) => market.symbol),
+    [filteredMarkets],
+  );
+
+  usePerpsImagePrefetch(marketSymbols, {
+    priority: 'high',
+    batchSize: 25, // Optimized for ~173 markets
+  });
+
   const handleSearchToggle = () => {
     setIsSearchVisible(!isSearchVisible);
     if (isSearchVisible) {
@@ -194,12 +206,6 @@ const PerpsMarketListView = ({
     } else {
       // Track search bar clicked event
       track(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED, {});
-    }
-  };
-
-  const handleClose = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
     }
   };
 
@@ -283,8 +289,12 @@ const PerpsMarketListView = ({
             )}
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
-            refreshing={isRefreshingMarkets}
-            onRefresh={handleRefresh}
+            // Pull-to-refresh removed: WebSocket provides real-time updates
+            // Optimization props for better performance
+            getItemType={() => 'market-row'} // Single type for better recycling
+            drawDistance={500} // Render ahead for smoother scrolling
+            removeClippedSubviews={false} // Better for fast scrolling
+            extraData={searchQuery} // Force re-render when search changes
           />
         </Animated.View>
       </>
@@ -299,7 +309,7 @@ const PerpsMarketListView = ({
     <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
       <TouchableOpacity
-        onPress={handleClose}
+        onPress={handleGoBack}
         testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
         style={hiddenButtonStyle}
       />
@@ -310,7 +320,7 @@ const PerpsMarketListView = ({
             <ButtonIcon
               iconName={IconName.Arrow2Left}
               size={ButtonIconSizes.Md}
-              onPress={handleBackPressed}
+              onPress={handleGoBack}
             />
           </View>
           <Text
