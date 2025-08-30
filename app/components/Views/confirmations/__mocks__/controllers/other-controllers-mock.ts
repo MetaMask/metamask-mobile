@@ -1,5 +1,4 @@
 import { merge } from 'lodash';
-import { toChecksumAddress } from '../../../../../util/address';
 import { toHex } from '@metamask/controller-utils';
 
 export const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
@@ -80,7 +79,7 @@ export const tokenBalancesControllerMock = {
           [accountMock]: {
             '0x1': {
               [tokenAddress1Mock]: '0x64', // 100
-              [toChecksumAddress(tokenAddress1Mock)]: '0x64',
+              '0x1234567890AbcdEF1234567890aBcdef12345678': '0x64',
             },
           },
         },
