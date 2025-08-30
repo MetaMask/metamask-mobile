@@ -47,8 +47,6 @@ import {
   saveOnboardingEvent as saveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
-import { USE_TERMS } from '../../../constants/storage';
 import Text, {
   TextColor,
   TextVariant,
@@ -222,19 +220,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
-  const termsOfUse = async () => {
-    if (navigation) {
-      await navigateTermsOfUse(navigation.navigate, navigateToOnboarding);
-    }
-  };
-
   const onPressGetStarted = async () => {
-    const isTermsAccepted = await StorageWrapper.getItem(USE_TERMS);
-    if (!isTermsAccepted) {
-      await termsOfUse();
-    } else {
-      navigateToOnboarding();
-    }
+    navigateToOnboarding();
   };
 
   const renderTabBar = () => <View />;

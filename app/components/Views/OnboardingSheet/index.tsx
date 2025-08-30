@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, InteractionManager } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -71,10 +72,27 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       columnGap: 8,
     },
+    termsText: {
+      marginTop: 40,
+      alignItems: 'center',
+    },
+    text: {
+      color: colors.text.default,
+      fontSize: 14,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    link: {
+      color: colors.primary.default,
+    },
+    centeredText: {
+      textAlign: 'center',
+    },
   });
 
 const OnboardingSheet = (props: OnboardingSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const {
     onPressCreate,
     onPressImport,
@@ -107,6 +125,28 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
     if (onPressContinueWithApple) {
       onPressContinueWithApple(createWallet);
     }
+  };
+
+  const goTo = (url: string, title: string) => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url,
+          title,
+        },
+      });
+    });
+  };
+
+  const onPressTermsOfUse = () => {
+    const url = 'https://consensys.io/terms-of-use';
+    goTo(url, 'metamask.io');
+  };
+
+  const onPressPrivacyNotice = () => {
+    const url = 'https://consensys.io/privacy-notice';
+    goTo(url, 'metamask.io');
   };
 
   const { themeAppearance } = useTheme();
@@ -204,6 +244,22 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
           />
+        </View>
+        <View style={styles.termsText}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            style={styles.centeredText}
+          >
+            {strings('onboarding.by_continuing')}{' '}
+            <Text style={styles.link} onPress={onPressTermsOfUse}>
+              {strings('onboarding.terms_of_use')}
+            </Text>{' '}
+            and{' '}
+            <Text style={styles.link} onPress={onPressPrivacyNotice}>
+              {strings('onboarding.privacy_notice')}
+            </Text>
+          </Text>
         </View>
       </View>
     </BottomSheet>
