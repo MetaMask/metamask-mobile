@@ -4,7 +4,10 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
-import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
+import {
+  setSelectedSourceChainIds,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const mockNavigate = jest.fn();
@@ -227,5 +230,46 @@ describe('BridgeSourceNetworkSelector', () => {
     // Make sure networks are sorted by fiat value in descending order
     expect(networkItems[0].props.testID).toBe(`chain-${mockChainId}`);
     expect(networkItems[1].props.testID).toBe(`chain-${optimismChainId}`);
+  });
+
+  it('sets native token of selected chain when selecting a single network different from current', async () => {
+    const { getAllByTestId, getByText } = renderScreen(
+      BridgeSourceNetworkSelector,
+      {
+        name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    // Deselect all networks first
+    const deselectAllButton = getByText('Deselect all');
+    fireEvent.press(deselectAllButton);
+
+    // Now select only Optimism (different from current network which is Ethereum)
+    const optimismCheckbox = getAllByTestId(`checkbox-${optimismChainId}`)[0];
+    fireEvent.press(optimismCheckbox);
+
+    // Click Apply button
+    const applyButton = getByText('Apply');
+    fireEvent.press(applyButton);
+
+    // Wait for async operations to complete
+    await waitFor(() => {
+      // Should call setSelectedSourceChainIds with just Optimism chainId
+      expect(setSelectedSourceChainIds).toHaveBeenCalledWith([optimismChainId]);
+
+      // Should set the source token to the native token of Optimism
+      expect(setSourceToken).toHaveBeenCalledWith({
+        address: '0x0000000000000000000000000000000000000000',
+        name: 'Ether',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: optimismChainId,
+        image: '',
+      });
+
+      // Should navigate back
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
 });
