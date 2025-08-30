@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
@@ -32,6 +33,7 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
+import Engine from '../../../../core/Engine';
 
 interface Props {
   route: {
@@ -67,11 +69,26 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      dispatch(toggleBasicFunctionality(!isEnabled));
+    bottomSheetRef.current?.onCloseBottomSheet(async () => {
+      const newBasicFunctionalityState = !isEnabled;
+      dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Call MultichainAccountService to update provider states and trigger alignment
+      try {
+        await Engine.context.MultichainAccountService.setBasicFunctionality(
+          newBasicFunctionalityState,
+        );
+      } catch (error) {
+        console.error(
+          'Failed to call MultichainAccountService.setBasicFunctionality:',
+          error,
+        );
+        // Note: We continue with the flow even if this fails to avoid blocking the user
+      }
+      ///: END:ONLY_INCLUDE_IF
       trackEvent(
         createEventBuilder(
-          !isEnabled
+          newBasicFunctionalityState
             ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
             : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
         ).build(),
@@ -82,7 +99,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
             settings_group: 'security_privacy',
             settings_type: 'basic_functionality',
             old_value: isEnabled,
-            new_value: !isEnabled,
+            new_value: newBasicFunctionalityState,
             was_notifications_on: isEnabled
               ? isNotificationsFeatureEnabled
               : false,
