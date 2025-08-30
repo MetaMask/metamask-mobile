@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image } from 'react-native';
+import { isCaipChainId, toCaipChainId } from '@metamask/utils';
 
 import createStyles from './OrderListItem.styles';
 import {
@@ -91,6 +92,10 @@ function OrderListItem({ order }: Props) {
     ? 'fiat_on_ramp_aggregator.purchased_currency'
     : 'fiat_on_ramp_aggregator.sold_currency';
 
+  const caipChainId = isCaipChainId(order.network)
+    ? order.network
+    : toCaipChainId('eip155', order.network);
+
   return (
     <ListItem
       topAccessory={
@@ -106,7 +111,7 @@ function OrderListItem({ order }: Props) {
             <Badge
               variant={BadgeVariant.Network}
               imageSource={getNetworkImageSource({
-                chainId: order.network,
+                chainId: caipChainId,
               })}
             />
           }
