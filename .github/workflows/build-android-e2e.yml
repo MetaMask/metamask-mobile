@@ -5,6 +5,11 @@ name: Build Android E2E APKs
 
 on:
   workflow_call:
+    inputs:
+      cache_key:
+        description: 'Cache key to save APKs after build'
+        required: false
+        type: string
     outputs:
       apk-uploaded:
         description: 'Whether the APK was successfully uploaded'
@@ -91,6 +96,40 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+
+      - name: Prepare APKs for caching
+        if: inputs.cache_key != ''
+        run: |
+          echo "Preparing APKs for caching..."
+          mkdir -p cached-apks
+          
+          # Copy APKs
+          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk cached-apks/
+          cp android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk cached-apks/
+          
+          cat > cached-apks/cache-metadata.json << EOF
+          {
+            "created_by_pr": "${{ github.event.pull_request.number || 'unknown' }}",
+            "created_by_commit": "${{ github.sha }}",
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "created_by_workflow": "${{ github.run_id }}",
+            "repository": "${{ github.repository }}",
+            "ref": "${{ github.ref }}"
+          }
+          EOF
+          
+          echo "✅ APKs and metadata prepared for caching"
+
+      - name: Cache built APKs
+        if: inputs.cache_key != ''
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            cached-apks/app-prod-release.apk
+            cached-apks/app-prod-release-androidTest.apk
+            cached-apks/cache-metadata.json
+          key: ${{ inputs.cache_key }}
+        continue-on-error: true
 
       - name: Upload Android APK
         id: upload-apk
