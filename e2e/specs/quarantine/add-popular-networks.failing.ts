@@ -8,6 +8,9 @@ import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
 
+// Quarantining for GNS feature
+// Original path e2e/specs/networks/add-popular-networks.spec.ts
+// Failing on Android, Passes on IOS
 describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
   // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =

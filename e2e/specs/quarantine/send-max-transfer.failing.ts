@@ -1,28 +1,31 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { SmokeConfirmationsRedesigned } from '../../tags';
+import { loginToApp } from '../../viewHelper';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/simulations';
-import Assertions from '../../../framework/Assertions';
-import WalletView from '../../../pages/wallet/WalletView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../pages/Send/SendView';
-import AmountView from '../../../pages/Send/AmountView';
+} from '../../api-mocking/mock-responses/simulations';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../pages/wallet/WalletView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import SendView from '../../pages/Send/SendView';
+import AmountView from '../../pages/Send/AmountView';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers';
+} from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
+// Quarantining for GNS feature
+// Original path e2e/specs/confirmations-redesigned/transactions/send-max-transfer.spec.ts
+// Failing on IOS, Passes on Android
 describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockRequest(mockServer, {

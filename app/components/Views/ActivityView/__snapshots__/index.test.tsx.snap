@@ -372,35 +372,72 @@ exports[`ActivityView should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
-                              "borderRadius": 0,
+                              "borderColor": undefined,
+                              "borderRadius": 8,
                               "borderStyle": "solid",
-                              "borderWidth": 0,
+                              "borderWidth": 1,
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
-                              "maxWidth": "60%",
+                              "maxWidth": "80%",
                               "overflow": "hidden",
-                              "paddingHorizontal": 0,
+                              "paddingHorizontal": 12,
                             }
                           }
                           testID="token-network-filter"
                         >
-                          <Text
-                            accessibilityRole="text"
-                            numberOfLines={1}
+                          <View
                             style={
                               {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "row",
+                                "gap": 4,
                               }
                             }
                           >
-                            Ethereum Main Network
-                          </Text>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "#ffffff",
+                                  "borderRadius": 4,
+                                  "height": 16,
+                                  "justifyContent": "center",
+                                  "overflow": "hidden",
+                                  "width": 16,
+                                }
+                              }
+                            >
+                              <Image
+                                onError={[Function]}
+                                resizeMode="contain"
+                                source={1}
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                testID="network-avatar-image"
+                              />
+                            </View>
+                            <Text
+                              accessibilityRole="text"
+                              numberOfLines={1}
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              All Networks
+                            </Text>
+                          </View>
                           <SvgMock
                             color="#121314"
                             fill="currentColor"

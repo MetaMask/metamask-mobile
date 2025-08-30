@@ -126,6 +126,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
     },
   },
 }));
