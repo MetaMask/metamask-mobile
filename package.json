@@ -108,6 +108,8 @@
     "test:wdio:android": "yarn wdio ./wdio/config/android.config.debug.js",
     "test:wdio:android:browserstack": "yarn wdio ./wdio/config/android.config.browserstack.js",
     "test:wdio:android:browserstack:local": "yarn wdio ./wdio/config/android.config.browserstack.local.js",
+    "test:reassure:baseline": "REASSURE=true yarn reassure --baseline",
+    "test:reassure:branch": "REASSURE=true yarn reassure --branch && node -e \"const r=require('./.reassure/output.json'); if ((r.significant||[]).length>0) { console.error('Reassure: significant regressions detected'); process.exit(1);} else { process.exit(0);} \"",
     "run-appwright:android-bs": "npx appwright test --project browserstack-android --config appwright/appwright.config.ts",
     "run-appwright:ios-bs": "npx appwright test --project browserstack-ios --config appwright/appwright.config.ts",
     "run-appwright:android": "npx appwright test --project android --config appwright/appwright.config.ts",
@@ -577,6 +579,7 @@
     "base64-js": "^1.5.1",
     "browserstack-local": "^1.5.1",
     "chromedriver": "^123.0.1",
+    "danger": "^13.0.4",
     "depcheck": "^1.4.7",
     "deprecated-react-native-prop-types": "^5.0.0",
     "detox": "^20.35.0",
@@ -624,6 +627,7 @@
     "react-native-svg-asset-plugin": "^0.5.0",
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.3.1",
+    "reassure": "^1.4.0",
     "redux-devtools-expo-dev-plugin": "^1.0.0",
     "redux-saga-test-plan": "^4.0.6",
     "regenerator-runtime": "0.13.9",
@@ -728,7 +732,8 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
+      "danger>core-js": false
     }
   },
   "packageManager": "yarn@1.22.22",
