@@ -347,6 +347,11 @@ export interface PerpsControllerOptions {
   clientConfig?: PerpsControllerConfig;
 }
 
+interface BlockedRegionList {
+  list: string[];
+  source: 'remote' | 'fallback';
+}
+
 /**
  * PerpsController - Protocol-agnostic perpetuals trading controller
  *
@@ -364,7 +369,17 @@ export class PerpsController extends BaseController<
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
   private isReinitializing = false;
-  private readonly clientConfig: PerpsControllerConfig;
+
+  // Geo-location cache
+  private geoLocationCache: { location: string; timestamp: number } | null =
+    null;
+  private geoLocationFetchPromise: Promise<string> | null = null;
+  private readonly GEO_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  private blockedRegionList: BlockedRegionList = {
+    list: [],
+    source: 'fallback',
+  };
 
   constructor({
     messenger,
@@ -378,8 +393,11 @@ export class PerpsController extends BaseController<
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
 
-    // Store client configuration
-    this.clientConfig = clientConfig;
+    // Immediately set the fallback region list since RemoteFeatureFlagController is empty by default and takes a moment to populate.
+    this.setBlockedRegionList(
+      clientConfig.fallbackBlockedRegions ?? [],
+      'fallback',
+    );
 
     // RemoteFeatureFlagController state is empty by default so we must wait for it to be populated.
     this.messagingSystem.subscribe(
@@ -400,10 +418,26 @@ export class PerpsController extends BaseController<
     });
   }
 
+  private setBlockedRegionList(list: string[], source: 'remote' | 'fallback') {
+    // Never downgrade from remote to fallback
+    if (source === 'fallback' && this.blockedRegionList.source === 'remote')
+      return;
+
+    if (Array.isArray(list)) {
+      this.blockedRegionList = {
+        list,
+        source,
+      };
+    }
+
+    this.refreshEligibility();
+  }
+
   /**
    * Respond to RemoteFeatureFlagController state changes
    * Refreshes user eligibility based on geo-blocked regions defined in remote feature flag.
    * Uses fallback configuration when remote feature flag is undefined.
+   * Note: Initial eligibility is set in the constructor if fallback regions are provided.
    */
   private refreshEligibilityOnFeatureFlagChange(
     remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
@@ -412,45 +446,13 @@ export class PerpsController extends BaseController<
       remoteFeatureFlagControllerState.remoteFeatureFlags
         ?.perpsPerpTradingGeoBlockedCountries;
 
-    // Extract blockedRegions from feature flag
     const remoteBlockedRegions = (
       perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
     )?.blockedRegions;
 
-    let effectiveBlockedRegions: string[];
-
-    // User is blocked by default if both remote and local region lists are undefined
-    if (
-      remoteBlockedRegions === undefined &&
-      this.clientConfig?.fallbackBlockedRegions === undefined
-    ) {
-      return;
+    if (Array.isArray(remoteBlockedRegions)) {
+      this.setBlockedRegionList(remoteBlockedRegions, 'remote');
     }
-    // Remote flag unavailable - use fallback
-    else if (remoteBlockedRegions === undefined) {
-      effectiveBlockedRegions = this.clientConfig?.fallbackBlockedRegions ?? [];
-    }
-    // Use remote value since empty array is valid.
-    else if (Array.isArray(remoteBlockedRegions)) {
-      effectiveBlockedRegions = remoteBlockedRegions;
-    }
-    // Invalid data type - use fallback
-    // Defensive approach in case invalid format is added to LaunchDarkly
-    else {
-      effectiveBlockedRegions = this.clientConfig?.fallbackBlockedRegions ?? [];
-    }
-
-    // Always refresh eligibility with determined regions
-    this.refreshEligibility(effectiveBlockedRegions).catch((error) => {
-      DevLogger.log('PerpsController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
-        blockedRegions: effectiveBlockedRegions,
-        timestamp: new Date().toISOString(),
-      });
-    });
   }
 
   /**
@@ -1819,7 +1821,6 @@ export class PerpsController extends BaseController<
 
   /**
    * Eligibility (Geo-Blocking)
-   * Users in the USA and Ontario (Canada) are not eligible for Perps
    */
 
   /**
@@ -1829,10 +1830,51 @@ export class PerpsController extends BaseController<
    * Example: FR, DE, US-MI, CA-ON
    */
   async #fetchGeoLocation(): Promise<string> {
+    // Check cache first
+    if (this.geoLocationCache) {
+      const cacheAge = Date.now() - this.geoLocationCache.timestamp;
+      if (cacheAge < this.GEO_CACHE_TTL_MS) {
+        DevLogger.log('PerpsController: Using cached geo location', {
+          location: this.geoLocationCache.location,
+          cacheAge: `${(cacheAge / 1000).toFixed(1)}s`,
+        });
+        return this.geoLocationCache.location;
+      }
+    }
+
+    // If already fetching, return the existing promise
+    if (this.geoLocationFetchPromise) {
+      DevLogger.log(
+        'PerpsController: Geo location fetch already in progress, waiting...',
+      );
+      return this.geoLocationFetchPromise;
+    }
+
+    // Start new fetch
+    this.geoLocationFetchPromise = this.#performGeoLocationFetch();
+
+    try {
+      const location = await this.geoLocationFetchPromise;
+      return location;
+    } finally {
+      // Clear the promise after completion (success or failure)
+      this.geoLocationFetchPromise = null;
+    }
+  }
+
+  /**
+   * Perform the actual geo location fetch
+   * Separated to allow proper promise management
+   */
+  async #performGeoLocationFetch(): Promise<string> {
     let location = 'UNKNOWN';
 
     try {
       const environment = getEnvironment();
+
+      DevLogger.log('PerpsController: Fetching geo location from API', {
+        environment,
+      });
 
       const response = await successfulFetch(
         ON_RAMP_GEO_BLOCKING_URLS[environment],
@@ -1840,11 +1882,22 @@ export class PerpsController extends BaseController<
 
       location = await response?.text();
 
+      // Cache the successful result
+      this.geoLocationCache = {
+        location,
+        timestamp: Date.now(),
+      };
+
+      DevLogger.log('PerpsController: Geo location fetched successfully', {
+        location,
+      });
+
       return location;
     } catch (e) {
       DevLogger.log('PerpsController: Failed to fetch geo location', {
         error: e,
       });
+      // Don't cache failures
       return location;
     }
   }
@@ -1852,7 +1905,7 @@ export class PerpsController extends BaseController<
   /**
    * Refresh eligibility status
    */
-  async refreshEligibility(geoBlockedRegions: string[]): Promise<void> {
+  async refreshEligibility(): Promise<void> {
     // Default to false in case of error.
     let isEligible = false;
 
@@ -1864,7 +1917,7 @@ export class PerpsController extends BaseController<
 
       // Only set to eligible if we have valid geolocation and it's not blocked
       if (geoLocation !== 'UNKNOWN') {
-        isEligible = geoBlockedRegions.every(
+        isEligible = this.blockedRegionList.list.every(
           (geoBlockedRegion) => !geoLocation.startsWith(geoBlockedRegion),
         );
       }
