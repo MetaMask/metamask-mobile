@@ -150,7 +150,7 @@ const PerpsMarketListView = ({
     refreshMarkets();
   };
 
-  const handleBackPressed = () => {
+  const handleGoBack = () => {
     // Navigate back to the main Perps tab
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -206,12 +206,6 @@ const PerpsMarketListView = ({
     } else {
       // Track search bar clicked event
       track(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED, {});
-    }
-  };
-
-  const handleClose = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
     }
   };
 
@@ -315,7 +309,7 @@ const PerpsMarketListView = ({
     <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
       <TouchableOpacity
-        onPress={handleClose}
+        onPress={handleGoBack}
         testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
         style={hiddenButtonStyle}
       />
@@ -326,7 +320,7 @@ const PerpsMarketListView = ({
             <ButtonIcon
               iconName={IconName.Arrow2Left}
               size={ButtonIconSizes.Md}
-              onPress={handleBackPressed}
+              onPress={handleGoBack}
             />
           </View>
           <Text
