@@ -5,11 +5,9 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { toHex } from '@metamask/controller-utils';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useDeepMemo } from '../useDeepMemo';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -37,21 +35,16 @@ export function useTransactionRequiredTokens() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
-  const balanceTokens = useTokensWithBalance({
-    chainIds: [chainId],
-  });
+  const gasTokenBase = useGasToken();
+  const tokenTransferTokenBase = useTokenTransferToken();
 
-  const gasToken = useGasToken();
-  const tokenTransferToken = useTokenTransferToken();
+  const gasToken = useTokenBalance(gasTokenBase, chainId);
+  const tokenTransferToken = useTokenBalance(tokenTransferTokenBase, chainId);
 
-  const requiredTokens = useMemo(
-    () =>
-      [gasToken, tokenTransferToken].filter((t) => t) as TransactionTokenBase[],
+  const result = useMemo(
+    () => [gasToken, tokenTransferToken].filter(Boolean) as TransactionToken[],
     [gasToken, tokenTransferToken],
   );
-
-  const finalTokens = getPartialTokens(requiredTokens, balanceTokens, chainId);
-  const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
     log('Required tokens', result);
@@ -106,34 +99,35 @@ function useGasToken(): TransactionTokenBase | undefined {
   }, [maxGasCost]);
 }
 
-function getPartialTokens(
-  tokens: TransactionTokenBase[],
-  balanceTokens: BridgeToken[],
+function useTokenBalance(
+  token: TransactionTokenBase | undefined,
   chainId: Hex,
-): TransactionToken[] {
-  return tokens.reduce((acc, token) => {
-    const balanceToken = balanceTokens.find(
-      (t) =>
-        t.address.toLowerCase() === token.address.toLowerCase() &&
-        t.chainId === chainId,
-    );
+): TransactionToken | undefined {
+  const balanceToken = useTokenWithBalance(token?.address ?? '0x0', chainId);
+  const balanceHuman = balanceToken?.balance ?? '0';
+  const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
+  const amountRawValue = new BigNumber(token?.amount ?? '0x0', 16);
+  const amountHumanValue = amountRawValue.shiftedBy(-decimals);
+  const amountRaw = amountRawValue.toFixed(0);
+  const amountHuman = amountHumanValue.toString(10);
 
-    const balanceHuman = balanceToken?.balance ?? '0';
-    const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
-    const amountRaw = new BigNumber(token.amount, 16);
-    const amountHuman = amountRaw.shiftedBy(-decimals);
-    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
+  const balanceRaw = new BigNumber(balanceHuman, 10)
+    .shiftedBy(decimals)
+    .toFixed(0);
 
-    acc.push({
-      address: token.address,
-      amountHuman: amountHuman.toString(10),
-      amountRaw: amountRaw.toFixed(0),
-      balanceHuman,
-      balanceRaw: balanceRaw.toFixed(0),
-      decimals,
-      skipIfBalance: token.skipIfBalance ?? false,
-    });
-
-    return acc;
-  }, [] as TransactionToken[]);
+  return useMemo(
+    () =>
+      token
+        ? {
+            address: token.address,
+            amountHuman,
+            amountRaw,
+            balanceHuman,
+            balanceRaw,
+            decimals,
+            skipIfBalance: token.skipIfBalance ?? false,
+          }
+        : undefined,
+    [amountHuman, amountRaw, balanceHuman, balanceRaw, decimals, token],
+  );
 }

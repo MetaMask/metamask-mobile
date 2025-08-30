@@ -11,11 +11,11 @@ import {
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Interface } from '@ethersproject/abi';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
-jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
+jest.mock('../tokens/useTokenWithBalance');
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890';
 const TO_MOCK = '0x0987654321098765432109876543210987654321';
@@ -48,27 +48,30 @@ function runHook({
 }
 
 describe('useTransactionRequiredTokens', () => {
-  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+  const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
-    useTokensWithBalanceMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_MOCK,
-        balance: '0',
-        symbol: 'TST',
-        decimals: 4,
-        chainId: '0x1',
-      },
-      {
+    useTokenWithBalanceMock
+      .mockReturnValueOnce({
         address: NATIVE_TOKEN_ADDRESS,
         balance: '0',
+        balanceFiat: '0',
+        tokenFiatAmount: 0,
         symbol: 'ETH',
         decimals: 18,
         chainId: '0x1',
-      },
-    ]);
+      })
+      .mockReturnValueOnce({
+        address: TOKEN_ADDRESS_MOCK,
+        balance: '0',
+        balanceFiat: '0',
+        tokenFiatAmount: 0,
+        symbol: 'TST',
+        decimals: 4,
+        chainId: '0x1',
+      });
   });
 
   it('returns gas token', () => {
@@ -121,22 +124,26 @@ describe('useTransactionRequiredTokens', () => {
   });
 
   it('returns token balances', () => {
-    useTokensWithBalanceMock.mockReturnValue([
-      {
+    useTokenWithBalanceMock.mockReset();
+    useTokenWithBalanceMock
+      .mockReturnValueOnce({
         address: NATIVE_TOKEN_ADDRESS,
         balance: '0',
+        balanceFiat: '0',
+        tokenFiatAmount: 0,
         symbol: 'ETH',
         decimals: 18,
         chainId: '0x1',
-      },
-      {
+      })
+      .mockReturnValueOnce({
         address: TOKEN_ADDRESS_MOCK,
         balance: '3',
+        balanceFiat: '3',
+        tokenFiatAmount: 3,
         symbol: 'TST',
         decimals: 4,
         chainId: '0x1',
-      },
-    ]);
+      });
 
     const tokens = runHook({
       transaction: {
