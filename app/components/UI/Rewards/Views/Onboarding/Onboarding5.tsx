@@ -19,6 +19,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  IconSize,
+  Icon,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import rewards from '../../../../../images/rewards/rewards.png';
 import { resetOnboarding } from '../../../../../actions/rewards';
@@ -30,12 +33,13 @@ const Onboarding5: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { optin, optinError } = useRewardsAuth();
+  const { optin, optinError, isLoading } = useRewardsAuth();
   const {
     referralCode,
     error: referralCodeError,
     setReferralCode: handleReferralCodeChange,
     isValidating: isValidatingReferralCode,
+    isValid: referralCodeIsValid,
   } = useValidateReferralCode();
 
   const handleSkip = () => {
@@ -89,22 +93,52 @@ const Onboarding5: React.FC = () => {
         </Text>
 
         {/* Points Display */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="w-full mb-16 border border-muted rounded-lg px-4 py-3 justify-between"
-        >
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            Sign-up bonus
-          </Text>
+        <Box twClassName="w-full min-h-32">
           <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
+            gap={4}
+            twClassName="w-full border border-muted rounded-lg px-4 py-3 mb-10"
           >
-            <Text variant={TextVariant.BodyMd} twClassName="font-bold">
-              250 points
-            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+            >
+              <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+                Sign-up bonus
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-2"
+              >
+                <Text variant={TextVariant.BodyMd} twClassName="font-bold">
+                  250 points
+                </Text>
+              </Box>
+            </Box>
+            {referralCodeIsValid && (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-alternative"
+                >
+                  Referral bonus
+                </Text>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-2"
+                >
+                  <Text variant={TextVariant.BodyMd} twClassName="font-bold">
+                    250 points
+                  </Text>
+                </Box>
+              </Box>
+            )}
           </Box>
         </Box>
 
@@ -115,7 +149,7 @@ const Onboarding5: React.FC = () => {
             value={referralCode}
             onChangeText={handleReferralCodeChange}
             style={tw.style(
-              `py-6 bg-background-pressed ${
+              `py-6 bg-background-pressed border-1 border-muted ${
                 referralCodeError && `border-1 border-error-default`
               }`,
             )}
@@ -124,6 +158,14 @@ const Onboarding5: React.FC = () => {
           {isValidatingReferralCode ? (
             <Box twClassName="absolute top-4 right-4">
               <ActivityIndicator />
+            </Box>
+          ) : referralCodeIsValid ? (
+            <Box twClassName="absolute top-4 right-4">
+              <Icon
+                name={IconName.Confirmation}
+                size={IconSize.Lg}
+                color={IconColor.SuccessDefault}
+              />
             </Box>
           ) : null}
           {referralCodeError ? (
@@ -141,9 +183,11 @@ const Onboarding5: React.FC = () => {
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={optin}
-          twClassName="w-full"
-          disabled={Boolean(referralCodeError)}
+          onPress={() => optin({ referralCode })}
+          twClassName={`w-full ${
+            referralCodeError || isLoading ? 'opacity-50' : ''
+          }`}
+          disabled={Boolean(referralCodeError || isLoading)}
         >
           Claim points
         </Button>

@@ -28,6 +28,10 @@ export interface UseValidateReferralCodeResult {
    * Whether validation is currently in progress (during debounce period)
    */
   isValidating: boolean;
+  /**
+   * Whether the current referral code is valid
+   */
+  isValid: boolean;
 }
 
 /**
@@ -110,6 +114,8 @@ export const useValidateReferralCode = (
   // Cleanup debounced function on unmount
   useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
 
+  const isValid = !!referralCode && !error && !isValidating;
+
   return {
     referralCode,
     error,
@@ -117,6 +123,7 @@ export const useValidateReferralCode = (
     validateCode,
     clearCode,
     isValidating,
+    isValid,
   };
 };
 

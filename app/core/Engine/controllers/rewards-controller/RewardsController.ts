@@ -83,6 +83,10 @@ export class RewardsController extends BaseController<
       'RewardsController:getLastAuthenticatedAccount',
       this.getLastAuthenticatedAccount.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:updateStateWithOptinResponse',
+      this.updateStateWithOptinResponse.bind(this),
+    );
   }
 
   /**
@@ -336,21 +340,6 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
-  }
-
-  /**
-   * Reset controller state to default
-   */
-  resetState(): void {
-    this.update(() => getRewardsControllerDefaultState());
-  }
-
-  /**
-   * Get the subscription ID from the current state
-   * @returns The subscription ID if available, null otherwise
-   */
-  getSubscriptionId(): string | null {
-    return this.state.subscription?.id ?? null;
   }
 
   /**

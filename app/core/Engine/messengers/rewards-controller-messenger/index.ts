@@ -4,7 +4,11 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
-import { RewardsDataServiceLoginAction } from '../../controllers/rewards-controller/services';
+import {
+  RewardsDataServiceLoginAction,
+  RewardsDataServiceSeasonStatusAction,
+  RewardsDataServiceReferralDetailsAction,
+} from '../../controllers/rewards-controller/services';
 import {
   RewardsControllerActions,
   RewardsControllerEvents,
@@ -20,7 +24,9 @@ const name = 'RewardsController';
 type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | KeyringControllerSignPersonalMessageAction
-  | RewardsDataServiceLoginAction;
+  | RewardsDataServiceLoginAction
+  | RewardsDataServiceSeasonStatusAction
+  | RewardsDataServiceReferralDetailsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =

@@ -13,7 +13,7 @@ export interface UseRewardsAuthResult {
   /**
    * Function to initiate the optin process
    */
-  optin: () => Promise<void>;
+  optin: ({ referralCode }: { referralCode?: string }) => Promise<void>;
   /**
    * Function to logout the current user
    */
@@ -85,61 +85,73 @@ export const useRewardsAuth = (): UseRewardsAuthResult => {
     }
   }, [address, subscription?.id]);
 
-  const handleOptin = useCallback(async () => {
-    if (!address) {
-      Logger.log('Rewards: No address available for optin');
-      return;
-    }
-
-    try {
-      setOptinLoading(true);
-      setOptinError(null);
-
-      Logger.log('Rewards: Starting optin process', {
-        address,
-      });
-
-      const challengeResponse = await Engine.controllerMessenger.call(
-        'RewardsDataService:generateChallenge',
-        {
-          address,
-        },
-      );
-
-      // Try different encoding approaches to handle potential character issues
-      let hexMessage;
-      try {
-        // First try: direct toHex conversion
-        hexMessage = toHex(challengeResponse.message);
-      } catch (error) {
-        // Fallback: use Buffer to convert to hex if toHex fails
-        hexMessage =
-          '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+  const handleOptin = useCallback(
+    async ({ referralCode }: { referralCode?: string }) => {
+      if (!address) {
+        Logger.log('Rewards: No address available for optin');
+        return;
       }
 
-      // Use KeyringController for silent signature
-      const signature =
-        await Engine.context.KeyringController.signPersonalMessage({
-          data: hexMessage,
-          from: address,
+      try {
+        setOptinLoading(true);
+        setOptinError(null);
+
+        Logger.log('Rewards: Starting optin process', {
+          address,
         });
 
-      Logger.log('Rewards: Submitting optin with signature...');
-      await Engine.controllerMessenger.call('RewardsDataService:optin', {
-        challengeId: challengeResponse.id,
-        signature,
-      });
+        const challengeResponse = await Engine.controllerMessenger.call(
+          'RewardsDataService:generateChallenge',
+          {
+            address,
+          },
+        );
 
-      Logger.log('Rewards: Optin successful, checking auth state...');
-      checkAuthState();
-    } catch (error) {
-      const errorMessage = handleRewardsErrorMessage(error);
-      Logger.log('Rewards: Optin failed', errorMessage);
-      setOptinError(errorMessage);
-    } finally {
-      setOptinLoading(false);
-    }
-  }, [address, checkAuthState]);
+        // Try different encoding approaches to handle potential character issues
+        let hexMessage;
+        try {
+          // First try: direct toHex conversion
+          hexMessage = toHex(challengeResponse.message);
+        } catch (error) {
+          // Fallback: use Buffer to convert to hex if toHex fails
+          hexMessage =
+            '0x' +
+            Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+        }
+
+        // Use KeyringController for silent signature
+        const signature =
+          await Engine.context.KeyringController.signPersonalMessage({
+            data: hexMessage,
+            from: address,
+          });
+
+        Logger.log('Rewards: Submitting optin with signature...');
+        const optinResponse = await Engine.controllerMessenger.call(
+          'RewardsDataService:optin',
+          {
+            challengeId: challengeResponse.id,
+            signature,
+            referralCode,
+          },
+        );
+
+        Logger.log('Rewards: Optin successful, updating controller state...');
+        await Engine.controllerMessenger.call(
+          'RewardsController:updateStateWithOptinResponse',
+          address,
+          optinResponse,
+        );
+      } catch (error) {
+        const errorMessage = handleRewardsErrorMessage(error);
+        Logger.log('Rewards: Optin failed', { errorMessage });
+        setOptinError(errorMessage);
+      } finally {
+        setOptinLoading(false);
+      }
+    },
+    [address],
+  );
 
   const handleLogout = useCallback(async () => {
     try {

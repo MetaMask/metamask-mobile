@@ -397,6 +397,14 @@ export interface RewardsControllerGetLastAuthenticatedAccountAction {
 }
 
 /**
+ * Action for updating state with opt-in response
+ */
+export interface RewardsControllerUpdateStateWithOptinResponseAction {
+  type: 'RewardsController:updateStateWithOptinResponse';
+  handler: (address: string, loginResponse: LoginResponseDto) => Promise<void>;
+}
+
+/**
  * Request for getting Perps discount
  */
 export interface GetPerpsDiscountDto {
@@ -412,4 +420,5 @@ export interface GetPerpsDiscountDto {
  */
 export type RewardsControllerActions =
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>
-  | RewardsControllerGetLastAuthenticatedAccountAction;
+  | RewardsControllerGetLastAuthenticatedAccountAction
+  | RewardsControllerUpdateStateWithOptinResponseAction;
