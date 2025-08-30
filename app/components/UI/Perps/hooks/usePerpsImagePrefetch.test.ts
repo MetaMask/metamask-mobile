@@ -435,7 +435,7 @@ describe('usePerpsImagePrefetch', () => {
       },
       {
         symbols: ['BTC', '', null, 'ETH', undefined, 'SOL', '  '],
-        expectedCalls: 0, // Hook crashes on null/undefined when calling toUpperCase
+        expectedCalls: 3, // Hook now correctly filters and processes only valid symbols (BTC, ETH, SOL)
         description: 'invalid values mixed with valid',
       },
     ])(

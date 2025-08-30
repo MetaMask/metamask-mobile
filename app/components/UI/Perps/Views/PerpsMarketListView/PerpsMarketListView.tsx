@@ -35,7 +35,6 @@ import {
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsPerformance } from '../../hooks';
-import { usePerpsImagePrefetch } from '../../hooks/usePerpsImagePrefetch';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -126,6 +125,7 @@ const PerpsMarketListView = ({
     isLoading: isLoadingMarkets,
     error,
     refresh: refreshMarkets,
+    isRefreshing: isRefreshingMarkets,
   } = usePerpsMarkets({
     enablePolling: false,
   });
@@ -158,7 +158,6 @@ const PerpsMarketListView = ({
     startMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
   }, [startMeasure]);
 
-  // Refresh function kept for error retry only
   const handleRefresh = () => {
     refreshMarkets();
   };
@@ -199,17 +198,6 @@ const PerpsMarketListView = ({
         market.name.toLowerCase().includes(query),
     );
   }, [markets, searchQuery]);
-
-  // Prefetch market icons for better performance
-  const marketSymbols = useMemo(
-    () => filteredMarkets.map((market) => market.symbol),
-    [filteredMarkets],
-  );
-
-  usePerpsImagePrefetch(marketSymbols, {
-    priority: 'high',
-    batchSize: 25, // Optimized for ~173 markets
-  });
 
   const handleSearchToggle = () => {
     setIsSearchVisible(!isSearchVisible);
@@ -302,12 +290,8 @@ const PerpsMarketListView = ({
             )}
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
-            // Pull-to-refresh removed: WebSocket provides real-time updates
-            // Optimization props for better performance
-            getItemType={() => 'market-row'} // Single type for better recycling
-            drawDistance={500} // Render ahead for smoother scrolling
-            removeClippedSubviews={false} // Better for fast scrolling
-            extraData={searchQuery} // Force re-render when search changes
+            refreshing={isRefreshingMarkets}
+            onRefresh={handleRefresh}
           />
         </Animated.View>
       </>

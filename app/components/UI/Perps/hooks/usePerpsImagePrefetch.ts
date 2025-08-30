@@ -30,10 +30,10 @@ export const usePerpsImagePrefetch = (
       return;
     }
 
-    // Filter out already prefetched symbols
-    const symbolsToPrefetch = symbols.filter(
-      (symbol) => !prefetchedRef.current.has(symbol.toUpperCase()),
-    );
+    // Filter out invalid symbols and already prefetched symbols
+    const symbolsToPrefetch = symbols
+      .filter((symbol) => symbol && typeof symbol === 'string' && symbol.trim())
+      .filter((symbol) => !prefetchedRef.current.has(symbol.toUpperCase()));
 
     if (symbolsToPrefetch.length === 0) {
       return;
@@ -48,10 +48,15 @@ export const usePerpsImagePrefetch = (
         // Process in batches to avoid overwhelming the network
         for (let i = 0; i < symbolsToPrefetch.length; i += batchSize) {
           const batch = symbolsToPrefetch.slice(i, i + batchSize);
-          const urls = batch.map(
-            (symbol) =>
-              `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${symbol.toUpperCase()}.svg`,
-          );
+          // Additional safety check before URL construction
+          const urls = batch
+            .filter(
+              (symbol) => symbol && typeof symbol === 'string' && symbol.trim(),
+            )
+            .map(
+              (symbol) =>
+                `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${symbol.toUpperCase()}.svg`,
+            );
 
           // Prefetch with persistent disk caching
           // expo-image handles all caching internally, no need for HTTP headers
