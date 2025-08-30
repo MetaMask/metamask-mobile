@@ -6,6 +6,7 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
 function runHook(tokenAddress: Hex, chainId: Hex) {
   return renderHookWithProvider(
@@ -28,6 +29,20 @@ describe('useTokenWithBalance', () => {
       decimals: 4,
       symbol: 'T1',
       tokenFiatAmount: 100,
+    });
+  });
+
+  it('returns native token properties', () => {
+    const { result } = runHook(NATIVE_TOKEN_ADDRESS, '0x1');
+
+    expect(result.current).toStrictEqual({
+      address: NATIVE_TOKEN_ADDRESS,
+      balance: '2',
+      balanceFiat: '$20,000',
+      chainId: '0x1',
+      decimals: 18,
+      symbol: 'ETH',
+      tokenFiatAmount: 20000,
     });
   });
 

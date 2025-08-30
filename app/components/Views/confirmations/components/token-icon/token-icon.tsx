@@ -10,9 +10,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
+import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
 
 export interface TokenIconProps {
   address: Hex;
@@ -22,9 +20,7 @@ export interface TokenIconProps {
 export const TokenIcon: React.FC<TokenIconProps> = ({ address, chainId }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const token = useSelector((state: RootState) =>
-    selectSingleTokenByAddressAndChainId(state, address, chainId),
-  );
+  const token = useTokenWithBalance(address, chainId);
 
   if (!token) {
     return null;

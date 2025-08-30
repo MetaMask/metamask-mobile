@@ -9,6 +9,10 @@ import { useTokenFiatRate } from './useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { selectAccountBalanceByChainId } from '../../../../../selectors/accountTrackerController';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
+import { selectTickerByChainId } from '../../../../../selectors/networkController';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -27,39 +31,70 @@ export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
     ),
   );
 
-  const tokenBalanceHex = useMemo(
-    () =>
-      tokenBalanceResult
-        ? Object.values(tokenBalanceResult)[0] ?? '0x0'
-        : '0x0',
-    [tokenBalanceResult],
-  );
+  const tokenBalanceHex =
+    (tokenBalanceResult ? Object.values(tokenBalanceResult)[0] : '0x0') ??
+    '0x0';
 
   const tokenFiatRate = useTokenFiatRate(tokenAddress, chainId);
 
+  const nativeBalanceResult = useSelector((state: RootState) =>
+    selectAccountBalanceByChainId(state, chainId),
+  );
+
+  const conversionRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  );
+
+  const ticker = useSelector((state: RootState) =>
+    selectTickerByChainId(state, chainId),
+  );
+
+  const nativeBalanceHex = (nativeBalanceResult?.balance as Hex) ?? '0x0';
+  const nativeAddress = getNativeTokenAddress(chainId);
+  const isNative = tokenAddress.toLowerCase() === nativeAddress.toLowerCase();
+
   return useMemo(() => {
-    if (!token) {
+    if (!token && !isNative) {
       return undefined;
     }
 
-    const balanceRawValue = new BigNumber(tokenBalanceHex);
-    const balanceValue = balanceRawValue.shiftedBy(-token.decimals);
+    const balanceRawValue = new BigNumber(
+      isNative ? nativeBalanceHex : tokenBalanceHex,
+    );
 
-    const balanceFiatValue = tokenFiatRate
-      ? balanceValue.multipliedBy(tokenFiatRate)
+    const decimals = token?.decimals ?? 18;
+    const balanceValue = balanceRawValue.shiftedBy(-decimals);
+    const fiatRate = isNative ? conversionRate : tokenFiatRate;
+
+    const balanceFiatValue = fiatRate
+      ? balanceValue.multipliedBy(fiatRate)
       : new BigNumber(0);
 
     const balance = balanceValue.toString(10);
     const balanceFiat = fiatFormatter(balanceFiatValue);
     const tokenFiatAmount = balanceFiatValue.toNumber();
+    const symbol = token?.symbol ?? ticker;
 
     return {
       ...token,
-      address: token.address as Hex,
+      address: tokenAddress,
       balance,
       balanceFiat,
       chainId,
+      decimals,
+      symbol,
       tokenFiatAmount,
     };
-  }, [chainId, fiatFormatter, token, tokenBalanceHex, tokenFiatRate]);
+  }, [
+    chainId,
+    conversionRate,
+    fiatFormatter,
+    isNative,
+    nativeBalanceHex,
+    ticker,
+    token,
+    tokenAddress,
+    tokenBalanceHex,
+    tokenFiatRate,
+  ]);
 }
