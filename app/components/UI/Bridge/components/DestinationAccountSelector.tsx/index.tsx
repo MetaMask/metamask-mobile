@@ -27,6 +27,9 @@ import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
+import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -57,6 +60,37 @@ const DestinationAccountSelector = () => {
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
 
+  // Filter accounts using BIP-44 aware multichain selectors via account IDs
+  const validDestIds = useSelector(selectValidDestInternalAccountIds);
+  const accountGroups = useSelector(selectAccountGroups);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const filteredAccounts = useMemo(() => {
+    if (!validDestIds || validDestIds.size === 0) return [];
+    return accounts
+      .filter((account) => validDestIds.has(account.id))
+      .map((account) => {
+        // Use account group name if available, otherwise use account name
+        let accountName = account.name;
+        if (isMultichainAccountsState2Enabled) {
+          const accountGroup = accountGroups.find((group) =>
+            group.accounts.includes(account.id),
+          );
+          accountName = accountGroup?.metadata.name || account.name;
+        }
+        return {
+          ...account,
+          name: accountName,
+        };
+      });
+  }, [
+    accounts,
+    validDestIds,
+    accountGroups,
+    isMultichainAccountsState2Enabled,
+  ]);
+
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
   const accountAvatarType = useSelector((state: RootState) =>
@@ -67,15 +101,6 @@ const DestinationAccountSelector = () => {
 
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
-
-  const filteredAccounts = useMemo(() => {
-    if (isEvmToSolana) {
-      return accounts.filter((account) => isSolanaAddress(account.address));
-    } else if (isSolanaToEvm) {
-      return accounts.filter((account) => !isSolanaAddress(account.address));
-    }
-    return []; // No addresses to pick if EVM <> EVM, or Solana <> Solana, will go to current account
-  }, [accounts, isEvmToSolana, isSolanaToEvm]);
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
@@ -133,6 +158,7 @@ const DestinationAccountSelector = () => {
               accountAddress: destAddress,
               style: styles.avatarStyle,
             }}
+            onPress={handleClearDestAddress}
           >
             <View style={styles.closeButtonContainer}>
               <ButtonIcon

@@ -18,7 +18,8 @@ jest.mock('../../../../../core/Engine', () => {
             accounts: {
               'mock-account-id-1': {
                 id: 'mock-account-id-1',
-                address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                address: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
                 metadata: {
                   name: 'Account 1',
                   keyring: {
@@ -31,7 +32,8 @@ jest.mock('../../../../../core/Engine', () => {
               },
               'mock-account-id-2': {
                 id: 'mock-account-id-2',
-                address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                address: '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                scopes: ['eip155:0'],
                 metadata: {
                   name: 'Account 2',
                   keyring: {
@@ -53,8 +55,8 @@ jest.mock('../../../../../core/Engine', () => {
             {
               type: KeyringTypes.hd,
               accounts: [
-                '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
               ],
               metadata: {
                 id: '01JNG71B7GTWH0J1TSJY9891S0',
@@ -81,15 +83,18 @@ jest.mock('../../../../hooks/useAccounts', () => ({
     accounts: [
       {
         id: 'mock-account-id-1',
-        address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-        caipAccountId: 'eip155:1:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        address: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 1',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
       },
       {
         id: 'mock-account-id-2',
-        address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        address: '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         caipAccountId: 'eip155:1:0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 2',
+        scopes: ['eip155:0'],
       },
     ],
     ensByAccountAddress: {},
