@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Enviar",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Em ordem alfabética (A-Z)",
     "add_to_get_started": "Adicione criptomoedas para começar",
     "token_is_needed_to_continue": "É necessário {{tokenSymbol}} para continuar",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Avançar",
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Este site não pode ser usado com a sua rede atual. Adicione permissões de rede ou escolha uma rede já permitida.",
     "edit_permissions": "Editar permissões",
     "permitted_networks_info_sheet_description": "Esta é uma lista de redes às quais você já concedeu permissões para uso neste site. Selecione uma rede na lista ou edite as permissões de rede para este site.",
-    "connect_an_account": "Conectar uma conta"
+    "connect_an_account": "Conectar uma conta",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Conectar este site com a MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Nome da carteira",
       "balance": "Saldo",
       "create_account": "Criar conta",
+      "creating_account": "Creating account...",
       "back_up": "Fazer backup",
       "reveal_recovery_phrase_with_index": "Revelar Frase de Recuperação {{index}}"
     },

@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Gửi",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Thứ tự bảng chữ cái (A – Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có Token nào!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Không thể sử dụng trang web này với mạng hiện tại của bạn. Thêm quyền truy cập mạng hoặc chọn một mạng đã được cho phép.",
     "edit_permissions": "Chỉnh sửa quyền",
     "permitted_networks_info_sheet_description": "Đây là danh sách các mạng mà bạn đã cấp quyền sử dụng trên trang web này trước đây. Chọn một mạng từ danh sách hoặc chỉnh sửa quyền truy cập mạng cho trang web này.",
-    "connect_an_account": "Kết nối tài khoản"
+    "connect_an_account": "Kết nối tài khoản",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Kết nối trang web này với MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Tên ví",
       "balance": "Số dư",
       "create_account": "Tạo tài khoản",
+      "creating_account": "Creating account...",
       "back_up": "Sao lưu",
       "reveal_recovery_phrase_with_index": "Hiển thị Cụm từ khôi phục {{index}}"
     },
