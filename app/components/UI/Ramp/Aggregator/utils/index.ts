@@ -15,7 +15,7 @@ import {
   renderNumber,
   toTokenMinimalUnit,
 } from '../../../../../util/number';
-import { RampType } from '../types';
+import { RampType, parseCAIP19AssetId } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -135,10 +135,41 @@ export function isNetworkRampSupported(
   chainId: string,
   networks: AggregatorNetwork[],
 ) {
-  return (
-    networks?.find((network) => network.chainId === getDecimalChainId(chainId))
-      ?.active ?? false
-  );
+  if (!networks || !chainId) {
+    return false;
+  }
+
+  const foundNetwork = networks.find((network) => {
+    const networkChainId = network.chainId;
+
+    if (networkChainId === chainId) {
+      return true;
+    }
+
+    if (networkChainId === getDecimalChainId(chainId)) {
+      return true;
+    }
+
+    if (chainId.includes(':')) {
+      const parsed = parseCAIP19AssetId(chainId);
+      if (parsed) {
+        if (parsed.namespace === 'eip155') {
+          const evmChainId = parsed.chainId;
+          return (
+            networkChainId === evmChainId ||
+            networkChainId === getDecimalChainId(evmChainId)
+          );
+        }
+          const caip2ChainId = `${parsed.namespace}:${parsed.chainId}`;
+          return networkChainId === caip2ChainId;
+
+      }
+    }
+
+    return false;
+  });
+
+  return foundNetwork?.active ?? false;
 }
 
 export function isNetworkRampNativeTokenSupported(
