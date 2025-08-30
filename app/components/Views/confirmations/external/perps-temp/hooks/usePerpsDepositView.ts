@@ -10,6 +10,7 @@ import {
 } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -20,6 +21,8 @@ export function usePerpsDepositView({
 
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const { amountUnformatted } = useTokenAmount();
+  const { payToken } = useTransactionPayToken();
+
   const amountValue = new BigNumber(amountUnformatted ?? '0');
 
   const quotes = useSelector((state: RootState) =>
@@ -47,5 +50,6 @@ export function usePerpsDepositView({
 
   return {
     isFullView,
+    isPayTokenSelected: Boolean(payToken),
   };
 }

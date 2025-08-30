@@ -19,7 +19,7 @@ export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [inputChanged, setInputChanged] = useState(false);
 
-  const { isFullView } = usePerpsDepositView({
+  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
@@ -40,8 +40,12 @@ export function PerpsDeposit() {
               {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
               <PayTokenAmount amountHuman={amountHuman} />
             </Box>
-            {!isKeyboardVisible && (
-              <AlertBanner field={RowAlertKey.PayWith} inline />
+            {!isKeyboardVisible && isPayTokenSelected && (
+              <AlertBanner
+                blockingFields
+                excludeFields={[RowAlertKey.Amount]}
+                inline
+              />
             )}
             <InfoSection>
               <PayWithRow />

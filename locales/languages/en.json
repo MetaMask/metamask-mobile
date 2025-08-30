@@ -56,6 +56,9 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
     },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
+    },
     "no_pay_token_quotes": {
       "title": "We couldn't find any quotes.",
       "message": "Change the amount or select a different token for payment."
