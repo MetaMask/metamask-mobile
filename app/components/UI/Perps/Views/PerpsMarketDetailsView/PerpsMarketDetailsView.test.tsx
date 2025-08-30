@@ -25,7 +25,6 @@ jest.mock('../../providers/PerpsStreamManager');
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
-const mockUsePerpsEligibility = jest.fn();
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -85,9 +84,15 @@ jest.mock('../../hooks/usePerpsAccount', () => ({
   usePerpsAccount: () => mockUsePerpsAccount(),
 }));
 
-// Connect the mock to the function
-jest.mock('../../hooks/usePerpsEligibility', () => ({
-  usePerpsEligibility: () => mockUsePerpsEligibility(),
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
@@ -358,8 +363,16 @@ describe('PerpsMarketDetailsView', () => {
     // Reset navigation mocks
     mockCanGoBack.mockReturnValue(true);
 
-    mockUsePerpsEligibility.mockReturnValue({
-      isEligible: true,
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
 
     // Reset notification feature flag to default
@@ -852,8 +865,15 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Navigation functionality', () => {
     it('navigates to long order screen when long button is pressed and user is eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: true,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
       });
 
       const { getByTestId } = renderWithProvider(
@@ -878,8 +898,15 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('navigates to short order screen when short button is pressed and user is eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: true,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
       });
 
       const { getByTestId } = renderWithProvider(
@@ -933,8 +960,15 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -956,8 +990,15 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows geo block modal when short button is pressed and user is not eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -979,8 +1020,15 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('closes geo block modal when onClose is called', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
       });
 
       const { getByTestId, getByText, queryByText } = renderWithProvider(

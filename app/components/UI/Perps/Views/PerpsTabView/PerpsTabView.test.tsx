@@ -20,8 +20,14 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
 // Mock Redux
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
@@ -86,11 +92,6 @@ jest.mock('../../hooks', () => ({
 // Mock stream hooks separately since they're imported from different path
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveOrders: jest.fn(() => []),
-}));
-
-// Mock usePerpsEligibility hook
-jest.mock('../../hooks/usePerpsEligibility', () => ({
-  usePerpsEligibility: jest.fn(),
 }));
 
 // Mock formatUtils
@@ -169,9 +170,6 @@ describe('PerpsTabView', () => {
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
   const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
-  const mockUsePerpsEligibility = jest.requireMock(
-    '../../hooks/usePerpsEligibility',
-  ).usePerpsEligibility;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -197,13 +195,6 @@ describe('PerpsTabView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-
-    // Mock useSelector for the multichain selector
-    (useSelector as jest.Mock).mockImplementation(() => () => ({
-      address: '0x1234567890123456789012345678901234567890',
-      id: 'mock-account-id',
-      type: 'eip155:eoa',
-    }));
 
     // Default hook mocks
     mockUsePerpsConnection.mockReturnValue({
@@ -234,8 +225,23 @@ describe('PerpsTabView', () => {
 
     mockUsePerpsAccount.mockReturnValue(null);
 
-    mockUsePerpsEligibility.mockReturnValue({
-      isEligible: true,
+    // Default eligibility mock
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      // Handle the multichain selector
+      if (typeof selector === 'function') {
+        return () => ({
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+        });
+      }
+      return undefined;
     });
   });
 
@@ -394,8 +400,22 @@ describe('PerpsTabView', () => {
     });
 
     it('should navigate to balance modal when manage balance is pressed and user is eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: true,
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
       });
 
       render(<PerpsTabView />);
@@ -415,8 +435,22 @@ describe('PerpsTabView', () => {
     });
 
     it('should show geo block modal when manage balance is pressed and user is not eligible', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
       });
 
       render(<PerpsTabView />);
@@ -432,8 +466,22 @@ describe('PerpsTabView', () => {
     });
 
     it('should close geo block modal when onClose is called', () => {
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
       });
 
       render(<PerpsTabView />);
