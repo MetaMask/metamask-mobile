@@ -23,7 +23,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { isNonEvmAddress } from '../../../core/Multichain/utils';
-import { getHasOrders } from '../../../reducers/fiatOrders';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -142,7 +141,6 @@ const ActivityView = () => {
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
-  const hasOrders = useSelector((state) => getHasOrders(state) || false);
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const { enabledNetworks, getNetworkInfo, isDisabled } =
@@ -194,8 +192,7 @@ const ActivityView = () => {
 
   useEffect(
     () => {
-      const title =
-        hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+      const title = 'activity_view.title';
       navigation.setOptions(
         getTransactionsNavbarOptions(
           title,
@@ -207,30 +204,29 @@ const ActivityView = () => {
       );
     },
     /* eslint-disable-next-line */
-    [navigation, hasOrders, colors, selectedAddress, openAccountSelector],
+    [navigation, colors, selectedAddress, openAccountSelector],
   );
 
-  const renderTabBar = () =>
-    hasOrders || isPerpsEnabled ? <TabBar /> : <View />;
+  const renderTabBar = () => <TabBar />;
 
   // Calculate if Perps tab is currently active
   // Perps is the last tab, so its index depends on what other tabs are shown
-  const perpsTabIndex = hasOrders ? 2 : 1;
+  const perpsTabIndex = 2;
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
+  const isOrdersTabActive = activeTabIndex === 1;
 
   useFocusEffect(
     useCallback(() => {
-      if (hasOrders && params.redirectToOrders) {
+      if (params.redirectToOrders) {
         const orderTabNumber = 1;
         navigation.setParams({ redirectToOrders: false });
         tabViewRef.current?.goToPage(orderTabNumber);
       } else if (isPerpsEnabled && params.redirectToPerpsTransactions) {
-        const perpsTabNumber = isPerpsEnabled && hasOrders ? 2 : 1;
+        const perpsTabNumber = isPerpsEnabled ? 2 : 1;
         navigation.setParams({ redirectToPerpsTransactions: false });
         tabViewRef.current?.goToPage(perpsTabNumber);
       }
     }, [
-      hasOrders,
       navigation,
       params.redirectToOrders,
       isPerpsEnabled,
@@ -252,7 +248,7 @@ const ActivityView = () => {
         </Text>
       </View>
       <View style={styles.wrapper}>
-        {!isPerpsTabActive && (
+        {!(isPerpsTabActive || isOrdersTabActive) && (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
@@ -305,7 +301,6 @@ const ActivityView = () => {
         <ScrollableTabView
           ref={tabViewRef}
           renderTabBar={renderTabBar}
-          locked={!hasOrders && !isPerpsEnabled}
           onChangeTab={({ i }) => setActiveTabIndex(i)}
         >
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
@@ -316,11 +311,11 @@ const ActivityView = () => {
           ) : (
             <TransactionsView tabLabel={strings('transactions_view.title')} />
           )}
-          {hasOrders && (
-            <RampOrdersList
-              tabLabel={strings('fiat_on_ramp_aggregator.orders')}
-            />
-          )}
+
+          <RampOrdersList
+            tabLabel={strings('fiat_on_ramp_aggregator.orders')}
+          />
+
           {isPerpsEnabled && (
             <PerpsConnectionProvider
               tabLabel={strings('perps.transactions.title')}

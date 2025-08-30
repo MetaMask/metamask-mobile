@@ -1208,7 +1208,9 @@ exports[`OrdersList renders correctly 1`] = `
           }
         }
         variant="sHeadingMD"
-      />
+      >
+        You don't have any orders
+      </Text>
     </Row>
   }
   ListHeaderComponent={
@@ -3936,7 +3938,9 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           }
         }
         variant="sHeadingMD"
-      />
+      >
+        You don't have any orders
+      </Text>
     </Row>
   }
   ListHeaderComponent={
