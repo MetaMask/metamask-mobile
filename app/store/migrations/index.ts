@@ -98,6 +98,7 @@ import migration94 from './094';
 import migration95 from './095';
 import migration96 from './096';
 import migration97 from './097';
+import migration98 from './098';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -212,6 +213,7 @@ export const migrationList: MigrationsList = {
   95: migration95,
   96: migration96,
   97: migration97,
+  98: migration98,
 };
 
 // Enable both synchronous and asynchronous migrations
