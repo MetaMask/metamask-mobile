@@ -5,12 +5,15 @@ import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 
-// Create mock functions that can be modified during tests
-const mockUsePerpsEligibility = jest.fn();
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
 
-// Mock usePerpsEligibility hook
-jest.mock('../../hooks/usePerpsEligibility', () => ({
-  usePerpsEligibility: () => mockUsePerpsEligibility(),
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 // Mock PerpsBottomSheetTooltip
@@ -67,8 +70,15 @@ describe('PerpsOpenOrderCard', () => {
     jest.clearAllMocks();
 
     // Default eligibility mock
-    mockUsePerpsEligibility.mockReturnValue({
-      isEligible: true,
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
   });
 
@@ -215,8 +225,15 @@ describe('PerpsOpenOrderCard', () => {
   describe('User Interactions', () => {
     it('calls onCancel when cancel button is pressed and user is eligible', () => {
       // Arrange
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: true,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
       });
 
       render(
@@ -264,8 +281,15 @@ describe('PerpsOpenOrderCard', () => {
 
     it('shows geo block modal when cancel button is pressed and user is not eligible', () => {
       // Arrange
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
       });
 
       render(
@@ -289,8 +313,15 @@ describe('PerpsOpenOrderCard', () => {
 
     it('closes geo block modal when onClose is called', () => {
       // Arrange
-      mockUsePerpsEligibility.mockReturnValue({
-        isEligible: false,
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
       });
 
       render(

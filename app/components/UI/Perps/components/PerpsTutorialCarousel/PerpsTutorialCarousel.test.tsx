@@ -63,7 +63,17 @@ jest.mock('react-native-safe-area-context', () => ({
 const mockMarkTutorialCompleted = jest.fn();
 const mockTrack = jest.fn();
 const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
-const mockUsePerpsEligibility = jest.fn();
+
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../../hooks', () => ({
   usePerpsFirstTimeUser: () => ({
@@ -78,10 +88,6 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({
     track: mockTrack,
   }),
-}));
-
-jest.mock('../../hooks/usePerpsEligibility', () => ({
-  usePerpsEligibility: () => mockUsePerpsEligibility(),
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -141,8 +147,15 @@ describe('PerpsTutorialCarousel', () => {
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
 
     // Default to eligible user
-    mockUsePerpsEligibility.mockReturnValue({
-      isEligible: true,
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
     });
   });
 
@@ -441,8 +454,15 @@ describe('PerpsTutorialCarousel', () => {
   describe('Eligibility-based Rendering', () => {
     describe('Eligible Users', () => {
       beforeEach(() => {
-        mockUsePerpsEligibility.mockReturnValue({
-          isEligible: true,
+        const { useSelector } = jest.requireMock('react-redux');
+        const mockSelectPerpsEligibility = jest.requireMock(
+          '../../selectors/perpsController',
+        ).selectPerpsEligibility;
+        useSelector.mockImplementation((selector: unknown) => {
+          if (selector === mockSelectPerpsEligibility) {
+            return true;
+          }
+          return undefined;
         });
       });
 
@@ -539,8 +559,15 @@ describe('PerpsTutorialCarousel', () => {
 
     describe('Non-eligible Users', () => {
       beforeEach(() => {
-        mockUsePerpsEligibility.mockReturnValue({
-          isEligible: false,
+        const { useSelector } = jest.requireMock('react-redux');
+        const mockSelectPerpsEligibility = jest.requireMock(
+          '../../selectors/perpsController',
+        ).selectPerpsEligibility;
+        useSelector.mockImplementation((selector: unknown) => {
+          if (selector === mockSelectPerpsEligibility) {
+            return false;
+          }
+          return undefined;
         });
       });
 
