@@ -206,11 +206,12 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ],
           iconName: IconName.CheckBold,
           iconColor: IconColor.Success,
-          hasNoTimeout: true,
+          hasNoTimeout: false,
           closeButtonOptions: {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
             onPress: () => toastRef?.current?.closeToast(),
+            testID: 'perps-order-success-toast-dismiss-button',
           },
         });
       },
@@ -806,9 +807,35 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
 
-          {/* Combined TP/SL row */}
+          {/* Take profit */}
+          <View style={styles.detailItem}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={PerpsOrderViewSelectorsIDs.TAKE_PROFIT_BUTTON}
+            >
+              <ListItem>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodyLGMedium}>
+                    {strings('perps.order.take_profit')}
+                  </Text>
+                </ListItemColumn>
+                <ListItemColumn widthType={WidthType.Auto}>
+                  <Text variant={TextVariant.BodyLGMedium}>
+                    {orderForm.takeProfitPrice
+                      ? formatPrice(orderForm.takeProfitPrice)
+                      : strings('perps.order.off')}
+                  </Text>
+                </ListItemColumn>
+              </ListItem>
+            </TouchableOpacity>
+          </View>
+
+          {/* Stop loss */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>

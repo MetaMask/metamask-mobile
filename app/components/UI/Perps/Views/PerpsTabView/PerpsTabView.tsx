@@ -44,6 +44,7 @@ import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsTabViewProps {}
 
@@ -205,6 +206,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             size={ButtonSize.Lg}
             label={strings('perps.position.list.start_trading')}
             onPress={handleStartTrading}
+            testID={PerpsTabViewSelectorsIDs.ONBOARDING_BUTTON}
             style={styles.startTradingButton}
             width={ButtonWidthTypes.Full}
           />
