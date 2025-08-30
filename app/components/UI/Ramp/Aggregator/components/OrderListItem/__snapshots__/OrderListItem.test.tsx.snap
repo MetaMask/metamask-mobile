@@ -110,9 +110,9 @@ exports[`OrderListItem should render correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -133,20 +133,18 @@ exports[`OrderListItem should render correctly 1`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -361,9 +359,9 @@ exports[`OrderListItem should render correctly 2`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -384,20 +382,18 @@ exports[`OrderListItem should render correctly 2`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -612,9 +608,9 @@ exports[`OrderListItem should render correctly 3`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -635,20 +631,18 @@ exports[`OrderListItem should render correctly 3`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -863,9 +857,9 @@ exports[`OrderListItem should render correctly 4`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -886,20 +880,18 @@ exports[`OrderListItem should render correctly 4`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -1114,9 +1106,9 @@ exports[`OrderListItem should render correctly 5`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1137,20 +1129,18 @@ exports[`OrderListItem should render correctly 5`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -1365,9 +1355,9 @@ exports[`OrderListItem should render correctly 6`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1388,20 +1378,18 @@ exports[`OrderListItem should render correctly 6`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -1616,9 +1604,9 @@ exports[`OrderListItem should render correctly 7`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1639,20 +1627,18 @@ exports[`OrderListItem should render correctly 7`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
@@ -1867,9 +1853,9 @@ exports[`OrderListItem should render correctly 8`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f3f5f9",
+                  "backgroundColor": "#ffffff",
                   "borderColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
@@ -1890,20 +1876,18 @@ exports[`OrderListItem should render correctly 8`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
                 style={
                   {
-                    "color": "#121314",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "height": 32,
+                    "width": 32,
                   }
                 }
-              >
-                ?
-              </Text>
+                testID="network-avatar-image"
+              />
             </View>
           </View>
         </View>
