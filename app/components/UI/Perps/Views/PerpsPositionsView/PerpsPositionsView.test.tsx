@@ -56,6 +56,13 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+// Mock usePerpsEligibility hook
+jest.mock('../../hooks/usePerpsEligibility', () => ({
+  usePerpsEligibility: jest.fn(() => ({
+    isEligible: true,
+  })),
+}));
+
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),

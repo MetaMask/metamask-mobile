@@ -5,6 +5,30 @@ import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/
 import PerpsOpenOrderCard from './PerpsOpenOrderCard';
 import type { Order } from '../../controllers/types';
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
+// Mock react-redux
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+// Mock PerpsBottomSheetTooltip
+jest.mock('../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip', () => ({
+  __esModule: true,
+  default: ({ onClose, testID }: { onClose: () => void; testID: string }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onClose}>
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
+    );
+  },
+}));
+
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
@@ -44,6 +68,18 @@ describe('PerpsOpenOrderCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Default eligibility mock
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      return undefined;
+    });
   });
 
   describe('Component Rendering', () => {
@@ -187,7 +223,19 @@ describe('PerpsOpenOrderCard', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onCancel when cancel button is pressed', () => {
+    it('calls onCancel when cancel button is pressed and user is eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+
       render(
         <PerpsOpenOrderCard
           order={mockOrder}
@@ -229,6 +277,74 @@ describe('PerpsOpenOrderCard', () => {
       );
       // Check that the button has disabled prop
       expect(cancelButton.props.disabled).toBe(true);
+    });
+
+    it('shows geo block modal when cancel button is pressed and user is not eligible', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Assert - Geo block tooltip should be shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      // Assert - onCancel should not be called
+      expect(mockOnCancel).not.toHaveBeenCalled();
+    });
+
+    it('closes geo block modal when onClose is called', () => {
+      // Arrange
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        return undefined;
+      });
+
+      render(
+        <PerpsOpenOrderCard
+          order={mockOrder}
+          onCancel={mockOnCancel}
+          expanded
+        />,
+      );
+
+      // Press cancel button to show geo block modal
+      fireEvent.press(
+        screen.getByTestId(PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      // Verify modal is shown
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // Press the geo block tooltip to close it
+      fireEvent.press(screen.getByText('Geo Block Tooltip'));
+
+      // Assert - Geo block tooltip should be closed
+      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
     });
   });
 

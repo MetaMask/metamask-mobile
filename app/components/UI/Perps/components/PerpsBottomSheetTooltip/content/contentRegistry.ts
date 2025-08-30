@@ -22,7 +22,7 @@ export const tooltipContentRegistry: ContentRegistry = {
   margin: undefined,
   open_interest: undefined,
   funding_rate: undefined,
-  perps_geo_block: undefined,
+  geo_block: undefined,
   estimated_pnl: undefined, // Uses default string content
   limit_price: undefined, // Uses default string content
   tp_sl: undefined,

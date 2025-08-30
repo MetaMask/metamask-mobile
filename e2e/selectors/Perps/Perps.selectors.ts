@@ -239,6 +239,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-market-details-geo-block-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -392,4 +394,13 @@ export const PerpsMarketTabsSelectorsIDs = {
   // Loading states
   SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
   SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
+};
+
+// ========================================
+// PERPS TAB VIEW SELECTORS
+// ========================================
+
+export const PerpsTabViewSelectorsIDs = {
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
 };

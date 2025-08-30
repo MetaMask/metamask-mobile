@@ -36,7 +36,7 @@ export type PerpsTooltipContentKey =
   | 'receive'
   | 'open_interest'
   | 'funding_rate'
-  | 'perps_geo_block'
+  | 'geo_block'
   | 'estimated_pnl'
   | 'limit_price'
   | 'tp_sl';
