@@ -8,6 +8,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
+import { DepositOrderType } from '@consensys/native-ramps-sdk';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {
@@ -164,6 +165,24 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     cryptocurrency: 'ETH',
     currency: 'USD',
     network: '1',
+    data: {
+      cryptoCurrency: {
+        decimals: 18,
+        name: 'Ethereum',
+        symbol: 'ETH',
+      },
+      provider: {
+        name: 'Test Provider',
+      },
+    },
+  },
+  {
+    orderType: 'DEPOSIT' as DepositOrderType,
+    state: FIAT_ORDER_STATES.PENDING,
+    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+    cryptocurrency: 'ETH',
+    currency: 'USD',
+    network: 'eip155:1',
     data: {
       cryptoCurrency: {
         decimals: 18,
