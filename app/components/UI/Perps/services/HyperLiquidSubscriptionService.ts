@@ -76,10 +76,10 @@ export class HyperLiquidSubscriptionService {
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
   private accountSubscriberCount = 0;
+
   private cachedPositions: Position[] | null = null;
   private cachedOrders: Order[] | null = null;
   private cachedAccount: AccountState | null = null;
-
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
@@ -349,10 +349,7 @@ export class HyperLiquidSubscriptionService {
 
           // Only notify position subscribers on first update (when cachedPositions is null) or when data changes
           // This prevents repeated notifications when positions remain empty
-          const shouldNotifyPositions =
-            positionsChanged || this.cachedPositions === null; // Only notify if we haven't sent initial data yet
-
-          if (shouldNotifyPositions) {
+          if (positionsChanged) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
               callback(positionsWithTPSL);
@@ -360,10 +357,7 @@ export class HyperLiquidSubscriptionService {
           }
 
           // Only notify order subscribers on first update (when cachedOrders is null) or when data changes
-          const shouldNotifyOrders =
-            ordersChanged || this.cachedOrders === null; // Only notify if we haven't sent initial data yet
-
-          if (shouldNotifyOrders) {
+          if (ordersChanged) {
             this.cachedOrders = orders;
             this.orderSubscribers.forEach((callback) => {
               callback(orders);
@@ -433,7 +427,7 @@ export class HyperLiquidSubscriptionService {
     this.positionSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedPositions && this.cachedPositions.length > 0) {
+    if (this.cachedPositions) {
       callback(this.cachedPositions);
     }
 
@@ -537,7 +531,7 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedOrders && this.cachedOrders.length > 0) {
+    if (this.cachedOrders) {
       callback(this.cachedOrders);
     }
 
