@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Kirim",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Sesuai abjad (A-Z)",
     "add_to_get_started": "Tambahkan kripto untuk memulai",
     "token_is_needed_to_continue": "{{tokenSymbol}} diperlukan untuk melanjutkan",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Berikutnya",
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Situs ini tidak dapat digunakan bersama dengan jaringan Anda saat ini. Tambahkan izin jaringan atau pilih jaringan yang sudah diizinkan.",
     "edit_permissions": "Edit izin",
     "permitted_networks_info_sheet_description": "Ini merupakan daftar jaringan yang sebelumnya telah Anda beri izin untuk digunakan di situs ini. Pilih satu dari daftar atau edit izin jaringan untuk situs ini.",
-    "connect_an_account": "Hubungkan akun"
+    "connect_an_account": "Hubungkan akun",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Hubungkan situs web ini dengan MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Nama Dompet",
       "balance": "Saldo",
       "create_account": "Buat akun",
+      "creating_account": "Creating account...",
       "back_up": "Cadangkan",
       "reveal_recovery_phrase_with_index": "Tampilkan Frasa Pemulihan {{index}}"
     },

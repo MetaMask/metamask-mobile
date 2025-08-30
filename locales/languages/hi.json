@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "भेजें",
@@ -1499,6 +1500,8 @@
     "alphabetically": "वर्णानुक्रम में (A-Z)",
     "add_to_get_started": "शुरू करने के लिए क्रिप्टो जोड़ें",
     "token_is_needed_to_continue": "जारी रखने के लिए {{tokenSymbol}} की आवश्यकता है",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "आगे",
     "buy_asset": "{{asset}} खरीदें",
     "no_tokens": "आपके पास कोई टोकन नहीं है!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "इस साइट का उपयोग आपके वर्तमान नेटवर्क के साथ नहीं किया जा सकता। नेटवर्क अनुमतियाँ जोड़ें या पहले से अनुमत नेटवर्क चुनें।",
     "edit_permissions": "अनुमतियाँ बदलें",
     "permitted_networks_info_sheet_description": "यह उन नेटवर्कों की सूची है जिन्हें आपने पहले इस साइट पर उपयोग करने की अनुमति दी है। सूची में से किसी एक का चयन करें या इस साइट के लिए नेटवर्क अनुमतियाँ बदलें।",
-    "connect_an_account": "किसी अकाउंट को कनेक्ट करें"
+    "connect_an_account": "किसी अकाउंट को कनेक्ट करें",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "इस वेबसाइट को MetaMask से जोड़ें"
@@ -5365,6 +5369,7 @@
       "wallet_name": "वॉलेट का नाम",
       "balance": "बैलेंस",
       "create_account": "अकाउंट बनाएं",
+      "creating_account": "Creating account...",
       "back_up": "बैक अप लें",
       "reveal_recovery_phrase_with_index": "रिकवरी फ्रेज़ दिखाएं {{index}}"
     },

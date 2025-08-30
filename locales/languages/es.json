@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Enviar",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Alfabéticamente (A-Z)",
     "add_to_get_started": "Agregue cripto para comenzar",
     "token_is_needed_to_continue": "Se necesita {{tokenSymbol}} para continuar",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Siguiente",
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "No tiene ningún token.",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Este sitio no se puede utilizar con su red actual. Agregue permisos de red o elija una red ya permitida.",
     "edit_permissions": "Editar permisos",
     "permitted_networks_info_sheet_description": "Esta es una lista de redes a las que previamente ha concedido permisos de uso en este sitio. Seleccione una de la lista o edite los permisos de red para este sitio.",
-    "connect_an_account": "Conectar una cuenta"
+    "connect_an_account": "Conectar una cuenta",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Conectar este sitio web con MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Nombre de la billetera",
       "balance": "Saldo",
       "create_account": "Crear cuenta",
+      "creating_account": "Creating account...",
       "back_up": "Respaldo",
       "reveal_recovery_phrase_with_index": "Revelar la frase de recuperación {{index}}"
     },

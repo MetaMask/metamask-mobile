@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "送信",
@@ -1499,6 +1500,8 @@
     "alphabetically": "アルファベット順 (A～Z)",
     "add_to_get_started": "開始するには仮想通貨を追加してください",
     "token_is_needed_to_continue": "続けるには{{tokenSymbol}}が必要です",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "次へ",
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "このサイトは現在のネットワークでは使用できません。ネットワークのアクセス許可を追加するか、すでに許可されているネットワークを選択してください。",
     "edit_permissions": "アクセス許可を編集",
     "permitted_networks_info_sheet_description": "これは、以前このサイトで使用するためにアクセス許可を与えたネットワークのリストです。このリストから1つ選択するか、このサイトへのネットワークのアクセス許可を編集してください。",
-    "connect_an_account": "アカウントを接続"
+    "connect_an_account": "アカウントを接続",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "このWebサイトをMetaMaskに接続します"
@@ -5365,6 +5369,7 @@
       "wallet_name": "ウォレット名",
       "balance": "残高",
       "create_account": "アカウントを作成",
+      "creating_account": "Creating account...",
       "back_up": "バックアップ",
       "reveal_recovery_phrase_with_index": "リカバリーフレーズ{{index}}を確認"
     },

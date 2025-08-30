@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Ipadala",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Paalpabeto (A-Z)",
     "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
     "token_is_needed_to_continue": "Kinakailangan ng {{tokenSymbol}} para makapagpatuloy",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Susunod",
     "buy_asset": "Bumili ng {{asset}}",
     "no_tokens": "Wala kang anumang token!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Hindi magagamit ang site na ito sa kasalukuyan mong network. Magdagdag ng mga pahintulot sa network o pumili ng dati nang pinahihintulutang network.",
     "edit_permissions": "Mag-edit ng mga pahintulot",
     "permitted_networks_info_sheet_description": "Isa itong listahan ng mga network na binigyan mo ng mga pahintulot na gamitin sa site na ito. Pumili ng isa mula sa listahan o i-edit ang mga pahintulot sa network para sa site na ito.",
-    "connect_an_account": "Magkonekta ng account"
+    "connect_an_account": "Magkonekta ng account",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Ikonekta ang website na ito sa MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Pangalan ng Wallet",
       "balance": "Balanse",
       "create_account": "Gumawa ng account",
+      "creating_account": "Creating account...",
       "back_up": "Mag-back up",
       "reveal_recovery_phrase_with_index": "Ipakita ang Parirala ng Pagbawi (Recovery Phrase) {{index}}"
     },

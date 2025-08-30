@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "发送",
@@ -1499,6 +1500,8 @@
     "alphabetically": "按字母顺序（A-Z）",
     "add_to_get_started": "请添加加密货币以开始",
     "token_is_needed_to_continue": "需要 {{tokenSymbol}} 以继续",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "下一步",
     "buy_asset": "买入 {{asset}}",
     "no_tokens": "您没有任何代币！",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "此网站无法与您当前的网络一起使用。请添加网络许可或选择已经获得许可的网络。",
     "edit_permissions": "编辑许可",
     "permitted_networks_info_sheet_description": "这是您以前在此网站上授予使用许可的网络列表。从列表中选择一个或编辑此网站的网络许可。",
-    "connect_an_account": "连接账户"
+    "connect_an_account": "连接账户",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "使用 MetaMask 连接此网站"
@@ -5365,6 +5369,7 @@
       "wallet_name": "钱包名称",
       "balance": "余额",
       "create_account": "创建账户",
+      "creating_account": "Creating account...",
       "back_up": "备份",
       "reveal_recovery_phrase_with_index": "显示私钥助记词 {{index}}"
     },

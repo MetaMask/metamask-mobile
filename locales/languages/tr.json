@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Gönder",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Alfabetik olarak (A-Z)",
     "add_to_get_started": "Başlamak için kripto ekleyin",
     "token_is_needed_to_continue": "Devam etmek için {{tokenSymbol}} gerekli",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Sonraki",
     "buy_asset": "{{asset}} satın alın",
     "no_tokens": "Tokeniniz yok!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Bu site geçerli ağınızla kullanılamaz. Ağ izinlerini ekleyin veya halihazırda izin verilmiş bir ağı seçin.",
     "edit_permissions": "İzinleri düzenle",
     "permitted_networks_info_sheet_description": "Bu, daha önce bu sitede kullanılmasına izin verdiğiniz ağların bir listesidir. Listeden bir ağı seçin veya bu site için ağ izinlerinin düzenleyin.",
-    "connect_an_account": "Bir hesabı bağla"
+    "connect_an_account": "Bir hesabı bağla",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Bu web sitesini MetaMask'e bağla"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Cüzdan Adı",
       "balance": "Bakiye",
       "create_account": "Hesap oluştur",
+      "creating_account": "Creating account...",
       "back_up": "Yedekle",
       "reveal_recovery_phrase_with_index": "Kurtarma İfadesini göster {{index}}"
     },

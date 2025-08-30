@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Отправить",
@@ -1499,6 +1500,8 @@
     "alphabetically": "По алфавиту (A-Z/А-Я)",
     "add_to_get_started": "Добавьте криптовалюту, чтобы начать",
     "token_is_needed_to_continue": "{{tokenSymbol}} необходимый для продолжения",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Далее",
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "Этот сайт нельзя использовать в вашей текущей сети. Добавьте сетевые разрешения или выберите уже разрешенную сеть.",
     "edit_permissions": "Изменить разрешения",
     "permitted_networks_info_sheet_description": "Это список сетей, которым вы ранее предоставили разрешения на использование на этом сайте. Выберите один из списка или измените сетевые разрешения для этого сайта.",
-    "connect_an_account": "Подключить счет"
+    "connect_an_account": "Подключить счет",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Подключить этот сайт к MetaMask"
@@ -5365,6 +5369,7 @@
       "wallet_name": "Название кошелька",
       "balance": "Баланс",
       "create_account": "Создать счет",
+      "creating_account": "Creating account...",
       "back_up": "Создать резервную копию",
       "reveal_recovery_phrase_with_index": "Показать фразу для восстановления {{index}}"
     },

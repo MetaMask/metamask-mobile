@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "보내기",
@@ -1499,6 +1500,8 @@
     "alphabetically": "알파벳순(A-Z)",
     "add_to_get_started": "암호화폐를 추가하여 시작하세요",
     "token_is_needed_to_continue": "계속하려면 {{tokenSymbol}}이(가) 필요합니다",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "다음",
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "현재 네트워크에서는 이 사이트를 사용할 수 없습니다. 네트워크 권한을 추가하거나 이미 허용된 네트워크를 선택하세요.",
     "edit_permissions": "권한 수정",
     "permitted_networks_info_sheet_description": "이는 이전에 이 사이트에서 사용할 수 있는 권한을 부여한 네트워크 목록입니다. 목록에서 한 사이트를 선택하거나 이 사이트에 대한 네트워크 권한을 수정하세요.",
-    "connect_an_account": "계정 연결"
+    "connect_an_account": "계정 연결",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "이 웹사이트를 MetaMask와 연결"
@@ -5365,6 +5369,7 @@
       "wallet_name": "지갑 이름",
       "balance": "잔액",
       "create_account": "계정 만들기",
+      "creating_account": "Creating account...",
       "back_up": "백업",
       "reveal_recovery_phrase_with_index": "복구구문 {{index}} 공개"
     },
