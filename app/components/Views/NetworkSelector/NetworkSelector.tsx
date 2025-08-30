@@ -373,7 +373,8 @@ const NetworkSelector = () => {
     origin,
     selectedChainId,
     selectedNetworkName,
-    dismissModal: () => sheetRef.current?.dismissModal(),
+    dismissModal: () =>
+      !isSendFlow ? sheetRef.current?.dismissModal() : undefined,
     closeRpcModal,
     parentSpan,
   });
@@ -396,7 +397,7 @@ const NetworkSelector = () => {
       return (
         <Cell
           key={chainId}
-          variant={CellVariant.SelectWithMenu}
+          variant={isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu}
           title={name}
           secondaryText={
             showRpcSelector
@@ -463,7 +464,7 @@ const NetworkSelector = () => {
       return (
         <Cell
           key={chainId}
-          variant={CellVariant.SelectWithMenu}
+          variant={isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu}
           title={name}
           avatarProps={{
             variant: AvatarVariant.Network,
@@ -546,7 +547,9 @@ const NetworkSelector = () => {
         return (
           <Cell
             key={chainId}
-            variant={CellVariant.SelectWithMenu}
+            variant={
+              isSendFlow ? CellVariant.Select : CellVariant.SelectWithMenu
+            }
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
@@ -897,12 +900,13 @@ const NetworkSelector = () => {
         !isSendFlow && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
-      {isNetworkUiRedesignEnabled() &&
+      {!isSendFlow &&
+        isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}
-      {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
-      {searchString.length === 0 && renderTestNetworksSwitch()}
-      {showTestNetworks && renderOtherNetworks()}
+      {!isSendFlow && isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
+      {!isSendFlow && searchString.length === 0 && renderTestNetworksSwitch()}
+      {!isSendFlow && showTestNetworks && renderOtherNetworks()}
       {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
     </>
   );
@@ -937,15 +941,17 @@ const NetworkSelector = () => {
           >
             {renderBottomSheetContent()}
           </ScrollView>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings(buttonLabelAddNetwork)}
-            onPress={goToNetworkSettings}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.addNetworkButton}
-            testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-          />
+          {!isSendFlow ? (
+            <Button
+              variant={ButtonVariants.Secondary}
+              label={strings(buttonLabelAddNetwork)}
+              onPress={goToNetworkSettings}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
+              style={styles.addNetworkButton}
+              testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
+            />
+          ) : null}
         </KeyboardAvoidingView>
 
         {showWarningModal ? (
