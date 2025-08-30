@@ -16,7 +16,7 @@ import {
   validateRpcEndpoint,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
-import { getDecimalChainId } from '../../util/networks';
+import { getDecimalChainId, getPersistentNetworks } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { addItemToChainIdList } from '../../util/metrics/MultichainAPI/networkMetricUtils';
 
@@ -113,8 +113,9 @@ export const wallet_addEthereumChain = async ({
   };
 
   //TODO: Remove aurora from default chains in @metamask/controller-utils
-  const actualChains = { ...ChainId, aurora: undefined };
-  if (Object.values(actualChains).find((value) => value === chainId)) {
+  if (
+    Object.values(getPersistentNetworks()).find((value) => value === chainId)
+  ) {
     throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
   const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
