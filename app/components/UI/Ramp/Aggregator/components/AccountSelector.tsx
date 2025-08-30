@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import SelectorButton from '../../../../Base/SelectorButton';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
@@ -17,8 +16,8 @@ import { useAccountName } from '../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { formatAddress } from '../../../../../util/address';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
-import { type RootState } from '../../../../../reducers';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { selectAvatarStyle } from '../../../../../selectors/settings';
 
 const styles = StyleSheet.create({
   selector: {
@@ -38,11 +37,7 @@ const AccountSelector = () => {
   );
   const accountName = useAccountName();
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const selectedFormattedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,

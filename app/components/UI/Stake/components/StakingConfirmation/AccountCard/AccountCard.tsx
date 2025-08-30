@@ -17,9 +17,9 @@ import AccountTag from '../AccountTag/AccountTag';
 import { selectNetworkName } from '../../../../../../selectors/networkInfos';
 import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
-import { RootState } from '../../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
 import { EVM_SCOPE } from '../../../../Earn/constants/networks';
+import { selectAvatarStyle } from '../../../../../../selectors/settings';
 
 const AccountCard = ({
   contractName,
@@ -35,9 +35,7 @@ const AccountCard = ({
 
   const networkName = useSelector(selectNetworkName);
 
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarStyle = useSelector(selectAvatarStyle);
 
   const { vaultMetadata } = useVaultMetadata(chainId);
 
@@ -52,7 +50,7 @@ const AccountCard = ({
                 <AccountTag
                   accountAddress={selectedAccount?.address}
                   accountName={selectedAccount.metadata.name}
-                  useBlockieIcon={useBlockieIcon}
+                  avatarStyle={avatarStyle}
                 />
               ),
             }}
@@ -67,7 +65,7 @@ const AccountCard = ({
               <ContractTag
                 contractAddress={vaultMetadata?.vaultAddress ?? contractName}
                 contractName={contractName}
-                useBlockieIcon={useBlockieIcon}
+                avatarStyle={avatarStyle}
               />
             ),
           }}

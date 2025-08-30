@@ -26,6 +26,7 @@ import { RootState } from '../../../../../../reducers';
 import { INTERNAL_ORIGINS } from '../../../../../../constants/transaction';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
+import { selectAvatarStyle } from '../../../../../../selectors/settings';
 
 const ApproveTransactionHeader = ({
   chainId,
@@ -62,9 +63,7 @@ const ApproveTransactionHeader = ({
 
   const networkName = networkConfiguration?.name;
 
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarStyle = useSelector(selectAvatarStyle);
 
   useEffect(() => {
     const accountNameVal = activeAddress
@@ -105,7 +104,7 @@ const ApproveTransactionHeader = ({
           name: networkName,
           imageSource: networkImage,
         }}
-        useBlockieIcon={useBlockieIcon}
+        avatarStyle={avatarStyle}
       />
     </View>
   );

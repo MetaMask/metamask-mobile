@@ -6,6 +6,7 @@ import {
   TEST_ACCOUNT_ADDRESS,
   BADGE_PROPS,
 } from '../AccountBalance/AccountBalance.constants';
+import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 
 describe('AccountBase', () => {
   it('should render AccountBase', () => {
@@ -18,7 +19,7 @@ describe('AccountBase', () => {
         accountBalanceLabel={''}
         accountAddress={TEST_ACCOUNT_ADDRESS}
         badgeProps={BADGE_PROPS}
-        useBlockieIcon={false}
+        avatarStyle={AvatarAccountType.Maskicon}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(

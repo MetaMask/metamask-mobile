@@ -87,6 +87,7 @@ jest.mock('../../hooks/useMetrics/useMetrics', () => ({
 
 import WC2ManagerMock from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { DevLogger as DevLoggerMock } from '../../../../app/core/SDKConnect/utils/DevLogger';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../lib/ppom/PPOMView', () => ({ PPOMView: () => null }));
 
@@ -613,7 +614,7 @@ describe('App', () => {
         userLoggedIn: true,
       },
       settings: {
-        useBlockieIcon: true,
+        avatarStyle: AvatarAccountType.Maskicon,
       },
       engine: {
         ...initialState.engine,
