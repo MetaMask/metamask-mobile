@@ -122,6 +122,7 @@ class BuildQuoteView {
         elemDescription: 'Amount Input in Build Quote View',
       },
     );
+    await device.disableSynchronization();
     // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let digit = 0; digit < amount.length; digit++) {
       const numberButton = Matchers.getElementByText(amount[digit]);
@@ -129,6 +130,7 @@ class BuildQuoteView {
         elemDescription: `Number Button (${amount[digit]}) in Build Quote View`,
       });
     }
+    await device.enableSynchronization();
     await Gestures.waitAndTap(
       Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON),
       {
@@ -184,11 +186,13 @@ class BuildQuoteView {
         elemDescription: 'Amount Input in Build Quote View',
       },
     );
+    await device.disableSynchronization();
     for (let i = 0; i < times; i++) {
       await Gestures.waitAndTap(this.keypadDeleteButton, {
         elemDescription: `Keypad Delete Button (${i + 1}) in Build Quote View`,
       });
     }
+    await device.enableSynchronization();
   }
 
   async tapQuickAmount25() {

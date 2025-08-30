@@ -8,7 +8,6 @@ export async function submitSwapUnifiedUI(
   destTokenSymbol: string,
   chainId: string,
 ) {
-  await device.disableSynchronization();
   await Assertions.expectElementToBeVisible(QuoteView.selectAmountLabel);
   await QuoteView.enterAmount(quantity);
   if (sourceTokenSymbol !== 'ETH') {
