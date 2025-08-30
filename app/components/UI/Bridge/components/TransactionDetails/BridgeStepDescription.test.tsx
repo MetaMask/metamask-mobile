@@ -354,6 +354,7 @@ describe('BridgeStepDescription', () => {
         bridgeId: 'test-bridge-id',
         bridges: [],
         steps: [],
+        minDestTokenAmount: '0',
       },
       txMetaId: 'test-tx-meta-id',
       estimatedProcessingTimeInSeconds: 0,
