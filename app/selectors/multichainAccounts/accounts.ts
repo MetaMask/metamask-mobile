@@ -13,8 +13,14 @@ import { AccountId } from '@metamask/accounts-controller';
 import { EthAccountType } from '@metamask/keyring-api';
 
 import { createDeepEqualSelector } from '../util';
-import { selectAccountTreeControllerState } from './accountTreeController';
-import { selectInternalAccountsById } from '../accountsController';
+import {
+  selectAccountTreeControllerState,
+  selectAccountGroups,
+} from './accountTreeController';
+import {
+  selectInternalAccountsById,
+  selectInternalAccountByAddresses,
+} from '../accountsController';
 import {
   type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
@@ -299,3 +305,31 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
       };
     },
   );
+
+/**
+ * Selector to get account groups by a list of addresses.
+ * Returns groups that contain at least one account matching any of the provided addresses.
+ *
+ * @param state - The Redux root state
+ * @param addresses - Array of account addresses to match
+ * @returns Array of account groups
+ */
+export const selectAccountGroupsByAddress = createDeepEqualSelector(
+  [selectInternalAccountByAddresses, selectAccountGroups],
+  (getAccountsByAddress, accountGroups) => (addresses: string[]) => {
+    const accounts = getAccountsByAddress(addresses);
+    if (accounts.length === 0) {
+      return [];
+    }
+
+    // Store account IDs in a Set for O(1) lookups
+    const accountIdsSet = new Set(accounts.map((account) => account.id));
+
+    // Filter account groups that have at least one account ID in the Set
+    const groups = accountGroups.filter((group) =>
+      group.accounts.some((accountId) => accountIdsSet.has(accountId)),
+    );
+
+    return groups;
+  },
+);
