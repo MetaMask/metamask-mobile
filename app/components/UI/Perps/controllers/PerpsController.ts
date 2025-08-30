@@ -417,10 +417,6 @@ export class PerpsController extends BaseController<
       perpsGeoBlockedRegionsFeatureFlag as { blockedRegions?: string[] }
     )?.blockedRegions;
 
-    // Determine effective blocked regions:
-    // 1. If remote returns undefined/null, use fallback
-    // 2. If remote returns empty array [], respect it (all regions allowed)
-    // 3. If remote returns populated array, use it
     let effectiveBlockedRegions: string[];
 
     // User is blocked by default if both remote and local region lists are undefined
