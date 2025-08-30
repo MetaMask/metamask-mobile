@@ -97,88 +97,91 @@ export const BaseAccountDetails = ({
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
-        <Box
-          flexDirection={FlexDirection.Row}
-          justifyContent={JustifyContent.center}
-          style={styles.avatar}
-        >
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Xl}
-            accountAddress={account.address}
-            type={accountAvatarType}
-          />
+        <Box gap={24}>
+          <Box
+            flexDirection={FlexDirection.Row}
+            justifyContent={JustifyContent.center}
+          >
+            <Avatar
+              variant={AvatarVariant.Account}
+              size={AvatarSize.Xl}
+              accountAddress={account.address}
+              type={accountAvatarType}
+            />
+          </Box>
+          <Box style={styles.section}>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
+              onPress={handleEditAccountName}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.account_name')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {account.metadata.name}
+                </Text>
+                <Icon
+                  name={IconName.Edit}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
+              onPress={handleShareAddress}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.account_address')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {formatAddress(account.address, 'short')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.baseRow}
+              testID={AccountDetailsIds.WALLET_NAME_LINK}
+              onPress={handleWalletClick}
+            >
+              <Text variant={TextVariant.BodyMDMedium}>
+                {strings('multichain_accounts.account_details.wallet')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={8}
+              >
+                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                  {wallet?.metadata.name}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+              </Box>
+            </TouchableOpacity>
+          </Box>
+          <Box style={styles.section}>{children}</Box>
         </Box>
-        <TouchableOpacity
-          style={styles.accountName}
-          testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
-          onPress={handleEditAccountName}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.account_name')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {account.metadata.name}
-            </Text>
-            <Icon
-              name={IconName.Edit}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.accountAddress}
-          testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
-          onPress={handleShareAddress}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.account_address')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {formatAddress(account.address, 'short')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.wallet}
-          testID={AccountDetailsIds.WALLET_NAME_LINK}
-          onPress={handleWalletClick}
-        >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('multichain_accounts.account_details.wallet')}
-          </Text>
-          <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
-            gap={8}
-          >
-            <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
-              {wallet?.metadata.name}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Md}
-              color={colors.text.alternative}
-            />
-          </Box>
-        </TouchableOpacity>
-        {children}
       </ScrollView>
     </SafeAreaView>
   );

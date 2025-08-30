@@ -8,21 +8,10 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      flexShrink: 1,
-      borderRadius: 8,
-      backgroundColor: colors.background.alternative,
       paddingLeft: 16,
       paddingRight: 16,
-      paddingTop: 16,
-      paddingBottom: 16,
-      gap: 8,
-      marginBottom: 16,
-    },
-    description: {
-      flexWrap: 'wrap',
-    },
-    networkList: {
-      marginBottom: 8,
+      height: 52,
+      backgroundColor: colors.background.alternative,
     },
   });
 };

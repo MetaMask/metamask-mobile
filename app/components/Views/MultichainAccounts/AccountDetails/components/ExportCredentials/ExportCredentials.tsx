@@ -95,14 +95,14 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [navigate, account]);
 
   return (
-    <Box style={styles.container} data-testid={ExportCredentialsIds.CONTAINER}>
+    <Box data-testid={ExportCredentialsIds.CONTAINER} gap={2}>
       {canExportMnemonic && srpName && (
         <TouchableOpacity
           onPress={onExportMnemonic}
           testID={ExportCredentialsIds.EXPORT_SRP_BUTTON}
         >
           <Box
-            style={styles.exportMnemonic}
+            style={styles.row}
             flexDirection={FlexDirection.Row}
             justifyContent={JustifyContent.spaceBetween}
             alignItems={AlignItems.center}
@@ -138,7 +138,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
           testID={ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON}
         >
           <Box
-            style={styles.exportPrivateKey}
+            style={styles.row}
             flexDirection={FlexDirection.Row}
             justifyContent={JustifyContent.spaceBetween}
             alignItems={AlignItems.center}

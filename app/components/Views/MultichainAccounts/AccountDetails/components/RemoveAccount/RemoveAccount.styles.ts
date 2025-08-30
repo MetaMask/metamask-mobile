@@ -15,9 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
     row: {
       paddingLeft: 16,
       paddingRight: 16,
-      paddingTop: 14,
-      paddingBottom: 14,
-      borderRadius: 8,
+      height: 52,
       backgroundColor: colors.background.alternative,
     },
   });
