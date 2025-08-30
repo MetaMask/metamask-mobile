@@ -32,12 +32,6 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
-import { retryWithExponentialDelay } from '../../util/exponential-retry';
-import {
-  WALLET_SNAP_MAP,
-  MultichainWalletSnapFactory,
-  WalletClientType,
-} from '../SnapKeyring/MultichainWalletSnapClient';
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -68,6 +62,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import { AccountDiscoveryService } from '../AccountDiscovery/AccountDiscovery';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -137,72 +132,12 @@ class AuthenticationService {
       password,
       parsedSeedUint8Array,
     );
-
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-        try {
-          await this.attemptAccountDiscovery(clientType);
-        } catch (error) {
-          console.warn(
-            'Account discovery failed during wallet creation:',
-            clientType,
-            error,
-          );
-          // Store flag to retry on next unlock
-          await StorageWrapper.setItem(discoveryStorageId, TRUE);
-        }
-      }),
-    );
-
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
+    await accountDiscovery.addKeyringForAcccountDiscovery([
+      Engine.context.KeyringController.state.keyrings[0].metadata.id,
+    ]);
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
-  };
-
-  private attemptAccountDiscovery = async (
-    clientType: WalletClientType,
-  ): Promise<void> => {
-    const performAccountDiscovery = async (): Promise<void> => {
-      const primaryHdKeyringId =
-        Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(clientType, {
-        setSelectedAccount: false,
-      });
-      const { discoveryScope, discoveryStorageId } =
-        WALLET_SNAP_MAP[clientType];
-
-      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
-      await StorageWrapper.removeItem(discoveryStorageId);
-    };
-
-    try {
-      await retryWithExponentialDelay(
-        performAccountDiscovery,
-        3, // maxRetries
-        1000, // baseDelay
-        10000, // maxDelay
-      );
-    } catch (error) {
-      console.error('Account discovery failed after all retries:', error);
-    }
-  };
-
-  private retryDiscoveryIfPending = async (): Promise<void> => {
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-
-        try {
-          const isPending = await StorageWrapper.getItem(discoveryStorageId);
-          if (isPending === TRUE) {
-            await this.attemptAccountDiscovery(clientType);
-          }
-        } catch (error) {
-          console.warn('Failed to check/retry discovery:', clientType, error);
-        }
-      }),
-    );
   };
 
   /**
@@ -218,22 +153,11 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+    const primaryHdKeyringId =
+      Engine.context.KeyringController.state.keyrings[0].metadata.id;
 
-        try {
-          await this.attemptAccountDiscovery(clientType);
-        } catch (error) {
-          console.warn(
-            'Account discovery failed during wallet creation:',
-            error,
-          );
-          // Store flag to retry on next unlock
-          await StorageWrapper.setItem(discoveryStorageId, TRUE);
-        }
-      }),
-    );
+    const accountDiscovery = await AccountDiscoveryService.getInstance();
+    await accountDiscovery.addKeyringForAcccountDiscovery([primaryHdKeyringId]);
 
     password = this.wipeSensitiveData();
   };
@@ -446,6 +370,14 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in newWalletAndKeychain: attempting account discovery',
+        );
+      });
+
       await this.storePassword(password, authData?.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -485,6 +417,15 @@ class AuthenticationService {
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       await this.dispatchLogin();
       this.authData = authData;
+
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in newWalletAndRestore: attempting account discovery',
+        );
+      });
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -533,7 +474,13 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in userEntryAuth: attempting account discovery',
+        );
+      });
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -604,7 +551,13 @@ class AuthenticationService {
       this.dispatchPasswordSet();
 
       // Try to complete any pending account discovery
-      this.retryDiscoveryIfPending();
+      const accountDiscovery = await AccountDiscoveryService.getInstance();
+      accountDiscovery.attemptAccountDiscovery().catch((err) => {
+        Logger.error(
+          err,
+          'Error in appTriggeredAuth: attempting account discovery',
+        );
+      });
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -760,7 +713,10 @@ class AuthenticationService {
           );
 
           // discover multichain accounts from imported srp
-          this.addMultichainAccounts([keyringMetadata]);
+          const accountDiscovery = await AccountDiscoveryService.getInstance();
+          await accountDiscovery.addKeyringForAcccountDiscovery([
+            keyringMetadata.id,
+          ]);
         } else {
           Logger.error(new Error('Unknown secret type'), secret.type);
         }
@@ -768,15 +724,19 @@ class AuthenticationService {
     }
   };
 
+  /**
+   * Adds a new mnemonic backup to the SeedlessOnboardingController and KeyringController.
+   *
+   * This method creates a new HD keyring with the provided mnemonic, adds the backup metadata
+   * to the SeedlessOnboardingController, and handles errors by reverting the keyring import if necessary.
+   *
+   * @param {string} mnemonic - The mnemonic phrase to be backed up and imported.
+   * @returns {Promise<any>} The metadata of the newly created keyring.
+   * @throws Will throw an error if the backup metadata update fails.
+   */
   importSeedlessMnemonicToVault = async (
     mnemonic: string,
   ): Promise<KeyringMetadata> => {
-    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
-    );
-    if (!isSeedlessOnboardingFlow) {
-      throw new Error('Not in seedless onboarding flow');
-    }
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
 
     const keyringMetadata = await KeyringController.addNewKeyring(
@@ -817,7 +777,15 @@ class AuthenticationService {
     return keyringMetadata;
   };
 
-  addNewPrivateKeyBackup = async (
+  /**
+   * Adds a new private key backup to the SeedlessOnboardingController.
+   *
+   * @param privateKey - The private key to back up, as a hex string.
+   * @param keyringId - The keyring ID associated with the private key.
+   * @param syncWithSocial - Whether to sync the private key backup with the social backup service (default: true).
+   * @returns A promise that resolves when the backup operation is complete.
+   */
+  addNewPrivateKeySeedlessBackup = async (
     privateKey: string,
     keyringId: string,
     syncWithSocial = true,
@@ -863,12 +831,13 @@ class AuthenticationService {
         [remove0x(privateKey)],
       );
 
-    const isSocialLoginFlow = selectSeedlessOnboardingLoginFlow(
-      ReduxService.store.getState(),
+    const isSocialLoginFlow = Boolean(
+      Engine.context.SeedlessOnboardingController.state.vault,
     );
+
     if (isSocialLoginFlow) {
       try {
-        await this.addNewPrivateKeyBackup(
+        await this.addNewPrivateKeySeedlessBackup(
           privateKey,
           importedAccountAddress,
           options.shouldCreateSocialBackup,
@@ -892,26 +861,13 @@ class AuthenticationService {
   };
 
   /**
-   * Temporary function until the attempt discovery support multi srp acccount discovery
-   * Add multichain accounts to the keyring
+   * Rehydrates the seed phrase(s) from the SeedlessOnboardingController using the provided password.
+   * Fetches all secret data (SRPs), restores the all seed phrase and private key to a new vault
    *
-   * @param keyringMetadataList - List of keyring metadata
+   * @param password - The password used to decrypt and fetch the seed phrase(s).
+   * @returns A promise that resolves when the rehydration process is complete.
+   * @throws Will throw an error if fetching SRPs fails or if no seed phrase is found.
    */
-  addMultichainAccounts = async (
-    keyringMetadataList: KeyringMetadata[],
-  ): Promise<void> => {
-    for (const keyringMetadata of keyringMetadataList) {
-      for (const clientType of Object.values(WalletClientType)) {
-        const id = keyringMetadata.id;
-        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
-        const multichainClient =
-          MultichainWalletSnapFactory.createClient(clientType);
-
-        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
-      }
-    }
-  };
-
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
@@ -958,6 +914,8 @@ class AuthenticationService {
         const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
+        await this.syncKeyringEncryptionKey();
+
         // add in more srps
         const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
@@ -985,7 +943,10 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        this.addMultichainAccounts(keyringMetadataList);
+        const accountDiscovery = await AccountDiscoveryService.getInstance();
+        await accountDiscovery.addKeyringForAcccountDiscovery(
+          keyringMetadataList.map((item) => item.id),
+        );
 
         this.dispatchOauthReset();
 
