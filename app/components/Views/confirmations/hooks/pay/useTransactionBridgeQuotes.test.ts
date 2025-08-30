@@ -69,6 +69,7 @@ describe('useTransactionBridgeQuotes', () => {
         chainId: CHAIN_ID_SOURCE_MOCK,
         decimals: 4,
         symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
