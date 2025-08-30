@@ -2,6 +2,10 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { TokenFiatRateRequest, useTokenFiatRates } from './useTokenFiatRates';
 
+jest.mock('../../../../../util/address', () => ({
+  toChecksumAddress: jest.fn((address) => address),
+}));
+
 const CHAIN_ID_1_MOCK = '0x123';
 const CHAIN_ID_2_MOCK = '0x456';
 const ADDRESS_1_MOCK = '0x789';
