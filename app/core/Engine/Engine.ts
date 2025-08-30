@@ -97,6 +97,7 @@ import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
+import { isSolanaAccount } from '../Multichain/utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
@@ -2090,20 +2091,43 @@ export class Engine {
 
   /**
    * Returns true or false whether the user has funds or not
+   * @param address - Optional address to check funds for. If not provided, uses selected address or checks all addresses
    */
-  hasFunds = () => {
+  hasFunds = (address?: string) => {
     try {
       const {
         engine: { backgroundState },
       } = store.getState();
-      // TODO: Check `allNfts[currentChainId]` property instead
-      // @ts-expect-error This property does not exist
-      const nfts = backgroundState.NftController.nfts;
 
       const { tokenBalances } = backgroundState.TokenBalancesController;
+      const { selectedAddress } = backgroundState.PreferencesController;
+      const { allNfts } = backgroundState.NftController;
+      const { internalAccounts } = backgroundState.AccountsController;
 
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      const multichainBalancesController =
+        backgroundState.MultichainBalancesController;
+      const multichainBalances = multichainBalancesController?.balances || {};
+      ///: END:ONLY_INCLUDE_IF
+
+      // Use provided address, fallback to selected address, or check all
+      const targetAddress = address || selectedAddress;
+      const targetAddressLower = targetAddress?.toLowerCase();
+
+      // Check token balances (ERC-20 tokens)
+      let allUserTokenBalances = Object.values(tokenBalances);
       let tokenFound = false;
-      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+
+      if (targetAddressLower) {
+        const selectedAccountTokenBalances =
+          tokenBalances[targetAddressLower as Hex];
+        allUserTokenBalances = selectedAccountTokenBalances
+          ? [selectedAccountTokenBalances]
+          : [];
+      }
+
+      // Check for ERC-20 token balances
+      tokenLoop: for (const chains of allUserTokenBalances) {
         for (const tokens of Object.values(chains)) {
           for (const balance of Object.values(tokens)) {
             if (!isZero(balance)) {
@@ -2114,12 +2138,140 @@ export class Engine {
         }
       }
 
-      const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
-      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
+      const getInternalAccount = (address: string) =>
+        Object.values(internalAccounts?.accounts || {}).find(
+          (acc) => acc.address.toLowerCase() === address,
+        );
 
-      return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
+      // Check fiat balance (includes native ETH + converted token values)
+      // This is crucial for accounts that only have ETH but no ERC-20 tokens
+      let fiatBalance:
+        | ReturnType<Engine['getTotalEvmFiatAccountBalance']>
+        | undefined;
+
+      if (targetAddressLower) {
+        // Find internal account by address for fiat balance calculation
+        const internalAccount = getInternalAccount(targetAddressLower);
+
+        if (internalAccount) {
+          fiatBalance = this.getTotalEvmFiatAccountBalance(internalAccount);
+        } else {
+          // If a specific address was requested but not found, do NOT fall back to selected account
+          fiatBalance = {
+            ethFiat: 0,
+            tokenFiat: 0,
+            ethFiat1dAgo: 0,
+            tokenFiat1dAgo: 0,
+            totalNativeTokenBalance: '0',
+            ticker: '',
+          };
+        }
+      } else {
+        fiatBalance = this.getTotalEvmFiatAccountBalance();
+      }
+
+      // Properly sum ethFiat and tokenFiat even when ethFiat is zero
+      const totalFiatBalance =
+        (fiatBalance?.ethFiat || 0) + (fiatBalance?.tokenFiat || 0);
+
+      // Check NFTs for specific address or all addresses
+      let hasNfts = false;
+      const checkNfts = (nfts: Record<string, unknown>) =>
+        Object.values(nfts).some(
+          (nftsInChain) => Array.isArray(nftsInChain) && nftsInChain.length > 0,
+        );
+
+      if (targetAddressLower) {
+        // Support both shapes for allNfts: address -> chainId -> NFTs[] and chainId -> address -> NFTs[]
+        const getNftsForAddress = () => {
+          const byAddress =
+            allNfts?.[targetAddressLower as keyof typeof allNfts];
+          if (byAddress && typeof byAddress === 'object') {
+            return byAddress as Record<string, unknown>;
+          }
+          const collected: Record<string, unknown> = {};
+          for (const [chainId, byAddr] of Object.entries(allNfts || {})) {
+            const maybeArr = (byAddr as Record<string, unknown>)?.[
+              targetAddressLower
+            ];
+            if (maybeArr) {
+              collected[chainId] = maybeArr;
+            }
+          }
+          if (Object.keys(collected).length > 0) {
+            return collected;
+          }
+          return undefined;
+        };
+
+        const nftsForAddress = getNftsForAddress();
+        if (nftsForAddress) {
+          hasNfts = checkNfts(nftsForAddress);
+        }
+      } else {
+        // Check all addresses for NFTs (works for both shapes)
+        hasNfts = Object.values(allNfts || {}).some((level1) =>
+          checkNfts(level1 as Record<string, unknown>),
+        );
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Check Solana account balances
+      let hasSolanaFunds = false;
+      const checkSolanaHasFunds = (
+        accountBalances: Record<string, { amount: string }>,
+      ) =>
+        Object.values(accountBalances).some((balance) => {
+          const amount = parseFloat(balance?.amount || '0');
+          return amount > 0;
+        });
+
+      if (multichainBalances && internalAccounts) {
+        if (targetAddressLower) {
+          // Check specific account
+          const targetAccount = getInternalAccount(targetAddressLower);
+
+          if (targetAccount && isSolanaAccount(targetAccount)) {
+            const accountBalances = multichainBalances[targetAccount.id];
+            if (accountBalances) {
+              // Check if any balance is greater than 0
+              hasSolanaFunds = checkSolanaHasFunds(accountBalances);
+            }
+          }
+        } else {
+          // Check all Solana accounts
+          const allAccounts = Object.values(internalAccounts?.accounts || {});
+          for (const account of allAccounts) {
+            if (isSolanaAccount(account)) {
+              const accountBalances = multichainBalances[account.id];
+              if (accountBalances && checkSolanaHasFunds(accountBalances)) {
+                hasSolanaFunds = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      // Account has funds if:
+      // 1. Has fiat balance (ETH or token value) > 0,
+      // 2. Has any ERC-20 token balances > 0,
+      // 3. Has any NFTs
+      // 4. Has any Solana token balances > 0
+      const hasFunds =
+        totalFiatBalance > 0 ||
+        tokenFound ||
+        hasNfts ||
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        hasSolanaFunds ||
+        ///: END:ONLY_INCLUDE_IF
+        false;
+
+      return hasFunds;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
+      return false;
     }
   };
 
@@ -2422,9 +2574,9 @@ export default {
     return instance.getTotalEvmFiatAccountBalance(account);
   },
 
-  hasFunds() {
+  hasFunds(address?: string) {
     assertEngineExists(instance);
-    return instance.hasFunds();
+    return instance.hasFunds(address);
   },
 
   resetState() {
