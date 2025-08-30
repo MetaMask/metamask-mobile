@@ -8,50 +8,36 @@ import { flushPromises } from '../../../../../../util/test/utils';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import Approve from './approve';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
-  context: {
-    NetworkController: {
-      getNetworkConfigurationByNetworkClientId: jest.fn(),
-    },
-    GasFeeController: {
-      startPolling: jest.fn(),
-      stopPollingByPollingToken: jest.fn(),
-    },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      getTransactions: jest.fn().mockReturnValue([]),
-      getNonceLock: jest
-        .fn()
-        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
-    },
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {
-            '0x0000000000000000000000000000000000000000': {
-              address: '0x0000000000000000000000000000000000000000',
-            },
-          },
-        },
+jest.mock('../../../../../../core/Engine', () => {
+  const { otherControllersMock } = jest.requireActual(
+    '../../../__mocks__/controllers/other-controllers-mock',
+  );
+  return {
+    getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+    context: {
+      NetworkController: {
+        getNetworkConfigurationByNetworkClientId: jest.fn(),
+      },
+      GasFeeController: {
+        startPolling: jest.fn(),
+        stopPollingByPollingToken: jest.fn(),
+      },
+      TransactionController: {
+        updateTransaction: jest.fn(),
+        getTransactions: jest.fn().mockReturnValue([]),
+        getNonceLock: jest
+          .fn()
+          .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+      },
+      KeyringController: {
+        state: otherControllersMock.engine.backgroundState.KeyringController,
+      },
+      AccountsController: {
+        state: otherControllersMock.engine.backgroundState.AccountsController,
       },
     },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            accounts: ['0x0000000000000000000000000000000000000000'],
-            metadata: {
-              id: '01JNG71B7GTWH0J1TSJY9891S0',
-              name: '',
-            },
-          },
-        ],
-      },
-    },
-  },
-}));
+  };
+});
 
 jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
