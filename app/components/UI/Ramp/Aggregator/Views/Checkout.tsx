@@ -197,6 +197,7 @@ const CheckoutWebView = () => {
           }}
           allowsInlineMediaPlayback
           enableApplePay
+          paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
