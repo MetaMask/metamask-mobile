@@ -109,6 +109,7 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
       SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {

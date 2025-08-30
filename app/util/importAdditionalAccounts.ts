@@ -35,7 +35,7 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
 /**
  * Add additional accounts in the wallet based on balance
  */
-export default async () => {
+export default async (maxAccounts: number = MAX, index: number = 0) => {
   try {
     const { KeyringController } = Engine.context;
     const ethQuery = getGlobalEthQuery();
@@ -47,9 +47,9 @@ export default async () => {
     });
 
     await KeyringController.withKeyring(
-      { type: ExtendedKeyringTypes.hd, index: 0 },
+      { type: ExtendedKeyringTypes.hd, index },
       async ({ keyring }) => {
-        for (let i = 0; i < MAX; i++) {
+        for (let i = 0; i < maxAccounts; i++) {
           // TODO: Maybe refactor this and re-use the same function for HD account creation
           // to have tracing in one single place?
           trace({
