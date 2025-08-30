@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   parseCaipChainId,
   CaipChainId,
   Hex,
   KnownCaipNamespace,
+  toCaipChainId,
+  isHexString,
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
@@ -15,17 +17,26 @@ import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
- * Provides methods to enable, disable, and select all popular networks.
+ * Provides methods to enable, disable, toggle, and conditionally enable networks.
+ *
  * @returns Network enablement methods and state
  * @example
+ * ```tsx
+ * const {
+ *   enableNetwork,
+ *   tryEnableEvmNetwork,
+ *   isNetworkEnabled
+ * } = useNetworkEnablement();
  *
- * const { enableNetwork, toggleNetwork } = useNetworkEnablement();
+ * // Direct network operations
  * enableNetwork('eip155:1'); // Enable Ethereum mainnet
- * enablePopularNetworks(); // Enable all popular networks
- * disableNetwork('eip155:137'); // Disable Polygon
- * isNetworkEnabled('eip155:137'); // Check if Polygon is enabled
- * hasOneEnabledNetwork(); // Check if there is at least one enabled network
  *
+ * // Conditional enablement for transactions/swaps
+ * tryEnableEvmNetwork('0x1'); // Enable if global selector is enabled and network is disabled
+ *
+ * // Check network status
+ * const isEnabled = isNetworkEnabled('eip155:1');
+ * ```
  */
 export const useNetworkEnablement = () => {
   const enabledNetworksByNamespace = useSelector(
@@ -91,6 +102,19 @@ export const useNetworkEnablement = () => {
     [enabledNetworksByNamespace],
   );
 
+  const tryEnableEvmNetwork = useCallback(
+    (chainId?: string) => {
+      if (chainId && isHexString(chainId)) {
+        const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainId);
+        const isEnabled = isNetworkEnabled(caipChainId);
+        if (!isEnabled) {
+          enableNetwork(caipChainId);
+        }
+      }
+    },
+    [isNetworkEnabled, enableNetwork],
+  );
+
   return {
     namespace,
     enabledNetworksByNamespace,
@@ -101,5 +125,6 @@ export const useNetworkEnablement = () => {
     enableAllPopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
+    tryEnableEvmNetwork,
   };
 };

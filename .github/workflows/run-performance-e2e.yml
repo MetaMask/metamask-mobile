@@ -1,23 +1,12 @@
 name: Build Apps and Run Performance E2E Tests
 on:
+  schedule:
+    - cron: '0 3 * * 1-6'
   workflow_dispatch:
     inputs:
-      info:
-        description: 'This workflow runs performance tests on multiple devices for both iOS and Android platforms. Device matrix is automatically read from appwright/device-matrix.json'
+      description:
+        description: 'Optional description for this test run'
         required: false
-        type: string
-      browserstack_app_url_android:
-        description: 'BrowserStack Android App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios:
-        description: 'BrowserStack iOS App URL (bs://...)'
-        required: false
-        type: string
-      test_suite:
-        description: 'Test suite to run (e.g., **/tests/*.spec.js for all tests)'
-        required: false
-        default: '**/tests/performance/*.spec.js'
         type: string
 permissions:
   contents: read
@@ -406,7 +395,6 @@ jobs:
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
             echo "TEST_PLATFORM=android"
-            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
           } >> "$GITHUB_ENV"
       
@@ -498,7 +486,6 @@ jobs:
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
-            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
           } >> "$GITHUB_ENV"
       
@@ -555,13 +542,16 @@ jobs:
           retention-days: 14
     
       - name: Check Test Results
+        id: test-results
         run: |
           if [ "${{ needs.android-tests.result }}" == "failure" ] || [ "${{ needs.ios-tests.result }}" == "failure" ]; then
             echo "Some tests failed. Check the individual job results above."
             echo "Note: iOS 13 and iOS 11 failures are expected due to MetaMask app compatibility."
+            echo "overall_status=failure" >> "$GITHUB_OUTPUT"
             exit 1
           else
             echo "All test jobs completed successfully!"
+            echo "overall_status=success" >> "$GITHUB_OUTPUT"
           fi
       
       - name: Display QA Build Info
@@ -573,3 +563,138 @@ jobs:
           echo "=== BrowserStack App URLs ==="
           echo "Android App URL: ${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
           echo "iOS App URL: ${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+    
+    outputs:
+      overall_status: ${{ steps.test-results.outputs.overall_status }}
+
+  # All Status Check Job
+  all-status:
+    name: Check All Job Statuses
+    runs-on: ubuntu-latest
+    needs: [read-device-matrix, trigger-qa-builds-and-upload, android-tests, ios-tests, gather-results]
+    if: always()
+    outputs:
+      overall_status: ${{ steps.status-check.outputs.overall_status }}
+      android_status: ${{ steps.status-check.outputs.android_status }}
+      ios_status: ${{ steps.status-check.outputs.ios_status }}
+      trigger_status: ${{ steps.status-check.outputs.trigger_status }}
+    
+    steps:
+      - name: Check All Job Statuses
+        id: status-check
+        run: |
+          echo "Checking status of all jobs..."
+          
+          TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
+          ANDROID_RESULT="${{ needs.android-tests.result }}"
+          IOS_RESULT="${{ needs.ios-tests.result }}"
+          
+          echo "Job Results:"
+          echo "- trigger-qa-builds-and-upload: $TRIGGER_RESULT"
+          echo "- android-tests: $ANDROID_RESULT"
+          echo "- ios-tests: $IOS_RESULT"
+          
+          # Determine overall status
+          if [ "$TRIGGER_RESULT" = "failure" ]; then
+            OVERALL_STATUS="❌ FAILED"
+            echo "Overall Status: FAILED (QA builds failed)"
+          elif [ "$ANDROID_RESULT" = "failure" ] || [ "$IOS_RESULT" = "failure" ]; then
+            OVERALL_STATUS="❌ FAILED"
+            echo "Overall Status: FAILED (tests failed)"
+          else
+            OVERALL_STATUS="✅ PASSED"
+            echo "Overall Status: PASSED (all tests passed)"
+          fi
+          
+          # Set outputs
+          {
+            echo "overall_status=$OVERALL_STATUS"
+            echo "android_status=$ANDROID_RESULT"
+            echo "ios_status=$IOS_RESULT"
+            echo "trigger_status=$TRIGGER_RESULT"
+          } >> "$GITHUB_OUTPUT"
+
+  # Slack Notification Job
+  slack-notification:
+    name: Send Slack Notification
+    runs-on: ubuntu-latest
+    needs: [all-status]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Generate Test Summary
+        id: test-summary
+        run: |
+          echo "Generating test summary..."
+          
+          # Get device matrix for device names
+          DEVICE_MATRIX=$(cat appwright/device-matrix.json)
+          
+          # Extract device information
+          ANDROID_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.android_devices[] | "\(.name) (\(.os_version))"')
+          IOS_DEVICES=$(echo "$DEVICE_MATRIX" | jq -r '.ios_devices[] | "\(.name) (\(.os_version))"')
+          
+          # Get status from all-status job
+          ANDROID_STATUS="${{ needs.all-status.outputs.android_status }}"
+          IOS_STATUS="${{ needs.all-status.outputs.ios_status }}"
+          
+          # Format status for display
+          if [ "$ANDROID_STATUS" = "success" ]; then
+            ANDROID_DISPLAY="✅ PASSED"
+          else
+            ANDROID_DISPLAY="❌ FAILED"
+          fi
+          
+          if [ "$IOS_STATUS" = "success" ]; then
+            IOS_DISPLAY="✅ PASSED"
+          else
+            IOS_DISPLAY="❌ FAILED"
+          fi
+          
+          # Create summary
+          SUMMARY="*Performance E2E Tests*\n\n"
+          
+          SUMMARY+="---------------\n\n"
+          SUMMARY+="*Devices Tested:*\n"
+          SUMMARY+="• Android:\n"
+          while IFS= read -r device; do
+            if [ -n "$device" ]; then
+              SUMMARY+="  • $device\n"
+            fi
+          done <<< "$ANDROID_DEVICES"
+          SUMMARY+="• iOS:\n"
+          while IFS= read -r device; do
+            if [ -n "$device" ]; then
+              SUMMARY+="  • $device\n"
+            fi
+          done <<< "$IOS_DEVICES"
+          SUMMARY+="\n"
+          SUMMARY+="---------------\n\n"
+          SUMMARY+="*Test Results:*\n"
+          SUMMARY+="• Android Tests: $ANDROID_DISPLAY\n"
+          SUMMARY+="• iOS Tests: $IOS_DISPLAY\n\n"
+          SUMMARY+="---------------\n\n"
+          SUMMARY+="*Build Info:*\n"
+          SUMMARY+="• Commit Hash: \`${{ github.sha }}\`\n"
+          SUMMARY+="---------------\n\n"
+          SUMMARY+="<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Results>"
+          
+          {
+            echo "summary<<EOF"
+            echo "$SUMMARY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "Test summary generated"
+      
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ steps.test-summary.outputs.summary }}"
+            }

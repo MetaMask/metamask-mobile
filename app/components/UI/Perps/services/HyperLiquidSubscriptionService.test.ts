@@ -118,9 +118,10 @@ describe('HyperLiquidSubscriptionService', () => {
             ctx: {
               prevDayPx: '49000',
               funding: '0.01',
-              openInterest: '1000000',
+              openInterest: '1000000', // Raw token units from API
               dayNtlVlm: '50000000',
               oraclePx: '50100',
+              midPx: '50000', // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
             },
           });
         }, 0);
@@ -966,8 +967,12 @@ describe('HyperLiquidSubscriptionService', () => {
       // Wait for processing
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Should not call callback without position data
-      expect(mockCallback).not.toHaveBeenCalled();
+      // Should call callback with empty positions to fix loading state
+      // This ensures the UI can transition from loading to empty state for new users without cached positions
+      expect(mockCallback).toHaveBeenCalledWith([]);
+
+      // Verify it was only called once (not repeatedly)
+      expect(mockCallback).toHaveBeenCalledTimes(1);
 
       unsubscribe();
     });
@@ -1020,9 +1025,10 @@ describe('HyperLiquidSubscriptionService', () => {
               ctx: {
                 prevDayPx: 45000,
                 funding: 0.0001,
-                openInterest: 1000000,
+                openInterest: 1000000, // Raw token units from API
                 dayNtlVlm: 5000000,
                 oraclePx: 50100,
+                midPx: 50000, // Price used for openInterest USD conversion: 1M tokens * $50K = $50B
               },
             });
           }, 10);
@@ -1053,7 +1059,7 @@ describe('HyperLiquidSubscriptionService', () => {
           price: expect.any(String),
           timestamp: expect.any(Number),
           funding: 0.0001,
-          openInterest: 1000000,
+          openInterest: 50000000000, // 1M tokens * $50K price = $50B
           volume24h: 5000000,
         }),
       ]);
@@ -1365,5 +1371,93 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe1();
       unsubscribe2();
     });
+  });
+
+  it('should not repeatedly notify subscribers with empty positions', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock webData2 to send multiple empty updates
+    mockSubscriptionClient.webData2.mockImplementation(
+      (_params: any, callback: any) => {
+        // Send first update
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 0);
+
+        // Send second update (still empty)
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [],
+            },
+            openOrders: [],
+          });
+        }, 20);
+
+        return Promise.resolve({
+          unsubscribe: jest.fn().mockResolvedValue(undefined),
+        });
+      },
+    );
+
+    const unsubscribe = service.subscribeToPositions({
+      callback: mockCallback,
+    });
+
+    // Wait for both updates to process
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Should only be called once with empty positions (initial notification)
+    expect(mockCallback).toHaveBeenCalledTimes(1);
+    expect(mockCallback).toHaveBeenCalledWith([]);
+
+    unsubscribe();
+  });
+
+  it('should notify price subscribers on first update even with zero prices', async () => {
+    const mockCallback = jest.fn();
+
+    // Mock allMids with zero prices
+    mockSubscriptionClient.allMids.mockImplementation((callback: any) => {
+      // Send first update
+      setTimeout(() => {
+        callback({
+          mids: {
+            BTC: '0',
+            ETH: '0',
+          },
+        });
+      }, 0);
+      return Promise.resolve({
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      });
+    });
+
+    const unsubscribe = service.subscribeToPrices({
+      symbols: ['BTC', 'ETH'],
+      callback: mockCallback,
+    });
+
+    // Wait for processing
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    // Should call callback with zero prices to enable UI state
+    expect(mockCallback).toHaveBeenCalledWith([
+      expect.objectContaining({
+        coin: 'BTC',
+        price: '0',
+      }),
+      expect.objectContaining({
+        coin: 'ETH',
+        price: '0',
+      }),
+    ]);
+
+    unsubscribe();
   });
 });

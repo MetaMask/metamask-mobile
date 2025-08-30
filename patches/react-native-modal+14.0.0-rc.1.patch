@@ -1,8 +1,86 @@
 diff --git a/node_modules/react-native-modal/dist/modal.js b/node_modules/react-native-modal/dist/modal.js
-index 74edee4..b2558b3 100644
+index 74edee4..a4a1cd9 100644
 --- a/node_modules/react-native-modal/dist/modal.js
 +++ b/node_modules/react-native-modal/dist/modal.js
-@@ -538,9 +538,10 @@ export class ReactNativeModal extends React.Component {
+@@ -47,6 +47,10 @@ const extractAnimationFromProps = (props) => ({
+ export class ReactNativeModal extends React.Component {
+     static defaultProps = defaultProps;
+     backHandler = null;
++      
++    getEffectiveBackdropOpacity = () => this.props.backdropOpacity === 0 ? 0.1 : this.props.backdropOpacity;
++      
++    getEffectiveBackdropColor = () => this.props.backdropOpacity === 0 ? 'transparent' : this.props.backdropColor;
+     // We use an internal state for keeping track of the modal visibility: this allows us to keep
+     // the modal visible during the exit animation, even if the user has already change the
+     // isVisible prop to false.
+@@ -130,10 +134,17 @@ export class ReactNativeModal extends React.Component {
+             this.animationOut = animationOut;
+         }
+         // If backdrop opacity has been changed then make sure to update it
+-        if (this.props.backdropOpacity !== prevProps.backdropOpacity &&
+-            this.backdropRef) {
+-            this.backdropRef.transitionTo({ opacity: this.props.backdropOpacity }, this.props.backdropTransitionInTiming);
+-        }
++        if (
++            (this.props.backdropOpacity === 0 ? 0.1 : this.props.backdropOpacity) !==
++            (prevProps.backdropOpacity === 0 ? 0.1 : prevProps.backdropOpacity)
++          &&
++            this.backdropRef
++          ) {
++            this.backdropRef.transitionTo(
++              { opacity: this.getEffectiveBackdropOpacity() },
++              this.props.backdropTransitionInTiming
++            );
++          }        
+         // On modal open request, we slide the view up and fade in the backdrop
+         if (this.props.isVisible && !prevProps.isVisible) {
+             this.open();
+@@ -213,7 +224,7 @@ export class ReactNativeModal extends React.Component {
+                     const newOpacityFactor = 1 - this.calcDistancePercentage(gestureState);
+                     this.backdropRef &&
+                         this.backdropRef.transitionTo({
+-                            opacity: this.props.backdropOpacity * newOpacityFactor,
++                            opacity: this.getEffectiveBackdropOpacity() * newOpacityFactor,
+                         });
+                     animEvt(evt, gestureState);
+                     if (this.props.onSwipeMove) {
+@@ -264,7 +275,7 @@ export class ReactNativeModal extends React.Component {
+                 }
+                 if (this.backdropRef) {
+                     this.backdropRef.transitionTo({
+-                        opacity: this.props.backdropOpacity,
++                        opacity: this.getEffectiveBackdropOpacity(),
+                     });
+                 }
+                 Animated.spring(this.state.pan, {
+@@ -383,7 +394,7 @@ export class ReactNativeModal extends React.Component {
+         }
+         this.isTransitioning = true;
+         if (this.backdropRef) {
+-            this.backdropRef.transitionTo({ opacity: this.props.backdropOpacity }, this.props.backdropTransitionInTiming);
++            this.backdropRef.transitionTo({ opacity: this.getEffectiveBackdropOpacity() }, this.props.backdropTransitionInTiming);
+         }
+         // This is for resetting the pan position,otherwise the modal gets stuck
+         // at the last released position when you try to open it.
+@@ -475,14 +486,15 @@ export class ReactNativeModal extends React.Component {
+             !React.isValidElement(this.props.customBackdrop)) {
+             console.warn('Invalid customBackdrop element passed to Modal. You must provide a valid React element.');
+         }
+-        const { customBackdrop, backdropColor, useNativeDriver, useNativeDriverForBackdrop, onBackdropPress, } = this.props;
++        const { customBackdrop, useNativeDriver, useNativeDriverForBackdrop, onBackdropPress, } = this.props;
+         const hasCustomBackdrop = !!this.props.customBackdrop;
++        const effectiveBackdropColor = this.getEffectiveBackdropColor();
+         const backdropComputedStyle = [
+             {
+                 width: this.getDeviceWidth(),
+                 height: this.getDeviceHeight(),
+                 backgroundColor: this.state.showContent && !hasCustomBackdrop
+-                    ? backdropColor
++                    ? effectiveBackdropColor
+                     : 'transparent',
+             },
+         ];
+@@ -538,9 +550,10 @@ export class ReactNativeModal extends React.Component {
                  this.makeBackdrop(),
                  containerView));
          }

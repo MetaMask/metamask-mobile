@@ -5,6 +5,8 @@ import {
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
+  MUSD_LINEA_TOKEN,
+  MUSD_TOKEN,
   USDC_BASE_TOKEN,
   USDC_BSC_TOKEN,
   USDC_LINEA_TOKEN,
@@ -40,6 +42,8 @@ export const validateEmail = function (email: string) {
 };
 
 const TRANSAK_CRYPTO_IDS: Record<string, string> = {
+  [MUSD_TOKEN.assetId]: 'MUSD',
+  [MUSD_LINEA_TOKEN.assetId]: 'MUSD',
   [USDC_TOKEN.assetId]: 'USDC',
   [USDC_LINEA_TOKEN.assetId]: 'USDC',
   [USDC_BASE_TOKEN.assetId]: 'USDC',
