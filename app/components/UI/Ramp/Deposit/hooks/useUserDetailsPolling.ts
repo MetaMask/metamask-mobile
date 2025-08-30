@@ -67,7 +67,7 @@ const useUserDetailsPolling = (
     }, pollingInterval);
   }, [fetchUserDetails, pollingInterval, stopPolling, maxPollingAttempts]);
 
-  const kycStatus = userDetails?.kyc?.l1?.status;
+  const kycStatus = userDetails?.kyc?.status;
 
   useEffect(() => {
     if (

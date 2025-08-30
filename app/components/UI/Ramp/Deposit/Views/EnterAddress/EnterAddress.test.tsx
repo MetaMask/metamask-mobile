@@ -257,12 +257,14 @@ describe('EnterAddress Component', () => {
 
     await waitFor(() => {
       expect(mockKycFunction).toHaveBeenCalledWith({
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'San Francisco',
-        state: 'CA',
-        postCode: '10001',
-        countryCode: 'US',
+        addressDetails: {
+          addressLine1: '123 Main St',
+          addressLine2: '',
+          city: 'San Francisco',
+          state: 'CA',
+          postCode: '10001',
+          countryCode: 'US',
+        },
       });
     });
   });

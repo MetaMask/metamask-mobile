@@ -304,13 +304,17 @@ describe('BasicInfo Component', () => {
     });
 
     expect(mockPostKycForm).toHaveBeenCalledWith({
-      firstName: 'John',
-      lastName: 'Smith',
-      mobileNumber: '+1234567890',
-      dob: '01-01-2024',
-      ssn: '123456789',
+      personalDetails: {
+        firstName: 'John',
+        lastName: 'Smith',
+        mobileNumber: '+1234567890',
+        dob: '01-01-2024',
+      },
     });
-    expect(mockSubmitSsnDetails).toHaveBeenCalledWith('123456789');
+    expect(mockSubmitSsnDetails).toHaveBeenCalledWith({
+      ssn: '123456789',
+      quoteId: 'test-quote-id',
+    });
   });
 
   it('handles form submission errors and displays error message', async () => {
