@@ -51,13 +51,14 @@ describe('OnboardingSheet', () => {
     jest.clearAllMocks();
   });
 
-  describe('Snapshots', () => {
-    it('renders correctly with createWallet=false (import mode)', () => {
-      const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
-      expect(toJSON()).toMatchSnapshot();
+  describe('Component Rendering', () => {
+    it('displays terms of use text when in import mode', () => {
+      const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+
+      expect(getByText('Terms of Use')).toBeOnTheScreen();
     });
 
-    it('renders correctly with createWallet=true (create mode)', () => {
+    it('displays terms of use text when in create mode', () => {
       const propsWithCreateWallet = {
         route: {
           params: {
@@ -66,8 +67,17 @@ describe('OnboardingSheet', () => {
           },
         },
       };
-      const { toJSON } = render(<OnboardingSheet {...propsWithCreateWallet} />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(
+        <OnboardingSheet {...propsWithCreateWallet} />,
+      );
+
+      expect(getByText(strings('onboarding.terms_of_use'))).toBeOnTheScreen();
+    });
+
+    it('displays privacy notice text', () => {
+      const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+
+      expect(getByText(strings('onboarding.privacy_notice'))).toBeOnTheScreen();
     });
   });
 

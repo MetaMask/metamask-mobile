@@ -253,11 +253,20 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             style={styles.centeredText}
           >
             {strings('onboarding.by_continuing')}{' '}
-            <Text style={styles.link} onPress={onPressTermsOfUse}>
+            <Text
+              style={styles.link}
+              onPress={onPressTermsOfUse}
+              suppressHighlighting
+              testID="terms-of-use-link"
+            >
               {strings('onboarding.terms_of_use')}
             </Text>{' '}
             and{' '}
-            <Text style={styles.link} onPress={onPressPrivacyNotice}>
+            <Text
+              style={styles.link}
+              onPress={onPressPrivacyNotice}
+              suppressHighlighting
+            >
               {strings('onboarding.privacy_notice')}
             </Text>
           </Text>
