@@ -959,6 +959,7 @@
       "trigger_price": "Trigger price",
       "liquidation_price": "Liquidation price",
       "fees": "Fees",
+      "estimated_points": "Est. Points",
       "market": "Market",
       "limit": "Limit",
       "open_orders": "Orders",

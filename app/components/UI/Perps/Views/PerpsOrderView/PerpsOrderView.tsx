@@ -14,6 +14,7 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -87,6 +88,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { selectRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -250,11 +252,17 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
+
+  // Get rewards feature flag
+  const rewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
     amount: orderForm.amount,
     isMaker: false, // Conservative estimate for UI display
+    coin: orderForm.asset,
+    isClosing: false, // For now, we're always opening positions in this view
   });
   const estimatedFees = feeResults.totalFee;
 
@@ -887,7 +895,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 : '--'}
             </Text>
           </View>
-
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -905,12 +912,56 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 />
               </TouchableOpacity>
             </View>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {parseFloat(orderForm.amount) > 0
-                ? formatPrice(estimatedFees)
-                : '--'}
-            </Text>
+            <View>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {parseFloat(orderForm.amount) > 0
+                  ? formatPrice(estimatedFees)
+                  : '--'}
+              </Text>
+              {rewardsEnabled && feeResults.feeDiscountPercentage && (
+                <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                  {`${feeResults.feeDiscountPercentage}% discount applied`}
+                </Text>
+              )}
+            </View>
           </View>
+
+          <Text>{JSON.stringify(feeResults)}</Text>
+          <Text>{JSON.stringify(rewardsEnabled)}</Text>
+          <Text>{JSON.stringify(feeResults.estimatedPoints)}</Text>
+          <Text>{JSON.stringify(feeResults.bonusBips)}</Text>
+          <Text>{JSON.stringify(feeResults.feeDiscountPercentage)}</Text>
+          <Text>{JSON.stringify(feeResults.metamaskFeeRate)}</Text>
+          <Text>{JSON.stringify(feeResults.protocolFeeRate)}</Text>
+
+          {/* Rewards Points Estimation */}
+          {rewardsEnabled &&
+            feeResults.estimatedPoints !== undefined &&
+            parseFloat(orderForm.amount) > 0 && (
+              <View style={styles.infoRow}>
+                <View style={styles.detailLeft}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.order.estimated_points')}
+                  </Text>
+                </View>
+                <View>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+                    {`+${Math.floor(feeResults.estimatedPoints)} points`}
+                  </Text>
+                  {feeResults.bonusBips && feeResults.bonusBips > 0 && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                    >
+                      {`${(feeResults.bonusBips / 100).toFixed(1)}% bonus`}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
         </View>
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}

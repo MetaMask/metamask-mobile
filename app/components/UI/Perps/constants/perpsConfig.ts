@@ -125,3 +125,15 @@ export const DATA_LAKE_API_CONFIG = {
   // Order reporting endpoint - only used for mainnet perps trading
   ORDERS_ENDPOINT: 'https://perps.api.cx.metamask.io/api/v1/orders',
 } as const;
+
+/**
+ * Rewards API configuration
+ * Endpoints for fee discounts and points estimation
+ */
+export const REWARDS_API_CONFIG = {
+  // Fee discount endpoint - returns perps discount for user address
+  // Response format: "x,y" where x is the fee rate in bps (e.g., "10,0" for 10bps, "5,0" for 5bps)
+  FEE_DISCOUNT_ENDPOINT: '/public/rewards/perps-fee-discount',
+  // Points estimation endpoint - estimates points for a trade
+  POINTS_ESTIMATE_ENDPOINT: '/points-estimation',
+} as const;

@@ -2172,10 +2172,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
 
-        DevLogger.log('Fetched user fee rates', {
+        // Calculate what the base rates would be without staking discount
+        // Assuming 10% staking discount if rates are lower than base
+        const baseTakerRate = FEE_RATES.taker; // 0.00045 (0.045%)
+        const baseMakerRate = FEE_RATES.maker; // 0.00015 (0.015%)
+        const stakingDiscountPercentage =
+          rates.perpsTakerRate < baseTakerRate
+            ? (
+                ((baseTakerRate - rates.perpsTakerRate) / baseTakerRate) *
+                100
+              ).toFixed(1)
+            : '0';
+
+        DevLogger.log('Fetched user fee rates with staking analysis', {
           userAddress,
           perpsTaker: rates.perpsTakerRate,
           perpsMaker: rates.perpsMakerRate,
+          baseTakerRate,
+          baseMakerRate,
+          stakingDiscountPercentage: `${stakingDiscountPercentage}%`,
+          actualTakerFeePercent: `${(rates.perpsTakerRate * 100).toFixed(4)}%`,
+          actualMakerFeePercent: `${(rates.perpsMakerRate * 100).toFixed(4)}%`,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }
