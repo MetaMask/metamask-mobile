@@ -14,12 +14,6 @@ import { selectUSDConversionRateByChainId } from '../../../../../selectors/curre
 
 const log = createProjectLogger('transaction-pay');
 
-interface TransactionTokenBase {
-  address: Hex;
-  amount: Hex;
-  skipIfBalance?: boolean;
-}
-
 export interface TransactionToken {
   address: Hex;
   amountRaw: string;
@@ -38,11 +32,8 @@ export function useTransactionRequiredTokens() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
-  const gasTokenBase = useGasToken(chainId);
-  const tokenTransferTokenBase = useTokenTransferToken();
-
-  const gasToken = useTokenBalance(gasTokenBase, chainId);
-  const tokenTransferToken = useTokenBalance(tokenTransferTokenBase, chainId);
+  const gasToken = useGasToken(chainId);
+  const tokenTransferToken = useTokenTransferToken(chainId);
 
   const result = useMemo(
     () => [gasToken, tokenTransferToken].filter(Boolean) as TransactionToken[],
@@ -56,10 +47,12 @@ export function useTransactionRequiredTokens() {
   return result;
 }
 
-function useTokenTransferToken(): TransactionTokenBase | undefined {
+function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
-  const { data, to } = txParams;
+  const { data } = txParams;
+  const to = txParams.to as Hex | undefined;
+  const balanceProperties = useTokenBalance(to ?? '0x0', chainId);
 
   let transferAmount: Hex | undefined;
 
@@ -80,13 +73,16 @@ function useTokenTransferToken(): TransactionTokenBase | undefined {
     }
 
     return {
-      address: to as Hex,
-      amount: transferAmount,
+      ...calculateAmountProperties(transferAmount, balanceProperties.decimals),
+      ...balanceProperties,
+      skipIfBalance: false,
     };
-  }, [transferAmount, to]);
+  }, [balanceProperties, to, transferAmount]);
 }
 
-function useGasToken(chainId: Hex): TransactionTokenBase | undefined {
+function useGasToken(chainId: Hex): TransactionToken | undefined {
+  const balanceProperties = useTokenBalance(NATIVE_TOKEN_ADDRESS, chainId);
+
   const maxGasCostHex = useTransactionMaxGasCost();
 
   const usdConversionRate = useSelector((state: RootState) =>
@@ -99,55 +95,61 @@ function useGasToken(chainId: Hex): TransactionTokenBase | undefined {
 
   const maxGasCost = new BigNumber(maxGasCostHex ?? '0x0', 16);
 
-  const amount = toHex(
-    (usdConversionRate && maxGasCost.isLessThan(oneDollarNativeWei)
+  const hasSufficientBalance = maxGasCost.isLessThanOrEqualTo(
+    balanceProperties.balanceRaw,
+  );
+
+  const amountRawHex = toHex(
+    (usdConversionRate &&
+    maxGasCost.isLessThan(oneDollarNativeWei) &&
+    !hasSufficientBalance
       ? oneDollarNativeWei
       : maxGasCost
     ).toFixed(0, BigNumber.ROUND_CEIL),
   );
 
   return useMemo(() => {
-    if (!maxGasCostHex) {
+    if (!amountRawHex) {
       return undefined;
     }
 
     return {
-      address: NATIVE_TOKEN_ADDRESS,
-      amount,
+      ...calculateAmountProperties(amountRawHex, balanceProperties.decimals),
+      ...balanceProperties,
       skipIfBalance: true,
     };
-  }, [amount, maxGasCostHex]);
+  }, [amountRawHex, balanceProperties]);
 }
 
-function useTokenBalance(
-  token: TransactionTokenBase | undefined,
-  chainId: Hex,
-): TransactionToken | undefined {
-  const balanceToken = useTokenWithBalance(token?.address ?? '0x0', chainId);
-  const balanceHuman = balanceToken?.balance ?? '0';
+function useTokenBalance(tokenAddress: Hex, chainId: Hex) {
+  const balanceToken = useTokenWithBalance(tokenAddress, chainId);
+
   const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
-  const amountRawValue = new BigNumber(token?.amount ?? '0x0', 16);
-  const amountHumanValue = amountRawValue.shiftedBy(-decimals);
-  const amountRaw = amountRawValue.toFixed(0);
-  const amountHuman = amountHumanValue.toString(10);
+  const balanceHuman = balanceToken?.balance ?? '0';
 
   const balanceRaw = new BigNumber(balanceHuman, 10)
     .shiftedBy(decimals)
     .toFixed(0);
 
   return useMemo(
-    () =>
-      token
-        ? {
-            address: token.address,
-            amountHuman,
-            amountRaw,
-            balanceHuman,
-            balanceRaw,
-            decimals,
-            skipIfBalance: token.skipIfBalance ?? false,
-          }
-        : undefined,
-    [amountHuman, amountRaw, balanceHuman, balanceRaw, decimals, token],
+    () => ({
+      address: tokenAddress,
+      balanceHuman,
+      balanceRaw,
+      decimals,
+    }),
+    [balanceHuman, balanceRaw, decimals, tokenAddress],
   );
+}
+
+function calculateAmountProperties(amountRawHex: Hex, decimals: number) {
+  const amountRawValue = new BigNumber(amountRawHex, 16);
+  const amountHumanValue = amountRawValue.shiftedBy(-decimals);
+  const amountRaw = amountRawValue.toFixed(0);
+  const amountHuman = amountHumanValue.toString(10);
+
+  return {
+    amountHuman,
+    amountRaw,
+  };
 }

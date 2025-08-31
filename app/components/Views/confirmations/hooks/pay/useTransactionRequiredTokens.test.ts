@@ -58,68 +58,166 @@ describe('useTransactionRequiredTokens', () => {
     useTokenWithBalanceMock
       .mockReturnValueOnce({
         address: NATIVE_TOKEN_ADDRESS,
-        balance: '0',
-        balanceFiat: '0',
-        tokenFiatAmount: 0,
-        symbol: 'ETH',
-        decimals: 18,
+        balance: '1.234',
+        balanceFiat: '$12.34',
         chainId: '0x1',
+        decimals: 18,
+        symbol: 'ETH',
+        tokenFiatAmount: 12.34,
       })
       .mockReturnValueOnce({
         address: TOKEN_ADDRESS_MOCK,
-        balance: '0',
-        balanceFiat: '0',
-        tokenFiatAmount: 0,
-        symbol: 'TST',
-        decimals: 4,
+        balance: '2.345',
+        balanceFiat: '#23.45',
         chainId: '0x1',
+        decimals: 4,
+        symbol: 'TST',
+        tokenFiatAmount: 23.45,
       });
   });
 
-  it('returns gas token', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: toHex(50000000000000),
-          gas: '0x3',
-        } as TransactionParams,
-      },
-    }).result.current;
+  describe('returns gas fee token', () => {
+    it('with max fee if greater than dollar and sufficient balance', () => {
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            maxFeePerGas: toHex(50000000000000),
+            gas: '0x3',
+          } as TransactionParams,
+        },
+      }).result.current;
 
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          address: EMPTY_ADDRESS,
-          amountHuman: '0.00015',
-          amountRaw: '150000000000000',
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: EMPTY_ADDRESS,
+            amountHuman: '0.00015',
+            amountRaw: '150000000000000',
+            balanceHuman: '1.234',
+            balanceRaw: '1234000000000000000',
+            decimals: 18,
+            skipIfBalance: true,
+          },
+        ]),
+      );
+    });
+
+    it('with max fee if less than dollar and sufficient balance', () => {
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            maxFeePerGas: '0x3',
+            gas: '0x5',
+          } as TransactionParams,
+        },
+      }).result.current;
+
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: EMPTY_ADDRESS,
+            amountHuman: '0.000000000000000015',
+            amountRaw: '15',
+            balanceHuman: '1.234',
+            balanceRaw: '1234000000000000000',
+            decimals: 18,
+            skipIfBalance: true,
+          },
+        ]),
+      );
+    });
+
+    it('with max fee if greater than dollar and insufficient balance', () => {
+      useTokenWithBalanceMock.mockReset();
+      useTokenWithBalanceMock
+        .mockReturnValueOnce({
+          address: NATIVE_TOKEN_ADDRESS,
+          balance: '0.000000000000000014',
+          balanceFiat: '$0.00',
+          chainId: '0x1',
           decimals: 18,
-          skipIfBalance: true,
-        }),
-      ]),
-    );
-  });
+          symbol: 'ETH',
+          tokenFiatAmount: 0,
+        })
+        .mockReturnValueOnce({
+          address: TOKEN_ADDRESS_MOCK,
+          balance: '2.345',
+          balanceFiat: '#23.45',
+          chainId: '0x1',
+          decimals: 4,
+          symbol: 'TST',
+          tokenFiatAmount: 23.45,
+        });
 
-  it('returns gas token as one dollar minimum', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: '0x3',
-          gas: '0x5',
-        } as TransactionParams,
-      },
-    }).result.current;
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            maxFeePerGas: toHex(50000000000000),
+            gas: '0x3',
+          } as TransactionParams,
+        },
+      }).result.current;
 
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          address: EMPTY_ADDRESS,
-          amountHuman: '0.0001',
-          amountRaw: '100000000000000',
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: EMPTY_ADDRESS,
+            amountHuman: '0.00015',
+            amountRaw: '150000000000000',
+            balanceHuman: '0.000000000000000014',
+            balanceRaw: '14',
+            decimals: 18,
+            skipIfBalance: true,
+          },
+        ]),
+      );
+    });
+
+    it('with one dollar if max fee less than dollar and insufficient balance', () => {
+      useTokenWithBalanceMock.mockReset();
+      useTokenWithBalanceMock
+        .mockReturnValueOnce({
+          address: NATIVE_TOKEN_ADDRESS,
+          balance: '0.000000000000000014',
+          balanceFiat: '$0.00',
+          chainId: '0x1',
           decimals: 18,
-          skipIfBalance: true,
-        }),
-      ]),
-    );
+          symbol: 'ETH',
+          tokenFiatAmount: 0,
+        })
+        .mockReturnValueOnce({
+          address: TOKEN_ADDRESS_MOCK,
+          balance: '2.345',
+          balanceFiat: '#23.45',
+          chainId: '0x1',
+          decimals: 4,
+          symbol: 'TST',
+          tokenFiatAmount: 23.45,
+        });
+
+      const tokens = runHook({
+        transaction: {
+          txParams: {
+            maxFeePerGas: '0x3',
+            gas: '0x5',
+          } as TransactionParams,
+        },
+      }).result.current;
+
+      expect(tokens).toStrictEqual(
+        expect.arrayContaining([
+          {
+            address: EMPTY_ADDRESS,
+            amountHuman: '0.0001',
+            amountRaw: '100000000000000',
+            balanceHuman: '0.000000000000000014',
+            balanceRaw: '14',
+            decimals: 18,
+            skipIfBalance: true,
+          },
+        ]),
+      );
+    });
   });
 
   it('returns token transfer token', () => {
@@ -137,59 +235,12 @@ describe('useTransactionRequiredTokens', () => {
 
     expect(tokens).toStrictEqual(
       expect.arrayContaining([
-        expect.objectContaining({
+        {
           address: TOKEN_ADDRESS_MOCK,
           amountHuman: '0.0291',
           amountRaw: '291',
-          decimals: 4,
-          skipIfBalance: false,
-        }),
-      ]),
-    );
-  });
-
-  it('returns token balances', () => {
-    useTokenWithBalanceMock.mockReset();
-    useTokenWithBalanceMock
-      .mockReturnValueOnce({
-        address: NATIVE_TOKEN_ADDRESS,
-        balance: '0',
-        balanceFiat: '0',
-        tokenFiatAmount: 0,
-        symbol: 'ETH',
-        decimals: 18,
-        chainId: '0x1',
-      })
-      .mockReturnValueOnce({
-        address: TOKEN_ADDRESS_MOCK,
-        balance: '3',
-        balanceFiat: '3',
-        tokenFiatAmount: 3,
-        symbol: 'TST',
-        decimals: 4,
-        chainId: '0x1',
-      });
-
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          data: new Interface(abiERC20).encodeFunctionData('transfer', [
-            TO_MOCK,
-            toHex(100000),
-          ]),
-          to: TOKEN_ADDRESS_MOCK,
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        {
-          address: TOKEN_ADDRESS_MOCK,
-          amountHuman: '10',
-          amountRaw: '100000',
-          balanceHuman: '3',
-          balanceRaw: '30000',
+          balanceHuman: '2.345',
+          balanceRaw: '23450',
           decimals: 4,
           skipIfBalance: false,
         },
