@@ -181,7 +181,7 @@ jobs:
       contents: read
       id-token: write
     needs: [build-android-apks]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    uses: ./.github/workflows/run-e2e-smoke-tests-android-optimized.yml
     secrets: inherit
 
   js-bundle-size-check:
