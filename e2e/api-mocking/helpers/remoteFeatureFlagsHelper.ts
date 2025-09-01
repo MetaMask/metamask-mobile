@@ -4,7 +4,7 @@
 
 import type { Mockttp } from 'mockttp';
 import { setupMockRequest } from './mockHelpers';
-import { MockApiEndpoint } from '../framework';
+import { MockApiEndpoint } from '../../framework';
 
 /**
  * Deep merge utility that properly handles nested objects
@@ -255,9 +255,6 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
     },
   },
   {
-    solanaOnboardingModal: true,
-  },
-  {
     sendRedesign: {
       enabled: true,
     },
@@ -282,6 +279,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
 export const createRemoteFeatureFlagsMock = (
   flagOverrides: Record<string, unknown> = {},
   distribution: string = 'main',
+  environment: string = 'dev',
 ): MockApiEndpoint => {
   // Start with deep copy of default array to avoid mutation
   const result = JSON.parse(
@@ -322,7 +320,7 @@ export const createRemoteFeatureFlagsMock = (
   });
 
   return {
-    urlEndpoint: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=${distribution}&environment=dev`,
+    urlEndpoint: `https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=${distribution}&environment=${environment}`,
     response: result,
     responseCode: 200,
   };
@@ -332,17 +330,33 @@ export const createRemoteFeatureFlagsMock = (
  * Sets up default remote feature flags mock on mockttp server
  * This will be called automatically and can be overridden by testSpecificMock
  */
-export const setupDefaultRemoteFeatureFlags = async (
+export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
   distribution: string = 'main',
 ): Promise<void> => {
-  const mockConfig = createRemoteFeatureFlagsMock(flagOverrides, distribution);
+  const {
+    urlEndpoint: devUrl,
+    response,
+    responseCode,
+  } = createRemoteFeatureFlagsMock(flagOverrides, distribution);
+  const { urlEndpoint: prodUrl } = createRemoteFeatureFlagsMock(
+    flagOverrides,
+    distribution,
+    'prod',
+  );
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: mockConfig.urlEndpoint,
-    response: mockConfig.response,
-    responseCode: mockConfig.responseCode,
+    url: devUrl,
+    response,
+    responseCode,
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: prodUrl,
+    response,
+    responseCode,
   });
 };

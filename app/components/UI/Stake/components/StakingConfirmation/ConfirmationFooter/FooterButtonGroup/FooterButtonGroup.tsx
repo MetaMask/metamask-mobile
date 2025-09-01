@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { formatEther } from 'ethers/lib/utils';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Button, {
   ButtonVariants,
@@ -13,8 +15,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import usePoolStakedDeposit from '../../../../hooks/usePoolStakedDeposit';
 import Engine from '../../../../../../../core/Engine';
 import {
@@ -28,8 +29,8 @@ import {
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
 import { IMetaMetricsEvent } from '../../../../../../../core/Analytics';
-import { formatEther } from 'ethers/lib/utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../../constants/events';
+import { EVM_SCOPE } from '../../../../../Earn/constants/networks';
 
 const STAKING_TX_METRIC_EVENTS: Record<
   FooterButtonGroupActions,
@@ -62,7 +63,9 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
 
   const { attemptDepositTransaction } = usePoolStakedDeposit();
 
@@ -150,7 +153,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const handleConfirmation = async () => {
     try {
-      if (!activeAccount?.address) return;
+      if (!selectedAccount?.address) return;
 
       setDidSubmitTransaction(true);
 
@@ -179,7 +182,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         if (!attemptDepositTransaction) return;
         const txRes = await attemptDepositTransaction(
           valueWei,
-          activeAccount.address,
+          selectedAccount.address,
         );
         transactionId = txRes?.transactionMeta?.id;
       }
@@ -187,7 +190,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       else {
         const txRes = await attemptUnstakeTransaction(
           valueWei,
-          activeAccount.address,
+          selectedAccount.address,
         );
         transactionId = txRes?.transactionMeta?.id;
       }

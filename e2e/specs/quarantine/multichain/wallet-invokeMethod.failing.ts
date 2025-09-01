@@ -29,12 +29,12 @@ import { MULTICHAIN_TEST_TIMEOUTS } from '../../../selectors/Browser/MultichainT
 import { waitFor } from 'detox';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { isHexString } from '@metamask/utils';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../../framework/Constants';
 import { LocalNodeType } from '../../../framework';
 import { AnvilNodeOptions } from '../../../framework/types';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   {
@@ -46,13 +46,10 @@ const ANVIL_NODE_OPTIONS_WITH_GATOR = [
   },
 ];
 const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: Mockttp) => {
-  const { urlEndpoint, response } = mockEvents.GET.remoteFeatureEip7702;
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...remoteFeatureEip7702),
+  );
 };
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
