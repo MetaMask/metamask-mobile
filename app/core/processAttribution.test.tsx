@@ -1,7 +1,6 @@
 import { store } from '../store';
 import extractURLParams from './DeeplinkManager/ParseManager/extractURLParams';
 import { processAttribution } from './processAttribution';
-import Logger from '../util/Logger';
 
 jest.mock('../store', () => ({
   store: {
@@ -9,9 +8,9 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
-jest.mock('../util/Logger', () => ({
-  error: jest.fn(),
+jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 describe('processAttribution', () => {
@@ -26,28 +25,26 @@ describe('processAttribution', () => {
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
         attributionId: 'test123',
-        utm: JSON.stringify({
-          source: 'twitter',
-          medium: 'social',
-          campaign: 'cmp-57731027-afbf09/',
-          term: null,
-          content: null,
-        }),
+        utm_source: 'facebook',
+        utm_medium: 'social',
+        utm_campaign: 'summer_sale',
+        utm_term: 'wallet',
+        utm_content: 'banner',
       },
     });
 
     const result = processAttribution({
-      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      currentDeeplink:
+        'metamask://connect?attributionId=test123&utm_source=facebook&utm_medium=social&utm_campaign=summer_sale&utm_term=wallet&utm_content=banner',
       store,
     });
     expect(result).toEqual({
       attributionId: 'test123',
-      utm: expect.any(String),
-      utm_source: 'twitter',
+      utm_source: 'facebook',
       utm_medium: 'social',
-      utm_campaign: 'cmp-57731027-afbf09/',
-      utm_term: null,
-      utm_content: null,
+      utm_campaign: 'summer_sale',
+      utm_term: 'wallet',
+      utm_content: 'banner',
     });
   });
 
@@ -57,7 +54,8 @@ describe('processAttribution', () => {
     });
 
     const result = processAttribution({
-      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      currentDeeplink:
+        'metamask://connect?attributionId=test123&utm_source=facebook&utm_medium=social&utm_campaign=summer_sale',
       store,
     });
     expect(result).toBeUndefined();
@@ -79,56 +77,55 @@ describe('processAttribution', () => {
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
         attributionId: 'test123',
-        utm: JSON.stringify({
-          source: 'twitter',
-          medium: 'social',
-        }),
+        utm_source: 'facebook',
+        utm_medium: 'social',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
       },
     });
 
     const result = processAttribution({
-      currentDeeplink: 'metamask://connect?attributionId=test123&utm=...',
+      currentDeeplink:
+        'metamask://connect?attributionId=test123&utm_source=facebook&utm_medium=social',
       store,
     });
     expect(result).toEqual({
       attributionId: 'test123',
-      utm: expect.any(String),
-      utm_source: 'twitter',
+      utm_source: 'facebook',
       utm_medium: 'social',
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     });
   });
 
-  it('handles JSON parsing errors gracefully', () => {
+  it('handles empty UTM parameters gracefully', () => {
     (store.getState as jest.Mock).mockReturnValue({
       security: { dataCollectionForMarketing: true },
     });
     (extractURLParams as jest.Mock).mockReturnValue({
       params: {
         attributionId: 'test123',
-        utm: 'invalid-json',
+        utm_source: '',
+        utm_medium: '',
+        utm_campaign: '',
+        utm_term: '',
+        utm_content: '',
       },
     });
 
     const result = processAttribution({
-      currentDeeplink:
-        'metamask://connect?attributionId=test123&utm=invalid-json',
+      currentDeeplink: 'metamask://connect?attributionId=test123',
       store,
     });
     expect(result).toEqual({
       attributionId: 'test123',
-      utm: 'invalid-json',
-      utm_source: undefined,
-      utm_medium: undefined,
-      utm_campaign: undefined,
-      utm_term: undefined,
-      utm_content: undefined,
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
     });
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.any(Error),
-    );
   });
 });

@@ -135,7 +135,7 @@ const persistOnboardingTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics'],
+  blacklist: ['rpcEvents', 'accounts', 'confirmationMetrics', 'alert'],
   storage: MigratedStorage,
   transforms: [
     persistTransform,

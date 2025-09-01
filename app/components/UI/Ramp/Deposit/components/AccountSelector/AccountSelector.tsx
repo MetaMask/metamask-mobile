@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Avatar, {
@@ -14,34 +14,21 @@ import { useAccountName } from '../../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
 import { type RootState } from '../../../../../../reducers';
-import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import stylesheet from './AccountSelector.styles';
 
-const stylesheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+interface AccountSelectorProps {
+  isEvmOnly?: boolean;
+}
 
-  return StyleSheet.create({
-    selector: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 10,
-      alignItems: 'center',
-      backgroundColor: theme.colors.background.default,
-      borderRadius: 12,
-      padding: 8,
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-      alignSelf: 'flex-start',
-    },
-  });
-};
-
-const AccountSelector = () => {
+const AccountSelector: React.FC<AccountSelectorProps> = ({
+  isEvmOnly = true,
+}) => {
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -64,10 +51,10 @@ const AccountSelector = () => {
       navigation.navigate(
         ...createAccountSelectorNavDetails({
           disablePrivacyMode: true,
-          isEvmOnly: true,
+          isEvmOnly,
         }),
       ),
-    [navigation],
+    [navigation, isEvmOnly],
   );
 
   return (

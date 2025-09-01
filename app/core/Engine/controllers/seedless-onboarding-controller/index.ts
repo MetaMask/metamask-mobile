@@ -9,6 +9,7 @@ import {
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import { EncryptionKey } from '../../../Encryptor/types';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
+import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -50,6 +51,9 @@ export const seedlessOnboardingControllerInit: ControllerInitFunction<
       ) => Promise<unknown>,
     },
     network: web3AuthNetwork as Web3AuthNetwork,
+    passwordOutdatedCacheTTL: 15_000, // 15 seconds
+    refreshJWTToken: AuthTokenHandler.refreshJWTToken,
+    revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
   });
 
   return { controller };

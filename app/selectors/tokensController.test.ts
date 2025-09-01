@@ -11,6 +11,7 @@ import {
   selectAllDetectedTokensFlat,
   selectTokensByChainIdAndAddress,
   getChainIdsToPoll,
+  selectSingleTokenByAddressAndChainId,
 } from './tokensController';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../util/networks';
@@ -320,14 +321,18 @@ describe('TokensController Selectors', () => {
   });
 
   describe('selectTokensByChainIdAndAddress', () => {
-    it('returns undefined if no tokens exist for chain ID and address', () => {
-      const tokensByChainAndAddress =
-        selectTokensByChainIdAndAddress.resultFunc(
-          mockTokensControllerState as unknown as TokensControllerState,
-          '0x1',
-          '0xNonExistentAddress',
-        );
-      expect(tokensByChainAndAddress).toBeUndefined();
+    it('returns mapped tokens for given chain ID', () => {
+      expect(
+        selectTokensByChainIdAndAddress(mockRootState, '0x1'),
+      ).toStrictEqual({
+        '0xToken1': mockToken,
+      });
+    });
+
+    it('returns empty object if no tokens exist for chain ID', () => {
+      expect(
+        selectTokensByChainIdAndAddress(mockRootState, '0x2'),
+      ).toStrictEqual({});
     });
   });
 
@@ -353,6 +358,26 @@ describe('TokensController Selectors', () => {
         '0x1',
       );
       expect(chainIds).toStrictEqual(['0x1']);
+    });
+  });
+
+  describe('selectSingleTokenByAddressAndChainId', () => {
+    it('returns the token for the given address and chain ID', () => {
+      const token = selectSingleTokenByAddressAndChainId(
+        mockRootState,
+        '0xToken1',
+        '0x1',
+      );
+      expect(token).toStrictEqual(mockToken);
+    });
+
+    it('returns undefined if no token exists for the given address and chain ID', () => {
+      const token = selectSingleTokenByAddressAndChainId(
+        mockRootState,
+        '0xAddress1',
+        '0x2',
+      );
+      expect(token).toBeUndefined();
     });
   });
 });

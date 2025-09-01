@@ -6,10 +6,7 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,7 +18,6 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -31,14 +27,9 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
-export interface EnterEmailParams {
-  quote: BuyQuote;
-  paymentMethodId: string;
-  cryptoCurrencyChainId: string;
-}
-
-export const createEnterEmailNavDetails =
-  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
+export const createEnterEmailNavDetails = createNavigationDetails(
+  Routes.DEPOSIT.ENTER_EMAIL,
+);
 
 const EnterEmail = () => {
   const navigation = useNavigation();
@@ -46,8 +37,6 @@ const EnterEmail = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState(false);
-  const { quote, paymentMethodId, cryptoCurrencyChainId } =
-    useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -91,10 +80,7 @@ const EnterEmail = () => {
         });
         navigation.navigate(
           ...createOtpCodeNavDetails({
-            quote,
             email,
-            paymentMethodId,
-            cryptoCurrencyChainId,
           }),
         );
       } else {
@@ -110,15 +96,7 @@ const EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    email,
-    navigation,
-    submitEmail,
-    quote,
-    paymentMethodId,
-    cryptoCurrencyChainId,
-    trackEvent,
-  ]);
+  }, [email, navigation, submitEmail, trackEvent]);
 
   return (
     <ScreenLayout>
@@ -140,6 +118,7 @@ const EnterEmail = () => {
               placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
+              onSubmitEditing={handleSubmit}
               autoCapitalize="none"
               ref={emailInputRef}
               onChangeText={handleTextChange}

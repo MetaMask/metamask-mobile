@@ -1,0 +1,65 @@
+diff --git a/node_modules/@metamask/bridge-controller/dist/bridge-controller.cjs b/node_modules/@metamask/bridge-controller/dist/bridge-controller.cjs
+index 9dcc212..7d60775 100644
+--- a/node_modules/@metamask/bridge-controller/dist/bridge-controller.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/bridge-controller.cjs
+@@ -534,6 +534,8 @@ class BridgeController extends (0, polling_controller_1.StaticIntervalPollingCon
+                         ...propertiesFromClient,
+                     };
+                 }
++                case constants_1.UnifiedSwapBridgeEventName.AssetDetailTooltipClicked:
++                    return baseProperties;
+                 // These are populated by BridgeStatusController
+                 case constants_1.UnifiedSwapBridgeEventName.Completed:
+                     return propertiesFromClient;
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.cjs b/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.cjs
+index b421e3b..dc5e9de 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.cjs
++++ b/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.cjs
+@@ -21,6 +21,7 @@ var UnifiedSwapBridgeEventName;
+     UnifiedSwapBridgeEventName["AllQuotesOpened"] = "Unified SwapBridge All Quotes Opened";
+     UnifiedSwapBridgeEventName["AllQuotesSorted"] = "Unified SwapBridge All Quotes Sorted";
+     UnifiedSwapBridgeEventName["QuoteSelected"] = "Unified SwapBridge Quote Selected";
++    UnifiedSwapBridgeEventName["AssetDetailTooltipClicked"] = "Unified SwapBridge Asset Detail Tooltip Clicked";
+ })(UnifiedSwapBridgeEventName || (exports.UnifiedSwapBridgeEventName = UnifiedSwapBridgeEventName = {}));
+ /**
+  * @deprecated remove this event property
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.d.cts b/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.d.cts
+index c3d6b64..1e46aeb 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/utils/metrics/constants.d.cts
+@@ -16,7 +16,8 @@ export declare enum UnifiedSwapBridgeEventName {
+     Failed = "Unified SwapBridge Failed",
+     AllQuotesOpened = "Unified SwapBridge All Quotes Opened",
+     AllQuotesSorted = "Unified SwapBridge All Quotes Sorted",
+-    QuoteSelected = "Unified SwapBridge Quote Selected"
++    QuoteSelected = "Unified SwapBridge Quote Selected",
++    AssetDetailTooltipClicked = "Unified SwapBridge Asset Detail Tooltip Clicked"
+ }
+ /**
+  * @deprecated remove this event property
+diff --git a/node_modules/@metamask/bridge-controller/dist/utils/metrics/types.d.cts b/node_modules/@metamask/bridge-controller/dist/utils/metrics/types.d.cts
+index 6c786b6..5ea7340 100644
+--- a/node_modules/@metamask/bridge-controller/dist/utils/metrics/types.d.cts
++++ b/node_modules/@metamask/bridge-controller/dist/utils/metrics/types.d.cts
+@@ -116,6 +116,13 @@ export type RequiredEventContextFromClient = {
+         price_impact: QuoteFetchData['price_impact'];
+         can_submit: QuoteFetchData['can_submit'];
+     };
++    [UnifiedSwapBridgeEventName.AssetDetailTooltipClicked]: {
++        token_name: string;
++        token_symbol: string;
++        token_contract: string;
++        chain_name: string;
++        chain_id: string;
++    };
+ };
+ /**
+  * Properties that can be derived from the bridge controller state
+@@ -147,6 +154,7 @@ export type EventPropertiesFromControllerState = {
+     [UnifiedSwapBridgeEventName.AllQuotesOpened]: RequestParams & RequestMetadata & TradeData & QuoteFetchData;
+     [UnifiedSwapBridgeEventName.AllQuotesSorted]: RequestParams & RequestMetadata & TradeData & QuoteFetchData;
+     [UnifiedSwapBridgeEventName.QuoteSelected]: RequestParams & RequestMetadata & QuoteFetchData & TradeData;
++    [UnifiedSwapBridgeEventName.AssetDetailTooltipClicked]: null;
+ };
+ /**
+  * trackUnifiedSwapBridgeEvent payload properties consist of required properties from the client

@@ -5,41 +5,47 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
+} from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../fixtures/fixture-server';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../fixtures/utils.js';
-import { Regression } from '../../tags';
-import Assertions from '../../utils/Assertions';
+} from '../../framework/fixtures/FixtureUtils';
+import { RegressionAssets } from '../../tags';
+import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from '../swaps/helpers/swap-mocks';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { testSpecificMock as swapTestSpecificMock } from '../swaps/helpers/swap-mocks';
+import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer: FixtureServer = new FixtureServer();
 
-describe(Regression('Swap from Token view'), (): void => {
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
+describe(RegressionAssets('Swap from Token view'), (): void => {
   let localNode: Ganache;
   let mockServer: Mockttp;
 
   beforeAll(async (): Promise<void> => {
     localNode = new Ganache();
-    await localNode.start(localNodeOptions);
+    await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    // Added to pass linting - this pattern is not recommended check other swaps test for new pattern
+    mockServer = await startMockServer(
+      {},
+      mockServerPort,
+      swapTestSpecificMock,
+    );
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withGanacheNetwork('0x1').build();
@@ -79,9 +85,9 @@ describe(Regression('Swap from Token view'), (): void => {
     const destTokenSymbol: string = 'DAI';
 
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
-    await Assertions.checkIfVisible(TokenOverview.container);
+    await Assertions.expectElementToBeVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(1000);
     await TokenOverview.tapSwapButton();
@@ -95,17 +101,16 @@ describe(Regression('Swap from Token view'), (): void => {
     );
 
     // After the swap is complete, the DAI balance shouldn't be 0
-    await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
+    await Assertions.expectTextNotDisplayed('0 DAI', { timeout: 60000 });
 
     // Check the swap activity completed
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      60000,
     );
   });
 });

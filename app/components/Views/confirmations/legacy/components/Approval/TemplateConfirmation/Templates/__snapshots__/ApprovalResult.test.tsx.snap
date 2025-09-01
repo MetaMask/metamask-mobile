@@ -167,7 +167,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -251,7 +251,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#1c7e331a",
+            "backgroundColor": "#457a391a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -260,7 +260,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#1c7e33"
+          color="#457a39"
           fill="currentColor"
           height={24}
           name="Confirmation"
@@ -373,7 +373,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[MockFunction]}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

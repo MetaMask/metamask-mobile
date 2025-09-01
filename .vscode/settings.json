@@ -8,5 +8,26 @@
   "cucumberautocomplete.strictGherkinCompletion": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative"
+  "typescript.preferences.importModuleSpecifier": "relative",
+
+  // Tailwind CSS configuration
+  "tailwindCSS.includeLanguages": {
+    "javascript": "javascript",
+    "typescript": "typescript",
+    "typescriptreact": "typescriptreact"
+  },
+  "tailwindCSS.classAttributes": ["twClassName", "style"],
+  "tailwindCSS.experimental.classRegex": [
+    ["tw`([^`]*)`", "$1"],
+    ["tw\\('([^']*)'\\)", "$1"],
+    ["tw\\(\"([^\"]*)\"\\)", "$1"]
+  ],
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.validate": true,
+  "tailwindCSS.showPixelEquivalents": true,
+  "tailwindCSS.colorDecorators": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.inlayHints.enabled": "on"
 }

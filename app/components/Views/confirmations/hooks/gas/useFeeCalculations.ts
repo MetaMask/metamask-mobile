@@ -10,13 +10,44 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
+import { decimalToHex, multiplyHexes } from '../../../../../util/conversions';
 import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
 
 const HEX_ZERO = '0x0';
 
-export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
+export const useFeeCalculations = (
+  transactionMeta: TransactionMeta,
+): {
+  estimatedFeeFiat: string | null;
+  estimatedFeeFiatPrecise: string | null;
+  estimatedFeeNative: string | null;
+  preciseNativeFeeInHex: string | null;
+  calculateGasEstimate: ({
+    feePerGas,
+    gasPrice,
+    gas,
+    shouldUseEIP1559FeeLogic,
+    priorityFeePerGas,
+  }: {
+    feePerGas: string;
+    gasPrice: string;
+    gas: string;
+    shouldUseEIP1559FeeLogic: boolean;
+    priorityFeePerGas: string;
+  }) => {
+    currentCurrencyFee: string | null;
+    nativeCurrencyFee: string | null;
+    preciseCurrentCurrencyFee: string | null;
+    preciseNativeCurrencyFee: string | null;
+    preciseNativeFeeInHex: string | null;
+  };
+  maxFeeFiat: string | null;
+  maxFeeNative: string | null;
+  maxFeeNativePrecise: string | null;
+  maxFeeNativeHex: string | null;
+} => {
   const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
     transactionMeta;
 
@@ -98,10 +129,39 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
     ],
   );
 
+  // Max fee
+  const maxFee = useMemo(
+    () =>
+      multiplyHexes(
+        supportsEIP1559
+          ? (decimalToHex(maxFeePerGas) as Hex)
+          : (txParamsGasPrice as Hex),
+        transactionMeta.txParams.gas,
+      ),
+    [
+      supportsEIP1559,
+      maxFeePerGas,
+      txParamsGasPrice,
+      transactionMeta.txParams.gas,
+    ],
+  );
+
+  const {
+    currentCurrencyFee: maxFeeFiat,
+    nativeCurrencyFee: maxFeeNative,
+    preciseNativeCurrencyFee: maxFeeNativePrecise,
+    preciseNativeFeeInHex: maxFeeNativeHex,
+  } = getFeesFromHexCallback(maxFee);
+
   return {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
+    estimatedFeeFiatPrecise: estimatedFees.preciseCurrentCurrencyFee,
     estimatedFeeNative: estimatedFees.nativeCurrencyFee,
     preciseNativeFeeInHex: estimatedFees.preciseNativeFeeInHex,
     calculateGasEstimate: calculateGasEstimateCallback,
+    maxFeeFiat,
+    maxFeeNative,
+    maxFeeNativePrecise,
+    maxFeeNativeHex,
   };
 };

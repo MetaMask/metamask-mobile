@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -26,7 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/legacy/Send';
+import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -97,7 +97,15 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
-import { PerpsScreenStack, selectPerpsEnabledFlag } from '../../UI/Perps';
+import {
+  PerpsScreenStack,
+  PerpsModalStack,
+  selectPerpsEnabledFlag,
+} from '../../UI/Perps';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
+import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
+import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
@@ -105,6 +113,10 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
+import CardRoutes from '../../UI/Card/routes';
+import { Send } from '../../Views/confirmations/components/send';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -230,6 +242,16 @@ const TransactionsHome = () => (
     />
   </Stack.Navigator>
 );
+
+const RewardsHome = () => {
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
+  if (!isRewardsEnabled) {
+    return null;
+  }
+  // TODO: Return RewardsNavigator
+  return null;
+};
 
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
@@ -459,6 +481,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -517,6 +540,15 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
     },
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
+        );
+      },
+      rootScreenName: Routes.REWARDS_VIEW,
+    },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
@@ -570,9 +602,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
@@ -581,18 +613,26 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isRewardsEnabled ? (
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
     </Tab.Navigator>
   );
 };
@@ -612,8 +652,8 @@ const SendView = () => (
   <Stack.Navigator>
     <Stack.Screen
       name="Send"
-      component={Send}
-      options={Send.navigationOptions}
+      component={SendLegacy}
+      options={SendLegacy.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -760,7 +800,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={AccountBackupStep1.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -800,7 +840,16 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
+  const { enabled: isSendRedesignEnabled } = useSelector(
+    selectSendRedesignFlags,
+  );
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -837,12 +886,25 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      {isRewardsEnabled && (
+        <Stack.Screen
+          name={Routes.SETTINGS_VIEW}
+          component={SettingsFlow}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
+        name="Send"
+        component={Send}
+        //Disabling swipe down on IOS
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
         name="SendFlowView"
-        component={SendFlowView}
+        component={isSendRedesignEnabled ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
@@ -886,7 +948,42 @@ const MainNavigator = () => {
         options={clearStackNavigatorOptions}
       />
       {isPerpsEnabled && (
-        <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+        <>
+          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.MODALS.ROOT}
+            component={PerpsModalStack}
+            options={clearStackNavigatorOptions}
+          />
+        </>
+      )}
+      {isPerpsEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PERPS.POSITION_TRANSACTION}
+            component={PerpsPositionTransactionView}
+            options={{
+              title: 'Position Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_TRANSACTION}
+            component={PerpsOrderTransactionView}
+            options={{
+              title: 'Order Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.FUNDING_TRANSACTION}
+            component={PerpsFundingTransactionView}
+            options={{
+              title: 'Funding Transaction',
+              headerShown: true,
+            }}
+          />
+        </>
       )}
       <Stack.Screen
         name="SetPasswordFlow"
@@ -937,6 +1034,7 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
+      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );
 };

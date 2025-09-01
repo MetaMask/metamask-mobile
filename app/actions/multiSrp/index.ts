@@ -4,26 +4,37 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
   MultichainWalletSnapFactory,
+  WALLET_SNAP_MAP,
   WalletClientType,
 } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
 import {
   endPerformanceTrace,
   startPerformanceTrace,
 } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
 import { store } from '../../store';
-import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
+import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
+import Logger from '../../util/Logger';
 
-export async function importNewSecretRecoveryPhrase(mnemonic: string) {
+interface ImportNewSecretRecoveryPhraseOptions {
+  shouldSelectAccount: boolean;
+}
+
+export async function importNewSecretRecoveryPhrase(
+  mnemonic: string,
+  options: ImportNewSecretRecoveryPhraseOptions = {
+    shouldSelectAccount: true,
+  },
+) {
   const { KeyringController } = Engine.context;
+  const { shouldSelectAccount } = options;
 
   // Convert input mnemonic to codepoints
   const mnemonicWords = mnemonic.toLowerCase().split(' ');
@@ -77,30 +88,63 @@ export async function importNewSecretRecoveryPhrase(mnemonic: string) {
     // on Error, wallet should notify user that the newly added seed phrase is not synced properly
     // user can try manual sync again (phase 2)
     const seed = new Uint8Array(inputCodePoints.buffer);
+    let addSeedPhraseSuccess = false;
     try {
-      await SeedlessOnboardingController.addNewSeedPhraseBackup(
+      trace({
+        name: TraceName.OnboardingAddSrp,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      await SeedlessOnboardingController.addNewSecretData(
         seed,
-        newKeyring.id,
+        SecretType.Mnemonic,
+        {
+          keyringId: newKeyring.id,
+        },
       );
+      addSeedPhraseSuccess = true;
     } catch (error) {
+      // handle seedless controller import error by reverting keyring controller mnemonic import
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       // Log the error but don't let it crash the import process
-      console.error('Failed to backup seed phrase:', error);
+      Logger.error(new Error(`Failed to backup seed phrase: ${errorMessage}`));
+
+      trace({
+        name: TraceName.OnboardingAddSrpError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+      });
+      endTrace({
+        name: TraceName.OnboardingAddSrpError,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingAddSrp,
+        data: { success: addSeedPhraseSuccess },
+      });
     }
   }
 
-  let discoveredAccountsCount = 0;
+  const discoveredAccountsCount = (
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const snapClient = MultichainWalletSnapFactory.createClient(clientType);
+        return await snapClient.addDiscoveredAccounts(
+          newKeyring.id,
+          WALLET_SNAP_MAP[clientType].discoveryScope,
+        );
+      }),
+    )
+  ).reduce((acc, count) => acc + count || 0, 0);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const multichainClient = MultichainWalletSnapFactory.createClient(
-    WalletClientType.Solana,
-  );
-
-  discoveredAccountsCount = await multichainClient.addDiscoveredAccounts(
-    newKeyring.id,
-  );
-  ///: END:ONLY_INCLUDE_IF
-
-  Engine.setSelectedAddress(newAccountAddress);
+  if (shouldSelectAccount) {
+    Engine.setSelectedAddress(newAccountAddress);
+  }
 
   return { address: newAccountAddress, discoveredAccountsCount };
 }

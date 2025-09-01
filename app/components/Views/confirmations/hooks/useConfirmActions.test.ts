@@ -14,11 +14,23 @@ import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-cont
 import * as LedgerContext from '../context/ledger-context/ledger-context';
 // eslint-disable-next-line import/no-namespace
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionActions from '../../../../actions/transaction';
+// eslint-disable-next-line import/no-namespace
+import * as NetworkEnablementHook from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useConfirmActions } from './useConfirmActions';
+import { cloneDeep } from 'lodash';
+import { RootState } from '../../../../reducers';
+import { ConfirmationMetricsState } from '../../../../core/redux/slices/confirmationMetrics';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -44,6 +56,8 @@ jest.mock('./signatures/useSignatureMetrics', () => ({
   }),
 }));
 
+const TRANSACTION_ID_MOCK = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+
 const flushPromises = async () => await new Promise(process.nextTick);
 
 const createUseLedgerContextSpy = (mockedValues = {}) => {
@@ -52,6 +66,33 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
     openLedgerSignModal: jest.fn(),
     ...mockedValues,
   } as unknown as LedgerContext.LedgerContextType);
+};
+
+const createUseNetworkEnablementSpy = (mockedValues = {}) => {
+  jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+    tryEnableEvmNetwork: jest.fn(),
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {
+      eip155: {
+        '0x1': true,
+      },
+    },
+    enabledNetworksForCurrentNamespace: {
+      '0x1': true,
+    },
+    networkEnablementController: {
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+    } as unknown as ReturnType<
+      typeof NetworkEnablementHook.useNetworkEnablement
+    >['networkEnablementController'],
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    toggleNetwork: jest.fn(),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    ...mockedValues,
+  } as unknown as ReturnType<typeof NetworkEnablementHook.useNetworkEnablement>);
 };
 
 describe('useConfirmAction', () => {
@@ -64,6 +105,7 @@ describe('useConfirmAction', () => {
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(false);
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -200,6 +242,18 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('does not navigate back when onReject is called with skipNavigation as true', async () => {
+    const goBackSpy = jest.fn();
+    useNavigationMock.mockReturnValue({
+      goBack: goBackSpy,
+    } as unknown as ReturnType<typeof useNavigation>);
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+    result?.current?.onReject(undefined, true);
+    expect(goBackSpy).not.toHaveBeenCalled();
+  });
+
   it('navigates to transactions view if confirmation is standalone confirmation', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
@@ -211,20 +265,33 @@ describe('useConfirmAction', () => {
     expect(navigateMock).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
+  it('reset transaction state if confirmation is transaction', async () => {
+    const resetTransactionSpy = jest.spyOn(
+      TransactionActions,
+      'resetTransaction',
+    );
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(resetTransactionSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('call acceptPendingApproval with parameters waitForResult as false for transactions if smart transactions are enabled', async () => {
     jest
       .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
       .mockReturnValue(true);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
+      TRANSACTION_ID_MOCK,
       stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
+        .pendingApprovals[TRANSACTION_ID_MOCK].requestData,
       { deleteAfterResult: true, handleErrors: false, waitForResult: false },
     );
   });
@@ -233,17 +300,84 @@ describe('useConfirmAction', () => {
     jest
       .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
       .mockReturnValue(false);
-    const transactionId = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
     expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
-      transactionId,
+      TRANSACTION_ID_MOCK,
       stakingDepositConfirmationState.engine.backgroundState.ApprovalController
-        .pendingApprovals[transactionId].requestData,
+        .pendingApprovals[TRANSACTION_ID_MOCK].requestData,
       { deleteAfterResult: true, handleErrors: false, waitForResult: true },
     );
+  });
+
+  it('does not wait for result if bridge quotes', async () => {
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    state.confirmationMetrics = {
+      transactionBridgeQuotesById: {
+        [TRANSACTION_ID_MOCK]: [{}],
+      },
+    } as unknown as ConfirmationMetricsState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledWith(
+      TRANSACTION_ID_MOCK,
+      expect.any(Object),
+      expect.objectContaining({ waitForResult: false }),
+    );
+  });
+
+  it('does not enable network when feature flag is disabled', async () => {
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(false);
+
+    const mockTryEnableEvmNetwork = jest.fn();
+    createUseNetworkEnablementSpy({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).not.toHaveBeenCalled();
+  });
+
+  it('calls tryEnableEvmNetwork when feature flag is enabled', async () => {
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(true);
+    const mockTryEnableEvmNetwork = jest.fn();
+    createUseNetworkEnablementSpy({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
   });
 });

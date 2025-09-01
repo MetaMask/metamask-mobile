@@ -1,13 +1,15 @@
+import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+
+import Routes from '../../../constants/navigation/Routes';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetOverview/AssetActionButton';
 import Device from '../../../util/device';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
-import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { areAddressesEqual } from '../../../util/address';
@@ -15,6 +17,9 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
+import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,6 +86,10 @@ class CollectibleContractOverview extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func,
+    /**
+     * Whether the send redesign is enabled
+     */
+    isSendRedesignEnabled: PropTypes.bool,
   };
 
   onAdd = () => {
@@ -92,12 +101,18 @@ class CollectibleContractOverview extends PureComponent {
   };
 
   onSend = () => {
-    const { collectibleContract, collectibles } = this.props;
+    const { collectibleContract, collectibles, isSendRedesignEnabled } =
+      this.props;
     const collectible = collectibles.find((collectible) =>
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    this.props.navigation.navigate('SendFlowView');
+    handleSendPageNavigation(
+      this.props.navigation.navigate,
+      InitSendLocation.CollectibleContractOverview,
+      isSendRedesignEnabled,
+      collectible,
+    );
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();
@@ -161,6 +176,7 @@ class CollectibleContractOverview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   collectibles: collectiblesSelector(state),
+  isSendRedesignEnabled: selectSendRedesignFlags(state).enabled,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, getChecksumAddress, Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import {
@@ -30,6 +30,7 @@ import { renderNumber, renderFiat } from '../../../../../util/number';
 import { formatUnits } from 'ethers/lib/utils';
 import { BigNumber } from 'ethers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { toChecksumAddress } from '../../../../../util/address';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -90,7 +91,7 @@ export const calculateEvmBalances = ({
     // Native EVM token
     if (token.isETH || token.isNative) {
       const nativeTokenBalanceAtomicHex =
-        evmAccountsByChainId?.[chainId]?.[getChecksumAddress(selectedAddress)]
+        evmAccountsByChainId?.[chainId]?.[toChecksumAddress(selectedAddress)]
           ?.balance || '0x0';
       const nativeTokenBalance = formatUnits(
         BigNumber.from(nativeTokenBalanceAtomicHex),
@@ -116,7 +117,7 @@ export const calculateEvmBalances = ({
     );
     const erc20BalanceAtomicHex =
       multiChainTokenBalances?.[token.address as Hex] ||
-      multiChainTokenBalances?.[getChecksumAddress(token.address as Hex)] ||
+      multiChainTokenBalances?.[toChecksumAddress(token.address as Hex)] ||
       '0x0';
 
     const erc20Balance = formatUnits(

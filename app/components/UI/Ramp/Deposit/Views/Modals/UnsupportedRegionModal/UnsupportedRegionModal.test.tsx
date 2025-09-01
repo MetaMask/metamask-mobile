@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
-import renderDepositTestComponent from '../../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -26,8 +28,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
-  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
+
+function render(component: React.ComponentType) {
+  return renderScreen(component, {
+    name: Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+  });
+}
 
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
@@ -50,10 +57,7 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { toJSON } = render(UnsupportedRegionModal);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -73,17 +77,14 @@ describe('UnsupportedRegionModal', () => {
       },
     });
 
-    const { getByText } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { getByText } = render(UnsupportedRegionModal);
 
     const buyCryptoButton = getByText('Buy Crypto');
     fireEvent.press(buyCryptoButton);
 
     expect(mockDangerouslyGetParent).toHaveBeenCalled();
     expect(mockPop).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampBuy');
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
   });
 
   it('navigates to region selector when Change region button is pressed', () => {
@@ -104,17 +105,14 @@ describe('UnsupportedRegionModal', () => {
       selectedRegion: mockSelectedRegion,
     });
 
-    const { getByText } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { getByText } = render(UnsupportedRegionModal);
 
     const changeRegionButton = getByText('Change region');
     fireEvent.press(changeRegionButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
-      screen: 'DepositRegionSelectorModal',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createRegionSelectorModalNavigationDetails(),
+    );
   });
 
   it('handles missing region gracefully', () => {
@@ -122,10 +120,7 @@ describe('UnsupportedRegionModal', () => {
       selectedRegion: null,
     });
 
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { toJSON } = render(UnsupportedRegionModal);
 
     expect(toJSON()).toMatchSnapshot();
   });

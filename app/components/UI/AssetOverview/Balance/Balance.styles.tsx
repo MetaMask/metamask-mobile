@@ -11,6 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {
       flex: 1,
+      paddingHorizontal: 16,
     },
     badgeWrapper: {
       alignSelf: 'center',
@@ -28,10 +29,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignContent: 'flex-start',
       paddingLeft: 16,
     },
-    title: {
-      paddingVertical: 4,
-      paddingHorizontal: 15,
-    } as TextStyle,
     base: {
       flexDirection: 'column',
       alignItems: 'flex-start',
@@ -46,6 +43,11 @@ const styleSheet = (params: { theme: Theme }) => {
     fiatBalance: {
       ...typography.sHeadingMD,
       fontFamily: getFontFamily(TextVariant.HeadingMD),
+    } as TextStyle,
+    tokenAmount: {
+      ...typography.sBodySM,
+      fontFamily: getFontFamily(TextVariant.BodySM),
+      color: theme.colors.text.alternative,
     } as TextStyle,
   });
 };

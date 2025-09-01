@@ -1,73 +1,32 @@
-'use strict';
-/* eslint-disable no-console */
-import { Mockttp, MockttpServer } from 'mockttp';
-import { loginToApp } from '../../viewHelper.js';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNodeType } from '../../framework/types';
+import SoftAssert from '../../utils/SoftAssert';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import { defaultGanacheOptions } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import Ganache from '../../../app/util/test/ganache';
-import { localNodeOptions, testSpecificMock } from './helpers/constants';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../fixtures/fixture-helper.js';
-import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../fixtures/fixture-server.js';
-import {
-  getFixturesServerPort,
-  getMockServerPort,
-} from '../../fixtures/utils.js';
-import { SmokeTrade } from '../../tags.js';
-import Assertions from '../../utils/Assertions.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import { SmokeTrade } from '../../tags';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { getEventsPayloads } from '../analytics/helpers';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from './helpers/swap-mocks';
-import SoftAssert from '../../utils/SoftAssert.ts';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment.ts';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
+import { loginToApp } from '../../viewHelper';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { logger } from '../../framework/logger';
+import { testSpecificMock } from './helpers/swap-mocks';
 
-const fixtureServer: FixtureServer = new FixtureServer();
+const EVENT_NAMES = {
+  SWAP_STARTED: 'Swap Started',
+  SWAP_COMPLETED: 'Swap Completed',
+  SWAPS_OPENED: 'Swaps Opened',
+  QUOTES_RECEIVED: 'Quotes Received',
+};
 
-// eslint-disable-next-line jest/no-disabled-tests
 describe(SmokeTrade('Swap from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
-  let mockServer: Mockttp;
-  let localNode: Ganache;
-
-  beforeAll(async (): Promise<void> => {
-    localNode = new Ganache();
-    await localNode.start(localNodeOptions);
-
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .withMetaMetricsOptIn()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
-      permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        mockServerPort: `${mockServerPort}`,
-      },
-    });
-    await loginToApp();
-    await prepareSwapsTestEnvironment();
-  });
-
-  afterAll(async (): Promise<void> => {
-    await stopFixtureServer(fixtureServer);
-    if (mockServer) await stopMockServer(mockServer);
-    if (localNode) await localNode.quit();
-  });
+  let capturedEvents: EventPayload[] = [];
 
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(120000);
@@ -85,40 +44,72 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       destTokenSymbol,
       chainId,
     }): Promise<void> => {
-      await TabBarComponent.tapActions();
-      await Assertions.checkIfVisible(WalletActionsBottomSheet.swapButton);
-      await WalletActionsBottomSheet.tapSwapButton();
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withGanacheNetwork('0x1')
+            .withMetaMetricsOptIn()
+            .withDisabledSmartTransactions()
+            .build(),
+          localNodeOptions: [
+            {
+              type: LocalNodeType.ganache,
+              options: {
+                ...defaultGanacheOptions,
+                chainId: 1,
+              },
+            },
+          ],
+          testSpecificMock,
+          restartDevice: true,
+          endTestfn: async ({ mockServer }) => {
+            try {
+              // Capture all events without filtering.
+              // When fixing the test skipped below the filter needs to be applied there.
+              capturedEvents = await getEventsPayloads(mockServer, [], 30000);
+            } catch (error: unknown) {
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              logger.error(`Error capturing events: ${errorMessage}`);
+            }
+          },
+        },
+        async () => {
+          await loginToApp();
+          await prepareSwapsTestEnvironment();
+          await TabBarComponent.tapActions();
+          await Assertions.expectElementToBeVisible(
+            WalletActionsBottomSheet.swapButton,
+          );
+          await WalletActionsBottomSheet.tapSwapButton();
 
-      // Submit the Swap
-      await submitSwapUnifiedUI(
-        quantity,
-        sourceTokenSymbol,
-        destTokenSymbol,
-        chainId,
-      );
+          // Submit the Swap
+          await submitSwapUnifiedUI(
+            quantity,
+            sourceTokenSymbol,
+            destTokenSymbol,
+            chainId,
+          );
 
-      // Check the swap activity completed
-      await Assertions.checkIfVisible(ActivitiesView.title);
-      await Assertions.checkIfVisible(
-        ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
-      );
-      await Assertions.checkIfElementToHaveText(
-        ActivitiesView.transactionStatus(FIRST_ROW),
-        ActivitiesViewSelectorsText.CONFIRM_TEXT,
-        60000,
-      );
+          // Check the swap activity completed
+          await Assertions.expectElementToBeVisible(ActivitiesView.title);
+          await Assertions.expectElementToHaveText(
+            ActivitiesView.transactionStatus(FIRST_ROW),
+            ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          );
 
-      // Check the token approval completed
-      if (type === 'unapproved') {
-        await Assertions.checkIfVisible(
-          ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
-        );
-        await Assertions.checkIfElementToHaveText(
-          ActivitiesView.transactionStatus(SECOND_ROW),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          60000,
-        );
-      }
+          // Check the token approval completed
+          if (type === 'unapproved') {
+            await Assertions.expectElementToBeVisible(
+              ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
+            );
+            await Assertions.expectElementToHaveText(
+              ActivitiesView.transactionStatus(SECOND_ROW),
+              ActivitiesViewSelectorsText.CONFIRM_TEXT,
+            );
+          }
+        },
+      );
     },
   );
 
@@ -150,18 +141,8 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       },
     ];
 
-    const EVENT_NAMES = {
-      SWAP_STARTED: 'Swap Started',
-      SWAP_COMPLETED: 'Swap Completed',
-      SWAPS_OPENED: 'Swaps Opened',
-      QUOTES_RECEIVED: 'Quotes Received',
-    };
-
     // METAMETRICS EVENTS
-    const events = await getEventsPayloads(
-      mockServer as MockttpServer,
-      Object.values(EVENT_NAMES),
-    );
+    const events = capturedEvents;
 
     const softAssert: SoftAssert = new SoftAssert();
 

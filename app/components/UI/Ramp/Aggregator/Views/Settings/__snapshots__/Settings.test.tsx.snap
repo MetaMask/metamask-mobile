@@ -116,40 +116,87 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -542,7 +589,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#3c4d9d1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -943,7 +990,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           selectable={true}
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -958,7 +1005,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           selectable={true}
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1108,14 +1155,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessible={true}
                                       activeOpacity={1}
                                       disabled={true}
-                                      onPress={[Function]}
                                       onPressIn={[Function]}
                                       onPressOut={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#3c4d9d1a",
+                                          "backgroundColor": "#3c4d9d0f",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
@@ -1279,40 +1325,87 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1705,7 +1798,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#3c4d9d1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -1837,7 +1930,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#3c4d9d1a",
+                                          "backgroundColor": "#3c4d9d0f",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
@@ -2000,40 +2093,87 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -2550,40 +2690,87 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -2976,7 +3163,7 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#3c4d9d1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -3138,40 +3325,87 @@ exports[`Settings renders correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -3564,7 +3798,7 @@ exports[`Settings renders correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#3c4d9d1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -3726,40 +3960,87 @@ exports[`Settings renders correctly for internal builds 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -4152,7 +4433,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "stretch",
-                                        "backgroundColor": "#3c4d9d1a",
+                                        "backgroundColor": "#3c4d9d0f",
                                         "borderColor": "transparent",
                                         "borderRadius": 12,
                                         "borderWidth": 1,
@@ -4550,7 +4831,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           selectable={true}
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4565,7 +4846,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           selectable={true}
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4722,7 +5003,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#3c4d9d1a",
+                                          "backgroundColor": "#3c4d9d0f",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,

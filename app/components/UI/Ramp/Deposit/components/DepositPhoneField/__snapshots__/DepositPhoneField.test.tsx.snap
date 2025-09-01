@@ -29,6 +29,35 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -81,7 +110,7 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -111,17 +140,17 @@ exports[`DepositPhoneField renders correctly after flag button press 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 7890"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -165,6 +194,35 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -217,7 +275,7 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -247,17 +305,17 @@ exports[`DepositPhoneField renders correctly after input change 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 7890"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -301,6 +359,35 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -353,7 +440,7 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -383,17 +470,17 @@ exports[`DepositPhoneField renders correctly with default props 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 555-1234"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -437,6 +524,35 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -489,7 +605,7 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -519,17 +635,17 @@ exports[`DepositPhoneField renders correctly with different region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 7890"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -573,6 +689,35 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -625,7 +770,7 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -655,17 +800,17 @@ exports[`DepositPhoneField renders correctly with error message 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 555-1234"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -724,6 +869,35 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -776,7 +950,7 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -806,17 +980,17 @@ exports[`DepositPhoneField renders correctly with long phone number 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 789"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -860,6 +1034,35 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -912,7 +1115,7 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -943,17 +1146,17 @@ exports[`DepositPhoneField renders correctly with onSubmitEditing callback 1`] =
         onFocus={[Function]}
         onSubmitEditing={[MockFunction]}
         placeholder="123 456 7890"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -997,6 +1200,35 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1049,7 +1281,7 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1079,17 +1311,17 @@ exports[`DepositPhoneField renders correctly with special characters in phone nu
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 789"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -1133,6 +1365,35 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1185,7 +1446,7 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1215,17 +1476,17 @@ exports[`DepositPhoneField renders correctly with unsupported region 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="123 456 789"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,
@@ -1269,6 +1530,35 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
     Phone Number
   </Text>
   <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
     style={
       {
         "alignItems": "center",
@@ -1321,7 +1611,7 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
               "fontFamily": "Geist Regular",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -1351,17 +1641,17 @@ exports[`DepositPhoneField renders correctly with value 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         placeholder="(555) 555-1234"
-        placeholderTextColor="#9ca1af"
+        placeholderTextColor="#b7bbc8"
         style={
           {
-            "backgroundColor": "#ffffff",
+            "backgroundColor": "inherit",
             "borderColor": "transparent",
             "borderWidth": 1,
             "color": "#121314",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "fontWeight": "400",
-            "height": 24,
+            "height": 46,
             "letterSpacing": 0,
             "opacity": 1,
             "paddingVertical": 0,

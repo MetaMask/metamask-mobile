@@ -7,6 +7,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import ScreenView from '../../../../Base/ScreenView';
 import { createStyles } from './PerpsLoader.styles';
+import { PerpsLoaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsLoaderProps {
   message?: string;
@@ -20,16 +21,25 @@ const PerpsLoader: React.FC<PerpsLoaderProps> = ({
   const { styles, theme } = useStyles(createStyles, {});
 
   const loaderContent = (
-    <View style={fullScreen ? styles.container : styles.inlineContainer}>
+    <View
+      style={fullScreen ? styles.container : styles.inlineContainer}
+      testID={
+        fullScreen
+          ? PerpsLoaderSelectorsIDs.FULLSCREEN
+          : PerpsLoaderSelectorsIDs.INLINE
+      }
+    >
       <ActivityIndicator
         size="large"
         color={theme.colors.primary.default}
         style={styles.spinner}
+        testID={PerpsLoaderSelectorsIDs.SPINNER}
       />
       <Text
         variant={TextVariant.BodyMD}
         color={TextColor.Muted}
         style={styles.loadingText}
+        testID={PerpsLoaderSelectorsIDs.TEXT}
       >
         {message}
       </Text>

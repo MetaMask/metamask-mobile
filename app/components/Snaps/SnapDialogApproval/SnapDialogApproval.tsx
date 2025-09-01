@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps)
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
 import { strings } from '../../../../locales/i18n';
@@ -24,12 +24,20 @@ export enum TemplateConfirmation {
 }
 
 const SnapDialogApproval = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const { approvalRequest } = useApprovalRequest();
   const { styles } = useStyles(stylesheet, {});
 
+  useEffect(() => {
+    setIsDismissed(false);
+  }, [approvalRequest]);
+
   const onCancel = async () => {
     if (!approvalRequest) return;
+
+    // There is a race condition when using modals and showing alerts in WebViews.
+    // We explicitly dismiss the modal here to prevent that race condition which causes a crash.
+    setIsDismissed(true);
     await Engine.acceptPendingApproval(
       approvalRequest.id,
       null as unknown as Record<string, Json>,
@@ -40,8 +48,11 @@ const SnapDialogApproval = () => {
   };
 
   const onConfirm = async () => {
-    setIsLoading(true);
     if (!approvalRequest) return;
+
+    // There is a race condition when using modals and showing alerts in WebViews.
+    // We explicitly dismiss the modal here to prevent that race condition which causes a crash.
+    setIsDismissed(true);
     await Engine.acceptPendingApproval(
       approvalRequest.id,
       true as unknown as Record<string, Json>,
@@ -49,13 +60,14 @@ const SnapDialogApproval = () => {
     await Engine.context.SnapInterfaceController.deleteInterface(
       approvalRequest.id,
     );
-
-    setIsLoading(false);
   };
 
   const onReject = async () => {
     if (!approvalRequest) return;
 
+    // There is a race condition when using modals and showing alerts in WebViews.
+    // We explicitly dismiss the modal here to prevent that race condition which causes a crash.
+    setIsDismissed(true);
     await Engine.acceptPendingApproval(
       approvalRequest.id,
       false as unknown as Record<string, Json>,
@@ -64,6 +76,10 @@ const SnapDialogApproval = () => {
       approvalRequest.id,
     );
   };
+
+  if (isDismissed) {
+    return null;
+  }
 
   if (
     approvalRequest?.type !== DIALOG_APPROVAL_TYPES.alert &&
@@ -122,7 +138,6 @@ const SnapDialogApproval = () => {
         <SnapUIRenderer
           snapId={snapId}
           interfaceId={interfaceId}
-          isLoading={isLoading}
           onCancel={onCancel}
           useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
           // eslint-disable-next-line react-native/no-inline-styles

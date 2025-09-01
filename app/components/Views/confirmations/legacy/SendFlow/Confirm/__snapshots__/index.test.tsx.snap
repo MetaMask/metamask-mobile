@@ -175,30 +175,6 @@ exports[`Confirm should render correctly 1`] = `
                 >
                   Confirm
                 </Text>
-                <View
-                  style={
-                    {
-                      "alignItems": "center",
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <Text
-                    accessibilityRole="text"
-                    numberOfLines={1}
-                    style={
-                      {
-                        "color": "#686e7d",
-                        "fontFamily": "Geist Regular",
-                        "fontSize": 14,
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Ethereum Main Network
-                  </Text>
-                </View>
               </TouchableOpacity>
             </View>
             <View
@@ -525,7 +501,7 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -545,7 +521,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 32,
                                               "width": 32,
                                             },
-                                            undefined,
+                                            {
+                                              "borderRadius": 8,
+                                            },
                                           ]
                                         }
                                       >
@@ -1005,7 +983,7 @@ exports[`Confirm should render correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#1c7e33",
+                                                "color": "#457a39",
                                                 "fontSize": 15,
                                               },
                                               undefined,
@@ -1305,7 +1283,7 @@ exports[`Confirm should render correctly 1`] = `
                                               "fontSize": 13,
                                             },
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                             },
                                             {
                                               "fontFamily": "Material Design Icons",

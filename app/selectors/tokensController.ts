@@ -31,13 +31,20 @@ export const selectTokens = createDeepEqualSelector(
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
-  selectEvmChainId,
   selectSelectedInternalAccountAddress,
+  (_state, chainId: Hex) => chainId,
   (
     tokensControllerState: TokensControllerState,
-    chainId: Hex,
     selectedAddress: string | undefined,
-  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+    chainId: Hex,
+  ) =>
+    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex]?.reduce(
+      (tokensMap: { [address: string]: Token }, token: Token) => ({
+        ...tokensMap,
+        [token.address]: token,
+      }),
+      {},
+    ) ?? {},
 );
 
 export const selectTokensByAddress = createSelector(
@@ -209,5 +216,22 @@ export const selectTransformedTokens = createSelector(
     );
 
     return flatList;
+  },
+);
+
+export const selectSingleTokenByAddressAndChainId = createSelector(
+  selectAllTokens,
+  selectSelectedInternalAccountAddress,
+  (_state: RootState, tokenAddress: Hex) => tokenAddress,
+  (_state: RootState, _tokenAddress: Hex, chainId: Hex) => chainId,
+  (allTokens, selectedAddress, tokenAddress, chainId) => {
+    if (!selectedAddress) return undefined;
+
+    const tokensForAddressAndChain =
+      allTokens[chainId]?.[selectedAddress] ?? [];
+
+    return tokensForAddressAndChain.find(
+      (token) => token.address.toLowerCase() === tokenAddress.toLowerCase(),
+    );
   },
 );

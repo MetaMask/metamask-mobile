@@ -1,0 +1,671 @@
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonBase,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import Icon, {
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import {
+  HYPERLIQUID_ASSET_CONFIGS,
+  USDC_DECIMALS,
+  USDC_SYMBOL,
+} from '../../constants/hyperLiquidConfig';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  usePerpsAccount,
+  usePerpsNetwork,
+  usePerpsWithdrawQuote,
+  useWithdrawTokens,
+} from '../../hooks';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
+import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
+import type { PerpsNavigationParamList } from '../../types/navigation';
+import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
+
+import type { Hex } from '@metamask/utils';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
+import {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon/Icon.types';
+import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
+
+// Constants
+const MAX_INPUT_LENGTH = 20;
+
+const PerpsWithdrawView: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
+  // State
+  const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
+  const [isSubmittingTx, setIsSubmittingTx] = useState(false);
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(true); // Start with keypad open
+  const [showPercentageButtons, setShowPercentageButtons] = useState(true); // Show percentage buttons initially
+  const hasTrackedWithdrawView = useRef(false);
+
+  // Hooks
+  const { track: trackEvent } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+  const { toastRef } = useContext(ToastContext);
+  const cachedAccountState = usePerpsAccount();
+
+  const perpsNetwork = usePerpsNetwork();
+  const isTestnet = perpsNetwork === 'testnet';
+
+  // Get withdrawal tokens from hook
+  const { destToken } = useWithdrawTokens();
+
+  // Parse available balance from perps account state
+  const availableBalance = useMemo(() => {
+    if (!cachedAccountState?.availableBalance) return 0;
+    // Use parseCurrencyString to properly parse formatted currency
+    return parseCurrencyString(cachedAccountState.availableBalance);
+  }, [cachedAccountState?.availableBalance]);
+
+  const formattedBalance = useMemo(
+    () => formatPerpsFiat(availableBalance),
+    [availableBalance],
+  );
+
+  const hasPositiveBalance = availableBalance > 0;
+
+  // Get withdrawal validation
+  const {
+    hasAmount,
+    isBelowMinimum,
+    hasInsufficientBalance,
+    getMinimumAmount,
+  } = useWithdrawValidation({ withdrawAmount });
+
+  // Check if inputs are valid
+  const hasValidInputs =
+    hasAmount &&
+    !isBelowMinimum &&
+    !hasInsufficientBalance &&
+    hasPositiveBalance;
+
+  // Get withdrawal quote
+  const { formattedQuoteData } = usePerpsWithdrawQuote({
+    amount: withdrawAmount,
+  });
+
+  // Calculate destination amount (for now, same as withdrawal amount minus fees)
+  const destAmount = useMemo(() => {
+    if (!withdrawAmount || !formattedQuoteData?.networkFee) return '';
+    const amount = parseFloat(withdrawAmount) || 0;
+    const fee = parseFloat(formattedQuoteData.networkFee.replace('$', '')) || 0;
+    const result = Math.max(0, amount - fee);
+    return result.toFixed(2);
+  }, [withdrawAmount, formattedQuoteData]);
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
+  }, [startMeasure]);
+
+  // Track screen load - only once
+  useEffect(() => {
+    if (!hasTrackedWithdrawView.current) {
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED);
+      hasTrackedWithdrawView.current = true;
+    }
+  }, [trackEvent, endMeasure]);
+
+  const handleKeypadChange = useCallback(
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      // Limit total length
+      if (value.length > MAX_INPUT_LENGTH) return;
+
+      // Preserve trailing zeros by storing the raw string value
+      setWithdrawAmount(value);
+
+      // Hide percentage buttons when user types a value > 0
+      const numValue = parseFloat(value) || 0;
+      if (numValue > 0) {
+        setShowPercentageButtons(false);
+      } else {
+        setShowPercentageButtons(true);
+      }
+    },
+    [],
+  );
+
+  const handleAmountPress = useCallback(() => {
+    setIsInputFocused(true);
+  }, []);
+
+  const handlePercentagePress = useCallback(
+    (percentage: number) => {
+      if (!hasPositiveBalance) return;
+
+      const amount = availableBalance * percentage;
+      // Format to 2 decimal places for USDC
+      const formattedAmount = amount.toFixed(2);
+      setWithdrawAmount(formattedAmount);
+
+      // Hide percentage buttons after selection and show withdrawal button
+      if (amount > 0) {
+        setShowPercentageButtons(false);
+      }
+
+      // Log for debugging
+      DevLogger.log(
+        `Percentage selected: ${
+          percentage * 100
+        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+      );
+    },
+    [availableBalance, hasPositiveBalance],
+  );
+
+  const handleMaxPress = useCallback(() => {
+    handlePercentagePress(1);
+  }, [handlePercentagePress]);
+
+  const handleContinue = useCallback(async () => {
+    if (!hasValidInputs || isSubmittingTx) return;
+
+    setIsSubmittingTx(true);
+    trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
+      amount: withdrawAmount,
+    });
+
+    // Show processing toast immediately
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Clock,
+      labelOptions: [
+        {
+          label: `${strings('perps.withdrawal.processing_title')}\n${strings(
+            'perps.withdrawal.processing_description',
+          )}`,
+          isBold: false,
+        },
+      ],
+      hasNoTimeout: false,
+    });
+
+    // Navigate back immediately to close the withdrawal screen
+    navigation.goBack();
+
+    // Execute withdrawal asynchronously
+    try {
+      // Execute withdrawal directly using controller
+      const controller = Engine.context.PerpsController;
+
+      // Construct assetId in CAIP format: eip155:{chainId}/erc20:{tokenAddress}/default
+      // Convert hex chainId to decimal for CAIP format
+      const chainIdDecimal = parseInt(destToken.chainId, 16).toString();
+
+      // Get the correct assetId for USDC on Arbitrum
+      const assetId = isTestnet
+        ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
+        : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+
+      DevLogger.log('Initiating withdrawal with params:', {
+        amount: withdrawAmount,
+        destination: destToken.address,
+        assetId,
+        chainId: destToken.chainId,
+        chainIdDecimal,
+      });
+
+      // Start performance measurements for transaction submission and confirmation
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
+      );
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      const result = await controller.withdraw({
+        amount: withdrawAmount,
+        assetId, // Required CAIP format for USDC withdrawal (with /default suffix)
+      });
+
+      // Measure withdrawal transaction submission
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
+
+      if (result.success) {
+        // Measure withdrawal transaction confirmation
+        const confirmationDuration = endMeasure(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+        );
+
+        // Track withdrawal completed with duration
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
+          amount: withdrawAmount,
+          completionDuration: confirmationDuration,
+        });
+
+        DevLogger.log('Withdrawal successful, duration:', confirmationDuration);
+      } else {
+        // End confirmation measurement on failure too
+        endMeasure(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+        );
+
+        // Track withdrawal failed
+        trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+          errorMessage: result.error || 'Unknown error',
+        });
+
+        DevLogger.log('Withdrawal failed:', result.error);
+      }
+      // Success/error toast will be shown by usePerpsWithdrawStatus hook
+    } catch (error) {
+      // End measurements on error
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
+      endMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
+
+      // Track withdrawal failed
+      trackEvent(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      DevLogger.log('Error preparing withdrawal:', error);
+    } finally {
+      setIsSubmittingTx(false);
+    }
+  }, [
+    hasValidInputs,
+    isSubmittingTx,
+    trackEvent,
+    withdrawAmount,
+    toastRef,
+    navigation,
+    destToken.chainId,
+    destToken.address,
+    isTestnet,
+    startMeasure,
+    endMeasure,
+  ]);
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const formatDisplayAmount = useMemo(() => {
+    if (!withdrawAmount || withdrawAmount === '0') {
+      return '$0.00';
+    }
+    // Show full decimals when keypad is active, formatted when not
+    if (isInputFocused) {
+      return `$${withdrawAmount}`;
+    }
+    return formatPerpsFiat(withdrawAmount);
+  }, [withdrawAmount, isInputFocused]);
+
+  const formatReceiveAmount = useMemo(() => {
+    if (!destAmount) return '-';
+    const amount = parseFloat(destAmount);
+    if (isNaN(amount) || amount === 0) return '-';
+    return formatPerpsFiat(destAmount);
+  }, [destAmount]);
+
+  // Tooltip handlers
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
+  }, []);
+
+  return (
+    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+      <Box twClassName="flex-1 bg-default">
+        {/* Header */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="px-4 py-4"
+        >
+          <Box twClassName="w-10" />
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('perps.withdrawal.title')}
+          </Text>
+          <Pressable
+            onPress={handleBack}
+            style={tw.style('p-2')}
+            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
+          >
+            <Icon name={IconName.Close} size={IconSize.Sm} />
+          </Pressable>
+        </Box>
+
+        {/* Amount Display */}
+        <Pressable onPress={handleAmountPress}>
+          <Box alignItems={BoxAlignItems.Center} twClassName="py-8 px-4">
+            <Text
+              variant={TextVariant.DisplayMD}
+              style={tw.style(
+                'text-[56px] leading-[64px] font-bold mb-2 text-primary-default',
+              )}
+            >
+              {formatDisplayAmount}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.withdrawal.available_balance', {
+                amount: formattedBalance,
+              })}
+            </Text>
+          </Box>
+        </Pressable>
+
+        {/* Receive Section */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Center}
+          twClassName="px-5 py-2"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.withdrawal.receive')}
+            </Text>
+            <Pressable
+              onPress={() =>
+                handleTooltipPress('receive' as PerpsTooltipContentKey)
+              }
+            >
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.Alternative}
+              />
+            </Pressable>
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={NetworkBadgeSource(destToken.chainId as Hex)}
+                />
+              }
+            >
+              <AvatarToken
+                name={destToken.symbol}
+                imageSource={
+                  destToken.image ? { uri: destToken.image } : undefined
+                }
+                size={AvatarSize.Sm}
+              />
+            </BadgeWrapper>
+            <Text variant={TextVariant.BodyLGMedium}>{USDC_SYMBOL}</Text>
+          </Box>
+        </Box>
+
+        {/* Provider Fee */}
+        <Box twClassName="px-5 py-2">
+          <KeyValueRow
+            field={{
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-2"
+                >
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.withdrawal.provider_fee')}
+                  </Text>
+                  <Pressable
+                    onPress={() => handleTooltipPress('withdrawal_fees')}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.Alternative}
+                    />
+                  </Pressable>
+                </Box>
+              ),
+            }}
+            value={{
+              label: {
+                text: formattedQuoteData?.networkFee || '$1.00',
+                variant: TextVariant.BodyLGMedium,
+              },
+            }}
+          />
+        </Box>
+
+        {/* You'll Receive */}
+        <Box twClassName="px-5 py-2">
+          <KeyValueRow
+            field={{
+              label: {
+                text: strings('perps.withdrawal.you_will_receive'),
+                variant: TextVariant.BodyMD,
+              },
+            }}
+            value={{
+              label: {
+                text: formatReceiveAmount,
+                variant: TextVariant.HeadingMD,
+              },
+            }}
+          />
+        </Box>
+
+        {/* Error Message */}
+        {((isBelowMinimum && hasAmount) ||
+          (hasInsufficientBalance && hasAmount)) && (
+          <Box twClassName="px-4 mb-2">
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Error}
+              style={tw.style('text-center')}
+            >
+              {hasInsufficientBalance
+                ? strings('perps.withdrawal.insufficient_funds')
+                : strings('perps.withdrawal.minimum_amount_error', {
+                    amount: getMinimumAmount(),
+                  })}
+            </Text>
+          </Box>
+        )}
+
+        {/* Spacer to push content to bottom */}
+        <Box twClassName="flex-1" />
+
+        {/* Bottom Section - Always at bottom */}
+        <Box twClassName="px-4 pb-6">
+          {/* Dynamic action row - either percentage buttons or withdrawal button */}
+          <Box twClassName="mb-4">
+            {showPercentageButtons && isInputFocused ? (
+              /* Show percentage buttons */
+              <Box twClassName="flex-row justify-between gap-2">
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
+                  onPress={() => handlePercentagePress(0.1)}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    10%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
+                  onPress={() => handlePercentagePress(0.25)}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    25%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
+                  onPress={() => handlePercentagePress(0.5)}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    50%
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) =>
+                    tw.style(
+                      'flex-1 h-11 rounded-lg justify-center items-center',
+                      pressed ? 'bg-pressed' : 'bg-muted',
+                    )
+                  }
+                  onPress={handleMaxPress}
+                  disabled={!hasPositiveBalance}
+                >
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={tw.style(!hasPositiveBalance && 'text-disabled')}
+                  >
+                    Max
+                  </Text>
+                </Pressable>
+              </Box>
+            ) : (
+              /* Show withdrawal button (disabled when invalid) */
+              <ButtonBase
+                twClassName="w-full h-14 rounded-xl"
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-full h-14 rounded-lg justify-center items-center',
+                    !hasValidInputs || isSubmittingTx
+                      ? 'bg-disabled border border-border-muted'
+                      : pressed
+                      ? 'bg-primary-default opacity-80'
+                      : 'bg-primary-default',
+                  )
+                }
+                onPress={handleContinue}
+                disabled={!hasValidInputs || isSubmittingTx}
+                testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
+              >
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  style={tw.style(
+                    !hasValidInputs || isSubmittingTx
+                      ? 'text-disabled'
+                      : 'text-primary-inverse',
+                  )}
+                >
+                  {isSubmittingTx
+                    ? strings('perps.withdrawal.submitting')
+                    : strings('perps.withdrawal.withdraw')}
+                </Text>
+              </ButtonBase>
+            )}
+          </Box>
+
+          {/* Numeric Keypad - Always visible */}
+          {isInputFocused && (
+            <Keypad
+              value={withdrawAmount}
+              onChange={handleKeypadChange}
+              currency={USDC_SYMBOL}
+              decimals={USDC_DECIMALS}
+            />
+          )}
+        </Box>
+      </Box>
+
+      {/* Tooltip Bottom Sheet */}
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          testID={PerpsWithdrawViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          key={selectedTooltip}
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
+export default PerpsWithdrawView;

@@ -1,18 +1,30 @@
-'use strict';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { buildPermissions } from '../../../fixtures/utils';
+import {
+  buildPermissions,
+  getTestDappLocalUrl,
+} from '../../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -23,24 +35,21 @@ const typedSignRequestBody = {
     ],
     '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
   ],
-  origin: 'localhost',
+  origin: getTestDappLocalUrl(),
 };
 
 describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
   const runTest = async (
-    testSpecificMock: {
-      GET?: Record<string, unknown>[];
-      POST?: Record<string, unknown>[];
-    },
+    testSpecificMock: (mockServer: Mockttp) => Promise<void>,
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -48,20 +57,16 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-            ...(testSpecificMock.GET ?? []),
-          ],
-          POST: [...(testSpecificMock.POST ?? [])],
-        },
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
-        await Assertions.checkIfVisible(RequestTypes.TypedSignRequest);
+        await Assertions.expectElementToBeVisible(
+          RequestTypes.TypedSignRequest,
+        );
         await alertAssertion();
       },
     );
@@ -69,33 +74,19 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
   describe('Security Alert API', () => {
     it('should sign typed message', async () => {
-      const testSpecificMock = {
-        POST: [
-          {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
-          },
-        ],
-      };
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
 
-      await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
-      });
-    });
-
-    it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
-      const testSpecificMock = {
-        POST: [
+        await setupMockPostRequest(
+          mockServer,
+          securityAlertsUrl('0xaa36a7'),
+          typedSignRequestBody,
+          SECURITY_ALERTS_BENIGN_RESPONSE,
           {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
-            response: {
-              block: 20733277,
-              result_type: 'Malicious',
-              reason: 'malicious_domain',
-              description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
-              features: [],
-            },
+            statusCode: 201,
             ignoreFields: [
               'id',
               'jsonrpc',
@@ -104,49 +95,109 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
               'traceContext',
             ],
           },
-        ],
+        );
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToNotBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
+      });
+    });
+
+    it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+
+        await setupMockPostRequest(
+          mockServer,
+          'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+          typedSignRequestBody,
+          {
+            block: 20733277,
+            result_type: 'Malicious',
+            reason: 'malicious_domain',
+            description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
+            features: [],
+          },
+          {
+            ignoreFields: [
+              'id',
+              'jsonrpc',
+              'toNative',
+              'networkClientId',
+              'traceContext',
+            ],
+          },
+        );
+      };
+
+      await runTest(testSpecificMock, async () => {
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
+        await Assertions.expectElementToBeVisible(
           AlertSystem.securityAlertResponseMaliciousBanner,
         );
         // Confirm request
         await FooterActions.tapConfirmButton();
-        await Assertions.checkIfVisible(AlertSystem.confirmAlertModal);
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.confirmAlertModal,
+        );
         // Acknowledge and confirm alert
         await AlertSystem.tapConfirmAlertCheckbox();
         await AlertSystem.tapConfirmAlertButton();
-        await Assertions.checkIfNotVisible(RequestTypes.TypedSignRequest);
+        await Assertions.expectElementToNotBeVisible(
+          RequestTypes.TypedSignRequest,
+        );
       });
     });
 
     it('should show security alert for error when validating request fails', async () => {
-      const testSpecificMock = {
-        GET: [
-          {
-            urlEndpoint:
-              'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-            responseCode: 500,
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+          response: {
+            message: 'Internal Server Error',
           },
-        ],
-        POST: [
+          responseCode: 500,
+        });
+
+        await setupMockPostRequest(
+          mockServer,
+          'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+          typedSignRequestBody,
           {
-            ...mockEvents.POST.securityAlertApiValidate,
-            requestBody: typedSignRequestBody,
-            response: {
-              error: 'Internal Server Error',
-              message: 'An unexpected error occurred on the server.',
-            },
-            responseCode: 500,
+            error: 'Internal Server Error',
+            message: 'An unexpected error occurred on the server.',
           },
-        ],
+          {
+            statusCode: 500,
+            ignoreFields: [
+              'id',
+              'jsonrpc',
+              'toNative',
+              'networkClientId',
+              'traceContext',
+            ],
+          },
+        );
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
+        await Assertions.expectElementToBeVisible(
           AlertSystem.securityAlertResponseFailedBanner,
         );
       });
@@ -155,39 +206,59 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
   describe('Inline Alert', () => {
     it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
+      const testSpecificMock = async (mockServer: Mockttp) => {
+        await setupRemoteFeatureFlagsMock(
+          mockServer,
+          Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+        );
+      };
+
       await withFixtures(
         {
-          dapp: true,
+          dapps: [
+            {
+              dappVariant: DappVariants.TEST_DAPP,
+            },
+          ],
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0xaa36a7']),
             )
+            .withPreferencesController({
+              securityAlertsEnabled: true,
+            })
             .build(),
           restartDevice: true,
-          testSpecificMock: {
-            GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
-          },
+          testSpecificMock,
         },
         async () => {
           await loginToApp();
           await TabBarComponent.tapBrowser();
           await Browser.navigateToTestDApp();
           await TestDApp.tapSIWEBadDomainButton();
-          await Assertions.checkIfVisible(RequestTypes.PersonalSignRequest);
-          await Assertions.checkIfVisible(AlertSystem.inlineAlert);
+          await Assertions.expectElementToBeVisible(
+            RequestTypes.PersonalSignRequest,
+          );
+          await Assertions.expectElementToBeVisible(AlertSystem.inlineAlert);
           // Open alert modal and acknowledge the alert
           await AlertSystem.tapInlineAlert();
-          await Assertions.checkIfVisible(AlertSystem.alertMismatchTitle);
+          await Assertions.expectElementToBeVisible(
+            AlertSystem.alertMismatchTitle,
+          );
           await AlertSystem.tapAcknowledgeAlertModal();
           await AlertSystem.tapGotItAlertModalButton();
           // Confirm request
           await FooterActions.tapConfirmButton();
-          await Assertions.checkIfVisible(AlertSystem.confirmAlertModal);
+          await Assertions.expectElementToBeVisible(
+            AlertSystem.confirmAlertModal,
+          );
           // Acknowledge and confirm alert
           await AlertSystem.tapConfirmAlertCheckbox();
           await AlertSystem.tapConfirmAlertButton();
-          await Assertions.checkIfNotVisible(RequestTypes.PersonalSignRequest);
+          await Assertions.expectElementToNotBeVisible(
+            RequestTypes.PersonalSignRequest,
+          );
         },
       );
     });

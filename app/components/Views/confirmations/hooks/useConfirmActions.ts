@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Routes from '../../../../constants/navigation/Routes';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { RootState } from '../../../../reducers';
+import { resetTransaction } from '../../../../actions/transaction';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
@@ -14,6 +16,10 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 export const useConfirmActions = () => {
   const {
@@ -29,20 +35,38 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
-  const transactionMetadata = useTransactionMetadataRequest();
+
+  const {
+    chainId,
+    id: transactionId,
+    type,
+  } = useTransactionMetadataRequest() ?? {};
+
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
+    selectShouldUseSmartTransaction(state, chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { tryEnableEvmNetwork } = useNetworkEnablement();
+  const dispatch = useDispatch();
+  const approvalType = approvalRequest?.type;
+  const isSignatureReq = approvalType && isSignatureRequest(approvalType);
+  const isTransactionReq =
+    approvalType && approvalType === ApprovalType.Transaction;
 
-  const isSignatureReq =
-    approvalRequest?.type && isSignatureRequest(approvalRequest?.type);
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId ?? ''),
+  );
+
+  const waitForResult =
+    isSignatureReq || (!shouldUseSmartTransaction && !quotes?.length);
 
   const onReject = useCallback(
-    async (error?: Error) => {
+    async (error?: Error, skipNavigation = false) => {
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
-      navigation.goBack();
+      if (!skipNavigation) {
+        navigation.goBack();
+      }
       if (isSignatureReq) {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
         PPOMUtil.clearSignatureSecurityAlertResponse();
@@ -67,12 +91,14 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
+      waitForResult,
       deleteAfterResult: true,
       handleErrors: false,
     });
 
-    if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation && type === TransactionType.perpsDeposit) {
+      navigation.navigate(Routes.WALLET_VIEW);
+    } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -82,17 +108,31 @@ export const useConfirmActions = () => {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
       PPOMUtil.clearSignatureSecurityAlertResponse();
     }
+
+    if (isTransactionReq) {
+      // Replace/remove this once we have redesigned send flow
+      dispatch(resetTransaction());
+      // Enable the network if it's not enabled for the Network Manager
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        tryEnableEvmNetwork(chainId);
+      }
+    }
   }, [
+    captureSignatureMetrics,
+    dispatch,
+    isFullScreenConfirmation,
     isQRSigningInProgress,
+    isSignatureReq,
+    isTransactionReq,
     ledgerSigningInProgress,
     navigation,
+    onRequestConfirm,
     openLedgerSignModal,
     setScannerVisible,
-    captureSignatureMetrics,
-    onRequestConfirm,
-    isSignatureReq,
-    isFullScreenConfirmation,
-    shouldUseSmartTransaction,
+    waitForResult,
+    type,
+    chainId,
+    tryEnableEvmNetwork,
   ]);
 
   return { onConfirm, onReject };

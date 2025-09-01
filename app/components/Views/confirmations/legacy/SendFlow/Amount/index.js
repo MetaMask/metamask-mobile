@@ -15,7 +15,6 @@ import { connect } from 'react-redux';
 import {
   setSelectedAsset,
   prepareTransaction,
-  setTransactionObject,
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
@@ -52,6 +51,7 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../../../util/transactions';
+import { TransactionType } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
@@ -86,7 +86,6 @@ import { selectContractBalances } from '../../../../../../selectors/tokenBalance
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { swapsLivenessSelector } from '../../../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
@@ -110,7 +109,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { isHardwareAccount } from '../../../../../../util/address';
+import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -635,9 +634,15 @@ class Amount extends PureComponent {
         selectedAsset: { address, tokenId },
       },
       selectedAddress,
+      globalNetworkClientId,
     } = this.props;
     try {
-      return await NftController.isNftOwner(selectedAddress, address, tokenId);
+      return await NftController.isNftOwner(
+        selectedAddress,
+        address,
+        tokenId,
+        globalNetworkClientId,
+      );
     } catch (e) {
       return false;
     }
@@ -707,8 +712,7 @@ class Amount extends PureComponent {
     );
 
     const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer &&
-      !isHardwareAccount(transaction.from);
+      isRedesignedTransferConfirmationEnabledForTransfer;
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
@@ -726,9 +730,17 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
+      let transactionType;
+      if (isNativeToken(selectedAsset)) {
+        transactionType = TransactionType.simpleSend;
+      } else if (!selectedAsset.tokenId) {
+        transactionType = TransactionType.tokenMethodTransfer;
+      }
+
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,
         networkClientId: globalNetworkClientId,
+        type: transactionType,
       });
       this.setState({ isRedesignedTransferTransactionLoading: false });
       navigation.navigate('SendFlowView', {
@@ -1589,7 +1601,7 @@ const mapStateToProps = (state, ownProps) => {
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
-    swapsIsLive: swapsLivenessSelector(state),
+    swapsIsLive: selectIsSwapsLive(state, globalChainId),
     globalChainId,
     globalNetworkClientId,
   };

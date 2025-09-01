@@ -1,11 +1,4 @@
-import {
-  getInternetCredentials,
-  setInternetCredentials,
-  resetInternetCredentials,
-  ACCESS_CONTROL,
-} from 'react-native-keychain';
-import { Authentication } from '../../../../../core/Authentication/Authentication';
-import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
+import SecureKeychain from '../../../../../core/SecureKeychain';
 import {
   getProviderToken,
   resetProviderToken,
@@ -13,56 +6,48 @@ import {
 } from './ProviderTokenVault';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 
-const PROVIDER_TOKEN_KEY = 'TRANSAK_ACCESS_TOKEN';
-
-jest.mock('react-native-keychain', () => ({
-  getInternetCredentials: jest.fn(),
-  setInternetCredentials: jest.fn(),
-  resetInternetCredentials: jest.fn(),
+jest.mock('../../../../../core/SecureKeychain', () => ({
+  setSecureItem: jest.fn(),
+  getSecureItem: jest.fn(),
+  clearSecureScope: jest.fn(),
   ACCESSIBLE: {
-    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'AccessibleWhenUnlockedThisDeviceOnly',
-  },
-  ACCESS_CONTROL: {
-    BIOMETRY_CURRENT_SET: 'BiometryCurrentSet',
-    DEVICE_PASSCODE: 'DevicePasscode',
-  },
-}));
-
-jest.mock('../../../../../core/Authentication/Authentication', () => ({
-  Authentication: {
-    getType: jest.fn(),
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
   },
 }));
 
 describe('ProviderTokenVault', () => {
   const mockToken = {
     accessToken: 'test-access-token',
-    expiresIn: 3600,
+    ttl: 3600,
     refreshToken: 'test-refresh-token',
     scope: 'test-scope',
     tokenType: 'Bearer',
-  } as unknown as NativeTransakAccessToken;
+    id: 'test-id',
+    created: new Date('2024-01-01T00:00:00Z'),
+    userId: 'test-user-id',
+  } as NativeTransakAccessToken;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(1000000);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('storeProviderToken', () => {
-    it('should store token successfully with biometric authentication', async () => {
-      (Authentication.getType as jest.Mock).mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-
-      (setInternetCredentials as jest.Mock).mockResolvedValue(true);
+    it('stores token with calculated expiration time', async () => {
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(true);
 
       const result = await storeProviderToken(mockToken);
 
-      expect(setInternetCredentials).toHaveBeenCalledWith(
-        PROVIDER_TOKEN_KEY,
-        PROVIDER_TOKEN_KEY,
-        expect.stringContaining(JSON.stringify(mockToken)),
+      expect(SecureKeychain.setSecureItem).toHaveBeenCalledWith(
+        'TRANSAK_ACCESS_TOKEN',
+        expect.stringContaining('"expiresAt":4600000'),
         expect.objectContaining({
-          accessControl: ACCESS_CONTROL.BIOMETRY_CURRENT_SET,
+          service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
+          accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
         }),
       );
 
@@ -71,58 +56,26 @@ describe('ProviderTokenVault', () => {
       });
     });
 
-    it('should store token successfully with passcode authentication', async () => {
-      (Authentication.getType as jest.Mock).mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-      });
+    it('stores token with correct JSON structure', async () => {
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(true);
 
-      (setInternetCredentials as jest.Mock).mockResolvedValue(true);
+      await storeProviderToken(mockToken);
 
-      const result = await storeProviderToken(mockToken);
-
-      expect(setInternetCredentials).toHaveBeenCalledWith(
-        PROVIDER_TOKEN_KEY,
-        PROVIDER_TOKEN_KEY,
-        expect.stringContaining(JSON.stringify(mockToken)),
-        expect.objectContaining({
-          accessControl: ACCESS_CONTROL.DEVICE_PASSCODE,
-        }),
+      const storedData = JSON.parse(
+        (SecureKeychain.setSecureItem as jest.Mock).mock.calls[0][1],
       );
 
-      expect(result).toEqual({
-        success: true,
+      expect(storedData).toEqual({
+        token: {
+          ...mockToken,
+          created: mockToken.created.toISOString(),
+        },
+        expiresAt: 4600000,
       });
     });
 
-    it('should store token successfully with no authentication', async () => {
-      (Authentication.getType as jest.Mock).mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-      });
-
-      (setInternetCredentials as jest.Mock).mockResolvedValue(true);
-
-      const result = await storeProviderToken(mockToken);
-
-      expect(setInternetCredentials).toHaveBeenCalledWith(
-        PROVIDER_TOKEN_KEY,
-        PROVIDER_TOKEN_KEY,
-        expect.stringContaining(JSON.stringify(mockToken)),
-        expect.objectContaining({
-          accessControl: undefined,
-        }),
-      );
-
-      expect(result).toEqual({
-        success: true,
-      });
-    });
-
-    it('should return an error when storing token fails', async () => {
-      (Authentication.getType as jest.Mock).mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-
-      (setInternetCredentials as jest.Mock).mockResolvedValue(false);
+    it('returns error when storage fails', async () => {
+      (SecureKeychain.setSecureItem as jest.Mock).mockResolvedValue(false);
 
       const result = await storeProviderToken(mockToken);
 
@@ -132,13 +85,9 @@ describe('ProviderTokenVault', () => {
       });
     });
 
-    it('should return an error when an exception occurs', async () => {
-      (Authentication.getType as jest.Mock).mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-      });
-
-      const errorMessage = 'Test error';
-      (setInternetCredentials as jest.Mock).mockRejectedValue(
+    it('returns error when exception occurs', async () => {
+      const errorMessage = 'Storage error';
+      (SecureKeychain.setSecureItem as jest.Mock).mockRejectedValue(
         new Error(errorMessage),
       );
 
@@ -152,29 +101,63 @@ describe('ProviderTokenVault', () => {
   });
 
   describe('getProviderToken', () => {
-    it('should retrieve token successfully', async () => {
-      const validToken = {
+    it('retrieves valid unexpired token', async () => {
+      const storedData = {
         token: mockToken,
-        expiresAt: Date.now() + 1000,
+        expiresAt: 2000000, // Future time
       };
 
-      (getInternetCredentials as jest.Mock).mockResolvedValue({
-        username: PROVIDER_TOKEN_KEY,
-        password: JSON.stringify(validToken),
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'TRANSAK_ACCESS_TOKEN',
+        value: JSON.stringify(storedData),
       });
 
       const result = await getProviderToken();
 
-      expect(getInternetCredentials).toHaveBeenCalledWith(PROVIDER_TOKEN_KEY);
+      expect(SecureKeychain.getSecureItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
+          accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        }),
+      );
 
       expect(result).toEqual({
         success: true,
-        token: mockToken,
+        token: {
+          ...mockToken,
+          created: mockToken.created.toISOString(),
+        },
       });
     });
 
-    it('should return an error when no token is found', async () => {
-      (getInternetCredentials as jest.Mock).mockResolvedValue(null);
+    it('resets and returns error when token is expired', async () => {
+      const expiredData = {
+        token: mockToken,
+        expiresAt: 500000, // Past time
+      };
+
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'TRANSAK_ACCESS_TOKEN',
+        value: JSON.stringify(expiredData),
+      });
+
+      const result = await getProviderToken();
+
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
+          accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        }),
+      );
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Token has expired',
+      });
+    });
+
+    it('returns error when no token found', async () => {
+      (SecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(null);
 
       const result = await getProviderToken();
 
@@ -184,9 +167,9 @@ describe('ProviderTokenVault', () => {
       });
     });
 
-    it('should return an error when an exception occurs', async () => {
-      const errorMessage = 'Test error';
-      (getInternetCredentials as jest.Mock).mockRejectedValue(
+    it('returns error when exception occurs', async () => {
+      const errorMessage = 'Retrieval error';
+      (SecureKeychain.getSecureItem as jest.Mock).mockRejectedValue(
         new Error(errorMessage),
       );
 
@@ -197,35 +180,20 @@ describe('ProviderTokenVault', () => {
         error: errorMessage,
       });
     });
-
-    it('should return an error when token has expired', async () => {
-      const expiredToken = {
-        token: mockToken,
-        expiresAt: Date.now() - 1000,
-      };
-
-      (getInternetCredentials as jest.Mock).mockResolvedValue({
-        username: PROVIDER_TOKEN_KEY,
-        password: JSON.stringify(expiredToken),
-      });
-
-      const result = await getProviderToken();
-
-      expect(resetInternetCredentials).toHaveBeenCalledWith(PROVIDER_TOKEN_KEY);
-      expect(result).toEqual({
-        success: false,
-        error: 'Token has expired',
-      });
-    });
   });
 
   describe('resetProviderToken', () => {
-    it('should reset token successfully', async () => {
-      (resetInternetCredentials as jest.Mock).mockResolvedValue(undefined);
+    it('calls SecureKeychain clear scope with correct options', async () => {
+      (SecureKeychain.clearSecureScope as jest.Mock).mockResolvedValue(true);
 
       await resetProviderToken();
 
-      expect(resetInternetCredentials).toHaveBeenCalledWith(PROVIDER_TOKEN_KEY);
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: 'com.metamask.TRANSAK_ACCESS_TOKEN',
+          accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        }),
+      );
     });
   });
 });

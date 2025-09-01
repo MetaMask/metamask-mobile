@@ -9,7 +9,6 @@ import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletS
 import WalletMainScreen from '../screen-objects/WalletMainScreen';
 import CommonScreen from '../screen-objects/CommonScreen';
 import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal.js';
-import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js';
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
@@ -17,7 +16,8 @@ import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import SettingsScreen from '../screen-objects/SettingsScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen';
-import SolanaNewFeatureSheet from '../screen-objects/Modals/SolanaFeatureSheet';
+import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -53,7 +53,11 @@ Given(/^I have imported my wallet$/, async () => {
   await TermOfUseScreen.tapScrollEndButton();
   await TermOfUseScreen.tapAgreeCheckBox();
     await TermOfUseScreen.tapAcceptButton();
-  await OnboardingScreen.clickImportWalletButton();
+  await OnboardingScreen.tapHaveAnExistingWallet();
+
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   await driver.pause(500);
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
@@ -83,6 +87,9 @@ Given(/^I create a new wallet$/, async () => {
   await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   await CreateNewWalletScreen.inputPasswordInFirstField(validAccount.password);
   await CreateNewWalletScreen.inputConfirmPasswordField(validAccount.password); // Had to seperate steps due to onboarding video on physical device
@@ -117,10 +124,8 @@ Given(/^I import wallet using seed phrase "([^"]*)?"/, async (phrase) => {
 });
 
 Given(/^I tap No thanks on the onboarding welcome tutorial/, async () => {
-  await OnboardingWizardModal.isVisible();
   const setTimeout = 1500;
   await driver.pause(setTimeout);
-  await OnboardingWizardModal.tapNoThanksButton();
 });
 
 Then(/^"([^"]*)?" is visible/, async (text) => {
@@ -307,10 +312,4 @@ Then(/^tokens (.*) in account should be displayed$/, async (token) => {
 
 Then(/^I use the back button on Android$/, async () => {
   await driver.back();
-});
-
-Given(/^I dismiss the Solana New Feature Sheet$/, async () => {
-  await SolanaNewFeatureSheet.isVisible();
-  await SolanaNewFeatureSheet.tapNotNowButton();
-  await OnboardingWizardModal.isNotVisible();
 });

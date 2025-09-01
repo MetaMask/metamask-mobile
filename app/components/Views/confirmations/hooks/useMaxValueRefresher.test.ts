@@ -52,7 +52,7 @@ describe('useMaxValueRefresher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseFeeCalculations.mockReturnValue({
-      preciseNativeFeeInHex: '0x5',
+      maxFeeNativeHex: '0x5',
     } as unknown as ReturnType<typeof useFeeCalculations>);
 
     mockUseSelector.mockImplementation(

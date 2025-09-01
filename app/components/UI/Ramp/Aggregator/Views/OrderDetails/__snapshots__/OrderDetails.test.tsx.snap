@@ -1957,7 +1957,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c7e33",
+                                              "color": "#457a39",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -10433,7 +10433,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c7e33",
+                                              "color": "#457a39",
                                               "fontSize": 32,
                                             },
                                             undefined,

@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  ActivityIndicator,
-  Keyboard,
   View,
   SafeAreaView,
   Image,
@@ -10,6 +8,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -27,9 +26,8 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -39,7 +37,6 @@ import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   TRUE,
   PASSCODE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
@@ -50,6 +47,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -59,7 +57,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { downloadStateLogs } from '../../../util/logs';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  trace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  endTrace,
+} from '../../../util/trace';
 import TextField, {
   TextFieldSize,
 } from '../../../component-library/components/Form/TextField';
@@ -90,22 +94,32 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
-import ConcealingFox from '../../../animations/Concealing_Fox.json';
-import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { RecoveryError as SeedlessOnboardingControllerRecoveryError } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerErrorMessage,
+  RecoveryError as SeedlessOnboardingControllerRecoveryError,
+} from '@metamask/seedless-onboarding-controller';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMetrics } from '../../hooks/useMetrics';
-import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import FOX_LOGO from '../../../images/branding/fox.png';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
 const EmptyRecordConstant = {};
+
+interface LoginRouteParams {
+  locked: boolean;
+  oauthLoginSuccess?: boolean;
+  onboardingTraceCtx?: unknown;
+}
 
 interface LoginProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
@@ -128,37 +142,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
-  const route =
-    useRoute<
-      RouteProp<
-        { params: { locked: boolean; oauthLoginSuccess?: boolean } },
-        'params'
-      >
-    >();
+  const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
-  const dispatch = useDispatch();
-  const setOnboardingWizardStep = (step: number) =>
-    dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
-
-  const isSeedlessPasswordOutdated = useSelector(
-    selectIsSeedlessPasswordOutdated,
-  );
-  useEffect(() => {
-    // first error if seedless password is outdated
-    if (isSeedlessPasswordOutdated) {
-      setError(strings('login.seedless_password_outdated'));
-    }
-  }, [isSeedlessPasswordOutdated]);
+  const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
@@ -184,6 +181,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   useEffect(() => {
+    trace({
+      name: TraceName.LoginUserInteraction,
+      op: TraceOperation.Login,
+    });
+
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      passwordLoginAttemptTraceCtxRef.current = trace({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+        op: TraceOperation.OnboardingUserJourney,
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+    }
+
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
 
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
@@ -214,8 +225,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         Logger.log('authData', authData);
         setBiometryType(authData.availableBiometryType);
         setHasBiometricCredentials(
-          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC &&
-            !route?.params?.locked,
+          authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
         setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
@@ -233,10 +243,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
 
-    if (!passwordRequirementsMet(password)) {
-      setError(strings('login.invalid_password'));
-      return;
-    }
+    // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
       const backupResult = await getVaultFromBackup();
@@ -283,13 +290,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const navigateToHome = async () => {
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    } else {
-      setOnboardingWizardStep(1);
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
-    }
+    navigation.replace(Routes.ONBOARDING.HOME_NAV);
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
@@ -330,18 +331,32 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [],
   );
 
-  const tooManyAttemptsError = async (remainingTime: number) => {
+  const tooManyAttemptsError = async (initialRemainingTime: number) => {
+    const lockEnd = Date.now() + initialRemainingTime * 1000;
+
     setDisabledInput(true);
-    for (let i = remainingTime; i > 0; i--) {
+    while (Date.now() < lockEnd) {
+      const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
+      if (remainingTime <= 0) {
+        break;
+      }
+
       if (!isMountedRef.current) {
         setError(null);
         setDisabledInput(false);
         return; // Exit early if component unmounted
       }
 
+      const remainingHours = Math.floor(remainingTime / 3600);
+      const remainingMinutes = Math.floor((remainingTime % 3600) / 60);
+      const remainingSeconds = remainingTime % 60;
+      const displayRemainingTime = `${remainingHours}:${remainingMinutes
+        .toString()
+        .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
       setError(
         strings('login.too_many_attempts', {
-          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+          remainingTime: displayRemainingTime,
         }),
       );
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -353,21 +368,65 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const handleSeedlessOnboardingControllerError = (
-    seedlessError: SeedlessOnboardingControllerRecoveryError,
+    seedlessError:
+      | Error
+      | SeedlessOnboardingControllerRecoveryError
+      | SeedlessOnboardingControllerError,
   ) => {
-    // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
-    if (seedlessError.data?.numberOfAttempts !== undefined) {
-      setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
-    }
+    setLoading(false);
 
-    if (seedlessError.data?.remainingTime) {
-      tooManyAttemptsError(seedlessError.data?.remainingTime).catch(() => null);
+    if (seedlessError instanceof SeedlessOnboardingControllerRecoveryError) {
+      if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        setError(strings('login.invalid_password'));
+        return;
+      } else if (
+        seedlessError.message ===
+        SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
+      ) {
+        // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
+        if (seedlessError.data?.numberOfAttempts !== undefined) {
+          setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
+        }
+        if (typeof seedlessError.data?.remainingTime === 'number') {
+          tooManyAttemptsError(seedlessError.data?.remainingTime).catch(
+            () => null,
+          );
+        }
+        return;
+      }
+    } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+      if (
+        seedlessError.code ===
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
+      ) {
+        setError(strings('login.seedless_password_outdated'));
+        return;
+      }
+    }
+    const errMessage = seedlessError.message.replace(
+      'SeedlessOnboardingController - ',
+      '',
+    );
+    setError(errMessage);
+
+    // If user has already consented to analytics, report error using regular Sentry
+    if (isMetricsEnabled()) {
+      oauthLoginSuccess &&
+        captureException(seedlessError, {
+          tags: {
+            view: 'Login',
+            context: 'OAuth rehydration failed - user consented to analytics',
+          },
+        });
     } else {
-      const errMessage = seedlessError.message.replace(
-        'SeedlessOnboardingController - ',
-        '',
-      );
-      setError(errMessage);
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      oauthLoginSuccess &&
+        setErrorToThrow(
+          new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+        );
     }
   };
 
@@ -388,11 +447,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const loginError = loginErr as Error;
     const loginErrorMessage = loginError.toString();
 
-    if (loginErr instanceof SeedlessOnboardingControllerRecoveryError) {
-      setLoading(false);
-      handleSeedlessOnboardingControllerError(
-        loginError as SeedlessOnboardingControllerRecoveryError,
-      );
+    // Check if we are in the onboarding flow
+    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
+    if (onboardingTraceCtxFromRoute) {
+      trace({
+        name: TraceName.OnboardingPasswordLoginError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: loginErrorMessage },
+        parentContext: onboardingTraceCtxFromRoute,
+      });
+      endTrace({ name: TraceName.OnboardingPasswordLoginError });
+    }
+
+    if (loginErrorMessage.includes('SeedlessOnboardingController')) {
+      handleSeedlessOnboardingControllerError(loginError);
       return;
     }
 
@@ -434,32 +502,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(loginErrorMessage);
   };
 
-  const performAuthentication = async () => {
-    const authType = await Authentication.componentAuthenticationType(
-      biometryChoice,
-      rememberMe,
-    );
-    if (isSeedlessPasswordOutdated) {
-      await Authentication.submitLatestGlobalSeedlessPassword(
-        password,
-        authType,
-      );
-    } else if (oauthLoginSuccess) {
-      await Authentication.rehydrateSeedPhrase(password, authType);
-    } else {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
-    }
-  };
-
   const onLogin = async () => {
+    endTrace({ name: TraceName.LoginUserInteraction });
     if (oauthLoginSuccess) {
       track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
         account_type: 'social',
@@ -475,10 +519,24 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (loading || locked) return;
 
       setLoading(true);
-      setError(null);
 
-      await performAuthentication();
-      Keyboard.dismiss();
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        rememberMe,
+      );
+      if (oauthLoginSuccess) {
+        authType.oauth2Login = true;
+      }
+
+      await trace(
+        {
+          name: TraceName.AuthenticateUser,
+          op: TraceOperation.Login,
+        },
+        async () => {
+          await Authentication.userEntryAuth(password, authType);
+        },
+      );
 
       if (oauthLoginSuccess) {
         track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
@@ -488,12 +546,20 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         });
       }
 
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
+      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
       await checkMetricsUISeen();
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
       setLoading(false);
       setHasBiometricCredentials(false);
+      setError(null);
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
@@ -570,16 +636,30 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     !oauthLoginSuccess &&
     biometryChoice &&
     biometryType &&
-    hasBiometricCredentials
+    hasBiometricCredentials &&
+    !route?.params?.locked
   );
 
-  const lottieSrc = useMemo(
-    () => (password.length > 0 ? ConcealingFox : SearchingFox),
-    [password.length],
-  );
+  // Component that throws error if needed (to be caught by ErrorBoundary)
+  const ThrowErrorIfNeeded = () => {
+    if (errorToThrow) {
+      throw errorToThrow;
+    }
+    return null;
+  };
+
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    setError(null);
+  };
 
   return (
-    <ErrorBoundary navigation={navigation} view="Login">
+    <ErrorBoundary
+      navigation={navigation}
+      view="Login"
+      useOnboardingErrorHandling={!!errorToThrow && !isMetricsEnabled()}
+    >
+      <ThrowErrorIfNeeded />
       <SafeAreaView style={styles.mainWrapper}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
@@ -599,12 +679,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               onLongPress={handleDownloadStateLogs}
               activeOpacity={1}
             >
-              <LottieView
+              <Image
+                source={FOX_LOGO}
                 style={styles.image}
-                autoPlay
-                loop
-                source={lottieSrc}
-                resizeMode="contain"
+                resizeMethod={'auto'}
               />
             </TouchableOpacity>
 
@@ -618,24 +696,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <View style={styles.labelContainer}>
-                <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {strings('login.password')}
-                </Label>
-              </View>
+              <Label
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+                style={styles.label}
+              >
+                {strings('login.password')}
+              </Label>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}
-                placeholderTextColor={colors.text.muted}
+                placeholderTextColor={colors.text.alternative}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 returnKeyType={'done'}
                 autoCapitalize="none"
                 secureTextEntry
                 ref={fieldRef}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 value={password}
                 onSubmitEditing={onLogin}
                 endAccessory={
@@ -647,6 +724,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 }
                 keyboardAppearance={themeAppearance}
                 isDisabled={disabledInput}
+                isError={!!error}
               />
             </View>
 
@@ -670,18 +748,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
                 onPress={onLogin}
-                label={
-                  loading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('login.unlock_button')
-                  )
-                }
-                isDisabled={password.length === 0 || disabledInput}
+                label={strings('login.unlock_button')}
+                isDisabled={password.length === 0 || disabledInput || loading}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                loading={loading}
               />
 
               {!oauthLoginSuccess && (
@@ -691,6 +761,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               )}
             </View>
@@ -703,6 +775,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
+                  loading={loading}
+                  isDisabled={loading}
+                  size={ButtonSize.Lg}
                 />
               </View>
             )}

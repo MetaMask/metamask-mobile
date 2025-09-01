@@ -364,7 +364,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                         "fontSize": 14,
                                       },
                                       {
-                                        "color": "#9ca1af",
+                                        "color": "#b7bbc8",
                                       },
                                       {
                                         "fontFamily": "Material Design Icons",
@@ -742,7 +742,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                         "fontSize": 14,
                                       },
                                       {
-                                        "color": "#9ca1af",
+                                        "color": "#b7bbc8",
                                       },
                                       {
                                         "fontFamily": "Material Design Icons",

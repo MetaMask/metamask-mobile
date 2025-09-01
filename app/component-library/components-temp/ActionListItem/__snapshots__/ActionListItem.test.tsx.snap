@@ -1,0 +1,128 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActionListItem Rendering should render correctly with basic props 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "paddingBottom": 12,
+      "paddingLeft": 16,
+      "paddingRight": 16,
+      "paddingTop": 12,
+    }
+  }
+  testID="actionlistitem"
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 16,
+          "justifyContent": "space-between",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "display": "flex",
+            "flexBasis": "0%",
+            "flexDirection": "row",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "gap": 16,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "display": "flex",
+              "flexBasis": "0%",
+              "flexGrow": 1,
+              "flexShrink": 1,
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
+          }
+        >
+          Settings
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 14,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              },
+              undefined,
+            ]
+          }
+        >
+          Manage your account preferences
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;

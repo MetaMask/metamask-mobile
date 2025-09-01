@@ -1,4 +1,5 @@
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
@@ -28,13 +29,14 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
     return 'development';
   }
-  const IS_QA = process.env.METAMASK_ENVIRONMENT === 'qa';
 
   switch (buildType) {
+    case 'qa':
+      return 'main_uat';
     case 'main':
-      return IS_QA ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
+      return isQa ? 'main_uat' : isDev ? 'main_dev' : 'main_prod';
     case 'flask':
-      return IS_QA ? 'flask_uat' : isDev ? 'flask_dev' : 'flask_prod';
+      return isQa ? 'flask_uat' : isDev ? 'flask_dev' : 'flask_prod';
     default:
       return 'development';
   }

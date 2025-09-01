@@ -71,7 +71,6 @@ export class EngineService {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
         hasState: Object.keys(state).length > 0,
       });
-
       const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
       Engine.init(state, null, metaMetricsId);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
@@ -126,6 +125,12 @@ export class EngineService {
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
+      // Skip CronjobController state change events
+      // as they are handled separately in the CronjobControllerStorageManager.
+      // This prevents duplicate updates to the Redux store.
+      if (eventName === 'CronjobController:stateChange') {
+        return;
+      }
       engine.controllerMessenger.subscribe(eventName, () =>
         update_bg_state_cb(eventName.split(':')[0]),
       );

@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
-import createStyles from '../styles';
+import createStyles, { createCustomNetworkStyles } from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
   selectChainId,
@@ -23,6 +23,13 @@ import { useSafeChains } from '../../../../../../components/hooks/useSafeChains'
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 const CustomNetwork = ({
   showPopularNetworkModal,
@@ -39,6 +46,9 @@ const CustomNetwork = ({
   displayContinue,
   showCompletionMessage = true,
   hideWarningIcons = false,
+  allowNetworkSwitch = true,
+  compactMode = false,
+  listHeader = '',
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
@@ -71,7 +81,8 @@ const CustomNetwork = ({
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles();
+  const networkSettingsStyles = createStyles();
+  const customNetworkStyles = createCustomNetworkStyles({ colors });
   const filteredPopularList = showAddedNetworks
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
@@ -84,6 +95,14 @@ const CustomNetwork = ({
 
   return (
     <>
+      {!!listHeader && filteredPopularList.length > 0 && (
+        <Text
+          style={customNetworkStyles.listHeader}
+          variant={TextVariant.BodyMDBold}
+        >
+          {listHeader}
+        </Text>
+      )}
       {isNetworkModalVisible && selectedNetwork && (
         <NetworkModals
           showPopularNetworkModal={showPopularNetworkModal}
@@ -94,16 +113,17 @@ const CustomNetwork = ({
           shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
           onNetworkSwitch={onNetworkSwitch}
           safeChains={safeChains}
+          allowNetworkSwitch={allowNetworkSwitch}
         />
       )}
       {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.popularNetwork}
+          style={networkSettingsStyles.popularNetwork}
           onPress={() => showNetworkModal(networkConfiguration)}
         >
-          <View style={styles.popularWrapper}>
-            <View style={styles.popularNetworkImage}>
+          <View style={networkSettingsStyles.popularWrapper}>
+            <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
                 size={AvatarSize.Sm}
@@ -121,7 +141,8 @@ const CustomNetwork = ({
               {networkConfiguration.nickname}
             </CustomText>
           </View>
-          <View style={styles.popularWrapper}>
+
+          <View style={networkSettingsStyles.popularWrapper}>
             {!hideWarningIcons &&
             toggleWarningModal &&
             networkConfiguration.warning ? (
@@ -129,21 +150,33 @@ const CustomNetwork = ({
                 name="warning"
                 size={14}
                 color={colors.icon.alternative}
-                style={styles.icon}
+                style={networkSettingsStyles.icon}
                 onPress={toggleWarningModal}
               />
             ) : null}
+
             {displayContinue &&
             networkConfiguration.chainId === selectedChainId ? (
               <CustomText link>{strings('networks.continue')}</CustomText>
             ) : (
-              <CustomText link>
-                {networkConfiguration.isAdded
-                  ? strings('networks.switch')
-                  : strings('networks.add')}
-              </CustomText>
+              !compactMode && (
+                <Text variant={TextVariant.BodyMD}>
+                  {networkConfiguration.isAdded
+                    ? strings('networks.switch')
+                    : strings('networks.add')}
+                </Text>
+              )
             )}
           </View>
+          {compactMode && (
+            <View style={customNetworkStyles.iconContainer}>
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Lg}
+                color={colors.icon.alternative}
+              />
+            </View>
+          )}
         </TouchableOpacity>
       ))}
     </>

@@ -93,7 +93,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
         {strings(
           REASON_DESCRIPTION_I18N_KEY_MAP[
             securityAlertResponse.reason as Reason
-          ],
+          ] ?? 'blockaid_banner.other_description',
         )}
       </Text>
       <Accordion

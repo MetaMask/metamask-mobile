@@ -30,6 +30,14 @@ jest.mock('../../../../core/Engine', () => ({
         },
       },
     },
+    PreferencesController: {
+      state: {
+        tokenNetworkFilter: {
+          '0x1': true,
+          '0x89': true,
+        },
+      },
+    },
   },
 }));
 

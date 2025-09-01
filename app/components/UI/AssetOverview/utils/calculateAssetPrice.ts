@@ -13,6 +13,8 @@ interface MarketData {
     P30D?: number;
     P200D?: number;
     P1Y?: number;
+    P3Y?: number;
+    P1000Y?: number;
   };
 }
 
@@ -46,7 +48,8 @@ const TIME_PERIOD_TO_MARKET_DATA_KEY: Record<
   '1m': 'P30D',
   '3m': 'P200D',
   '1y': 'P1Y',
-  '3y': 'P1Y', // TODO: Add 3y market data key
+  '3y': 'P3Y',
+  all: 'P1000Y',
 };
 
 export const calculateAssetPrice = ({

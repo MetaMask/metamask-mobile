@@ -40,7 +40,6 @@ const mockTokens = [
     decimals: 6,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   },
   {
     assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
@@ -50,7 +49,6 @@ const mockTokens = [
     decimals: 6,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png',
-    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   },
 ];
 
@@ -76,10 +74,10 @@ describe('TokenSelectorModal Component', () => {
   it('displays tokens and allows selection', async () => {
     const { getByText } = renderWithProvider(TokenSelectorModal);
 
-    expect(getByText('USD Coin')).toBeTruthy();
-    expect(getByText('Tether USD')).toBeTruthy();
+    expect(getByText('USDC')).toBeTruthy();
+    expect(getByText('USDT')).toBeTruthy();
 
-    const tetherElement = getByText('Tether USD');
+    const tetherElement = getByText('USDT');
     fireEvent.press(tetherElement);
 
     await waitFor(() => {
@@ -101,5 +99,17 @@ describe('TokenSelectorModal Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
+  });
+
+  it('displays network filter selector when pressing "All networks" button', async () => {
+    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
+
+    const allNetworksButton = getByText('All networks');
+    fireEvent.press(allNetworksButton);
+
+    await waitFor(() => {
+      expect(getByText('Deselect all')).toBeTruthy();
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

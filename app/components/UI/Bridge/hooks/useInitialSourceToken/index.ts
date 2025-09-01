@@ -1,9 +1,9 @@
 import {
   selectSourceToken,
+  setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRef } from 'react';
 import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -16,6 +16,11 @@ import {
 import { constants } from 'ethers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import usePrevious from '../../../../hooks/usePrevious';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
@@ -38,18 +43,25 @@ export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
-export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
+export const useInitialSourceToken = (
+  initialSourceToken?: BridgeToken,
+  initialSourceAmount?: string,
+) => {
   const dispatch = useDispatch();
+  const sourceToken = useSelector(selectSourceToken);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const hasSetInitialSourceToken = useRef(false);
-  const sourceToken = useSelector(selectSourceToken);
+  const prevInitialSourceToken = usePrevious(initialSourceToken);
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
 
   const {
-    chainId: selectedChainId,
+    chainId: selectedEvmChainId,
     domainIsConnectedDapp,
-    networkName: selectedNetworkName,
+    networkName: selectedEvmNetworkName,
   } = useNetworkInfo();
   const {
     onSetRpcTarget,
@@ -58,30 +70,40 @@ export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
     ///: END:ONLY_INCLUDE_IF
   } = useSwitchNetworks({
     domainIsConnectedDapp,
-    selectedChainId,
-    selectedNetworkName,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName: selectedEvmNetworkName,
   });
 
-  if (hasSetInitialSourceToken.current || sourceToken) return;
+  const chainId = isEvmNetworkSelected
+    ? selectedEvmChainId
+    : selectedNonEvmNetworkChainId;
 
   // Will default to the native token of the current chain if no token is provided
-  if (!initialSourceToken) {
-    dispatch(setSourceToken(getNativeSourceToken(selectedChainId)));
+  if (!initialSourceToken && !sourceToken) {
+    dispatch(setSourceToken(getNativeSourceToken(chainId)));
     return;
   }
+
+  if (prevInitialSourceToken === initialSourceToken) return;
+
   // Fix for the case where the initial source token is the native token of the current chain
-  if (initialSourceToken.address === constants.AddressZero) {
+  if (initialSourceToken?.address === constants.AddressZero) {
     // Set the source token
-    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken.chainId)));
+    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken?.chainId)));
   } else {
     // Set the source token
     dispatch(setSourceToken(initialSourceToken));
   }
 
+  // Set source amount if provided
+  if (initialSourceAmount) {
+    dispatch(setSourceAmount(initialSourceAmount));
+  }
+
   // Change network if necessary
-  if (initialSourceToken.chainId !== selectedChainId) {
+  if (initialSourceToken?.chainId && initialSourceToken?.chainId !== chainId) {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (initialSourceToken.chainId === SolScope.Mainnet) {
+    if (initialSourceToken?.chainId === SolScope.Mainnet) {
       onNonEvmNetworkChange(initialSourceToken.chainId);
       return;
     }
@@ -89,6 +111,4 @@ export const useInitialSourceToken = (initialSourceToken?: BridgeToken) => {
 
     onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
   }
-
-  hasSetInitialSourceToken.current = true;
 };

@@ -40,9 +40,6 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
-  wizard: {
-    step: 0,
-  },
   settings: {
     primaryCurrency: 'usd',
   },

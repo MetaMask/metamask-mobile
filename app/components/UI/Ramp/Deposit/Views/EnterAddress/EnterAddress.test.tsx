@@ -1,33 +1,27 @@
 import React from 'react';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
-import EnterAddress from './EnterAddress';
+import EnterAddress, { AddressFormData } from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+
+const mockTrackEvent = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
-
-const mockFormData: BasicInfoFormData = {
-  firstName: 'John',
-  lastName: 'Doe',
-  mobileNumber: '+1234567890',
-  dob: '01/01/1990',
-  ssn: '123-45-6789',
-};
 
 const mockQuote = {
   quoteId: 'test-quote-id',
 } as BuyQuote;
 
 let mockUseParamsReturnValue: {
-  formData: BasicInfoFormData;
   quote: BuyQuote;
-  kycUrl?: string;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 } = {
-  formData: mockFormData,
   quote: mockQuote,
 };
 
@@ -42,38 +36,19 @@ const mockUseDepositSdkMethodInitialState = {
 };
 
 let mockKycFunction = jest.fn().mockResolvedValue(undefined);
-let mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
-let mockSsnFunction = jest.fn().mockResolvedValue(undefined);
-let mockKycValues = [mockUseDepositSdkMethodInitialState, mockKycFunction];
-let mockPurposeValues = [
-  mockUseDepositSdkMethodInitialState,
-  mockPurposeFunction,
-];
-let mockSsnValues = [
-  { ...mockUseDepositSdkMethodInitialState },
-  mockSsnFunction,
-];
 
-const mockNavigateToKycProcessing = jest.fn();
-const mockNavigateToAdditionalVerification = jest.fn();
+const mockRouteAfterAuthentication = jest.fn();
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: jest.fn(() => ({
-    navigateToKycProcessing: mockNavigateToKycProcessing,
-    navigateToAdditionalVerification: mockNavigateToAdditionalVerification,
+    routeAfterAuthentication: mockRouteAfterAuthentication,
   })),
 }));
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
     if (config?.method === 'patchUser') {
-      return mockKycValues;
-    }
-    if (config?.method === 'submitPurposeOfUsageForm') {
-      return mockPurposeValues;
-    }
-    if (config?.method === 'submitSsnDetails') {
-      return mockSsnValues;
+      return [mockUseDepositSdkMethodInitialState, mockKycFunction];
     }
     return [mockUseDepositSdkMethodInitialState, jest.fn()];
   }),
@@ -94,7 +69,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../sdk', () => ({
-  ...jest.requireActual('../../sdk'),
   useDepositSDK: () => mockUseDepositSDKReturnValue,
 }));
 
@@ -103,8 +77,18 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParamsReturnValue,
 }));
 
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_ADDRESS);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.ENTER_ADDRESS,
+    },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 function fillFormAndSubmit({
@@ -141,27 +125,13 @@ function fillFormAndSubmit({
 describe('EnterAddress Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParamsReturnValue = { formData: mockFormData, quote: mockQuote };
+    mockUseParamsReturnValue = { quote: mockQuote };
     mockUseDepositSDKReturnValue = {
       selectedRegion: { isoCode: 'US', name: 'United States', flag: '🇺🇸' },
     };
     mockKycFunction = jest.fn().mockResolvedValue(undefined);
-    mockPurposeFunction = jest.fn().mockResolvedValue(undefined);
-    mockSsnFunction = jest.fn().mockResolvedValue(undefined);
-    mockKycValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockKycFunction,
-    ];
-    mockPurposeValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockPurposeFunction,
-    ];
-    mockSsnValues = [
-      { ...mockUseDepositSdkMethodInitialState },
-      mockSsnFunction,
-    ];
-    mockNavigateToKycProcessing.mockClear();
-    mockNavigateToAdditionalVerification.mockClear();
+    mockRouteAfterAuthentication.mockClear();
+    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -173,7 +143,7 @@ describe('EnterAddress Component', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
-    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('submits form data and navigates to next page when form is valid and continue is pressed', async () => {
@@ -182,42 +152,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit();
 
     await waitFor(() => {
-      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
-    });
-  });
-
-  it('navigates to additional verification when kycUrl is provided', async () => {
-    const kycUrl = 'https://example.com/kyc';
-
-    mockUseParamsReturnValue = {
-      formData: mockFormData,
-      quote: mockQuote,
-      kycUrl,
-    };
-
-    render(EnterAddress);
-
-    fillFormAndSubmit();
-
-    await waitFor(() => {
-      expect(mockKycFunction).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockSsnFunction).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockPurposeFunction).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockNavigateToAdditionalVerification).toHaveBeenCalledWith({
-        quote: mockQuote,
-        kycUrl,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -231,7 +166,7 @@ describe('EnterAddress Component', () => {
     expect(mockKycFunction).toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
     });
   });
 
@@ -242,55 +177,6 @@ describe('EnterAddress Component', () => {
         title: 'Verify your identity',
       }),
     );
-  });
-
-  it('calls submitSsnDetails with SSN if present and proceeds if successful', async () => {
-    render(EnterAddress);
-    fillFormAndSubmit();
-    await waitFor(() => {
-      expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
-    });
-  });
-
-  it('does not call submitSsnDetails when SSN is not present', async () => {
-    const formDataWithoutSsn: BasicInfoFormData = {
-      firstName: 'John',
-      lastName: 'Doe',
-      mobileNumber: '+1234567890',
-      dob: '01/01/1990',
-    };
-
-    mockUseParamsReturnValue = {
-      formData: formDataWithoutSsn,
-      quote: mockQuote,
-    };
-
-    render(EnterAddress);
-
-    fillFormAndSubmit();
-
-    await waitFor(() => {
-      expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
-    });
-  });
-
-  it('does not navigate if submitSsnDetails throws an error', async () => {
-    mockSsnFunction.mockRejectedValueOnce(new Error('SSN error'));
-
-    render(EnterAddress);
-
-    fillFormAndSubmit();
-
-    await waitFor(() => {
-      expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
-    });
   });
 
   it('disables the continue button when loading is true', () => {
@@ -328,7 +214,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('Please enter a valid address')).toBeOnTheScreen();
-    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('accepts valid address line 2', async () => {
@@ -337,9 +223,7 @@ describe('EnterAddress Component', () => {
     fillFormAndSubmit({ addressLine2: 'Apt 4B' });
 
     await waitFor(() => {
-      expect(mockNavigateToKycProcessing).toHaveBeenCalledWith({
-        quote: mockQuote,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 
@@ -356,7 +240,7 @@ describe('EnterAddress Component', () => {
     fireEvent.press(screen.getByTestId('address-continue-button'));
 
     expect(screen.getByText('State/Region is required')).toBeOnTheScreen();
-    expect(mockNavigateToKycProcessing).not.toHaveBeenCalled();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('displays selected region in disabled country field', () => {
@@ -366,14 +250,13 @@ describe('EnterAddress Component', () => {
     expect(countryInput.props.editable).toBe(false);
   });
 
-  it('calls all required SDK methods in correct order', async () => {
+  it('calls required SDK methods with address data only', async () => {
     render(EnterAddress);
 
     fillFormAndSubmit();
 
     await waitFor(() => {
       expect(mockKycFunction).toHaveBeenCalledWith({
-        ...mockFormData,
         addressLine1: '123 Main St',
         addressLine2: '',
         city: 'San Francisco',
@@ -381,40 +264,47 @@ describe('EnterAddress Component', () => {
         postCode: '10001',
         countryCode: 'US',
       });
-      expect(mockSsnFunction).toHaveBeenCalledWith('123-45-6789');
-      expect(mockPurposeFunction).toHaveBeenCalled();
     });
   });
 
-  it('calls SDK methods without SSN when SSN is not provided', async () => {
-    const formDataWithoutSsn: BasicInfoFormData = {
-      firstName: 'John',
-      lastName: 'Doe',
-      mobileNumber: '+1234567890',
-      dob: '01/01/1990',
-    };
-
-    mockUseParamsReturnValue = {
-      formData: formDataWithoutSsn,
-      quote: mockQuote,
-    };
-
+  it('tracks analytics event when continue button is pressed with valid form data', async () => {
     render(EnterAddress);
 
     fillFormAndSubmit();
 
-    await waitFor(() => {
-      expect(mockKycFunction).toHaveBeenCalledWith({
-        ...formDataWithoutSsn,
-        addressLine1: '123 Main St',
-        addressLine2: '',
-        city: 'San Francisco',
-        state: 'CA',
-        postCode: '10001',
-        countryCode: 'US',
-      });
-      expect(mockSsnFunction).not.toHaveBeenCalled();
-      expect(mockPurposeFunction).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_ADDRESS_ENTERED', {
+      region: 'US',
+      ramp_type: 'DEPOSIT',
+      kyc_type: 'SIMPLE',
     });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+    });
+  });
+
+  it('prefills form data when previousFormData is provided', () => {
+    const mockPreviousFormData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1993-03-25T00:00:00.000Z',
+      ssn: '123456789',
+      addressLine1: '456 Oak Street',
+      addressLine2: 'Apt 2B',
+      city: 'New York',
+      state: 'NY',
+      postCode: '10002',
+      countryCode: 'US',
+    };
+
+    mockUseParamsReturnValue = {
+      quote: mockQuote,
+      previousFormData: mockPreviousFormData,
+    };
+
+    render(EnterAddress);
+
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

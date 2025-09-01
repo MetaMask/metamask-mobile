@@ -85,8 +85,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 8,
-              "borderTopRightRadius": 8,
+              "borderTopLeftRadius": 24,
+              "borderTopRightRadius": 24,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -116,6 +116,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 {
                   "backgroundColor": "#ffffff",
                   "flexDirection": "row",
+                  "gap": 16,
                   "padding": 16,
                 },
                 false,
@@ -139,7 +140,6 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "flex": 1,
-                  "marginHorizontal": 16,
                 }
               }
             >
@@ -223,7 +223,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d1a",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 32,
                     "height": 36,
                     "justifyContent": "center",
@@ -348,7 +348,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -464,7 +464,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280057395,
+                            "payload": 4282743353,
                             "type": 0,
                           }
                         }
@@ -476,7 +476,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              857505331,
+                              860191289,
                               1,
                               872415231,
                             ]
@@ -630,7 +630,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

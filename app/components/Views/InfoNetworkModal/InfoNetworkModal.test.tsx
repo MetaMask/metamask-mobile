@@ -19,6 +19,10 @@ jest.mock('@react-navigation/native', () => {
 // Mock the NetworkInfo component
 jest.mock('../../UI/NetworkInfo', () => () => 'NetworkInfo');
 
+jest.mock('../../UI/Bridge/hooks/useIsOnBridgeRoute', () => ({
+  useIsOnBridgeRoute: jest.fn().mockReturnValue(false),
+}));
+
 const initialState = {
   modals: {
     infoNetworkModalVisible: true,

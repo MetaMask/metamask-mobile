@@ -1,5 +1,10 @@
-import { MockttpServer, ServerMockedEndpoint } from 'mockttp';
+import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
+import { createLogger } from '../../framework/logger';
+
+const logger = createLogger({
+  name: 'AnalyticsHelpers',
+});
 
 export interface EventPayload {
   event: string;
@@ -8,19 +13,19 @@ export interface EventPayload {
 
 /**
  * Retrieves payloads of requests matching specified metametrics events.
- * @param {MockttpServer} mockServer - The mock server instance.
+ * @param {MockttpServer|Mockttp} mockServer - The mock server instance.
  * @param {Array<string>} [events] - Event names to filter payloads. If not provided, all events are returned. i.e. ['event1', 'event2']
  * @returns {Promise<Array<EventPayload>>} Filtered request payloads.
  */
 export const getEventsPayloads = async (
-  mockServer: MockttpServer,
+  mockServer: MockttpServer | Mockttp,
   events: string[] = [],
   timeout = 10000,
 ): Promise<EventPayload[]> => {
-  const waitForPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
+  const waitForPendingEndpoints = async (): Promise<MockedEndpoint[]> => {
     const startTime = Date.now();
 
-    const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
+    const checkPendingEndpoints = async (): Promise<MockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
 
       // Filter out infrastructure endpoints that are always pending
@@ -42,15 +47,13 @@ export const getEventsPayloads = async (
 
       if (pendingEndpoints.some((isPending) => isPending)) {
         if (Date.now() - startTime >= timeout) {
-          // eslint-disable-next-line no-console
-          console.warn('Timeout reached while waiting for pending endpoints.');
-          console.warn(
+          logger.warn('Timeout reached while waiting for pending endpoints.');
+          logger.warn(
             'Some of the requests set up in the mock server were not completed.',
           );
           return analyticsEndpoints;
         }
-        // eslint-disable-next-line no-console
-        console.log('Waiting for pending endpoints...');
+        logger.info('Waiting for pending endpoints...');
         await new Promise((resolve) => setTimeout(resolve, timeout / 4));
         return checkPendingEndpoints();
       }

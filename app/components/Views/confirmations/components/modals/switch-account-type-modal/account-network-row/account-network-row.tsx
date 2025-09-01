@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { SwitchAccountModalSelectorIDs } from '../../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -32,7 +34,6 @@ import {
 } from '../../../../../../UI/Box/box.types';
 import { Box } from '../../../../../../UI/Box/Box';
 import { useTheme } from '../../../../../../../util/theme';
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
 import { selectMultichainAccountsState1Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts';
 
 const AccountNetworkRow = ({
@@ -171,6 +172,7 @@ const AccountNetworkRow = ({
                 : strings('confirm.7702_functionality.switch')
             }
             onPress={onSwitch}
+            testID={`${SwitchAccountModalSelectorIDs.SWITCH_ACCOUNT_BUTTON}-${name}`}
           />
         )}
       </View>

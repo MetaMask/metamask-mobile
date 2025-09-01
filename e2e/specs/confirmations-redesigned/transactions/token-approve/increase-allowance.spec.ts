@@ -1,44 +1,49 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
-import TestHelpers from '../../../../helpers';
 import { loginToApp } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
-import Assertions from '../../../../utils/Assertions';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../../../fixtures/fixture-helper';
-import { buildPermissions } from '../../../../fixtures/utils';
+import Assertions from '../../../../framework/Assertions';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
+import { DappVariants } from '../../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
+import { confirmationsRedesignedFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
   () => {
     const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
 
-    const testSpecificMock = {
-      POST: [],
-      GET: [
-        SIMULATION_ENABLED_NETWORKS_MOCK,
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+        response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+        responseCode: 200,
+      });
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+      );
     };
-
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-    });
 
     it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {
       await withFixtures(
         {
-          dapp: true,
+          dapps: [
+            {
+              dappVariant: DappVariants.TEST_DAPP,
+            },
+          ],
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -46,14 +51,11 @@ describe(
             )
             .build(),
           restartDevice: true,
-          ganacheOptions: defaultGanacheOptions,
           testSpecificMock,
-          smartContract: ERC_20_CONTRACT,
+          smartContracts: [ERC_20_CONTRACT],
         },
-        // Remove any once withFixtures is typed
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async ({ contractRegistry }: { contractRegistry: any }) => {
-          const erc20Address = await contractRegistry.getContractAddress(
+        async ({ contractRegistry }) => {
+          const erc20Address = await contractRegistry?.getContractAddress(
             ERC_20_CONTRACT,
           );
 
@@ -67,19 +69,25 @@ describe(
           await TestDApp.tapIncreaseAllowanceButton();
 
           // Check confirmation modal is visible
-          await Assertions.checkIfVisible(
+          await Assertions.expectElementToBeVisible(
             ConfirmationUITypes.ModalConfirmationContainer,
           );
 
           // Check all expected row components are visible
-          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
-          await Assertions.checkIfVisible(RowComponents.ApproveRow);
-          await Assertions.checkIfVisible(RowComponents.OriginInfo);
-          await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
-          await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+          await Assertions.expectElementToBeVisible(
+            RowComponents.AccountNetwork,
+          );
+          await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
+          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
+          await Assertions.expectElementToBeVisible(
+            RowComponents.GasFeesDetails,
+          );
+          await Assertions.expectElementToBeVisible(
+            RowComponents.AdvancedDetails,
+          );
 
           // Check spending cap is visible and has the correct value
-          await Assertions.checkIfElementToHaveText(
+          await Assertions.expectElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             '1',
           );
@@ -88,7 +96,7 @@ describe(
           await TokenApproveConfirmation.tapEditSpendingCapButton();
           await TokenApproveConfirmation.inputSpendingCap('5');
           await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
-          await Assertions.checkIfElementToHaveText(
+          await Assertions.expectElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             '5',
           );
@@ -98,8 +106,8 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.checkIfTextIsDisplayed('Increase Allowance');
-          await Assertions.checkIfTextIsDisplayed('Confirmed');
+          await Assertions.expectTextDisplayed('Increase Allowance');
+          await Assertions.expectTextDisplayed('Confirmed');
         },
       );
     });

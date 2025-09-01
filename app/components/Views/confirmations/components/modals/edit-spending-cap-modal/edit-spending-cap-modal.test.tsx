@@ -44,19 +44,23 @@ describe('EditSpendingCapModal', () => {
     const { getByText } = render(<EditSpendingCapModal {...defaultProps} />);
 
     expect(
-      getByText('confirm.simulation.edit_approval_limit_title'),
+      getByText('confirm.edit_spending_cap_modal.title'),
     ).toBeOnTheScreen();
     expect(
-      getByText('confirm.simulation.edit_approval_limit_description'),
+      getByText('confirm.edit_spending_cap_modal.description'),
     ).toBeOnTheScreen();
-    expect(getByText('Account balance : 1000')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.edit_spending_cap_modal.account_balance : 1000'),
+    ).toBeOnTheScreen();
   });
 
   it('renders buttons with correct labels', () => {
     const { getByText } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    expect(getByText('confirm.simulation.cancel')).toBeOnTheScreen();
-    expect(getByText('confirm.simulation.save')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.edit_spending_cap_modal.cancel'),
+    ).toBeOnTheScreen();
+    expect(getByText('confirm.edit_spending_cap_modal.save')).toBeOnTheScreen();
   });
 
   it('calls onClose when cancel button is pressed', () => {
@@ -65,7 +69,7 @@ describe('EditSpendingCapModal', () => {
       <EditSpendingCapModal {...defaultProps} onClose={onClose} />,
     );
 
-    const cancelButton = getByText('confirm.simulation.cancel');
+    const cancelButton = getByText('confirm.edit_spending_cap_modal.cancel');
     fireEvent.press(cancelButton);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -80,7 +84,7 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('confirm.simulation.save');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -99,7 +103,7 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('confirm.simulation.save');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -120,10 +124,10 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const saveButton = getByText('confirm.simulation.save');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
     fireEvent.press(saveButton);
 
-    const cancelButton = getByText('confirm.simulation.cancel');
+    const cancelButton = getByText('confirm.edit_spending_cap_modal.cancel');
     fireEvent.press(cancelButton);
 
     // Should not call onClose because isDataUpdating is true
@@ -142,7 +146,7 @@ describe('EditSpendingCapModal', () => {
       const { getByText } = render(<EditSpendingCapModal {...props} />);
 
       expect(
-        getByText('confirm.simulation.edit_approval_limit_title'),
+        getByText('confirm.edit_spending_cap_modal.title'),
       ).toBeOnTheScreen();
     });
   });
@@ -170,7 +174,7 @@ describe('EditSpendingCapModal', () => {
   it('disables save button when there is an error', () => {
     const { getByText } = render(<EditSpendingCapModal {...defaultProps} />);
 
-    const saveButton = getByText('confirm.simulation.save');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
     fireEvent.press(saveButton);
 
     // The button should still be pressable when there's no error
@@ -188,8 +192,8 @@ describe('EditSpendingCapModal', () => {
       />,
     );
 
-    const cancelButton = getByText('confirm.simulation.cancel');
-    const saveButton = getByText('confirm.simulation.save');
+    const cancelButton = getByText('confirm.edit_spending_cap_modal.cancel');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
 
     fireEvent.press(saveButton);
 
@@ -225,7 +229,7 @@ describe('EditSpendingCapModal', () => {
     );
     fireEvent.changeText(spendingCapInput, '750');
 
-    const saveButton = getByText('confirm.simulation.save');
+    const saveButton = getByText('confirm.edit_spending_cap_modal.save');
     fireEvent.press(saveButton);
 
     await waitFor(() => {

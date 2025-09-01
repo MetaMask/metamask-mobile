@@ -1,5 +1,8 @@
 import { useSelector } from 'react-redux';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -23,7 +26,6 @@ import {
   selectMultichainAssets,
   selectMultichainAssetsRates,
 } from '../../../selectors/multichain';
-import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 import { useMemo } from 'react';
 import {
@@ -31,6 +33,7 @@ import {
   getAggregatedBalance,
   getShouldShowAggregatedPercentage,
 } from './utils';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 /**
  * Hook to manage portfolio balance data across chains.
@@ -44,6 +47,8 @@ const useSelectedAccountMultichainBalances =
     const evmChainId = useSelector(selectEvmChainId);
     const currentCurrency = useSelector(selectCurrentCurrency);
     const allChainIDs = useSelector(getChainIdsToPoll);
+
+    const enabledChains = useSelector(selectEVMEnabledNetworks);
     const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
       selectIsTokenNetworkFilterEqualCurrentNetwork,
     );
@@ -51,10 +56,18 @@ const useSelectedAccountMultichainBalances =
     const { type } = useSelector(selectProviderConfig);
     const ticker = useSelector(selectEvmTicker);
 
+    const shouldAggregateAcrossChains = isRemoveGlobalNetworkSelectorEnabled()
+      ? true
+      : !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork;
+
+    const chainsToAggregateAcross = isRemoveGlobalNetworkSelectorEnabled()
+      ? enabledChains
+      : allChainIDs;
+
     const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
       [selectedInternalAccount as InternalAccount],
-      !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
-      allChainIDs,
+      shouldAggregateAcrossChains,
+      chainsToAggregateAcross,
     );
 
     const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
@@ -73,7 +86,6 @@ const useSelectedAccountMultichainBalances =
     const multichainBalances = useSelector(selectMultichainBalances);
     const multichainAssets = useSelector(selectMultichainAssets);
     const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
     ///: END:ONLY_INCLUDE_IF
 
     const isPortfolioEnabled = isPortfolioViewEnabled();
@@ -89,7 +101,6 @@ const useSelectedAccountMultichainBalances =
           multichainBalances,
           multichainAssets,
           multichainAssetsRates,
-          nonEvmChainId,
           shouldShowFiat,
           ///: END:ONLY_INCLUDE_IF
         );
@@ -123,7 +134,6 @@ const useSelectedAccountMultichainBalances =
       multichainAssets,
       multichainAssetsRates,
       multichainBalances,
-      nonEvmChainId,
       shouldShowFiat,
       ///: END:ONLY_INCLUDE_IF
     ]);

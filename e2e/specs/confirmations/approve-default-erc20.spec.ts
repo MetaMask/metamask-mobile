@@ -1,61 +1,53 @@
-'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(170000);
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.reverseServerPort();
-    }
-  });
-
   it('approve default ERC20 token amount from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        Object.assign({}, ...oldConfirmationsRemoteFeatureFlags),
+      );
     };
 
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
           .build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: HST_CONTRACT,
+        smartContracts: [HST_CONTRACT],
         testSpecificMock,
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const hstAddress = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry?.getContractAddress(
           HST_CONTRACT,
         );
         await loginToApp();
@@ -66,21 +58,21 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         });
         await TestDApp.tapApproveERC20TokensButton();
 
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
           ContractApprovalBottomSheet.approveTokenAmount,
         );
 
-        await Assertions.checkIfElementToHaveText(
+        await Assertions.expectElementToHaveText(
           ContractApprovalBottomSheet.approveTokenAmount,
           EXPECTED_TOKEN_AMOUNT,
         );
         // Tap next button
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ContractApprovalBottomSheetSelectorsText.NEXT,
         );
         await ContractApprovalBottomSheet.tapNextButton();
 
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ContractApprovalBottomSheetSelectorsText.APPROVE,
         );
         // Tap approve button
@@ -91,7 +83,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Assert erc20 is approved
 
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },

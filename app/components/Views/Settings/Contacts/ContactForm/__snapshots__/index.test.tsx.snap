@@ -77,7 +77,7 @@ exports[`ContactForm renders correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Name"
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           spellCheck={false}
           style={
             [
@@ -151,7 +151,7 @@ exports[`ContactForm renders correctly 1`] = `
               onChangeText={[Function]}
               onSubmitEditing={[Function]}
               placeholder="Public address (0x), or ENS"
-              placeholderTextColor="#9ca1af"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [
@@ -254,7 +254,7 @@ exports[`ContactForm renders correctly 1`] = `
               numberOfLines={1}
               onChangeText={[Function]}
               placeholder="Memo"
-              placeholderTextColor="#9ca1af"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [

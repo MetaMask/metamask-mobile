@@ -19,6 +19,11 @@ const selectTransactionBatchesStrict = createSelector(
 export const selectTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) => transactions,
+  {
+    devModeChecks: {
+      identityFunctionCheck: 'never',
+    },
+  },
 );
 
 export const selectNonReplacedTransactions = createDeepEqualSelector(

@@ -116,6 +116,7 @@ describe('persistConfig', () => {
         'rpcEvents',
         'accounts',
         'confirmationMetrics',
+        'alert',
       ]);
     });
 

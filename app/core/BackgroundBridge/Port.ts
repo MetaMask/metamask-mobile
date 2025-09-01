@@ -19,10 +19,16 @@ class Port extends EventEmitter {
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  postMessage = (msg: any, origin = '*') => {
+  postMessage = (msg: any, origin: string) => {
+    if (origin === '*') {
+      console.warn('Wildcard origin not allowed');
+      return;
+    }
+
     const js = this._isMainFrame
       ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
       : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
+
     this._window?.injectJavaScript(js);
   };
 }

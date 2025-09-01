@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  CARD: {
+    URL: 'https://card.metamask.io',
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -98,6 +101,8 @@ export default {
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
+    DEFAULT_SLIPPAGE_BRIDGE: 0.5,
+    DEFAULT_SLIPPAGE_SOLANA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -152,6 +157,8 @@ export default {
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  REWARDS_API_URL:
+    process.env.REWARDS_API_URL || 'https://rewards.dev-api.cx.metamask.io',
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

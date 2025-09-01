@@ -11,6 +11,9 @@ import {
   BtcMethod,
   SolMethod,
   CaipChainId,
+  AnyAccountType,
+  TrxAccountType,
+  TrxScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -49,7 +52,7 @@ export function createMockUuidFromAddress(address: string): AccountId {
  */
 function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
   // Define scope mappings
-  const scopeMappings = {
+  const scopeMappings: Record<KeyringAccountType, CaipChainId[]> = {
     // Ethereum account types
     [EthAccountType.Eoa]: [EthScope.Eoa],
     [EthAccountType.Erc4337]: [EthScope.Testnet],
@@ -62,6 +65,15 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
+
+    // Tron account types
+    [TrxAccountType.Eoa]: [TrxScope.Mainnet],
+
+    // Generic account type
+    //
+    // This account type is valid only in Flask and is intended to be used
+    // only during the integration of new blockchains.
+    [AnyAccountType.Account]: ['any:scope'],
   };
 
   const scopes = scopeMappings[accountType];
@@ -132,7 +144,7 @@ export function createMockSnapInternalAccount(
       ];
       break;
     case BtcAccountType.P2wpkh:
-      methods = [BtcMethod.SendBitcoin];
+      methods = Object.values(BtcMethod);
       break;
     case SolAccountType.DataAccount:
       methods = [SolMethod.SendAndConfirmTransaction];
@@ -187,7 +199,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
     scope: BtcScope.Mainnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Mainnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
@@ -205,7 +217,7 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
     scope: BtcScope.Testnet,
     index: 0,
   },
-  methods: [BtcMethod.SendBitcoin],
+  methods: Object.values(BtcMethod),
   scopes: [BtcScope.Testnet],
   type: BtcAccountType.P2wpkh,
   metadata: {
@@ -277,6 +289,7 @@ export const internalSolanaAccount1: InternalAccount = {
     mockSolanaAddress,
     'Solana Account',
     KeyringTypes.snap,
+    SolAccountType.DataAccount,
   ),
   options: {
     imported: true,

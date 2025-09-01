@@ -48,12 +48,14 @@ const styleSheet = (params: {
   }
 
   return StyleSheet.create({
-    base: Object.assign({
-      backgroundColor,
-      borderWidth: 1,
-      borderColor,
-      ...StyleSheet.flatten(style),
-    } as ViewStyle) as ViewStyle,
+    base: Object.assign(
+      {
+        backgroundColor,
+        borderWidth: 1,
+        borderColor,
+      },
+      StyleSheet.flatten(style),
+    ) as ViewStyle,
   });
 };
 

@@ -1,13 +1,18 @@
-import { waitFor, web, system } from 'detox';
+import { waitFor, web } from 'detox';
 import {
   getFixturesServerPort,
   getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
   getSecondTestDappPort,
-} from './fixtures/utils';
+} from './framework/fixtures/FixtureUtils';
 import Utilities from './utils/Utilities';
 import { resolveConfig } from 'detox/internals';
+import { createLogger } from './framework/logger';
+
+const logger = createLogger({
+  name: 'TestHelpers',
+});
 
 export default class TestHelpers {
   /**
@@ -364,8 +369,7 @@ export default class TestHelpers {
         if (attempt === maxAttempts) {
           throw error;
         } else {
-          // eslint-disable-next-line no-console
-          console.log('Test attempt failed', {
+          logger.error('Test attempt failed', {
             attempt,
             error,
           });
@@ -382,6 +386,10 @@ export default class TestHelpers {
       await device.reverseTcpPort(getSecondTestDappPort());
       await device.reverseTcpPort(getMockServerPort());
     }
+  }
+
+  static async terminateApp() {
+    return device.terminateApp();
   }
 
   static async launchApp(launchOptions) {

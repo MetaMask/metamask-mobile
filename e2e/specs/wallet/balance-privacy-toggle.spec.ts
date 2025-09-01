@@ -1,20 +1,16 @@
-'use strict';
-
-import { Regression } from '../../tags';
-import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import { RegressionWalletPlatform } from '../../tags';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 
 const EXPECTED_HIDDEN_BALANCE: string = '••••••••••••';
 
-describe(Regression('Balance Privacy Toggle'), (): void => {
+describe(RegressionWalletPlatform('Balance Privacy Toggle'), (): void => {
   beforeAll(async (): Promise<void> => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('should toggle balance visibility when balance container is tapped', async (): Promise<void> => {
@@ -28,8 +24,8 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
       },
       async (): Promise<void> => {
         await loginToApp();
-        await Assertions.checkIfVisible(WalletView.container);
-        await Assertions.checkIfVisible(WalletView.totalBalance);
+        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.totalBalance);
         const actualBalance: string = await WalletView.getBalanceText();
         if (!actualBalance.includes('ETH')) {
           throw new Error(
@@ -42,21 +38,21 @@ describe(Regression('Balance Privacy Toggle'), (): void => {
           );
         }
         await WalletView.hideBalance();
-        await Assertions.checkIfElementToHaveText(
-          WalletView.totalBalance,
+        await Assertions.expectElementToHaveText(
+          WalletView.totalBalance as DetoxElement,
           EXPECTED_HIDDEN_BALANCE,
         );
         await TabBarComponent.tapSettings();
         await TabBarComponent.tapWallet();
-        await Assertions.checkIfVisible(WalletView.container);
-        await Assertions.checkIfVisible(WalletView.totalBalance);
-        await Assertions.checkIfElementToHaveText(
-          WalletView.totalBalance,
+        await Assertions.expectElementToBeVisible(WalletView.container);
+        await Assertions.expectElementToBeVisible(WalletView.totalBalance);
+        await Assertions.expectElementToHaveText(
+          WalletView.totalBalance as DetoxElement,
           EXPECTED_HIDDEN_BALANCE,
         );
         await WalletView.showBalance();
-        await Assertions.checkIfElementToHaveText(
-          WalletView.totalBalance,
+        await Assertions.expectElementToHaveText(
+          WalletView.totalBalance as DetoxElement,
           actualBalance,
         );
       },

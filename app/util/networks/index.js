@@ -1,5 +1,5 @@
 import URL from 'url-parse';
-import networksWithImages from 'images/image-icons';
+import networksWithImages from '.././../images/image-icons';
 import {
   MAINNET,
   NETWORKS_CHAIN_ID,
@@ -10,6 +10,7 @@ import {
   LINEA_SEPOLIA,
   MEGAETH_TESTNET,
   MONAD_TESTNET,
+  BASE_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import {
@@ -22,16 +23,6 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
-
-/* eslint-disable */
-const ethLogo = require('../../images/eth-logo-new.png');
-const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
-const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
-const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
-const monadTestnetLogo = require('../../images/monad-testnet-logo.png');
-
-/* eslint-enable */
 import {
   PopularList,
   UnpopularNetworkList,
@@ -51,6 +42,7 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
+  BASE_MAINNET_BLOCK_EXPLORER,
 } from '../../constants/urls';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
@@ -85,8 +77,9 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
-    imageSource: ethLogo,
+    imageSource: networksWithImages.ETHEREUM,
     blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
+    isTestNet: false,
   },
   [LINEA_MAINNET]: {
     name: 'Linea Main Network',
@@ -98,8 +91,23 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
-    imageSource: lineaMainnetLogo,
+    imageSource: networksWithImages['LINEA-MAINNET'],
     blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
+    isTestNet: false,
+  },
+  [BASE_MAINNET]: {
+    name: 'Base Main Network',
+    shortName: 'Base',
+    networkId: 8453,
+    chainId: toHex('8453'),
+    ticker: 'ETH',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#0052FE',
+    networkType: 'base-mainnet',
+    imageSource: networksWithImages.BASE,
+    blockExplorerUrl: BASE_MAINNET_BLOCK_EXPLORER,
+    isTestNet: false,
   },
   [SEPOLIA]: {
     name: 'Sepolia',
@@ -111,8 +119,9 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
-    imageSource: sepoliaLogo,
+    imageSource: networksWithImages.SEPOLIA,
     blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
+    isTestNet: true,
   },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia',
@@ -124,8 +133,9 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
-    imageSource: lineaTestnetLogo,
+    imageSource: networksWithImages['LINEA-SEPOLIA'],
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
+    isTestNet: true,
   },
   [MEGAETH_TESTNET]: {
     name: 'Mega Testnet',
@@ -137,8 +147,9 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'megaeth-testnet',
-    imageSource: megaEthTestnetLogo,
+    imageSource: networksWithImages['MEGAETH-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
+    isTestNet: true,
   },
   [MONAD_TESTNET]: {
     name: 'Monad Testnet',
@@ -150,8 +161,9 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'monad-testnet',
-    imageSource: monadTestnetLogo,
+    imageSource: networksWithImages['MONAD-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['monad-testnet'],
+    isTestNet: true,
   },
   [RPC]: {
     name: 'Private Network',
@@ -179,13 +191,22 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.SCROLL]: 'Scroll',
   [NETWORKS_CHAIN_ID.BERACHAIN]: 'Berachain',
   [NETWORKS_CHAIN_ID.METACHAIN_ONE]: 'Metachain One Mainnet',
-  [NETWORKS_CHAIN_ID.SEI]: 'Sei Network',
+  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
 };
 
 export default NetworkList;
 
 export const getAllNetworks = () =>
   NetworkListKeys.filter((name) => name !== RPC);
+
+export const getMainnetNetworks = () =>
+  getAllNetworks().filter((name) => !NetworkList[name].isTestNet);
+
+export const getTestNetworks = () =>
+  getAllNetworks().filter((name) => NetworkList[name].isTestNet);
+
+export const isMainnetNetwork = (networkType) =>
+  getMainnetNetworks().includes(networkType);
 
 /**
  * Checks if network is default mainnet.
@@ -641,8 +662,7 @@ export const isPerDappSelectedNetworkEnabled = () => true;
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
-export const isRemoveGlobalNetworkSelectorEnabled = () =>
-  process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+export const isRemoveGlobalNetworkSelectorEnabled = () => true;
 
 // The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME = {
@@ -650,6 +670,7 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['linea-mainnet']]: 'Linea Mainnet',
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
+  [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
 };
 
 /**

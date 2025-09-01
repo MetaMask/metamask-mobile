@@ -22,7 +22,7 @@ const styleSheet = (params: { vars: ButtonLinkStyleSheetVars }) => {
   return StyleSheet.create({
     base: Object.assign(
       { backgroundColor: colors.transparent },
-      style,
+      StyleSheet.flatten(style),
     ) as ViewStyle,
     pressedText: { textDecorationLine: 'underline' },
   });

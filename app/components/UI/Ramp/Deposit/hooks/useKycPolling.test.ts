@@ -53,7 +53,7 @@ describe('useKycPolling', () => {
       authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
-      clearAuthToken: jest.fn(),
+      logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
       selectedRegion: {

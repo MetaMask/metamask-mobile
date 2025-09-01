@@ -25,7 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -46,6 +46,7 @@ import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
+import { EVM_SCOPE } from '../../constants/networks';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -82,10 +83,15 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
+  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } =
     useEarnToken(token);
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const earnToken = earnTokenPair?.earnToken;
+  const outputToken = earnTokenPair?.outputToken;
+
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
@@ -330,34 +336,32 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken) {
-            const tokenNetworkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                tokenSnapshot?.chainId as Hex,
-              );
-            Engine.context.TokensController.addToken({
-              decimals: tokenSnapshot?.token?.decimals || 0,
-              symbol: tokenSnapshot?.token?.symbol || '',
-              address: tokenSnapshot?.token?.address || '',
-              name: tokenSnapshot?.token?.name || '',
-              networkClientId: tokenNetworkClientId,
-            }).catch((error) => {
+            try {
+              const tokenNetworkClientId =
+                Engine.context.NetworkController.findNetworkClientIdByChainId(
+                  tokenSnapshot?.chainId as Hex,
+                );
+              Engine.context.TokensController.addToken({
+                decimals: tokenSnapshot?.token?.decimals || 0,
+                symbol: tokenSnapshot?.token?.symbol || '',
+                address: tokenSnapshot?.token?.address || '',
+                name: tokenSnapshot?.token?.name || '',
+                networkClientId: tokenNetworkClientId,
+              }).catch(console.error);
+            } catch (error) {
               console.error(
                 error,
-                'error adding counter-token on confirmation',
+                `error adding counter-token for ${
+                  outputToken?.symbol || outputToken?.ticker || ''
+                } on confirmation`,
               );
-            });
+            }
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [
-      emitTxMetaMetric,
-      tokenSnapshot,
-      earnToken,
-      navigation,
-      outputToken?.chainId,
-    ],
+    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
   );
 
   // Guards
@@ -367,7 +371,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
     !amountFiat ||
     !lendingContractAddress ||
     !lendingProtocol ||
-    !activeAccount?.address
+    !selectedAccount?.address
   )
     return null;
 
@@ -411,7 +415,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
       trace({
         name: TraceName.EarnWithdrawConfirmationScreen,
         data: {
-          chainId: outputToken?.chainId || '',
+          chainId: outputToken.chainId,
           experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
       });
@@ -427,6 +431,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnitToSend,
+        chainId: outputToken.chainId,
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
@@ -494,8 +499,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 value={{
                   label: (
                     <AccountTag
-                      accountAddress={activeAccount?.address}
-                      accountName={activeAccount.metadata.name}
+                      accountAddress={selectedAccount?.address}
+                      accountName={selectedAccount.metadata.name}
                       useBlockieIcon={useBlockieIcon}
                     />
                   ),

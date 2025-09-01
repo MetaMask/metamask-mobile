@@ -1,5 +1,4 @@
 import { cloneDeep } from 'lodash';
-import { TransactionParams } from '@metamask/transaction-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
@@ -39,30 +38,6 @@ describe('useFeeCalculations', () => {
     stakingDepositConfirmationState.engine.backgroundState.TransactionController
       .transactions[0];
 
-  it('returns no estimates for empty txParams', () => {
-    const clonedStateWithoutTxParams = cloneDeep(
-      stakingDepositConfirmationState,
-    );
-    clonedStateWithoutTxParams.engine.backgroundState.TransactionController.transactions[0].txParams =
-      undefined as unknown as TransactionParams;
-
-    const transactionMetaWithoutTxParams =
-      clonedStateWithoutTxParams.engine.backgroundState.TransactionController
-        .transactions[0];
-
-    const { result } = renderHookWithProvider(
-      () => useFeeCalculations(transactionMetaWithoutTxParams),
-      {
-        state: clonedStateWithoutTxParams,
-      },
-    );
-
-    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
-    expect(result.current.estimatedFeeNative).toBe('0 ETH');
-    expect(result.current.preciseNativeFeeInHex).toBe('0x0');
-    expect(result.current.calculateGasEstimate).toBeDefined();
-  });
-
   it('returns fee calculations', () => {
     const { result } = renderHookWithProvider(
       () => useFeeCalculations(transactionMeta),
@@ -73,6 +48,7 @@ describe('useFeeCalculations', () => {
 
     expect(result.current.estimatedFeeFiat).toBe('$0.34');
     expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeFiatPrecise).toBe('0.338');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -123,6 +99,7 @@ describe('useFeeCalculations', () => {
 
     expect(result.current.estimatedFeeFiat).toBe('< $0.01');
     expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeFiatPrecise).toBe('0.008');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -149,6 +126,7 @@ describe('useFeeCalculations', () => {
 
     expect(result.current.estimatedFeeFiat).toBe(null);
     expect(result.current.estimatedFeeNative).toBe(null);
+    expect(result.current.estimatedFeeFiatPrecise).toBe(null);
     expect(result.current.preciseNativeFeeInHex).toBe(null);
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -177,6 +155,7 @@ describe('useFeeCalculations', () => {
     // The original estimatedFee is 0x5572e9c22d00, so the sum is 0x5572e9c23d00
     expect(result.current.estimatedFeeFiat).toBe('$0.34');
     expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeFiatPrecise).toBe('0.338');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c23d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });

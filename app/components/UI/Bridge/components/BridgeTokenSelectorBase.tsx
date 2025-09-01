@@ -1,7 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-// Using FlatList from react-native-gesture-handler to fix scroll issues with the bottom sheet
-import { FlatList } from 'react-native-gesture-handler';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
@@ -25,6 +23,11 @@ import { CaipChainId, Hex } from '@metamask/utils';
 // We use ReusableModal instead of BottomSheet to prevent the keyboard from pushing the search input off screen
 import ReusableModal, { ReusableModalRef } from '../../ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlashList } from '@shopify/flash-list';
+import { FlatList } from 'react-native-gesture-handler';
+
+// FlashList cannot scroll on Android here, so we use FlatList
+const ListComponent = Platform.OS === 'ios' ? FlashList : FlatList;
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -135,6 +138,7 @@ interface BridgeTokenSelectorBaseProps {
   tokensList: BridgeToken[];
   pending?: boolean;
   chainIdToFetchMetadata?: Hex | CaipChainId;
+  title?: string;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
@@ -145,6 +149,7 @@ export const BridgeTokenSelectorBase: React.FC<
   tokensList,
   pending,
   chainIdToFetchMetadata: chainId,
+  title,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const safeAreaInsets = useSafeAreaInsets();
@@ -245,7 +250,7 @@ export const BridgeTokenSelectorBase: React.FC<
               justifyContent={JustifyContent.center}
             >
               <Text variant={TextVariant.HeadingMD} style={styles.headerTitle}>
-                {strings('bridge.select_token')}
+                {title ?? strings('bridge.select_token')}
               </Text>
               <Box style={[styles.closeButton, styles.closeIconBox]}>
                 <TouchableOpacity
@@ -274,7 +279,7 @@ export const BridgeTokenSelectorBase: React.FC<
           />
         </Box>
 
-        <FlatList
+        <ListComponent
           data={shouldRenderOverallLoading ? [] : tokensToRenderWithSkeletons}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}

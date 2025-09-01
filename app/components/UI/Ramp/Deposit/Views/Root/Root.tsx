@@ -4,7 +4,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
-import { getOrders } from '../../../../../../reducers/fiatOrders';
+import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
@@ -16,7 +16,7 @@ const Root = () => {
   const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
-  const orders = useSelector(getOrders);
+  const orders = useSelector(getAllDepositOrders);
 
   useEffect(() => {
     const initializeFlow = async () => {

@@ -11,7 +11,11 @@ import { AmountViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendF
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { isHardwareAccount } from '../../../../../../util/address';
+import { TransactionType } from '@metamask/transaction-controller';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 const mockTransactionTypes = TransactionTypes;
 
@@ -229,14 +233,12 @@ describe('Amount', () => {
   const mockSelectConfirmationRedesignFlags = jest.mocked(
     selectConfirmationRedesignFlags,
   );
-  const mockIsHardwareAccount = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     mockNavigate.mockClear();
     mockSelectConfirmationRedesignFlags.mockReturnValue({
       transfer: false,
     } as ReturnType<typeof selectConfirmationRedesignFlags>);
-    mockIsHardwareAccount.mockReturnValue(false);
   });
 
   it('renders correctly', () => {
@@ -1274,6 +1276,7 @@ describe('Amount', () => {
       {
         origin: 'metamask',
         networkClientId: 'sepolia',
+        type: TransactionType.simpleSend,
       },
     );
   });

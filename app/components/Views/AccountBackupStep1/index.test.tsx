@@ -2,7 +2,6 @@ import React from 'react';
 import AccountBackupStep1 from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { fireEvent } from '@testing-library/react-native';
@@ -10,9 +9,7 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import Routes from '../../../constants/navigation/Routes';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -42,6 +39,21 @@ jest.mock('../../hooks/useMetrics', () => {
     }),
   };
 });
+
+// Mock useTheme hook - default to dark theme
+const mockUseTheme = jest.fn().mockReturnValue({
+  colors: {},
+  themeAppearance: 'dark', // Default to dark theme
+});
+
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => mockUseTheme(),
+  AppThemeKey: {
+    os: 'os',
+    light: 'light',
+    dark: 'dark',
+  },
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -77,19 +89,15 @@ jest
   .spyOn(InteractionManager, 'runAfterInteractions')
   .mockImplementation(mockRunAfterInteractions);
 
-const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
-  index: 1,
-  routes: [
-    {
-      name: Routes.ONBOARDING.SUCCESS_FLOW,
-      params: {
-        screen: Routes.ONBOARDING.SUCCESS,
-        params: {
-          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-        },
-      },
+// Use dynamic mocking to avoid native module conflicts
+jest.doMock('react-native', () => {
+  const originalRN = jest.requireActual('react-native');
+  return {
+    ...originalRN,
+    StatusBar: {
+      currentHeight: 42,
     },
-  ],
+  };
 });
 
 describe('AccountBackupStep1', () => {
@@ -114,9 +122,32 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  it('render matches snapshot', () => {
-    const { wrapper } = setupTest();
-    expect(wrapper).toMatchSnapshot();
+  describe('Snapshots iOS', () => {
+    it('render matches snapshot', () => {
+      Platform.OS = 'ios';
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+    });
+  });
+
+  describe('Snapshots android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('render matches snapshot', () => {
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('render matches snapshot with status bar height to zero', () => {
+      const { StatusBar } = jest.requireMock('react-native');
+      const originalCurrentHeight = StatusBar.currentHeight;
+      StatusBar.currentHeight = 0;
+      const { wrapper } = setupTest();
+      expect(wrapper).toMatchSnapshot();
+      StatusBar.currentHeight = originalCurrentHeight;
+    });
   });
 
   it('sets hasFunds to true when Engine.hasFunds returns true', () => {
@@ -257,29 +288,6 @@ describe('AccountBackupStep1', () => {
     });
   });
 
-  it('renders header left button, calls goBack when pressed', () => {
-    setupTest();
-
-    // Verify that setOptions was called with the correct configuration
-    expect(mockSetOptions).toHaveBeenCalled();
-    const setOptionsCall = mockSetOptions.mock.calls[0][0];
-
-    // Get the headerLeft function from the options
-    const headerLeftComponent = setOptionsCall.headerLeft();
-
-    // Verify the headerLeft component renders correctly
-    expect(headerLeftComponent).toBeDefined();
-
-    // The headerLeft component should be a TouchableOpacity
-    expect(headerLeftComponent.type).toBe('TouchableOpacity');
-
-    // Simulate pressing the back button by calling onPress directly
-    headerLeftComponent.props.onPress();
-
-    // Verify that goBack was called
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
   it('show what is seedphrase modal when srp link is pressed', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
     const { wrapper } = setupTest();
@@ -294,41 +302,11 @@ describe('AccountBackupStep1', () => {
   });
 
   describe('skip functionality', () => {
-    it('calls onConfirm when onboarding wizard exists', async () => {
-      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue({
-        someData: 'exists',
-      });
-
-      const { wrapper } = setupTest();
-
-      // Find and press the "Remind me later" button
-      const remindLaterButton = wrapper.getByText(
-        strings('account_backup_step_1.remind_me_later'),
-      );
-      fireEvent.press(remindLaterButton);
-
-      // Get the onConfirm function from the modal params
-      const modalParams = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' &&
-          call[1].screen === 'SkipAccountSecurityModal',
-      )[1].params;
-
-      mockNavigate.mockClear();
-      // Call the onConfirm function (skip)
-      await modalParams.onConfirm();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
-    });
-
-    it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
+    it('navigates to OnboardingSuccess when onboarding', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
+      mockNavigate.mockClear();
       const { wrapper } = setupTest();
 
       // Find and press the "Remind me later" button
@@ -337,21 +315,19 @@ describe('AccountBackupStep1', () => {
       );
       fireEvent.press(remindLaterButton);
 
-      // Get the onConfirm function from the modal params
-      const modalParams = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' &&
-          call[1].screen === 'SkipAccountSecurityModal',
-      )[1].params;
+      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+        screen: 'SkipAccountSecurityModal',
+        params: {
+          onConfirm: expect.any(Function),
+          onCancel: expect.any(Function),
+        },
+      });
 
-      mockNavigate.mockClear();
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1].params;
+
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
     });
 
     it('handle skip when metrics is disabled', async () => {
@@ -389,11 +365,6 @@ describe('AccountBackupStep1', () => {
 
       // Call the onContinue function
       await modalParams2.onContinue();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
     });
 
     it('handle secure now button to goNext step when metrics is disabled', async () => {
@@ -422,6 +393,37 @@ describe('AccountBackupStep1', () => {
 
       // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep1', {});
+    });
+  });
+
+  describe('Theme appearance', () => {
+    afterEach(() => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+    });
+
+    it('renders dark SRP design image by default (dark theme)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('renders light SRP design image for light theme', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'light',
+      });
+
+      const { wrapper } = setupTest();
+
+      expect(wrapper).toMatchSnapshot();
     });
   });
 });

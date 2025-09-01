@@ -3,14 +3,12 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { ParamListBase, NavigationProp } from '@react-navigation/native';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionDetailsModal from './MultichainTransactionDetailsModal';
-import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
+import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
-
-jest.mock('../../hooks/useMultichainTransactionDisplay');
 jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
 }));
@@ -47,19 +45,31 @@ describe('MultichainTransactionDetailsModal', () => {
     events: [],
     fees: [],
   };
+  const mockDisplayData: MultichainTransactionDisplayData = {
+    to: {
+      address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+      amount: '10',
+      unit: 'SOL',
+    },
+    from: {
+      address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+      amount: '10',
+      unit: 'SOL',
+    },
+    baseFee: {
+      amount: '0.000005',
+      unit: 'SOL',
+    },
+    priorityFee: {
+      amount: '0.000001',
+      unit: 'SOL',
+    },
+    isRedeposit: false,
+    title: 'Test Send',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      id: 'tx-123',
-      type: TransactionType.Send,
-      status: 'confirmed',
-      timestamp: 1742313600000,
-      chain: 'solana:mainnet',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-    });
   });
 
   it('renders correctly a transaction', () => {
@@ -68,18 +78,18 @@ describe('MultichainTransactionDetailsModal', () => {
         isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
-        userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        displayData={mockDisplayData}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
 
-    expect(getByText('transactions.send')).toBeTruthy();
+    expect(getByText('Test Send')).toBeTruthy();
     expect(getByText('Mar 15, 2025')).toBeTruthy();
     expect(getByText('transactions.transaction_id')).toBeTruthy();
     expect(getByText('transactions.from')).toBeTruthy();
     expect(getByText('transactions.to')).toBeTruthy();
     expect(getByText('transactions.amount')).toBeTruthy();
-    expect(getByText('1.5 SOL')).toBeTruthy();
+    expect(getByText('10 SOL')).toBeTruthy();
   });
 
   it('calls onClose when close button is pressed', () => {
@@ -88,7 +98,7 @@ describe('MultichainTransactionDetailsModal', () => {
         isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
-        userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        displayData={mockDisplayData}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
@@ -99,25 +109,12 @@ describe('MultichainTransactionDetailsModal', () => {
   });
 
   it('renders network fees when present', () => {
-    (useMultichainTransactionDisplay as jest.Mock).mockReturnValue({
-      id: 'tx-123',
-      type: TransactionType.Send,
-      status: 'confirmed',
-      timestamp: 1672531200,
-      chain: 'solana:mainnet',
-      to: { address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY' },
-      from: { address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV' },
-      asset: { amount: '1.5', unit: 'SOL' },
-      baseFee: { amount: '0.000005', unit: 'SOL' },
-      priorityFee: { amount: '0.000001', unit: 'SOL' },
-    });
-
     const { getByText } = render(
       <MultichainTransactionDetailsModal
         isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
-        userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        displayData={mockDisplayData}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
@@ -134,7 +131,7 @@ describe('MultichainTransactionDetailsModal', () => {
         isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
-        userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        displayData={mockDisplayData}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );
@@ -155,7 +152,7 @@ describe('MultichainTransactionDetailsModal', () => {
         isVisible
         onClose={mockOnClose}
         transaction={mockTransaction}
-        userAddress="7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV"
+        displayData={mockDisplayData}
         navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
       />,
     );

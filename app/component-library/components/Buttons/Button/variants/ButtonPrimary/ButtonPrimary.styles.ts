@@ -47,8 +47,8 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         backgroundColor,
-      } as ViewStyle,
-      style,
+      },
+      StyleSheet.flatten(style),
     ) as ViewStyle,
   });
 };

@@ -1,3 +1,15 @@
+// Mock the Analytics module BEFORE any imports
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      addTraitsToUser: jest.fn(),
+    })),
+  },
+  MetaMetricsEvents: {
+    NETWORK_REMOVED: 'Network Removed',
+  },
+}));
+
 import React from 'react';
 import { shallow } from 'enzyme';
 import { RpcEndpointType } from '@metamask/network-controller';
@@ -14,11 +26,15 @@ import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 const { PreferencesController } = Engine.context;
 
 jest.mock(
   '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
   () => ({
+    addItemToChainIdList: jest.fn().mockReturnValue({
+      chain_id_list: ['eip155:1'],
+    }),
     removeItemFromChainIdList: jest.fn().mockReturnValue({
       chain_id_list: ['eip155:1'],
     }),
@@ -37,21 +53,35 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
   withMetricsAwareness: (Component: unknown) => Component,
 }));
 
-jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      addTraitsToUser: jest.fn(),
-    }),
-  },
-  MetaMetricsEvents: {
-    NETWORK_REMOVED: 'Network Removed',
-  },
-}));
-
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
+
+// Mock the feature flag
+jest.mock('../../../../../util/networks', () => {
+  const mockGetAllNetworks = jest.fn(() => ['mainnet', 'sepolia']);
+  const mockIsRemoveGlobalNetworkSelectorEnabled = jest.fn();
+  const mockIsPortfolioViewEnabled = jest.fn();
+
+  return {
+    ...jest.requireActual('../../../../../util/networks'),
+    isRemoveGlobalNetworkSelectorEnabled:
+      mockIsRemoveGlobalNetworkSelectorEnabled,
+    isPortfolioViewEnabled: mockIsPortfolioViewEnabled,
+    getAllNetworks: mockGetAllNetworks,
+    mainnet: {
+      name: 'Ethereum Main Network',
+      chainId: '0x1',
+      rpcUrl: 'https://mainnet.infura.io/v3',
+    },
+    sepolia: {
+      name: 'Sepolia Test Network',
+      chainId: '0xaa36a7',
+      rpcUrl: 'https://sepolia.infura.io/v3',
+    },
+  };
+});
 
 jest.useFakeTimers();
 const mockStore = configureMockStore();
@@ -89,6 +119,7 @@ jest.mock('../../../../../core/Engine', () => ({
       }),
       removeNetwork: jest.fn(),
       updateNetwork: jest.fn(),
+      addNetwork: jest.fn(),
     },
     MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
@@ -98,6 +129,10 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
+    },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
     },
   },
 }));
@@ -226,6 +261,7 @@ describe('NetworkSettings', () => {
   let wrapper: any;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     wrapper = shallow(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
@@ -1898,20 +1934,117 @@ describe('NetworkSettings', () => {
       expect(result).toEqual([{ rpcUrl }]);
       expect(instance.setState).not.toHaveBeenCalled(); // Should not set warning when redesign is enabled
     });
+  });
 
-    it('should return an empty array if rpcUrl does not exist in any networks', async () => {
-      const rpcUrl = 'https://nonexistent.rpc.url';
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    const mockIsRemoveGlobalNetworkSelectorEnabled =
+      isRemoveGlobalNetworkSelectorEnabled as jest.MockedFunction<
+        typeof isRemoveGlobalNetworkSelectorEnabled
+      >;
 
-      // Mocking props
-      wrapper.setProps({
-        networkConfigurations: {
-          customNetwork1: { rpcUrl: 'http://localhost:8545' },
-        },
+    beforeEach(() => {
+      // Reset feature flag mock
+      mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+    });
+
+    describe('when feature flag is enabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       });
 
-      const result = await instance.checkIfNetworkExists(rpcUrl);
+      it('should call NetworkEnablementController.enableNetwork when feature flag is enabled', async () => {
+        const { NetworkEnablementController } = Engine.context;
+        const enableNetworkSpy = jest.spyOn(
+          NetworkEnablementController,
+          'enableNetwork',
+        );
 
-      expect(result).toEqual([]);
+        // Mock validateChainIdOnSubmit to return true so it doesn't return early
+        jest
+          .spyOn(wrapper.instance(), 'validateChainIdOnSubmit')
+          .mockResolvedValue(true);
+
+        // Mock handleNetworkUpdate to prevent actual network addition
+        jest
+          .spyOn(wrapper.instance(), 'handleNetworkUpdate')
+          .mockResolvedValue({});
+
+        wrapper.setState({
+          rpcUrl: 'http://localhost:8545',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Localhost',
+          enableAction: true,
+          addMode: true,
+          editable: false,
+          rpcUrls: [{ url: 'http://localhost:8545' }],
+          blockExplorerUrls: [],
+        });
+
+        await wrapper.instance().addRpcUrl();
+
+        // Verify that the feature flag is enabled
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+
+        // Verify that enableNetwork was called with the correct chainId
+        expect(enableNetworkSpy).toHaveBeenCalledWith('0x1');
+      });
+
+      it('should have proper Engine controller setup when feature flag is enabled', () => {
+        // Verify that the feature flag is enabled
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
+
+        // Verify that the necessary controllers are available
+        expect(
+          Engine.context.NetworkEnablementController.enableNetwork,
+        ).toBeDefined();
+        expect(Engine.context.NetworkController.addNetwork).toBeDefined();
+        expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      beforeEach(() => {
+        mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
+      });
+
+      it('should not call NetworkEnablementController.enableNetwork when feature flag is disabled', async () => {
+        const { NetworkEnablementController } = Engine.context;
+        const setEnabledNetworkSpy = jest.spyOn(
+          NetworkEnablementController,
+          'enableNetwork',
+        );
+
+        wrapper.setState({
+          rpcUrl: 'http://localhost:8545',
+          chainId: '0x1',
+          ticker: 'ETH',
+          nickname: 'Localhost',
+          enableAction: true,
+          addMode: true,
+          editable: false,
+        });
+
+        await wrapper.instance().addRpcUrl();
+
+        // Verify that the feature flag is disabled
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+
+        // Verify that setEnabledNetwork was not called
+        expect(setEnabledNetworkSpy).not.toHaveBeenCalled();
+      });
+
+      it('should still have proper Engine controller setup when feature flag is disabled', () => {
+        // Verify that the feature flag is disabled
+        expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(false);
+
+        // Verify that the necessary controllers are still available
+        expect(
+          Engine.context.NetworkEnablementController.enableNetwork,
+        ).toBeDefined();
+        expect(Engine.context.NetworkController.addNetwork).toBeDefined();
+        expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
+      });
     });
   });
 });

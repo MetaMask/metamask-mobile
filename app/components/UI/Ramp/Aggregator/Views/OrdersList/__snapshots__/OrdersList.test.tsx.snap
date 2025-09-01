@@ -212,7 +212,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -286,7 +286,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -428,7 +428,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -953,7 +953,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1465,7 +1465,7 @@ exports[`OrdersList renders correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -1503,7 +1503,7 @@ exports[`OrdersList renders correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -1645,7 +1645,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2345,7 +2345,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2698,7 +2698,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -2772,7 +2772,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -2820,7 +2820,7 @@ exports[`OrdersList renders empty buy message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#9ca1af",
+            "color": "#b7bbc8",
             "fontFamily": "Geist Bold",
             "fontSize": 18,
             "letterSpacing": 0,
@@ -2946,7 +2946,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -2984,7 +2984,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -3068,7 +3068,7 @@ exports[`OrdersList renders empty sell message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#9ca1af",
+            "color": "#b7bbc8",
             "fontFamily": "Geist Bold",
             "fontSize": 18,
             "letterSpacing": 0,
@@ -3220,7 +3220,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -3258,7 +3258,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -3640,7 +3640,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -3678,7 +3678,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -4193,7 +4193,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -4231,7 +4231,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -4373,7 +4373,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5073,7 +5073,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c7e33",
+                    "color": "#457a39",
                     "fontFamily": "Geist Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,

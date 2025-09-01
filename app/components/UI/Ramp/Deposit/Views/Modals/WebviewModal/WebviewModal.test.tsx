@@ -90,4 +90,44 @@ describe('WebviewModal Component', () => {
       mockNavigationState,
     );
   });
+
+  it('should deduplicate navigation state changes for the same URL', () => {
+    renderWithProvider(WebviewModal);
+
+    const mockNavigationState = {
+      url: 'https://example.com/same-page',
+      title: 'Same Page',
+      loading: false,
+      canGoBack: true,
+      canGoForward: false,
+    };
+
+    act(() => {
+      mockWebViewProps.onNavigationStateChange(mockNavigationState);
+    });
+
+    act(() => {
+      mockWebViewProps.onNavigationStateChange(mockNavigationState);
+    });
+
+    expect(mockHandleNavigationStateChange).toHaveBeenCalledTimes(1);
+    expect(mockHandleNavigationStateChange).toHaveBeenCalledWith(
+      mockNavigationState,
+    );
+
+    // Call with a different URL
+    const differentNavigationState = {
+      ...mockNavigationState,
+      url: 'https://example.com/different-page',
+    };
+
+    act(() => {
+      mockWebViewProps.onNavigationStateChange(differentNavigationState);
+    });
+
+    expect(mockHandleNavigationStateChange).toHaveBeenCalledTimes(2);
+    expect(mockHandleNavigationStateChange).toHaveBeenLastCalledWith(
+      differentNavigationState,
+    );
+  });
 });

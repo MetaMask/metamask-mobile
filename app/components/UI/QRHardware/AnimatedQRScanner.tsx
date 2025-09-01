@@ -47,7 +47,11 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     innerView: {
-      flex: 1,
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
     },
     closeIcon: {
       marginTop: 20,
@@ -262,14 +266,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     >
       <View style={styles.container}>
         {cameraDevice && hasPermission ? (
-          <Camera
-            style={styles.preview}
-            device={cameraDevice}
-            isActive={visible}
-            codeScanner={codeScanner}
-            torch="off"
-            onError={onError}
-          >
+          <>
+            <Camera
+              style={styles.preview}
+              device={cameraDevice}
+              isActive={visible}
+              codeScanner={codeScanner}
+              torch="off"
+              onError={onError}
+            />
             <SafeAreaView style={styles.innerView}>
               <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
                 {<Icon name={IconName.Close} size={IconSize.Xl} />}
@@ -279,7 +284,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                 progress ? `${progress.toString()}%` : ''
               }`}</Text>
             </SafeAreaView>
-          </Camera>
+          </>
         ) : (
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>

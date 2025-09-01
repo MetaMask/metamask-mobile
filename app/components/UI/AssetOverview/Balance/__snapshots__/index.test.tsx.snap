@@ -5,6 +5,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
   style={
     {
       "flex": 1,
+      "paddingHorizontal": 16,
     }
   }
 >
@@ -17,8 +18,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingHorizontal": 15,
-        "paddingVertical": 4,
       }
     }
   >
@@ -34,7 +33,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"
@@ -184,20 +182,22 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
       >
         Dai Stablecoin
       </Text>
-      <View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ca3542",
-              "fontFamily": "Geist Medium",
-              "fontSize": 14,
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "Geist Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
-        />
-      </View>
+        }
+        testID="token-amount-balance-test-id"
+      >
+        456
+      </Text>
     </View>
     <View
       style={
@@ -212,7 +212,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -221,23 +221,6 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         testID="balance-test-id"
       >
         123
-      </Text>
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 22,
-            "paddingHorizontal": 0,
-          }
-        }
-        testID="secondary-balance-test-id"
-      >
-        456
       </Text>
     </View>
   </TouchableOpacity>
@@ -249,6 +232,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
   style={
     {
       "flex": 1,
+      "paddingHorizontal": 16,
     }
   }
 >
@@ -261,8 +245,6 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
-        "paddingHorizontal": 15,
-        "paddingVertical": 4,
       }
     }
   >
@@ -278,7 +260,6 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-DAI"
@@ -428,20 +409,6 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
       >
         Dai Stablecoin
       </Text>
-      <View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#ca3542",
-              "fontFamily": "Geist Medium",
-              "fontSize": 14,
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
-          }
-        />
-      </View>
     </View>
     <View
       style={
@@ -456,7 +423,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,

@@ -19,8 +19,11 @@
   },
   "AccountTreeController": {
     "accountTree": {
+      "selectedAccountGroup": "",
       "wallets": {}
-    }
+    },
+    "accountGroupsMetadata": {},
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -163,6 +166,18 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      }
+    }
+  },
+  "NetworkEnablementController": {
+    "enabledNetworkMap": {
+      "eip155": {
+        "0x1": true,
+        "0x2105": true,
+        "0xe708": true
+      },
+      "solana": {
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
       }
     }
   },
@@ -364,25 +379,29 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "depositFlowType": null,
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "requiresModalDismissal": false,
-    "depositSteps": {
-      "totalSteps": 0,
-      "currentStep": 0,
-      "stepNames": [],
-      "stepTxHashes": []
-    },
+    "depositInProgress": false,
+    "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
-    "lastUpdateTimestamp": 0
+    "lastUpdateTimestamp": 0,
+    "isEligible": false,
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
@@ -459,11 +478,23 @@
         "name": "Bitcoin Testnet",
         "nativeCurrency": "bip122:000000000933ea01ad0ee984209779ba/slip44:0"
       },
+      "bip122:00000000da84f2bafbbc53dee25a72ae": {
+        "chainId": "bip122:00000000da84f2bafbbc53dee25a72ae",
+        "isEvm": false,
+        "name": "Bitcoin Testnet4",
+        "nativeCurrency": "bip122:00000000da84f2bafbbc53dee25a72ae/slip44:0"
+      },
       "bip122:00000008819873e925422c1ff0f99f7c": {
         "chainId": "bip122:00000008819873e925422c1ff0f99f7c",
         "isEvm": false,
-        "name": "Bitcoin Signet",
+        "name": "Bitcoin Mutinynet",
         "nativeCurrency": "bip122:00000008819873e925422c1ff0f99f7c/slip44:0"
+      },
+      "bip122:regtest": {
+        "chainId": "bip122:regtest",
+        "isEvm": false,
+        "name": "Bitcoin Regtest",
+        "nativeCurrency": "bip122:regtest/slip44:0"
       },
       "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
         "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
@@ -569,5 +600,10 @@
   },
   "SamplePetnamesController": {
     "namesByChainIdAndAddress": {}
+  },
+  "RewardsController": {
+    "lastAuthTime": 0,
+    "lastAuthenticatedAccount": null,
+    "subscription": null
   }
 }

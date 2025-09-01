@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { capitalize } from '../../../../../util/general';
 import {
@@ -40,6 +40,8 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { EVM_SCOPE } from '../../constants/networks';
+import Logger from '../../../../../util/Logger';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -94,13 +96,19 @@ const EarnLendingDepositConfirmationView = () => {
   const [isApprovalLoading, setIsApprovalLoading] = useState(false);
   const [isDepositLoading, setIsDepositLoading] = useState(false);
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
-    useEarnToken(token as TokenI);
+  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } = useEarnToken(
+    token as TokenI,
+  );
+
+  const earnToken = earnTokenPair?.earnToken;
+  const outputToken = earnTokenPair?.outputToken;
 
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
@@ -414,22 +422,26 @@ const EarnLendingDepositConfirmationView = () => {
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
-            const networkClientId =
-              Engine.context.NetworkController.findNetworkClientIdByChainId(
-                tokenSnapshot?.chainId as Hex,
-              );
-            Engine.context.TokensController.addToken({
-              decimals: tokenSnapshot?.token?.decimals || 0,
-              symbol: tokenSnapshot?.token?.symbol || '',
-              address: tokenSnapshot?.token?.address || '',
-              name: tokenSnapshot?.token?.name || '',
-              networkClientId,
-            }).catch((error) => {
+            try {
+              const networkClientId =
+                Engine.context.NetworkController.findNetworkClientIdByChainId(
+                  tokenSnapshot?.chainId as Hex,
+                );
+              Engine.context.TokensController.addToken({
+                decimals: tokenSnapshot?.token?.decimals || 0,
+                symbol: tokenSnapshot?.token?.symbol || '',
+                address: tokenSnapshot?.token?.address || '',
+                name: tokenSnapshot?.token?.name || '',
+                networkClientId,
+              }).catch(console.error);
+            } catch (error) {
               console.error(
                 error,
-                'error adding counter-token on confirmation',
+                `error adding counter-token for ${
+                  earnToken?.symbol || earnToken?.ticker || ''
+                } on confirmation`,
               );
-            });
+            }
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -444,13 +456,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [
-      emitTxMetaMetric,
-      navigation,
-      outputToken,
-      tokenSnapshot,
-      earnToken?.chainId,
-    ],
+    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -580,6 +586,7 @@ const EarnLendingDepositConfirmationView = () => {
         await Engine.context.EarnController.executeLendingTokenApprove({
           protocol: earnToken?.experience?.market?.protocol,
           amount: '0',
+          chainId: earnToken.chainId,
           underlyingTokenAddress:
             earnToken?.experience?.market?.underlying?.address,
           gasOptions: {
@@ -615,6 +622,7 @@ const EarnLendingDepositConfirmationView = () => {
       await Engine.context.EarnController.executeLendingTokenApprove({
         protocol: earnToken?.experience?.market?.protocol,
         amount: amountTokenMinimalUnit,
+        chainId: earnToken.chainId,
         underlyingTokenAddress:
           earnToken?.experience?.market?.underlying?.address,
         gasOptions: {
@@ -638,43 +646,53 @@ const EarnLendingDepositConfirmationView = () => {
   };
 
   const depositTokens = async (networkClientId: string) => {
-    if (!earnToken?.experience?.market?.protocol) return;
+    const protocol = earnToken?.experience?.market?.protocol;
+    const chainId = earnToken?.chainId;
+    const underlyingTokenAddress = earnToken?.experience?.market?.underlying
+      ?.address as string;
 
-    // start trace between user intiating deposit and generic confirmation bottom sheet showing
+    if (!protocol || !chainId) {
+      return;
+    }
+
     trace({
       name: TraceName.EarnDepositConfirmationScreen,
       data: {
-        chainId: earnToken?.chainId || '',
+        chainId,
         experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
       },
     });
 
     setIsDepositLoading(true);
 
-    const depositTransaction =
-      await Engine.context.EarnController.executeLendingDeposit({
-        amount: amountTokenMinimalUnit,
-        protocol: earnToken?.experience?.market?.protocol,
-        underlyingTokenAddress:
-          earnToken?.experience?.market?.underlying?.address,
-        gasOptions: {
-          gasLimit: 'none',
-        },
-        txOptions: {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          type: TransactionType.lendingDeposit,
-        },
-      });
+    try {
+      const depositTransaction =
+        await Engine.context.EarnController.executeLendingDeposit({
+          amount: amountTokenMinimalUnit,
+          protocol,
+          chainId,
+          underlyingTokenAddress,
+          gasOptions: { gasLimit: 'none' },
+          txOptions: {
+            deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
+            origin: ORIGIN_METAMASK,
+            type: TransactionType.lendingDeposit,
+          },
+        });
 
-    if (!depositTransaction) {
+      if (!depositTransaction) {
+        return;
+      }
+
+      return depositTransaction;
+    } catch (error: Error | unknown) {
+      Logger.error(error as Error, '[depositTokens] Lending deposit failed');
+      return;
+    } finally {
       setIsDepositLoading(false);
       setIsConfirmButtonDisabled(false);
-      return;
     }
-
-    return depositTransaction;
   };
 
   const handleConfirm = async () => {
@@ -701,7 +719,7 @@ const EarnLendingDepositConfirmationView = () => {
 
       // Guards
       if (
-        !activeAccount?.address ||
+        !selectedAccount?.address ||
         !earnToken?.chainId ||
         !isSupportedLendingAction ||
         !earnToken?.experience?.market?.protocol ||

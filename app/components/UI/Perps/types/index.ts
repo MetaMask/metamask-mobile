@@ -47,14 +47,41 @@ export interface CandleStick {
   volume: string;
 }
 
+import { CandlePeriod } from '../constants/chartConfig';
+import { OrderType } from '../controllers/types';
+
 /**
  * Represents historical candlestick data for a specific coin and interval
  */
 export interface CandleData {
   coin: string;
-  interval: string;
+  interval: CandlePeriod;
   candles: CandleStick[];
 }
 
 // Export all configuration types directly
 export * from './config';
+export * from './token';
+
+/**
+ * Standard Structure for Perps LaunchDarkly Feature Flags
+ */
+export interface PerpsLaunchDarklyFlag {
+  enabled: boolean;
+  minimumVersion: string;
+}
+
+/**
+ * Order form state for the Perps order view
+ */
+export interface OrderFormState {
+  asset: string;
+  direction: 'long' | 'short';
+  amount: string;
+  leverage: number;
+  balancePercent: number;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  limitPrice?: string;
+  type: OrderType;
+}

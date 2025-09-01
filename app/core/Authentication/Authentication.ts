@@ -5,7 +5,6 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
-  SOLANA_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -14,6 +13,7 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
+  setIsConnectionRemoved,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -33,23 +33,41 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
+  WALLET_SNAP_MAP,
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertEnglishWordlistIndicesToCodepoints,
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { recreateVaultWithNewPassword } from '../Vault';
-import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
+import {
+  AccountImportStrategy,
+  KeyringMetadata,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
+import {
+  SecretType,
+  SeedlessOnboardingControllerErrorMessage,
+} from '@metamask/seedless-onboarding-controller';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../Engine/controllers/seedless-onboarding-controller/error';
+import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
+import { getTraceTags } from '../../util/sentry/tags';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -63,7 +81,11 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private dispatchLogin(): void {
+  private async dispatchLogin(): Promise<void> {
+    await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
@@ -87,8 +109,12 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
+      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
+        Logger.error(err, 'Failed to revoke refresh token');
+      });
     }
     password = this.wipeSensitiveData();
   };
@@ -105,68 +131,80 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController }: any = Engine.context;
+    const { KeyringController } = Engine.context;
     if (clearEngine) await Engine.resetState();
-    await KeyringController.createNewVaultAndRestore(password, parsedSeed);
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    });
-    ///: END:ONLY_INCLUDE_IF
+    const parsedSeedUint8Array = mnemonicPhraseToBytes(parsedSeed);
+    await KeyringController.createNewVaultAndRestore(
+      password,
+      parsedSeedUint8Array,
+    );
+
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            clientType,
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
 
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  private attemptSolanaAccountDiscovery = async (): Promise<void> => {
-    const performSolanaAccountDiscovery = async (): Promise<void> => {
+  private attemptAccountDiscovery = async (
+    clientType: WalletClientType,
+  ): Promise<void> => {
+    const performAccountDiscovery = async (): Promise<void> => {
       const primaryHdKeyringId =
         Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(
-        WalletClientType.Solana,
-        {
-          setSelectedAccount: false,
-        },
-      );
-      await client.addDiscoveredAccounts(primaryHdKeyringId);
+      const client = MultichainWalletSnapFactory.createClient(clientType, {
+        setSelectedAccount: false,
+      });
+      const { discoveryScope, discoveryStorageId } =
+        WALLET_SNAP_MAP[clientType];
 
-      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
+      await StorageWrapper.removeItem(discoveryStorageId);
     };
 
     try {
       await retryWithExponentialDelay(
-        performSolanaAccountDiscovery,
+        performAccountDiscovery,
         3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
     } catch (error) {
-      console.error(
-        'Solana account discovery failed after all retries:',
-        error,
-      );
+      console.error('Account discovery failed after all retries:', error);
     }
   };
 
-  private retrySolanaDiscoveryIfPending = async (): Promise<void> => {
-    try {
-      const isPending = await StorageWrapper.getItem(SOLANA_DISCOVERY_PENDING);
-      if (isPending === 'true') {
-        await this.attemptSolanaAccountDiscovery();
-      }
-    } catch (error) {
-      console.warn('Failed to check/retry Solana discovery:', error);
-    }
+  private retryDiscoveryIfPending = async (): Promise<void> => {
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          const isPending = await StorageWrapper.getItem(discoveryStorageId);
+          if (isPending === TRUE) {
+            await this.attemptAccountDiscovery(clientType);
+          }
+        } catch (error) {
+          console.warn('Failed to check/retry discovery:', clientType, error);
+        }
+      }),
+    );
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * This method creates a new wallet with all new data
@@ -181,15 +219,23 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-    });
-    ///: END:ONLY_INCLUDE_IF
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
+
     password = this.wipeSensitiveData();
   };
 
@@ -405,7 +451,7 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -438,7 +484,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -468,22 +514,39 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+
+      if (authData.oauth2Login) {
+        // if seedless flow - rehydrate
+        await this.rehydrateSeedPhrase(password);
+      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+        // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
+        await this.syncPasswordAndUnlockWallet(password);
+      } else {
+        // else srp flow
+        await this.loginVaultCreation(password);
+      }
+
       endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
+      if (e instanceof SeedlessOnboardingControllerError) {
+        throw e;
+      }
+
+      if ((e as Error).message.includes('SeedlessOnboardingController')) {
+        throw e;
+      }
+
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -523,17 +586,26 @@ class AuthenticationService {
         name: TraceName.VaultCreation,
         op: TraceOperation.VaultCreation,
       });
-      await this.loginVaultCreation(password);
+      // check for seedless password outdated
+      const isSeedlessPasswordOutdated =
+        await this.checkIsSeedlessPasswordOutdated(false);
+      if (isSeedlessPasswordOutdated) {
+        throw new AuthenticationError(
+          'Seedless password is outdated',
+          AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
+          this.authData,
+        );
+      } else {
+        await this.loginVaultCreation(password);
+      }
       endTrace({ name: TraceName.VaultCreation });
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -551,7 +623,11 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+  lockApp = async ({
+    reset = true,
+    locked = false,
+    navigateToLogin = true,
+  } = {}): Promise<void> => {
     const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
@@ -567,9 +643,11 @@ class AuthenticationService {
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
-    });
+    if (navigateToLogin) {
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+      });
+    }
   };
 
   getType = async (): Promise<AuthData> =>
@@ -590,11 +668,41 @@ class AuthenticationService {
         password,
         keyringId,
       );
-      await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
-        password,
-        seedPhrase,
-        keyringId,
-      );
+
+      let createKeyAndBackupSrpSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
+          password,
+          seedPhrase,
+          keyringId,
+        );
+        createKeyAndBackupSrpSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrpError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          data: { success: createKeyAndBackupSrpSuccess },
+        });
+      }
+
+      await this.syncKeyringEncryptionKey();
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -607,127 +715,424 @@ class AuthenticationService {
     }
   };
 
-  rehydrateSeedPhrase = async (
-    password: string,
-    authData: AuthData,
-  ): Promise<void> => {
+  syncSeedPhrases = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    // 1. fetch all seed phrases
+    const [rootSecret, ...otherSecrets] =
+      await SeedlessOnboardingController.fetchAllSecretData();
+    if (!rootSecret) {
+      throw new Error('No root SRP found');
+    }
+
+    for (const secret of otherSecrets) {
+      // import SRP secret
+      // Get the SRP hash, and find the hash in the local state
+      const secretDataHash =
+        SeedlessOnboardingController.getSecretDataBackupState(
+          secret.data,
+          secret.type,
+        );
+
+      if (!secretDataHash) {
+        // If SRP is not in the local state, import it to the vault
+
+        // import private key secret
+        if (secret.type === SecretType.PrivateKey) {
+          await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+          });
+          continue;
+        } else if (secret.type === SecretType.Mnemonic) {
+          // convert the seed phrase to a mnemonic (string)
+          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+            secret.data,
+            wordlist,
+          );
+          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+
+          // import the new mnemonic to the current vault
+          const keyringMetadata = await this.importSeedlessMnemonicToVault(
+            mnemonicToRestore,
+          );
+
+          // discover multichain accounts from imported srp
+          this.addMultichainAccounts([keyringMetadata]);
+        } else {
+          Logger.error(new Error('Unknown secret type'), secret.type);
+        }
+      }
+    }
+  };
+
+  importSeedlessMnemonicToVault = async (
+    mnemonic: string,
+  ): Promise<KeyringMetadata> => {
+    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (!isSeedlessOnboardingFlow) {
+      throw new Error('Not in seedless onboarding flow');
+    }
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+
+    const keyringMetadata = await KeyringController.addNewKeyring(
+      KeyringTypes.hd,
+      {
+        mnemonic,
+        numberOfAccounts: 1,
+      },
+    );
+
+    const id = keyringMetadata.id;
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    // if social backup is requested, add the seed phrase backup
+    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+      seedPhraseAsBuffer,
+      wordlist,
+    );
+
     try {
-      const { SeedlessOnboardingController } = Engine.context;
-      const result = await SeedlessOnboardingController.fetchAllSeedPhrases(
-        password,
+      SeedlessOnboardingController.updateBackupMetadataState({
+        keyringId: id,
+        data: seedPhraseAsUint8Array,
+        type: SecretType.Mnemonic,
+      });
+    } catch (error) {
+      // handle seedless controller import error by reverting keyring controller mnemonic import
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
+      throw error;
+    }
+
+    return keyringMetadata;
+  };
+
+  addNewPrivateKeyBackup = async (
+    privateKey: string,
+    keyringId: string,
+    syncWithSocial = true,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const bufferedPrivateKey = hexToBytes(add0x(privateKey));
+
+    if (syncWithSocial) {
+      await SeedlessOnboardingController.addNewSecretData(
+        bufferedPrivateKey,
+        SecretType.PrivateKey,
+        {
+          keyringId,
+        },
+      );
+    } else {
+      // Do not sync the key to the server, only update the local state
+      SeedlessOnboardingController.updateBackupMetadataState({
+        keyringId,
+        data: bufferedPrivateKey,
+        type: SecretType.PrivateKey,
+      });
+    }
+  };
+
+  importAccountFromPrivateKey = async (
+    privateKey: string,
+    options = {
+      shouldCreateSocialBackup: true,
+      shouldSelectAccount: true,
+    },
+  ): Promise<void> => {
+    trace({
+      name: TraceName.ImportEvmAccount,
+      op: TraceOperation.ImportAccount,
+      tags: getTraceTags(ReduxService.store.getState()),
+    });
+
+    const { KeyringController } = Engine.context;
+    const importedAccountAddress =
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [remove0x(privateKey)],
       );
 
-      if (result.length > 0) {
-        const { KeyringController } = Engine.context;
+    const isSocialLoginFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (isSocialLoginFlow) {
+      try {
+        await this.addNewPrivateKeyBackup(
+          privateKey,
+          importedAccountAddress,
+          options.shouldCreateSocialBackup,
+        );
+      } catch (error) {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(importedAccountAddress);
+        throw error;
+      }
+    }
 
-        const [firstSeedPhrase, ...restOfSeedPhrases] = result;
-        if (!firstSeedPhrase) {
+    if (options.shouldSelectAccount) {
+      const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
+      Engine.setSelectedAddress(checksummedAddress);
+    }
+
+    endTrace({
+      name: TraceName.ImportEvmAccount,
+    });
+  };
+
+  /**
+   * Temporary function until the attempt discovery support multi srp acccount discovery
+   * Add multichain accounts to the keyring
+   *
+   * @param keyringMetadataList - List of keyring metadata
+   */
+  addMultichainAccounts = async (
+    keyringMetadataList: KeyringMetadata[],
+  ): Promise<void> => {
+    for (const keyringMetadata of keyringMetadataList) {
+      for (const clientType of Object.values(WalletClientType)) {
+        const id = keyringMetadata.id;
+        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+        const multichainClient =
+          MultichainWalletSnapFactory.createClient(clientType);
+
+        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
+      }
+    }
+  };
+
+  rehydrateSeedPhrase = async (password: string): Promise<void> => {
+    try {
+      const { SeedlessOnboardingController } = Engine.context;
+      let allSRPs: Awaited<
+        ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+      > | null = null;
+      let fetchSrpsSuccess = false;
+      try {
+        trace({
+          name: TraceName.OnboardingFetchSrps,
+          op: TraceOperation.OnboardingSecurityOp,
+        });
+        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
+          password,
+        );
+        fetchSrpsSuccess = true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        trace({
+          name: TraceName.OnboardingFetchSrpsError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({
+          name: TraceName.OnboardingFetchSrpsError,
+        });
+
+        throw error;
+      } finally {
+        endTrace({
+          name: TraceName.OnboardingFetchSrps,
+          data: { success: fetchSrpsSuccess },
+        });
+      }
+
+      if (allSRPs.length > 0) {
+        const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
+        if (!firstSeedPhrase?.data) {
           throw new Error('No seed phrase found');
         }
 
-        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase, wordlist);
-        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
+
+        await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
+        const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
-            // vault add new seedphrase
             try {
-              const keyringMetadata = await KeyringController.addNewKeyring(
-                KeyringTypes.hd,
-                {
-                  mnemonic: uint8ArrayToMnemonic(item, wordlist),
-                  numberOfAccounts: 1,
-                },
-              );
-              SeedlessOnboardingController.updateBackupMetadataState({
-                keyringId: keyringMetadata.id,
-                seedPhrase: item,
-              });
+              // add new private key
+              if (item.type === SecretType.PrivateKey) {
+                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                });
+              } else if (item.type === SecretType.Mnemonic) {
+                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+                const keyringMetadata =
+                  await this.importSeedlessMnemonicToVault(mnemonic);
+                keyringMetadataList.push(keyringMetadata);
+              } else {
+                Logger.error(new Error('Unknown secret type'), item.type);
+              }
             } catch (error) {
               // catch error to prevent unable to login
               Logger.error(error as Error);
             }
           }
         }
+        await this.syncKeyringEncryptionKey();
 
-        this.dispatchLogin();
-        this.dispatchPasswordSet();
+        this.addMultichainAccounts(keyringMetadataList);
+
         this.dispatchOauthReset();
+
+        ReduxService.store.dispatch(setExistingUser(true));
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.error(error as Error);
       throw error;
     }
   };
 
   /**
-   * Sync latest global seedless password.
-   * Swap current device password with latest global password.
+   * Sync latest global seedless password and override the current device password with latest global password.
+   * Unlock the vault with the latest global password.
    *
    * @param {string} globalPassword - latest global seedless password
    */
-  submitLatestGlobalSeedlessPassword = async (
+  syncPasswordAndUnlockWallet = async (
     globalPassword: string,
-    authType: AuthData,
   ): Promise<void> => {
-    const { SeedlessOnboardingController } = Engine.context;
-    // recover the current device password
-    const { password: currentDevicePassword } =
-      await SeedlessOnboardingController.recoverCurrentDevicePassword({
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+
+    const { success: isKeyringPasswordValid } =
+      await KeyringController.verifyPassword(globalPassword)
+        .then(() => ({ success: true, error: null }))
+        .catch((err) => ({ success: false, error: err }));
+
+    // recover the current keyring encryption key
+    // here e could be invalid password or outdated password error, which can result in following cases:
+    // 1. Seedless controller password verification succeeded.
+    // 2. Seedless controller failed but Keyring controller password verification succeeded.
+    // 3. Both keyring and seedless controller password verification failed.
+    const { success, error: seedlessSyncError } =
+      await SeedlessOnboardingController.submitGlobalPassword({
         globalPassword,
-      });
-    // use current device password to unlock the keyringController vault
-    await this.userEntryAuth(currentDevicePassword, authType);
+        maxKeyChainLength: 20,
+      })
+        .then(() => ({ success: true, error: null }))
+        .catch((err) => ({ success: false, error: err }));
+
+    if (!success) {
+      const errorMessage = (seedlessSyncError as Error).message;
+      Logger.error(
+        seedlessSyncError as Error,
+        `error while submitting global password: ${errorMessage}`,
+      );
+
+      if (
+        errorMessage ===
+        SeedlessOnboardingControllerErrorMessage.MaxKeyChainLengthExceeded
+      ) {
+        // we are unable to recover the old pwd enc key as user is on a very old device.
+        // create a new vault and encrypt the new vault with the latest global password.
+        // also show a info popup to user.
+
+        // rehydrate with social accounts if max keychain length exceeded
+        await SeedlessOnboardingController.refreshAuthTokens();
+        await this.rehydrateSeedPhrase(globalPassword);
+        // skip the rest of the flow ( change password and sync keyring encryption key)
+        ReduxService.store.dispatch(setIsConnectionRemoved(true));
+        return;
+      } else if (
+        errorMessage ===
+        SeedlessOnboardingControllerErrorMessage.IncorrectPassword
+      ) {
+        // Case 2: Keyring controller password verification succeeds and seedless controller failed.
+        if (isKeyringPasswordValid) {
+          throw new SeedlessOnboardingControllerError(
+            SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+          );
+        } else {
+          throw seedlessSyncError;
+        }
+      } else {
+        throw seedlessSyncError;
+      }
+    }
+
+    // password synced successfully
+    const keyringEncryptionKey =
+      await SeedlessOnboardingController.loadKeyringEncryptionKey();
+
+    // use encryption key to unlock the keyringController vault
+    await KeyringController.submitEncryptionKey(keyringEncryptionKey);
 
     try {
-      // update seedlessOnboardingController to use latest global password
-      await SeedlessOnboardingController.syncLatestGlobalPassword({
-        oldPassword: currentDevicePassword,
-        globalPassword,
-      });
-
       // update vault password to global password
-      await recreateVaultWithNewPassword(
-        currentDevicePassword,
+      await SeedlessOnboardingController.syncLatestGlobalPassword({
         globalPassword,
-        selectSelectedInternalAccountFormattedAddress(
-          ReduxService.store.getState(),
-        ),
-        true,
-      );
-      await this.resetPassword();
-
-      // check password outdated again skip cache to reset the cache after successful syncing
-      await SeedlessOnboardingController.checkIsPasswordOutdated({
-        skipCache: true,
       });
+      await KeyringController.changePassword(globalPassword);
+      await this.syncKeyringEncryptionKey();
+      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
+        (err) => {
+          Logger.error(err, 'Failed to revoke refresh token');
+        },
+      );
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });
       throw err;
     }
+    await this.resetPassword();
   };
 
   /**
    * Checks if the seedless password is outdated.
    *
    * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean | undefined>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = false,
+    skipCache: boolean = true,
   ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
     }
-    const isSeedlessPasswordOutdated =
-      await SeedlessOnboardingController.checkIsPasswordOutdated({
-        skipCache,
-      });
-    return isSeedlessPasswordOutdated ?? false;
+    try {
+      const isSeedlessPasswordOutdated =
+        await SeedlessOnboardingController.checkIsPasswordOutdated({
+          skipCache,
+        });
+      return isSeedlessPasswordOutdated;
+    } catch (error) {
+      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      return false;
+    }
+  };
+
+  /**
+   * Syncs the keyring encryption key with the seedless onboarding controller.
+   *
+   * @returns {Promise<void>}
+   */
+  syncKeyringEncryptionKey = async (): Promise<void> => {
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+    // store the keyring encryption key in the seedless onboarding controller
+    const keyringEncryptionKey = await KeyringController.exportEncryptionKey();
+    await SeedlessOnboardingController.storeKeyringEncryptionKey(
+      keyringEncryptionKey,
+    );
   };
 }
 

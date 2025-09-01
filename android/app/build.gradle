@@ -171,7 +171,7 @@ def reactNativeArchitectures() {
 * Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
 def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+    return System.getenv('METAMASK_BUILD_TYPE') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
 }
 
 
@@ -187,8 +187,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.50.1"
-        versionCode 2103
+        versionName "7.56.0"
+        versionCode 2296
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -217,36 +217,83 @@ android {
     }
 
 	  signingConfigs {
-      release {
+      mainProd {
         storeFile file('../keystores/release.keystore')
         storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
         keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
-      qa {
+      mainBeta {
+        storeFile file('../keystores/rc.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      mainRc {
+        storeFile file('../keystores/rc.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      mainTest {
         storeFile file('../keystores/internalRelease.keystore')
         storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
         keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
-      debug {
+      mainE2e {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      mainExp {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      mainDev {
         storeFile file('debug.keystore')
         storePassword 'android'
         keyAlias 'androiddebugkey'
         keyPassword 'android'
       }
-      flask {
+      flaskProd {
         storeFile file('../keystores/flaskRelease.keystore')
         storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
         keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
         keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      flaskE2e {
+        storeFile file('../keystores/flask-uat.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      flaskTest {
+        storeFile file('../keystores/flask-uat.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_UAT_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      flaskDev {
+        storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+      }
+      qaProd {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
     }
 
     buildTypes {
         debug {
             manifestPlaceholders.isDebug = true
-            signingConfig signingConfigs.debug
         }
         release {
             manifestPlaceholders.isDebug = false
@@ -257,31 +304,55 @@ android {
         }
     }
 
-	  flavorDimensions "version"
-   		  productFlavors {
+    flavorDimensions "version"
+    productFlavors {
           qa {
             dimension "version"
             applicationIdSuffix ".qa"
             applicationId "io.metamask"
-            signingConfig signingConfigs.qa
+            signingConfig signingConfigs.qaProd
           }
           prod {
             dimension "version"
             applicationId "io.metamask"
-            signingConfig signingConfigs.release
+            // Use appropriate signing config based on environment
+            def env = System.getenv("METAMASK_ENVIRONMENT")
+            def isE2E = System.getenv("E2E")
+
+            if (env == 'exp') {
+                signingConfig signingConfigs.mainExp
+            } else if (env == 'test') {
+                signingConfig signingConfigs.mainTest
+            } else if (env == 'e2e') {
+                signingConfig signingConfigs.mainE2e
+            } else if (env == 'prod') {
+                signingConfig signingConfigs.mainProd
+            } else if (env == 'rc') {
+                signingConfig signingConfigs.mainRc
+            } else if (env == 'beta') {
+                signingConfig signingConfigs.mainBeta
+            } else if (env == 'local') {
+                signingConfig signingConfigs.mainDev
+            } else {
+                signingConfig signingConfigs.mainProd
+            }
           }
           flask {
             dimension "version"
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
             // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
-              signingConfig signingConfigs.qa
-            } else {
-              signingConfig signingConfigs.flask
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
+              signingConfig signingConfigs.flaskTest
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
+              signingConfig signingConfigs.flaskE2e
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
+              signingConfig signingConfigs.flaskProd
+            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
+              signingConfig signingConfigs.flaskDev
             }
           }
-    	  }
+    }
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""

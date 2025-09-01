@@ -1,26 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   View,
-  SafeAreaView,
   StyleSheet,
   BackHandler,
   Image,
-  TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { connect } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
@@ -28,7 +25,8 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import SRPDesign from '../../../images/secure_wallet.png';
+import SRPDesignLight from '../../../images/secure_wallet_light.png';
+import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
@@ -38,19 +36,18 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { TraceName, endTrace } from '../../../util/trace';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 0,
     },
     scrollviewWrapper: {
       flexGrow: 1,
@@ -110,10 +107,10 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
-  const { route } = props;
   const [hasFunds, setHasFunds] = useState(false);
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+  const { isEnabled: isMetricsEnabled } = useMetrics();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -122,34 +119,6 @@ const AccountBackupStep1 = (props) => {
   };
 
   const navigation = useNavigation();
-
-  const headerLeft = useCallback(
-    () => (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={colors.text.default}
-          style={styles.headerLeft}
-        />
-      </TouchableOpacity>
-    ),
-    [navigation, colors, styles.headerLeft],
-  );
-
-  useEffect(() => {
-    navigation.setOptions({
-      ...getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-        },
-        colors,
-        false,
-      ),
-      gesturesEnabled: false,
-    });
-  }, [navigation, route, colors, headerLeft]);
 
   useEffect(
     () => {
@@ -175,13 +144,8 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
   const skip = async () => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
-    // Get onboarding wizard state
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    !onboardingWizard && props.setOnboardingWizardStep(1);
-
     const resetAction = CommonActions.reset({
       index: 1,
       routes: [
@@ -197,6 +161,9 @@ const AccountBackupStep1 = (props) => {
         },
       ],
     });
+    endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
+    endTrace({ name: TraceName.OnboardingJourneyOverall });
+
     if (isMetricsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
@@ -234,7 +201,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper} edges={['top', 'bottom']}>
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
@@ -255,7 +222,14 @@ const AccountBackupStep1 = (props) => {
             >
               {strings('account_backup_step_1.title')}
             </Text>
-            <Image source={SRPDesign} style={styles.srpDesign} />
+            <Image
+              source={
+                themeAppearance === AppThemeKey.dark
+                  ? SRPDesignDark
+                  : SRPDesignLight
+              }
+              style={styles.srpDesign}
+            />
             <View style={styles.text}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
@@ -314,17 +288,12 @@ AccountBackupStep1.propTypes = {
    */
   route: PropTypes.object,
   /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
    * Action to save onboarding event
    */
   saveOnboardingEvent: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 

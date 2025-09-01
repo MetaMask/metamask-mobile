@@ -42,6 +42,35 @@ exports[`EditAccountName should render correctly 1`] = `
         Name
       </Text>
       <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -72,14 +101,14 @@ exports[`EditAccountName should render correctly 1`] = `
             onFocus={[Function]}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 24,
+                "height": 38,
                 "letterSpacing": 0,
                 "opacity": 1,
                 "paddingVertical": 0,
@@ -114,6 +143,35 @@ exports[`EditAccountName should render correctly 1`] = `
         Address
       </Text>
       <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
             "alignItems": "center",
@@ -144,14 +202,14 @@ exports[`EditAccountName should render correctly 1`] = `
             placeholder="0x49a016E6736F9Ad381605c...72A6"
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
-                "height": 24,
+                "height": 38,
                 "letterSpacing": 0,
                 "opacity": 1,
                 "paddingVertical": 0,
@@ -176,14 +234,14 @@ exports[`EditAccountName should render correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
-      onPress={[MockFunction]}
+      onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,

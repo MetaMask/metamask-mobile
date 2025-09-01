@@ -34,6 +34,7 @@ export function getFeesFromHex({
     return {
       currentCurrencyFee: null,
       nativeCurrencyFee: null,
+      preciseCurrentCurrencyFee: null,
       preciseNativeCurrencyFee: null,
       preciseNativeFeeInHex: null,
     };
@@ -82,7 +83,7 @@ export function getFeesFromHex({
 
   // This is used to check if the fee is less than $0.01 - more precise than decimalCurrentCurrencyFee
   // Because decimalCurrentCurrencyFee is rounded to 2 decimal places
-  const preciseCurrentCurrencyFee = Number(
+  const preciseCurrentCurrencyFeeNum = Number(
     getValueFromWeiHex({
       value: hexFee,
       conversionRate: nativeConversionRateInBN,
@@ -94,7 +95,7 @@ export function getFeesFromHex({
   );
 
   let currentCurrencyFee;
-  if (preciseCurrentCurrencyFee < 0.01) {
+  if (preciseCurrentCurrencyFeeNum < 0.01) {
     currentCurrencyFee = `< ${fiatFormatter(new BigNumber(0.01))}`;
   } else {
     currentCurrencyFee = fiatFormatter(
@@ -106,9 +107,14 @@ export function getFeesFromHex({
     currentCurrencyFee = null;
   }
 
+  const preciseCurrentCurrencyFee = currentCurrencyFee
+    ? new BigNumber(preciseCurrentCurrencyFeeNum).toString(10)
+    : null;
+
   return {
     currentCurrencyFee,
     nativeCurrencyFee,
+    preciseCurrentCurrencyFee,
     preciseNativeCurrencyFee,
     preciseNativeFeeInHex: add0x(hexFee),
   };
@@ -134,6 +140,7 @@ export function calculateGasEstimate({
   getFeesFromHexFn: (hexFee: string) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
+    preciseCurrentCurrencyFee: string | null;
     preciseNativeCurrencyFee: string | null;
     preciseNativeFeeInHex: string | null;
   };
@@ -164,4 +171,13 @@ export function calculateGasEstimate({
   }
 
   return getFeesFromHexFn(estimation);
+}
+
+export function normalizeGasInput(value: string) {
+  return value.replace(',', '.');
+}
+
+export function convertGasInputToHexWEI(value: string) {
+  const normalizedValue = normalizeGasInput(value);
+  return add0x(decGWEIToHexWEI(normalizedValue) as Hex);
 }

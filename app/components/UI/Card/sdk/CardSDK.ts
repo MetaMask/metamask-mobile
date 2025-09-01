@@ -17,20 +17,26 @@ import { CardToken } from '../types';
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
+  private enableLogs: boolean;
 
   constructor({
     cardFeatureFlag,
     rawChainId,
+    enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
     rawChainId: `0x${string}` | SupportedCaipChainId;
+    enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.chainId = getDecimalChainId(rawChainId);
+    this.enableLogs = enableLogs;
   }
 
   get isCardEnabled(): boolean {
-    return this.cardFeatureFlag[`eip155:${this.chainId}`]?.enabled || false;
+    return (
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.enabled || false
+    );
   }
 
   get supportedTokens(): SupportedToken[] {
@@ -38,7 +44,8 @@ export class CardSDK {
       return [];
     }
 
-    const tokens = this.cardFeatureFlag[`eip155:${this.chainId}`]?.tokens;
+    const tokens =
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]?.tokens;
 
     if (!tokens) {
       return [];
@@ -55,7 +62,8 @@ export class CardSDK {
 
   private get foxConnectAddresses() {
     const foxConnect =
-      this.cardFeatureFlag[`eip155:${this.chainId}`]?.foxConnectAddresses;
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
+        ?.foxConnectAddresses;
 
     if (!foxConnect?.global || !foxConnect?.us) {
       throw new Error(
@@ -76,7 +84,8 @@ export class CardSDK {
 
   private get balanceScannerInstance() {
     const balanceScannerAddress =
-      this.cardFeatureFlag[`eip155:${this.chainId}`]?.balanceScannerAddress;
+      this.cardFeatureFlag.chains?.[`eip155:${this.chainId}`]
+        ?.balanceScannerAddress;
 
     if (!balanceScannerAddress) {
       throw new Error(
@@ -92,7 +101,7 @@ export class CardSDK {
   }
 
   private get rampApiUrl() {
-    const onRampApi = this.cardFeatureFlag[`eip155:${this.chainId}`]?.onRampApi;
+    const onRampApi = this.cardFeatureFlag.constants?.onRampApiUrl;
 
     if (!onRampApi) {
       throw new Error('On Ramp API URL is not defined for the current chain');
@@ -101,45 +110,136 @@ export class CardSDK {
     return onRampApi;
   }
 
-  // NOTE: This is a temporary implementation until we have the Platform API ready.
-  isCardHolder = async (address: string): Promise<boolean> => {
-    if (!this.isCardEnabled) {
-      return false;
+  private get accountsApiUrl() {
+    const accountsApi = this.cardFeatureFlag.constants?.accountsApiUrl;
+
+    if (!accountsApi) {
+      throw new Error('Accounts API URL is not defined for the current chain');
     }
 
-    try {
-      const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-        this.foxConnectAddresses;
+    return accountsApi;
+  }
 
-      // 1. Check if the address is a card holder by calling the balance scanner contract and verify if the FoxConnect contracts has allowances on supported tokens.
-      const spenders = this.supportedTokens.map(() => [
-        foxConnectGlobalAddress,
-        foxConnectUsAddress,
-      ]);
-
-      const spendersAllowancesForTokens: [boolean, string][][] =
-        await this.balanceScannerInstance.spendersAllowancesForTokens(
-          address,
-          this.supportedTokens.map((token) => token.address),
-          spenders,
-        );
-
-      // 2. If any of the allowances is greater than 0, then the address is a card holder.
-      return spendersAllowancesForTokens.some(
-        (allowances) =>
-          Array.isArray(allowances) &&
-          allowances.some(
-            ([, allowance]) => !ethers.BigNumber.from(allowance).isZero(),
-          ),
+  private logDebugInfo(fnName: string, data: unknown) {
+    if (this.enableLogs) {
+      Logger.log(
+        `CardSDK Debug Log - ${fnName}`,
+        JSON.stringify(data, null, 2),
       );
+    }
+  }
+
+  /**
+   * Checks if the given accounts are cardholders by querying the accounts API.
+   * Supports batching for performance optimization - processes up to 3 batches of 50 accounts each.
+   *
+   * @param accounts - Array of account IDs to check
+   * @returns Promise resolving to object containing array of cardholder accounts
+   */
+  isCardHolder = async (
+    accounts: `${string}:${string}:${string}`[],
+  ): Promise<`${string}:${string}:${string}`[]> => {
+    // Early return for invalid input or disabled feature
+    if (!this.isCardEnabled || !accounts?.length) {
+      return [];
+    }
+
+    const BATCH_SIZE = 50;
+    const MAX_BATCHES = 3;
+
+    // Single batch optimization - no need for complex batching logic
+    if (accounts.length <= BATCH_SIZE) {
+      return await this.performCardholderRequest(accounts);
+    }
+
+    // Multi-batch processing for large account sets
+    return await this.processBatchedCardholderRequests(
+      accounts,
+      BATCH_SIZE,
+      MAX_BATCHES,
+    );
+  };
+
+  /**
+   * Performs a single API request to check if accounts are cardholders
+   */
+  private async performCardholderRequest(
+    accountIds: string[],
+  ): Promise<`${string}:${string}:${string}`[]> {
+    try {
+      const url = this.buildCardholderApiUrl(accountIds);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      this.logDebugInfo('performCardholderRequest', data);
+      return data.is || [];
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to check if address is a card holder',
       );
-      return false;
+      return [];
     }
-  };
+  }
+
+  /**
+   * Builds the API URL for cardholder checking requests
+   */
+  private buildCardholderApiUrl(accountIds: string[]): URL {
+    const url = new URL('v1/metadata', this.accountsApiUrl);
+    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
+    url.searchParams.set('label', 'card_user');
+    return url;
+  }
+
+  /**
+   * Processes multiple batches of accounts to check cardholder status
+   */
+  private async processBatchedCardholderRequests(
+    accounts: `${string}:${string}:${string}`[],
+    batchSize: number,
+    maxBatches: number,
+  ): Promise<`${string}:${string}:${string}`[]> {
+    const batches = this.createAccountBatches(accounts, batchSize, maxBatches);
+    const batchPromises = batches.map((batch) =>
+      this.performCardholderRequest(batch),
+    );
+
+    const results = await Promise.all(batchPromises);
+    const allCardholderAccounts = results.flatMap(
+      (result) => result as `${string}:${string}:${string}`[],
+    );
+    this.logDebugInfo(
+      'processBatchedCardholderRequests',
+      allCardholderAccounts,
+    );
+
+    return allCardholderAccounts;
+  }
+
+  /**
+   * Creates batches of accounts for API processing
+   */
+  private createAccountBatches(
+    accounts: `${string}:${string}:${string}`[],
+    batchSize: number,
+    maxBatches: number,
+  ): `${string}:${string}:${string}`[][] {
+    const batches: `${string}:${string}:${string}`[][] = [];
+    let remainingAccounts = accounts;
+
+    while (remainingAccounts.length > 0 && batches.length < maxBatches) {
+      const batch = remainingAccounts.slice(0, batchSize);
+      remainingAccounts = remainingAccounts.slice(batchSize);
+      batches.push(batch);
+    }
+
+    return batches;
+  }
 
   getGeoLocation = async (): Promise<string> => {
     try {
@@ -192,6 +292,10 @@ export class CardSDK {
         supportedTokensAddresses,
         spenders,
       );
+    this.logDebugInfo(
+      'getSupportedTokensAllowances',
+      spendersAllowancesForTokens,
+    );
 
     return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
@@ -217,14 +321,26 @@ export class CardSDK {
 
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
+      this.logDebugInfo('getPriorityToken (Simple Case 1)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.getFirstSupportedTokenOrNull();
     }
 
     if (nonZeroBalanceTokens.length === 1) {
+      this.logDebugInfo('getPriorityToken (Simple Case 2)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
     }
 
     // Handle complex case with multiple tokens
+    this.logDebugInfo('getPriorityToken (Complex Case)', {
+      address,
+      nonZeroBalanceTokens,
+    });
     return this.findPriorityTokenFromApprovalLogs(
       address,
       nonZeroBalanceTokens,

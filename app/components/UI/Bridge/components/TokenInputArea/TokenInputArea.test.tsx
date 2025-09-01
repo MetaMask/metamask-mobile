@@ -8,11 +8,17 @@ import {
   calculateFontSize,
   getDisplayAmount,
 } from '.';
+import { BridgeToken } from '../../types';
+
+jest.mock('../../hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
 const mockOnInputPress = jest.fn();
+const mockOnMaxPress = jest.fn();
 
 describe('TokenInputArea', () => {
   beforeEach(() => {
@@ -62,6 +68,100 @@ describe('TokenInputArea', () => {
 
     fireEvent(input, 'blur');
     expect(mockOnBlur).toHaveBeenCalled();
+  });
+
+  it('displays max button for source token with balance and calls onMaxPress when clicked', () => {
+    // Arrange
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '100.5';
+
+    const { getByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={mockToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    // Act
+    const maxButton = getByText('Max');
+    fireEvent.press(maxButton);
+
+    // Assert
+    expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not display max button for destination token', () => {
+    // Arrange
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '100.5';
+
+    const { queryByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Destination}
+          token={mockToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    // Assert
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('does not display max button for native assets', () => {
+    // Arrange
+    const nativeToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+    const tokenBalance = '1.5';
+
+    const { queryByText } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={nativeToken}
+          tokenBalance={tokenBalance}
+          onMaxPress={mockOnMaxPress}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    // Assert
+    expect(queryByText('Max')).toBeNull();
   });
 });
 

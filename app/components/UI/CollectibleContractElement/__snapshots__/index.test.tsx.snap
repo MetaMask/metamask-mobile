@@ -5,7 +5,6 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
   style={
     {
       "paddingBottom": 16,
-      "paddingHorizontal": 15,
     }
   }
 >

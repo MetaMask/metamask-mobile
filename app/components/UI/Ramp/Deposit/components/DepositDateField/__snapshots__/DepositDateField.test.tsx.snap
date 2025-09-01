@@ -1,288 +1,58 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DepositDateField Platform specific rendering date picker matches snapshot on Android 1`] = `
-[
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessible={true}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "width": "100%",
+    }
+  }
+>
   <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessible={true}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
     style={
-      {
-        "width": "100%",
-      }
+      [
+        {
+          "flexDirection": "column",
+          "marginBottom": 16,
+        },
+        undefined,
+      ]
     }
   >
-    <View
+    <Text
+      accessibilityRole="text"
       style={
-        [
-          {
-            "flexDirection": "column",
-            "marginBottom": 16,
-          },
-          undefined,
-        ]
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginBottom": 6,
+        }
       }
+      testID="label"
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "fontWeight": "400",
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 6,
-          }
-        }
-        testID="label"
-      >
-        Date of Birth
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc8",
-            "borderRadius": 8,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="textfield"
-      >
-        <View
-          style={
-            {
-              "marginRight": 8,
-            }
-          }
-          testID="textfield-startacccessory"
-        >
-          <SvgMock
-            color="#121314"
-            fill="currentColor"
-            height={20}
-            name="Calendar"
-            style={
-              {
-                "height": 20,
-                "width": 20,
-              }
-            }
-            width={20}
-          />
-        </View>
-        <View
-          style={
-            {
-              "flex": 1,
-            }
-          }
-        >
-          <TextInput
-            autoFocus={false}
-            editable={true}
-            keyboardAppearance="light"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            placeholder="01/01/2000"
-            placeholderTextColor="#9ca1af"
-            pointerEvents="none"
-            readOnly={true}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderColor": "transparent",
-                "borderWidth": 1,
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "height": 24,
-                "letterSpacing": 0,
-                "opacity": 1,
-                "paddingVertical": 0,
-              }
-            }
-            value="01/01/2024"
-          />
-        </View>
-      </View>
-    </View>
-  </View>,
-  <RNDateTimePicker
-    date={1704085200000}
-    displayIOS="default"
-    enabled={true}
-    maximumDate={1767157200000}
-    minimumDate={-2208970800000}
-    mode="date"
-    onChange={[Function]}
-    onPickerDismiss={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
-  />,
-]
-`;
-
-exports[`DepositDateField Platform specific rendering date picker matches snapshot on iOS 1`] = `
-[
-  <View
-    accessibilityState={
-      {
-        "busy": undefined,
-        "checked": undefined,
-        "disabled": undefined,
-        "expanded": undefined,
-        "selected": undefined,
-      }
-    }
-    accessible={true}
-    focusable={true}
-    onClick={[Function]}
-    onResponderGrant={[Function]}
-    onResponderMove={[Function]}
-    onResponderRelease={[Function]}
-    onResponderTerminate={[Function]}
-    onResponderTerminationRequest={[Function]}
-    onStartShouldSetResponder={[Function]}
-    style={
-      {
-        "width": "100%",
-      }
-    }
-  >
-    <View
-      style={
-        [
-          {
-            "flexDirection": "column",
-            "marginBottom": 16,
-          },
-          undefined,
-        ]
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#121314",
-            "fontFamily": "Geist Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 6,
-          }
-        }
-        testID="label"
-      >
-        Date of Birth
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc8",
-            "borderRadius": 8,
-            "borderWidth": 1,
-            "flexDirection": "row",
-            "height": 48,
-            "opacity": 1,
-            "paddingHorizontal": 16,
-          }
-        }
-        testID="textfield"
-      >
-        <View
-          style={
-            {
-              "marginRight": 8,
-            }
-          }
-          testID="textfield-startacccessory"
-        >
-          <SvgMock
-            color="#121314"
-            fill="currentColor"
-            height={20}
-            name="Calendar"
-            style={
-              {
-                "height": 20,
-                "width": 20,
-              }
-            }
-            width={20}
-          />
-        </View>
-        <View
-          style={
-            {
-              "flex": 1,
-            }
-          }
-        >
-          <TextInput
-            autoFocus={false}
-            editable={true}
-            keyboardAppearance="light"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            placeholder="01/01/2000"
-            placeholderTextColor="#9ca1af"
-            pointerEvents="none"
-            readOnly={true}
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderColor": "transparent",
-                "borderWidth": 1,
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "height": 24,
-                "letterSpacing": 0,
-                "opacity": 1,
-                "paddingVertical": 0,
-              }
-            }
-            value="01/01/2024"
-          />
-        </View>
-      </View>
-    </View>
-  </View>,
-  <Modal
-    animationType="fade"
-    hardwareAccelerated={false}
-    onRequestClose={[Function]}
-    transparent={true}
-    visible={true}
-  >
+      Date of Birth
+    </Text>
     <View
       accessibilityState={
         {
@@ -293,9 +63,20 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
           "selected": undefined,
         }
       }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
       accessible={true}
+      collapsable={false}
       focusable={true}
+      onBlur={[Function]}
       onClick={[Function]}
+      onFocus={[Function]}
       onResponderGrant={[Function]}
       onResponderMove={[Function]}
       onResponderRelease={[Function]}
@@ -304,149 +85,239 @@ exports[`DepositDateField Platform specific rendering date picker matches snapsh
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "#3f434a66",
-          "flex": 1,
-          "justifyContent": "flex-end",
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "opacity": 1,
+          "paddingHorizontal": 16,
         }
       }
+      testID="textfield"
     >
       <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessible={true}
-        focusable={true}
-        onClick={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
         style={
           {
-            "backgroundColor": "#ffffff",
-            "borderTopLeftRadius": 20,
-            "borderTopRightRadius": 20,
-            "padding": 16,
+            "marginRight": 8,
+          }
+        }
+        testID="textfield-startacccessory"
+      >
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
+          style={
+            {
+              "height": 20,
+              "width": 20,
+            }
+          }
+          width={20}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
           }
         }
       >
-        <View
+        <TextInput
+          autoFocus={false}
+          editable={true}
+          keyboardAppearance="light"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="01/01/2000"
+          placeholderTextColor="#b7bbc8"
+          pointerEvents="none"
+          readOnly={true}
           style={
             {
-              "flexDirection": "row",
-              "justifyContent": "flex-end",
-              "marginBottom": 8,
+              "backgroundColor": "inherit",
+              "borderColor": "transparent",
+              "borderWidth": 1,
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "height": 46,
+              "letterSpacing": 0,
+              "opacity": 1,
+              "paddingVertical": 0,
             }
           }
-        >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            onPress={[Function]}
-          >
-            <View
-              style={
-                [
-                  {},
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#007AFF",
-                      "fontSize": 18,
-                      "margin": 8,
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#9ca1af",
-                    },
-                  ]
-                }
-              >
-                Cancel
-              </Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={
-              {
-                "busy": undefined,
-                "checked": undefined,
-                "disabled": undefined,
-                "expanded": undefined,
-                "selected": undefined,
-              }
-            }
-            onPress={[Function]}
-          >
-            <View
-              style={
-                [
-                  {},
-                ]
-              }
-            >
-              <Text
-                style={
-                  [
-                    {
-                      "color": "#007AFF",
-                      "fontSize": 18,
-                      "margin": 8,
-                      "textAlign": "center",
-                    },
-                    {
-                      "color": "#4459ff",
-                    },
-                  ]
-                }
-              >
-                Done
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <RNDateTimePicker
-          date={1704085200000}
-          displayIOS="spinner"
-          enabled={true}
-          maximumDate={1767157200000}
-          minimumDate={-2208970800000}
-          mode="date"
-          onChange={[Function]}
-          onPickerDismiss={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "backgroundColor": "#ffffff",
-            }
-          }
+          value="01/01/2024"
         />
       </View>
     </View>
-  </Modal>,
-]
+  </View>
+</View>
+`;
+
+exports[`DepositDateField Platform specific rendering date picker matches snapshot on iOS 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessible={true}
+  focusable={true}
+  onClick={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    {
+      "width": "100%",
+    }
+  }
+>
+  <View
+    style={
+      [
+        {
+          "flexDirection": "column",
+          "marginBottom": 16,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginBottom": 6,
+        }
+      }
+      testID="label"
+    >
+      Date of Birth
+    </Text>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc8",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "opacity": 1,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="textfield"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+        testID="textfield-startacccessory"
+      >
+        <SvgMock
+          color="#121314"
+          fill="currentColor"
+          height={20}
+          name="Calendar"
+          style={
+            {
+              "height": 20,
+              "width": 20,
+            }
+          }
+          width={20}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <TextInput
+          autoFocus={false}
+          editable={true}
+          keyboardAppearance="light"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          placeholder="01/01/2000"
+          placeholderTextColor="#b7bbc8"
+          pointerEvents="none"
+          readOnly={true}
+          style={
+            {
+              "backgroundColor": "inherit",
+              "borderColor": "transparent",
+              "borderWidth": 1,
+              "color": "#121314",
+              "fontFamily": "Geist Regular",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "height": 46,
+              "letterSpacing": 0,
+              "opacity": 1,
+              "paddingVertical": 0,
+            }
+          }
+          value="01/01/2024"
+        />
+      </View>
+    </View>
+  </View>
+</View>
 `;
 
 exports[`DepositDateField render matches snapshot 1`] = `
@@ -503,6 +374,35 @@ exports[`DepositDateField render matches snapshot 1`] = `
       Date of Birth
     </Text>
     <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -554,19 +454,19 @@ exports[`DepositDateField render matches snapshot 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           pointerEvents="none"
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
               "fontWeight": "400",
-              "height": 24,
+              "height": 46,
               "letterSpacing": 0,
               "opacity": 1,
               "paddingVertical": 0,
@@ -634,6 +534,35 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
       Date of Birth
     </Text>
     <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -685,19 +614,19 @@ exports[`DepositDateField render matches snapshot with a value 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           pointerEvents="none"
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
               "fontWeight": "400",
-              "height": 24,
+              "height": 46,
               "letterSpacing": 0,
               "opacity": 1,
               "paddingVertical": 0,
@@ -765,6 +694,35 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
       Date of Birth
     </Text>
     <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -816,19 +774,19 @@ exports[`DepositDateField render matches snapshot with an error 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           pointerEvents="none"
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
               "fontWeight": "400",
-              "height": 24,
+              "height": 46,
               "letterSpacing": 0,
               "opacity": 1,
               "paddingVertical": 0,
@@ -911,6 +869,35 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
       Date of Birth
     </Text>
     <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         {
           "alignItems": "center",
@@ -962,19 +949,19 @@ exports[`DepositDateField render matches snapshot with empty value 1`] = `
           onBlur={[Function]}
           onFocus={[Function]}
           placeholder="01/01/2000"
-          placeholderTextColor="#9ca1af"
+          placeholderTextColor="#b7bbc8"
           pointerEvents="none"
           readOnly={true}
           style={
             {
-              "backgroundColor": "#ffffff",
+              "backgroundColor": "inherit",
               "borderColor": "transparent",
               "borderWidth": 1,
               "color": "#121314",
               "fontFamily": "Geist Regular",
               "fontSize": 16,
               "fontWeight": "400",
-              "height": 24,
+              "height": 46,
               "letterSpacing": 0,
               "opacity": 1,
               "paddingVertical": 0,

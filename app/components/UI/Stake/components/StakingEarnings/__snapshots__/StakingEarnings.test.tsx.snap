@@ -134,7 +134,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={16}
             name="Info"
@@ -152,7 +152,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
         accessibilityRole="text"
         style={
           {
-            "color": "#1c7e33",
+            "color": "#457a39",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -314,7 +314,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -422,7 +422,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={16}
             name="Info"
@@ -440,7 +440,7 @@ exports[`Staking Earnings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#1c7e33",
+            "color": "#457a39",
             "fontFamily": "Geist Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -602,7 +602,7 @@ exports[`Staking Earnings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

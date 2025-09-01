@@ -14,7 +14,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     list: {
-      maxHeight: screenHeight * 0.4,
+      height: screenHeight * 0.4,
     },
     searchContainer: {
       paddingHorizontal: 16,

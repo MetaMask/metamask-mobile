@@ -7,17 +7,53 @@ import {
   maskObject,
   sentryStateMask,
   AllProperties,
+  rewriteReport,
+  rewriteBreadcrumb,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
+import { TraceName } from '../trace';
+import { store } from '../../store';
+import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
+import { Performance } from '../../core/Performance';
+import Device from '../device';
+import { getTraceTags } from './tags';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
   captureUserFeedback: jest.fn(),
 }));
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock('../extractEthJsErrorMessage', () => ({
+  __esModule: true,
+  default: jest.fn((message) => message),
+}));
+
+jest.mock('../../core/Performance', () => ({
+  Performance: {
+    appLaunchTime: 1640995200000,
+  },
+}));
+
+jest.mock('../device', () => ({
+  __esModule: true,
+  default: {
+    isAndroid: jest.fn(() => true),
+  },
+}));
+
+jest.mock('./tags', () => ({
+  getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
+}));
 
 describe('deriveSentryEnvironment', () => {
   it('returns production-flask for non-dev production environment and flask build type', async () => {
@@ -97,6 +133,33 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('development');
   });
 
+  it('returns main-rc for rc environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'rc';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-rc');
+  });
+
+  it('returns main-beta for beta environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'beta';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-beta');
+  });
+});
+
+describe('excludeEvents', () => {
+  const mockStore = jest.mocked(store);
+  const mockDevice = jest.mocked(Device);
+  const mockPerformance = jest.mocked(Performance);
+  const mockGetTraceTags = jest.mocked(getTraceTags);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns performance event Route Change', async () => {
     const event = { transaction: 'Route Change' };
     const eventExcluded = excludeEvents(event);
@@ -114,20 +177,38 @@ describe('deriveSentryEnvironment', () => {
     expect(eventExcluded).toBe(null);
   });
 
-  it('returns main-rc for rc environment and main build type', async () => {
-    const METAMASK_ENVIRONMENT = 'rc';
-    const isDev = false;
+  it('should handle UIStartup events on Android and set trace tags and format app launch time', () => {
+    const mockState = { test: 'state' } as unknown as RootState;
+    mockStore.getState.mockReturnValue(mockState);
+    mockGetTraceTags.mockReturnValue({ tag1: 'value1' });
+    mockDevice.isAndroid.mockReturnValue(true);
+    mockPerformance.appLaunchTime = 1640995200123;
 
-    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
-    expect(env).toBe('main-rc');
+    const event = {
+      transaction: TraceName.UIStartup,
+      start_timestamp: 1,
+    };
+
+    const result = excludeEvents(event) as unknown as Record<string, unknown>;
+
+    expect(result).toBeTruthy();
+    expect(result.tags).toEqual({ tag1: 'value1' });
+    expect(mockGetTraceTags).toHaveBeenCalledWith(mockState);
+    expect(result.start_timestamp).toBe(1640995200.123);
   });
 
-  it('returns main-beta for beta environment and main build type', async () => {
-    const METAMASK_ENVIRONMENT = 'beta';
-    const isDev = false;
+  it('should handle UIStartup events on non-Android platforms', () => {
+    mockDevice.isAndroid.mockReturnValue(false);
 
-    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
-    expect(env).toBe('main-beta');
+    const event = {
+      transaction: TraceName.UIStartup,
+      start_timestamp: 1234567890,
+    };
+
+    const result = excludeEvents(event) as unknown as Record<string, unknown>;
+
+    expect(result).toBeTruthy();
+    expect(result.start_timestamp).toBe(1234567890);
   });
 
   it('returns main-exp for experimental environment and main build type', async () => {
@@ -300,28 +381,6 @@ describe('captureSentryFeedback', () => {
             lostIdentities: {},
             securityAlertsEnabled: true,
             selectedAddress: '0x6312c98831D74754F86dd4936668A13B7e9bA411',
-            showIncomingTransactions: {
-              '0x1': true,
-              '0x13881': true,
-              '0x38': true,
-              '0x5': true,
-              '0x504': true,
-              '0x505': true,
-              '0x507': true,
-              '0x61': true,
-              '0x64': true,
-              '0x89': true,
-              '0xa': true,
-              '0xa869': true,
-              '0xa86a': true,
-              '0xaa36a7': true,
-              '0xaa37dc': true,
-              '0xe704': true,
-              '0xe705': true,
-              '0xe708': true,
-              '0xfa': true,
-              '0xfa2': true,
-            },
             showTestNetworks: false,
             smartTransactionsOptInStatus: false,
             useNftDetection: true,
@@ -420,9 +479,6 @@ describe('captureSentryFeedback', () => {
         protectWalletModalVisible: false,
         seedphraseBackedUp: true,
         userLoggedIn: true,
-      },
-      wizard: {
-        step: 1,
       },
       onboarding: {
         events: [],
@@ -542,7 +598,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -583,7 +638,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -620,7 +674,6 @@ describe('captureSentryFeedback', () => {
         transaction: 'object',
         confirmationMetrics: 'object',
         user: 'object',
-        wizard: 'object',
       });
     });
 
@@ -753,5 +806,306 @@ describe('captureSentryFeedback', () => {
         exampleObj: 'object',
       },
     });
+  });
+});
+
+describe('rewriteBreadcrumb', () => {
+  it('should rewrite breadcrumb URL to protocol only', () => {
+    const breadcrumb = {
+      data: {
+        url: 'https://example.com/path?query=value',
+        otherData: 'should remain',
+      },
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result.data.url).toBe('https:');
+    expect(result.data.otherData).toBe('should remain');
+  });
+
+  it('should rewrite breadcrumb to field to protocol only', () => {
+    const breadcrumb = {
+      data: {
+        to: 'http://example.com/path',
+        otherData: 'should remain',
+      },
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result.data.to).toBe('http:');
+    expect(result.data.otherData).toBe('should remain');
+  });
+
+  it('should rewrite breadcrumb from field to protocol only', () => {
+    const breadcrumb = {
+      data: {
+        from: 'https://example.com/path',
+        otherData: 'should remain',
+      },
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result.data.from).toBe('https:');
+    expect(result.data.otherData).toBe('should remain');
+  });
+
+  it('should handle breadcrumb with multiple URL fields', () => {
+    const breadcrumb = {
+      data: {
+        url: 'https://example.com/path',
+        to: 'http://another.com/path',
+        from: 'ftp://third.com/path',
+      },
+    };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result.data.url).toBe('https:');
+    expect(result.data.to).toBe('http:');
+    expect(result.data.from).toBe('ftp:');
+  });
+
+  it('should handle breadcrumb without data', () => {
+    const breadcrumb = { message: 'test' };
+
+    const result = rewriteBreadcrumb(breadcrumb);
+
+    expect(result).toEqual({ message: 'test' });
+  });
+
+  it('should handle invalid URLs gracefully', () => {
+    const breadcrumb = {
+      data: {
+        url: 'invalid-url',
+      },
+    };
+
+    expect(() => rewriteBreadcrumb(breadcrumb)).toThrow();
+  });
+});
+
+describe('rewriteReport', () => {
+  const mockStore = jest.mocked(store);
+  const mockExtractEthJsErrorMessage = jest.mocked(extractEthJsErrorMessage);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStore.getState.mockReturnValue({} as unknown as RootState);
+  });
+
+  it('should remove SES from stack trace', () => {
+    const report = {
+      exception: {
+        values: [
+          {
+            stacktrace: {
+              frames: [
+                { filename: 'app:///ses.cjs' },
+                { filename: 'app:///main.js' },
+              ],
+            },
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.exception.values[0].stacktrace.frames).toHaveLength(1);
+    expect(result.exception.values[0].stacktrace.frames[0].filename).toBe(
+      'app:///main.js',
+    );
+  });
+
+  it('should simplify complex error messages', () => {
+    mockExtractEthJsErrorMessage.mockReturnValue('Simplified error');
+
+    const report = {
+      message: 'Complex error message',
+      exception: {
+        values: [
+          {
+            value: 'Another complex error',
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    rewriteReport(report);
+
+    expect(mockExtractEthJsErrorMessage).toHaveBeenCalledWith(
+      'Complex error message',
+    );
+    expect(mockExtractEthJsErrorMessage).toHaveBeenCalledWith(
+      'Another complex error',
+    );
+  });
+
+  it('should simplify "Transaction Failed: known transaction" errors', () => {
+    mockExtractEthJsErrorMessage.mockReturnValue(
+      'Transaction Failed: known transaction: 0x1234567890abcdef',
+    );
+
+    const report = {
+      message: 'Transaction Failed: known transaction: 0x1234567890abcdef',
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe('Transaction Failed: known transaction');
+  });
+
+  it('should sanitize URLs not in allowlist from error messages', () => {
+    const message = 'Error fetching from https://bad-site.com/api';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe('Error fetching from **');
+  });
+
+  it('should preserve allowlisted URLs in error messages', () => {
+    const message = 'Error fetching from https://etherscan.io/api';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe(message);
+  });
+
+  it('should process URLs in exception values', () => {
+    const message = 'Exception with URL https://bad-site.com/api';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message: 'Top level error',
+      exception: {
+        values: [
+          {
+            value: message,
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.exception.values[0].value).toBe('Exception with URL **');
+  });
+
+  it('should sanitize Ethereum addresses from error messages', () => {
+    const message =
+      'Error with address 0x1234567890abcdef1234567890abcdef12345678';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe('Error with address **');
+  });
+
+  it('should sanitize addresses from exception values', () => {
+    const message =
+      'Transaction failed for 0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message: 'Top level error',
+      exception: {
+        values: [
+          {
+            value: message,
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.exception.values[0].value).toBe('Transaction failed for **');
+  });
+
+  it('should sanitize multiple addresses from error messages', () => {
+    const message =
+      'Transfer from 0x1234567890abcdef1234567890abcdef12345678 to 0xabcdefabcdefabcdefabcdefabcdefabcdefabcd failed';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toContain('**');
+  });
+
+  it('should not sanitize short hex strings that are not addresses', () => {
+    const message = 'Transaction ID 0x123abc should not be sanitized';
+    mockExtractEthJsErrorMessage.mockReturnValue(message);
+    const report = {
+      message,
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.message).toBe(message);
+  });
+
+  it('should remove device timezone and name', () => {
+    const report = {
+      contexts: {
+        device: {
+          name: 'Test Device',
+          timezone: 'America/New_York',
+          other: 'should remain',
+        },
+      },
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.contexts.device.timezone).toBe(null);
+    expect(result.contexts.device.name).toBe(null);
+    expect(result.contexts.device.other).toBe('should remain');
+  });
+
+  it('should handle report without device context', () => {
+    const report = {
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.contexts).toBeDefined();
+  });
+
+  it('should handle errors during report processing', () => {
+    mockStore.getState.mockImplementation(() => {
+      throw new Error('Store error');
+    });
+
+    const report = {
+      contexts: {},
+    };
+
+    expect(() => rewriteReport(report)).toThrow('Store error');
   });
 });

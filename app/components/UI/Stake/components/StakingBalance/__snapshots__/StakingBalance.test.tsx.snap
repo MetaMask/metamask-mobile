@@ -14,7 +14,6 @@ exports[`StakingBalance render matches snapshot 1`] = `
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
@@ -308,8 +307,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#1c7e331a",
-          "borderColor": "#1c7e33",
+          "backgroundColor": "#457a391a",
+          "borderColor": "#457a39",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -329,7 +328,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#1c7e33"
+          color="#457a39"
           fill="currentColor"
           height={24}
           name="Confirmation"
@@ -428,7 +427,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -468,7 +467,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -581,7 +580,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#9ca1af"
+                color="#b7bbc8"
                 fill="currentColor"
                 height={16}
                 name="Info"
@@ -599,7 +598,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -761,7 +760,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -810,7 +809,6 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         "flex": 1,
         "flexDirection": "row",
         "height": 64,
-        "paddingHorizontal": 16,
       }
     }
     testID="asset-Ethereum"
@@ -1104,8 +1102,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#1c7e331a",
-          "borderColor": "#1c7e33",
+          "backgroundColor": "#457a391a",
+          "borderColor": "#457a39",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -1125,7 +1123,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         }
       >
         <SvgMock
-          color="#1c7e33"
+          color="#457a39"
           fill="currentColor"
           height={24}
           name="Confirmation"
@@ -1224,7 +1222,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1264,7 +1262,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,
@@ -1377,7 +1375,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               }
             >
               <SvgMock
-                color="#9ca1af"
+                color="#b7bbc8"
                 fill="currentColor"
                 height={16}
                 name="Info"
@@ -1395,7 +1393,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             accessibilityRole="text"
             style={
               {
-                "color": "#1c7e33",
+                "color": "#457a39",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -1557,7 +1555,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

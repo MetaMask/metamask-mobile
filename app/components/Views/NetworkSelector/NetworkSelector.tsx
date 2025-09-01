@@ -98,13 +98,14 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NetworkSelectorSource,
+} from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -125,6 +126,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: NetworkSelectorSource;
 }
 
 const NetworkSelector = () => {
@@ -176,6 +178,9 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const isSendFlow =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -691,31 +696,37 @@ const NetworkSelector = () => {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const renderNonEvmNetworks = () =>
-    Object.values(nonEvmNetworkConfigurations)
-      // TODO: - [SOLANA] - Remove this filter once we want to show non evm like BTC
-      .filter((network) => network.chainId === SolScope.Mainnet)
-      .map((network) => {
-        const isSelected =
-          network.chainId === browserChainId ||
-          (!isEvmSelected && !browserChainId);
-        return (
-          <Cell
-            key={network.chainId}
-            variant={CellVariant.Select}
-            title={network.name}
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name: nonEvmNetworkConfigurations?.[SolScope.Mainnet]?.name,
-              imageSource: images.SOLANA,
-              size: avatarSize,
-            }}
-            isSelected={isSelected}
-            onPress={() => onNonEvmNetworkChange(SolScope.Mainnet)}
-            style={styles.networkCell}
-          />
-        );
-      });
+  const renderNonEvmNetworks = (onlyTestnets: boolean) => {
+    let networks = Object.values(nonEvmNetworkConfigurations);
+    if (onlyTestnets) {
+      networks = networks.filter((network) => network.isTestnet);
+    } else {
+      networks = networks.filter((network) => !network.isTestnet);
+    }
+
+    return networks.map((network) => {
+      const isSelected =
+        network.chainId === browserChainId ||
+        (!isEvmSelected && !browserChainId);
+      return (
+        <Cell
+          key={network.chainId}
+          variant={CellVariant.Select}
+          title={network.name}
+          avatarProps={{
+            variant: AvatarVariant.Network,
+            name: network.name,
+            imageSource: network.imageSource,
+            size: avatarSize,
+          }}
+          isSelected={isSelected}
+          onPress={() => onNonEvmNetworkChange(network.chainId)}
+          style={styles.networkCell}
+        />
+      );
+    });
+  };
+
   ///: END:ONLY_INCLUDE_IF
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
@@ -842,6 +853,7 @@ const NetworkSelector = () => {
         } else {
           // Remove the chainId from the tokenNetworkFilter
           const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+          // TODO: Do I need to set the enabled network in this instance?
           PreferencesController.setTokenNetworkFilter({
             // TODO fix type of preferences controller level
             // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
@@ -882,7 +894,7 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        renderNonEvmNetworks()
+        !isSendFlow && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {isNetworkUiRedesignEnabled() &&
@@ -891,6 +903,7 @@ const NetworkSelector = () => {
       {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
       {searchString.length === 0 && renderTestNetworksSwitch()}
       {showTestNetworks && renderOtherNetworks()}
+      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
     </>
   );
 

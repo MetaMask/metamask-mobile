@@ -6,11 +6,8 @@ import {
   TextStyle,
   useColorScheme,
 } from 'react-native';
-import { capitalize } from 'lodash';
 import { Transaction, TransactionType } from '@metamask/keyring-api';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
@@ -18,22 +15,18 @@ import { toDateFormat } from '../../../util/date';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import styles from './MultichainTransactionListItem.styles';
-import { getSwapBridgeTxActivityTitle } from '../Bridge/utils/transaction-history';
-import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import Routes from '../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../reducers';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 const MultichainTransactionListItem = ({
   transaction,
-  bridgeHistoryItem,
-  selectedAddress,
+  chainId,
   navigation,
   index,
 }: {
   transaction: Transaction;
-  bridgeHistoryItem?: BridgeHistoryItem;
-  selectedAddress: string;
+  chainId: SupportedCaipChainId;
   navigation: NavigationProp<ParamListBase>;
   index?: number;
 }) => {
@@ -42,53 +35,13 @@ const MultichainTransactionListItem = ({
   const appTheme = useSelector((state: RootState) => state.user.appTheme);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { type, status, to, from, asset } = useMultichainTransactionDisplay({
-    transaction,
-    userAddress: selectedAddress,
-    bridgeHistoryItem,
-  });
-
-  const isSwapTx = type === TransactionType.Swap && bridgeHistoryItem;
-  const isBridgeTx = type === TransactionType.Send && bridgeHistoryItem;
-  const isBridgeComplete = bridgeHistoryItem
-    ? Boolean(
-        bridgeHistoryItem?.status.srcChain.txHash &&
-          bridgeHistoryItem.status.destChain?.txHash,
-      )
-    : null;
-
-  let title = capitalize(type);
-
-  if (type === TransactionType.Swap) {
-    const fromAsset = from?.asset;
-    const toAsset = to?.asset;
-
-    const fromUnit = fromAsset?.fungible ? fromAsset.unit : '';
-    const toUnit = toAsset?.fungible ? toAsset.unit : '';
-
-    title = `${strings('transactions.swap')} ${fromUnit} ${strings(
-      'transactions.to',
-    )} ${toUnit}`;
-  } else if (isBridgeTx) {
-    title =
-      getSwapBridgeTxActivityTitle(bridgeHistoryItem) ??
-      strings('bridge.title');
-  }
+  const displayData = useMultichainTransactionDisplay(transaction, chainId);
+  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
 
   const style = styles(colors, typography);
 
-  const handlePress = () => {
-    if (isBridgeTx || isSwapTx) {
-      navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        multiChainTx: transaction,
-      });
-    } else {
-      setIsModalVisible(true);
-    }
-  };
-
   const renderTxElementIcon = (transactionType: string) => {
-    const isFailedTransaction = status === 'failed';
+    const isFailedTransaction = transaction.status === 'failed';
     const icon = getTransactionIcon(
       transactionType,
       isFailedTransaction,
@@ -98,6 +51,18 @@ const MultichainTransactionListItem = ({
     return <Image source={icon} style={style.icon} resizeMode="stretch" />;
   };
 
+  const displayAmount = () => {
+    if (isRedeposit) {
+      return `${priorityFee?.amount} ${priorityFee?.unit}`;
+    }
+
+    if (transaction.type === TransactionType.Unknown) {
+      return `${baseFee?.amount} ${baseFee?.unit}`;
+    }
+
+    return `${to?.amount} ${to?.unit}`;
+  };
+
   return (
     <>
       <TouchableHighlight
@@ -105,7 +70,7 @@ const MultichainTransactionListItem = ({
           style.itemContainer,
           { borderBottomColor: colors.border.muted },
         ]}
-        onPress={handlePress}
+        onPress={() => setIsModalVisible(true)}
         underlayColor={colors.background.alternative}
         activeOpacity={1}
         testID={`transaction-item-${index ?? 0}`}
@@ -117,7 +82,9 @@ const MultichainTransactionListItem = ({
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
             <ListItem.Icon>
-              {renderTxElementIcon(isBridgeTx ? 'bridge' : type)}
+              {renderTxElementIcon(
+                isRedeposit ? 'redeposit' : transaction.type,
+              )}
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title
@@ -126,26 +93,16 @@ const MultichainTransactionListItem = ({
               >
                 {title}
               </ListItem.Title>
-              {isBridgeTx && !isBridgeComplete && (
-                <BridgeActivityItemTxSegments
-                  bridgeTxHistoryItem={bridgeHistoryItem}
-                  transactionStatus={transaction.status}
-                />
-              )}
-              {(!isBridgeTx || (isBridgeTx && isBridgeComplete)) && (
-                <StatusText
-                  testID={`transaction-status-${transaction.id}`}
-                  status={status}
-                  style={style.listItemStatus as TextStyle}
-                  context="transaction"
-                />
-              )}
+              <StatusText
+                testID={`transaction-status-${transaction.id}`}
+                status={transaction.status}
+                style={style.listItemStatus as TextStyle}
+                context="transaction"
+              />
             </ListItem.Body>
-            {Boolean(asset?.amount) && (
-              <ListItem.Amount style={style.listItemAmount as TextStyle}>
-                {asset?.amount} {asset?.unit}
-              </ListItem.Amount>
-            )}
+            <ListItem.Amount style={style.listItemAmount as TextStyle}>
+              {displayAmount()}
+            </ListItem.Amount>
           </ListItem.Content>
         </ListItem>
       </TouchableHighlight>
@@ -153,8 +110,8 @@ const MultichainTransactionListItem = ({
       <MultichainTransactionDetailsModal
         isVisible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
+        displayData={displayData}
         transaction={transaction}
-        userAddress={selectedAddress}
         navigation={navigation}
       />
     </>

@@ -17,7 +17,7 @@ const PersonalSign = () => {
   return (
     <View testID={ConfirmationInfoComponentIDs.PERSONAL_SIGN}>
       <AccountNetworkInfoRow />
-      <OriginRow isSignatureRequest />
+      <OriginRow />
       <Message />
     </View>
   );

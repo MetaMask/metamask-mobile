@@ -1,7 +1,12 @@
 import { default as LegacyUIQuoteView } from '../../../pages/swaps/QuoteView';
 import SwapView from '../../../pages/swaps/SwapView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
+import { createLogger } from '../../../framework/logger';
+
+const logger = createLogger({
+  name: 'SwapLegacyUI',
+});
 
 export async function submitSwapLegacyUI(
   quantity: string,
@@ -31,25 +36,23 @@ export async function submitSwapLegacyUI(
 
   // Make sure slippage is zero for wrapped tokens
   if (sourceTokenSymbol === 'WETH' || destTokenSymbol === 'WETH') {
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       LegacyUIQuoteView.maxSlippage,
       'Max slippage 0%',
     );
   }
   await LegacyUIQuoteView.tapOnGetQuotes();
-  await Assertions.checkIfVisible(SwapView.quoteSummary);
-  await Assertions.checkIfVisible(SwapView.gasFee);
+  await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
+  await Assertions.expectElementToBeVisible(SwapView.gasFee);
   await SwapView.tapIUnderstandPriceWarning();
   await SwapView.tapSwapButton();
   // Wait for Swap to complete
   try {
-    await Assertions.checkIfTextIsDisplayed(
+    await Assertions.expectTextDisplayed(
       SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-      30000,
     );
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(`Swap complete didn't pop up: ${e}`);
+    logger.error(`Swap complete didn't pop up: ${e}`);
   }
   await TestHelpers.delay(10000);
 }

@@ -13,9 +13,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import QRCode from 'react-native-qrcode-svg';
 import { RouteProp, ParamListBase } from '@react-navigation/native';
-import ScrollableTabView, {
-  DefaultTabBar,
-} from 'react-native-scrollable-tab-view';
+import ScrollableTabView from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
@@ -77,6 +75,7 @@ import { AccountInfo } from '../MultichainAccounts/AccountDetails/components/Acc
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import TabBar from '../../../component-library/components-temp/TabBar/TabBar';
 
 export const PRIVATE_KEY = 'private_key';
 
@@ -369,17 +368,7 @@ const RevealPrivateCredential = ({
     tryUnlockWithPassword,
   ]);
 
-  const renderTabBar = () => (
-    <DefaultTabBar
-      underlineStyle={styles.tabUnderlineStyle}
-      activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
-      backgroundColor={colors.background.default}
-      tabStyle={styles.tabStyle}
-      textStyle={styles.textStyle}
-      style={styles.tabBar}
-    />
-  );
+  const renderTabBar = () => <TabBar />;
 
   const onTabBarChange = (event: { i: number }) => {
     if (event.i === 0) {
@@ -424,65 +413,67 @@ const RevealPrivateCredential = ({
   }, []);
 
   const renderTabView = (privCredentialName: string) => (
-    <ScrollableTabView
-      renderTabBar={() => renderTabBar()}
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChangeTab={(event: any) => onTabBarChange(event)}
-      style={styles.tabContentContainer}
-    >
-      <CustomTabView
-        tabLabel={strings(`reveal_credential.text`)}
-        style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
+    <View style={styles.tabContainer}>
+      <ScrollableTabView
+        renderTabBar={() => renderTabBar()}
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onChangeTab={(event: any) => onTabBarChange(event)}
+        style={styles.tabContentContainer}
       >
-        <Text style={styles.boldText}>
-          {strings(`reveal_credential.${privCredentialName}`)}
-        </Text>
-        <View style={styles.seedPhraseView}>
-          <TextInput
-            value={clipboardPrivateCredential}
-            numberOfLines={3}
-            multiline
-            selectTextOnFocus
-            style={styles.seedPhrase}
-            editable={false}
-            testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
-            placeholderTextColor={colors.text.muted}
-            keyboardAppearance={themeAppearance}
-          />
-          {clipboardEnabled ? (
-            <Button
-              label={strings('reveal_credential.copy_to_clipboard')}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Sm}
-              onPress={() =>
-                copyPrivateCredentialToClipboard(privCredentialName)
-              }
-              testID={
-                RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
-              }
-              style={styles.clipboardButton}
-            />
-          ) : null}
-        </View>
-      </CustomTabView>
-      <CustomTabView
-        tabLabel={strings(`reveal_credential.qr_code`)}
-        style={styles.tabContent}
-        testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
-      >
-        <View
-          style={styles.qrCodeWrapper}
-          testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
+        <CustomTabView
+          tabLabel={strings(`reveal_credential.text`)}
+          testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_TEXT}
         >
-          <QRCode
-            value={clipboardPrivateCredential}
-            size={Dimensions.get('window').width - 176}
-          />
-        </View>
-      </CustomTabView>
-    </ScrollableTabView>
+          <Text style={styles.boldText}>
+            {strings(`reveal_credential.${privCredentialName}`)}
+          </Text>
+          <View style={styles.seedPhraseView}>
+            <TextInput
+              value={clipboardPrivateCredential}
+              numberOfLines={3}
+              multiline
+              selectTextOnFocus
+              style={styles.seedPhrase}
+              editable={false}
+              testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
+              placeholderTextColor={colors.text.muted}
+              keyboardAppearance={themeAppearance}
+            />
+            {clipboardEnabled ? (
+              <Button
+                label={strings('reveal_credential.copy_to_clipboard')}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Sm}
+                onPress={() =>
+                  copyPrivateCredentialToClipboard(privCredentialName)
+                }
+                testID={
+                  RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
+                }
+                style={styles.clipboardButton}
+              />
+            ) : null}
+          </View>
+        </CustomTabView>
+        <CustomTabView
+          tabLabel={strings(`reveal_credential.qr_code`)}
+          testID={RevealSeedViewSelectorsIDs.TAB_SCROLL_VIEW_QR_CODE}
+        >
+          <View
+            style={styles.qrCodeWrapper}
+            testID={
+              RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID
+            }
+          >
+            <QRCode
+              value={clipboardPrivateCredential}
+              size={Dimensions.get('window').width - 200}
+            />
+          </View>
+        </CustomTabView>
+      </ScrollableTabView>
+    </View>
   );
 
   const renderPasswordEntry = () => (
@@ -621,6 +612,7 @@ const RevealPrivateCredential = ({
           color={colors.error.default}
           name={IconName.EyeSlash}
           size={IconSize.Lg}
+          style={styles.icon}
         />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
@@ -642,7 +634,7 @@ const RevealPrivateCredential = ({
 
   return (
     <View
-      style={[styles.wrapper]}
+      style={styles.wrapper}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <ActionView
@@ -665,11 +657,14 @@ const RevealPrivateCredential = ({
         scrollViewTestID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
-        contentContainerStyle={styles.stretch}
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={40}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView>
+        <View>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -694,11 +689,9 @@ const RevealPrivateCredential = ({
           {unlocked ? (
             renderTabView(credentialSlug)
           ) : (
-            <View style={[styles.rowWrapper, styles.stretch]}>
-              {renderPasswordEntry()}
-            </View>
+            <View style={styles.rowWrapper}>{renderPasswordEntry()}</View>
           )}
-        </ScrollView>
+        </View>
       </ActionView>
       {renderModal(isPrivateKey)}
 

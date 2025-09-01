@@ -23,15 +23,29 @@ export function getMultichainAccountName(
 
   switch (clientType) {
     case WalletClientType.Bitcoin: {
-      if (scope === BtcScope.Testnet) {
-        accountNameToUse = `${strings(
-          'accounts.labels.bitcoin_testnet_account_name',
-        )} ${accountNumber}`;
-        break;
+      switch (scope) {
+        case BtcScope.Testnet:
+        case BtcScope.Testnet4:
+          accountNameToUse = `${strings(
+            'accounts.labels.bitcoin_testnet_account_name',
+          )} ${accountNumber}`;
+          break;
+        case BtcScope.Signet:
+          accountNameToUse = `${strings(
+            'accounts.labels.bitcoin_signet_account_name',
+          )} ${accountNumber}`;
+          break;
+        case BtcScope.Regtest:
+          accountNameToUse = `${strings(
+            'accounts.labels.bitcoin_regtest_account_name',
+          )} ${accountNumber}`;
+          break;
+        default:
+          accountNameToUse = `${strings(
+            'accounts.labels.bitcoin_account_name',
+          )} ${accountNumber}`;
+          break;
       }
-      accountNameToUse = `${strings(
-        'accounts.labels.bitcoin_account_name',
-      )} ${accountNumber}`;
       break;
     }
     case WalletClientType.Solana: {

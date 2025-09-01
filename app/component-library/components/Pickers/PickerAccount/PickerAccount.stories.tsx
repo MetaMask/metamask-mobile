@@ -1,36 +1,35 @@
 /* eslint-disable react/display-name */
-// External dependencies.
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
+// Third party dependencies.
+import React from 'react';
 
 // Internal dependencies.
 import { default as PickerAccountComponent } from './PickerAccount';
 import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
+import { TouchableOpacityProps, View } from 'react-native';
+import { PickerAccountProps } from './PickerAccount.types';
 
 const PickerAccountMeta = {
   title: 'Component Library / Pickers',
   component: PickerAccountComponent,
   argTypes: {
-    accountAddress: {
-      control: { type: 'text' },
-      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountAddress,
-    },
-    accountAvatarType: {
-      options: AvatarAccountType,
-      control: {
-        type: 'select',
-      },
-      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountAvatarType,
-    },
     accountName: {
       control: { type: 'text' },
-      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.accountName,
-    },
-    showAddress: {
-      control: { type: 'boolean' },
-      defaultValue: SAMPLE_PICKERACCOUNT_PROPS.showAddress,
     },
   },
 };
 export default PickerAccountMeta;
 
-export const PickerAccount = {};
+export const PickerAccount = {
+  args: {
+    accountName: SAMPLE_PICKERACCOUNT_PROPS.accountName,
+  },
+  render: (
+    args: React.JSX.IntrinsicAttributes &
+      PickerAccountProps &
+      React.RefAttributes<
+        React.ForwardRefExoticComponent<
+          TouchableOpacityProps & React.RefAttributes<View>
+        >
+      >,
+  ) => <PickerAccountComponent {...args} />,
+};

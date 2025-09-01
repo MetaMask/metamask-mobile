@@ -24,6 +24,7 @@ export const IncreaseDecreaseAllowance = () => {
     decimals,
     tokenBalance,
     tokenStandard,
+    tokenSymbol,
     rawAmount,
     spender,
   } = useApproveTransactionData();
@@ -45,8 +46,9 @@ export const IncreaseDecreaseAllowance = () => {
               approveMethod: approveMethod as ApproveMethod,
               balance: tokenBalance ?? '0',
               decimals: decimals ?? 1,
-              spendingCap: rawAmount ?? '0',
               onSpendingCapUpdate,
+              spendingCap: rawAmount ?? '0',
+              tokenSymbol,
             }}
           />
           <Pill

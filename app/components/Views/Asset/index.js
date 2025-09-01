@@ -35,7 +35,6 @@ import {
   areAddressesEqual,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForNonEvmChainId,
   findBlockExplorerForRpc,
@@ -54,6 +53,12 @@ import {
   isNetworkRampSupported,
 } from '../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import {
+  selectDepositActiveFlag,
+  selectDepositMinimumVersionFlag,
+} from '../../../selectors/featureFlagController/deposit';
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
 import Device from '../../../util/device';
 import {
   selectConversionRate,
@@ -74,12 +79,16 @@ import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
+import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsUnifiedSwapsEnabled,
+  selectIsSwapsLive,
+} from '../../../core/redux/slices/bridge';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -188,6 +197,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Boolean that indicates if deposit functionality is enabled
+     */
+    isDepositEnabled: PropTypes.bool,
     /**
      * Function to set the swaps liveness
      */
@@ -587,9 +600,12 @@ class Asset extends PureComponent {
         ? isBridgeAllowed(asset.chainId)
         : isBridgeAllowed(chainId));
 
-    const displayBuyButton = asset.isETH
+    // Fund button should be visible if either deposit OR ramp is available
+    const isDepositAvailable = this.props.isDepositEnabled;
+    const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
+    const displayFundButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -604,7 +620,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -630,7 +646,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -669,39 +685,36 @@ let cacheKey = null;
 const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
+  const asset = route.params;
 
   let allTransactions = evmTransactions;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (
-    selectedInternalAccount &&
-    !isEvmAccountType(selectedInternalAccount.type) &&
-    route.params?.chainId &&
-    isNonEvmChainId(route.params.chainId)
-  ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+  if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
+    const nonEvmTransactions = selectNonEvmTransactions(state);
+    const txs = nonEvmTransactions?.transactions || [];
 
     const assetAddress = route.params?.address?.toLowerCase();
     const assetSymbol = route.params?.symbol?.toLowerCase();
     const isNativeAsset = route.params?.isNative || route.params?.isETH;
 
     const newCacheKey = JSON.stringify({
-      txCount: solanaTransactions.length,
+      txCount: txs.length,
       assetAddress,
       assetSymbol,
       isNativeAsset,
-      lastTxId: solanaTransactions[0]?.id,
+      lastTxId: txs[0]?.id,
     });
 
     let filteredTransactions;
     if (cacheKey === newCacheKey && cachedFilteredTransactions) {
       filteredTransactions = cachedFilteredTransactions;
     } else {
-      filteredTransactions = solanaTransactions;
+      filteredTransactions = txs;
 
       if (isNativeAsset) {
-        filteredTransactions = solanaTransactions.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+        filteredTransactions = txs.filter((tx) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
           if (!txData || txData.length === 0) {
             return false;
@@ -718,23 +731,20 @@ const mapStateToProps = (state, { route }) => {
 
           const allParticipantsAreNativeSol = participantsWithAssets.every(
             (participant) => {
-              const assetType = participant.asset.type || '';
-              const assetUnit = participant.asset.unit || '';
-
-              const isNativeSol =
-                assetUnit.toLowerCase() === 'sol' &&
-                assetType.includes('slip44:501') &&
-                !assetType.includes('/token:');
-
-              return isNativeSol;
+              const assetId = participant.asset.type;
+              return (
+                AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+                  route.params.chainId
+                ]?.nativeCurrency === assetId
+              );
             },
           );
 
           return allParticipantsAreNativeSol;
         });
       } else if (assetAddress || assetSymbol) {
-        filteredTransactions = solanaTransactions.filter((tx) => {
-          const txData = tx.from || tx.to || [];
+        filteredTransactions = txs.filter((tx) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
           const involvesToken = txData.some((participant) => {
             if (participant.asset && typeof participant.asset === 'object') {
@@ -771,7 +781,7 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: getSwapsIsLive(state, route.params.chainId),
+    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
     swapsTokens: isPortfolioViewEnabled()
       ? swapsTokensMultiChainObjectSelector(state)
       : swapsTokensObjectSelector(state),
@@ -796,6 +806,17 @@ const mapStateToProps = (state, { route }) => {
       selectChainId(state),
       getRampNetworks(state),
     ),
+    isDepositEnabled: (() => {
+      const depositMinimumVersionFlag = selectDepositMinimumVersionFlag(state);
+      const depositActiveFlag = selectDepositActiveFlag(state);
+
+      if (!depositMinimumVersionFlag) return false;
+      const currentVersion = getVersion();
+      return (
+        depositActiveFlag &&
+        compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
+      );
+    })(),
     networkClientId: selectNetworkClientId(state),
     isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };

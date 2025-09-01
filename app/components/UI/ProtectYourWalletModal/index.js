@@ -13,6 +13,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -93,6 +94,10 @@ class ProtectYourWalletModal extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * A boolean representing if the user is in the seedless onboarding login flow
+     */
+    isSeedlessOnboardingLoginFlow: PropTypes.bool,
   };
 
   goToBackupFlow = () => {
@@ -140,6 +145,11 @@ class ProtectYourWalletModal extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    // will not render if the user is in the seedless onboarding login flow
+    if (this.props.isSeedlessOnboardingLoginFlow) {
+      return null;
+    }
+
     return (
       <ActionModal
         modalVisible={this.props.protectWalletModalVisible}
@@ -151,6 +161,8 @@ class ProtectYourWalletModal extends PureComponent {
         cancelButtonMode={'sign'}
         confirmButtonMode={'transparent-blue'}
         verticalButtons
+        cancelTestID={ProtectWalletModalSelectorsIDs.CANCEL_BUTTON}
+        confirmTestID={ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON}
       >
         <View
           style={styles.wrapper}
@@ -180,7 +192,10 @@ class ProtectYourWalletModal extends PureComponent {
             </Text>
           </Text>
 
-          <TouchableOpacity onPress={this.onLearnMore}>
+          <TouchableOpacity
+            onPress={this.onLearnMore}
+            testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
+          >
             <Text style={styles.learnMoreText}>
               {strings('protect_wallet_modal.action')}
             </Text>
@@ -194,6 +209,7 @@ class ProtectYourWalletModal extends PureComponent {
 const mapStateToProps = (state) => ({
   protectWalletModalVisible: state.user.protectWalletModalVisible,
   passwordSet: state.user.passwordSet,
+  isSeedlessOnboardingLoginFlow: selectSeedlessOnboardingLoginFlow(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

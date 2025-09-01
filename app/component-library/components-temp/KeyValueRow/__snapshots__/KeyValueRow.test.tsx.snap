@@ -221,7 +221,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={20}
             name="Question"
@@ -311,7 +311,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={20}
             name="Question"
@@ -407,7 +407,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={20}
             name="Question"
@@ -484,7 +484,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9ca1af"
+            color="#b7bbc8"
             fill="currentColor"
             height={20}
             name="Question"

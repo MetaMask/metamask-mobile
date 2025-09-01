@@ -519,7 +519,7 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#f3f5f9",
                                     "borderRadius": 10,
                                     "marginTop": 16,
                                     "maxHeight": "auto",
@@ -545,27 +545,52 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     }
                                   >
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      focusable={true}
+                                      onClick={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
                                           "backgroundColor": "transparent",
-                                          "borderColor": "#4459ff",
+                                          "borderColor": "#b7bbc8",
                                           "borderRadius": 8,
                                           "borderWidth": 0,
+                                          "display": "flex",
+                                          "flex": 1,
                                           "flexDirection": "row",
                                           "height": 66,
                                           "opacity": 1,
                                           "paddingHorizontal": 0,
-                                          "width": "100%",
                                         }
                                       }
                                       testID="textfield"
                                     >
                                       <View
                                         style={
-                                          {
-                                            "flex": 1,
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
                                         }
                                       >
                                         <TextInput
@@ -581,9 +606,9 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           onChangeText={[Function]}
                                           onFocus={[Function]}
                                           onKeyPress={[Function]}
+                                          onSubmitEditing={[Function]}
                                           placeholder="Add a space between each word and make sure no one is watching."
                                           placeholderTextColor="#686e7d"
-                                          secureTextEntry={true}
                                           showSoftInputOnFocus={true}
                                           spellCheck={false}
                                           style={
@@ -592,6 +617,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#686e7d",
+                                              "display": "flex",
+                                              "flex": 1,
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -599,7 +626,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
-                                              "width": "100%",
                                             }
                                           }
                                           submitBehavior="submit"
@@ -717,7 +743,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
-                                onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={

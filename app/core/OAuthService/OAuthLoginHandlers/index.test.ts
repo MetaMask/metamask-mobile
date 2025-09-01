@@ -209,9 +209,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -224,9 +223,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleIosAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -294,9 +292,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleIosGoogleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginError,
           );
         }
       });
@@ -380,9 +377,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -397,9 +393,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -463,6 +458,44 @@ describe('OAuth login handlers', () => {
           expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
           expect((error as OAuthError).message).toContain(
             'Unknown error - handleGoogleLogin: Unknown error',
+          );
+        }
+      });
+
+      // no credentials
+      it('should throw GoogleLoginNoCredential when no credentials are found', async () => {
+        const message = 'e1 error Mo.m: No credential available';
+        mockSignInWithGoogle.mockRejectedValue(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        try {
+          await handler.login();
+        } catch (error) {
+          expect(error).toBeInstanceOf(OAuthError);
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginNoCredential,
+          );
+          expect((error as OAuthError).message).toContain(
+            `Google login has no credential - handleGoogleLogin: Google login has no credential`,
+          );
+        }
+      });
+
+      it('should throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
+        const message =
+          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
+        mockSignInWithGoogle.mockRejectedValue(new Error(message));
+
+        const handler = createLoginHandler('android', AuthConnection.Google);
+        try {
+          await handler.login();
+        } catch (error) {
+          expect(error).toBeInstanceOf(OAuthError);
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
+          expect((error as OAuthError).message).toContain(
+            `Google login has no matching credential - handleGoogleLogin: Google login has no matching credential`,
           );
         }
       });

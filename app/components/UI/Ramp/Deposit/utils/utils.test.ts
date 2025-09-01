@@ -8,6 +8,7 @@ import {
   hasDepositOrderField,
   generateThemeParameters,
   timestampToTransakFormat,
+  getCryptoCurrencyFromTransakId,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -16,7 +17,15 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import { DepositPaymentMethod } from '../constants';
+import {
+  DepositPaymentMethod,
+  USDC_BASE_TOKEN,
+  USDC_LINEA_TOKEN,
+  USDC_TOKEN,
+  USDT_BASE_TOKEN,
+  USDT_LINEA_TOKEN,
+  USDT_TOKEN,
+} from '../constants';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { AppThemeKey } from '../../../../../util/theme/models';
@@ -53,7 +62,6 @@ describe('Transak Utils', () => {
           iconUrl: 'usdc-icon',
           name: 'USD Coin',
           chainId: 'eip155:1',
-          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           symbol: 'USDC',
           decimals: 6,
         }),
@@ -67,7 +75,6 @@ describe('Transak Utils', () => {
           iconUrl: 'usdt-icon',
           name: 'Tether USD',
           chainId: 'eip155:1',
-          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
           symbol: 'USDT',
           decimals: 6,
         }),
@@ -81,7 +88,6 @@ describe('Transak Utils', () => {
           iconUrl: 'unsupported-icon',
           name: 'Unsupported',
           chainId: 'eip155:1',
-          address: '0x123',
           symbol: 'UNS',
           decimals: 18,
         }),
@@ -130,9 +136,9 @@ describe('Transak Utils', () => {
     });
 
     it('should throw error for unsupported chain', () => {
-      expect(() => getTransakChainId('unsupported')).toThrow(
-        'Unsupported chain: unsupported',
-      );
+      expect(() =>
+        getTransakChainId('unsupported' as unknown as `${string}:${string}`),
+      ).toThrow('Unsupported chain: unsupported');
     });
   });
 
@@ -156,6 +162,48 @@ describe('Transak Utils', () => {
           duration: 'unknown',
         } as unknown as DepositPaymentMethod),
       ).toThrow('Unsupported payment method: unsupported');
+    });
+  });
+
+  describe('getCryptoCurrencyFromTransakId', () => {
+    it('should return the correct crypto currency for Ethereum USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'ethereum');
+      expect(result?.assetId).toBe(USDC_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Linea USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'linea');
+      expect(result?.assetId).toBe(USDC_LINEA_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Base USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'base');
+      expect(result?.assetId).toBe(USDC_BASE_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Ethereum USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'ethereum');
+      expect(result?.assetId).toBe(USDT_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Linea USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'linea');
+      expect(result?.assetId).toBe(USDT_LINEA_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Base USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'base');
+      expect(result?.assetId).toBe(USDT_BASE_TOKEN.assetId);
+    });
+
+    it('should return null for unsupported crypto currency', () => {
+      const result = getCryptoCurrencyFromTransakId('UNSUPPORTED', 'ethereum');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for unsupported network', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'unsupported');
+      expect(result).toBeNull();
     });
   });
 });

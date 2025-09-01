@@ -48,7 +48,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c7e33",
+          "color": "#457a39",
           "fontFamily": "Geist Bold",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -107,7 +107,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#3c4d9d1a",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,

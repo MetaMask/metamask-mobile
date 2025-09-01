@@ -1,26 +1,30 @@
 import { ConfirmationFooterSelectorIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../utils/Matchers';
-import Gestures from '../../../utils/Gestures';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 class FooterActions {
-  get confirmButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+  get confirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    );
   }
 
-  get cancelButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(ConfirmationFooterSelectorIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
+  get cancelButton(): DetoxElement {
+    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
-  async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButton);
+  async tapConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm button',
+      delay: 1800,
+    });
   }
 
-  async tapCancelButton() {
-    await Gestures.waitAndTap(this.cancelButton);
+  async tapCancelButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel button',
+      delay: 1800,
+    });
   }
 }
 

@@ -1,39 +1,37 @@
-'use strict';
-import { loginToApp } from '../../viewHelper.js';
+import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper.js';
-import QuoteView from '../../pages/Bridge/QuoteView.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import FixtureServer from '../../fixtures/fixture-server.js';
-import WalletView from '../../pages/wallet/WalletView.js';
-import TestHelpers from '../../helpers.js';
-import { SmokeTrade } from '../../tags.js';
-import Assertions from '../../utils/Assertions.js';
-import Ganache from '../../../app/util/test/ganache.js';
-import AdvancedSettingsView from '../../pages/Settings/AdvancedView.js';
-import SettingsView from '../../pages/Settings/SettingsView.js';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.js';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js';
-import NetworkListModal from '../../pages/Network/NetworkListModal.js';
+} from '../../framework/fixtures/FixtureHelper';
+import QuoteView from '../../pages/Bridge/QuoteView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
+import WalletView from '../../pages/wallet/WalletView';
+import TestHelpers from '../../helpers';
+import { SmokeTrade } from '../../tags';
+import Assertions from '../../framework/Assertions';
+import Ganache from '../../../app/util/test/ganache';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
+import SettingsView from '../../pages/Settings/SettingsView';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../fixtures/utils.js';
-import { startMockServer } from '../bridge/bridge-mocks.js';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { localNodeOptions, testSpecificMock } from '../bridge/constants.js';
+} from '../../framework/fixtures/FixtureUtils';
+import { startMockServer } from '../bridge/bridge-mocks';
+import { stopMockServer } from '../../api-mocking/mock-server';
+import { localNodeOptions, testSpecificMock } from '../bridge/constants';
 import { Mockttp, MockttpServer } from 'mockttp';
-import { getEventsPayloads } from '../analytics/helpers.js';
-import SoftAssert from '../../utils/SoftAssert.js';
+import { getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../utils/SoftAssert';
 
 const fixtureServer = new FixtureServer();
 
@@ -46,6 +44,7 @@ enum eventsToCheck {
   UNIFIED_SWAPBRIDGE_COMPLETED = 'Unified SwapBridge Completed',
 }
 
+// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
   const FIRST_ROW = 0;
   let mockServer: Mockttp;
@@ -89,47 +88,47 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await Assertions.expectElementToBeVisible(
+      AccountListBottomSheet.accountList,
+    );
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(
+    await Assertions.expectElementToNotBeVisible(
       NetworkEducationModal.container as DetoxElement,
     );
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(
+    await Assertions.expectElementToNotBeVisible(
       NetworkEducationModal.container as DetoxElement,
     );
-    await Assertions.checkIfVisible(WalletView.container);
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await Assertions.expectElementToBeVisible(WalletView.container);
+    await WalletView.tapWalletSwapButton();
     await QuoteView.tapSwapTo();
     await device.disableSynchronization();
     await QuoteView.selectNetwork('Solana');
     await QuoteView.tapToken(destChainId, 'SOL');
     await QuoteView.enterAmount('1');
-    await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
+    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
 
     // Check the bridge activity completed
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
       ActivitiesView.bridgeActivityTitle('Solana'),
     );
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(
         FIRST_ROW,
       ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      30000,
     );
 
     // Gather the events from this test to assert later in another test
@@ -363,27 +362,27 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const destChainId = '0x2105';
 
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await Assertions.expectElementToBeVisible(WalletView.container);
+    await WalletView.tapWalletSwapButton();
     await device.disableSynchronization();
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('Base');
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
-    await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
+    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
 
     // Check the bridge activity completed
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(ActivitiesView.bridgeActivityTitle('Base'));
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
+      ActivitiesView.bridgeActivityTitle('Base'),
+    );
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(
         FIRST_ROW,
       ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      30000,
     );
   });
 
@@ -391,35 +390,32 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const destChainId = '0xa';
 
     await TabBarComponent.tapWallet();
-    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.expectElementToBeVisible(WalletView.container);
 
     await TabBarComponent.tapSettings();
     await SettingsView.tapAdvancedTitle();
-    await TestHelpers.delay(500);
 
     await AdvancedSettingsView.tapSmartTransactionSwitch();
     await TabBarComponent.tapWallet();
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSwapButton();
+    await WalletView.tapWalletSwapButton();
     await QuoteView.tapSwapTo();
     await QuoteView.selectNetwork('OP Mainnet');
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
-    await Assertions.checkIfVisible(QuoteView.networkFeeLabel, 60000);
-    await Assertions.checkIfVisible(QuoteView.confirmBridge);
+    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
+    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
 
     // Check the bridge activity completed
-    await Assertions.checkIfVisible(ActivitiesView.title);
-    await Assertions.checkIfVisible(
+    await Assertions.expectElementToBeVisible(ActivitiesView.title);
+    await Assertions.expectElementToBeVisible(
       ActivitiesView.bridgeActivityTitle('Optimism'),
     );
-    await Assertions.checkIfElementToHaveText(
+    await Assertions.expectElementToHaveText(
       ActivitiesView.transactionStatus(
         FIRST_ROW,
       ) as Promise<IndexableNativeElement>,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      30000,
     );
   });
 });

@@ -33,7 +33,6 @@ const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 const createStyles = (colors, brandColors) =>
   StyleSheet.create({
     itemWrapper: {
-      paddingHorizontal: 15,
       paddingBottom: 16,
     },
     collectibleContractIcon: { width: 30, height: 30 },

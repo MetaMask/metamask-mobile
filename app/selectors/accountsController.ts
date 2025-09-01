@@ -17,14 +17,10 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
-  isBtcAccount,
-  isBtcMainnetAddress,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  isBtcTestnetAddress,
-  ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
-import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
+import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -35,7 +31,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-const selectAccountsControllerState = (state: RootState) =>
+export const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
@@ -224,7 +220,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(BtcMethod.SendBitcoin)) ??
+      selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
 
@@ -236,29 +232,7 @@ export const selectHasCreatedSolanaMainnetAccount = createSelector(
   (accounts) => accounts.some((account) => isSolanaAccount(account)),
 );
 
-/**
- * A selector that returns whether the user has already created a Bitcoin mainnet account
- */
-export const selectHasCreatedBtcMainnetAccount = createSelector(
-  selectInternalAccounts,
-  (accounts) =>
-    accounts.some(
-      (account) =>
-        isBtcAccount(account) && isBtcMainnetAddress(account.address),
-    ),
-);
-
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
-/**
- * A selector that returns whether the user has already created a Bitcoin testnet account
- */
-export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
-  const accounts = selectInternalAccounts(state);
-  return accounts.some(
-    (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
-  );
-}
 
 /**
  * A selector that returns the solana account address
@@ -276,3 +250,31 @@ export const selectSolanaAccount = createSelector(
 );
 
 ///: END:ONLY_INCLUDE_IF
+
+/**
+ * A memoized selector that returns all internal accounts that are valid for a given scope.
+ *
+ * For EVM scopes (eip155:*), this returns all accounts that have any EVM scope
+ * (i.e., any scope that starts with 'eip155:'). For non-EVM scopes, this returns
+ * all accounts that include the exact scope.
+ */
+export const selectInternalAccountsByScope = createDeepEqualSelector(
+  [
+    selectInternalAccountsById,
+    (_state: RootState, scope: CaipChainId) => scope,
+  ],
+  (
+    accountsMap: Record<AccountId, InternalAccount>,
+    scope: CaipChainId,
+  ): InternalAccount[] => {
+    const accounts = Object.values(accountsMap);
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      return [];
+    }
+
+    return accounts.filter(
+      (account) =>
+        Array.isArray(account.scopes) && anyScopesMatch(account.scopes, scope),
+    );
+  },
+);

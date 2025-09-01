@@ -60,15 +60,8 @@ export interface TradingDefaultsConfig {
 
 // Fee configuration interface
 export interface FeeRatesConfig {
-  market: number;
-  limit: number;
-}
-
-// Risk management interface
-export interface RiskManagementConfig {
-  maintenanceMargin: number;
-  fallbackMaxLeverage: number;
-  fallbackBalancePercent: number;
+  taker: number;
+  maker: number;
 }
 
 // Network type helper

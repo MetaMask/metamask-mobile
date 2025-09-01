@@ -390,7 +390,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -406,7 +406,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -420,7 +420,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -455,7 +455,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -470,7 +470,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -890,7 +890,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -906,7 +906,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -920,7 +920,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -955,7 +955,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -970,7 +970,7 @@ exports[`OnboardingCarousel Image Padding should call getStarted button and show
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1390,7 +1390,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1406,7 +1406,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1420,7 +1420,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1455,7 +1455,7 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1470,7 +1470,507 @@ exports[`OnboardingCarousel Image Padding should change the carousel when the us
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
+              "fontFamily": "Geist Medium",
+              "fontSize": 16,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Get started
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+</View>
+`;
+
+exports[`OnboardingCarousel Image Padding should use android medium device 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+  testID="onboarding-carousel-screen"
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flex": 1,
+        },
+        {
+          "backgroundColor": "#E5FFC3",
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+          "justifyContent": "space-between",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "justifyContent": "space-between",
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            }
+          }
+          testID="welcome-screen-carousel-container-id"
+        >
+          <View
+            onChangeTab={[Function]}
+            renderTabBar={[Function]}
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "marginHorizontal": 16,
+                    "minHeight": 30,
+                    "position": "relative",
+                  }
+                }
+                testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "paddingVertical": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="app-start-time-id"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                    "minHeight": 180,
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 750,
+                        "resizeMode": "contain",
+                        "width": 600,
+                      },
+                    ]
+                  }
+                  testID="carousel-one-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 2,
+                    "flexDirection": "column",
+                    "gap": 12,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 12,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#190066",
+                      "fontFamily": "MMSans-Regular",
+                      "fontSize": 30,
+                      "justifyContent": "center",
+                      "letterSpacing": 0,
+                      "lineHeight": 30,
+                      "paddingHorizontal": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Welcome to MetaMask
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#190066",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "marginHorizontal": 16,
+                    "minHeight": 30,
+                    "position": "relative",
+                  }
+                }
+                testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles."\`]"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "paddingVertical": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="app-start-time-id"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                    "minHeight": 180,
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 750,
+                        "resizeMode": "contain",
+                        "width": 600,
+                      },
+                    ]
+                  }
+                  testID="carousel-two-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 2,
+                    "flexDirection": "column",
+                    "gap": 12,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 12,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#3D065F",
+                      "fontFamily": "MMSans-Regular",
+                      "fontSize": 30,
+                      "justifyContent": "center",
+                      "letterSpacing": 0,
+                      "lineHeight": 30,
+                      "paddingHorizontal": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Manage your digital assets
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#3D065F",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Store, spend and send digital assets like tokens, Ethereum, unique collectibles.
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "marginHorizontal": 16,
+                    "minHeight": 30,
+                    "position": "relative",
+                  }
+                }
+                testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all. Manage your digital assets Store, spend and send digital assets like tokens, ethereum, unique collectibles. Your gateway to web3 Login with MetaMask and make transactions to invest, earn, play games, sell and more!"\`]"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "paddingVertical": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="app-start-time-id"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                    "minHeight": 180,
+                    "paddingHorizontal": 16,
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    [
+                      {},
+                      {
+                        "height": 750,
+                        "resizeMode": "contain",
+                        "width": 600,
+                      },
+                    ]
+                  }
+                  testID="carousel-three-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 2,
+                    "flexDirection": "column",
+                    "gap": 12,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 16,
+                    "paddingVertical": 12,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#190066",
+                      "fontFamily": "MMSans-Regular",
+                      "fontSize": 30,
+                      "justifyContent": "center",
+                      "letterSpacing": 0,
+                      "lineHeight": 30,
+                      "paddingHorizontal": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Your gateway to web3
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#190066",
+                      "fontFamily": "Geist Regular",
+                      "fontSize": 14,
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Login with MetaMask and make transactions to invest, earn, play games, sell and more!
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignSelf": "center",
+                "flexDirection": "row",
+                "paddingTop": 16,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "height": 2,
+                    "marginHorizontal": 2,
+                    "opacity": 0.4,
+                    "width": 10,
+                  },
+                  {
+                    "opacity": 1,
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "height": 2,
+                    "marginHorizontal": 2,
+                    "opacity": 0.4,
+                    "width": 10,
+                  },
+                  {},
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "height": 2,
+                    "marginHorizontal": 2,
+                    "opacity": 0.4,
+                    "width": 10,
+                  },
+                  {},
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "paddingBottom": 20,
+          "paddingHorizontal": 16,
+          "paddingTop": 12,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#1C1E21",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="welcome-screen-get-started-button-id"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1890,7 +2390,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1906,7 +2406,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1920,7 +2420,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -1955,7 +2455,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1970,7 +2470,7 @@ exports[`OnboardingCarousel Image Padding should use android padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2076,7 +2576,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2134,7 +2633,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2152,7 +2650,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2187,7 +2684,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2245,7 +2741,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#3D065F",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2263,7 +2758,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#3D065F",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2298,7 +2792,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
                       "fontSize": 14,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                       "paddingVertical": 16,
@@ -2356,7 +2849,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "MM Sans Regular",
                       "fontSize": 40,
-                      "fontWeight": "400",
                       "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 40,
@@ -2374,7 +2866,6 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
                       "color": "#190066",
                       "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                       "textAlign": "center",
@@ -2399,7 +2890,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2415,7 +2906,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2429,7 +2920,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2464,7 +2955,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -2479,10 +2970,9 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
-              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -2900,7 +3390,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2916,7 +3406,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2930,7 +3420,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -2965,7 +3455,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -2980,7 +3470,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for small s
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3400,7 +3890,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3416,7 +3906,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3430,7 +3920,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3465,7 +3955,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -3480,7 +3970,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3900,7 +4390,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3916,7 +4406,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3930,7 +4420,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -3965,7 +4455,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -3980,7 +4470,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5s padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4400,7 +4890,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4416,7 +4906,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4430,7 +4920,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4465,7 +4955,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -4480,7 +4970,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4900,7 +5390,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4916,7 +5406,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4930,7 +5420,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -4965,7 +5455,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -4980,7 +5470,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -5010,7 +5500,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
 </View>
 `;
 
-exports[`OnboardingCarousel should render the App Start Time text when isTest is true 1`] = `
+exports[`OnboardingCarousel should render the App Start Time text when isTest or isQa is true 1`] = `
 <View
   style={
     {
@@ -5400,7 +5890,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5416,7 +5906,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5430,7 +5920,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#1C1E21",
+                    "backgroundColor": "#121314",
                     "height": 2,
                     "marginHorizontal": 2,
                     "opacity": 0.4,
@@ -5465,7 +5955,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#1C1E21",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -5480,7 +5970,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#FFFFFF",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,

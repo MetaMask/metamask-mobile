@@ -258,7 +258,10 @@ const PriceChart = ({
   if (isLoading) {
     return (
       <View style={styles.chartLoading}>
-        <SkeletonPlaceholder>
+        <SkeletonPlaceholder
+          backgroundColor={theme.colors.background.section}
+          highlightColor={theme.colors.background.subsection}
+        >
           <SkeletonPlaceholder.Item
             width={Dimensions.get('screen').width - 32}
             height={CHART_HEIGHT}

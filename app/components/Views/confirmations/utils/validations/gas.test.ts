@@ -27,6 +27,10 @@ describe('gas-validations', () => {
       expect(validateGas('20000')).toBe('Gas limit must be greater than 21000');
     });
 
+    it('return error message when gas is not an integer', () => {
+      expect(validateGas('21000.5')).toBe('Only whole numbers are allowed');
+    });
+
     it('return false when gas is valid', () => {
       expect(validateGas('21000')).toBe(false);
       expect(validateGas('30000')).toBe(false);
@@ -61,6 +65,7 @@ describe('gas-validations', () => {
     it('return false when priority fee is valid', () => {
       expect(validatePriorityFee('5', '10')).toBe(false);
       expect(validatePriorityFee('10', '10')).toBe(false);
+      expect(validatePriorityFee('10.5', '10.5')).toBe(false);
     });
   });
 
@@ -92,6 +97,7 @@ describe('gas-validations', () => {
     it('return false when max base fee is valid', () => {
       expect(validateMaxBaseFee('6', '5')).toBe(false);
       expect(validateMaxBaseFee('10', '5')).toBe(false);
+      expect(validateMaxBaseFee('10.5', '5')).toBe(false);
     });
   });
 

@@ -43,8 +43,8 @@ import NetworkImageComponent from '../NetworkImages';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    wrapper: {
-      height: '85%',
+    container: {
+      flex: 1,
     },
     base: {
       padding: 16,
@@ -65,7 +65,7 @@ const createStyles = (colors: any) =>
       marginBottom: 15,
     },
     button: {
-      padding: 16,
+      paddingTop: 16,
     },
     searchInput: {
       paddingBottom: 16,
@@ -74,22 +74,16 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     networkSelectorContainer: {
-      marginHorizontal: 16,
       borderWidth: 1,
       marginTop: 16,
       borderColor: colors.border.default,
-      borderRadius: 2,
+      borderRadius: 8,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 10,
     },
     buttonIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    container: {
-      backgroundColor: colors.background.default,
       flexDirection: 'row',
       alignItems: 'center',
     },
@@ -366,8 +360,8 @@ const SearchTokenAutocomplete = ({
   ]);
 
   return (
-    <View>
-      <ScrollView style={styles.wrapper}>
+    <View style={styles.container}>
+      <ScrollView>
         <View>
           {renderTokenDetectionBanner()}
           <TouchableOpacity

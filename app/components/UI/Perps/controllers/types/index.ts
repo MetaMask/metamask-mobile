@@ -11,12 +11,15 @@ import type {
 // Export navigation types
 export * from '../../types/navigation';
 
+// Order type enumeration
+export type OrderType = 'market' | 'limit';
+
 // MetaMask Perps API order parameters for PerpsController
 export type OrderParams = {
   coin: string; // Asset symbol (e.g., 'ETH', 'BTC')
   isBuy: boolean; // true = BUY order, false = SELL order
   size: string; // Order size as string
-  orderType: 'market' | 'limit'; // Order type
+  orderType: OrderType; // Order type
   price?: string; // Limit price (required for limit orders)
   reduceOnly?: boolean; // Reduce-only flag
   timeInForce?: 'GTC' | 'IOC' | 'ALO'; // Time in force
@@ -28,6 +31,7 @@ export type OrderParams = {
   slippage?: number; // Slippage tolerance for market orders (e.g., 0.01 = 1%)
   grouping?: 'na' | 'normalTpsl' | 'positionTpsl'; // Override grouping (defaults: 'na' without TP/SL, 'normalTpsl' with TP/SL)
   currentPrice?: number; // Current market price (avoids extra API call if provided)
+  leverage?: number; // Leverage to apply for the order (e.g., 10 for 10x leverage)
 };
 
 export type OrderResult = {
@@ -59,6 +63,8 @@ export type Position = {
     sinceOpen: string; // Funding since position opened
     sinceChange: string; // Funding since last size change
   };
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
 };
 
 export type AccountState = {
@@ -66,13 +72,16 @@ export type AccountState = {
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
+  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
+  totalValue: string; // Based on HyperLiquid: accountValue
 };
 
 export type ClosePositionParams = {
   coin: string; // Asset symbol to close
   size?: string; // Size to close (omit for full close)
-  orderType?: 'market' | 'limit'; // Close order type (default: market)
+  orderType?: OrderType; // Close order type (default: market)
   price?: string; // Limit price (required for limit close)
+  currentPrice?: number; // Current market price for validation
 };
 
 export interface InitializeResult {
@@ -100,6 +109,50 @@ export interface MarketInfo {
   marginTableId: number; // HyperLiquid: margin requirements table ID
   onlyIsolated?: true; // HyperLiquid: isolated margin only (optional, only when true)
   isDelisted?: true; // HyperLiquid: delisted status (optional, only when true)
+  minimumOrderSize?: number; // Minimum order size in USD (protocol-specific)
+}
+
+/**
+ * Market data with prices for UI display
+ * Protocol-agnostic interface for market information with formatted values
+ */
+export interface PerpsMarketData {
+  /**
+   * Token symbol (e.g., 'BTC', 'ETH')
+   */
+  symbol: string;
+  /**
+   * Full token name (e.g., 'Bitcoin', 'Ethereum')
+   */
+  name: string;
+  /**
+   * Maximum leverage available as formatted string (e.g., '40x', '25x')
+   */
+  maxLeverage: string;
+  /**
+   * Current price as formatted string (e.g., '$50,000.00')
+   */
+  price: string;
+  /**
+   * 24h price change as formatted string (e.g., '+$1,250.00', '-$850.50')
+   */
+  change24h: string;
+  /**
+   * 24h price change percentage as formatted string (e.g., '+2.5%', '-1.8%')
+   */
+  change24hPercent: string;
+  /**
+   * Trading volume as formatted string (e.g., '$1.2B', '$850M')
+   */
+  volume: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -116,7 +169,11 @@ export interface AssetRoute {
     minAmount?: string; // Minimum deposit/withdrawal amount
     maxAmount?: string; // Maximum deposit/withdrawal amount
     estimatedTime?: string; // Estimated processing time
-    fees?: string; // Associated fees
+    fees?: {
+      fixed?: number; // Fixed fee amount (e.g., 1 for 1 token)
+      percentage?: number; // Percentage fee (e.g., 0.05 for 0.05%)
+      token?: string; // Fee token symbol (e.g., 'USDC', 'ETH')
+    };
   };
 }
 
@@ -190,6 +247,17 @@ export interface WithdrawResult {
   success: boolean;
   txHash?: string;
   error?: string;
+  withdrawalId?: string; // Unique ID for tracking
+  estimatedArrivalTime?: number; // Provider-specific arrival time
+}
+
+export interface GetHistoricalPortfolioParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface HistoricalPortfolioResult {
+  accountValue1dAgo: string;
+  timestamp: number;
 }
 
 export interface LiveDataConfig {
@@ -200,19 +268,32 @@ export interface LiveDataConfig {
 
 export interface PriceUpdate {
   coin: string; // Asset symbol
-  price: string; // Current price
+  price: string; // Current mid price (average of best bid and ask)
   timestamp: number; // Update timestamp
   percentChange24h?: string; // 24h price change percentage
+  // Order book data (only available when includeOrderBook is true)
+  bestBid?: string; // Best bid price (highest price buyers are willing to pay)
+  bestAsk?: string; // Best ask price (lowest price sellers are willing to accept)
+  spread?: string; // Ask - Bid spread
+  markPrice?: string; // Mark price from oracle (used for liquidations)
+  // Market data (only available when includeMarketData is true)
+  funding?: number; // Current funding rate
+  openInterest?: number; // Open interest in USD
+  volume24h?: number; // 24h trading volume in USD
 }
 
 export interface OrderFill {
   orderId: string; // Order ID that was filled
   symbol: string; // Asset symbol
-  side: string; // Order side (from SDK)
+  side: string; // Normalized order side ('buy' or 'sell')
   size: string; // Fill size
   price: string; // Fill price
+  pnl: string; // PNL
+  direction: string; // Direction of the fill
   fee: string; // Fee paid
+  feeToken: string; // Fee token symbol
   timestamp: number; // Fill timestamp
+  startPosition?: string; // Start position
   success?: boolean; // Whether the order was filled successfully
 }
 
@@ -226,6 +307,31 @@ export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
 
+export interface GetOrderFillsParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  user: Hex; // Optional: user address
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  aggregateByTime?: boolean; // Optional: aggregate by time
+}
+
+export interface GetOrdersParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
+export interface GetFundingParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
 export interface GetSupportedPathsParams {
   isTestnet?: boolean; // Optional: override current testnet state
   assetId?: CaipAssetId; // Optional: filter by specific asset
@@ -237,6 +343,8 @@ export interface SubscribePricesParams {
   symbols: string[];
   callback: (prices: PriceUpdate[]) => void;
   throttleMs?: number; // Future: per-subscription throttling
+  includeOrderBook?: boolean; // Optional: include bid/ask data from L2 book
+  includeMarketData?: boolean; // Optional: include funding, open interest, volume data
 }
 
 export interface SubscribePositionsParams {
@@ -251,6 +359,93 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface SubscribeOrdersParams {
+  callback: (orders: Order[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  includeHistory?: boolean; // Optional: include filled/canceled orders
+}
+
+export interface SubscribeAccountParams {
+  callback: (account: AccountState) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+export interface LiquidationPriceParams {
+  entryPrice: number;
+  leverage: number;
+  direction: 'long' | 'short';
+  positionSize?: number; // Optional: for more accurate calculations
+  marginType?: 'isolated' | 'cross'; // Optional: defaults to isolated
+  asset?: string; // Optional: for asset-specific maintenance margins
+}
+
+export interface MaintenanceMarginParams {
+  asset: string;
+  positionSize?: number; // Optional: for tiered margin systems
+}
+
+export interface FeeCalculationParams {
+  orderType: 'market' | 'limit';
+  isMaker?: boolean;
+  amount?: string;
+}
+
+export interface FeeCalculationResult {
+  // Total fees (protocol + MetaMask)
+  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeAmount?: number; // Total fee amount in USD (when amount is provided)
+
+  // Protocol-specific base fees
+  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeAmount?: number; // Protocol fee amount in USD
+
+  // MetaMask builder/revenue fee
+  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeAmount?: number; // MetaMask fee amount in USD
+
+  // Optional detailed breakdown for transparency
+  breakdown?: {
+    baseFeeRate: number;
+    volumeTier?: string;
+    volumeDiscount?: number;
+    stakingDiscount?: number;
+  };
+}
+
+export interface UpdatePositionTPSLParams {
+  coin: string; // Asset symbol
+  takeProfitPrice?: string; // Optional: undefined to remove
+  stopLossPrice?: string; // Optional: undefined to remove
+}
+
+export interface Order {
+  orderId: string; // Order ID
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  side: 'buy' | 'sell'; // Normalized order side
+  orderType: OrderType; // Order type (market/limit)
+  size: string; // Order size
+  originalSize: string; // Original order size
+  price: string; // Order price (for limit orders)
+  filledSize: string; // Amount filled
+  remainingSize: string; // Amount remaining
+  status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
+  timestamp: number; // Order timestamp
+  lastUpdated?: number; // Last status update timestamp (optional - not provided by all APIs)
+  // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
+  detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+  isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
+  reduceOnly?: boolean; // Whether this is a reduce-only order
+}
+
+export interface Funding {
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
+  rate: string; // Funding rate applied
+  timestamp: number; // Funding payment timestamp
+  transactionHash?: string; // Optional transaction hash
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -263,16 +458,78 @@ export interface IPerpsProvider {
   editOrder(params: EditOrderParams): Promise<OrderResult>;
   cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult>;
   closePosition(params: ClosePositionParams): Promise<OrderResult>;
+  updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
   getPositions(params?: GetPositionsParams): Promise<Position[]>;
   getAccountState(params?: GetAccountStateParams): Promise<AccountState>;
   getMarkets(): Promise<MarketInfo[]>;
+  getMarketDataWithPrices(): Promise<PerpsMarketData[]>;
   withdraw(params: WithdrawParams): Promise<WithdrawResult>; // API operation - stays in provider
   // Note: deposit() is handled by PerpsController routing (blockchain operation)
+  validateDeposit(
+    params: DepositParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific deposit validation
+  validateOrder(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific order validation
+  validateClosePosition(
+    params: ClosePositionParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific position close validation
+  validateWithdrawal(
+    params: WithdrawParams,
+  ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific withdrawal validation
+
+  // Historical data operations
+  /**
+   * Historical trade fills - actual executed trades with exact prices and fees.
+   * Purpose: Track what actually happened when orders were executed.
+   * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
+   */
+  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Get historical portfolio data
+   * Purpose: Retrieve account value from previous periods for PnL tracking
+   * Example: Get account value from yesterday to calculate 24h percentage change
+   * @param params - Optional parameters for historical portfolio retrieval
+   */
+  getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult>;
+
+  /**
+   * Historical order lifecycle - order placement, modifications, and status changes.
+   * Purpose: Track the complete journey of orders from request to completion.
+   * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
+   */
+  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Historical funding payments - periodic costs/rewards for holding positions.
+   * Purpose: Track ongoing expenses and income from position maintenance.
+   * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
+   */
+  getFunding(params?: GetFundingParams): Promise<Funding[]>;
+
+  // Protocol-specific calculations
+  calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
+  calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
+  getMaxLeverage(asset: string): Promise<number>;
+  calculateFees(params: FeeCalculationParams): Promise<FeeCalculationResult>;
 
   // Live data subscriptions → Direct UI (NO Redux, maximum speed)
   subscribeToPrices(params: SubscribePricesParams): () => void;
   subscribeToPositions(params: SubscribePositionsParams): () => void;
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
+  subscribeToOrders(params: SubscribeOrdersParams): () => void;
+  subscribeToAccount(params: SubscribeAccountParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;
@@ -282,4 +539,7 @@ export interface IPerpsProvider {
   initialize(): Promise<InitializeResult>;
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
+
+  // Block explorer
+  getBlockExplorerUrl(address?: string): string;
 }

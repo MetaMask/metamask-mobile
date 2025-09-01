@@ -1,4 +1,11 @@
 import { CaipChainId } from '@metamask/utils';
+import {
+  BASE_MAINNET,
+  BSC_MAINNET,
+  ETHEREUM_MAINNET,
+  LINEA_MAINNET,
+  SOLANA_MAINNET,
+} from './networks';
 
 export interface DepositFiatCurrency {
   id: string;
@@ -22,7 +29,11 @@ export const EUR_CURRENCY: DepositFiatCurrency = {
 };
 
 export const TRANSAK_NETWORKS: Record<string, CaipChainId> = {
-  ethereum: 'eip155:1',
+  ethereum: ETHEREUM_MAINNET.chainId,
+  linea: LINEA_MAINNET.chainId,
+  base: BASE_MAINNET.chainId,
+  solana: SOLANA_MAINNET.chainId,
+  bsc: BSC_MAINNET.chainId,
 };
 
 export const TRANSAK_SUPPORT_URL = 'https://support.transak.com';
@@ -54,4 +65,13 @@ export const VALIDATION_REGEX = {
   postCode: /^(?!\s*$).+/,
 };
 
-export const REDIRECTION_URL = 'https://metamask.io/';
+export const REDIRECTION_URL =
+  'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback';
+
+export enum TransakFormId {
+  ID_PROOF = 'idProof',
+  PURPOSE_OF_USAGE = 'purposeOfUsage',
+  PERSONAL_DETAILS = 'personalDetails',
+  ADDRESS = 'address',
+  US_SSN = 'usSSN',
+}

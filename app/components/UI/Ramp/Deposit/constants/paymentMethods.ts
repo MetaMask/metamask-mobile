@@ -8,6 +8,7 @@ import { AppThemeKey } from '../../../../../util/theme/models.ts';
 export interface DepositPaymentMethod {
   id: string;
   name: string;
+  shortName?: string;
   duration: 'instant' | '1_to_2_days';
   icon: IconName;
   iconColor?:
@@ -18,7 +19,7 @@ export interface DepositPaymentMethod {
 
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',
-  name: 'Debit or Credit',
+  name: 'Debit Card',
   duration: 'instant',
   icon: IconName.Card,
 };
@@ -26,6 +27,7 @@ export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
 export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'sepa_bank_transfer',
   name: 'SEPA Bank Transfer',
+  shortName: 'SEPA',
   duration: '1_to_2_days',
   icon: IconName.Bank,
 };
@@ -33,6 +35,7 @@ export const SEPA_PAYMENT_METHOD: DepositPaymentMethod = {
 export const WIRE_TRANSFER_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'wire_transfer',
   name: 'Wire Transfer',
+  shortName: 'Wire',
   duration: '1_to_2_days',
   icon: IconName.Bank,
 };
@@ -48,9 +51,16 @@ export const APPLE_PAY_PAYMENT_METHOD: DepositPaymentMethod = {
   },
 };
 
-export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
+export const ALL_PAYMENT_METHODS: DepositPaymentMethod[] = [
   DEBIT_CREDIT_PAYMENT_METHOD,
+  SEPA_PAYMENT_METHOD,
+  WIRE_TRANSFER_PAYMENT_METHOD,
   APPLE_PAY_PAYMENT_METHOD,
+];
+
+export const SUPPORTED_PAYMENT_METHODS: DepositPaymentMethod[] = [
+  APPLE_PAY_PAYMENT_METHOD,
+  DEBIT_CREDIT_PAYMENT_METHOD,
   SEPA_PAYMENT_METHOD,
   WIRE_TRANSFER_PAYMENT_METHOD,
 ];

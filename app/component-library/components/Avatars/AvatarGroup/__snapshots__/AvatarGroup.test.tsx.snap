@@ -137,7 +137,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 8,
+          "borderRadius": 4,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -157,7 +157,9 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
               "height": 16,
               "width": 16,
             },
-            undefined,
+            {
+              "borderRadius": 4,
+            },
           ]
         }
       >

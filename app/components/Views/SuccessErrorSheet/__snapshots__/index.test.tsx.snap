@@ -17,7 +17,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#1c7e33"
+      color="#457a39"
       fill="currentColor"
       height={32}
       name="Confirmation"
@@ -90,7 +90,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

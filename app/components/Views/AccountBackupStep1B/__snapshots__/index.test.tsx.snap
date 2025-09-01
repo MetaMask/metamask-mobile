@@ -229,7 +229,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#9ca1af",
+                    "borderColor": "#b7bbc8",
                     "borderRadius": 10,
                     "borderWidth": 2,
                     "height": 20,
@@ -243,7 +243,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#9ca1af",
+                      "color": "#b7bbc8",
                       "fontSize": 9,
                       "overflow": "hidden",
                     }
@@ -306,7 +306,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#9ca1af",
+                      "color": "#b7bbc8",
                     },
                     {
                       "fontFamily": "CentraNo1-Book",
@@ -402,7 +402,7 @@ exports[`AccountBackupStep1B render matches snapshot 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#9ca1af",
+                      "color": "#b7bbc8",
                     },
                     {
                       "fontFamily": "CentraNo1-Book",

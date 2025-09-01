@@ -23,8 +23,11 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('ethereumjs-util', () => ({
-  toChecksumAddress: jest.fn((address) => address),
   zeroAddress: jest.fn(() => '0x0000000000000000000000000000000000000000'),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  toChecksumAddress: jest.fn((address) => address),
 }));
 
 describe('AggregatedPercentageCrossChains', () => {
