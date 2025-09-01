@@ -12,6 +12,7 @@ import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthAccountType } from '@metamask/keyring-api';
 
+import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 import {
   selectAccountTreeControllerState,
@@ -24,7 +25,6 @@ import {
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
 import type { AccountGroupWithInternalAccounts } from './accounts.type';
-import { RootState } from '../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
 /**
  * Extracts the wallet ID from an account group ID.
