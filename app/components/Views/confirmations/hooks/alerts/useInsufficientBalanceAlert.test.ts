@@ -73,7 +73,10 @@ describe('useInsufficientBalanceAlert', () => {
         nativeCurrency: mockNativeCurrency,
       },
     } as unknown as ReturnType<typeof selectNetworkConfigurations>);
-    mockUseTransactionPayToken.mockReturnValue({ setPayToken: noop });
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: undefined,
+      setPayToken: noop,
+    });
 
     (strings as jest.Mock).mockImplementation((key, params) => {
       if (key === 'alert_system.insufficient_balance.buy_action') {
