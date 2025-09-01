@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -26,7 +26,7 @@ const TEST_CONTACT = {
 };
 const MEMO = 'Test adding ENS';
 
-describe(SmokeWalletPlatform('Addressbook Tests'), () => {
+describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
@@ -68,7 +68,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
         await TabBarComponent.tapSettings();
         await SettingsView.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
-        await ContactsView.isContactAliasVisible('Myth');
+        await ContactsView.expectContactIsVisible('Myth');
       },
     );
   });
@@ -114,7 +114,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
         await AddContactView.typeInMemo(MEMO);
         await AddContactView.tapAddContactButton();
         await Assertions.expectElementToBeVisible(ContactsView.container);
-        await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
+        await ContactsView.expectContactIsVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
 
         // should edit a contact
         await ContactsView.tapOnAlias('Ibrahim');
@@ -122,8 +122,8 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
         await AddContactView.typeInName('Ibrahim edited'); // Change name from Ibrahim to Ibrahim edited
 
         await AddContactView.tapEditContactCTA();
-        await ContactsView.isContactAliasVisible('Ibrahim edited'); // Check that Ibrahim address is saved in the address book
-        await ContactsView.isContactAliasNotVisible('Ibrahim'); // Ensure Ibrahim is not visible
+        await ContactsView.expectContactIsVisible('Ibrahim edited'); // Check that Ibrahim address is saved in the address book
+        await ContactsView.expectContactIsNotVisible('Ibrahim'); // Ensure Ibrahim is not visible
 
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
@@ -155,7 +155,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
           await AddContactView.tapAddContactButton();
           await Assertions.expectElementToBeVisible(ContactsView.container);
           // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
-          await ContactsView.isContactAliasVisible(TEST_CONTACT.name);
+          await ContactsView.expectContactIsVisible(TEST_CONTACT.name);
 
           // should edit a contact with a different network
           await ContactsView.tapOnAlias(TEST_CONTACT.name);
@@ -165,8 +165,8 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
           await AddContactView.tapEditContactCTA();
           await Assertions.expectElementToBeVisible(ContactsView.container);
           // This should not be visible if MM_REMOVE_GLOBAL_NETWORK_SELECTOR is disabled
-          await ContactsView.isContactAliasVisible(TEST_CONTACT.editedName);
-          await ContactsView.isContactAliasNotVisible(TEST_CONTACT.name);
+          await ContactsView.expectContactIsVisible(TEST_CONTACT.editedName);
+          await ContactsView.expectContactIsNotVisible(TEST_CONTACT.name);
 
           // should display all EVM contacts in the send flow
           await TabBarComponent.tapWallet();
@@ -190,7 +190,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
             DeleteContactBottomSheet.title,
           );
           await DeleteContactBottomSheet.tapDeleteButton();
-          await ContactsView.isContactAliasNotVisible(TEST_CONTACT.editedName);
+          await ContactsView.expectContactIsNotVisible(TEST_CONTACT.editedName);
         },
       );
     },

@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -12,6 +12,8 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -19,8 +21,19 @@ const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const ACCOUNT_INDEX = 1;
 
+const testSpecificMock = async (mockServer: Mockttp) => {
+  const { urlEndpoint, response } =
+    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
+};
+
 describe(
-  Regression('removes and reimports an account using a private key'),
+  RegressionAccounts('removes and reimports an account using a private key'),
   () => {
     it('removes an imported account and imports it again using a private key', async () => {
       await withFixtures(
@@ -29,13 +42,7 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock: {
-            GET: [
-              mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(
-                false,
-              ),
-            ],
-          },
+          testSpecificMock,
         },
         async () => {
           await loginToApp();

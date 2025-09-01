@@ -76,6 +76,7 @@ export enum RampsRegionsEnum {
   SAINT_LUCIA = 'saint-lucia',
   FRANCE = 'france',
   UNITED_STATES = 'united-states',
+  SPAIN = 'spain',
 }
 
 export const RampsRegions = {
@@ -104,6 +105,16 @@ export const RampsRegions = {
     emoji: '🇺🇸',
     id: '/regions/us-ca',
     name: 'California',
+    support: { buy: true, sell: true, recurringBuy: true },
+    unsupported: false,
+    recommended: false,
+    detected: false,
+  },
+  [RampsRegionsEnum.SPAIN]: {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇪🇸',
+    id: '/regions/es',
+    name: 'Spain',
     support: { buy: true, sell: true, recurringBuy: true },
     unsupported: false,
     recommended: false,

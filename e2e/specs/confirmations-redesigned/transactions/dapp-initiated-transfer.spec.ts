@@ -18,6 +18,12 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
 import SoftAssert from '../../../utils/SoftAssert';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/mockHelpers';
+import Gestures from '../../../framework/Gestures';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -36,14 +42,60 @@ const expectedEventNames = [
 ];
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
-  const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK, mockEvents.POST.segmentTrack],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
-  };
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    // Mock gas fees API for Ganache network
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mockEvents.GET.suggestedGasFeesApiGanache.urlEndpoint,
+      response: mockEvents.GET.suggestedGasFeesApiGanache.response,
+      responseCode: mockEvents.GET.suggestedGasFeesApiGanache.responseCode,
+    });
 
+    // Mock security alerts API for Ganache chain (0x539)
+    await setupMockPostRequest(
+      mockServer,
+      'https://security-alerts.api.cx.metamask.io/validate/0x539',
+      mockEvents.POST.securityAlertApiValidate.requestBody,
+      mockEvents.POST.securityAlertApiValidate.response,
+      {
+        statusCode: mockEvents.POST.securityAlertApiValidate.responseCode,
+      },
+    );
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
+      mockServer,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields,
+      },
+    );
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
+  };
   let eventsToCheck: EventPayload[];
 
   beforeAll(async () => {
@@ -92,6 +144,12 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
           RowComponents.SimulationDetails,
         );
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+
+        // Scroll to Advanced Details section on Android
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
         );

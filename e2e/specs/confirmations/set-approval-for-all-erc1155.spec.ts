@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -12,16 +12,30 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
-describe(SmokeConfirmations('ERC1155 token'), () => {
+describe(RegressionConfirmations('ERC1155 token'), () => {
   const ERC1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
   it('approve all ERC1155 tokens', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
+        mockEvents.GET.suggestedGasFeesApiGanache;
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: gasUrlEndpoint,
+        response: gasResponse,
+        responseCode: 200,
+      });
     };
 
     await withFixtures(
