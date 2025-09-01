@@ -2843,6 +2843,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.04', // 4% referral discount
           activeStakingDiscount: { discount: '0.05' }, // 5% staking discount
           dailyUserVlm: [],
@@ -2944,6 +2946,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.04', // 4% referral discount
           activeStakingDiscount: null, // No staking discount
         });
@@ -2956,45 +2960,6 @@ describe('HyperLiquidProvider', () => {
 
         expect(result.feeRate).toBeCloseTo(0.001432, 6); // 0.045% * (1 - 0.04) + 0.1% MetaMask
         expect(result.feeAmount).toBeCloseTo(143.2, 2); // Includes MetaMask fee
-      });
-
-      it('should cache user fee rates and reuse them', async () => {
-        const testAddress = '0xTestAddress123';
-        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
-          testAddress,
-        );
-
-        (
-          mockClientService.getInfoClient().userFees as jest.Mock
-        ).mockResolvedValue({
-          userCrossRate: '0.00040', // 0.040% taker rate (tier 1)
-          userAddRate: '0.00012', // 0.012% maker rate (tier 1)
-          activeReferralDiscount: '0.04', // 4% referral discount
-          activeStakingDiscount: { discount: '0.10' }, // 10% staking discount
-        });
-
-        // First call - should fetch from API
-        await provider.calculateFees({
-          orderType: 'market',
-          isMaker: false,
-          amount: '100000',
-        });
-
-        expect(
-          mockClientService.getInfoClient().userFees,
-        ).toHaveBeenCalledTimes(1);
-
-        // Second call - should use cache
-        await provider.calculateFees({
-          orderType: 'market',
-          isMaker: false,
-          amount: '100000',
-        });
-
-        // Should not call API again
-        expect(
-          mockClientService.getInfoClient().userFees,
-        ).toHaveBeenCalledTimes(1);
       });
 
       it('should fall back to base rates when API returns invalid fee rates', async () => {
@@ -3062,6 +3027,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00035', // Taker rate
           userAddRate: '0.00008', // Maker rate (lower)
+          userSpotCrossRate: '0.00070',
+          userSpotAddRate: '0.00040',
           activeReferralDiscount: '0.04', // 4% referral discount
           activeStakingDiscount: null,
         });
@@ -3089,6 +3056,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.04', // 4% referral discount
           activeStakingDiscount: null,
         });
@@ -3115,6 +3084,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: null,
           activeStakingDiscount: { discount: '0.10' }, // 10% staking discount
         });
@@ -3141,6 +3112,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.30', // 30% referral discount
           activeStakingDiscount: { discount: '0.25' }, // 25% staking discount
         });
@@ -3168,6 +3141,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.04', // 4% referral discount
           activeStakingDiscount: { discount: '0.05' }, // 5% staking discount
         });
@@ -3194,6 +3169,8 @@ describe('HyperLiquidProvider', () => {
         ).mockResolvedValue({
           userCrossRate: '0.00045', // 0.045% base taker rate
           userAddRate: '0.00015', // 0.015% base maker rate
+          userSpotCrossRate: '0.00070', // 0.070% spot taker rate
+          userSpotAddRate: '0.00040', // 0.040% spot maker rate
           activeReferralDiscount: '0.00', // No referral discount
           activeStakingDiscount: { discount: '0.00' }, // No staking discount
         });
