@@ -1,13 +1,18 @@
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { PayWithModal } from './pay-with-modal';
-import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useTokens } from '../../../../../UI/Bridge/hooks/useTokens';
 import { Hex } from '@metamask/utils';
 import { BridgeToken } from '../../../../../UI/Bridge/types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
+import { useTransactionRequiredTokens } from '../../../hooks/pay/useTransactionRequiredTokens';
+import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
+import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 jest.useFakeTimers();
 
@@ -16,6 +21,8 @@ const mockGoBack = jest.fn();
 const mockSetPayToken = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useTokens');
+jest.mock('../../../hooks/pay/useTransactionRequiredTokens');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 
 jest.mock(
   '../../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
@@ -32,14 +39,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/pay/useTransactionPayToken', () => ({
-  useTransactionPayToken: () => ({
-    payToken: { address: '0x0', chainId: '0x0' },
-    setPayToken: mockSetPayToken,
-  }),
-}));
-
-const CHAIN_ID_1_MOCK = '0x123' as Hex;
+const CHAIN_ID_1_MOCK = '0x1' as Hex;
 const CHAIN_ID_2_MOCK = '0x456' as Hex;
 
 const TOKENS_MOCK: BridgeToken[] = [
@@ -102,7 +102,13 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
       name: Routes.CONFIRMATION_PAY_WITH_MODAL,
     },
     {
-      state: initialState,
+      state: merge(
+        {},
+        initialState,
+        transactionApprovalControllerMock,
+        simpleSendTransactionControllerMock,
+        otherControllersMock,
+      ),
     },
     {
       minimumFiatBalance,
@@ -112,6 +118,10 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
 
 describe('PayWithModal', () => {
   const useTokensMock = jest.mocked(useTokens);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionRequiredTokensMock = jest.mocked(
+    useTransactionRequiredTokens,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -120,6 +130,13 @@ describe('PayWithModal', () => {
       tokens: TOKENS_MOCK,
       pending: false,
     });
+
+    useTransactionRequiredTokensMock.mockReturnValue([]);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { address: '0x0', chainId: '0x0' },
+      setPayToken: mockSetPayToken,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
   });
 
   it('renders tokens', async () => {
@@ -155,6 +172,55 @@ describe('PayWithModal', () => {
 
     await waitFor(() => {
       expect(queryByText('Test Token 1')).toBeNull();
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Test Token 2')).toBeNull();
+    });
+  });
+
+  it('renders tokens if required and below minimum fiat balance', async () => {
+    useTransactionRequiredTokensMock.mockReturnValue([
+      { ...TOKENS_MOCK[0], skipIfBalance: false } as never,
+    ]);
+
+    const { getByText, queryByText } = render({ minimumFiatBalance: 6.12 });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 3')).toBeDefined();
+      expect(getByText('789 TST3')).toBeDefined();
+      expect(getByText('$7.89')).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 1')).toBeDefined();
+      expect(getByText('123 TST1')).toBeDefined();
+      expect(getByText('$1.23')).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Test Token 2')).toBeNull();
+    });
+  });
+
+  it('renders tokens if selected payment token and below minimum fiat balance', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { address: TOKENS_MOCK[0].address, chainId: CHAIN_ID_1_MOCK },
+      setPayToken: mockSetPayToken,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByText, queryByText } = render({ minimumFiatBalance: 6.12 });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 3')).toBeDefined();
+      expect(getByText('789 TST3')).toBeDefined();
+      expect(getByText('$7.89')).toBeDefined();
+    });
+
+    await waitFor(() => {
+      expect(getByText('Test Token 1')).toBeDefined();
+      expect(getByText('123 TST1')).toBeDefined();
+      expect(getByText('$1.23')).toBeDefined();
     });
 
     await waitFor(() => {
