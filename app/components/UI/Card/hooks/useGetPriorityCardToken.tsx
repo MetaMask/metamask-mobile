@@ -323,21 +323,23 @@ export const useGetPriorityCardToken = (
 
   // Add priorityToken to the TokenListController if it exists
   useEffect(() => {
+    let isCancelled = false;
+
     const addToken = async () => {
       try {
-        if (priorityToken) {
+        if (priorityToken && !isCancelled) {
           const { allTokens } = TokensController.state;
           const allTokensPerChain =
             allTokens[priorityToken.chainId as Hex] || {};
           const allTokensPerAddress =
-            allTokensPerChain[selectedAddress?.toLowerCase() as Hex] || {};
+            allTokensPerChain[selectedAddress?.toLowerCase() as Hex] || [];
           const isNotOnAllTokens = !allTokensPerAddress?.find(
             (token) =>
               token.address?.toLowerCase() ===
               priorityToken.address?.toLowerCase(),
           );
 
-          if (isNotOnAllTokens) {
+          if (isNotOnAllTokens && !isCancelled) {
             const iconUrl = buildTokenIconUrl(
               priorityToken.chainId,
               priorityToken.address,
@@ -355,23 +357,30 @@ export const useGetPriorityCardToken = (
               image: iconUrl,
               networkClientId,
             });
-            setIsLoadingAddToken(false);
+            if (!isCancelled) {
+              setIsLoadingAddToken(false);
+            }
           }
         }
       } catch (err) {
-        const normalizedError =
-          err instanceof Error ? err : new Error(String(err));
-        Logger.error(
-          normalizedError,
-          'useGetPriorityCardToken::error fetching priority token',
-        );
-        setIsLoadingAddToken(false);
-        setError(true);
-        return null;
+        if (!isCancelled) {
+          const normalizedError =
+            err instanceof Error ? err : new Error(String(err));
+          Logger.error(
+            normalizedError,
+            'useGetPriorityCardToken::error adding priority token',
+          );
+          setIsLoadingAddToken(false);
+          setError(true);
+        }
       }
     };
 
     addToken();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [priorityToken, TokensController, NetworkController, selectedAddress]);
 
   // Determine if we should show loading state

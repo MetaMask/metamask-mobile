@@ -282,7 +282,7 @@ describe('useGetPriorityCardToken', () => {
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'useGetPriorityCardToken::error fetching priority token',
+      'useGetPriorityCardToken::error adding priority token',
     );
   });
 
