@@ -1520,7 +1520,7 @@ describe('accounts selectors', () => {
       expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
     });
 
-    it('returns the account group objects with the specified addresses', () => {
+    it('returns the account group objects for the specified addresses', () => {
       const getAccountGroupsByAddress = selectAccountGroupsByAddress(mockState);
       const result = getAccountGroupsByAddress([
         mockEvmAccount.address,
