@@ -31,9 +31,13 @@ module.exports = {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
         uniqueOutputName: true,
+        // Include retry attempt in test name for better tracking
+        testNameTemplate: '{title} (attempt {retryAttempt})',
       },
     ],
   ],
   testEnvironment: 'detox/runners/jest/testEnvironment',
   verbose: true,
+  // Jest retry configuration - retry failed tests once
+  retryTimes: 1,
 };
