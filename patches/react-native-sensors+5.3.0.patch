@@ -1,0 +1,231 @@
+diff --git a/node_modules/react-native-sensors/android/build/generated/source/buildConfig/debug/com/sensors/BuildConfig.java b/node_modules/react-native-sensors/android/build/generated/source/buildConfig/debug/com/sensors/BuildConfig.java
+new file mode 100644
+index 0000000..0ebe1fb
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/generated/source/buildConfig/debug/com/sensors/BuildConfig.java
+@@ -0,0 +1,10 @@
++/**
++ * Automatically generated file. DO NOT MODIFY
++ */
++package com.sensors;
++
++public final class BuildConfig {
++  public static final boolean DEBUG = Boolean.parseBoolean("true");
++  public static final String LIBRARY_PACKAGE_NAME = "com.sensors";
++  public static final String BUILD_TYPE = "debug";
++}
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..af83abb
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.sensors" >
++
++    <uses-sdk android:minSdkVersion="16" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json b/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..8d77646
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.sensors",
++  "variantName": "debug",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/react-native-sensors/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json b/node_modules/react-native-sensors/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/react-native-sensors/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
+new file mode 100644
+index 0000000..989bbeb
+Binary files /dev/null and b/node_modules/react-native-sensors/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar differ
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt b/node_modules/react-native-sensors/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties b/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+new file mode 100644
+index 0000000..d998df2
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+@@ -0,0 +1 @@
++#Sat Aug 30 15:17:17 GST 2025
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml b/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+new file mode 100644
+index 0000000..93272b3
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/build/generated/res/resValues/debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/build/generated/res/resValues/debug"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt b/node_modules/react-native-sensors/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+new file mode 100644
+index 0000000..78ac5b8
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+@@ -0,0 +1,2 @@
++R_DEF: Internal format may change without notice
++local
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt b/node_modules/react-native-sensors/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+new file mode 100644
+index 0000000..32c6366
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+@@ -0,0 +1,7 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.sensors" >
++4
++5    <uses-sdk android:minSdkVersion="16" />
++6
++7</manifest>
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml b/node_modules/react-native-sensors/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..af83abb
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.sensors" >
++
++    <uses-sdk android:minSdkVersion="16" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json b/node_modules/react-native-sensors/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt b/node_modules/react-native-sensors/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/react-native-sensors/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/react-native-sensors/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..6d31d94
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+@@ -0,0 +1 @@
++com.sensors
+diff --git a/node_modules/react-native-sensors/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/react-native-sensors/android/build/outputs/logs/manifest-merger-debug-report.txt
+new file mode 100644
+index 0000000..5eb9b08
+--- /dev/null
++++ b/node_modules/react-native-sensors/android/build/outputs/logs/manifest-merger-debug-report.txt
+@@ -0,0 +1,17 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml:2:1-5:12
++INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml:2:1-5:12
++	package
++		ADDED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml:3:11-32
++		INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml:2:11-69
++uses-sdk
++INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml
++INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/gaurav/Desktop/Web3Auth/metamask-mobile/node_modules/react-native-sensors/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
+index bef1229..a8efebf 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
+index 5bc9ed1..81eb05d 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
+index ef7783c..00d0859 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
+index ca53e5d..bcc9f9a 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
