@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { AssetType } from '../../types/token';
+import { AssetType, Nft } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 import { useAccountTokens } from './useAccountTokens';
 import { useEVMNfts } from './useNfts';
@@ -17,13 +17,13 @@ export const useRouteParams = () => {
 
   useEffect(() => {
     if (paramsAsset) {
-      let asset = tokens.find(
+      let asset: AssetType | Nft | undefined = tokens.find(
         ({ address, chainId }) =>
           address === paramsAsset.address &&
           chainId?.toLowerCase() === paramsAsset.chainId?.toLowerCase(),
       );
       if (!asset && nfts.length) {
-        asset = tokens.find(
+        asset = nfts.find(
           ({ address, chainId }) =>
             address === paramsAsset.address &&
             chainId?.toLowerCase() === paramsAsset.chainId?.toLowerCase(),
