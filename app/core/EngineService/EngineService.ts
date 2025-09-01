@@ -62,7 +62,7 @@ export class EngineService {
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
-        'Is vault defined at KeyringController',
+        'EngineService: Is vault defined at KeyringController before Enging init: ',
         !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
       );
     }
