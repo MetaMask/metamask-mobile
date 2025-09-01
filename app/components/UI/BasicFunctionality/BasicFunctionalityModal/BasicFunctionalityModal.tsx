@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/parameter-properties */
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
