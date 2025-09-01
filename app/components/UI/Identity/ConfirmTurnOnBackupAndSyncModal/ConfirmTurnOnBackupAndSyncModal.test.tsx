@@ -10,7 +10,7 @@ import { toggleBasicFunctionality } from '../../../../actions/settings';
 
 jest.mock('../../../../actions/settings', () => ({
   ...jest.requireActual('../../../../actions/settings'),
-  toggleBasicFunctionality: jest.fn(),
+  toggleBasicFunctionality: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
