@@ -2841,12 +2841,10 @@ describe('HyperLiquidProvider', () => {
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: '0.00030', // 0.030% taker with discount
-            add: '0.00010', // 0.010% maker with discount
-            spotCross: '0.00040',
-            spotAdd: '0.00020',
-          },
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: { discount: '0.05' }, // 5% staking discount
           dailyUserVlm: [],
         });
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
@@ -2858,9 +2856,9 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        // Should use discounted rate from userFees mock
-        expect(result1.feeRate).toBe(0.0013); // 0.030% with discount + 0.1% MetaMask
-        expect(result1.feeAmount).toBeCloseTo(130, 5); // 100000 * 0.0013
+        // Should use dynamically calculated rate: 0.045% * (1 - 0.04 - 0.05) = 0.045% * 0.91 = 0.04095%
+        expect(result1.feeRate).toBeCloseTo(0.0014095, 6); // Dynamic rate + 0.1% MetaMask
+        expect(result1.feeAmount).toBeCloseTo(140.95, 2); // 100000 * 0.0014095
         expect(
           mockClientService.getInfoClient().userFees,
         ).toHaveBeenCalledTimes(1);
@@ -2872,8 +2870,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result2.feeRate).toBe(0.0013); // Includes MetaMask fee
-        expect(result2.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
+        expect(result2.feeRate).toBeCloseTo(0.0014095, 6); // Includes MetaMask fee
+        expect(result2.feeAmount).toBeCloseTo(140.95, 2); // Includes MetaMask fee
         // Should not call API again (cached)
         expect(
           mockClientService.getInfoClient().userFees,
@@ -2940,16 +2938,14 @@ describe('HyperLiquidProvider', () => {
           testAddress,
         );
 
-        // Mock user fees API response with discounted rates
+        // Mock user fees API response with base rates and discounts
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: '0.0003', // 0.03% - discounted taker rate
-            add: '0.0001', // 0.01% - discounted maker rate
-            spotCross: '0.0003',
-            spotAdd: '0.0001',
-          },
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: null, // No staking discount
         });
 
         const result = await provider.calculateFees({
@@ -2958,8 +2954,8 @@ describe('HyperLiquidProvider', () => {
           amount: '100000',
         });
 
-        expect(result.feeRate).toBe(0.0013); // Discounted rate + 0.1% MetaMask
-        expect(result.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
+        expect(result.feeRate).toBeCloseTo(0.001432, 6); // 0.045% * (1 - 0.04) + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(143.2, 2); // Includes MetaMask fee
       });
 
       it('should cache user fee rates and reuse them', async () => {
@@ -2971,12 +2967,10 @@ describe('HyperLiquidProvider', () => {
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: '0.0003',
-            add: '0.0001',
-            spotCross: '0.0003',
-            spotAdd: '0.0001',
-          },
+          userCrossRate: '0.00040', // 0.040% taker rate (tier 1)
+          userAddRate: '0.00012', // 0.012% maker rate (tier 1)
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: { discount: '0.10' }, // 10% staking discount
         });
 
         // First call - should fetch from API
@@ -3013,12 +3007,10 @@ describe('HyperLiquidProvider', () => {
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: 'invalid', // Will cause parseFloat to return NaN
-            add: 'invalid',
-            spotCross: 'invalid',
-            spotAdd: 'invalid',
-          },
+          userCrossRate: 'invalid', // Will cause parseFloat to return NaN
+          userAddRate: 'invalid',
+          activeReferralDiscount: 'invalid',
+          activeStakingDiscount: null,
         });
 
         const result = await provider.calculateFees({
@@ -3042,12 +3034,10 @@ describe('HyperLiquidProvider', () => {
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: '-0.0003', // Negative rate - invalid
-            add: '0.0001',
-            spotCross: '0.0003',
-            spotAdd: '0.0001',
-          },
+          userCrossRate: '-0.0003', // Negative rate - invalid
+          userAddRate: '0.0001',
+          activeReferralDiscount: '0.00',
+          activeStakingDiscount: null,
         });
 
         const result = await provider.calculateFees({
@@ -3070,12 +3060,10 @@ describe('HyperLiquidProvider', () => {
         (
           mockClientService.getInfoClient().userFees as jest.Mock
         ).mockResolvedValue({
-          feeSchedule: {
-            cross: '0.0003', // Taker rate
-            add: '0.0001', // Maker rate (lower)
-            spotCross: '0.0003',
-            spotAdd: '0.0001',
-          },
+          userCrossRate: '0.00035', // Taker rate
+          userAddRate: '0.00008', // Maker rate (lower)
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: null,
         });
 
         // Test market order with isMaker=true (should still use taker rate)
@@ -3086,8 +3074,139 @@ describe('HyperLiquidProvider', () => {
         });
 
         // Should use taker rate even though isMaker is true
-        expect(result.feeRate).toBe(0.0013); // Taker rate + MetaMask, not maker rate
-        expect(result.feeAmount).toBeCloseTo(130, 5); // Includes MetaMask fee
+        expect(result.feeRate).toBeCloseTo(0.001336, 6); // 0.035% * (1 - 0.04) + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(133.6, 2); // Includes MetaMask fee
+      });
+
+      it('should apply referral discount only when no staking discount', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: null,
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should apply only referral discount: 0.045% * (1 - 0.04) = 0.0432%
+        expect(result.feeRate).toBeCloseTo(0.001432, 6); // 0.0432% + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(143.2, 2);
+      });
+
+      it('should apply staking discount only when no referral discount', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: null,
+          activeStakingDiscount: { discount: '0.10' }, // 10% staking discount
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should apply only staking discount: 0.045% * (1 - 0.10) = 0.0405%
+        expect(result.feeRate).toBeCloseTo(0.001405, 6); // 0.0405% + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(140.5, 2);
+      });
+
+      it('should cap combined discounts at 40%', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.30', // 30% referral discount
+          activeStakingDiscount: { discount: '0.25' }, // 25% staking discount
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Combined discounts would be 55%, but capped at 40%
+        // 0.045% * (1 - 0.40) = 0.027%
+        expect(result.feeRate).toBeCloseTo(0.00127, 6); // 0.027% + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(127.0, 2);
+      });
+
+      it('should handle maker rates with discounts correctly', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.04', // 4% referral discount
+          activeStakingDiscount: { discount: '0.05' }, // 5% staking discount
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: true,
+          amount: '100000',
+        });
+
+        // Should apply discounts to maker rate: 0.015% * (1 - 0.04 - 0.05) = 0.01365%
+        expect(result.feeRate).toBeCloseTo(0.0011365, 6); // 0.01365% + 0.1% MetaMask
+        expect(result.feeAmount).toBeCloseTo(113.65, 2);
+      });
+
+      it('should handle zero discounts correctly', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          userCrossRate: '0.00045', // 0.045% base taker rate
+          userAddRate: '0.00015', // 0.015% base maker rate
+          activeReferralDiscount: '0.00', // No referral discount
+          activeStakingDiscount: { discount: '0.00' }, // No staking discount
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should use base rates without discounts
+        expect(result.feeRate).toBe(0.00145); // 0.045% + 0.1% MetaMask
+        expect(result.feeAmount).toBe(145);
       });
 
       describe('placeholder methods for future implementation', () => {
