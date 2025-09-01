@@ -109,7 +109,6 @@ describe('State2AccountConnectWrapper', () => {
 
       // TODO: replace with MultichainAccountConnect in subsequent PR
       expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
-      expect(queryByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeNull();
     });
 
     it('forwards all props to MultichainAccountConnect', () => {
@@ -140,8 +139,9 @@ describe('State2AccountConnectWrapper', () => {
         { state: mockState },
       );
 
+      // TODO: replace with multichain component in subsequent PR
       const multichainComponent = getByTestId(
-        TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT,
+        TEST_IDS.ACCOUNT_CONNECT_COMPONENT,
       );
       expect(multichainComponent).toBeTruthy();
       expect(multichainComponent.props.children).toContain(
@@ -213,7 +213,7 @@ describe('State2AccountConnectWrapper', () => {
         { state: state2MockState },
       );
 
-      // TODO: replace with MultichainAccountConnect in subsequent PR
+      // TODO
       expect(
         getByTestIdState2(TEST_IDS.ACCOUNT_CONNECT_COMPONENT),
       ).toBeTruthy();
