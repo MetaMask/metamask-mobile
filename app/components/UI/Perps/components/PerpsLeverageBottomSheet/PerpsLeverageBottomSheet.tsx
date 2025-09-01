@@ -344,14 +344,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     }
 
     // If liquidation price is invalid/still calculating, use theoretical calculation
-    if (
-      !dynamicLiquidationPrice ||
-      dynamicLiquidationPrice === 0 ||
-      isNaN(dynamicLiquidationPrice)
-    ) {
-      // Theoretical calculation: (leverage - 1) / leverage * 100
-      // For 2x: 50%, for 5x: 80%, for 10x: 90%, etc.
-      const theoreticalPercentage = ((tempLeverage - 1) / tempLeverage) * 100;
+    if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
+      // Theoretical calculation: 1 / leverage * 100
+      // For 2x: 50%, for 5x: 20%, for 10x: 10%, etc.
+      const theoreticalPercentage = (1 / tempLeverage) * 100;
       return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
     }
 
