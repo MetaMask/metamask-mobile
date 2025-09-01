@@ -142,12 +142,12 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
 
   const onPressTermsOfUse = () => {
     const url = AppConstants.URLS.TERMS_OF_USE_URL;
-    goTo(url, strings('app_information.terms_of_use'));
+    goTo(url, strings('onboarding.terms_of_use'));
   };
 
   const onPressPrivacyNotice = () => {
     const url = AppConstants.URLS.PRIVACY_NOTICE;
-    goTo(url, strings('app_information.privacy_policy'));
+    goTo(url, strings('onboarding.privacy_notice'));
   };
 
   const { themeAppearance } = useTheme();
