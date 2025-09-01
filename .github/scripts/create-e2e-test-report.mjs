@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import xml2js from 'xml2js';
+import https from 'https';
 
 const env = {
   TEST_RESULTS_PATH: process.env.TEST_RESULTS_PATH || 'android-merged-test-report',
@@ -8,9 +9,74 @@ const env = {
   RUN_ID: process.env.RUN_ID ? parseInt(process.env.RUN_ID) : Date.now(),
   PR_NUMBER: process.env.PR_NUMBER ? parseInt(process.env.PR_NUMBER) : 0,
   GITHUB_ACTIONS: process.env.GITHUB_ACTIONS === 'true',
+  GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
 };
 
+if (!env.GITHUB_TOKEN) {
+  console.error('GITHUB_TOKEN is not set');
+  process.exit(1);
+}
+
 const xmlParser = new xml2js.Parser();
+
+// Cache for GitHub API job requests
+const jobsCache = {};
+
+async function githubApiRequest(path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path,
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'MetaMask-Mobile-E2E-Script',
+      }
+    };
+
+    if (env.GITHUB_TOKEN) {
+      options.headers['Authorization'] = `Bearer ${env.GITHUB_TOKEN}`;
+    }
+
+    https.get(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+// Get all jobs for a workflow run
+async function getJobs(runId) {
+  if (!runId || !env.GITHUB_TOKEN) {
+    return [];
+  }
+
+  if (jobsCache[runId]) {
+    return jobsCache[runId];
+  }
+
+  try {
+    const response = await githubApiRequest(`/repos/MetaMask/metamask-mobile/actions/runs/${runId}/jobs`);
+    jobsCache[runId] = response.jobs || [];
+    return jobsCache[runId];
+  } catch (error) {
+    console.warn(`Failed to fetch jobs for run ${runId}:`, error.message);
+    return [];
+  }
+}
+
+async function getJobId(runId, jobName) {
+  const jobs = await getJobs(runId);
+  const job = jobs.find((job) => job.name === jobName || job.name.endsWith(jobName));
+  return job?.id;
+}
 
 function formatTime(ms) {
   if (ms < 1000) return `${ms}ms`;
@@ -98,7 +164,8 @@ async function processTestDirectory(dirPath, directory) {
       const properties = extractProperties(suite);
       // Get job name from properties, fallback to directory if not present
       const jobName = properties.JOB_NAME || directory;
-      const jobId = Date.now() + Math.random() * 1000; // Generate unique ID
+      const runId = properties.RUN_ID ? parseInt(properties.RUN_ID) : env.RUN_ID;
+      const jobId = await getJobId(runId, jobName);
       const testSuite = createTestSuite(suite, jobName, jobId, properties);
 
       // Process test cases
