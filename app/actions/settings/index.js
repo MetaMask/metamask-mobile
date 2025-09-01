@@ -64,14 +64,16 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
 
     // Call MultichainAccountService to update provider states and trigger alignment
     const Engine = require('../../core/Engine').default;
-    Engine.context.MultichainAccountService.setBasicFunctionality(
-      basicFunctionalityEnabled,
-    ).catch((error) => {
+    try {
+      await Engine.context.MultichainAccountService.setBasicFunctionality(
+        basicFunctionalityEnabled,
+      );
+    } catch (error) {
       console.error(
         'Failed to set basic functionality on MultichainAccountService:',
         error,
       );
-    });
+    }
   };
 }
 
