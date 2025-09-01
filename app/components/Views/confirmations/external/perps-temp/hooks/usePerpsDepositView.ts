@@ -38,7 +38,7 @@ export function usePerpsDepositView({
   const isFullView =
     !isKeyboardVisible &&
     !amountValue.isZero() &&
-    (isQuotesLoading || quotes?.length || sourceAmounts?.length === 0);
+    (isQuotesLoading || Boolean(quotes?.length) || sourceAmounts?.length === 0);
 
   useAutomaticTransactionPayToken({
     balanceOverrides: [
