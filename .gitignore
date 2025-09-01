@@ -81,6 +81,11 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+/ios/bin/
+/ios/cache/
+/ios/extensions/
+/ios/gems/
+/ios/specifications/
 
 # Language files to add
 /locales/languagesToUpdate/*.json
