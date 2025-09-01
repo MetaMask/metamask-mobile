@@ -7,6 +7,8 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { merge } from 'lodash';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../UI/Bridge/hooks/useTokensWithBalance');
@@ -27,7 +29,9 @@ const TRANSACTION_META_MOCK = {
 } as unknown as TransactionMeta;
 
 function render() {
-  return renderWithProvider(<TransactionDetailsHero />, {});
+  return renderWithProvider(<TransactionDetailsHero />, {
+    state: merge({}, otherControllersMock),
+  });
 }
 
 describe('TransactionDetailsHero', () => {
