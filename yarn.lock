@@ -1427,13 +1427,13 @@
   dependencies:
     expo-build-properties "^0.13.1"
 
-"@consensys/native-ramps-sdk@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-1.2.0.tgz#826f2e7af611d9608cf1654caa9502e2fb913989"
-  integrity sha512-UlT+S736irlSb0dwxc2ZKJQlir9VmF4KqqVmIlWvst9SEC/haESN8b9E+Fu3nCpV9lHMxGwtPphwFKw5pB/wSA==
+"@consensys/native-ramps-sdk@^2.0.0-beta.2":
+  version "2.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@consensys/native-ramps-sdk/-/native-ramps-sdk-2.0.0-beta.2.tgz#0b8afdb9f4681d809d992e59b288b0683e025c84"
+  integrity sha512-2mgbsaVFQk3rxZIjkv221dvFLJyTx2kJmfmn1feDG9Ga13zci0gZjxuJRxh+HMrPO6AJXUt/jnVXaUzQCS+GLQ==
   dependencies:
     async "^3.2.3"
-    axios "^1.10.0"
+    axios "^1.11.0"
     axios-retry "^3.1.2"
     crypto-js "^4.2.0"
     reflect-metadata "^0.1.13"
@@ -6135,10 +6135,10 @@
     ses "^1.14.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.3.2":
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.2.tgz#80fb0b198133837c8b5077b588bbee61ace411b7"
-  integrity sha512-RC+oSsr23Tes4TKNlEcHd1ZmsUbj1beOyhdz67W54D1yfXcByrzIaIYt6BdlenhBGDrZwYsht7a5LgKhxkcgXw==
+"@metamask/solana-wallet-snap@^2.3.3":
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.3.tgz#5c6eeff8cb05ed48a33af966e516101817ab03f0"
+  integrity sha512-HqbjpSFfSTEtnMbNzGNVIaUFelhnE1GkCa7tiGeG3WtuhHy6+WeVwJKZ6dSfzLZ3Vno8u+Lzg2mqZVLzyUtHAw==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
@@ -15341,7 +15341,7 @@ axios-retry@^3.1.2:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
 
-axios@1.4.0, axios@1.7.7, axios@1.9.0, axios@^1.10.0, axios@^1.4.0, axios@^1.6.5, axios@^1.6.7, axios@^1.8.2, axios@^1.8.3, axios@^1.8.4, axios@^1.x:
+axios@1.4.0, axios@1.7.7, axios@1.9.0, axios@^1.11.0, axios@^1.4.0, axios@^1.6.5, axios@^1.6.7, axios@^1.8.2, axios@^1.8.3, axios@^1.8.4, axios@^1.x:
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.2.tgz#fabe06e241dfe83071d4edfbcaa7b1c3a40f7979"
   integrity sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==

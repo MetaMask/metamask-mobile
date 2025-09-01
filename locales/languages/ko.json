@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "설정 > 보안 및 개인정보에서",
     "show_display_nft_media_content_5": "설정 > 보안 및 개인정보."
   },
-  "solana_new_feature_content": {
-    "title": "이제 솔라나를 지원합니다",
-    "title_description": "지갑을 가져오고, 탐색하고, 거래하고, 전송하세요. 이제 MetaMask가 솔라나를 기본적으로 지원합니다.",
-    "not_now": "나중에",
-    "view_solana_account": "솔라나 계정 보기",
-    "learn_more": "솔라나 계정에 대해 더 자세히 알아보기",
-    "import_your_wallet": "지갑 가져오기"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 게이트웨이",
     "ipfs_gateway_banner_content1": "IPFS 웹사이트입니다. 이 사이트를 보려면",

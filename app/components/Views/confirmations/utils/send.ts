@@ -2,7 +2,10 @@ import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
-import { TransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
@@ -109,9 +112,22 @@ export const submitEvmTransaction = async ({
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
+
+  let transactionType;
+  if (asset.isNative) {
+    transactionType = TransactionType.simpleSend;
+  } else if (asset.standard === TokenStandard.ERC20) {
+    transactionType = TransactionType.tokenMethodTransfer;
+  } else if (asset.standard === TokenStandard.ERC721) {
+    transactionType = TransactionType.tokenMethodTransferFrom;
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    transactionType = TransactionType.tokenMethodSafeTransferFrom;
+  }
+
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
     networkClientId,
+    type: transactionType,
   });
 };
 

@@ -42,7 +42,10 @@ import {
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
 
-const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
+const CustomNetworkSelector = ({
+  openModal,
+  dismissModal,
+}: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
   const { navigate } = useNavigation();
@@ -69,8 +72,8 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      const handlePress = () => {
-        selectCustomNetwork(caipChainId);
+      const handlePress = async () => {
+        await selectCustomNetwork(caipChainId, dismissModal);
       };
 
       const handleMenuPress = () => {
@@ -104,7 +107,7 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         </View>
       );
     },
-    [selectCustomNetwork, openModal],
+    [selectCustomNetwork, openModal, dismissModal],
   );
 
   const renderFooter = useCallback(

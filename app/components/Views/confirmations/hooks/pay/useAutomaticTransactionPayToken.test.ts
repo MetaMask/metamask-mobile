@@ -69,6 +69,7 @@ describe('useAutomaticTransactionPayToken', () => {
     selectEnabledSourceChainsMock.mockReturnValue([]);
 
     useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
       setPayToken: setPayTokenMock,
     });
 
