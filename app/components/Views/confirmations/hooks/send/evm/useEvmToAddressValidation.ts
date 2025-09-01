@@ -22,7 +22,7 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
-const BURN_ADDRESSES = [
+const LOWER_CASED_BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
   '0x000000000000000000000000000000000000dead',
 ];
@@ -71,7 +71,7 @@ const validateHexAddress = async (
   error?: string;
   warning?: string;
 }> => {
-  if (BURN_ADDRESSES.includes(toAddress)) {
+  if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
     return {
       error: strings('transaction.invalid_address'),
     };
