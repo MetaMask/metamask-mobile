@@ -170,18 +170,29 @@ const setupIosTask = {
         title: 'Install bundler gem',
         task: async (_, task) => {
           if (GITHUB_CI) {
-            return task.skip('Skipping bundler gem installation in GitHub CI.');
+            // In GitHub CI, we still need bundler for self-hosted runners
+            try {
+              await $`gem install bundler -v 2.5.8`;
+            } catch (error) {
+              // If bundler is already installed, continue
+              if (!error.stderr?.includes('already installed')) {
+                throw error;
+              }
+            }
+          } else {
+            await $`gem install bundler -v 2.5.8`;
           }
-          await $`gem install bundler -v 2.5.8`;
         },
       },
       {
         title: 'Install gems',
         task: async (_, task) => {
           if (GITHUB_CI) {
-            return task.skip('Skipping gems installation in GitHub CI.');
+            // In GitHub CI, install gems for self-hosted runners
+            await $`yarn gem:bundle:install`;
+          } else {
+            await $`yarn gem:bundle:install`;
           }
-          await $`yarn gem:bundle:install`;
         },
       },
       {
