@@ -105,7 +105,7 @@ jobs:
           MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ''
           MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ''
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ''
-          GOOGLE_SERVICES_B64_IOS: ''
+          GOOGLE_SERVICES_B64_IOS: 'dummy'
           GOOGLE_SERVICES_B64_ANDROID: ''
 
       # Upload the iOS .app file that works in simulators (no certificates needed)
