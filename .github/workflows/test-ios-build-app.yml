@@ -92,21 +92,21 @@ jobs:
 
           NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
 
-          SEGMENT_WRITE_KEY_QA: ''
-          SEGMENT_PROXY_URL_QA: ''
-          SEGMENT_DELETE_API_SOURCE_ID_QA: ''
-          SEGMENT_REGULATIONS_ENDPOINT_QA: ''
+          SEGMENT_WRITE_KEY_QA: 'dummy'
+          SEGMENT_PROXY_URL_QA: 'dummy'
+          SEGMENT_DELETE_API_SOURCE_ID_QA: 'dummy'
+          SEGMENT_REGULATIONS_ENDPOINT_QA: 'dummy'
 
-          MM_SENTRY_DSN_TEST: ''
+          MM_SENTRY_DSN_TEST: 'dummy'
           MM_SENTRY_AUTH_TOKEN: 'dummy'
 
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ''
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ''
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ''
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ''
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ''
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: 'dummy'
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: 'dummy'
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: 'dummy'
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: 'dummy'
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: 'dummy'
           GOOGLE_SERVICES_B64_IOS: 'dummy'
-          GOOGLE_SERVICES_B64_ANDROID: ''
+          GOOGLE_SERVICES_B64_ANDROID: 'dummy'
 
       # Upload the iOS .app file that works in simulators (no certificates needed)
       - name: Upload iOS APP Artifact (Simulator)
