@@ -66,7 +66,6 @@ export class EngineService {
     });
     const state = persistedState?.backgroundState ?? {};
 
-
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
