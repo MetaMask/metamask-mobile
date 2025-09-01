@@ -12,6 +12,9 @@ import { withIdentityFixtures } from '../utils/withIdentityFixtures';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
 
+// Quarantining for GNS feature
+// Original path e2e/specs/identity/contact-syncing/sync-users-contacts.spec.ts
+// Failing on IOS, Passes on Android
 describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
   const NEW_CONTACT_NAME = 'New Test Contact';
   const NEW_CONTACT_ADDRESS = '0x1234567890123456789012345678901234567890';
