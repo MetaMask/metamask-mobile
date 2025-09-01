@@ -117,7 +117,7 @@ const validateENSAddress = async (
   const confusableCollection = collectConfusables(toAddress);
   if (confusableCollection.length) {
     const invalidAddressMessage = strings('transaction.invalid_address');
-    const confusableWarningMessage = `${strings(
+    const confusableCharacterWarningMessage = `${strings(
       'transaction.confusable_msg',
     )} - ${getConfusablesExplanations(confusableCollection)}`;
     const invisibleCharacterWarningMessage = strings(
@@ -133,7 +133,7 @@ const validateENSAddress = async (
     }
     // Show WARNING for confusable characters
     return {
-      warning: confusableWarningMessage,
+      warning: confusableCharacterWarningMessage,
     };
   }
   return {};
