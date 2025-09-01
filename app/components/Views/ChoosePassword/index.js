@@ -42,6 +42,7 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
+  USE_TERMS,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -478,6 +479,7 @@ class ChoosePassword extends PureComponent {
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
       if (authType.oauth2Login) {
+        await StorageWrapper.setItem(USE_TERMS, TRUE);
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
