@@ -30,19 +30,6 @@ jest.mock('../../AccountConnect/AccountConnect', () => {
   return MockAccountConnect;
 });
 
-jest.mock('./MultichainAccountConnect', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const actualReact = require('react');
-  const MockMultichainAccountConnect = ({ route }: AccountConnectProps) =>
-    actualReact.createElement(
-      'div',
-      { testID: TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT },
-      ['MultichainAccountConnect - ', route.params.permissionRequestId],
-    );
-  MockMultichainAccountConnect.displayName = 'MultichainAccountConnect';
-  return MockMultichainAccountConnect;
-});
-
 const createMockCaip25Permission = (
   optionalScopes: Record<string, { accounts: string[] }>,
 ) => ({
@@ -120,9 +107,8 @@ describe('State2AccountConnectWrapper', () => {
         { state: mockState },
       );
 
-      expect(
-        getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
-      ).toBeTruthy();
+      // TODO: replace with MultichainAccountConnect in subsequent PR
+      expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
       expect(queryByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeNull();
     });
 
@@ -227,8 +213,9 @@ describe('State2AccountConnectWrapper', () => {
         { state: state2MockState },
       );
 
+      // TODO: replace with MultichainAccountConnect in subsequent PR
       expect(
-        getByTestIdState2(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
+        getByTestIdState2(TEST_IDS.ACCOUNT_CONNECT_COMPONENT),
       ).toBeTruthy();
 
       const state1MockState = createMockState(false);
@@ -268,9 +255,8 @@ describe('State2AccountConnectWrapper', () => {
       { state: mockState },
     );
 
-    expect(
-      getByTestId(TEST_IDS.MULTICHAIN_ACCOUNT_CONNECT_COMPONENT),
-    ).toBeTruthy();
+    // TODO: replace with MultichainAccountConnect in subsequent PR
+    expect(getByTestId(TEST_IDS.ACCOUNT_CONNECT_COMPONENT)).toBeTruthy();
   });
 
   it('handles props with complex permissions when state 2 is disabled', () => {
