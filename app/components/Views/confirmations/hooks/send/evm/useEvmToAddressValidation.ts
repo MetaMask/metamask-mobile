@@ -15,12 +15,16 @@ import {
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import {
   collectConfusables,
-  getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../../../util/confusables';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
+
+const BURN_ADDRESSES = [
+  '0x0000000000000000000000000000000000000000',
+  '0x000000000000000000000000000000000000dead',
+];
 
 export const shouldSkipValidation = ({
   toAddress,
@@ -64,8 +68,15 @@ const validateHexAddress = async (
   chainId?: Hex,
 ): Promise<{
   error?: string;
+  isTokenContractWarning?: boolean;
   warning?: string;
 }> => {
+  if (BURN_ADDRESSES.includes(toAddress)) {
+    return {
+      error: strings('transaction.invalid_address'),
+    };
+  }
+
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
     const { AssetsContractController, NetworkController } = Engine.context;
@@ -79,10 +90,9 @@ const validateHexAddress = async (
         networkClientId,
       );
       if (symbol) {
-        // todo: i18n to be implemented depending on the designs
         return {
-          warning:
-            'This address is a token contract address. If you send tokens to this address, you will lose them.',
+          warning: strings('send.token_contract_warning'),
+          isTokenContractWarning: true,
         };
       }
     } catch (e) {
@@ -98,6 +108,7 @@ const validateENSAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
+  isConfusableCharWarning?: boolean;
 }> => {
   const resolvedAddress = await doENSLookup(toAddress, chainId);
   // ENS could not be resolved
@@ -107,14 +118,12 @@ const validateENSAddress = async (
   // ENS resolved but has, confusing character in it
   const confusableCollection = collectConfusables(toAddress);
   if (confusableCollection.length) {
-    // todo: message may need to be improved depending on the designs
-    const message = `${strings(
-      'transaction.confusable_msg',
-    )} - ${getConfusablesExplanations(confusableCollection)}`;
+    const message = strings('transaction.invalid_address');
     const isError = confusableCollection.some(hasZeroWidthPoints);
     if (isError) {
       return {
-        error: message,
+        warning: message,
+        isConfusableCharWarning: true,
       };
     }
     return {
@@ -137,6 +146,8 @@ export const validateToAddress = async ({
 }): Promise<{
   error?: string;
   warning?: string;
+  isConfusableCharWarning?: boolean;
+  isTokenContractWarning?: boolean;
 }> => {
   if (
     shouldSkipValidation({
