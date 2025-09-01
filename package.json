@@ -208,6 +208,7 @@
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@deeeed/hyperliquid-node20": "^0.23.1-node20.1",
     "@ethersproject/abi": "^5.7.0",
+    "@intercom/intercom-react-native": "^8.8.0",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "@keystonehq/ur-decoder": "^0.12.2",

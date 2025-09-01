@@ -29,6 +29,7 @@ import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
+import com.intercom.reactnative.IntercomModule
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -95,6 +96,9 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
             load()
         }
+
+        // Initialize Intercom
+        IntercomModule.initialize(this, "apiKey", "appId")
 
         ApplicationLifecycleDispatcher.onApplicationCreate(this)
     }

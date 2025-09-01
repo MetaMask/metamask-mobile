@@ -352,6 +352,10 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
+  - Intercom (18.7.3)
+  - intercom-react-native (8.8.0):
+    - Intercom (~> 18.7.3)
+    - React-Core
   - lottie-ios (4.4.1)
   - lottie-react-native (6.7.2):
     - DoubleConversion
@@ -2812,6 +2816,7 @@ DEPENDENCIES:
   - "GoogleUtilities/NSData+zlib"
   - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - "intercom-react-native (from `../node_modules/@intercom/intercom-react-native`)"
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - OpenSSL-Universal
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
@@ -2949,6 +2954,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GZIP
     - GzipSwift
+    - Intercom
     - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
@@ -3019,6 +3025,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2024-11-12-RNv0.76.2-5b4aa20c719830dcf5684832b89a6edb95ac3d64
+  intercom-react-native:
+    :path: "../node_modules/@intercom/intercom-react-native"
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   Permission-BluetoothPeripheral:
@@ -3298,6 +3306,8 @@ SPEC CHECKSUMS:
   GZIP: 3c0abf794bfce8c7cb34ea05a1837752416c8868
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
+  Intercom: 93c6f5d9815b34bf2a7e5f03bcf7b6e08c1a4788
+  intercom-react-native: d496047d19b9f2e45c97feb5897d82b53036fc1b
   lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
   lottie-react-native: 7f3fc3f396b1d6c7b1454b77596bd2ad3151871e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d

@@ -4052,6 +4052,13 @@
   resolved "https://registry.yarnpkg.com/@img/sharp-win32-x64/-/sharp-win32-x64-0.34.2.tgz#ecf19250f8fe35de684aa2b0ec6f773b3447247b"
   integrity sha512-aUdT6zEYtDKCaxkofmmJDJYGCf0+pJg3eU9/oBuqvEeoB9dKI6ZLc/1iLJCTuJQDO4ptntAlkUmHgGjyuobZbw==
 
+"@intercom/intercom-react-native@^8.8.0":
+  version "8.8.0"
+  resolved "https://registry.yarnpkg.com/@intercom/intercom-react-native/-/intercom-react-native-8.8.0.tgz#679928b6af5fe0b8b7538d96a6567721c0e44902"
+  integrity sha512-w6qEsaunz+WZ2oD9x+P+INe02fnMY836t7zdZ22kxAR6OsCHH/ABSys6NSIRjVKNDcZGA5y7kHR2z4I8Ia/H6w==
+  dependencies:
+    node-fetch "^2.6.1"
+
 "@ioredis/commands@^1.1.1":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@ioredis/commands/-/commands-1.2.0.tgz#6d61b3097470af1fdbbe622795b8921d42018e11"
