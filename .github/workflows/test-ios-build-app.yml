@@ -98,7 +98,7 @@ jobs:
           SEGMENT_REGULATIONS_ENDPOINT_QA: ''
 
           MM_SENTRY_DSN_TEST: ''
-          MM_SENTRY_AUTH_TOKEN: ''
+          MM_SENTRY_AUTH_TOKEN: 'dummy'
 
           MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ''
           MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ''
