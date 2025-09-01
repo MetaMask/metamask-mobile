@@ -9,7 +9,6 @@ import {
 import Assertions from '../../../framework/Assertions';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
@@ -20,27 +19,26 @@ import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/mockHelpers';
+} from '../../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
       response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
       responseCode: 200,
     });
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
-    });
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
+
     const {
       urlEndpoint: simulationEndpoint,
       requestBody,

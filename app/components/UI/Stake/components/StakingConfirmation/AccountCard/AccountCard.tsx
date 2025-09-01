@@ -8,7 +8,7 @@ import Avatar, {
   AvatarSize,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import Text from '../../../../../../component-library/components/Texts/Text';
-import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import styleSheet from './AccountCard.styles';
@@ -19,6 +19,7 @@ import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 import { RootState } from '../../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
+import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 
 const AccountCard = ({
   contractName,
@@ -28,7 +29,9 @@ const AccountCard = ({
 }: AccountCardProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const account = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
 
   const networkName = useSelector(selectNetworkName);
 
@@ -41,14 +44,14 @@ const AccountCard = ({
   return (
     <View>
       <Card testID="account-card" style={styles.cardGroupTop} disabled>
-        {account && (
+        {selectedAccount && (
           <KeyValueRow
             field={{ label: { text: primaryLabel } }}
             value={{
               label: (
                 <AccountTag
-                  accountAddress={account?.address}
-                  accountName={account.metadata.name}
+                  accountAddress={selectedAccount?.address}
+                  accountName={selectedAccount.metadata.name}
                   useBlockieIcon={useBlockieIcon}
                 />
               ),

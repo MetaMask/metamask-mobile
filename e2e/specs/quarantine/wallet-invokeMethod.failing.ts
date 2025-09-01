@@ -11,7 +11,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
-import SolanaNewFeatureSheet from '../../pages/wallet/SolanaNewFeatureSheet';
 import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -26,10 +25,7 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
   it('should be able to call method: signIn', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withSolanaFixture()
-          .withSolanaFeatureSheetDisplayed()
-          .build(),
+        fixture: new FixtureBuilder().withSolanaFixture().build(),
         dapps: [
           {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
@@ -40,8 +36,6 @@ describe(SmokeMultiChainAPI('Solana - wallet_invokeMethod'), () => {
       async () => {
         await TestHelpers.reverseServerPort();
         await loginToApp();
-
-        await SolanaNewFeatureSheet.tapNotNowButton();
 
         await WalletView.tapIdenticon();
         await Assertions.expectElementToBeVisible(

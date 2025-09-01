@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Send",
@@ -4680,14 +4681,6 @@
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
-  "solana_new_feature_content": {
-    "title": "solana is here",
-    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
-    "not_now": "Not now",
-    "view_solana_account": "View Solana account",
-    "learn_more": "Learn more about Solana accounts",
-    "import_your_wallet": "Import your wallet"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
     "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
@@ -5378,6 +5371,7 @@
       "wallet_name": "Wallet Name",
       "balance": "Balance",
       "create_account": "Create account",
+      "creating_account": "Creating account...",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },

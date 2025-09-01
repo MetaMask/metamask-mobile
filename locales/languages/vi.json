@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Bạn có thể tắt Hiển thị phương tiện NFT trong",
     "show_display_nft_media_content_5": "Cài đặt > Bảo mật và quyền riêng tư."
   },
-  "solana_new_feature_content": {
-    "title": "Đã hỗ trợ Solana",
-    "title_description": "Nhập ví của bạn, khám phá, giao dịch và gửi. MetaMask hiện đã hỗ trợ Solana gốc.",
-    "not_now": "Không phải bây giờ",
-    "view_solana_account": "Xem tài khoản Solana",
-    "learn_more": "Tìm hiểu thêm về các tài khoản Solana",
-    "import_your_wallet": "Nhập ví của bạn"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Cổng IPFS",
     "ipfs_gateway_banner_content1": "Đây là một trang web IPFS. Để xem trang web này, bạn cần bật",

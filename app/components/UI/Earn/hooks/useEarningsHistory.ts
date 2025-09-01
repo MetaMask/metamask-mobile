@@ -3,10 +3,12 @@ import { Hex, hexToNumber } from '@metamask/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { stakingApiService } from '../../Stake/sdk/stakeSdkProvider';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
+import { EVM_SCOPE } from '../constants/networks';
 
 export interface EarningHistory {
   sumRewards: string;
@@ -30,8 +32,12 @@ const useEarningsHistory = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : '';
   const fetchEarningsHistory = useCallback(async () => {
     const numericChainId = hexToNumber(asset?.chainId as Hex);
 
