@@ -54,13 +54,19 @@ export function setUseBlockieIcon(useBlockieIcon) {
   };
 }
 
+// Plain action creator for state updates (used during store initialization)
+export function setBasicFunctionality(basicFunctionalityEnabled) {
+  return {
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
+  };
+}
+
+// Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch) => {
     // First dispatch the Redux state update
-    dispatch({
-      type: 'TOGGLE_BASIC_FUNCTIONALITY',
-      basicFunctionalityEnabled,
-    });
+    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
 
     // Call MultichainAccountService to update provider states and trigger alignment
     const Engine = require('../../core/Engine').default;

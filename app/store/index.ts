@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-parameter-properties
 import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, Persistor } from 'redux-persist';
@@ -12,7 +13,7 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
-import { toggleBasicFunctionality } from '../actions/settings';
+import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
 
@@ -70,7 +71,7 @@ const createStoreAndPersistor = async () => {
 
     // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(
-      toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
+      setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
   };
 
