@@ -48,6 +48,14 @@ export function PayWithModal() {
 
   const isTokenSupported = useCallback(
     (token: BridgeToken) => {
+      const isSelected =
+        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken?.chainId === token.chainId;
+
+      if (isSelected) {
+        return true;
+      }
+
       const isRequiredToken = targetTokens.some(
         (t) =>
           t.address.toLowerCase() === token.address.toLowerCase() &&
@@ -74,7 +82,13 @@ export function PayWithModal() {
 
       return hasNativeBalance;
     },
-    [minimumFiatBalance, targetTokens, tokensList, transactionChainId],
+    [
+      minimumFiatBalance,
+      payToken,
+      targetTokens,
+      tokensList,
+      transactionChainId,
+    ],
   );
 
   const filteredTokensList = useMemo(
