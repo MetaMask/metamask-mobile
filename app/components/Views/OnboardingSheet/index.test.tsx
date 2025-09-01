@@ -74,6 +74,28 @@ describe('OnboardingSheet', () => {
       expect(getByText(strings('onboarding.terms_of_use'))).toBeOnTheScreen();
     });
 
+    describe('Snapshots', () => {
+      it('renders correctly with createWallet=false (import mode)', () => {
+        const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
+        expect(toJSON()).toMatchSnapshot();
+      });
+
+      it('renders correctly with createWallet=true (create mode)', () => {
+        const propsWithCreateWallet = {
+          route: {
+            params: {
+              ...defaultProps.route.params,
+              createWallet: true,
+            },
+          },
+        };
+        const { toJSON } = render(
+          <OnboardingSheet {...propsWithCreateWallet} />,
+        );
+        expect(toJSON()).toMatchSnapshot();
+      });
+    });
+
     it('displays privacy notice text', () => {
       const { getByText } = render(<OnboardingSheet {...defaultProps} />);
 

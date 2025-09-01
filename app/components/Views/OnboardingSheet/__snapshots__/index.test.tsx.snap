@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (import mode) 1`] = `
+exports[`OnboardingSheet Component Rendering Snapshots renders correctly with createWallet=false (import mode) 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -360,13 +360,74 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             </Text>
           </TouchableOpacity>
         </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "marginTop": 40,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              }
+            }
+          >
+            By continuing, you agree to MetaMask's
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="terms-of-use-link"
+            >
+              Terms of Use
+            </Text>
+             
+            and
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+            >
+              Privacy notice
+            </Text>
+          </Text>
+        </View>
       </View>
     </View>
   </View>
 </View>
 `;
 
-exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (create mode) 1`] = `
+exports[`OnboardingSheet Component Rendering Snapshots renders correctly with createWallet=true (create mode) 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -725,6 +786,67 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               Use Secret Recovery Phrase
             </Text>
           </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "marginTop": 40,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              }
+            }
+          >
+            By continuing, you agree to MetaMask's
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="terms-of-use-link"
+            >
+              Terms of Use
+            </Text>
+             
+            and
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+            >
+              Privacy notice
+            </Text>
+          </Text>
         </View>
       </View>
     </View>
