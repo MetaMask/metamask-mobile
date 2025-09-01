@@ -192,7 +192,7 @@ const LeverageSlider: React.FC<{
   // Generate tick marks based on max leverage using configuration constants
   const tickMarks = useMemo(() => {
     const marks = [];
-    let step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
+    let step: number = LEVERAGE_SLIDER_CONFIG.TICK_STEP_MEDIUM;
 
     if (maxValue <= LEVERAGE_SLIDER_CONFIG.MAX_LEVERAGE_LOW_THRESHOLD) {
       step = LEVERAGE_SLIDER_CONFIG.TICK_STEP_LOW;
