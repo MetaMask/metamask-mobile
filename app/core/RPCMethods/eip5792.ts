@@ -35,6 +35,7 @@ import { store } from '../../store/index';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import Engine from '../Engine';
 import { isRelaySupported } from './transaction-relay.ts';
+import { getSendBundleSupportedChains } from './sentinel-api.ts';
 
 const VERSION = '2.0.0';
 const SUPPORTED_KEYRING_TYPES = [KeyringTypes.hd, KeyringTypes.simple];
@@ -154,6 +155,10 @@ async function getAlternateGasFeesCapability(
     'PreferencesController:getState',
   ).useTransactionSimulations;
 
+  const sendBundleSupportedChains = await getSendBundleSupportedChains(
+    chainIds,
+  );
+
   const relaySupportedChains = await Promise.all(
     batchSupport
       .map(({ chainId }) => chainId)
@@ -177,10 +182,12 @@ async function getAlternateGasFeesCapability(
       store.getState(),
       chainId,
     );
+    const isSendBundleSupported = sendBundleSupportedChains[chainId] ?? false;
 
     const alternateGasFees =
       simulationEnabled &&
-      (isSmartTransaction || (isSupported && relaySupportedForChain));
+      ((isSmartTransaction && isSendBundleSupported) ||
+        (isSupported && relaySupportedForChain));
 
     if (alternateGasFees) {
       acc[chainId] = {

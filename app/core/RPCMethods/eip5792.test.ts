@@ -21,6 +21,8 @@ import {
   getCapabilities,
   processSendCalls,
 } from './eip5792';
+// eslint-disable-next-line import/no-namespace
+import * as SentinelUtils from './sentinel-api.ts';
 
 const MOCK_ACCOUNT = '0x1234';
 
@@ -596,6 +598,11 @@ describe('processSendCalls', () => {
             relaySupportedForChain: true,
           },
         ]);
+      jest
+        .spyOn(SentinelUtils, 'getSendBundleSupportedChains')
+        .mockResolvedValue({
+          [CHAIN_ID_MOCK]: true,
+        });
 
       const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
 
@@ -606,6 +613,38 @@ describe('processSendCalls', () => {
           },
           atomic: {
             status: AtomicCapabilityStatus.Ready,
+          },
+        },
+      });
+    });
+
+    it('includes alternateGasFees true if send bundle is supported', async () => {
+      Engine.context.TransactionController.isAtomicBatchSupported = jest
+        .fn()
+        .mockResolvedValueOnce([
+          {
+            chainId: CHAIN_ID_MOCK,
+            delegationAddress: undefined,
+            isSupported: false,
+            upgradeContractAddress: DELEGATION_ADDRESS_MOCK,
+            relaySupportedForChain: true,
+          },
+        ]);
+      jest
+        .spyOn(SentinelUtils, 'getSendBundleSupportedChains')
+        .mockResolvedValue({
+          [CHAIN_ID_MOCK]: true,
+        });
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Ready,
+          },
+          alternateGasFees: {
+            supported: true,
           },
         },
       });
@@ -717,6 +756,25 @@ describe('processSendCalls', () => {
         [CHAIN_ID_MOCK]: {
           atomic: {
             status: AtomicCapabilityStatus.Ready,
+          },
+        },
+      });
+    });
+
+    it('does not return alternateGasFees property if send bundle is not supported', async () => {
+      jest.spyOn(RelayUtils, 'isRelaySupported').mockResolvedValue(false);
+      jest
+        .spyOn(SentinelUtils, 'getSendBundleSupportedChains')
+        .mockResolvedValue({
+          [CHAIN_ID_MOCK]: false,
+        });
+
+      const capabilities = await getCapabilities(FROM_MOCK, [CHAIN_ID_MOCK]);
+
+      expect(capabilities).toStrictEqual({
+        [CHAIN_ID_MOCK]: {
+          atomic: {
+            status: AtomicCapabilityStatus.Supported,
           },
         },
       });
