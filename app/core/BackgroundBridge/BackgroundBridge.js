@@ -5,6 +5,11 @@ import {
   METAMASK_DOMAIN,
 } from '@metamask/selected-network-controller';
 import EthQuery from '@metamask/eth-query';
+import {
+  getCallsStatus,
+  getCapabilities,
+  processSendCalls,
+} from '@metamask/eip-5792-middleware';
 import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
@@ -74,13 +79,18 @@ import {
   getChangedAuthorization,
   getRemovedAuthorization,
 } from '../../util/permissions';
-import { createAsyncWalletMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
+import {
+  createAsyncWalletMiddleware,
+  createMetamaskMiddleware,
+} from '../RPCMethods/createAsyncWalletMiddleware';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
-import { uniq } from 'lodash';
 import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
+import PPOMUtil from '../../lib/ppom/ppom-util';
+import { isRelaySupported } from '../RPCMethods/transaction-relay';
+import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -600,7 +610,9 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // Middleware to handle wallet_xxx requests
-    engine.push(createAsyncWalletMiddleware());
+    engine.push(createAsyncWalletMiddleware()); // TODO [ffmcgee] remove this one in favor of the one below
+
+    engine.push(this.setupEip5792MiddlewareHandlers());
 
     engine.push(createSanitizationMiddleware());
 
@@ -754,6 +766,10 @@ export class BackgroundBridge extends EventEmitter {
 
     engine.push(createAsyncWalletMiddleware());
 
+    // TODO [ffmcgee] remove this one in favor of the one below
+
+    engine.push(this.setupEip5792MiddlewareHandlers());
+
     engine.push(async (req, res, _next, end) => {
       const { provider } = NetworkController.getNetworkClientById(
         req.networkClientId,
@@ -763,6 +779,86 @@ export class BackgroundBridge extends EventEmitter {
     });
 
     return engine;
+  }
+
+  /**
+   * Setup EIP-5792 middleware handlers
+   */
+  setupEip5792MiddlewareHandlers() {
+    return createMetamaskMiddleware({
+      getAccounts: () => {
+        const { AccountsController } = Engine.context;
+        const addresses = AccountsController.listAccounts().map(
+          (acc) => acc.address,
+        );
+        return Promise.resolve(addresses);
+      },
+      // EIP-5792
+      processSendCalls: processSendCalls.bind(
+        null,
+        {
+          addTransaction:
+            Engine.context.TransactionController.addTransaction.bind(
+              Engine.context.TransactionController,
+            ),
+          addTransactionBatch:
+            Engine.context.TransactionController.addTransactionBatch.bind(
+              Engine.context.TransactionController,
+            ),
+          getDismissSmartAccountSuggestionEnabled: () =>
+            Engine.context.PreferencesController.state.preferences
+              .dismissSmartAccountSuggestionEnabled,
+          isAtomicBatchSupported:
+            Engine.context.TransactionController.isAtomicBatchSupported.bind(
+              Engine.context.TransactionController,
+            ),
+          validateSecurity: (securityAlertId, request, chainId) => {
+            // TODO: [ffmcgee] come back here, this is not corret, compare with extension
+            PPOMUtil.createValidatorForSecurityAlertId(securityAlertId);
+            // validateRequestWithPPOM({
+            //   chainId,
+            //   ppomController: this.ppomController,
+            //   request,
+            //   securityAlertId,
+            //   updateSecurityAlertResponse:
+            //     this.updateSecurityAlertResponse.bind(this),
+            // }),
+          },
+        },
+        Engine.controllerMessenger,
+      ),
+      getCallsStatus: getCallsStatus.bind(null, Engine.controllerMessenger),
+      getCapabilities: getCapabilities.bind(
+        null,
+        {
+          getDismissSmartAccountSuggestionEnabled: () =>
+            Engine.context.PreferencesController.state.preferences
+              .dismissSmartAccountSuggestionEnabled,
+          getIsSmartTransaction: (chainId) =>
+            selectSmartTransactionsEnabled(store.getState(), chainId),
+          isAtomicBatchSupported:
+            Engine.context.TransactionController.isAtomicBatchSupported.bind(
+              this.txController,
+            ),
+          isRelaySupported,
+          getSendBundleSupportedChains: async (chainIds) => {
+            const res =
+              await Engine.context.TransactionController.isAtomicBatchSupported(
+                {
+                  address:
+                    Engine.context.AccountsController.getSelectedAccount()
+                      .address,
+                  chainIds,
+                },
+              );
+
+            return res.map((entry) => ({ [entry.chainId]: entry.isSupported }));
+          },
+        },
+        Engine.context.AccountsController.getSelectedAccount().address,
+        Engine.controllerMessenger,
+      ),
+    });
   }
 
   /**

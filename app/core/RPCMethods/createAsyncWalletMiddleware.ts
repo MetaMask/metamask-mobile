@@ -20,3 +20,18 @@ export const createAsyncWalletMiddleware = (): JsonRpcMiddleware<
     getCallsStatus,
     getCapabilities,
   }) as JsonRpcMiddleware<JsonRpcParams, Json>;
+
+// TODO: [ffmcgee] export types from package to simplify function typing here
+export function createMetamaskMiddleware({
+  getAccounts,
+  getCallsStatus,
+  getCapabilities,
+  processSendCalls,
+}) {
+  return createWalletMiddleware({
+    getAccounts,
+    getCallsStatus,
+    getCapabilities,
+    processSendCalls,
+  });
+}
