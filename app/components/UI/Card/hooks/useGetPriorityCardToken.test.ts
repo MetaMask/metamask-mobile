@@ -282,7 +282,7 @@ describe('useGetPriorityCardToken', () => {
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'useGetPriorityCardToken::error adding priority token',
+      'fetchAllowances::Failed to fetch token allowances',
     );
   });
 
@@ -1213,7 +1213,7 @@ describe('useGetPriorityCardToken', () => {
       expect(mockTokensController.addToken).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'useGetPriorityCardToken::error fetching priority token',
+        'useGetPriorityCardToken::error adding priority token',
       );
       expect(result.current.error).toBe(true);
       expect(result.current.isLoading).toBe(false);
