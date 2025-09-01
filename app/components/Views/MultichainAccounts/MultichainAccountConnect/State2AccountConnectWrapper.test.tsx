@@ -102,7 +102,7 @@ describe('State2AccountConnectWrapper', () => {
       const isState2Enabled = true;
       const mockState = createMockState(isState2Enabled);
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <State2AccountConnectWrapper {...mockProps} />,
         { state: mockState },
       );
