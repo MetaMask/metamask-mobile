@@ -30,6 +30,7 @@ module.exports = {
       {
         outputDirectory: './e2e/reports',
         classNameTemplate: '{filepath}',
+        uniqueOutputName: true,
       },
     ],
   ],
