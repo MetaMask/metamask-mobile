@@ -2,6 +2,8 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsGeneralSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsMarketListViewSelectorsIDs,
+  PerpsClosePositionViewSelectorsIDs,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -13,6 +15,53 @@ class PerpsView {
     return Matchers.getElementByID(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON);
   }
 
+  getPositionItem(
+    symbol: string,
+    leverageX: number,
+    direction: 'long' | 'short',
+    index = 0,
+  ) {
+    return Matchers.getElementByID(
+      new RegExp(
+        `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
+      ),
+    );
+  }
+
+  async expectPosition(
+    symbol: string,
+    leverageX: number,
+    direction: 'long' | 'short',
+    index = 0,
+  ) {
+    const el = this.getPositionItem(symbol, leverageX, direction, index);
+    await Assertions.expectElementToBeVisible(el as DetoxElement, {
+      description: `Expect ${symbol} ${leverageX}x ${direction} at index ${index}`,
+    });
+  }
+
+  // Perps Tab (home) helpers: search position cards by visible text instead of testIDs
+  get perpsTabPositionText() {
+    return (symbol: string, leverageX: number, direction: 'long' | 'short') =>
+      `${symbol} ${leverageX}x ${direction}`;
+  }
+
+  async expectPerpsTabPosition(
+    symbol: string,
+    leverageX: number,
+    direction: 'long' | 'short',
+    index = 0,
+  ) {
+    const text = this.perpsTabPositionText(symbol, leverageX, direction);
+    const el = (await Matchers.getElementByText(
+      text,
+      index,
+    )) as unknown as DetoxElement;
+    await Assertions.expectElementToBeVisible(el, {
+      description: `Expect Perps tab position: ${text} at index ${index}`,
+    });
+  }
+
   get setTpslButton() {
     return Matchers.getElementByID(
       PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
@@ -21,13 +70,24 @@ class PerpsView {
 
   get closePositionBottomSheetButton() {
     return Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
   }
 
   get placeOrderButton() {
     return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_VIEW_BUTTON,
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+  }
+
+  get backButtonPositionSheet() {
+    return Matchers.getElementByID(
+      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
+    );
+  }
+  get backButtonMarketList() {
+    return Matchers.getElementByID(
+      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
     );
   }
 
@@ -105,6 +165,18 @@ class PerpsView {
   async tapClosePositionBottomSheetButton() {
     await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
       elemDescription: 'Close position bottom sheet button',
+    });
+  }
+
+  async tapBackButtonPositionSheet() {
+    await Gestures.waitAndTap(this.backButtonPositionSheet, {
+      elemDescription: 'Back button position sheet',
+    });
+  }
+
+  async tapBackButtonMarketList() {
+    await Gestures.waitAndTap(this.backButtonMarketList, {
+      elemDescription: 'Back button market list',
     });
   }
 }

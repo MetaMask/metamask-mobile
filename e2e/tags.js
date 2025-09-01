@@ -1,4 +1,5 @@
 const tags = {
+  regressionPerps: 'RegressionPerps:',
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',

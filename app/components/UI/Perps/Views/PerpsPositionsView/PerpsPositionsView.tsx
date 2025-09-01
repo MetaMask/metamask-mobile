@@ -30,6 +30,7 @@ import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PerpsPositionsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -124,10 +125,16 @@ const PerpsPositionsView: React.FC = () => {
           </Text>
         </View>
         {positions.map((position, index) => (
-          <PerpsPositionCard
+          <View
             key={`${position.coin}-${index}`}
-            position={position}
-          />
+            testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${
+              position.coin
+            }-${position.leverage.value}x-${
+              parseFloat(position.size) >= 0 ? 'long' : 'short'
+            }-${index}`}
+          >
+            <PerpsPositionCard position={position} />
+          </View>
         ))}
       </View>
     );

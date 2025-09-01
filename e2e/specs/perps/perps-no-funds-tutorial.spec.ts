@@ -1,6 +1,6 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { Regression } from '../../tags';
+import { RegressionPerps } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
@@ -8,7 +8,7 @@ import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../pages/Perps/PerpsOnboarding';
 
 describe(
-  Regression('Perps - no funds shows Start Trading and tutorial'),
+  RegressionPerps('Perps - no funds shows Start Trading and tutorial'),
   () => {
     beforeEach(async () => {
       jest.setTimeout(150000);

@@ -56,7 +56,7 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
  * Sets up mocks to prevent live network requests to Arbitrum during E2E tests
  */
 export const PERPS_ARBITRUM_MOCKS = async (mockServer) => {
-  const { setupMockRequest } = await import('../mockHelpers');
+  const { setupMockRequest } = await import('../helpers/mockHelpers');
 
   // Mock Arbitrum RPC endpoint
   await setupMockRequest(mockServer, {

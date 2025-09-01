@@ -30,6 +30,8 @@ export class PerpsE2EMockService {
     availableBalance: '8000.00',
     marginUsed: '2000.00',
     unrealizedPnl: '150.00',
+    returnOnEquity: '0',
+    totalValue: '10000.00',
   };
 
   private mockPositions: Position[] = [];
@@ -69,11 +71,13 @@ export class PerpsE2EMockService {
       availableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
       marginUsed: profile === 'no-funds' ? '0.00' : '2000.00',
       unrealizedPnl: profile === 'no-funds' ? '0.00' : '150.00',
+      returnOnEquity: '0',
+      totalValue: profile === 'no-funds' ? '0.00' : '10000.00',
     };
 
     // Positions based on profile
     this.mockPositions =
-      profile === 'no-funds'
+      profile === 'no-funds' || profile === 'no-positions'
         ? []
         : [
             {
@@ -128,11 +132,17 @@ export class PerpsE2EMockService {
       marginUsed: newMarginUsed.toString(),
     };
 
+    // Determine signed size based on direction (long = +, short = -)
+    const numericSize = Math.abs(parseFloat(params.size));
+    const signedSize = params.isBuy
+      ? numericSize.toString()
+      : (-numericSize).toString();
+
     // Create mock position
     const mockPosition: Position = {
       coin: params.coin,
       entryPrice: (params.currentPrice || 50000).toString(),
-      size: params.size,
+      size: signedSize,
       positionValue: notionalValue.toString(),
       unrealizedPnl: '0',
       marginUsed: marginUsed.toString(),

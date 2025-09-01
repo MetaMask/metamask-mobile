@@ -439,6 +439,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
+      testID: 'perps-tpsl-set-button',
       isDisabled:
         isUpdating ||
         !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
