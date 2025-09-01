@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { isEvmAccountType } from '@metamask/keyring-api';
 
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectWallets } from '../../../../../selectors/multichainAccounts/wallets';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import { useSendContext } from '../../context/send-context';
@@ -26,7 +26,7 @@ jest.mock('../../../../../core/Multichain/utils', () => ({
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/wallets', () => ({
-  selectMultichainWallets: jest.fn(),
+  selectWallets: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -105,7 +105,7 @@ describe('useAccounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -252,7 +252,7 @@ describe('useAccounts', () => {
 
   it('handles empty wallets array', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [];
       }
       if (selector === selectInternalAccountsById) {
@@ -268,7 +268,7 @@ describe('useAccounts', () => {
 
   it('handles missing internal accounts', () => {
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [mockWallet];
       }
       if (selector === selectInternalAccountsById) {
@@ -304,7 +304,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -333,7 +333,7 @@ describe('useAccounts', () => {
     };
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainWallets) {
+      if (selector === selectWallets) {
         return [walletWithEmptyAccountGroups];
       }
       if (selector === selectInternalAccountsById) {
@@ -389,7 +389,7 @@ describe('useAccounts', () => {
       );
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainWallets) {
+        if (selector === selectWallets) {
           return [mockWallet, mockSecondWallet];
         }
         if (selector === selectInternalAccountsById) {
