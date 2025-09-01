@@ -1,8 +1,13 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import React, {
+  useCallback,
+  useState,
+  useRef,
+  useImperativeHandle,
+} from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -19,7 +24,7 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from './TextField.constants';
 
-const TextField = React.forwardRef<TextInput, TextFieldProps>(
+const TextField = React.forwardRef<TextInput | null, TextFieldProps>(
   (
     {
       style,
@@ -38,6 +43,14 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
+    const inputRef = useRef<TextInput>(null);
+
+    // Expose the input methods to parent components
+    useImperativeHandle<TextInput | null, TextInput | null>(
+      ref,
+      () => inputRef.current,
+      [],
+    );
 
     const { styles } = useStyles(styleSheet, {
       style,
@@ -71,8 +84,18 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
       [isDisabled, setIsFocused, onFocus],
     );
 
+    const onPressHandler = useCallback(() => {
+      if (!isDisabled && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [isDisabled]);
+
     return (
-      <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
+      <Pressable
+        style={styles.base}
+        testID={TEXTFIELD_TEST_ID}
+        onPress={onPressHandler}
+      >
         {startAccessory && (
           <View
             style={styles.startAccessory}
@@ -92,7 +115,7 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
               testID={testID}
               style={styles.input}
               {...props}
-              ref={ref}
+              ref={inputRef}
               isStateStylesDisabled
             />
           )}
@@ -105,7 +128,7 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
             {endAccessory}
           </View>
         )}
-      </View>
+      </Pressable>
     );
   },
 );

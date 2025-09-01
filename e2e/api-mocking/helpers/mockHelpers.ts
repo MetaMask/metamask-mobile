@@ -1,10 +1,13 @@
 import { Mockttp } from 'mockttp';
 import _ from 'lodash';
-import { createLogger, MockApiEndpoint } from '../framework';
-import { getDecodedProxiedURL } from '../specs/notifications/utils/helpers';
+import { createLogger, LogLevel, MockApiEndpoint } from '../../framework';
+import { getDecodedProxiedURL } from '../../specs/notifications/utils/helpers';
 
+// Creates a logger with INFO level as the mockServer produces too much noise
+// Change this to DEBUG as needed
 const logger = createLogger({
   name: 'TestSpecificMockHelpers',
+  level: LogLevel.INFO,
 });
 
 interface ResponseParam {

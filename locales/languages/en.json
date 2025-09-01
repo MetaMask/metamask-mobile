@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Send",
@@ -1499,6 +1500,8 @@
     "alphabetically": "Alphabetically (A-Z)",
     "add_to_get_started": "Add crypto to get started",
     "token_is_needed_to_continue": "{{tokenSymbol}} is needed to continue",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
@@ -3097,7 +3100,8 @@
     "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
     "edit_permissions": "Edit permissions",
     "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.",
-    "connect_an_account": "Connect an account"
+    "connect_an_account": "Connect an account",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Connect this website with MetaMask"
@@ -4677,14 +4681,6 @@
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
-  "solana_new_feature_content": {
-    "title": "solana is here",
-    "title_description": "Import your wallet, explore, trade and send it. Native Solana support is now live on MetaMask.",
-    "not_now": "Not now",
-    "view_solana_account": "View Solana account",
-    "learn_more": "Learn more about Solana accounts",
-    "import_your_wallet": "Import your wallet"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
     "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
@@ -5375,6 +5371,7 @@
       "wallet_name": "Wallet Name",
       "balance": "Balance",
       "create_account": "Create account",
+      "creating_account": "Creating account...",
       "back_up": "Back up",
       "reveal_recovery_phrase_with_index": "Reveal Recovery Phrase {{index}}"
     },

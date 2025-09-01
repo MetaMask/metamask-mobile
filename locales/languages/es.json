@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "Puede desactivar Mostrar medios NFT en",
     "show_display_nft_media_content_5": "Configuración > Seguridad y privacidad."
   },
-  "solana_new_feature_content": {
-    "title": "Solana ya está aquí",
-    "title_description": "Importa tu billetera, explora, opera y envíala. La compatibilidad nativa con Solana ya está activa en MetaMask.",
-    "not_now": "Ahora no",
-    "view_solana_account": "Ver la cuenta de Solana",
-    "learn_more": "Obtenga más información sobre las cuentas de Solana",
-    "import_your_wallet": "Importa tu billetera"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Puerta de enlace de IPFS",
     "ipfs_gateway_banner_content1": "Este es un sitio web de IPFS. Para ver este sitio, deberá activar",

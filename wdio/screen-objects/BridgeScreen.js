@@ -38,18 +38,13 @@ class BridgeScreen {
     return AppwrightSelectors.getElementByText(this._device, QuoteViewSelectorText.GET_QUOTES);
   }
 
-  async isQuoteDisplayed(network) {
-    if (network == 'Ethereum'){ // legacy swap view only shows on etheruem network
-      const mmFee = await AppwrightSelectors.getElementByID(this._device, SwapsViewSelectorsIDs.QUOTE_SUMMARY);
-      await appwrightExpect(mmFee).toBeVisible({ timeout: 10000 });
+  async isQuoteDisplayed() {
 
-    }
-    else{
       const element = await this.quoteDisplayed; // bridge swap view shows on 
       await appwrightExpect(element).toBeVisible({ timeout: 10000 });
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, BridgeQuotesSelectorText.FEE_DISCLAIMER);
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
-    }
+    
 
   }
 
@@ -76,12 +71,25 @@ class BridgeScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
-    const bridgeButton = await AppwrightSelectors.getElementByText(this._device, 'Bridge to');
-    await bridgeButton.tap();
-    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
-    await networkButton.tap();
-    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-    await tokenButton.tap();
+
+    if (network === 'Ethereum'){
+      return;
+      //TODO: Make this cleaner. looks like main we have enabled unifed swaps and bridge flow
+    }
+    else {
+
+      const destinationToken = await this.destinationTokenArea;
+      await destinationToken.tap();
+      // const selectAllDropDown = await this.seeAllDropDown;
+      // await selectAllDropDown.tap();
+      const networkName = await AppwrightSelectors.getElementByText(this._device, network);
+      await networkName.tap();
+      const tokenButton = await AppwrightSelectors.getElementByText(this._device, token);
+      await tokenButton.tap();
+
+
+    }
+
   }
 
   async tapGetQuotes(network){

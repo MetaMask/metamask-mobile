@@ -46,4 +46,5 @@ export const ALLOWLISTED_URLS = [
   'https://dapp-scanning.api.cx.metamask.io/bulk-scan',
   'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
+  'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
 ];

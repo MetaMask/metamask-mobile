@@ -261,7 +261,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1574,7 +1574,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -2887,7 +2887,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -4200,7 +4200,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
