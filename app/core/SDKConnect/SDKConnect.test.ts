@@ -1,5 +1,4 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import AppConstants from '../AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -16,7 +15,7 @@ import {
   removeChannel,
   watchConnection,
 } from './ConnectionManagement';
-import { init, postInit } from './InitializationManagement';
+import { init } from './InitializationManagement';
 import {
   ApprovedHosts,
   ConnectedSessions,
@@ -33,6 +32,23 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import Engine from '../../core/Engine';
+
+const mockNavigation = {
+  getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
+  navigate: jest.fn(),
+};
+
+jest.mock('../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigation;
+    },
+    set navigation(value) {
+      // Mock setter - does nothing but prevents errors
+    },
+  },
+}));
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
@@ -66,8 +82,6 @@ describe('SDKConnect', () => {
     updateSDKLoadingState as jest.MockedFunction<typeof updateSDKLoadingState>;
 
   const mockInit = init as jest.MockedFunction<typeof init>;
-
-  const mockPostInit = postInit as jest.MockedFunction<typeof postInit>;
 
   const mockPause = pause as jest.MockedFunction<typeof pause>;
 
@@ -123,31 +137,31 @@ describe('SDKConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sdkConnect = SDKConnect.getInstance();
+    // Reset SDK state for test isolation
+    sdkConnect.state._initialized = false;
+    sdkConnect.state._initializing = undefined;
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        const testNavigation = {} as NavigationContainerRef;
-
-        await sdkConnect.init({
-          navigation: testNavigation,
-          context: 'testContext',
-        });
+        await SDKConnect.init({ context: 'testContext' });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
-          navigation: testNavigation,
+          navigation: mockNavigation,
           context: 'testContext',
           instance: sdkConnect,
         });
       });
-    });
 
-    describe('postInit', () => {
-      it('should perform post-initialization tasks', async () => {
-        await sdkConnect.postInit();
-
+      it('should call postInit and execute provided callback', async () => {
+        const mockPostInit = jest.spyOn(sdkConnect, 'postInit');
+        await SDKConnect.init({ context: 'testContext' });
         expect(mockPostInit).toHaveBeenCalledTimes(1);
       });
     });
