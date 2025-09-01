@@ -249,6 +249,8 @@ const TRANSAK_ID_TO_ASSET_ID: Record<
   `${string}/${string}`,
   CaipAssetReference
 > = {
+  'ethereum/musd': MUSD_TOKEN.assetId,
+  'linea/musd': MUSD_LINEA_TOKEN.assetId,
   'ethereum/usdc': USDC_TOKEN.assetId,
   'linea/usdc': USDC_LINEA_TOKEN.assetId,
   'base/usdc': USDC_BASE_TOKEN.assetId,
