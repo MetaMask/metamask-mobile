@@ -59,6 +59,14 @@ export const SendMetricsContext = createContext<SendMetricsContextType>({
   setRecipientInputMethod: () => undefined,
 });
 
+const getAccountTypeSafely = (address: string): string | undefined => {
+  try {
+    return getAddressAccountType(address);
+  } catch {
+    return undefined;
+  }
+};
+
 export const SendMetricsContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
@@ -79,7 +87,7 @@ export const SendMetricsContextProvider: React.FC<{
     <SendMetricsContext.Provider
       value={{
         accountType: isEvmAddress(from as string)
-          ? getAddressAccountType(from as string)
+          ? getAccountTypeSafely(from as string)
           : undefined,
         assetListSize,
         amountInputMethod,
