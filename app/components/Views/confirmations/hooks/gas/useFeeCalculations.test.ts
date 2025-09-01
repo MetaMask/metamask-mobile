@@ -160,7 +160,7 @@ describe('useFeeCalculations', () => {
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 
-  describe.only('Max fee', () => {
+  describe('Max fee', () => {
     it('EIP-1559 transaction', () => {
       const clonedState = cloneDeep(stakingDepositConfirmationState);
       const transactionMetaWithLayer1GasFee =
