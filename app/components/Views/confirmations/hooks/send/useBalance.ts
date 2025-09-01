@@ -17,17 +17,15 @@ import { useSendType } from './useSendType';
 export interface GetBalanceArgs {
   asset?: AssetType;
   contractBalances: Record<Hex, Hex>;
-  from: string;
   isEvmSendType?: boolean;
 }
 
 export const getBalance = ({
   asset,
   contractBalances,
-  from,
   isEvmSendType,
 }: GetBalanceArgs) => {
-  if (!asset || !from) {
+  if (!asset) {
     return { balance: '0', decimals: 0, rawBalanceBN: new BN('0') };
   }
   let rawBalanceHex = asset?.rawBalance;
@@ -62,7 +60,7 @@ export const getBalance = ({
 export const useBalance = () => {
   const { isEvmSendType } = useSendType();
   const contractBalances = useSelector(selectContractBalances);
-  const { asset, from } = useSendContext();
+  const { asset } = useSendContext();
 
   const { balance, decimals, rawBalanceBN } = useMemo(() => {
     if (asset?.standard === TokenStandard.ERC1155) {
@@ -76,10 +74,9 @@ export const useBalance = () => {
     return getBalance({
       asset: asset as AssetType,
       contractBalances,
-      from: from as Hex,
       isEvmSendType,
     });
-  }, [asset, contractBalances, from, isEvmSendType]);
+  }, [asset, contractBalances, isEvmSendType]);
 
   return {
     balance,

@@ -60,11 +60,14 @@ export const getPercentageValueFn = ({
   }
 
   let percentageValue = rawBalanceBN.sub(estimatedTotalGas);
+  let decimals = asset.decimals;
+
   if (percentage !== 100) {
-    percentageValue = percentageValue.mul(new BN(percentage)).div(new BN(100));
+    percentageValue = percentageValue.mul(new BN(percentage));
+    decimals += 2;
   }
 
-  return fromBNWithDecimals(percentageValue, asset.decimals);
+  return fromBNWithDecimals(percentageValue, decimals);
 };
 
 export const usePercentageAmount = () => {
@@ -74,15 +77,23 @@ export const usePercentageAmount = () => {
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
   const getPercentageAmount = useCallback(
-    (percentage: number) =>
-      getPercentageValueFn({
+    (percentage: number) => {
+      if (isNonEvmNativeSendType) return undefined;
+      return getPercentageValueFn({
         asset: asset as AssetType,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
         isEvmSendType,
         percentage,
         rawBalanceBN,
-      }),
-    [asset, gasFeeEstimates, isEvmSendType, rawBalanceBN],
+      });
+    },
+    [
+      asset,
+      gasFeeEstimates,
+      isEvmSendType,
+      isNonEvmNativeSendType,
+      rawBalanceBN,
+    ],
   );
 
   return {
