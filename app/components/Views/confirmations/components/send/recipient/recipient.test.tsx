@@ -2,12 +2,14 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { doENSLookup } from '../../../../../../util/ENSUtils';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientType } from '../../UI/recipient';
 import { Recipient } from './recipient';
 
@@ -61,6 +63,14 @@ jest.mock('./recipient.styles', () => ({
   styleSheet: jest.fn(() => ({
     container: { flex: 1 },
   })),
+}));
+
+jest.mock('../../../hooks/send/useSendType', () => ({
+  useSendType: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/ENSUtils', () => ({
+  doENSLookup: jest.fn(),
 }));
 
 jest.mock('../../recipient-list/recipient-list', () => ({
@@ -119,6 +129,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   }),
 }));
 
+const mockDoENSLookup = jest.mocked(doENSLookup);
 const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseAccounts = jest.mocked(useAccounts);
 const mockUseContacts = jest.mocked(useContacts);
@@ -127,6 +138,7 @@ const mockUseRecipientSelectionMetrics = jest.mocked(
   useRecipientSelectionMetrics,
 );
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseSendType = jest.mocked(useSendType);
 
 describe('Recipient', () => {
   const mockUpdateTo = jest.fn();
@@ -175,6 +187,15 @@ describe('Recipient', () => {
       handleSubmitPress: mockHandleSubmitPress,
       handleCancelPress: jest.fn(),
       handleBackPress: jest.fn(),
+    });
+
+    mockDoENSLookup.mockReturnValue(Promise.resolve(''));
+    mockUseSendType.mockReturnValue({
+      isEvmSendType: true,
+      isEvmNativeSendType: false,
+      isNonEvmSendType: false,
+      isNonEvmNativeSendType: false,
+      isSolanaSendType: false,
     });
   });
 
@@ -246,6 +267,32 @@ describe('Recipient', () => {
     expect(mockHandleSubmitPress).toHaveBeenCalledWith(selectedContact.address);
     expect(mockSetRecipientInputMethodSelectContact).toHaveBeenCalledTimes(1);
     expect(mockCaptureRecipientSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls DNSResolver when address it is an EVMSendType on submission', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      toAddressError: undefined,
+      toAddressWarning: undefined,
+      validateToAddress: jest.fn(),
+    });
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('review-button-send'));
+
+    expect(mockDoENSLookup).toHaveBeenCalledTimes(1);
   });
 
   it('passes correct isRecipientSelectedFromList prop to RecipientInput initially', () => {
