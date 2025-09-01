@@ -5,6 +5,7 @@ import { BigNumber } from 'bignumber.js';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { useSendScope } from './useSendScope';
 import { getNetworkBadgeSource } from '../../utils/network';
+import { isTestNet } from '../../../../../util/networks';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
@@ -32,11 +33,16 @@ export function useAccountTokens() {
       filteredAssets = flatAssets;
     }
 
-    const assetsWithBalance = filteredAssets.filter(
-      (asset) =>
+    const assetsWithBalance = filteredAssets.filter((asset) => {
+      const haveBalance =
         asset.fiat?.balance &&
-        new BigNumber(asset.fiat.balance).isGreaterThan(0),
-    );
+        new BigNumber(asset.fiat.balance).isGreaterThan(0);
+
+      const isTestNetAsset =
+        isTestNet(asset.chainId) && asset.rawBalance !== '0x0';
+
+      return haveBalance || isTestNetAsset;
+    });
 
     const processedAssets = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
