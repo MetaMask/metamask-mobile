@@ -29,6 +29,7 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import { applyVaultInitialization } from '../../util/generateSkipOnboardingState';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -190,7 +191,7 @@ export function* startAppServices() {
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
-
+  yield call(applyVaultInitialization);
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 }
