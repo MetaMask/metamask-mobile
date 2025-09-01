@@ -115,17 +115,16 @@ describe('useTransactionConfirm', () => {
       payToken: {
         address: TOKEN_ADDRESS_MOCK,
         chainId: CHAIN_ID_MOCK,
-        decimals: 6,
-        symbol: 'TST',
       },
       setPayToken: noop,
-    });
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      value: '',
-      formatted: TOTAL_FIAT_MOCK,
-      totalGasFormatted: NETWORK_FEE_MOCK,
       bridgeFeeFormatted: BRIDGE_FEE_MOCK,
+      formatted: TOTAL_FIAT_MOCK,
+      quoteNetworkFee: '0.0',
+      totalGasFormatted: NETWORK_FEE_MOCK,
+      value: '',
     });
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
