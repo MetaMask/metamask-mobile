@@ -15,17 +15,16 @@ import { EthAccountType } from '@metamask/keyring-api';
 import { createDeepEqualSelector } from '../util';
 import {
   selectAccountTreeControllerState,
-  selectAccountGroups,
+  selectAccountGroupWithInternalAccounts,
 } from './accountTreeController';
-import {
-  selectInternalAccountsById,
-  selectInternalAccountByAddresses,
-} from '../accountsController';
+import { selectInternalAccountsById } from '../accountsController';
 import {
   type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
+import type { AccountGroupWithInternalAccounts } from './accounts.type';
+import { RootState } from '../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -310,26 +309,33 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
  * Selector to get account groups by a list of addresses.
  * Returns groups that contain at least one account matching any of the provided addresses.
  *
- * @param state - The Redux root state
- * @param addresses - Array of account addresses to match
- * @returns Array of account groups
+ * @param _state - Redux state.
+ * @param addresses - An array of addresses to filter account groups by.
+ * @returns An array of AccountGroupWithInternalAccounts that contain at least one matching account.
  */
 export const selectAccountGroupsByAddress = createDeepEqualSelector(
-  [selectInternalAccountByAddresses, selectAccountGroups],
-  (getAccountsByAddress, accountGroups) => (addresses: string[]) => {
-    const accounts = getAccountsByAddress(addresses);
-    if (accounts.length === 0) {
-      return [];
-    }
+  [
+    selectAccountGroupWithInternalAccounts,
+    (_state: RootState, addresses: string[]) =>
+      new Set(addresses.map((address) => address.toLowerCase())),
+  ],
+  (
+    accountGroupWithInternalAccounts,
+    addressesSet: Set<string>,
+  ): AccountGroupWithInternalAccounts[] => {
+    const matchingGroups = new Set<AccountGroupWithInternalAccounts>();
 
-    // Store account IDs in a Set for O(1) lookups
-    const accountIdsSet = new Set(accounts.map((account) => account.id));
+    accountGroupWithInternalAccounts.forEach((group) => {
+      const containsMatchingAccount = group.accounts.some((account) =>
+        addressesSet.has(account.address.toLowerCase()),
+      );
 
-    // Filter account groups that have at least one account ID in the Set
-    const groups = accountGroups.filter((group) =>
-      group.accounts.some((accountId) => accountIdsSet.has(accountId)),
-    );
+      if (containsMatchingAccount) {
+        matchingGroups.add(group);
+      }
+    });
 
-    return groups;
+    // Convert the Set of AccountGroupWithInternalAccounts to an Array
+    return [...matchingGroups];
   },
 );
