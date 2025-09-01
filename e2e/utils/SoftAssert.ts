@@ -1,4 +1,9 @@
-/* eslint-disable no-console */
+import { createLogger } from '../framework/logger';
+
+const logger = createLogger({
+  name: 'SoftAssert',
+});
+
 /**
  * A utility class for collecting and managing multiple assertion errors during asynchronous test execution.
  *
@@ -51,7 +56,7 @@ class SoftAssert {
         .join('\n');
       throw new Error(`Assertion failures:\n${errorSummary}`);
     } else {
-      console.log('All assertions passed.');
+      logger.info('All assertions passed.');
     }
   }
 }

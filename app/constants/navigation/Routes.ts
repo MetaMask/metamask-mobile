@@ -282,7 +282,6 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
@@ -309,6 +308,7 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  REWARDS_VIEW: 'RewardsView',
 };
 
 export default Routes;

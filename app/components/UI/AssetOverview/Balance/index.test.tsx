@@ -134,6 +134,23 @@ jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
   }),
 }));
 
+jest.mock('../../Earn/hooks/useEarnLendingPosition', () => ({
+  __esModule: true,
+  default: () => ({
+    hasEarnLendingPositions: false,
+    error: null,
+  }),
+}));
+
+jest.mock('../../Earn/hooks/useEarnings', () => ({
+  __esModule: true,
+  default: () => ({
+    totalFiat: '$0',
+    totalCrypto: '0 ETH',
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../../../../selectors/earnController', () => ({
   ...jest.requireActual('../../../../selectors/earnController'),
   earnSelectors: {

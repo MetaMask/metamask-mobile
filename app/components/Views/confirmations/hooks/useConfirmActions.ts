@@ -21,6 +21,8 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { useSelectedGasFeeToken } from './gas/useGasFeeToken';
 import { cloneDeep } from 'lodash';
 import { updateTransaction } from '../../../../util/transaction-controller';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 export const useConfirmActions = () => {
   const {
@@ -44,6 +46,7 @@ export const useConfirmActions = () => {
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const selectedGasFeeToken = useSelectedGasFeeToken();
+  const { tryEnableEvmNetwork } = useNetworkEnablement();
   const dispatch = useDispatch();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -135,6 +138,10 @@ export const useConfirmActions = () => {
     if (isTransactionReq) {
       // Replace/remove this once we have redesigned send flow
       dispatch(resetTransaction());
+      // Enable the network if it's not enabled for the Network Manager
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        tryEnableEvmNetwork(chainId);
+      }
     }
   }, [
     shouldUseSmartTransaction,
@@ -152,6 +159,8 @@ export const useConfirmActions = () => {
     navigation,
     captureSignatureMetrics,
     dispatch,
+    chainId,
+    tryEnableEvmNetwork,
   ]);
 
   return { onConfirm, onReject };
