@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
@@ -11,7 +11,11 @@ const log = createProjectLogger('transaction-pay');
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
-export function useTransactionPayTokenAmounts() {
+export function useTransactionPayTokenAmounts({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}) {
   const { payToken } = useTransactionPayToken();
   const { address, chainId, decimals } = payToken ?? {};
 
@@ -29,7 +33,7 @@ export function useTransactionPayTokenAmounts() {
   }, [address, chainId]);
 
   const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
-  const { values } = useTransactionRequiredFiat();
+  const { values } = useTransactionRequiredFiat({ amountOverrides });
 
   const amounts = useDeepMemo(() => {
     if (!address || !chainId || !tokenFiatRate || !decimals) {
