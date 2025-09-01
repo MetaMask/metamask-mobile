@@ -305,11 +305,14 @@ export const selectSelectedAccountGroupId = createSelector(
 );
 
 /**
- * Retrieve account groups with their internal accounts populated.
+ * Selects account groups with their internal accounts fully populated.
+ * This selector transforms `accountGroup.accounts` by replacing account IDs
+ * with the corresponding internal account objects from the `internalAccounts` array.
  *
- * @param accountGroups - Array of all account groups.
- * @param internalAccounts - Array of internal accounts.
- * @returns Array of account groups with internal accounts instead of account IDs.
+ * @param accountGroups - An array of all account group objects.
+ * @param internalAccounts - An array containing internal accounts to match against account IDs.
+ * @returns An array of account group objects, where account IDs in the `accounts` field
+ * are replaced with their corresponding internal account objects.
  */
 export const selectAccountGroupWithInternalAccounts = createSelector(
   [selectAccountGroups, selectInternalAccounts],
