@@ -69,12 +69,7 @@ import {
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../../util/phishingDetection.ts';
-import {
-  CaipAccountId,
-  CaipChainId,
-  KnownCaipNamespace,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
 import {
   Caip25EndowmentPermissionName,
   getAllNamespacesFromCaip25CaveatValue,
@@ -86,6 +81,7 @@ import { useStyles } from '../../../../component-library/hooks/index.ts';
 import { getApiAnalyticsProperties } from '../../../../util/metrics/MultichainAPI/getApiAnalyticsProperties.ts';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type.ts';
 import { AccountGroupId } from '@metamask/account-api';
+import { getCaip25AccountFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountFromAccountGroupAndScope.ts';
 import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
@@ -94,57 +90,6 @@ import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions.ts';
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/index.ts';
 import { Box } from '@metamask/design-system-react-native';
-
-/**
- * Creates CaipAccountIds by enumerating over all scopes and creating account IDs
- * for each scope that the account groups support.
- *
- * Optimized version with early returns and reduced iterations.
- */
-const getCaip25AccountFromAccountGroupAndScope = (
-  accountGroups: AccountGroupWithInternalAccounts[],
-  scopes: CaipChainId[],
-): CaipAccountId[] => {
-  if (!accountGroups.length || !scopes.length) {
-    return [];
-  }
-
-  const wildcardEvmScope = `${KnownCaipNamespace.Eip155}:0`;
-  const caipAccountIds: CaipAccountId[] = [];
-
-  // Pre-parse scopes to avoid repeated parsing
-  const parsedScopes = scopes
-    .map((scope) => {
-      try {
-        const parsed = parseCaipChainId(scope);
-        return { scope, namespace: parsed.namespace };
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean) as { scope: CaipChainId; namespace: string }[];
-
-  // Enumerate over each valid scope to find supporting accounts
-  for (const { scope, namespace } of parsedScopes) {
-    for (const accountGroup of accountGroups) {
-      for (const account of accountGroup.accounts) {
-        const accountScopesSet = new Set(account.scopes);
-
-        const accountSupportsScope =
-          namespace === KnownCaipNamespace.Eip155
-            ? accountScopesSet.has(wildcardEvmScope) ||
-              accountScopesSet.has(scope)
-            : accountScopesSet.has(scope);
-
-        if (accountSupportsScope) {
-          caipAccountIds.push(`${scope}:${account.address}` as CaipAccountId);
-        }
-      }
-    }
-  }
-
-  return caipAccountIds;
-};
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();

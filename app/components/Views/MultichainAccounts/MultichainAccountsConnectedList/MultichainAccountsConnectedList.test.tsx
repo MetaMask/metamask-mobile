@@ -169,4 +169,136 @@ describe('MultichainAccountsConnectedList', () => {
 
     expect(() => fireEvent.press(editButton)).not.toThrow();
   });
+
+  describe('ListFooterComponent - Edit Accounts Button', () => {
+    it('renders edit accounts button with correct structure', () => {
+      const { getByTestId, getByText } =
+        renderMultichainAccountsConnectedList();
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+      expect(editButton).toBeTruthy();
+
+      expect(getByText('Edit accounts')).toBeTruthy();
+    });
+
+    it('calls handleEditAccountsButtonPress when button is pressed', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByTestId } = renderMultichainAccountsConnectedList({
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+
+      fireEvent.press(editButton);
+
+      expect(mockHandleEdit).toHaveBeenCalledTimes(1);
+      expect(mockHandleEdit).toHaveBeenCalledWith();
+    });
+
+    it('calls handleEditAccountsButtonPress multiple times when pressed multiple times', () => {
+      const mockHandleEdit = jest.fn();
+      const { getByTestId } = renderMultichainAccountsConnectedList({
+        handleEditAccountsButtonPress: mockHandleEdit,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+
+      fireEvent.press(editButton);
+      fireEvent.press(editButton);
+      fireEvent.press(editButton);
+
+      expect(mockHandleEdit).toHaveBeenCalledTimes(3);
+    });
+
+    it('maintains button functionality with different account group configurations', () => {
+      const mockHandleEdit = jest.fn();
+
+      const { getByTestId: getByTestIdEmpty } =
+        renderMultichainAccountsConnectedList({
+          selectedAccountGroups: [],
+          handleEditAccountsButtonPress: mockHandleEdit,
+        });
+
+      const editButtonEmpty = getByTestIdEmpty(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+      fireEvent.press(editButtonEmpty);
+
+      expect(mockHandleEdit).toHaveBeenCalledTimes(1);
+
+      const { getByTestId: getByTestIdMultiple } =
+        renderMultichainAccountsConnectedList({
+          selectedAccountGroups: MOCK_MULTICHAIN_ACCOUNT_GROUPS,
+          handleEditAccountsButtonPress: mockHandleEdit,
+        });
+
+      const editButtonMultiple = getByTestIdMultiple(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+      fireEvent.press(editButtonMultiple);
+
+      expect(mockHandleEdit).toHaveBeenCalledTimes(2);
+    });
+
+    it('renders consistently with privacy mode enabled', () => {
+      const { getByTestId, getByText } = renderMultichainAccountsConnectedList({
+        privacyMode: true,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+      expect(editButton).toBeTruthy();
+      expect(getByText('Edit accounts')).toBeTruthy();
+    });
+
+    it('renders consistently with privacy mode disabled', () => {
+      const { getByTestId, getByText } = renderMultichainAccountsConnectedList({
+        privacyMode: false,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+      expect(editButton).toBeTruthy();
+      expect(getByText('Edit accounts')).toBeTruthy();
+    });
+  });
+
+  describe('ListFooterComponent - Error Handling', () => {
+    it('handles undefined handleEditAccountsButtonPress', () => {
+      const { getByTestId } = renderMultichainAccountsConnectedList({
+        handleEditAccountsButtonPress: undefined,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+
+      expect(() => fireEvent.press(editButton)).not.toThrow();
+    });
+
+    it('handles function that throws error', () => {
+      const mockHandleEditWithError = jest.fn(() => {
+        throw new Error('Test error');
+      });
+
+      const { getByTestId } = renderMultichainAccountsConnectedList({
+        handleEditAccountsButtonPress: mockHandleEditWithError,
+      });
+
+      const editButton = getByTestId(
+        ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+      );
+
+      expect(() => fireEvent.press(editButton)).toThrow('Test error');
+      expect(mockHandleEditWithError).toHaveBeenCalledTimes(1);
+    });
+  });
 });
