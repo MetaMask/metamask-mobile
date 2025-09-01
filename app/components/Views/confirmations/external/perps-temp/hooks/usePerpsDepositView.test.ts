@@ -7,6 +7,7 @@ import {
 } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { usePerpsDepositView } from './usePerpsDepositView';
+import { TransactionBridgeQuote } from '../../../utils/bridge';
 
 jest.mock('./usePerpsDepositInit');
 jest.mock('../../../hooks/useTokenAmount');
@@ -16,10 +17,10 @@ function runHook(
   props: Parameters<typeof usePerpsDepositView>[0],
   {
     isLoading,
-    hasQuotes,
+    quotes,
   }: {
     isLoading?: boolean;
-    hasQuotes?: boolean;
+    quotes?: Partial<TransactionBridgeQuote>[];
   } = {},
 ) {
   const state = merge(
@@ -29,7 +30,7 @@ function runHook(
     {
       confirmationMetrics: {
         transactionBridgeQuotesById: {
-          [transactionIdMock]: hasQuotes ? [{}] : undefined,
+          [transactionIdMock]: quotes,
         },
         isTransactionBridgeQuotesLoadingById: {
           [transactionIdMock]: isLoading,
@@ -73,7 +74,7 @@ describe('usePerpsDepositView', () => {
         isKeyboardVisible: false,
       },
       {
-        hasQuotes: true,
+        quotes: [{}],
       },
     );
 
@@ -86,7 +87,7 @@ describe('usePerpsDepositView', () => {
         isKeyboardVisible: true,
       },
       {
-        hasQuotes: true,
+        quotes: [{}],
       },
     );
 
@@ -103,10 +104,34 @@ describe('usePerpsDepositView', () => {
         isKeyboardVisible: false,
       },
       {
-        hasQuotes: true,
+        quotes: [{}],
       },
     );
 
     expect(result.current.isFullView).toBe(false);
+  });
+
+  it('returns isFullView as false if quotes are undefined', () => {
+    const { result } = runHook(
+      {
+        isKeyboardVisible: false,
+      },
+      {},
+    );
+
+    expect(result.current.isFullView).toBe(false);
+  });
+
+  it('returns isFullView as true if quotes are empty', () => {
+    const { result } = runHook(
+      {
+        isKeyboardVisible: false,
+      },
+      {
+        quotes: [],
+      },
+    );
+
+    expect(result.current.isFullView).toBe(true);
   });
 });

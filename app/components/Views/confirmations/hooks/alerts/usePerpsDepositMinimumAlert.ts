@@ -10,13 +10,18 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 export const MINIMUM_DEPOSIT_USD = 10;
 
-export function usePerpsDepositMinimumAlert(): Alert[] {
+export function usePerpsDepositMinimumAlert({
+  pendingTokenAmount,
+}: {
+  pendingTokenAmount?: string;
+} = {}): Alert[] {
   const { type } = useTransactionMetadataRequest() ?? {};
   const { amountUnformatted } = useTokenAmount();
 
   const underMinimum =
-    new BigNumber(amountUnformatted ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
-    type === TransactionType.perpsDeposit;
+    new BigNumber(pendingTokenAmount ?? amountUnformatted ?? '0').isLessThan(
+      MINIMUM_DEPOSIT_USD,
+    ) && type === TransactionType.perpsDeposit;
 
   return useMemo(() => {
     if (!underMinimum) {

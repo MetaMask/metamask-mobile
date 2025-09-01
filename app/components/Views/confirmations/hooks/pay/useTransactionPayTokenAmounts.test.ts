@@ -56,6 +56,7 @@ describe('useTransactionPayTokenAmounts', () => {
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
@@ -207,7 +208,10 @@ describe('useTransactionPayTokenAmounts', () => {
   });
 
   it('returns undefined if no pay token selected', () => {
-    useTransactionPayTokenMock.mockReturnValue({ setPayToken: jest.fn() });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
 
     const sourceAmounts = runHook();
     expect(sourceAmounts.amounts).toBeUndefined();

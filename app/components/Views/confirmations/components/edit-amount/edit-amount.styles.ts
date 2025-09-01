@@ -31,6 +31,7 @@ const styleSheet = (params: {
       alignItems: 'center',
       paddingBottom: 16,
       minHeight: 100,
+      gap: 5,
     },
     input: {
       textAlign: 'center',
