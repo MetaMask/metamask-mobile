@@ -555,7 +555,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      await checkMetricsUISeen();
+      if (authType.oauth2Login) {
+        await navigateToHome();
+      } else {
+        await checkMetricsUISeen();
+      }
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
@@ -583,7 +587,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      await checkMetricsUISeen();
+      if (oauthLoginSuccess) {
+        await navigateToHome();
+      } else {
+        await checkMetricsUISeen();
+      }
 
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
       setPassword('');
