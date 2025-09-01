@@ -47,6 +47,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
@@ -155,7 +156,6 @@ import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddre
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
-import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
@@ -393,6 +393,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ADDRESS_SELECTOR}
+      component={AddressSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
@@ -709,19 +713,6 @@ const MultichainAccountDetailsActions = () => {
   );
 };
 
-const SolanaNewFeatureContentView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen
-      name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-      component={SolanaNewFeatureContent}
-    />
-  </Stack.Navigator>
-);
-
 const MultichainWalletDetails = () => {
   const route = useRoute();
 
@@ -922,11 +913,6 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
           component={MultichainPrivateKeyList}
-        />
-        <Stack.Screen
-          name={Routes.SOLANA_NEW_FEATURE_CONTENT}
-          component={SolanaNewFeatureContentView}
-          options={{ animationEnabled: true }}
         />
         <Stack.Screen
           options={{
