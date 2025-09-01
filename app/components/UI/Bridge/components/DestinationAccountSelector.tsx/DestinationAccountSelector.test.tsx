@@ -258,7 +258,7 @@ describe('DestinationAccountSelector', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
     const closeButton = getByTestId('cellselect').findByProps({
-      iconName: 'Close',
+      iconName: 'Edit',
     });
     fireEvent.press(closeButton);
 
@@ -306,7 +306,7 @@ describe('DestinationAccountSelector', () => {
   it('clears destination when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     const closeButton = getByTestId('cellselect').findByProps({
-      iconName: 'Close',
+      iconName: 'Edit',
     });
     fireEvent.press(closeButton);
 
