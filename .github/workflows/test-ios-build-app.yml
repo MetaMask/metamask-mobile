@@ -58,6 +58,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
+          target: qa
 
       - name: Print iOS tool versions
         run: |
@@ -89,6 +90,7 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
+          IS_SIM_BUILD: "true"
 
           NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
 
