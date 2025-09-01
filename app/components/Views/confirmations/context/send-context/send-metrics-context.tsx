@@ -59,6 +59,8 @@ export const SendMetricsContext = createContext<SendMetricsContextType>({
   setRecipientInputMethod: () => undefined,
 });
 
+// If app goes to idle state, `getAddressAccountType` throws an error because app is locked
+// To prevent that, we catch the error and return undefined
 const getAccountTypeSafely = (address: string): string | undefined => {
   try {
     return getAddressAccountType(address);
