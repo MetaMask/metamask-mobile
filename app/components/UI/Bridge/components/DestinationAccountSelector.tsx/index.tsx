@@ -180,7 +180,7 @@ const DestinationAccountSelector = () => {
             <View style={styles.closeButtonContainer}>
               <ButtonIcon
                 onPress={handleClearDestAddress}
-                iconName={IconName.Close}
+                iconName={IconName.Edit}
               />
             </View>
           </Cell>
