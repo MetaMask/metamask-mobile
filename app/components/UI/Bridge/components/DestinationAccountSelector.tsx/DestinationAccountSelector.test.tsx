@@ -6,6 +6,24 @@ import configureStore from 'redux-mock-store';
 import { NavigationContainer } from '@react-navigation/native';
 import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+
+// Test-specific state type for mock selectors
+interface MockState {
+  bridge: {
+    destAddress?: string;
+  };
+  engine?: {
+    backgroundState?: {
+      AccountTreeController?: {
+        accountTree?: {
+          selectedAccountGroupId?: string | null;
+          accountGroups?: Record<string, AccountGroupObject>;
+        };
+      };
+    };
+  };
+}
 
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => {
@@ -129,7 +147,7 @@ const mockStore = configureStore([]);
 jest.mock('../../../../../selectors/bridge', () => ({
   selectValidDestInternalAccountIds: () =>
     new Set(['mock-account-id-1', 'mock-account-id-2']),
-  selectDestAddress: (state) => state.bridge.destAddress,
+  selectDestAddress: (state: MockState) => state.bridge.destAddress,
   selectIsEvmToSolana: () => false,
   selectIsSolanaToEvm: () => true,
 }));
@@ -138,7 +156,7 @@ jest.mock('../../../../../selectors/bridge', () => ({
 jest.mock(
   '../../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
-    selectAccountGroups: (state) =>
+    selectAccountGroups: (state: MockState) =>
       state.engine?.backgroundState?.AccountTreeController?.accountTree
         ?.accountGroups
         ? Object.values(
@@ -146,7 +164,7 @@ jest.mock(
               .accountGroups,
           )
         : [],
-    selectSelectedAccountGroup: (state) => {
+    selectSelectedAccountGroup: (state: MockState) => {
       const selectedId =
         state.engine?.backgroundState?.AccountTreeController?.accountTree
           ?.selectedAccountGroupId;
