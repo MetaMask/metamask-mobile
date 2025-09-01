@@ -151,7 +151,21 @@ export const PerpsTokenSelectorSelectorsIDs = {
 
 export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
+  AMOUNT_LABEL: 'perps-amount-display-amount',
+  MAX_LABEL: 'perps-amount-display-max',
 };
+
+// ========================================
+// PERPS TAB VIEW SELECTORS
+// ========================================
+
+export const PerpsTabViewSelectorsIDs = {
+  ONBOARDING_BUTTON: 'perps-start-trading-button',
+  BALANCE_BUTTON: 'perps-balance-button',
+  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-withdraw-button',
+  BALANCE_VALUE: 'perps-balance-value',
+} as const;
 
 // ========================================
 // PERPS VIEWS SELECTORS
@@ -332,6 +346,17 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 };
 
 // ========================================
+// PERPS TUTORIAL SELECTORS
+// ========================================
+
+export const PerpsTutorialSelectorsIDs = {
+  CONTINUE_BUTTON: 'perps-tutorial-continue-button',
+  SKIP_BUTTON: 'perps-tutorial-skip-button',
+  CAROUSEL: 'perps-tutorial-carousel',
+  CARD: 'perps-tutorial-card',
+} as const;
+
+// ========================================
 // PERPS ORDER VIEW SELECTORS
 // ========================================
 
@@ -343,6 +368,9 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  // Buttons present in PerpsOrderView (TouchableOpacity with testID)
+  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
+  STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
 };
 
@@ -410,4 +438,7 @@ export const PerpsGeneralSelectorsIDs = {
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',
+  // Common action buttons that may appear in flows (keep for E2E compatibility)
+  CONTINUE_BUTTON: 'continue-button',
+  DONE_BUTTON: 'done-button',
 } as const;

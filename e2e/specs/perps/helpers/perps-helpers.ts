@@ -8,8 +8,13 @@ import PerpsTabView from '../../../pages/Perps/PerpsTabView';
 import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
+import { createLogger, LogLevel } from '../../../framework/logger';
 import { PerpsGeneralSelectorsIDs } from '../../../selectors/Perps/Perps.selectors';
+
+const logger = createLogger({
+  name: 'PerpsHelpers',
+  level: LogLevel.INFO,
+});
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -231,11 +236,11 @@ export class PerpsHelpers {
     // Check if this transfer affects our test wallet
     if (recipientAddress === USER_ADDRESS && !isOutgoing) {
       // Incoming transfer to our wallet
-      DevLogger.log('E2E: Mock incoming transfer:', amount);
+      logger.info('E2E: Mock incoming transfer:', amount);
       // adjustE2EMockBalance(amount); // TODO: Implement if needed
     } else if (recipientAddress === FUNDER_ADDRESS && isOutgoing) {
       // Outgoing transfer from our wallet
-      DevLogger.log('E2E: Mock outgoing transfer:', amount);
+      logger.info('E2E: Mock outgoing transfer:', amount);
       // adjustE2EMockBalance(`-${amount}`); // TODO: Implement if needed
     }
   }
