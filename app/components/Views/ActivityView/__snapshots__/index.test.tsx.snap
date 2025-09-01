@@ -455,92 +455,287 @@ exports[`ActivityView should render correctly 1`] = `
                         </TouchableOpacity>
                       </View>
                       <View
-                        onLayout={[Function]}
-                        style={
-                          [
-                            {
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
-                        }
+                        onChangeTab={[Function]}
+                        renderTabBar={[Function]}
                       >
                         <View
-                          activeTab={0}
-                          containerWidth={750}
-                          goToPage={[Function]}
-                          scrollValue={0}
-                          tabs={
-                            [
-                              "Transactions",
-                            ]
-                          }
-                        />
-                        <RCTScrollView
-                          alwaysBounceVertical={false}
-                          automaticallyAdjustContentInsets={false}
-                          collapsable={false}
-                          contentOffset={
+                          style={
                             {
-                              "x": 0,
+                              "flex": 1,
                             }
                           }
-                          directionalLockEnabled={true}
-                          horizontal={true}
-                          keyboardDismissMode="on-drag"
-                          onMomentumScrollBegin={[Function]}
-                          onMomentumScrollEnd={[Function]}
-                          onScroll={[Function]}
-                          pagingEnabled={true}
-                          scrollEnabled={false}
-                          scrollEventThrottle={16}
-                          scrollsToTop={false}
-                          showsHorizontalScrollIndicator={false}
                         >
-                          <View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              }
+                            }
+                          >
                             <View
                               style={
                                 {
-                                  "width": 750,
+                                  "alignItems": "center",
+                                  "justifyContent": "center",
+                                  "paddingBottom": 24,
                                 }
                               }
                             >
-                              <View
+                              <ActivityIndicator
+                                size="small"
                                 style={
                                   {
-                                    "flex": 1,
+                                    "alignSelf": "center",
+                                  }
+                                }
+                              />
+                            </View>
+                          </View>
+                          <View />
+                        </View>
+                        <RCTScrollView
+                          ListEmptyComponent={
+                            <Row>
+                              <Text
+                                color="Muted"
+                                style={
+                                  {
+                                    "textAlign": "center",
+                                  }
+                                }
+                                variant="sHeadingMD"
+                              >
+                                You don't have any orders
+                              </Text>
+                            </Row>
+                          }
+                          ListHeaderComponent={
+                            <ForwardRef
+                              horizontal={true}
+                            >
+                              <Row
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "marginHorizontal": 24,
+                                    "marginVertical": 16,
                                   }
                                 }
                               >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
+                                <FilterButton
+                                  label="All"
+                                  onPress={[Function]}
+                                  selected={true}
+                                />
+                                <FilterButton
+                                  label="Purchased"
+                                  onPress={[Function]}
+                                  selected={false}
+                                />
+                                <FilterButton
+                                  label="Sold"
+                                  onPress={[Function]}
+                                  selected={false}
+                                />
+                              </Row>
+                            </ForwardRef>
+                          }
+                          data={[]}
+                          getItem={[Function]}
+                          getItemCount={[Function]}
+                          keyExtractor={[Function]}
+                          onContentSizeChange={[Function]}
+                          onLayout={[Function]}
+                          onMomentumScrollBegin={[Function]}
+                          onMomentumScrollEnd={[Function]}
+                          onScroll={[Function]}
+                          onScrollBeginDrag={[Function]}
+                          onScrollEndDrag={[Function]}
+                          removeClippedSubviews={false}
+                          renderItem={[Function]}
+                          scrollEventThrottle={0.0001}
+                          stickyHeaderIndices={[]}
+                          viewabilityConfigCallbackPairs={[]}
+                        >
+                          <View>
+                            <View
+                              collapsable={false}
+                              onLayout={[Function]}
+                            >
+                              <RCTScrollView
+                                collapsable={false}
+                                handlerTag={-1}
+                                handlerType="NativeViewGestureHandler"
+                                horizontal={true}
+                                onGestureHandlerEvent={[Function]}
+                                onGestureHandlerStateChange={[Function]}
+                              >
+                                <View>
                                   <View
                                     style={
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                        "paddingBottom": 24,
-                                      }
+                                      [
+                                        {
+                                          "marginVertical": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "alignItems": "center",
+                                          "columnGap": 8,
+                                          "flexDirection": "row",
+                                          "marginHorizontal": 24,
+                                          "marginVertical": 16,
+                                        },
+                                      ]
                                     }
                                   >
-                                    <ActivityIndicator
-                                      size="small"
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
                                         {
-                                          "alignSelf": "center",
+                                          "alignItems": "center",
+                                          "alignSelf": "flex-start",
+                                          "backgroundColor": "#121314",
+                                          "borderRadius": 12,
+                                          "flexDirection": "row",
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "paddingHorizontal": 16,
                                         }
                                       }
-                                    />
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#ffffff",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        All
+                                      </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "flex-start",
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "transparent",
+                                          "borderRadius": 12,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "paddingHorizontal": 16,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Purchased
+                                      </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessibilityRole="button"
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "alignSelf": "flex-start",
+                                          "backgroundColor": "#3c4d9d0f",
+                                          "borderColor": "transparent",
+                                          "borderRadius": 12,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "paddingHorizontal": 16,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Sold
+                                      </Text>
+                                    </TouchableOpacity>
                                   </View>
                                 </View>
-                                <View />
-                              </View>
+                              </RCTScrollView>
+                            </View>
+                            <View
+                              onLayout={[Function]}
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#b7bbc8",
+                                    "fontFamily": "Geist Bold",
+                                    "fontSize": 18,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
+                              >
+                                You don't have any orders
+                              </Text>
                             </View>
                           </View>
                         </RCTScrollView>
