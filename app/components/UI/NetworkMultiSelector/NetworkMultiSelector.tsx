@@ -55,7 +55,10 @@ const CUSTOM_NETWORK_PROPS = {
   compactMode: true,
 } as const;
 
-const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
+const NetworkMultiSelector = ({
+  openModal,
+  dismissModal,
+}: NetworkMultiSelectorProps) => {
   const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
@@ -143,13 +146,24 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
     [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
+  const onSelectAllPopularNetworks = useCallback(async () => {
+    await selectAllPopularNetworks(dismissModal);
+  }, [dismissModal, selectAllPopularNetworks]);
+
+  const onSelectNetwork = useCallback(
+    async (caipChainId: CaipChainId) => {
+      await selectPopularNetwork(caipChainId, dismissModal);
+    },
+    [selectPopularNetwork, dismissModal],
+  );
+
   const selectAllNetworksComponent = useMemo(
     () => (
       <Cell
         isSelected={areAllNetworksSelected}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
-        onPress={selectAllPopularNetworks}
+        onPress={onSelectAllPopularNetworks}
         avatarProps={{
           variant: AvatarVariant.Icon,
           name: IconName.Global,
@@ -157,7 +171,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         }}
       />
     ),
-    [selectAllPopularNetworks, areAllNetworksSelected],
+    [areAllNetworksSelected, onSelectAllPopularNetworks],
   );
 
   return (
@@ -170,7 +184,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         openModal={openModal}
         networks={networks}
         selectedChainIds={selectedChainIds}
-        onSelectNetwork={selectPopularNetwork}
+        onSelectNetwork={onSelectNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
         areAllNetworksSelected={areAllNetworksSelected}
