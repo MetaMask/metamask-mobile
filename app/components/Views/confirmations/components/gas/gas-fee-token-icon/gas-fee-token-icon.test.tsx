@@ -4,6 +4,7 @@ import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { GasFeeTokenIcon } from './gas-fee-token-icon';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
+import { useTokenAsset } from '../../../hooks/useTokenAsset';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/useNetworkInfo');
@@ -13,6 +14,7 @@ jest.mock('../../../hooks/useTokenAsset', () => ({
 
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
+  const mockUseTokenAsset = jest.mocked(useTokenAsset);
 
   beforeEach(() => {
     mockUseNetworkInfo.mockReturnValue({
@@ -23,7 +25,7 @@ describe('GasFeeTokenIcon', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the token icon when tokenAddress is not the native token address', () => {
+  it('renders the token icon when tokenAddress is not the native', () => {
     const tokenAddress = '0xTokenAddress';
 
     const { getByTestId } = renderWithProvider(
@@ -34,11 +36,23 @@ describe('GasFeeTokenIcon', () => {
     expect(getByTestId('token-icon')).toBeOnTheScreen();
   });
 
-  it('renders the native token icon when tokenAddress is the native token address', () => {
-    const tokenAddress = NATIVE_TOKEN_ADDRESS;
+  it('renders the native token icon when tokenAddress is the native', () => {
+    const { getByTestId } = renderWithProvider(
+      <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,
+      { state: transferTransactionStateMock },
+    );
+
+    expect(getByTestId('native-icon')).toBeOnTheScreen();
+  });
+
+  it('renders native icon when asset is not found', () => {
+    mockUseTokenAsset.mockReturnValue({
+      asset: undefined,
+      displayName: undefined,
+    } as unknown as ReturnType<typeof useTokenAsset>);
 
     const { getByTestId } = renderWithProvider(
-      <GasFeeTokenIcon tokenAddress={tokenAddress} />,
+      <GasFeeTokenIcon tokenAddress={NATIVE_TOKEN_ADDRESS} />,
       { state: transferTransactionStateMock },
     );
 

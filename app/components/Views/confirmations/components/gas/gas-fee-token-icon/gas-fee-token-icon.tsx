@@ -70,9 +70,9 @@ export function GasFeeTokenIcon({
   return (
     <View testID="native-icon">
       <NetworkAssetLogo
-        chainId={asset?.chainId as Hex}
+        chainId={asset?.chainId ?? (chainId as Hex)}
         style={styles.logoNative}
-        ticker={asset?.ticker ?? asset?.symbol}
+        ticker={asset?.ticker ?? asset?.symbol ?? nativeCurrency}
         big={false}
         biggest={false}
         testID={asset?.name}

@@ -10,6 +10,7 @@ export interface LoggerOptions {
   prefix?: string;
   colors?: boolean;
   name?: string;
+  level?: LogLevel;
 }
 
 export class Logger {
@@ -47,29 +48,7 @@ export class Logger {
     this.name = options.name || '';
     this.prefix = options.prefix || 'E2E Framework';
     this.colors = options.colors !== false;
-
-    // We're purposefully setting this to debug while improving the e2e framework
-    const envLevel: string = 'debug';
-    switch (envLevel) {
-      case 'error':
-        this.level = LogLevel.ERROR;
-        break;
-      case 'warn':
-      case 'warning':
-        this.level = LogLevel.WARN;
-        break;
-      case 'info':
-        this.level = LogLevel.INFO;
-        break;
-      case 'debug':
-        this.level = LogLevel.DEBUG;
-        break;
-      case 'trace':
-        this.level = LogLevel.TRACE;
-        break;
-      default:
-        this.level = LogLevel.WARN; // Default to WARN level
-    }
+    this.level = options.level || LogLevel.DEBUG;
   }
 
   private colorize(text: string, color: keyof typeof this.colorCodes): string {

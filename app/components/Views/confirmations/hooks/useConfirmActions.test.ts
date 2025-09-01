@@ -16,6 +16,8 @@ import * as LedgerContext from '../context/ledger-context/ledger-context';
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionActions from '../../../../actions/transaction';
+// eslint-disable-next-line import/no-namespace
+import * as NetworkEnablementHook from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useConfirmActions } from './useConfirmActions';
 import { cloneDeep } from 'lodash';
 import { RootState } from '../../../../reducers';
@@ -24,10 +26,15 @@ import { ConfirmationMetricsState } from '../../../../core/redux/slices/confirma
 import * as TransactionController from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as GasFeeTokenHook from './gas/useGasFeeToken';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -72,6 +79,33 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
   } as unknown as LedgerContext.LedgerContextType);
 };
 
+const createUseNetworkEnablementSpy = (mockedValues = {}) => {
+  jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+    tryEnableEvmNetwork: jest.fn(),
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {
+      eip155: {
+        '0x1': true,
+      },
+    },
+    enabledNetworksForCurrentNamespace: {
+      '0x1': true,
+    },
+    networkEnablementController: {
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+    } as unknown as ReturnType<
+      typeof NetworkEnablementHook.useNetworkEnablement
+    >['networkEnablementController'],
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    toggleNetwork: jest.fn(),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    ...mockedValues,
+  } as unknown as ReturnType<typeof NetworkEnablementHook.useNetworkEnablement>);
+};
+
 describe('useConfirmAction', () => {
   const useNavigationMock = jest.mocked(useNavigation);
   const navigateMock = jest.fn();
@@ -82,6 +116,7 @@ describe('useConfirmAction', () => {
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(false);
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -312,6 +347,49 @@ describe('useConfirmAction', () => {
       expect.any(Object),
       expect.objectContaining({ waitForResult: false }),
     );
+  });
+
+  it('does not enable network when feature flag is disabled', async () => {
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(false);
+
+    const mockTryEnableEvmNetwork = jest.fn();
+    createUseNetworkEnablementSpy({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).not.toHaveBeenCalled();
+  });
+
+  it('calls tryEnableEvmNetwork when feature flag is enabled', async () => {
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(true);
+    const mockTryEnableEvmNetwork = jest.fn();
+    createUseNetworkEnablementSpy({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
   });
 
   it('calls updateTransaction with batchTransactions and gas properties when smart transactions are enabled', async () => {
