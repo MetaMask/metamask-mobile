@@ -3817,6 +3817,7 @@
     "token_marketplace": "Token marketplace",
     "Purchased": "Purchased",
     "Sold": "Sold",
+    "empty_orders_list": "You don't have any orders",
     "empty_buy_orders_list": "You don't have any buy orders",
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
