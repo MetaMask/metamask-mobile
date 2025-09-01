@@ -89,7 +89,7 @@ function getBuildTypeFeatures() {
 
   // Add sample-feature only if explicitly enabled via env var
   if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
-    features = [...features, 'sample-feature'];
+    features.add('sample-feature');
   }
 
   return features;
