@@ -54,7 +54,7 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   currencySymbol: aggregatorOrder.fiatCurrency?.denomSymbol || '',
   cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
   network:
-    aggregatorOrder.network || aggregatorOrder.cryptoCurrency?.network?.chainId,
+    aggregatorOrder.cryptoCurrency?.network?.chainId || aggregatorOrder.network,
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,

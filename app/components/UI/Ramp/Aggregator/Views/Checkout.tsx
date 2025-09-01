@@ -135,7 +135,6 @@ const CheckoutWebView = () => {
         const transformedOrder = {
           ...aggregatorOrderToFiatOrder(order),
           account: selectedAddress,
-          network: selectedChainId,
         };
 
         handleSuccessfulOrder(transformedOrder);

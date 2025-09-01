@@ -119,7 +119,6 @@ export default function useInAppBrowser() {
           const transformedOrder: FiatOrder = {
             ...aggregatorOrderToFiatOrder(order),
             account: selectedAddress,
-            network: selectedChainId,
           };
 
           handleSuccessfulOrder(transformedOrder);
