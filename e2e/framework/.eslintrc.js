@@ -80,6 +80,12 @@ module.exports = {
             message:
               'Do not call startMockServer directly in test specs. Use withFixtures() with testSpecificMock parameter instead.',
           },
+          {
+            selector:
+              "Program:not(:has(CallExpression[callee.name='withFixtures'])):has(CallExpression[callee.name='describe']):has(CallExpression[callee.name=/^(it|test)$/])",
+            message:
+              'All E2E spec files must use withFixtures() for consistent test setup, mocking, and fixture management.',
+          },
         ],
       },
     },
