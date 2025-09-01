@@ -8,8 +8,11 @@ import Logger from '../../util/Logger';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import Engine, { EngineContext } from '../../core/Engine';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
 import { getPersistentState } from '../getPersistentState/getPersistentState';
-import { CONTROLLER_LIST } from './constants';
+import { debounce } from 'lodash';
+import ReduxService from '../../core/redux';
+import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -51,7 +54,14 @@ export const ControllerStorage = {
       const backgroundState: Record<string, unknown> = {};
 
       await Promise.all(
-        CONTROLLER_LIST.map(async (controllerName) => {
+        // Build runtime controller list from engine change event names
+        Array.from(
+          new Set(
+            Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
+              (eventName) => eventName.split(':')[0],
+            ),
+          ),
+        ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
             const data = await FilesystemStorage.getItem(key);
@@ -141,11 +151,6 @@ const MigratedStorage = {
     }
   },
 };
-
-import { debounce } from 'lodash';
-import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
-import ReduxService from '../../core/redux';
-import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 
 export const setupEnginePersistence = () => {
   try {

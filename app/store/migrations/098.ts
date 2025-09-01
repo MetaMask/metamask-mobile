@@ -3,7 +3,8 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
-import { CONTROLLER_LIST } from '../persistConfig/constants';
+// Note: Do NOT rely on a static controller list. Iterate discovered
+// controllers from the legacy engine.backgroundState to avoid missing any.
 
 /**
  * Migration to transition from old redux-persist engine data to new individual controller storage system.
@@ -34,7 +35,8 @@ export default async function migrate(state: unknown) {
       let failedControllers = 0;
       const failedControllerStates: Record<string, unknown> = {};
 
-      for (const controllerName of CONTROLLER_LIST) {
+      // Migrate every controller present in the legacy backgroundState
+      for (const controllerName of Object.keys(controllers)) {
         try {
           if (
             hasProperty(controllers, controllerName) &&
