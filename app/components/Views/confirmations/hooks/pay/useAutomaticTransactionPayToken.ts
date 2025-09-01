@@ -53,11 +53,13 @@ export function useAutomaticTransactionPayToken({
 
     const requiredBalance = balanceOverride?.balance ?? totalFiat;
 
-  const sufficientBalanceTokens = orderBy(
-    tokens.filter((token) => isTokenSupported(token, tokens, requiredBalance)),
-    (token) => token?.tokenFiatAmount ?? 0,
-    'desc',
-  );
+    const sufficientBalanceTokens = orderBy(
+      tokens.filter((token) =>
+        isTokenSupported(token, tokens, requiredBalance),
+      ),
+      (token) => token?.tokenFiatAmount ?? 0,
+      'desc',
+    );
 
     const requiredToken = sufficientBalanceTokens.find(
       (token) =>
