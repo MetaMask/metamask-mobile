@@ -115,11 +115,15 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
   }
 
+  // updateFundingRatesCache method removed - funding rates now come directly from assetCtx
+
   /**
    * Subscribe to live price updates with singleton subscription architecture
-   * Uses allMids for fast price updates and activeAssetCtx for market data
+   * Uses allMids for fast price updates and predictedFundings for accurate funding rates
    */
-  public subscribeToPrices(params: SubscribePricesParams): () => void {
+  public async subscribeToPrices(
+    params: SubscribePricesParams,
+  ): Promise<() => void> {
     const {
       symbols,
       callback,
@@ -166,6 +170,46 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
+
+    // Cache funding rates from initial market data fetch if available
+    if (includeMarketData) {
+      // Get initial market data to cache funding rates
+      try {
+        // Get the provider through the clientService instead of Engine directly
+        const infoClient = this.clientService.getInfoClient();
+        const [perpsMeta, assetCtxs] = await Promise.all([
+          infoClient.meta(),
+          infoClient.metaAndAssetCtxs(),
+        ]);
+
+        if (perpsMeta?.universe && assetCtxs?.[1]) {
+          // Cache funding rates directly from assetCtxs
+          perpsMeta.universe.forEach((asset, index) => {
+            const assetCtx = assetCtxs[1][index];
+            if (assetCtx && 'funding' in assetCtx) {
+              const existing = this.marketDataCache.get(asset.name) || {
+                lastUpdated: 0,
+              };
+              this.marketDataCache.set(asset.name, {
+                ...existing,
+                funding: parseFloat(assetCtx.funding),
+                lastUpdated: Date.now(),
+              });
+            }
+          });
+
+          DevLogger.log('🔍 Cached funding rates from initial market data:', {
+            cachedCount: perpsMeta.universe.filter((_asset, index) => {
+              const assetCtx = assetCtxs[1][index];
+              return assetCtx && 'funding' in assetCtx;
+            }).length,
+            totalMarkets: perpsMeta.universe.length,
+          });
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cache initial funding rates:', error);
+      }
+    }
 
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
@@ -630,7 +674,7 @@ export class HyperLiquidSubscriptionService {
       this.marketDataSubscribers.has(symbol) &&
       (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
 
-    return {
+    const priceUpdate = {
       coin: symbol,
       price, // This is the mid price from allMids
       timestamp: Date.now(),
@@ -650,6 +694,22 @@ export class HyperLiquidSubscriptionService {
         : undefined,
       volume24h: hasMarketDataSubscribers ? marketData?.volume24h : undefined,
     };
+
+    // Debug ETH funding rate being sent to subscribers
+    if (symbol === 'ETH' && hasMarketDataSubscribers) {
+      DevLogger.log('🔍 ETH price update being sent:', {
+        symbol,
+        fundingFromCache: marketData?.funding,
+        fundingInUpdate: priceUpdate.funding,
+        hasMarketDataSubscribers,
+        cacheLastUpdated: marketData?.lastUpdated,
+        cacheAge: marketData?.lastUpdated
+          ? Date.now() - marketData.lastUpdated
+          : 'N/A',
+      });
+    }
+
+    return priceUpdate;
   }
 
   /**
@@ -776,9 +836,7 @@ export class HyperLiquidSubscriptionService {
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
-              funding: isPerpsContext(ctx)
-                ? parseFloat(ctx.funding?.toString() || '0')
-                : 0,
+              // No longer cache funding rates - they come from initial market data fetch
               // Convert openInterest from token units to USD by multiplying by current price
               // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
               openInterest: isPerpsContext(ctx)

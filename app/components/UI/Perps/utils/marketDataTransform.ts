@@ -1,11 +1,12 @@
-import type { PerpsMarketData } from '../controllers/types';
 import type {
-  PerpsUniverse,
-  PerpsAssetCtx,
   AllMids,
+  PerpsAssetCtx,
+  PerpsUniverse,
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
 
 /**
@@ -26,6 +27,13 @@ export interface HyperLiquidMarketData {
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
 ): PerpsMarketData[] {
+  DevLogger.log('🔍 transformMarketData called:', {
+    hasUniverse: !!hyperLiquidData.universe,
+    universeLength: hyperLiquidData.universe?.length || 0,
+    hasPredictedFundings: !!hyperLiquidData.predictedFundings,
+    predictedFundingsLength: hyperLiquidData.predictedFundings?.length || 0,
+    location: 'transformMarketData start',
+  });
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
   return universe.map((asset) => {
@@ -62,26 +70,53 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
-    // Extract funding time data if available
+    // Get funding rate directly from HyperLiquid's assetCtx (clean, direct data)
+    let fundingRate: number | undefined;
+
+    // Debug assetCtx structure to understand the data
+    if (symbol === 'ETH' || symbol === 'BTC') {
+      DevLogger.log(`FUNDING_DEBUG [DIRECT] ${symbol} assetCtx structure:`, {
+        symbol,
+        hasAssetCtx: !!assetCtx,
+        assetCtxKeys: assetCtx ? Object.keys(assetCtx) : 'N/A',
+        fundingField: assetCtx ? (assetCtx as PerpsAssetCtx).funding : 'N/A',
+      });
+    }
+
+    if (assetCtx && 'funding' in assetCtx) {
+      fundingRate = parseFloat(assetCtx.funding);
+
+      if (symbol === 'ETH' || symbol === 'BTC') {
+        DevLogger.log(
+          `FUNDING_DEBUG [DIRECT] ${symbol} funding from assetCtx:`,
+          {
+            symbol,
+            rawFunding: assetCtx.funding,
+            parsedValue: fundingRate,
+            asPercentage: (fundingRate * 100).toFixed(6) + '%',
+          },
+        );
+      }
+    } else if (symbol === 'ETH' || symbol === 'BTC') {
+      DevLogger.log(
+        `FUNDING_DEBUG [DIRECT] ${symbol} funding field not found in assetCtx`,
+      );
+    }
+
+    // For funding timing, use predictedFundings only for nextFundingTime (not funding rate)
     let nextFundingTime: number | undefined;
     let fundingIntervalHours: number | undefined;
 
     if (predictedFundings) {
-      // Find the funding data for this specific symbol
       const fundingData = predictedFundings.find(
         ([assetSymbol]) => assetSymbol === symbol,
       );
-      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-      if (fundingData && fundingData[1] && fundingData[1].length > 0) {
-        // Get the first exchange's funding data (usually HyperLiquid itself)
-        // Safely check if the first element is an array with at least 2 elements
+      if (fundingData?.[1] && fundingData[1].length > 0) {
+        // Just get timing info from first exchange
         const firstExchange = fundingData[1][0];
-        if (Array.isArray(firstExchange) && firstExchange.length >= 2) {
-          const exchangeData = firstExchange[1];
-          if (exchangeData) {
-            nextFundingTime = exchangeData.nextFundingTime;
-            fundingIntervalHours = exchangeData.fundingIntervalHours;
-          }
+        if (firstExchange?.[1]) {
+          nextFundingTime = firstExchange[1].nextFundingTime;
+          fundingIntervalHours = firstExchange[1].fundingIntervalHours;
         }
       }
     }
@@ -100,6 +135,7 @@ export function transformMarketData(
         : formatVolume(volume),
       nextFundingTime,
       fundingIntervalHours,
+      fundingRate,
     };
   });
 }
