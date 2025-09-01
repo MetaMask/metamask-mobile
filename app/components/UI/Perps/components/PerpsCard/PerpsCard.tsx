@@ -14,12 +14,10 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../utils/formatUtils';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
-import { BigNumber } from 'bignumber.js';
 
 /**
  * PerpsCard Component
@@ -38,7 +36,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
-  const { assetUrl } = usePerpsAssetMetadata(symbol);
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -59,10 +56,10 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
     valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    const notionalValue = BigNumber(position.size || '0')
-      .multipliedBy(position.entryPrice || '0')
-      .toString();
-    valueText = formatPrice(notionalValue, { maximumDecimals: 2 });
+    valueText = formatPrice(position.positionValue, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
     const roeValue = parseFloat(position.returnOnEquity) * 100;
     labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
@@ -106,8 +103,12 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
         <View style={styles.cardLeft}>
-          {assetUrl && (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.assetIcon} />
+          {symbol && (
+            <PerpsTokenLogo
+              symbol={symbol}
+              size={40}
+              style={styles.assetIcon}
+            />
           )}
           <View style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

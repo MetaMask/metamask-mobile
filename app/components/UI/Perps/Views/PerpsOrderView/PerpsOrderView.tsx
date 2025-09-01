@@ -134,7 +134,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
 
-  // Ref to prevent double order submission (TAT-1424)
   const isSubmittingRef = useRef(false);
 
   const cachedAccountState = usePerpsAccount();
@@ -1112,20 +1111,28 @@ const PerpsOrderViewContentBase: React.FC = () => {
           contentKey={selectedTooltip}
           testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
           key={selectedTooltip}
+          data={
+            selectedTooltip === 'fees'
+              ? {
+                  metamaskFeeRate: feeResults.metamaskFeeRate,
+                  protocolFeeRate: feeResults.protocolFeeRate,
+                }
+              : undefined
+          }
         />
       )}
     </SafeAreaView>
   );
 };
 
-// Enable WDYR tracking BEFORE wrapping with React.memo
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsOrderViewContentBase as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsOrderViewContent',
-  };
-}
+// // Enable WDYR tracking BEFORE wrapping with React.memo
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsOrderViewContentBase as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsOrderViewContent',
+//   };
+// }
 
 // Now wrap with React.memo AFTER setting whyDidYouRender
 const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);
