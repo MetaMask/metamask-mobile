@@ -22,7 +22,7 @@ import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { onboardingFlowImportSRP } from '../../utils/Flows.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
+test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {
   WelcomeScreen.device = device;
@@ -56,7 +56,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
   await BridgeScreen.enterSourceTokenAmount('1');
 
   swapTimer.start();
