@@ -1,5 +1,5 @@
 import TestHelpers from '../../../../helpers';
-import { SmokeNetworkAbstractions } from '../../../../tags';
+import { RegressionNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
@@ -11,7 +11,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
 
-describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
+describe(RegressionNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

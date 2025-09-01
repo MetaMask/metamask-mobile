@@ -54,7 +54,8 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await SnapSendActionSheet.tapCancelButton();
   });
 
-  it('should successfully transfer SOL to a valid recipient address', async () => {
+  // Skipped due to the test being targetting a live network. This should be re-enabled once we have local Solana node
+  it.skip('should successfully transfer SOL to a valid recipient address', async () => {
     await WalletView.tapWalletSendButton();
     await SnapSendActionSheet.sendActionInputAddress(RECIPIENT_ADDRESS);
     await SnapSendActionSheet.sendActionInputAmount(TRANSFER_AMOUNT);
@@ -67,7 +68,8 @@ describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
     await Assertions.expectTextDisplayed(EXPECTED_CONFIRMATION);
   });
 
-  it('should verify that transaction is sent successfully', async () => {
+  // Skipped due to the test being targetting a live network. This should be re-enabled once we have local Solana node
+  it.skip('should verify that transaction is sent successfully', async () => {
     await SnapSendActionSheet.tapCloseButton();
     await TabBarComponent.tapActivity();
     await ActivitiesView.tapOnTransactionItem(RECENT_TRANSACTION_INDEX);

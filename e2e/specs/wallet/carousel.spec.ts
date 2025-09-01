@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionWalletUX } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -14,7 +14,7 @@ import WalletView from '../../pages/wallet/WalletView';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Carousel Tests'), () => {
+describe(RegressionWalletUX('Carousel Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

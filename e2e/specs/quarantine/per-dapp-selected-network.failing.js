@@ -1,22 +1,23 @@
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
-import Browser from '../../../pages/Browser/BrowserView';
-import ConfirmationFooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../../pages/Network/NetworkListModal';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import WalletView from '../../../pages/wallet/WalletView';
-import { BrowserViewSelectorsIDs } from '../../../selectors/Browser/BrowserView.selectors';
-import { TestDappSelectorsWebIDs } from '../../../selectors/Browser/TestDapp.selectors';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
-import Matchers from '../../../framework/Matchers';
-import { loginToApp } from '../../../viewHelper';
-import { DappVariants } from '../../../framework/Constants';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.ts';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils.ts';
+import Browser from '../../pages/Browser/BrowserView.ts';
+import ConfirmationFooterActions from '../../pages/Browser/Confirmations/FooterActions.ts';
+import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes.ts';
+import TestDApp from '../../pages/Browser/TestDApp.ts';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.ts';
+import NetworkListModal from '../../pages/Network/NetworkListModal.ts';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.ts';
+import WalletView from '../../pages/wallet/WalletView.ts';
+import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors.ts';
+import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors.ts';
+import { SmokeConfirmationsRedesigned } from '../../tags.js';
+import Assertions from '../../framework/Assertions.ts';
+import Matchers from '../../framework/Matchers.ts';
+import { loginToApp } from '../../viewHelper.ts';
+import { DappVariants } from '../../framework/Constants.ts';
+import { setupMockRequest } from '../../api-mocking/mockHelpers.ts';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -40,8 +41,15 @@ async function changeNetworkFromNetworkListModal(networkName) {
 }
 
 describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
-  const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations],
+  const testSpecificMock = async (mockServer) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
