@@ -9,7 +9,6 @@ import CreateNewWalletScreen from '../../../wdio/screen-objects/Onboarding/Creat
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
-import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
@@ -35,7 +34,6 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   OnboardingSheet.device = device;
-  SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
   ImportFromSeedScreen.device = device;
