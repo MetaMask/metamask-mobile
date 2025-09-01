@@ -80,7 +80,7 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback((amount: string) => {
-    const newAmount = amount.replace(/^(0+).+/, '') || '0';
+    const newAmount = amount.replace(/^0+/, '') || '0';
 
     if (newAmount.length >= MAX_LENGTH) {
       return;
