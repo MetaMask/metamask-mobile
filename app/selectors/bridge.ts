@@ -8,6 +8,7 @@ import {
 } from '../core/redux/slices/bridge';
 import { selectInternalAccountsByScope } from '../selectors/accountsController';
 import type { AccountId } from '@metamask/accounts-controller';
+import { EthScope } from '@metamask/keyring-api';
 
 /**
  * Gets the wallet address for a given source token by finding the selected account
@@ -41,7 +42,7 @@ export const selectValidDestInternalAccountIds = createSelector(
 
     const byDestScope = selectInternalAccountsByScope(state, destScope);
     const evmWildcard = isEvm
-      ? selectInternalAccountsByScope(state, 'eip155:0')
+      ? selectInternalAccountsByScope(state, EthScope.Eoa)
       : [];
 
     return new Set<AccountId>(
