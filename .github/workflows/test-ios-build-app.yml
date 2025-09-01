@@ -33,6 +33,7 @@ jobs:
       CI: "true"
 
       NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
+      SENTRY_DISABLE_AUTO_UPLOAD: "true" # Disable Sentry upload for test builds
 
       SEGMENT_WRITE_KEY_QA: ''
       SEGMENT_PROXY_URL_QA: ''
@@ -40,7 +41,7 @@ jobs:
       SEGMENT_REGULATIONS_ENDPOINT_QA: ''
 
       MM_SENTRY_DSN_TEST: ''
-      MM_SENTRY_AUTH_TOKEN: ''
+      MM_SENTRY_AUTH_TOKEN: 'dummy-token-for-testing'
 
       MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ''
       MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ''
