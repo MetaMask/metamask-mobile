@@ -29,6 +29,7 @@ enum SUPPORTED_ACTIONS {
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
+  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
   WC = ACTIONS.WC,
 }
 
@@ -166,6 +167,9 @@ async function handleUniversalLink({
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
     return;
+  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
+    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleCreateAccount(deeplinkUrl);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;
