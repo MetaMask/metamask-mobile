@@ -4,6 +4,8 @@ import { TransactionDetailsPaidWithRow } from './transaction-details-paid-with-r
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { merge } from 'lodash';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../UI/Bridge/hooks/useTokensWithBalance');
@@ -13,7 +15,9 @@ const CHAIN_ID_MOCK = '0x1';
 const TOKEN_SYMBOL_MOCK = 'TST';
 
 function render() {
-  return renderWithProvider(<TransactionDetailsPaidWithRow />, {});
+  return renderWithProvider(<TransactionDetailsPaidWithRow />, {
+    state: merge({}, otherControllersMock),
+  });
 }
 
 describe('TransactionDetailsPaidWithRow', () => {
