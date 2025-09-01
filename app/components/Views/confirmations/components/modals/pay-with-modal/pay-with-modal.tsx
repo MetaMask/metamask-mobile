@@ -22,6 +22,8 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
+import { useTransactionRequiredTokens } from '../../../hooks/pay/useTransactionRequiredTokens';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -31,18 +33,53 @@ export function PayWithModal() {
   const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
   const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
+  const { chainId: transactionChainId } = useTransactionMetadataRequest() ?? {};
+  const requiredTokens = useTransactionRequiredTokens();
+
+  const targetTokens = useMemo(
+    () => requiredTokens.filter((t) => !t.skipIfBalance),
+    [requiredTokens],
+  );
 
   const { tokens: tokensList, pending } = useTokens({
     balanceChainIds: selectedSourceChainIds,
     tokensToExclude: [],
   });
 
+  const isTokenSupported = useCallback(
+    (token: BridgeToken) => {
+      const isRequiredToken = targetTokens.some(
+        (t) =>
+          t.address.toLowerCase() === token.address.toLowerCase() &&
+          transactionChainId === token.chainId,
+      );
+
+      if (isRequiredToken) {
+        return true;
+      }
+
+      const isTokenBalanceSufficient =
+        (token?.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0);
+
+      if (!isTokenBalanceSufficient) {
+        return false;
+      }
+
+      const nativeToken = tokensList.find(
+        (t) =>
+          t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+      );
+
+      const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
+
+      return hasNativeBalance;
+    },
+    [minimumFiatBalance, targetTokens, tokensList, transactionChainId],
+  );
+
   const filteredTokensList = useMemo(
-    () =>
-      tokensList.filter((token) =>
-        isTokenSupported(token, tokensList, minimumFiatBalance ?? 0),
-      ),
-    [tokensList, minimumFiatBalance],
+    () => tokensList.filter(isTokenSupported),
+    [isTokenSupported, tokensList],
   );
 
   const handleTokenSelect = useCallback(
@@ -116,21 +153,4 @@ export function PayWithModal() {
       title={strings('pay_with_modal.title')}
     />
   );
-}
-
-function isTokenSupported(
-  token: BridgeToken,
-  tokens: BridgeToken[],
-  requiredBalance: number,
-): boolean {
-  const nativeToken = tokens.find(
-    (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
-  );
-
-  const isTokenBalanceSufficient =
-    (token?.tokenFiatAmount ?? 0) >= requiredBalance;
-
-  const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
-
-  return isTokenBalanceSufficient && hasNativeBalance;
 }

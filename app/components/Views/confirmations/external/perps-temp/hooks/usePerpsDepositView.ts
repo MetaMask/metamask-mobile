@@ -11,6 +11,7 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPayTokenAmounts } from '../../../hooks/pay/useTransactionPayTokenAmounts';
 
 export function usePerpsDepositView({
   isKeyboardVisible,
@@ -22,6 +23,7 @@ export function usePerpsDepositView({
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const { amountUnformatted } = useTokenAmount();
   const { payToken } = useTransactionPayToken();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
   const amountValue = new BigNumber(amountUnformatted ?? '0');
 
@@ -36,7 +38,7 @@ export function usePerpsDepositView({
   const isFullView =
     !isKeyboardVisible &&
     !amountValue.isZero() &&
-    (isQuotesLoading || quotes !== undefined);
+    (isQuotesLoading || quotes?.length || sourceAmounts?.length === 0);
 
   useAutomaticTransactionPayToken({
     balanceOverrides: [
