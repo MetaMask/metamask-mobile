@@ -47,4 +47,8 @@ export const ALLOWLISTED_URLS = [
   'https://nft.api.cx.metamask.io/collections?contract=0xb66a603f4cfe17e3d27b87a8bfcad319856518b8&chainId=1',
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
+  'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=metamask.github.io',
+  'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
+  'https://acl.execution.metamask.io/latest/registry.json',
+  'https://acl.execution.metamask.io/latest/signature.json',
 ];
