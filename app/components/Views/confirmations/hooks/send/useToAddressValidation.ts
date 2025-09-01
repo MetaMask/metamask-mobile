@@ -33,22 +33,13 @@ export const useToAddressValidation = () => {
   );
 
   const { value } = useAsyncResult<{
-    isConfusableCharWarning?: boolean;
-    isTokenContractWarning?: boolean;
     error?: string;
     warning?: string;
   }>(async () => validateToAddress(to || ''), [validateToAddress, to]);
 
-  const {
-    error: toAddressError,
-    warning: toAddressWarning,
-    isConfusableCharWarning,
-    isTokenContractWarning,
-  } = value ?? {};
+  const { error: toAddressError, warning: toAddressWarning } = value ?? {};
 
   return {
-    isConfusableCharWarning,
-    isTokenContractWarning,
     toAddressError,
     toAddressWarning,
     validateToAddress,

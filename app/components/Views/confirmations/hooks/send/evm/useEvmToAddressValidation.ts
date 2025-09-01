@@ -118,16 +118,19 @@ const validateENSAddress = async (
   // ENS resolved but has, confusing character in it
   const confusableCollection = collectConfusables(toAddress);
   if (confusableCollection.length) {
-    const message = strings('transaction.invalid_address');
+    const invalidAddressMessage = strings('transaction.invalid_address');
+    const confusableWarningMessage = strings('transaction.confusable_msg');
     const isError = confusableCollection.some(hasZeroWidthPoints);
     if (isError) {
+      // Show ERROR for zero-width characters (more important than warning)
       return {
-        warning: message,
-        isConfusableCharWarning: true,
+        error: invalidAddressMessage,
+        warning: confusableWarningMessage,
       };
     }
+    // Show WARNING for confusable characters
     return {
-      warning: message,
+      warning: confusableWarningMessage,
     };
   }
   return {};
@@ -146,8 +149,6 @@ export const validateToAddress = async ({
 }): Promise<{
   error?: string;
   warning?: string;
-  isConfusableCharWarning?: boolean;
-  isTokenContractWarning?: boolean;
 }> => {
   if (
     shouldSkipValidation({

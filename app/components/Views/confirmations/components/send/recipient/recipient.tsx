@@ -43,12 +43,7 @@ export const Recipient = () => {
     setRecipientInputMethodSelectContact,
   } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  const {
-    toAddressError,
-    toAddressWarning,
-    isConfusableCharWarning,
-    isTokenContractWarning,
-  } = useToAddressValidation();
+  const { toAddressError, toAddressWarning } = useToAddressValidation();
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
@@ -134,21 +129,16 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
-              {toAddressWarning && isTokenContractWarning && (
+              {toAddressWarning && (
                 <Banner
                   variant={BannerVariant.Alert}
-                  severity={BannerAlertSeverity.Warning}
-                  style={{ marginBottom: 16 }}
+                  severity={
+                    toAddressError && toAddressWarning
+                      ? BannerAlertSeverity.Error
+                      : BannerAlertSeverity.Warning
+                  }
+                  style={styles.banner}
                   title={toAddressWarning}
-                />
-              )}
-
-              {toAddressWarning && isConfusableCharWarning && (
-                <Banner
-                  variant={BannerVariant.Alert}
-                  severity={BannerAlertSeverity.Warning}
-                  style={{ marginBottom: 16 }}
-                  title={strings('transaction.confusable_msg')}
                 />
               )}
 
