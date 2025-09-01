@@ -28,7 +28,10 @@ import { strings } from '../../../../../../locales/i18n';
 import CaipAccountSelectorList from '../../../CaipAccountSelectorList';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
 import { selectValidDestInternalAccountIds } from '../../../../../selectors/bridge';
-import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectAccountGroups,
+  selectSelectedAccountGroup,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
 
 const createStyles = ({ colors }: Theme) =>
@@ -59,6 +62,7 @@ const DestinationAccountSelector = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const hasInitialized = useRef(false);
+  const currentlySelectedAccount = useSelector(selectSelectedAccountGroup);
 
   // Filter accounts using BIP-44 aware multichain selectors via account IDs
   const validDestIds = useSelector(selectValidDestInternalAccountIds);
@@ -131,7 +135,19 @@ const DestinationAccountSelector = () => {
       (!hasInitialized.current && !destAddress) ||
       !doesDestAddrMatchNetworkType
     ) {
-      handleSelectAccount(filteredAccounts[0].caipAccountId);
+      // Find an account from the currently selected account group that supports the destination network
+      let defaultAccount = filteredAccounts[0]; // fallback to first account
+      if (currentlySelectedAccount) {
+        const accountFromCurrentGroup = filteredAccounts.find((account) =>
+          currentlySelectedAccount.accounts.includes(account.id),
+        );
+
+        if (accountFromCurrentGroup) {
+          defaultAccount = accountFromCurrentGroup;
+        }
+      }
+
+      handleSelectAccount(defaultAccount.caipAccountId);
       hasInitialized.current = true;
     }
   }, [
@@ -140,6 +156,7 @@ const DestinationAccountSelector = () => {
     handleSelectAccount,
     isEvmToSolana,
     isSolanaToEvm,
+    currentlySelectedAccount,
   ]);
 
   return (
