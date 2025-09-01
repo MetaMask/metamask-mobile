@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/parameter-properties */
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
@@ -17,7 +17,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from '../../Notification/Modal/styles';
 import { RootState } from 'app/reducers';
@@ -33,7 +33,7 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
-import Engine from '../../../../core/Engine';
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 interface Props {
   route: {
@@ -49,7 +49,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
   const isEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -71,21 +71,9 @@ const BasicFunctionalityModal = ({ route }: Props) => {
   const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
       const newBasicFunctionalityState = !isEnabled;
-      dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      // Call MultichainAccountService to update provider states and trigger alignment
-      try {
-        await Engine.context.MultichainAccountService.setBasicFunctionality(
-          newBasicFunctionalityState,
-        );
-      } catch (error) {
-        console.error(
-          'Failed to call MultichainAccountService.setBasicFunctionality:',
-          error,
-        );
-        // Note: We continue with the flow even if this fails to avoid blocking the user
-      }
-      ///: END:ONLY_INCLUDE_IF
+
+      await dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
+
       trackEvent(
         createEventBuilder(
           newBasicFunctionalityState

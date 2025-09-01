@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { useDispatch } from 'react-redux';
 
 import BottomSheet, {
   BottomSheetRef,
@@ -16,32 +15,17 @@ import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
 import { InteractionManager } from 'react-native';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import Engine from '../../../../core/Engine';
-///: END:ONLY_INCLUDE_IF
+import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
-  const dispatch = useDispatch();
+  const dispatch = useThunkDispatch();
 
   const enableBasicFunctionality = async () => {
-    dispatch(toggleBasicFunctionality(true));
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // Call MultichainAccountService to update provider states and trigger alignment
-    try {
-      await Engine.context.MultichainAccountService.setBasicFunctionality(true);
-    } catch (error) {
-      console.error(
-        'Failed to call MultichainAccountService.setBasicFunctionality:',
-        error,
-      );
-      // Note: We continue with the flow even if this fails to avoid blocking the user
-    }
-    ///: END:ONLY_INCLUDE_IF
+    await dispatch(toggleBasicFunctionality(true));
   };
 
   const handleEnableBackupAndSync = () => {

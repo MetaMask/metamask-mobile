@@ -55,9 +55,23 @@ export function setUseBlockieIcon(useBlockieIcon) {
 }
 
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
-  return {
-    type: 'TOGGLE_BASIC_FUNCTIONALITY',
-    basicFunctionalityEnabled,
+  return async (dispatch) => {
+    // First dispatch the Redux state update
+    dispatch({
+      type: 'TOGGLE_BASIC_FUNCTIONALITY',
+      basicFunctionalityEnabled,
+    });
+
+    // Call MultichainAccountService to update provider states and trigger alignment
+    const Engine = require('../../core/Engine').default;
+    Engine.context.MultichainAccountService.setBasicFunctionality(
+      basicFunctionalityEnabled,
+    ).catch((error) => {
+      console.error(
+        'Failed to set basic functionality on MultichainAccountService:',
+        error,
+      );
+    });
   };
 }
 

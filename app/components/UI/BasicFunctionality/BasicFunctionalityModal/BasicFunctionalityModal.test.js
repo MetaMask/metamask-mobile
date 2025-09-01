@@ -6,7 +6,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import BasicFunctionalityModal from './BasicFunctionalityModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
-import Engine from '../../../../core/Engine';
+import { toggleBasicFunctionality } from '../../../../actions/settings';
 
 /**
  * @typedef {import('../../../../reducers').RootState} RootState
@@ -59,13 +59,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock Engine with MultichainAccountService
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    MultichainAccountService: {
-      setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
-    },
-  },
+// Mock the toggleBasicFunctionality thunk action
+jest.mock('../../../../actions/settings', () => ({
+  toggleBasicFunctionality: jest.fn(() => () => Promise.resolve()),
 }));
 
 describe('BasicFunctionalityModal', () => {
@@ -87,12 +83,8 @@ describe('BasicFunctionalityModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  // Test coverage for the new MultichainAccountService integration
-  it('should call MultichainAccountService.setBasicFunctionality when basic functionality is toggled', async () => {
-    const mockSetBasicFunctionality = jest
-      .spyOn(Engine.context.MultichainAccountService, 'setBasicFunctionality')
-      .mockResolvedValue(undefined);
-
+  // Test coverage for the new thunk action integration
+  it('should call toggleBasicFunctionality thunk action when toggling', async () => {
     const { getByText } = renderWithProvider(
       <BasicFunctionalityModal route={mockRoute} />,
       { state: mockInitialState },
@@ -103,34 +95,7 @@ describe('BasicFunctionalityModal', () => {
     fireEvent.press(turnOffButton);
 
     await waitFor(() => {
-      expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+      expect(toggleBasicFunctionality).toHaveBeenCalledWith(false);
     });
-  });
-
-  it('should handle MultichainAccountService.setBasicFunctionality errors gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {
-      // Mock implementation to suppress console.error during test
-    });
-    const mockSetBasicFunctionality = jest
-      .spyOn(Engine.context.MultichainAccountService, 'setBasicFunctionality')
-      .mockRejectedValue(new Error('Test error'));
-
-    const { getByText } = renderWithProvider(
-      <BasicFunctionalityModal route={mockRoute} />,
-      { state: mockInitialState },
-    );
-
-    const turnOffButton = getByText('Turn off');
-    fireEvent.press(turnOffButton);
-
-    await waitFor(() => {
-      expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to call MultichainAccountService.setBasicFunctionality:',
-        expect.any(Error),
-      );
-    });
-
-    consoleSpy.mockRestore();
   });
 });
