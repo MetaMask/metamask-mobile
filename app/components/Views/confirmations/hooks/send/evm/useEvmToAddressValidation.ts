@@ -15,6 +15,7 @@ import {
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import {
   collectConfusables,
+  getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../../../util/confusables';
 import { selectAddressBook } from '../../../../../../selectors/addressBookController';
@@ -68,7 +69,6 @@ const validateHexAddress = async (
   chainId?: Hex,
 ): Promise<{
   error?: string;
-  isTokenContractWarning?: boolean;
   warning?: string;
 }> => {
   if (BURN_ADDRESSES.includes(toAddress)) {
@@ -92,7 +92,6 @@ const validateHexAddress = async (
       if (symbol) {
         return {
           warning: strings('send.token_contract_warning'),
-          isTokenContractWarning: true,
         };
       }
     } catch (e) {
@@ -108,7 +107,6 @@ const validateENSAddress = async (
 ): Promise<{
   error?: string;
   warning?: string;
-  isConfusableCharWarning?: boolean;
 }> => {
   const resolvedAddress = await doENSLookup(toAddress, chainId);
   // ENS could not be resolved
@@ -119,13 +117,18 @@ const validateENSAddress = async (
   const confusableCollection = collectConfusables(toAddress);
   if (confusableCollection.length) {
     const invalidAddressMessage = strings('transaction.invalid_address');
-    const confusableWarningMessage = strings('transaction.confusable_msg');
+    const confusableWarningMessage = `${strings(
+      'transaction.confusable_msg',
+    )} - ${getConfusablesExplanations(confusableCollection)}`;
+    const invisibleCharacterWarningMessage = strings(
+      'send.invisible_character_error',
+    );
     const isError = confusableCollection.some(hasZeroWidthPoints);
     if (isError) {
       // Show ERROR for zero-width characters (more important than warning)
       return {
         error: invalidAddressMessage,
-        warning: confusableWarningMessage,
+        warning: invisibleCharacterWarningMessage,
       };
     }
     // Show WARNING for confusable characters

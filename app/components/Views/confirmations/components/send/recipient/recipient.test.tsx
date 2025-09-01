@@ -63,29 +63,6 @@ jest.mock('./recipient.styles', () => ({
   })),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actualComponents = jest.requireActual(
-    '@metamask/design-system-react-native',
-  );
-  const { Text, Pressable } = jest.requireActual('react-native');
-
-  return {
-    ...actualComponents,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Button: ({ children, onPress, disabled, isDanger, ...props }: any) => (
-      <Pressable
-        testID="review-button"
-        onPress={disabled ? undefined : onPress}
-        disabled={disabled}
-        isDanger={isDanger}
-        {...props}
-      >
-        <Text>{children}</Text>
-      </Pressable>
-    ),
-  };
-});
-
 jest.mock('../../recipient-list/recipient-list', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecipientList: ({ data, onRecipientSelected, emptyMessage }: any) => {
@@ -328,5 +305,56 @@ describe('Recipient', () => {
     expect(getByTestId('recipient-input')).toBeOnTheScreen();
     expect(getByTestId('recipient-list-accounts')).toBeOnTheScreen();
     expect(getByTestId('recipient-list-contacts')).toBeOnTheScreen();
+  });
+
+  it('renders warning banner when toAddressWarning is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      toAddressError: undefined,
+      toAddressWarning: 'Warning',
+      validateToAddress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { queryByTestId } = renderWithProvider(<Recipient />);
+    expect(queryByTestId('to-address-warning-banner')).toBeOnTheScreen();
+  });
+
+  it('renders warning banner and disabled button when toAddressWarning and toAddressError is present', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      toAddressError: 'Error',
+      toAddressWarning: 'Warning',
+      validateToAddress: jest.fn(),
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId, queryByText } = renderWithProvider(<Recipient />);
+
+    expect(getByTestId('to-address-warning-banner')).toBeOnTheScreen();
+    expect(queryByText('Review')).not.toBeOnTheScreen();
+    expect(queryByText('Error')).toBeOnTheScreen();
   });
 });

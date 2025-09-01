@@ -131,8 +131,11 @@ export const Recipient = () => {
             <Box twClassName="px-4 py-4">
               {toAddressWarning && (
                 <Banner
+                  testID="to-address-warning-banner"
                   variant={BannerVariant.Alert}
                   severity={
+                    // Confusable character validation is send both error and warning for invisible characters
+                    // hence we are showing error for invisible characters
                     toAddressError && toAddressWarning
                       ? BannerAlertSeverity.Error
                       : BannerAlertSeverity.Warning
@@ -141,7 +144,6 @@ export const Recipient = () => {
                   title={toAddressWarning}
                 />
               )}
-
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonBaseSize.Lg}
