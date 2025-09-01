@@ -124,6 +124,9 @@ jest.mock('../../../core/Engine', () => ({
     SelectedNetworkController: {
       setNetworkClientIdForDomain: jest.fn(),
     },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+    },
   },
 }));
 
@@ -284,6 +287,13 @@ const initialState = {
       NftController: {
         allNfts: { '0x': { '0x1': [] } },
         allNftContracts: { '0x': { '0x1': [] } },
+      },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+          },
+        },
       },
     },
   },
