@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-parameter-properties
 import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, Persistor } from 'redux-persist';
