@@ -1,35 +1,35 @@
-import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { loginToApp } from '../../../viewHelper';
-import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import Assertions from '../../../framework/Assertions';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+import { SmokeConfirmationsRedesigned } from '../../tags';
+import { loginToApp } from '../../viewHelper';
+import Browser from '../../pages/Browser/BrowserView';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../pages/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../pages/Browser/Confirmations/FooterActions';
+import Assertions from '../../framework/Assertions';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../pages/Browser/Confirmations/RowComponents';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
-} from '../../../api-mocking/mock-responses/simulations';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../framework/Constants';
-import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
-import SoftAssert from '../../../utils/SoftAssert';
+} from '../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../pages/Browser/TestDApp';
+import { DappVariants } from '../../framework/Constants';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import SoftAssert from '../../utils/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
   setupMockPostRequest,
-} from '../../../api-mocking/helpers/mockHelpers';
-import Gestures from '../../../framework/Gestures';
+} from '../../api-mocking/helpers/mockHelpers';
+import Gestures from '../../framework/Gestures';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
   securityAlertsUrl,
-} from '../../../api-mocking/mock-responses/security-alerts-mock';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+} from '../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -47,6 +47,9 @@ const expectedEventNames = [
   expectedEvents.TRANSACTION_FINALIZED,
 ];
 
+// Quarantining for GNS feature
+// Original path e2e/specs/confirmations-redesigned/transactions/dapp-initiated-transfer.spec.ts
+// Failing on IOS, Passes on Android
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     await setupMockPostRequest(

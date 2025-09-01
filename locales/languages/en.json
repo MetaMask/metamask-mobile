@@ -1894,6 +1894,9 @@
     "unlock": "Unlock",
     "forget": "Forget this device"
   },
+  "address_selector": {
+    "select_an_address": "Select an address"
+  },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
