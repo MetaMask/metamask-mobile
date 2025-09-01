@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   View,
@@ -96,9 +96,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import OAuthService from '../../../core/OAuthService/OAuthService';
-import ConcealingFox from '../../../animations/Concealing_Fox.json';
-import SearchingFox from '../../../animations/Searching_Fox.json';
-import LottieView, { AnimationObject } from 'lottie-react-native';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   SeedlessOnboardingControllerErrorMessage,
@@ -114,6 +111,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import FOX_LOGO from '../../../images/branding/fox.png';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -653,12 +651,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     !route?.params?.locked
   );
 
-  const lottieSrc = useMemo(
-    () =>
-      (password.length > 0 ? ConcealingFox : SearchingFox) as AnimationObject,
-    [password.length],
-  );
-
   // Component that throws error if needed (to be caught by ErrorBoundary)
   const ThrowErrorIfNeeded = () => {
     if (errorToThrow) {
@@ -698,12 +690,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               onLongPress={handleDownloadStateLogs}
               activeOpacity={1}
             >
-              <LottieView
+              <Image
+                source={FOX_LOGO}
                 style={styles.image}
-                autoPlay
-                loop
-                source={lottieSrc}
-                resizeMode="contain"
+                resizeMethod={'auto'}
               />
             </TouchableOpacity>
 
