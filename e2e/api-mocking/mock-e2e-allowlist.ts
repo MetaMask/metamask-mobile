@@ -50,5 +50,5 @@ export const ALLOWLISTED_URLS = [
   'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=flask&environment=dev',
   'https://acl.execution.metamask.io/latest/registry.json',
   'https://acl.execution.metamask.io/latest/signature.json',
-  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
+  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
 ];
