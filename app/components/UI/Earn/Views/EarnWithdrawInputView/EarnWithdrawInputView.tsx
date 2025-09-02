@@ -253,6 +253,7 @@ const EarnWithdrawInputView = () => {
         theme.colors,
         navBarOptions,
         navBarEventOptions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) as any,
     );
   }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);

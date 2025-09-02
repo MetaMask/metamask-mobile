@@ -27,9 +27,14 @@ const AssetAmount = ({
   const isUnknownToken = displayName === strings('token.unknown');
 
   return (
-    <Text style={styles.assetAmountText as any} variant={TextVariant.HeadingLG}>
+    <Text
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      style={styles.assetAmountText as any}
+      variant={TextVariant.HeadingLG}
+    >
       {amount}{' '}
       <Text
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         style={(isUnknownToken && styles.assetTextUnknown) as any}
         variant={TextVariant.HeadingLG}
       >

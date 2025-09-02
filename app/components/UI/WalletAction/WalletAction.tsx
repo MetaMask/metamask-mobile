@@ -93,6 +93,7 @@ const WalletAction = ({
     >
       <Avatar
         variant={AvatarVariant.Icon}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         style={iconStyle as any}
         size={iconSize}
         name={iconName}

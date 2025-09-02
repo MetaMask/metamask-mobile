@@ -8,10 +8,7 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  OutlinedTextField,
-  TextFieldProps,
-} from 'react-native-material-textfield';
+import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
@@ -94,6 +91,7 @@ const TurnOffRememberMeModal = () => {
                 {strings('turn_off_remember_me.description')}
               </Text>
               <OutlinedTextField
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 style={styles.input as any}
                 secureTextEntry
                 returnKeyType={'done'}

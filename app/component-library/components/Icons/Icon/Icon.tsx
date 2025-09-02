@@ -68,6 +68,7 @@ const Icon = ({
     <SVG
       fill="currentColor"
       color={iconColor}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       style={styles.icon as any}
       width={sizeAsNum}
       height={sizeAsNum}

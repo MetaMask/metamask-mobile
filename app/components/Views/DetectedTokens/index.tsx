@@ -1,12 +1,6 @@
 // Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  InteractionManager,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
@@ -70,6 +64,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       fontSize: 18,
       paddingVertical: 16,
@@ -329,6 +324,7 @@ const DetectedTokens = () => {
   };
 
   const renderHeader = () => (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <Text style={styles.headerLabel as any}>
       {strings(
         `detected_tokens.title${

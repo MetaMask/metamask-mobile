@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import PerpsTransactionDetailAssetHero from './PerpsTransactionDetailAssetHero';
