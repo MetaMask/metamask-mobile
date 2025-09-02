@@ -167,27 +167,27 @@ pipelines:
   nightly_exp_builds_pipeline:
     workflows:
       bump_version_code: {}
-      deploy_ios_to_store:
-        depends_on:
-        - build_ios_main_rc
       build_android_main_exp:
         depends_on:
         - bump_version_code
       build_ios_main_exp:
         depends_on:
         - bump_version_code    
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_exp
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
-      deploy_ios_to_store:
-        depends_on:
-        - build_ios_main_rc
       build_android_main_rc:
         depends_on:
         - bump_version_code
       build_ios_main_rc:
         depends_on:
-        - bump_version_code    
+        - bump_version_code
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_rc    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
