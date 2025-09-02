@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 // External dependencies.
 import BottomSheet, {
   BottomSheetRef,
+  BottomSheetDialogContainerVariant,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
@@ -146,7 +147,10 @@ const WalletActions = () => {
     return true;
   }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet
+      ref={sheetRef}
+      containerVariant={BottomSheetDialogContainerVariant.Trade}
+    >
       <View style={styles.actionsContainer}>
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
           <ActionListItem

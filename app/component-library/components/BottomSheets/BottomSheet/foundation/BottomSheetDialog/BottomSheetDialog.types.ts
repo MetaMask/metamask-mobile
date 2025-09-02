@@ -1,6 +1,12 @@
 // Third party dependencies.
 import { StyleProp, ViewProps, ViewStyle } from 'react-native';
 
+// Enums
+export enum BottomSheetDialogContainerVariant {
+  Default = 'default',
+  Trade = 'trade',
+}
+
 /**
  * BottomSheetDialog component props.
  */
@@ -25,6 +31,13 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   keyboardAvoidingViewEnabled?: boolean;
   /**
+   * Optional prop to set the container variant (controls shape and border radius).
+   * Default: rounded top corners with 24px radius.
+   * Trade: dented top center shape to accommodate a 45px floating button.
+   * @default BottomSheetDialogContainerVariant.Default
+   */
+  containerVariant?: BottomSheetDialogContainerVariant;
+  /**
    * Optional callback that gets triggered when sheet is closed.
    */
   onClose?: (hasPendingAction?: boolean) => void;
@@ -47,4 +60,6 @@ export interface BottomSheetDialogStyleSheetVars {
   screenBottomPadding: number;
   style: StyleProp<ViewStyle>;
   isFullscreen: boolean;
+  containerVariant: BottomSheetDialogContainerVariant;
+  screenWidth: number;
 }

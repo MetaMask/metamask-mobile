@@ -14,7 +14,9 @@ import {
   View,
   Platform,
   KeyboardAvoidingView,
+  Dimensions,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -45,6 +47,7 @@ import styleSheet from './BottomSheetDialog.styles';
 import {
   BottomSheetDialogRef,
   BottomSheetDialogProps,
+  BottomSheetDialogContainerVariant,
 } from './BottomSheetDialog.types';
 
 const BottomSheetDialog = forwardRef<
@@ -60,6 +63,7 @@ const BottomSheetDialog = forwardRef<
       onClose,
       onOpen,
       style,
+      containerVariant = BottomSheetDialogContainerVariant.Default,
       ...props
     },
     ref,
@@ -67,6 +71,7 @@ const BottomSheetDialog = forwardRef<
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
     const { y: frameY, height: screenHeight } = useSafeAreaFrame();
+    const { width: screenWidth } = Dimensions.get('window');
 
     const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
@@ -74,7 +79,10 @@ const BottomSheetDialog = forwardRef<
       screenBottomPadding,
       style,
       isFullscreen,
+      containerVariant,
+      screenWidth,
     });
+
     // X and Y values start on top left of the DIALOG
     // currentYOffset will be used to animate the Y position of the Dialog
     const currentYOffset = useSharedValue(screenHeight);
@@ -221,6 +229,56 @@ const BottomSheetDialog = forwardRef<
       [styles.sheet],
     );
 
+    // Build a rounded-rect with a smooth concave "U" at the bottom center.
+    const buildTradeBottomPath = ({
+      w,
+      h,
+      topRadius = 24,
+      bottomRadius = 16,
+      dentWidth = 120, // total U width (tune 110–140)
+      dentDepth = 34, // U depth (tune 28–36)
+      shoulder = 28, // easing into the U (tune 24–36)
+      centerXOffset = -1, // fine tune left/right by ±1px if needed
+    }: {
+      w: number;
+      h: number;
+      topRadius?: number;
+      bottomRadius?: number;
+      dentWidth?: number;
+      dentDepth?: number;
+      shoulder?: number;
+      centerXOffset?: number;
+    }) => {
+      const cx = w / 2 + centerXOffset;
+      const leftDent = cx - dentWidth / 2;
+      const rightDent = cx + dentWidth / 2;
+      const by = h; // bottom y
+      const ty = 0; // top y
+
+      const path = `
+        M${topRadius},${ty}
+        Q0,${ty} 0,${topRadius}
+        L0,${by - bottomRadius}
+        Q0,${by} ${bottomRadius},${by}
+
+        L${leftDent - shoulder},${by}
+        C${leftDent - shoulder / 2},${by} ${leftDent},${by - dentDepth} ${cx},${
+        by - dentDepth
+      }
+        C${rightDent},${by - dentDepth} ${rightDent + shoulder / 2},${by} ${
+        rightDent + shoulder
+      },${by}
+        L${w - bottomRadius},${by}
+
+        Q${w},${by} ${w},${by - bottomRadius}
+        L${w},${topRadius}
+        Q${w},${ty} ${w - topRadius},${ty}
+        Z
+      `;
+
+      return path;
+    };
+
     useImperativeHandle(ref, () => ({
       onOpenDialog,
       onCloseDialog,
@@ -240,17 +298,60 @@ const BottomSheetDialog = forwardRef<
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
         >
-          <Animated.View
-            onLayout={updateSheetHeight}
-            style={combinedSheetStyle}
-          >
-            {isInteractable && (
-              <View style={styles.notchWrapper}>
-                <View style={styles.notch} />
+          {containerVariant === BottomSheetDialogContainerVariant.Trade ? (
+            <Animated.View
+              onLayout={updateSheetHeight}
+              style={[combinedSheetStyle, styles.tradeSheetContainer]}
+            >
+              {/* Complete SVG BottomSheet with dented top */}
+              <Svg
+                width={screenWidth}
+                height="100%"
+                style={styles.tradeSheetSvg}
+                viewBox={`0 0 ${screenWidth} 400`}
+                preserveAspectRatio="none"
+              >
+                <Path
+                  d={buildTradeBottomPath({
+                    w: screenWidth,
+                    h: 400,
+                    topRadius: 24,
+                    bottomRadius: 16,
+                    dentWidth: 40,
+                    dentDepth: 42,
+                    shoulder: 40,
+                    centerXOffset: -1,
+                  })}
+                  fill={styles.sheet.backgroundColor}
+                />
+              </Svg>
+
+              {/* Floating Button */}
+              <View style={styles.floatingButton} />
+
+              {/* Content positioned above SVG */}
+              <View style={styles.tradeContentWithPadding}>
+                {isInteractable && (
+                  <View style={styles.notchWrapper}>
+                    <View style={styles.notch} />
+                  </View>
+                )}
+                {children}
               </View>
-            )}
-            {children}
-          </Animated.View>
+            </Animated.View>
+          ) : (
+            <Animated.View
+              onLayout={updateSheetHeight}
+              style={[combinedSheetStyle, styles.tradeSheetContainer]}
+            >
+              {isInteractable && (
+                <View style={styles.notchWrapper}>
+                  <View style={styles.notch} />
+                </View>
+              )}
+              {children}
+            </Animated.View>
+          )}
         </PanGestureHandler>
       </KeyboardAvoidingView>
     );

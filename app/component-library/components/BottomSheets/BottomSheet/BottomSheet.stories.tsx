@@ -17,6 +17,7 @@ import {
 // Internal dependencies.
 import { default as BottomSheet } from './BottomSheet';
 import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
+import { BottomSheetDialogContainerVariant } from './foundation/BottomSheetDialog/BottomSheetDialog.types';
 import BottomSheetHeader from '../BottomSheetHeader';
 import BottomSheetFooter from '../BottomSheetFooter';
 import { ButtonVariants } from '../../Buttons/Button';
@@ -28,6 +29,11 @@ const BottomSheetMeta = {
     isInteractable: {
       control: { type: 'boolean' },
       defaultValue: true,
+    },
+    containerVariant: {
+      control: { type: 'select' },
+      options: Object.values(BottomSheetDialogContainerVariant),
+      defaultValue: BottomSheetDialogContainerVariant.Default,
     },
   },
 };
@@ -83,6 +89,70 @@ export const Default = {
                 },
                 {
                   label: 'Confirm',
+                  variant: ButtonVariants.Primary,
+                  onPress: closeBottomSheet,
+                },
+              ]}
+            />
+            {/* TODO: This is a hack to make the bottom sheet visible */}
+            <Box twClassName="h-35" />
+          </BottomSheet>
+        )}
+      </>
+    );
+  },
+};
+
+export const TradeVariant = {
+  render: function Render(
+    args: JSX.IntrinsicAttributes &
+      BottomSheetProps &
+      React.RefAttributes<BottomSheetRef>,
+  ) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    const openBottomSheet = () => setIsVisible(true);
+    const closeBottomSheet = () => setIsVisible(false);
+    return (
+      <>
+        <Button
+          variant={ButtonVariant.Primary}
+          onPress={openBottomSheet}
+          twClassName="mb-4"
+        >
+          Open Trade BottomSheet
+        </Button>
+        {isVisible && (
+          <BottomSheet
+            {...args}
+            containerVariant={BottomSheetDialogContainerVariant.Trade}
+            onClose={closeBottomSheet}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader
+              onClose={closeBottomSheet}
+              onBack={closeBottomSheet}
+            >
+              Trade BottomSheet
+            </BottomSheetHeader>
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="h-20"
+            >
+              <Text>
+                Trade variant with dented top center for floating button.
+              </Text>
+            </Box>
+            <BottomSheetFooter
+              buttonPropsArray={[
+                {
+                  label: 'Cancel',
+                  variant: ButtonVariants.Secondary,
+                  onPress: closeBottomSheet,
+                },
+                {
+                  label: 'Confirm Trade',
                   variant: ButtonVariants.Primary,
                   onPress: closeBottomSheet,
                 },
