@@ -395,6 +395,7 @@ const PerpsClosePositionView: React.FC = () => {
     // Immediately update values even when keypad is active
     const newAmount = (newPercentage / 100) * absSize;
     setCloseAmount(newAmount.toString());
+    setCloseAmountString(newAmount.toString()); // Update token display string
     const newUSDAmount = newAmount * currentPrice;
     setCloseAmountUSD(newUSDAmount);
     setCloseAmountUSDString(newUSDAmount.toString());
@@ -405,6 +406,7 @@ const PerpsClosePositionView: React.FC = () => {
 
     // Immediately update values even when keypad is active
     setCloseAmount(absSize.toString());
+    setCloseAmountString(absSize.toString()); // Update token display string
     const newUSDAmount = absSize * currentPrice;
     setCloseAmountUSD(newUSDAmount);
     setCloseAmountUSDString(newUSDAmount.toString());
