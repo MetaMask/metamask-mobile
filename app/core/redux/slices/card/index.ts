@@ -112,16 +112,13 @@ export const selectIsCardCacheValid = (address?: string) =>
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,
   selectedAccount,
-  (cardholderAccounts, selectedInternalAccountAddress) => {
-    if (
-      !selectedInternalAccountAddress ||
-      !isEthAccount(selectedInternalAccountAddress)
-    ) {
+  (cardholderAccounts, selectedInternalAccount) => {
+    if (!selectedInternalAccount || !isEthAccount(selectedInternalAccount)) {
       return false;
     }
 
     return cardholderAccounts.includes(
-      selectedInternalAccountAddress.address?.toLowerCase(),
+      selectedInternalAccount.address?.toLowerCase(),
     );
   },
 );
