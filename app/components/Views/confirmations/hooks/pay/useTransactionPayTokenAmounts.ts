@@ -32,8 +32,16 @@ export function useTransactionPayTokenAmounts({
     ];
   }, [address, chainId]);
 
+  const safeAmountOverrides = useDeepMemo(
+    () => amountOverrides,
+    [amountOverrides],
+  );
+
   const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
-  const { values } = useTransactionRequiredFiat({ amountOverrides });
+
+  const { values } = useTransactionRequiredFiat({
+    amountOverrides: safeAmountOverrides,
+  });
 
   const amounts = useDeepMemo(() => {
     if (!address || !chainId || !tokenFiatRate || !decimals) {
