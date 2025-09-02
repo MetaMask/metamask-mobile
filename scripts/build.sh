@@ -521,8 +521,11 @@ buildIosQA(){
 buildAndroidMainProduction(){
 	prebuild_android
 
-	# Generate APK, Test APK, and AAB bundle in single Gradle invocation
-	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest bundleProdRelease -DtestBuildType=release --build-cache --parallel
+	# Generate APK for production
+	cd android && ./gradlew app:assembleProdRelease app:assembleProdReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleProdRelease
 
 	# Generate checksum
 	yarn build:android:checksum
@@ -535,8 +538,11 @@ buildAndroidMainProduction(){
 buildAndroidFlaskProduction(){
 	prebuild_android
 
-	# Generate APK, Test APK, and AAB bundle in single Gradle invocation
-	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest bundleFlaskRelease -DtestBuildType=release --build-cache --parallel
+	# Generate APK for production
+	cd android && ./gradlew app:assembleFlaskRelease app:assembleFlaskReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleFlaskRelease
 
 	# Generate checksum
 	yarn build:android:checksum:flask
@@ -550,8 +556,11 @@ buildAndroidQaProduction(){
 	# Builds the QA APK for production
 	prebuild_android
 
-	# Generate APK, Test APK, and AAB bundle in single Gradle invocation
-	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest bundleQaRelease -DtestBuildType=release --build-cache --parallel
+	# Generate APK for production
+	cd android && ./gradlew app:assembleQaRelease app:assembleQaReleaseAndroidTest -DtestBuildType=release --build-cache --parallel
+
+	# Generate AAB bundle for production
+	./gradlew bundleQaRelease
 
 	# Generate checksum
 	yarn build:android:checksum:qa

@@ -11,7 +11,7 @@ let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
 let INSTALL_PODS;
-// GitHub CI pipeline flag - defaults to false (also works for other CI environments like Bitrise)
+// GitHub CI pipeline flag - defaults to false
 let GITHUB_CI = false;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
@@ -384,8 +384,8 @@ const prepareDependenciesTask = {
         buildInpageBridgeTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
-        installFoundryTask,
         patchPackageTask,
+        installFoundryTask,
         expoBuildLinks,
         installHuskyTask,
       ],
