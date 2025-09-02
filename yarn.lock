@@ -6423,6 +6423,23 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
+"@metamask/utils@11.7.0":
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
+  integrity sha512-IamqpZF8Lr4WeXJ84fD+Sy+v1Zo05SYuMPHHBrZWpzVbnHAmXQpL4ckn9s5dfA+zylp3WGypaBPb6SBZdOhuNQ==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@noble/hashes" "^1.3.1"
+    "@scure/base" "^1.1.3"
+    "@types/debug" "^4.1.7"
+    "@types/lodash" "^4.17.20"
+    debug "^4.3.4"
+    lodash "^4.17.21"
+    pony-cause "^2.1.10"
+    semver "^7.5.4"
+    uuid "^9.0.1"
+
 "@metamask/utils@^10.0.0":
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.1.tgz#a765f96c20e35fc51c068fb9f88a3332b40b215e"

@@ -307,7 +307,7 @@
     "@metamask/swaps-controller": "^13.3.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "^60.3.0",
-    "@metamask/utils": "^11.4.2",
+    "@metamask/utils": "^11.7.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
