@@ -11,6 +11,7 @@ import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { selectEnabledSourceChains } from '../../../../../core/redux/slices/bridge';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
@@ -133,6 +134,11 @@ describe('useAutomaticTransactionPayToken', () => {
         chainId: CHAIN_ID_2_MOCK,
         tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
       },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
     runHook();
@@ -165,6 +171,16 @@ describe('useAutomaticTransactionPayToken', () => {
         chainId: CHAIN_ID_2_MOCK,
         tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
       },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
     runHook();
@@ -186,6 +202,16 @@ describe('useAutomaticTransactionPayToken', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_2_MOCK,
         tokenFiatAmount: TOTAL_FIAT_MOCK - 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
       },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
@@ -230,6 +256,16 @@ describe('useAutomaticTransactionPayToken', () => {
         chainId: CHAIN_ID_2_MOCK,
         tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
       },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 1,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
     ] as unknown as ReturnType<typeof useTokensWithBalance>);
 
     runHook({
@@ -244,6 +280,48 @@ describe('useAutomaticTransactionPayToken', () => {
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
+  it('does not select token if no native balance on chain', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK - 1,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 5,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
+      },
+      {
+        address: TOKEN_ADDRESS_3_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 20,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: 0,
+      },
+      {
+        address: NATIVE_TOKEN_ADDRESS,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: 1,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_3_MOCK,
       chainId: CHAIN_ID_2_MOCK,
     });
   });
