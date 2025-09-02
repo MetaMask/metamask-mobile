@@ -43,7 +43,7 @@ export const useSendActions = () => {
           {
             fromAccountId: fromAccount?.id as string,
             toAddress: toAddress as string,
-            assetId: asset.address as CaipAssetType,
+            assetId: (asset as AssetType)?.assetId as CaipAssetType,
             amount: value as string,
           },
         );

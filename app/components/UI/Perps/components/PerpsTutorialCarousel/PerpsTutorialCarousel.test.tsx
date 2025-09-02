@@ -1,12 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsTutorialCarousel, {
   PERPS_RIVE_ARTBOARD_NAMES,
 } from './PerpsTutorialCarousel';
 import { strings } from '../../../../../../locales/i18n';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 
 // Mock .riv file to prevent Jest parsing binary data
 jest.mock(
@@ -51,6 +52,7 @@ jest.mock('rive-react-native', () => {
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -120,15 +122,23 @@ describe('PerpsTutorialCarousel', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
+    setParams: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockMarkTutorialCompleted.mockClear();
     mockTrack.mockClear();
     mockDepositWithConfirmation.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    (useRoute as jest.Mock).mockReturnValue({ params: {} });
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe('Component Rendering', () => {
@@ -226,9 +236,7 @@ describe('PerpsTutorialCarousel', () => {
         const continueButton = screen.getByText(
           strings('perps.tutorial.continue'),
         );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
+        fireEvent.press(continueButton);
       }
 
       // Verify we're on the last screen
@@ -298,6 +306,146 @@ describe('PerpsTutorialCarousel', () => {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
+    });
+  });
+
+  describe('Deeplink Navigation', () => {
+    it('should navigate to wallet home with Perps tab when skipping from deeplink', () => {
+      // Mock route params to indicate deeplink origin
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          isFromDeeplink: true,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      // Press skip button
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      // Should navigate to wallet home instead of goBack
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+      // Should set params to select Perps tab
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    });
+
+    it('should navigate to wallet home with Perps tab when skipping from last screen with deeplink', async () => {
+      // Mock route params to indicate deeplink origin
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          isFromDeeplink: true,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      // Navigate to the last screen
+      for (let i = 0; i < 5; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        fireEvent.press(continueButton);
+      }
+
+      // Press "Got it" button on last screen
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.got_it')));
+      });
+
+      // Should mark tutorial as completed
+      expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+
+      // Should navigate to wallet home with Perps tab
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+      // Should set params to select Perps tab
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    });
+
+    it('should use goBack when not from deeplink', () => {
+      // Default params (not from deeplink)
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {},
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      // Press skip button
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      // Should use goBack instead of navigate
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should handle undefined route params gracefully', () => {
+      // Mock route without params
+      (useRoute as jest.Mock).mockReturnValue({
+        params: undefined,
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      // Press skip button
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      // Should default to goBack behavior
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should handle deposit confirmation error gracefully', async () => {
+      // Mock deposit failure
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockDepositWithConfirmation.mockRejectedValue(
+        new Error('Deposit failed'),
+      );
+
+      render(<PerpsTutorialCarousel />);
+
+      // Navigate to last screen and press Add funds
+      for (let i = 0; i < 5; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        fireEvent.press(continueButton);
+      }
+
+      // Press Add funds button
+      fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
+
+      // The depositWithConfirmation is called asynchronously
+      // We need to wait for the next tick for the promise to reject
+      await Promise.resolve();
+
+      // Should log error
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to initialize deposit:',
+        expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

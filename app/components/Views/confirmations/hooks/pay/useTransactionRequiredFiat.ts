@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -14,7 +14,11 @@ export const PAY_BRIDGE_FEE = 0.005;
  * Calculate the fiat value of any tokens required by the transaction.
  * Necessary for MetaMask Pay to calculate how much of the selected pay token is needed.
  */
-export function useTransactionRequiredFiat() {
+export function useTransactionRequiredFiat({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}) {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
@@ -35,7 +39,12 @@ export function useTransactionRequiredFiat() {
       requiredTokens.map((target, index) => {
         const targetFiatRate = tokenFiatRates?.[index] as number;
 
-        const amountFiat = new BigNumber(target.amountHuman).multipliedBy(
+        const amountOverride =
+          amountOverrides?.[target.address.toLowerCase() as Hex];
+
+        const amountHuman = amountOverride ?? target.amountHuman;
+
+        const amountFiat = new BigNumber(amountHuman).multipliedBy(
           targetFiatRate,
         );
 
@@ -58,7 +67,7 @@ export function useTransactionRequiredFiat() {
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [requiredTokens, tokenFiatRates],
+    [amountOverrides, requiredTokens, tokenFiatRates],
   );
 
   const totalFiat = values.reduce<number>(

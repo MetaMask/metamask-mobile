@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,7 +8,7 @@ import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAs
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
 
-describe(Regression('Import Tokens'), () => {
+describe(RegressionAssets('Import Tokens'), () => {
   it('should add and remove a token via token autocomplete', async () => {
     await withFixtures(
       {

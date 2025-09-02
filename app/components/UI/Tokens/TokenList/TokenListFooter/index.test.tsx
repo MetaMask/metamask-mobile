@@ -10,11 +10,11 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../Ramp/Aggregator/hooks/useRampNetwork', () => jest.fn());
-jest.mock('../../../Ramp/Aggregator/routes/utils', () => ({
-  createBuyNavigationDetails: jest.fn(() => ['BuyScreen']),
-}));
 jest.mock('../../../../../components/hooks/useMetrics', () => ({
-  MetaMetricsEvents: { BUY_BUTTON_CLICKED: 'BUY_BUTTON_CLICKED' },
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'CARD_ADD_FUNDS_DEPOSIT_CLICKED',
+    RAMPS_BUTTON_CLICKED: 'RAMPS_BUTTON_CLICKED',
+  },
   useMetrics: jest.fn(() => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
@@ -22,6 +22,13 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
       build: jest.fn(),
     })),
   })),
+}));
+
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: {
+    LoadDepositExperience: 'Load Deposit Experience',
+  },
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -131,26 +138,27 @@ describe('TokenListFooter', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders the buy button for a native token with zero balance', () => {
+  it('renders the deposit button for a native token with zero balance', () => {
     const { getByText } = renderComponent();
 
     expect(
       getByText(
-        strings('wallet.token_is_needed_to_continue', {
+        strings('wallet.fund_your_wallet_to_get_started', {
           tokenSymbol: 'Ethereum',
         }),
       ),
     ).toBeDefined();
-    expect(getByText(strings('wallet.next'))).toBeDefined();
+    expect(getByText(strings('wallet.add_funds'))).toBeDefined();
   });
 
-  it('tracks the BUY_BUTTON_CLICKED event when the buy button is pressed', async () => {
+  it('tracks the CARD_ADD_FUNDS_DEPOSIT_CLICKED and RAMPS_BUTTON_CLICKED events when the deposit button is pressed', async () => {
     const { getByText } = renderComponent();
 
-    fireEvent.press(getByText(strings('wallet.next')));
+    fireEvent.press(getByText(strings('wallet.add_funds')));
 
     await waitFor(() => {
-      expect(MetaMetricsEvents.BUY_BUTTON_CLICKED).toBeDefined();
+      expect(MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED).toBeDefined();
+      expect(MetaMetricsEvents.RAMPS_BUTTON_CLICKED).toBeDefined();
     });
   });
 });

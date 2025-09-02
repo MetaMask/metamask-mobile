@@ -23,11 +23,6 @@ export function useTransactionTotalFiat() {
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const quotesCost = (quotes ?? []).reduce(
-    (acc, quote) => acc.plus(getQuoteCostFiat(quote)),
-    new BigNumber(0),
-  );
-
   const balancesToUse = requiredFiat.filter(
     (token) =>
       !quotes?.some(
@@ -42,43 +37,51 @@ export function useTransactionTotalFiat() {
     new BigNumber(0),
   );
 
-  const quoteGasCost =
+  const quoteTotal = (quotes ?? []).reduce(
+    (acc, quote) => acc.plus(getQuoteTotal(quote)),
+    new BigNumber(0),
+  );
+
+  const quoteNetworkFeeTotal =
     quotes?.reduce(
-      (acc, quote) =>
-        acc.plus(new BigNumber(quote.totalMaxNetworkFee.valueInCurrency ?? 0)),
+      (acc, quote) => acc.plus(getQuoteGasAndRelayFee(quote)),
       new BigNumber(0),
     ) ?? new BigNumber(0);
 
-  const total = quotesCost.plus(balanceCost);
+  const total = quoteTotal.plus(balanceCost);
   const value = total.toString(10);
   const formatted = fiatFormatter(total);
 
-  const totalGas = quoteGasCost.plus(
+  const totalNetworkFee = quoteNetworkFeeTotal.plus(
     new BigNumber(estimatedFeeFiatPrecise ?? 0),
   );
 
-  const totalGasFormatted = fiatFormatter(totalGas);
+  const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
 
   useEffect(() => {
     log('Total fiat', {
-      balanceCost: balanceCost.toString(10),
-      quotesCost: quotesCost.toString(10),
-      formatted,
-      value,
+      balances: balanceCost.toString(10),
+      quotes: quoteTotal.toString(10),
+      networkFees: totalNetworkFeeFormatted,
+      total: formatted,
     });
-  }, [balanceCost, quotesCost, formatted, value]);
+  }, [balanceCost, formatted, quoteTotal, totalNetworkFeeFormatted, value]);
 
   return {
-    value,
     formatted,
-    totalGasFormatted,
+    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
+    totalGasFormatted: totalNetworkFeeFormatted,
+    value,
   };
 }
 
-function getQuoteCostFiat(quote: TransactionBridgeQuote): BigNumber {
-  const gasCost = new BigNumber(quote.totalMaxNetworkFee?.valueInCurrency ?? 0);
-  const cost = new BigNumber(quote.cost?.valueInCurrency ?? 0);
-  const amount = new BigNumber(quote.adjustedReturn?.valueInCurrency ?? 0);
+function getQuoteTotal(quote: TransactionBridgeQuote): BigNumber {
+  const networkFee = getQuoteGasAndRelayFee(quote);
+  const sourceAmount = new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
 
-  return amount.plus(gasCost).plus(cost);
+  return sourceAmount.plus(networkFee);
+}
+
+function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
+  return new BigNumber(quote.totalMaxNetworkFee?.valueInCurrency ?? 0);
 }

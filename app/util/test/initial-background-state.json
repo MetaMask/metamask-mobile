@@ -381,6 +381,8 @@
     "pendingOrders": [],
     "depositInProgress": false,
     "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -391,7 +393,8 @@
     "hasPlacedFirstOrder": {
       "testnet": false,
       "mainnet": false
-    }
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -596,8 +599,8 @@
     "allDeFiPositionsCount": {}
   },
   "RewardsController": {
-    "lastAuthTime": 0,
-    "lastAuthenticatedAccount": null,
-    "subscription": null
+    "accounts": {},
+    "subscriptions": {},
+    "lastAuthenticatedAccount": null
   }
 }

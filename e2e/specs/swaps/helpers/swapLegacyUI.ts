@@ -2,6 +2,11 @@ import { default as LegacyUIQuoteView } from '../../../pages/swaps/QuoteView';
 import SwapView from '../../../pages/swaps/SwapView';
 import Assertions from '../../../framework/Assertions';
 import TestHelpers from '../../../helpers';
+import { createLogger } from '../../../framework/logger';
+
+const logger = createLogger({
+  name: 'SwapLegacyUI',
+});
 
 export async function submitSwapLegacyUI(
   quantity: string,
@@ -47,8 +52,7 @@ export async function submitSwapLegacyUI(
       SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
     );
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(`Swap complete didn't pop up: ${e}`);
+    logger.error(`Swap complete didn't pop up: ${e}`);
   }
   await TestHelpers.delay(10000);
 }

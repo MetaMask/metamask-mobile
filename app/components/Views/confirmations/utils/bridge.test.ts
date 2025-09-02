@@ -6,7 +6,11 @@ import {
 } from '@metamask/bridge-controller';
 import Engine from '../../../../core/Engine';
 import { ExtendedControllerMessenger } from '../../../../core/ExtendedControllerMessenger';
-import { BridgeQuoteRequest, getBridgeQuotes } from './bridge';
+import {
+  BridgeQuoteRequest,
+  TransactionBridgeQuote,
+  getBridgeQuotes,
+} from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
@@ -32,7 +36,6 @@ const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
 };
 
 const QUOTE_1_MOCK = {
-  estimatedProcessingTimeInSeconds: 20,
   quote: {
     destAsset: {
       address: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
@@ -41,7 +44,6 @@ const QUOTE_1_MOCK = {
 } as unknown as QuoteResponse;
 
 const QUOTE_2_MOCK = {
-  estimatedProcessingTimeInSeconds: 10,
   quote: {
     destAsset: {
       address: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
@@ -161,16 +163,36 @@ describe('Confirmations Bridge Utils', () => {
       expect(quotes).toBeUndefined();
     });
 
-    it('uses quote with lowest estimated time', async () => {
+    it('selects cheapest quote of 3 fastest quotes', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+        },
+      ] as TransactionBridgeQuote[];
+
       bridgeControllerMock.fetchQuotes.mockReset();
-      bridgeControllerMock.fetchQuotes.mockResolvedValue([
-        QUOTE_1_MOCK,
-        QUOTE_2_MOCK,
-      ]);
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
 
       const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
-      expect(quotes).toStrictEqual([QUOTE_2_MOCK]);
+      expect(quotes).toStrictEqual([QUOTES[2]]);
     });
   });
 });

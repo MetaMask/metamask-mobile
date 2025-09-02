@@ -5,6 +5,7 @@ export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 export { usePerpsDepositStatus } from './usePerpsDepositStatus';
+export { usePerpsWithdrawStatus } from './usePerpsWithdrawStatus';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -12,6 +13,8 @@ export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 
 // State hooks (Redux selectors)
 export { usePerpsAccount } from './usePerpsAccount';
+// Portfolio balance hook (for wallet integration)
+export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';

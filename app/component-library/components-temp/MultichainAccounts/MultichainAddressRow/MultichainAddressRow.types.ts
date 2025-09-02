@@ -1,7 +1,5 @@
-import { StyleProp, ViewStyle } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
-
-import { IconName } from '../../../components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 export interface Icon {
   /**
@@ -58,16 +56,9 @@ export interface MultichainAddressRowProps {
    * Icons are displayed in the order they are provided.
    */
   icons?: Icon[];
-  /**
-   * Optional style object for the container
-   */
-  style?: StyleProp<ViewStyle>;
+
   /**
    * Optional test ID for testing purposes
    */
   testID?: string;
-}
-
-export interface MultichainAddressRowStyleSheetVars {
-  style: StyleProp<ViewStyle>;
 }

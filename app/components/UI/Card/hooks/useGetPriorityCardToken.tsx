@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import { Hex } from '@metamask/utils';
@@ -12,10 +13,15 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
-import { useSelector } from 'react-redux';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import {
+  selectCardPriorityToken,
+  selectCardPriorityTokenLastFetched,
+  setCardPriorityToken,
+  setCardPriorityTokenLastFetched,
+} from '../../../../core/redux/slices/card';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -95,34 +101,50 @@ const fetchAllowances = async (
 /**
  * React hook to fetch and determine the priority card token for a given user address.
  *
- * This hook filters out zero-allowance tokens, queries the Card SDK for a suggested priority token,
- * then validates against on-chain balances. If the suggested token has zero balance,
- * it falls back to the first token with both allowance and positive balance.
+ * This hook implements a caching strategy where if the priority token was fetched less than 5 minutes ago,
+ * it returns the cached value. Otherwise, it fetches a new priority token from the Card SDK.
  *
  * @param {string} [address] - Ethereum address of the user whose card token priority is to be fetched.
+ * @param {boolean} [shouldFetch=true] - Whether the hook should attempt to fetch if cache is stale.
  * @returns {{
- * fetchPriorityToken: (cardTokenAllowances: CardTokenAllowance[]) => Promise<CardTokenAllowance | null>,
+ * fetchPriorityToken: () => Promise<CardTokenAllowance | null>,
  * isLoading: boolean,
- * error: string | null
+ * error: boolean,
+ * priorityToken: CardTokenAllowance | null
  * }}
  * An object containing:
- * - fetchPriorityToken: async function to compute the best token allowance entry
+ * - fetchPriorityToken: async function to manually refresh the priority token
  * - isLoading: indicates loading state during the fetch
  * - error: any error encountered while fetching
+ * - priorityToken: the cached or newly fetched priority token
  */
 export const useGetPriorityCardToken = (
   selectedAddress?: string,
   shouldFetch: boolean = true,
 ) => {
+  const dispatch = useDispatch();
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
-  const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
-    null,
-  );
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
+  const priorityToken = useSelector(selectCardPriorityToken);
+  const lastFetched = useSelector(selectCardPriorityTokenLastFetched);
+
+  // Helper to check if cache is still valid (less than 5 minutes old)
+  const isCacheValid = useCallback(() => {
+    if (!lastFetched) return false;
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    // Handle both Date objects and ISO date strings (from redux-persist)
+    const lastFetchedDate =
+      lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
+    return lastFetchedDate > fiveMinutesAgo;
+  }, [lastFetched]);
+
+  // Memoize cache validity to prevent unnecessary re-runs
+  const cacheIsValid = useMemo(() => isCacheValid(), [isCacheValid]);
 
   // Helpers
   const filterNonZeroAllowances = (
@@ -178,20 +200,31 @@ export const useGetPriorityCardToken = (
           const supportedTokens = sdk.supportedTokens;
 
           if (supportedTokens[0]) {
-            return {
+            const fallbackToken = {
               ...supportedTokens[0],
               allowanceState: AllowanceState.NotEnabled,
               isStaked: false,
               chainId: LINEA_CHAIN_ID,
             } as CardTokenAllowance;
+
+            // Update cache with fallback token
+            dispatch(setCardPriorityToken(fallbackToken));
+            dispatch(setCardPriorityTokenLastFetched(new Date()));
+
+            return fallbackToken;
           }
 
+          dispatch(setCardPriorityToken(null));
+          dispatch(setCardPriorityTokenLastFetched(new Date()));
           return null;
         }
 
         const validAllowances = filterNonZeroAllowances(cardTokenAllowances);
         if (validAllowances.length === 0) {
-          return cardTokenAllowances[0] || null;
+          const defaultToken = cardTokenAllowances[0] || null;
+          dispatch(setCardPriorityToken(defaultToken));
+          dispatch(setCardPriorityTokenLastFetched(new Date()));
+          return defaultToken;
         }
 
         const validTokenAddresses = validAllowances.map(
@@ -211,6 +244,8 @@ export const useGetPriorityCardToken = (
             )
           : undefined;
 
+        let finalToken: CardTokenAllowance | null = null;
+
         if (matchingAllowance) {
           const chainBalances = getBalancesForChain(
             matchingAllowance.chainId as Hex,
@@ -229,19 +264,24 @@ export const useGetPriorityCardToken = (
           );
 
           if (decimalTokenBalance.gt(0)) {
-            return matchingAllowance;
+            finalToken = matchingAllowance;
+          } else {
+            const positiveBalanceAllowance =
+              findFirstAllowanceWithPositiveBalance(
+                validAllowances,
+                chainBalances,
+              );
+            finalToken = positiveBalanceAllowance || matchingAllowance;
           }
-
-          const positiveBalanceAllowance =
-            findFirstAllowanceWithPositiveBalance(
-              validAllowances,
-              chainBalances,
-            );
-
-          return positiveBalanceAllowance || matchingAllowance;
+        } else {
+          finalToken = cardTokenAllowances[0] || null;
         }
 
-        return cardTokenAllowances[0] || null;
+        // Update cache with the final token and current timestamp
+        dispatch(setCardPriorityToken(finalToken));
+        dispatch(setCardPriorityTokenLastFetched(new Date()));
+
+        return finalToken;
       } catch (err) {
         const normalizedError =
           err instanceof Error ? err : new Error(String(err));
@@ -254,16 +294,37 @@ export const useGetPriorityCardToken = (
       } finally {
         setIsLoading(false);
       }
-    }, [sdk, selectedAddress, getBalancesForChain]);
+    }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
   useEffect(() => {
-    if (selectedAddress && shouldFetch) {
-      setPriorityToken(null); // Reset priority token when address changes
-      fetchPriorityToken().then((token) => {
-        setPriorityToken(token);
-      });
+    if (!selectedAddress || !shouldFetch) {
+      return;
     }
-  }, [selectedAddress, fetchPriorityToken, shouldFetch]);
 
-  return { fetchPriorityToken, isLoading, error, priorityToken };
+    // If cache is valid and we have a priority token, don't fetch
+    if (cacheIsValid && priorityToken !== null) {
+      return;
+    }
+
+    // Cache is stale or we don't have a priority token, fetch new data
+    fetchPriorityToken();
+  }, [
+    selectedAddress,
+    shouldFetch,
+    cacheIsValid,
+    priorityToken,
+    fetchPriorityToken,
+    lastFetched,
+  ]);
+
+  // Determine if we should show loading state
+  // Only show loading if we're actively fetching AND don't have cached data
+  const shouldShowLoading = isLoading && (!priorityToken || !cacheIsValid);
+
+  return {
+    fetchPriorityToken,
+    isLoading: shouldShowLoading,
+    error,
+    priorityToken,
+  };
 };

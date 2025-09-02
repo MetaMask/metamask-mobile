@@ -1,6 +1,6 @@
-/* eslint-disable */
-// import fs from 'fs';
-// import path from 'path';
+/* eslint-disable import/no-nodejs-modules */
+import fs from 'fs';
+import path from 'path';
 
 class CustomReporter {
   constructor() {
@@ -72,6 +72,7 @@ class CustomReporter {
         );
         fs.writeFileSync(jsonPath, JSON.stringify(this.metrics, null, 2));
         // Generate HTML report
+        /* eslint-disable */
         const html = `
           <!DOCTYPE html>
           <html>
@@ -82,10 +83,10 @@ class CustomReporter {
             <style>
               body { font-family: Arial, sans-serif; margin: 40px; }
               table { border-collapse: collapse; width: 100%; }
-              th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-              th { background-color: #4CAF50; color: white; }
-              tr:nth-child(even) { background-color: #f2f2f2; }
-              .total { font-weight: bold; background-color: #e7f3e7; }
+              th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
+              th { background-color: #2e7d32; color: white; }
+              tr:nth-child(even) { background-color: #f5f5f5; }
+              .total { font-weight: bold; background-color: #e8f5e8; }
             </style>
           </head>
           <body>
@@ -120,6 +121,7 @@ class CustomReporter {
                       </tr>
                     `;
                     }
+                    return ''; // Return empty string for device key
                   })
                   .join('')}
               </table>
@@ -130,6 +132,7 @@ class CustomReporter {
           </body>
           </html>
         `;
+        /* eslint-enable */
 
         const reportPath = path.join(
           reportsDir,

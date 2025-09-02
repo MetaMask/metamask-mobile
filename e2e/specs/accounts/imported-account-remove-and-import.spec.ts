@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
@@ -10,10 +10,10 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -22,18 +22,14 @@ const TEST_PRIVATE_KEY =
 const ACCOUNT_INDEX = 1;
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  const { urlEndpoint, response } =
-    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: urlEndpoint,
-    response,
-    responseCode: 200,
-  });
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    remoteFeatureMultichainAccountsAccountDetails(false),
+  );
 };
 
 describe(
-  Regression('removes and reimports an account using a private key'),
+  RegressionAccounts('removes and reimports an account using a private key'),
   () => {
     it('removes an imported account and imports it again using a private key', async () => {
       await withFixtures(

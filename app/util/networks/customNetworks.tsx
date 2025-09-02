@@ -94,17 +94,6 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('999'),
-    nickname: 'Hyperliquid',
-    rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
-    ticker: 'HYPE',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.hyperliquid.xyz',
-      imageUrl: 'HL',
-      imageSource: require('../../images/HL_symbol_mint_green.png'),
-    },
-  },
-  {
     chainId: toHex('11297108109'),
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,

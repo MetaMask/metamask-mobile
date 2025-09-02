@@ -1,5 +1,6 @@
 import {
   FeatureId,
+  GenericQuoteRequest,
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
@@ -9,6 +10,8 @@ import { store } from '../../../../store';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
 import { orderBy } from 'lodash';
+import { toChecksumAddress } from '../../../../util/address';
+import { BigNumber } from 'bignumber.js';
 
 export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
 
@@ -67,19 +70,21 @@ async function getSingleBridgeQuote(
 
   const { BridgeController } = Engine.context;
 
+  const quoteRequest: GenericQuoteRequest = {
+    destChainId: targetChainId,
+    destTokenAddress: toChecksumAddress(targetTokenAddress),
+    destWalletAddress: from,
+    gasIncluded: false,
+    insufficientBal: true,
+    srcChainId: sourceChainId,
+    srcTokenAddress: toChecksumAddress(sourceTokenAddress),
+    srcTokenAmount: sourceTokenAmount,
+    walletAddress: from,
+    gasless7702: false,
+  };
+
   const quotes = await BridgeController.fetchQuotes(
-    {
-      destChainId: targetChainId,
-      destTokenAddress: targetTokenAddress,
-      destWalletAddress: from,
-      gasIncluded: false,
-      insufficientBal: true,
-      srcChainId: sourceChainId,
-      srcTokenAddress: sourceTokenAddress,
-      srcTokenAmount: sourceTokenAmount,
-      walletAddress: from,
-      gasless7702: false,
-    },
+    quoteRequest,
     abort.signal,
     FeatureId.PERPS,
   );
@@ -88,10 +93,11 @@ async function getSingleBridgeQuote(
     throw new Error('No quotes found');
   }
 
-  return getActiveQuote(quotes, gasFeeEstimates);
+  return getActiveQuote(quoteRequest, quotes, gasFeeEstimates);
 }
 
 function getActiveQuote(
+  quoteRequest: GenericQuoteRequest,
   quotes: QuoteResponse[],
   gasFeeEstimates: GasFeeEstimates,
 ): TransactionBridgeQuote {
@@ -105,6 +111,7 @@ function getActiveQuote(
         ...fullState?.engine?.backgroundState,
         BridgeController: {
           ...fullState?.engine?.backgroundState?.BridgeController,
+          quoteRequest,
           quotes,
         },
         ...(gasFeeEstimates
@@ -121,11 +128,7 @@ function getActiveQuote(
 
   const allQuotes = selectBridgeQuotes(state).sortedQuotes;
 
-  return orderBy(
-    allQuotes,
-    (quote) => quote.estimatedProcessingTimeInSeconds,
-    'asc',
-  )[0];
+  return getBestQuote(allQuotes);
 }
 
 async function getGasFeeEstimates(chainId: Hex) {
@@ -147,4 +150,20 @@ async function getGasFeeEstimates(chainId: Hex) {
   });
 
   return state.gasFeeEstimates as GasFeeEstimates;
+}
+
+function getBestQuote(
+  quotes: TransactionBridgeQuote[],
+): TransactionBridgeQuote {
+  const fastestQuotes = orderBy(
+    quotes,
+    (quote) => quote.estimatedProcessingTimeInSeconds,
+    'asc',
+  ).slice(0, 3);
+
+  return orderBy(
+    fastestQuotes,
+    (quote) => BigNumber(quote.cost?.valueInCurrency ?? 0).toNumber(),
+    'asc',
+  )[0];
 }

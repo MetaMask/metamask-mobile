@@ -6,16 +6,24 @@ import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
-export function useInsufficientPayTokenBalanceAlert(): Alert[] {
-  const { totalHuman } = useTransactionPayTokenAmounts();
+export function useInsufficientPayTokenBalanceAlert({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}): Alert[] {
+  const { type } = useTransactionMetadataRequest() ?? {};
+  const { totalHuman } = useTransactionPayTokenAmounts({ amountOverrides });
   const { payToken } = useTransactionPayToken();
   const { balance } = payToken ?? {};
 
   const isInsufficient =
     new BigNumber(balance ?? '0').isLessThan(
       new BigNumber(totalHuman ?? '0'),
-    ) && process.env.MM_CONFIRMATION_INTENTS === 'true';
+    ) && type === TransactionType.perpsDeposit;
 
   return useMemo(() => {
     if (!isInsufficient) {
