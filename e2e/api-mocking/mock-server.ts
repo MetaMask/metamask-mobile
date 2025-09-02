@@ -82,6 +82,11 @@ const isUrlAllowed = (url: string): boolean => {
     const parsedUrl = new URL(url);
     const hostname = parsedUrl.hostname;
 
+    // Allow data URLs, e.g. for decoding base64
+    if (parsedUrl.protocol === 'data:') {
+      return true;
+    }
+
     return ALLOWLISTED_HOSTS.some((allowedHost) => {
       // Support exact match or wildcard subdomains (e.g., "*.example.com")
       if (allowedHost.startsWith('*.')) {
