@@ -498,6 +498,7 @@ export class HyperLiquidSubscriptionService {
     );
 
     let subscription: Subscription | undefined;
+    let cancelled = false;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -536,7 +537,17 @@ export class HyperLiquidSubscriptionService {
           );
         })
         .then((sub) => {
-          subscription = sub;
+          // If cleanup was called before subscription completed, immediately unsubscribe
+          if (cancelled) {
+            sub.unsubscribe().catch((error: Error) => {
+              DevLogger.log(
+                strings('perps.errors.failedToUnsubscribeOrderFill'),
+                error,
+              );
+            });
+          } else {
+            subscription = sub;
+          }
         })
         .catch((error) => {
           DevLogger.log(
@@ -547,6 +558,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     return () => {
+      cancelled = true;
       unsubscribe();
 
       if (subscription) {
@@ -689,20 +701,6 @@ export class HyperLiquidSubscriptionService {
         : undefined,
       volume24h: hasMarketDataSubscribers ? marketData?.volume24h : undefined,
     };
-
-    // Debug ETH funding rate being sent to subscribers
-    if (symbol === 'ETH' && hasMarketDataSubscribers) {
-      DevLogger.log('🔍 ETH price update being sent:', {
-        symbol,
-        fundingFromCache: marketData?.funding,
-        fundingInUpdate: priceUpdate.funding,
-        hasMarketDataSubscribers,
-        cacheLastUpdated: marketData?.lastUpdated,
-        cacheAge: marketData?.lastUpdated
-          ? Date.now() - marketData.lastUpdated
-          : 'N/A',
-      });
-    }
 
     return priceUpdate;
   }

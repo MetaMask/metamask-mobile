@@ -78,10 +78,14 @@ export function transformMarketData(
       const fundingData = predictedFundings.find(
         ([assetSymbol]) => assetSymbol === symbol,
       );
-      if (fundingData?.[1] && fundingData[1].length > 0) {
+      if (
+        fundingData?.[1] &&
+        Array.isArray(fundingData[1]) &&
+        fundingData[1].length > 0
+      ) {
         // Look specifically for HlPerp exchange (HyperLiquid's own perp)
         const hlPerpExchange = fundingData[1].find(
-          ([exchangeName]) => exchangeName === 'HlPerp',
+          (exchange) => Array.isArray(exchange) && exchange[0] === 'HlPerp',
         );
 
         if (hlPerpExchange?.[1]) {
@@ -91,7 +95,7 @@ export function transformMarketData(
         } else if (fundingData[1].length > 0) {
           // Fallback to first exchange if HlPerp not found
           const firstExchange = fundingData[1][0];
-          if (firstExchange?.[1]) {
+          if (Array.isArray(firstExchange) && firstExchange[1]) {
             nextFundingTime = firstExchange[1].nextFundingTime;
             fundingIntervalHours = firstExchange[1].fundingIntervalHours;
           }

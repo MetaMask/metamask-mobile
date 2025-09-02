@@ -1840,17 +1840,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
     // Handle async subscription service by immediately returning cleanup function
     // The subscription service will load correct funding rates before any callbacks
     let unsubscribe: (() => void) | undefined;
+    let cancelled = false;
 
     this.subscriptionService
       .subscribeToPrices(params)
       .then((unsub) => {
-        unsubscribe = unsub;
+        // If cleanup was called before subscription completed, immediately unsubscribe
+        if (cancelled) {
+          unsub();
+        } else {
+          unsubscribe = unsub;
+        }
       })
       .catch((error) => {
         DevLogger.log('Error subscribing to prices:', error);
       });
 
     return () => {
+      cancelled = true;
       if (unsubscribe) {
         unsubscribe();
       }
