@@ -1378,16 +1378,34 @@ describe('useGetPriorityCardToken', () => {
       useSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
           const selectorStr = selector.toString();
+          // Detect by internal state keys to be resilient to createSelector wrappers
           if (selectorStr.includes('selectAllTokenBalances')) {
             return STATIC_TOKEN_BALANCES;
           }
-          if (selectorStr.includes('selectCardPriorityToken')) {
+          if (selectorStr.includes('priorityTokensByAddress')) {
             return STATIC_PRIORITY_TOKEN;
           }
-          if (selectorStr.includes('selectCardPriorityTokenLastFetched')) {
+          if (selectorStr.includes('lastFetchedByAddress')) {
             return new Date();
           }
-          return null;
+          // As a fallback, try invoking the selector with a minimal card state
+          try {
+            return selector({
+              card: {
+                cardholderAccounts: [],
+                isLoaded: true,
+                priorityTokensByAddress: {
+                  [mockAddress.toLowerCase()]: STATIC_PRIORITY_TOKEN,
+                },
+                lastFetchedByAddress: {
+                  [mockAddress.toLowerCase()]: new Date(),
+                },
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as unknown as any);
+          } catch (_e) {
+            return null;
+          }
         },
       );
 
