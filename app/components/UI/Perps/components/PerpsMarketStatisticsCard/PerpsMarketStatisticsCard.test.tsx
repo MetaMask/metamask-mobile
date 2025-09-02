@@ -42,8 +42,9 @@ jest.mock('../../../../hooks/useStyles', () => ({
 }));
 
 // Mock the usePerpsLivePrices hook
+const mockUsePerpsLivePrices = jest.fn(() => ({}));
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePrices: () => mockUsePerpsLivePrices(),
 }));
 
 describe('PerpsMarketStatisticsCard', () => {
@@ -69,6 +70,7 @@ describe('PerpsMarketStatisticsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders all statistics rows correctly', () => {
@@ -252,5 +254,86 @@ describe('PerpsMarketStatisticsCard', () => {
 
     // Verify total calls
     expect(mockOnTooltipPress).toHaveBeenCalledTimes(2);
+  });
+
+  describe('Live funding rate from WebSocket', () => {
+    it('displays live funding rate when available from WebSocket', () => {
+      // Mock live funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: 0.0005, // 0.05% when multiplied by 100
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display the live funding rate formatted to 4 decimal places
+      expect(getByText('0.0500%')).toBeOnTheScreen();
+    });
+
+    it('displays negative live funding rate correctly', () => {
+      // Mock negative live funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: -0.0023, // -0.23% when multiplied by 100
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display the negative live funding rate
+      expect(getByText('-0.2300%')).toBeOnTheScreen();
+    });
+
+    it('falls back to marketStats funding rate when live data is undefined', () => {
+      // Mock no live funding data (undefined)
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          // funding is undefined
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should fall back to the marketStats funding rate
+      expect(getByText('0.0125%')).toBeOnTheScreen();
+    });
+
+    it('uses marketStats when no symbol provided', () => {
+      // Test with no symbol
+      const propsWithoutSymbol = {
+        ...defaultProps,
+        symbol: undefined,
+      };
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...propsWithoutSymbol} />,
+      );
+
+      // Should use marketStats funding rate
+      expect(getByText('0.0125%')).toBeOnTheScreen();
+    });
+
+    it('displays zero funding rate when live data is zero', () => {
+      // Mock zero funding rate from WebSocket
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          funding: 0,
+        },
+      });
+
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard {...defaultProps} />,
+      );
+
+      // Should display zero funding rate
+      expect(getByText('0.0000%')).toBeOnTheScreen();
+    });
   });
 });
