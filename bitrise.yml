@@ -3669,13 +3669,13 @@ app:
       VERSION_NAME: 7.55.99
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2347
+      VERSION_NUMBER: 2348
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.55.99
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2347
+      FLASK_VERSION_NUMBER: 2348
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
