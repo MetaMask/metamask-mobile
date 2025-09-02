@@ -272,9 +272,8 @@ export interface LiveDataConfig {
 
 export interface PerpsControllerConfig {
   /**
-   * Fallback blocked regions to use when RemoteFeatureFlagController
-   * fails to fetch or returns undefined. Only used when remote feature
-   * flag is undefined - empty array from remote is considered valid.
+   * Fallback blocked regions to use when RemoteFeatureFlagController fails to fetch.
+   * The fallback is set by default if defined and replaced with remote block list once available.
    */
   fallbackBlockedRegions?: string[];
 }
