@@ -59,7 +59,7 @@ class BridgeScreen {
           await numberKey.tap();
         }
         else {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.ViewGroup[@content-desc="."]`);
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
           await numberKey.waitFor('visible',{ timeout: 10000 });
           await numberKey.tap();
         }
@@ -76,8 +76,22 @@ class BridgeScreen {
       await destinationToken.tap();
       const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
       await networkButton.tap();
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      const tokenField = await AppwrightSelectors.getElementByText(this._device, 'Enter token name or paste address');
+      await tokenField.fill(token);
+      let tokenNetworkId;
+      if (network == 'Ethereum'){
+        tokenNetworkId = `0x1`;
+      }
+      else if (network == 'Polygon'){
+        tokenNetworkId = `0x89`;
+      }
+      else if (network == 'Solana'){
+        tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
+      }
+      const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+      await tokenButton.waitFor('attached',{ timeout: 10000 });
       await tokenButton.tap();
+      await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   async tapGetQuotes(network){
