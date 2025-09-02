@@ -8,6 +8,8 @@ import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
   RewardsDataServiceGetPerpsDiscountAction,
+  RewardsDataServiceGetSeasonStatusAction,
+  RewardsDataServiceGetReferralDetailsAction,
 } from '../../controllers/rewards-controller/services';
 import {
   RewardsControllerActions,
@@ -26,7 +28,9 @@ type AllowedActions =
   | KeyringControllerSignPersonalMessageAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction;
+  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetSeasonStatusAction
+  | RewardsDataServiceGetReferralDetailsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -55,6 +59,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:login',
       'RewardsDataService:estimatePoints',
       'RewardsDataService:getPerpsDiscount',
+      'RewardsDataService:getSeasonStatus',
+      'RewardsDataService:getReferralDetails',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',
