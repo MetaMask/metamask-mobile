@@ -20,6 +20,7 @@ let abort: AbortController;
 
 export interface BridgeQuoteRequest {
   from: Hex;
+  minimumTargetAmount: string;
   sourceChainId: Hex;
   sourceTokenAddress: Hex;
   sourceTokenAmount: string;
@@ -93,14 +94,26 @@ async function getSingleBridgeQuote(
     throw new Error('No quotes found');
   }
 
-  return getActiveQuote(quoteRequest, quotes, gasFeeEstimates);
+  const finalQuote = getActiveQuote(
+    quoteRequest,
+    quotes,
+    gasFeeEstimates,
+    request,
+  );
+
+  if (!finalQuote) {
+    throw new Error('No valid quote found');
+  }
+
+  return finalQuote;
 }
 
 function getActiveQuote(
   quoteRequest: GenericQuoteRequest,
   quotes: QuoteResponse[],
   gasFeeEstimates: GasFeeEstimates,
-): TransactionBridgeQuote {
+  request: BridgeQuoteRequest,
+): TransactionBridgeQuote | undefined {
   const fullState = store.getState();
 
   const state = {
@@ -128,19 +141,11 @@ function getActiveQuote(
 
   const allQuotes = selectBridgeQuotes(state).sortedQuotes;
 
-  return getBestQuote(allQuotes);
+  return getBestQuote(allQuotes, request);
 }
 
 async function getGasFeeEstimates(chainId: Hex) {
   const { GasFeeController, NetworkController } = Engine.context;
-
-  const existingState =
-    GasFeeController.state?.gasFeeEstimatesByChainId?.[chainId]
-      ?.gasFeeEstimates;
-
-  if (existingState) {
-    return existingState as GasFeeEstimates;
-  }
 
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
@@ -154,15 +159,22 @@ async function getGasFeeEstimates(chainId: Hex) {
 
 function getBestQuote(
   quotes: TransactionBridgeQuote[],
-): TransactionBridgeQuote {
+  request: BridgeQuoteRequest,
+): TransactionBridgeQuote | undefined {
   const fastestQuotes = orderBy(
     quotes,
     (quote) => quote.estimatedProcessingTimeInSeconds,
     'asc',
   ).slice(0, 3);
 
+  const sufficientTokenAmount = fastestQuotes.filter((quote) =>
+    new BigNumber(quote.toTokenAmount?.amount).isGreaterThanOrEqualTo(
+      request.minimumTargetAmount,
+    ),
+  );
+
   return orderBy(
-    fastestQuotes,
+    sufficientTokenAmount,
     (quote) => BigNumber(quote.cost?.valueInCurrency ?? 0).toNumber(),
     'asc',
   )[0];
