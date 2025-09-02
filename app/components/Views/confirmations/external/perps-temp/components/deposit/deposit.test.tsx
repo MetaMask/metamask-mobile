@@ -69,6 +69,7 @@ describe('PerpsDeposit', () => {
 
     usePerpsDepositViewMock.mockReturnValue({
       isFullView: false,
+      isPayTokenSelected: false,
     });
 
     useTokenAssetMock.mockReturnValue({
