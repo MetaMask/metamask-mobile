@@ -112,6 +112,7 @@ function SendTransaction() {
             'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
           ),
           showCancel: false,
+          showNetwork: false,
         },
         colors,
       ),
