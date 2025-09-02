@@ -11,11 +11,7 @@ import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
-} from '../../../Tokens/constants';
+import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   selectDepositActiveFlag,
@@ -474,25 +470,6 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays loading state when priority token is loading', () => {
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: mockPriorityToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: true,
-      error: null,
-    });
-
-    render();
-
-    // When loading, skeleton components should be visible with their specific testIDs
-    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
-    expect(
-      screen.getByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
-    ).toBeTruthy();
-    expect(
-      screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-    ).toBeTruthy();
-  });
   it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
     render();
 
@@ -928,42 +905,6 @@ describe('CardHome Component', () => {
         cardholderAddress: mockCurrentAddress,
       });
     });
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING,
-      secondaryBalance: '1000 USDC',
-    });
-
-    render();
-
-    // When balance is TOKEN_BALANCE_LOADING, it should render a Skeleton component
-    // instead of actual balance text
-    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING_UPPERCASE', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING_UPPERCASE,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING_UPPERCASE,
-      secondaryBalance: '1000 USDC',
-    });
-
-    render();
-
-    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a Skeleton component
-    // instead of actual balance text
-    expect(screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON)).toBeTruthy();
   });
 
   it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {

@@ -81,6 +81,7 @@ describe('perps controller init', () => {
         },
       ],
       accountState: null,
+      perpsBalances: {},
       pendingOrders: [],
       depositInProgress: false,
       lastDepositResult: null,
@@ -95,6 +96,8 @@ describe('perps controller init', () => {
         testnet: false,
         mainnet: false,
       },
+      withdrawInProgress: false,
+      lastWithdrawResult: null,
     };
 
     initRequestMock.persistedState = {

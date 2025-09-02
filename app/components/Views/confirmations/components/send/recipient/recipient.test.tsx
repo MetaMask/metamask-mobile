@@ -13,18 +13,18 @@ import { Recipient } from './recipient';
 
 const mockAccounts: RecipientType[] = [
   {
-    name: 'Account 1',
+    accountName: 'Account 1',
     address: '0x1234567890123456789012345678901234567890',
   },
   {
-    name: 'Account 2',
+    accountName: 'Account 2',
     address: '0x0987654321098765432109876543210987654321',
   },
 ];
 
 const mockContacts: RecipientType[] = [
   {
-    name: 'John Doe',
+    contactName: 'John Doe',
     address: '0x1111111111111111111111111111111111111111',
   },
 ];
@@ -51,6 +51,10 @@ jest.mock('../../../hooks/send/metrics/useRecipientSelectionMetrics', () => ({
 
 jest.mock('../../../hooks/send/useSendActions', () => ({
   useSendActions: jest.fn(),
+}));
+
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn(),
 }));
 
 jest.mock('./recipient.styles', () => ({
@@ -103,7 +107,7 @@ jest.mock('../../recipient-list/recipient-list', () => ({
             testID={`recipient-item-${recipient.address}`}
             onPress={() => onRecipientSelected(recipient)}
           >
-            <Text>{recipient.name}</Text>
+            <Text>{recipient.accountName || recipient.contactName}</Text>
           </Pressable>
         ))}
       </View>
@@ -201,13 +205,6 @@ describe('Recipient', () => {
     const { getByTestId } = renderWithProvider(<Recipient />);
 
     expect(getByTestId('recipient-input')).toBeOnTheScreen();
-  });
-
-  it('displays account and contact sections', () => {
-    const { getByText } = renderWithProvider(<Recipient />);
-
-    expect(getByText('Your Accounts')).toBeOnTheScreen();
-    expect(getByText('Contacts')).toBeOnTheScreen();
   });
 
   it('displays account list', () => {

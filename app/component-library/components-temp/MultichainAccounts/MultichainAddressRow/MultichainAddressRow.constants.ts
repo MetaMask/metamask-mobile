@@ -1,5 +1,5 @@
 import { MultichainAddressRowProps } from './MultichainAddressRow.types';
-import { IconName } from '../../../components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 export const MULTICHAIN_ADDRESS_ROW_TEST_ID = 'multichain-address-row';
 export const MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID =

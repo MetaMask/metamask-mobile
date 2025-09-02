@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
@@ -21,7 +21,7 @@ import Assertions from '../../framework/Assertions';
 const fixtureServer = new FixtureServer();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(SmokeConfirmations('Send ETH'), () => {
+describe(RegressionConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
   const AMOUNT = '0.12345';
 

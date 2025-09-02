@@ -10,6 +10,7 @@ import PerpsView from '../Views/PerpsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
+import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -94,6 +95,15 @@ const PerpsScreenStack = () => (
           component={PerpsOrderView}
           options={{
             title: strings('perps.order.title'),
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.CLOSE_POSITION}
+          component={PerpsClosePositionView}
+          options={{
+            title: strings('perps.close_position.title'),
             headerShown: false,
           }}
         />

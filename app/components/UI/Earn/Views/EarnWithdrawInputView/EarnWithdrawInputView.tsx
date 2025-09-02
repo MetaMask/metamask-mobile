@@ -23,7 +23,7 @@ import Button, {
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
@@ -59,6 +59,7 @@ import { selectNetworkConfigurationByChainId } from '../../../../../selectors/ne
 import { ScrollView } from 'react-native-gesture-handler';
 import { trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
+import { EVM_SCOPE } from '../../constants/networks';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -74,7 +75,9 @@ const EarnWithdrawInputView = () => {
     useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
@@ -151,7 +154,7 @@ const EarnWithdrawInputView = () => {
   useEffect(() => {
     if (
       receiptToken?.experience?.type !== EARN_EXPERIENCES.STABLECOIN_LENDING ||
-      !activeAccount?.address ||
+      !selectedAccount?.address ||
       !receiptToken?.address ||
       !receiptToken?.chainId
     )
@@ -161,7 +164,7 @@ const EarnWithdrawInputView = () => {
     setIsLoadingMaxSafeWithdrawalAmount(true);
 
     getAaveV3MaxRiskAwareWithdrawalAmount(
-      activeAccount.address,
+      selectedAccount.address,
       receiptToken as EarnTokenDetails,
     )
       .then((maxAmount) => {
@@ -174,7 +177,7 @@ const EarnWithdrawInputView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     receiptToken?.experience?.type,
-    activeAccount?.address,
+    selectedAccount?.address,
     receiptToken?.address,
     receiptToken?.chainId,
   ]);
@@ -331,7 +334,7 @@ const EarnWithdrawInputView = () => {
     // TODO: https://consensyssoftware.atlassian.net/browse/STAKE-1044
     // We likely want to inform the user if this data is missing and the withdrawal fails.
     if (
-      !activeAccount?.address ||
+      !selectedAccount?.address ||
       !receiptToken?.experience?.market?.underlying.address ||
       !receiptToken?.address ||
       !receiptToken?.chainId
@@ -340,7 +343,7 @@ const EarnWithdrawInputView = () => {
 
     const simulatedHealthFactorAfterWithdrawal =
       await calculateAaveV3HealthFactorAfterWithdrawal(
-        activeAccount.address,
+        selectedAccount.address,
         amountTokenMinimalUnit.toString(),
         receiptToken as EarnTokenDetails,
       );
@@ -369,7 +372,7 @@ const EarnWithdrawInputView = () => {
     }
   }, [
     shouldLogStablecoinEvent,
-    activeAccount?.address,
+    selectedAccount?.address,
     amountFiatNumber,
     amountToken,
     amountTokenMinimalUnit,
@@ -410,7 +413,7 @@ const EarnWithdrawInputView = () => {
       // to the user.
       await attemptUnstakeTransaction(
         amountTokenMinimalUnit.toString(),
-        activeAccount?.address as string,
+        selectedAccount?.address as string,
       );
 
       navigation.navigate('StakeScreens', {
@@ -449,7 +452,7 @@ const EarnWithdrawInputView = () => {
         .build(),
     );
   }, [
-    activeAccount?.address,
+    selectedAccount?.address,
     amountFiatNumber,
     amountToken,
     amountTokenMinimalUnit,

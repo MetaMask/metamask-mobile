@@ -1,3 +1,54 @@
+diff --git a/node_modules/appwright/dist/config.js b/node_modules/appwright/dist/config.js
+index a51913b..8c0335c 100644
+--- a/node_modules/appwright/dist/config.js
++++ b/node_modules/appwright/dist/config.js
+@@ -25,7 +25,7 @@ const defaultConfig = {
+     fullyParallel: false,
+     forbidOnly: false,
+     retries: process.env.CI ? 2 : 0,
+-    workers: 2,
++    workers: 1,
+     reporter: [["list"], ["html", { open: "always" }]],
+     use: {
+         // TODO: Use this for actions
+diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
+index 638c5df..1b9f5bb 100644
+--- a/node_modules/appwright/dist/providers/browserstack/index.js
++++ b/node_modules/appwright/dist/providers/browserstack/index.js
+@@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
+         return this.sessionDetails?.app_details.app_name ?? "";
+     }
+     static async downloadVideo(sessionId, outputDir, fileName) {
++        // Check if video download is disabled via environment variable
++        if (process.env.DISABLE_VIDEO_DOWNLOAD === 'true') {
++            logger_1.logger.log('Video download disabled by environment variable DISABLE_VIDEO_DOWNLOAD');
++            return null;
++        }
++        
+         const sessionData = await getSessionDetails(sessionId);
+         const sessionDetails = sessionData?.automation_session;
+         const videoURL = sessionDetails?.video_url;
+@@ -241,6 +247,7 @@ class BrowserStackDeviceProvider {
+             capabilities: {
+                 "bstack:options": {
+                     debug: true,
++                    networkProfile : '4g-lte-advanced-good',
+                     interactiveDebugging: true,
+                     networkLogs: true,
+                     appiumVersion: "2.6.0",
+@@ -250,10 +257,10 @@ class BrowserStackDeviceProvider {
+                     osVersion: this.project.use.device.osVersion,
+                     platformName: platformName,
+                     deviceOrientation: this.project.use.device?.orientation,
+-                    buildName: `${projectName} ${platformName}`,
++                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
+                     sessionName: `${projectName} ${platformName} test`,
+                     buildIdentifier: process.env.GITHUB_ACTIONS === "true"
+-                        ? `CI ${process.env.GITHUB_RUN_ID}`
++                        ? ""
+                         : process.env.USER,
+                 },
+                 "appium:autoGrantPermissions": true,
 diff --git a/node_modules/appwright/dist/reporter.js b/node_modules/appwright/dist/reporter.js
 index 516da40..ae1895b 100644
 --- a/node_modules/appwright/dist/reporter.js

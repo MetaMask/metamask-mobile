@@ -38,6 +38,7 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
 import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -54,6 +55,7 @@ const WalletActions = () => {
     selectStablecoinLendingEnabledFlag,
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -157,7 +159,7 @@ const WalletActions = () => {
           />
         )}
 
-        {isPerpsEnabled && (
+        {isPerpsEnabled && isEvmSelected && (
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}

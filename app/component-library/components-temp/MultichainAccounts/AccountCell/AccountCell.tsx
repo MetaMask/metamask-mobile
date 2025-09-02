@@ -22,9 +22,14 @@ import Routes from '../../../../constants/navigation/Routes';
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   isSelected: boolean;
+  hideMenu?: boolean;
 }
 
-const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
+const AccountCell = ({
+  accountGroup,
+  isSelected,
+  hideMenu = false,
+}: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
@@ -87,17 +92,19 @@ const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
         >
           {displayBalance}
         </Text>
-        <TouchableOpacity
-          testID={AccountCellIds.MENU}
-          style={styles.menuButton}
-          onPress={handleMenuPress}
-        >
-          <Icon
-            name={IconName.MoreVertical}
-            size={IconSize.Md}
-            color={TextColor.Alternative}
-          />
-        </TouchableOpacity>
+        {!hideMenu && (
+          <TouchableOpacity
+            testID={AccountCellIds.MENU}
+            style={styles.menuButton}
+            onPress={handleMenuPress}
+          >
+            <Icon
+              name={IconName.MoreVertical}
+              size={IconSize.Md}
+              color={TextColor.Alternative}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </Box>
   );

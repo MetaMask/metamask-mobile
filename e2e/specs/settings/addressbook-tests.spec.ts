@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -26,7 +26,7 @@ const TEST_CONTACT = {
 };
 const MEMO = 'Test adding ENS';
 
-describe(SmokeWalletPlatform('Addressbook Tests'), () => {
+describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
