@@ -478,24 +478,6 @@ class NotificationManager {
         return;
       }
 
-      const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
-      const amount = renderFromWei(
-        hexToBN(filteredTransactions[0].txParams.value),
-      );
-      const id = filteredTransactions[0]?.id;
-
-      this._showNotification({
-        type: 'received',
-        transaction: {
-          nonce,
-          amount,
-          id,
-          assetType: getTicker(ticker),
-        },
-        autoHide: true,
-        duration: 7000,
-      });
-
       const txChainId = filteredTransactions[0]?.chainId;
       if (txChainId) {
         const networkClientId =
