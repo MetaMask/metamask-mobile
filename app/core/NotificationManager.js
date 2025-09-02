@@ -516,7 +516,7 @@ class NotificationManager {
   #shouldSkipNotification(transactionMeta) {
     const { TransactionController } = Engine.context;
 
-    if (SKIP_NOTIFICATION_TRANSACTION_TYPES.includes(transactionMeta.type)) {
+    if (SKIP_NOTIFICATION_TRANSACTION_TYPES.includes(transactionMeta?.type)) {
       return true;
     }
 
