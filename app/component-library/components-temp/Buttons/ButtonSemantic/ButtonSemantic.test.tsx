@@ -56,7 +56,7 @@ describe('ButtonSemantic', () => {
       <ButtonSemantic
         severity={ButtonSemanticSeverity.Success}
         onPress={mockOnPress}
-        isDisabled={true}
+        isDisabled
       >
         Disabled Button
       </ButtonSemantic>,
@@ -74,7 +74,7 @@ describe('ButtonSemantic', () => {
       <ButtonSemantic
         severity={ButtonSemanticSeverity.Success}
         onPress={jest.fn()}
-        isLoading={true}
+        isLoading
         loadingText="Loading..."
       >
         Test Button
