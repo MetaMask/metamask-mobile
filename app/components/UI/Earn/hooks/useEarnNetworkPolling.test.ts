@@ -75,6 +75,22 @@ describe('useEarnNetworkPolling', () => {
     engine: {
       backgroundState: {
         AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        AccountTreeController: {
+          accountTree: {
+            selectedAccountGroup: 'keyring:test-wallet/ethereum',
+            wallets: {
+              'keyring:test-wallet': {
+                id: 'test-wallet',
+                name: 'Test Wallet',
+                groups: {
+                  'keyring:test-wallet/ethereum': {
+                    accounts: [mockSelectedAccount.id],
+                  },
+                },
+              },
+            },
+          },
+        },
         PreferencesController: {
           useTokenDetection: true,
         },
@@ -213,6 +229,12 @@ describe('useEarnNetworkPolling', () => {
             internalAccounts: {
               ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
               selectedAccount: '',
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              selectedAccountGroup: '',
+              wallets: {},
             },
           },
         },

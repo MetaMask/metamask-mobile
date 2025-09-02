@@ -48,6 +48,12 @@ export function useTransactionTotalFiat() {
       new BigNumber(0),
     ) ?? new BigNumber(0);
 
+  const quoteFeeTotal =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(getQuoteSourceFee(quote)),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
   const total = quoteTotal.plus(balanceCost);
   const value = total.toString(10);
   const formatted = fiatFormatter(total);
@@ -57,30 +63,48 @@ export function useTransactionTotalFiat() {
   );
 
   const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
+  const bridgeFeeFormatted = fiatFormatter(quoteFeeTotal);
 
   useEffect(() => {
     log('Total fiat', {
       balances: balanceCost.toString(10),
       quotes: quoteTotal.toString(10),
       networkFees: totalNetworkFeeFormatted,
+      bridgeFees: bridgeFeeFormatted,
       total: formatted,
     });
-  }, [balanceCost, formatted, quoteTotal, totalNetworkFeeFormatted, value]);
+  }, [
+    balanceCost,
+    bridgeFeeFormatted,
+    formatted,
+    quoteTotal,
+    totalNetworkFeeFormatted,
+    value,
+  ]);
 
   return {
-    value,
+    bridgeFeeFormatted,
     formatted,
+    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
     totalGasFormatted: totalNetworkFeeFormatted,
+    value,
   };
 }
 
 function getQuoteTotal(quote: TransactionBridgeQuote): BigNumber {
-  const networkFee = getQuoteGasAndRelayFee(quote);
-  const sourceAmount = new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
+  return getQuoteSourceAmount(quote).plus(getQuoteGasAndRelayFee(quote));
+}
 
-  return sourceAmount.plus(networkFee);
+function getQuoteSourceAmount(quote: TransactionBridgeQuote): BigNumber {
+  return new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
 }
 
 function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
   return new BigNumber(quote.totalMaxNetworkFee?.valueInCurrency ?? 0);
+}
+
+function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
+  return getQuoteSourceAmount(quote).minus(
+    quote.toTokenAmount?.valueInCurrency ?? 0,
+  );
 }

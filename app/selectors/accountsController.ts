@@ -278,3 +278,24 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
     );
   },
 );
+
+/**
+ * Returns a function that takes an array of addresses and returns all internal accounts
+ * that match any of the provided addresses. Address matching is case-insensitive.
+ *
+ * @param _state - Redux state (unused; required for selector signature)
+ * @returns A function that, given an array of addresses, returns an array of InternalAccount objects that match
+ */
+export const selectInternalAccountByAddresses = createDeepEqualSelector(
+  [selectInternalAccountsById],
+  (accountsMap) =>
+    (addresses: string[]): InternalAccount[] => {
+      const accountsByLowerCaseAddress = new Map<string, InternalAccount>();
+      for (const account of Object.values(accountsMap)) {
+        accountsByLowerCaseAddress.set(account.address.toLowerCase(), account);
+      }
+      return addresses
+        .map((address) => accountsByLowerCaseAddress.get(address.toLowerCase())) // Normalize the input address
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
+);
