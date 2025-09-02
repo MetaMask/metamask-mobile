@@ -89,7 +89,8 @@ export const usePercentageAmount = () => {
     if (
       !isEvmNativeSendType ||
       asset?.chainId === NETWORKS_CHAIN_ID.MAINNET ||
-      !from
+      !from ||
+      value === undefined
     ) {
       return '0x0';
     }
