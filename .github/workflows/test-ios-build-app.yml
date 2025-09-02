@@ -10,7 +10,6 @@ on:
         type: string
   pull_request:
 
-
 permissions:
   contents: write
   id-token: write
