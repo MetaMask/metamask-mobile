@@ -64,6 +64,14 @@ describe('useAccountTrackerPolling', () => {
             '0x89': true,
           },
         },
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+              '0x89': true,
+            },
+          },
+        },
       },
     },
   } as unknown as RootState;
@@ -169,6 +177,14 @@ describe('useAccountTrackerPolling', () => {
                   '0x89': true,
                 },
               },
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x82750': true,
+                    '0x89': false,
+                  },
+                },
+              },
             },
           },
         } as unknown as RootState,
@@ -183,7 +199,7 @@ describe('useAccountTrackerPolling', () => {
       1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientIds: ['otherNetworkClientId'],
+      networkClientIds: ['otherNetworkClientId2'],
     });
 
     unmount();
