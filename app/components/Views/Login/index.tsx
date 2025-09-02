@@ -555,7 +555,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      if (authType.oauth2Login) {
+      //console.log('oauthLoginSuccess', oauthLoginSuccess);
+      //console.log('authType.oauth2Login', authType.oauth2Login);
+      if (oauthLoginSuccess) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
