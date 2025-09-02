@@ -130,6 +130,7 @@ describe('usePercentageAmount', () => {
         isNative: true,
       },
       from: ACCOUNT_ADDRESS_MOCK_2,
+      value: '10',
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseBalance.mockReturnValue({
       balance: '1000000000000000',
