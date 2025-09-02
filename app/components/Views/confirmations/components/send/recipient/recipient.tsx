@@ -15,12 +15,12 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendSync } from '../../../hooks/send/useSendSync';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
-import { useRouteParams } from '../../../hooks/send/useRouteParams';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
@@ -40,7 +40,7 @@ export const Recipient = () => {
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
-  useRouteParams();
+  useSendSync();
 
   const handleReview = useCallback(() => {
     if (toAddressError) {

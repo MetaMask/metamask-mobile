@@ -25,8 +25,8 @@ import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmount
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
-import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
+import { useSendSync } from '../../../hooks/send/useSendSync';
 import { AmountKeyboard } from './amount-keyboard';
 import { styleSheet } from './amount.styles';
 
@@ -59,7 +59,7 @@ export const Amount = () => {
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
   } = useAmountSelectionMetrics();
-  useRouteParams();
+  useSendSync();
 
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');

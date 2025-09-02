@@ -1,13 +1,13 @@
+import { Hex } from '@metamask/utils';
 import {
   GasFeeEstimateType,
   TransactionParams,
   TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { NetworkClientId } from '@metamask/network-controller';
 
 import Engine from '../../core/Engine';
-import { NetworkClientId } from '@metamask/network-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
 
@@ -18,6 +18,17 @@ export async function addTransaction(
   const { TransactionController } = Engine.context;
 
   return await TransactionController.addTransaction(transaction, opts);
+}
+
+export async function getLayer1GasFee(
+  transactionParams: TransactionParams,
+  chainId?: Hex,
+) {
+  const { TransactionController } = Engine.context;
+  return await TransactionController.getLayer1GasFee({
+    transactionParams,
+    chainId,
+  });
 }
 
 export async function updateAtomicBatchData(batchData: {

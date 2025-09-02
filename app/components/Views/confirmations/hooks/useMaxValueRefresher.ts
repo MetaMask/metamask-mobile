@@ -11,6 +11,7 @@ import { useFeeCalculations } from './gas/useFeeCalculations';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
 import { selectTransactionState } from '../../../../reducers/transaction';
 import { updateEditableParams } from '../../../../util/transaction-controller';
+import { useParams } from '../../../../util/navigation/navUtils';
 import { useConfirmationContext } from '../context/confirmation-context';
 
 // This hook is used to refresh the max value of the transaction
@@ -18,6 +19,12 @@ import { useConfirmationContext } from '../context/confirmation-context';
 // It subtracts the native fee from the balance and updates the value of the transaction
 export function useMaxValueRefresher() {
   const { maxValueMode } = useSelector(selectTransactionState);
+  const {
+    params: { maxValueMode: paramsMaxValueMode },
+  } = useParams<{
+    params: { maxValueMode: boolean };
+  }>();
+  const maxModeEnabled = maxValueMode || paramsMaxValueMode;
   const [valueJustUpdated, setValueJustUpdated] = useState(false);
   const { setIsTransactionValueUpdating } = useConfirmationContext();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -27,15 +34,19 @@ export function useMaxValueRefresher() {
     transactionMetadata as TransactionMeta,
   );
   const { balanceWeiInHex } = useAccountNativeBalance(chainId, txParams.from);
+  const layer1GasFee = transactionMetadata?.layer1GasFee as Hex;
 
   useEffect(() => {
-    if (!maxValueMode || type !== TransactionType.simpleSend) {
+    if (!maxModeEnabled || type !== TransactionType.simpleSend) {
       // Not compatible with transaction value refresh logic
       return;
     }
 
     const balance = new BigNumber(balanceWeiInHex);
-    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex);
+    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex).plus(
+      new BigNumber(layer1GasFee ?? '0x0'),
+    );
+
     const maxValue = balance.minus(maxPossibleFee);
     const maxValueHex = add0x(maxValue.toString(16));
     const shouldUpdate = maxValueHex !== txParams.value;
@@ -50,7 +61,8 @@ export function useMaxValueRefresher() {
   }, [
     balanceWeiInHex,
     id,
-    maxValueMode,
+    layer1GasFee,
+    maxModeEnabled,
     maxFeeNativeHex,
     setIsTransactionValueUpdating,
     txParams,
