@@ -4,6 +4,8 @@ import {
 } from '@metamask/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
+// eslint-disable-next-line import/no-namespace
+import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtils';
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
 import {
@@ -270,7 +272,7 @@ describe('fromTokenMinUnits', () => {
 describe('getLayer1GasFeeForSend', () => {
   it('call transaction-controller function getLayer1GasFee', () => {
     const mockGetLayer1GasFee = jest
-      .spyOn(TransactionUtils, 'getLayer1GasFee')
+      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
       .mockImplementation(() => Promise.resolve('0x186a0'));
     getLayer1GasFeeForSend({
       asset: { decimals: 2 } as unknown as AssetType,
