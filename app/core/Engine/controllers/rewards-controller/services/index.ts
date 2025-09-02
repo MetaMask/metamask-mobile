@@ -3,6 +3,8 @@ export type {
   RewardsDataServiceActions,
   RewardsDataServiceEvents,
   RewardsDataServiceLoginAction,
+  RewardsDataServiceEstimatePointsAction,
+  RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceMessenger,
 } from './rewards-data-service';
 

@@ -5,9 +5,10 @@ import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -111,6 +112,12 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               ? strings('perps.order.market')
               : strings('perps.order.limit')}
           </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Xs}
+            color={IconColor.Default}
+            style={styles.marketButtonIcon}
+          />
         </View>
       </TouchableOpacity>
     </View>
