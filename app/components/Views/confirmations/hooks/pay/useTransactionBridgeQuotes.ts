@@ -14,6 +14,11 @@ import { useDeepMemo } from '../useDeepMemo';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
 
+const EXCLUDED_ALERTS = [
+  AlertKeys.NoPayTokenQuotes,
+  AlertKeys.InsufficientPayTokenNative,
+];
+
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
@@ -22,7 +27,7 @@ export function useTransactionBridgeQuotes() {
   const { alerts } = useAlerts();
 
   const hasBlockingAlert = alerts.some(
-    (a) => a.isBlocking && a.key !== AlertKeys.NoPayTokenQuotes,
+    (a) => a.isBlocking && !EXCLUDED_ALERTS.includes(a.key as AlertKeys),
   );
 
   const {
@@ -75,7 +80,7 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
-    return getBridgeQuotes(requests as BridgeQuoteRequest[]);
+    return getBridgeQuotes(requests);
   }, [requests]);
 
   useEffect(() => {

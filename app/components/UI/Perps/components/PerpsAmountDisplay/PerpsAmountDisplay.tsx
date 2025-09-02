@@ -103,7 +103,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       </View>
       {showMaxAmount && (
         <Text
-          variant={TextVariant.BodySM}
+          variant={TextVariant.BodyMD}
           color={TextColor.Alternative}
           style={styles.maxAmount}
           testID={PerpsAmountDisplaySelectorsIDs.MAX_LABEL}

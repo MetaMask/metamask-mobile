@@ -734,7 +734,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
@@ -751,7 +754,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
                     {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                   </Text>
                 </ListItemColumn>
@@ -765,12 +771,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
                       {strings('perps.order.limit_price')}
                     </Text>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
-                    <Text variant={TextVariant.BodyLGMedium}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Default}
+                    >
                       {orderForm.limitPrice
                         ? formatPrice(orderForm.limitPrice)
                         : 'Set price'}
