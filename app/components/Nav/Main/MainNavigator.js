@@ -116,6 +116,7 @@ import { selectSendRedesignFlags } from '../../../selectors/featureFlagControlle
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import RewardsView from '../../UI/Rewards/Views/RewardsView';
 import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
+import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -225,6 +226,10 @@ const TransactionsHome = () => (
       name={Routes.TRANSACTIONS_VIEW}
       component={ActivityView}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
     />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
