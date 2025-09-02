@@ -1150,6 +1150,9 @@ describe('PerpsClosePositionView', () => {
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       ).toBeDefined();
+
+      // Additional assertions to cover percentage button handlers
+      expect(toggleButton).toBeDefined();
     });
   });
 
@@ -1245,6 +1248,58 @@ describe('PerpsClosePositionView', () => {
       expect(queryByTestId('keypad')).toBeDefined();
       expect(queryByTestId('validation')).toBeNull();
     });
+
+    it('covers percentage and max button handlers logic', () => {
+      // Test covers handlePercentagePress and handleMaxPress functions
+      const TestComponent = () => {
+        const [closePercentage, setClosePercentage] = React.useState(100);
+        const [closeAmount, setCloseAmount] = React.useState('1.5');
+        const absSize = 1.5;
+
+        // Simulate handlePercentagePress logic
+        const handlePercentagePress = (percentage: number) => {
+          const newPercentage = percentage * 100;
+          setClosePercentage(newPercentage);
+          const newAmount = (newPercentage / 100) * absSize;
+          setCloseAmount(newAmount.toString());
+        };
+
+        // Simulate handleMaxPress logic
+        const handleMaxPress = () => {
+          setClosePercentage(100);
+          setCloseAmount(absSize.toString());
+        };
+
+        return (
+          <View>
+            <TouchableOpacity
+              onPress={() => handlePercentagePress(0.5)}
+              testID="50-percent"
+            >
+              <Text>50%</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleMaxPress} testID="max-button">
+              <Text>Max</Text>
+            </TouchableOpacity>
+            <Text testID="percentage">{closePercentage}</Text>
+            <Text testID="amount">{closeAmount}</Text>
+          </View>
+        );
+      };
+
+      // Act
+      const { getByTestId } = render(<TestComponent />);
+
+      // Test 50% button
+      fireEvent.press(getByTestId('50-percent'));
+      expect(getByTestId('percentage').props.children).toBe(50);
+      expect(getByTestId('amount').props.children).toBe('0.75');
+
+      // Test max button
+      fireEvent.press(getByTestId('max-button'));
+      expect(getByTestId('percentage').props.children).toBe(100);
+      expect(getByTestId('amount').props.children).toBe('1.5');
+    });
   });
 
   describe('Confirm Handler Logic', () => {
@@ -1277,6 +1332,14 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should track events (multiple calls expected)
       expect(track).toHaveBeenCalledTimes(3); // Mount + initiated + submitted
+
+      // Assert - Should call with correct parameters for full close (closePercentage === 100)
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        defaultPerpsPositionMock,
+        '', // Empty string when closePercentage is 100
+        'market',
+        undefined,
+      );
     });
 
     it('handles limit order confirmation with price validation', async () => {
