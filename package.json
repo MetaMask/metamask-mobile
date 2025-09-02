@@ -231,7 +231,7 @@
     "@metamask/design-system-twrnc-preset": "^0.2.1",
     "@metamask/design-tokens": "^8.1.1",
     "@metamask/earn-controller": "^5.0.0",
-    "@metamask/eip-5792-middleware": "npm:@metamask-previews/eip-5792-middleware@1.0.0-preview-dac941d4",
+    "@metamask/eip-5792-middleware": "npm:@metamask-previews/eip-5792-middleware@1.0.0-preview-cc039d53",
     "@metamask/eip1193-permission-middleware": "^1.0.0",
     "@metamask/error-reporting-service": "^2.0.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
