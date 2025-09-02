@@ -143,6 +143,7 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
           value={searchPattern}
           onChangeText={handleSearchChange}
           size={TextFieldSize.Lg}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           style={styles.searchTextField as any}
           testID={MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID}
         />
