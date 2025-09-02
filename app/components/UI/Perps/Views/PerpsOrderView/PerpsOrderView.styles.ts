@@ -34,10 +34,12 @@ const createStyles = (colors: Colors) =>
     },
     detailsWrapper: {
       paddingHorizontal: 16,
+      flex: 1,
+      flexGrow: 1,
       gap: 2,
     },
     detailItem: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       overflow: 'hidden',
     },
     detailItemFirst: {
@@ -61,8 +63,8 @@ const createStyles = (colors: Colors) =>
       marginBottom: -10, // Keep icon at same vertical position
     },
     infoSection: {
-      paddingHorizontal: 24,
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
     },
     infoRow: {
       flexDirection: 'row',

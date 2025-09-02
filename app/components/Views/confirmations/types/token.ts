@@ -1,4 +1,6 @@
+import { Hex } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
+
 import { TokenI } from '../../../UI/Tokens/types';
 
 export enum TokenStandard {
@@ -22,6 +24,7 @@ export interface AssetType extends TokenI {
     currency?: string;
     conversionRate?: number;
   };
+  rawBalance?: Hex;
 }
 
 export interface Nft {
