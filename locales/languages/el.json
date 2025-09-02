@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Επιστροφή στην εφαρμογή",
+    "postNetworkSwitchTitle": "Το δίκτυο άλλαξε με επιτυχία",
     "description": "Επιστρέψτε στην εφαρμογή για να συνεχίσετε να χρησιμοποιείτε τις υπηρεσίες τους."
   },
   "sdk_feedback_modal": {

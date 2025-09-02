@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "返回应用程序",
+    "postNetworkSwitchTitle": "网络已成功切换",
     "description": "请返回应用程序继续使用其服务。"
   },
   "sdk_feedback_modal": {
