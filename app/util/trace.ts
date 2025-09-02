@@ -166,8 +166,7 @@ export enum TraceOperation {
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
   // Accounts
-  AccountAddressList = 'account.address_list',
-  AccountPrivateKeyList = 'account.private_key_list',
+  AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
   PerpsMarketData = 'perps.market_data',

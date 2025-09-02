@@ -94,7 +94,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     // navigation and render time are included in the trace.
     trace({
       name: TraceName.AccountAddressList,
-      op: TraceOperation.AccountAddressList,
+      op: TraceOperation.AccountUi,
     });
 
     navigation.navigate(
