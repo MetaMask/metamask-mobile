@@ -15,7 +15,6 @@ permissions:
   id-token: write
 
 
-
 jobs:
   ios-build:
     name: Test iOS QA Build App
@@ -68,15 +67,33 @@ jobs:
         run: |
             echo "🔧 Node.js Version:"
             node -v || echo "Node not found"
+            which node || true
+
+            echo ""
             echo "🧶 Yarn Version:"
             yarn -v || echo "Yarn not found"
+            which yarn || true
+
+            echo ""
             echo "📦 CocoaPods Version:"
             pod --version || echo "CocoaPods not found"
+            which pod || true
+
+            echo ""
+            echo "📦 CocoaPods via bundler:"
+            bundle exec pod --version || echo "Bundler pod not found"
+
+            echo ""
             echo "🛠️ Xcode Path:"
             xcode-select -p || echo "Xcode not found"
+
+            echo ""
             echo "📱 Booted iOS Simulators:"
             xcrun simctl list | grep Booted || echo "No booted simulators found"
+        working-directory: ios
         shell: bash
+
+
 
       # Run project setup and build the iOS QA app for simulator
       - name: Setup iOS Environment
