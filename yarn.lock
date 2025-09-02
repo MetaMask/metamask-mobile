@@ -5445,28 +5445,7 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-controller@^22.1.0":
-  version "22.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.1.0.tgz#3211634e05d969593c023578dc4666b511a3adc0"
-  integrity sha512-iwIjAbfbZiMyTJ53wKHbswSyG5bnb3r8snNxuceDHqGOnWM28LX33QZoHa04xOEe5cIxh1r7/vRw9w943PyX3w==
-  dependencies:
-    "@ethereumjs/util" "^9.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.1"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^12.0.0"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/eth-simple-keyring" "^10.0.0"
-    "@metamask/keyring-api" "^18.0.0"
-    "@metamask/keyring-internal-api" "^6.2.0"
-    "@metamask/utils" "^11.2.0"
-    async-mutex "^0.5.0"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-    lodash "^4.17.21"
-    ulid "^2.3.0"
-
-"@metamask/keyring-controller@^22.1.1":
+"@metamask/keyring-controller@^22.1.0", "@metamask/keyring-controller@^22.1.1":
   version "22.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-22.1.1.tgz#e9abf443b68e607b00e5bc520ef0a58df1a54ef0"
   integrity sha512-nCpZWzv6TiuRvQpqK7l+8Hhg92Enx2C97DzF603Xd+ARdC5gOSZ6/+mKFocq1J30cGK2v1Yrtrk7EuNwIAAQvQ==
