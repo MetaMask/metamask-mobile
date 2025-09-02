@@ -125,3 +125,16 @@ export const DATA_LAKE_API_CONFIG = {
   // Order reporting endpoint - only used for mainnet perps trading
   ORDERS_ENDPOINT: 'https://perps.api.cx.metamask.io/api/v1/orders',
 } as const;
+
+/**
+ * Funding rate display configuration
+ * Controls how funding rates are formatted and displayed across the app
+ */
+export const FUNDING_RATE_CONFIG = {
+  // Number of decimal places to display for funding rates
+  DECIMALS: 4,
+  // Default display value when funding rate is zero or unavailable
+  ZERO_DISPLAY: '0.0000%',
+  // Multiplier to convert decimal funding rate to percentage
+  PERCENTAGE_MULTIPLIER: 100,
+} as const;
