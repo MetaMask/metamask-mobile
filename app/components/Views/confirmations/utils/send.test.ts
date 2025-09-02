@@ -9,6 +9,7 @@ import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
   fromBNWithDecimals,
+  fromHexWithDecimals,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
@@ -243,5 +244,13 @@ describe('fromBNWithDecimals', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
       '0',
     );
+  });
+});
+
+describe('fromHexWithDecimals', () => {
+  it('converts hex to string with decimals correctly', () => {
+    expect(fromHexWithDecimals('0xa12', 5).toString()).toEqual('0.02578');
+    expect(fromHexWithDecimals('0x5', 0).toString()).toEqual('5');
+    expect(fromHexWithDecimals('0x0', 2).toString()).toEqual('0');
   });
 });
