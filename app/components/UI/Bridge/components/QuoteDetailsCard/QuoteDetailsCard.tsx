@@ -48,6 +48,7 @@ import {
   selectIsEvmSolanaBridge,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
+import { useRewards } from '../../hooks/useRewards';
 import BigNumber from 'bignumber.js';
 
 const ANIMATION_DURATION_MS = 50;
@@ -101,12 +102,20 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
+  const {
+    formattedQuoteData,
+    activeQuote,
+    isLoading: isQuoteLoading,
+  } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const { estimatedPoints, isLoading: isRewardsLoading } = useRewards({
+    activeQuote,
+    isQuoteLoading,
+  });
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
@@ -407,6 +416,24 @@ const QuoteDetailsCard = () => {
                 },
               }}
             />
+
+            {/* Estimated Points */}
+            {estimatedPoints !== null && !isRewardsLoading && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.estimated_points'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: {
+                    text: estimatedPoints.toString(),
+                    variant: TextVariant.BodyMD,
+                  },
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
