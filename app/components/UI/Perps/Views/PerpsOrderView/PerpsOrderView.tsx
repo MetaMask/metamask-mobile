@@ -89,6 +89,7 @@ import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
+import { calculatePercentageForPrice } from '../../utils/tpslValidation';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import createStyles from './PerpsOrderView.styles';
 
@@ -451,6 +452,45 @@ const PerpsOrderViewContentBase: React.FC = () => {
     marginRequired,
   });
 
+  // Display helpers for TP/SL showing percentage and price
+  const tpDisplayText = useMemo(() => {
+    if (!orderForm.takeProfitPrice) {
+      return strings('perps.order.off');
+    }
+    const percentage = calculatePercentageForPrice(
+      orderForm.takeProfitPrice,
+      true,
+      {
+        currentPrice: assetData.price,
+        direction: orderForm.direction,
+      },
+    );
+    if (!percentage) {
+      return formatPrice(orderForm.takeProfitPrice);
+    }
+    const sign = orderForm.direction === 'short' ? '-' : '+';
+    return `${sign}${percentage}% (${formatPrice(orderForm.takeProfitPrice)})`;
+  }, [orderForm.takeProfitPrice, assetData.price, orderForm.direction]);
+
+  const slDisplayText = useMemo(() => {
+    if (!orderForm.stopLossPrice) {
+      return strings('perps.order.off');
+    }
+    const percentage = calculatePercentageForPrice(
+      orderForm.stopLossPrice,
+      false,
+      {
+        currentPrice: assetData.price,
+        direction: orderForm.direction,
+      },
+    );
+    if (!percentage) {
+      return formatPrice(orderForm.stopLossPrice);
+    }
+    const sign = orderForm.direction === 'short' ? '+' : '-';
+    return `${sign}${percentage}% (${formatPrice(orderForm.stopLossPrice)})`;
+  }, [orderForm.stopLossPrice, assetData.price, orderForm.direction]);
+
   // Track dependent metrics update performance when amount or leverage changes
   const prevInputValuesRef = useRef({ amount: '', leverage: 1 });
   useEffect(() => {
@@ -807,9 +847,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
                   <Text variant={TextVariant.BodyLGMedium}>
-                    {orderForm.takeProfitPrice
-                      ? formatPrice(orderForm.takeProfitPrice)
-                      : strings('perps.order.off')}
+                    {tpDisplayText}
                   </Text>
                 </ListItemColumn>
               </ListItem>
@@ -843,9 +881,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
                   <Text variant={TextVariant.BodyLGMedium}>
-                    {orderForm.stopLossPrice
-                      ? formatPrice(orderForm.stopLossPrice)
-                      : strings('perps.order.off')}
+                    {slDisplayText}
                   </Text>
                 </ListItemColumn>
               </ListItem>

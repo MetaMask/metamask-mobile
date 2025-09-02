@@ -124,18 +124,24 @@ const PerpsPositionsView: React.FC = () => {
             {positionCountText}
           </Text>
         </View>
-        {positions.map((position, index) => (
-          <View
-            key={`${position.coin}-${index}`}
-            testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${
-              position.coin
-            }-${position.leverage.value}x-${
-              parseFloat(position.size) >= 0 ? 'long' : 'short'
-            }-${index}`}
-          >
-            <PerpsPositionCard position={position} />
-          </View>
-        ))}
+        {positions.map((position, index) => {
+          const sizeValue = parseFloat(position.size);
+          const directionSegment = Number.isFinite(sizeValue)
+            ? sizeValue > 0
+              ? 'long'
+              : sizeValue < 0
+              ? 'short'
+              : 'unknown'
+            : 'unknown';
+          return (
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+            >
+              <PerpsPositionCard position={position} />
+            </View>
+          );
+        })}
       </View>
     );
   };
