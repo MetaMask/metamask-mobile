@@ -4,7 +4,6 @@ import type {
   PerpsUniverse,
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsMarketData } from '../controllers/types';
 import { formatVolume } from './formatUtils';
@@ -27,13 +26,6 @@ export interface HyperLiquidMarketData {
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
 ): PerpsMarketData[] {
-  DevLogger.log('🔍 transformMarketData called:', {
-    hasUniverse: !!hyperLiquidData.universe,
-    universeLength: hyperLiquidData.universe?.length || 0,
-    hasPredictedFundings: !!hyperLiquidData.predictedFundings,
-    predictedFundingsLength: hyperLiquidData.predictedFundings?.length || 0,
-    location: 'transformMarketData start',
-  });
   const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
   return universe.map((asset) => {
@@ -70,55 +62,48 @@ export function transformMarketData(
     // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
     const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
-    // Get funding rate directly from HyperLiquid's assetCtx (clean, direct data)
+    // Get current funding rate from assetCtx - this is the actual current funding rate
     let fundingRate: number | undefined;
-
-    // Debug assetCtx structure to understand the data
-    if (symbol === 'ETH' || symbol === 'BTC') {
-      DevLogger.log(`FUNDING_DEBUG [DIRECT] ${symbol} assetCtx structure:`, {
-        symbol,
-        hasAssetCtx: !!assetCtx,
-        assetCtxKeys: assetCtx ? Object.keys(assetCtx) : 'N/A',
-        fundingField: assetCtx ? (assetCtx as PerpsAssetCtx).funding : 'N/A',
-      });
-    }
 
     if (assetCtx && 'funding' in assetCtx) {
       fundingRate = parseFloat(assetCtx.funding);
-
-      if (symbol === 'ETH' || symbol === 'BTC') {
-        DevLogger.log(
-          `FUNDING_DEBUG [DIRECT] ${symbol} funding from assetCtx:`,
-          {
-            symbol,
-            rawFunding: assetCtx.funding,
-            parsedValue: fundingRate,
-            asPercentage: (fundingRate * 100).toFixed(6) + '%',
-          },
-        );
-      }
-    } else if (symbol === 'ETH' || symbol === 'BTC') {
-      DevLogger.log(
-        `FUNDING_DEBUG [DIRECT] ${symbol} funding field not found in assetCtx`,
-      );
     }
 
-    // For funding timing, use predictedFundings only for nextFundingTime (not funding rate)
+    // Get timing info and predicted funding from predictedFundings
     let nextFundingTime: number | undefined;
     let fundingIntervalHours: number | undefined;
+    let predictedFundingRate: number | undefined;
 
     if (predictedFundings) {
       const fundingData = predictedFundings.find(
         ([assetSymbol]) => assetSymbol === symbol,
       );
       if (fundingData?.[1] && fundingData[1].length > 0) {
-        // Just get timing info from first exchange
-        const firstExchange = fundingData[1][0];
-        if (firstExchange?.[1]) {
-          nextFundingTime = firstExchange[1].nextFundingTime;
-          fundingIntervalHours = firstExchange[1].fundingIntervalHours;
+        // Look specifically for HlPerp exchange (HyperLiquid's own perp)
+        const hlPerpExchange = fundingData[1].find(
+          ([exchangeName]) => exchangeName === 'HlPerp',
+        );
+
+        if (hlPerpExchange?.[1]) {
+          nextFundingTime = hlPerpExchange[1].nextFundingTime;
+          fundingIntervalHours = hlPerpExchange[1].fundingIntervalHours;
+          predictedFundingRate = parseFloat(hlPerpExchange[1].fundingRate);
+        } else if (fundingData[1].length > 0) {
+          // Fallback to first exchange if HlPerp not found
+          const firstExchange = fundingData[1][0];
+          if (firstExchange?.[1]) {
+            nextFundingTime = firstExchange[1].nextFundingTime;
+            fundingIntervalHours = firstExchange[1].fundingIntervalHours;
+          }
         }
       }
+    }
+
+    // Use current funding rate from assetCtx, not predicted
+    // The predicted rate is for the next funding period
+    if (!fundingRate && predictedFundingRate !== undefined) {
+      // Only use predicted as fallback if current is not available
+      fundingRate = predictedFundingRate;
     }
 
     return {

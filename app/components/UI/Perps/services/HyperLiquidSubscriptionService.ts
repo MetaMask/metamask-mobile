@@ -681,8 +681,9 @@ export class HyperLiquidSubscriptionService {
       bestBid: orderBookData?.bestBid,
       bestAsk: orderBookData?.bestAsk,
       spread: orderBookData?.spread,
+      // Always include funding when available (don't default to 0, preserve undefined)
+      funding: marketData?.funding,
       // Add market data only if requested by at least one subscriber
-      funding: hasMarketDataSubscribers ? marketData?.funding : undefined,
       openInterest: hasMarketDataSubscribers
         ? marketData?.openInterest
         : undefined,
@@ -830,7 +831,11 @@ export class HyperLiquidSubscriptionService {
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
-              // No longer cache funding rates - they come from initial market data fetch
+              // Cache funding rate from activeAssetCtx for real-time updates
+              funding:
+                isPerpsContext(ctx) && ctx.funding !== undefined
+                  ? parseFloat(ctx.funding.toString())
+                  : undefined,
               // Convert openInterest from token units to USD by multiplying by current price
               // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
               openInterest: isPerpsContext(ctx)

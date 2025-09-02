@@ -15,14 +15,25 @@ import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
+import { usePerpsLivePrices } from '../../hooks/stream';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
+  symbol,
   marketStats,
   onTooltipPress,
   nextFundingTime,
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+
+  // Subscribe to live price updates including funding rate
+  const livePrices = usePerpsLivePrices({
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 2000, // Update every 2 seconds for funding rate
+  });
+
+  // Get live funding rate from WebSocket subscription
+  const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
 
   return (
     <View style={styles.statisticsGrid}>
@@ -114,13 +125,31 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           <View style={styles.fundingRateContainer}>
             <Text
               style={styles.statisticsValue}
-              color={
-                parseFloat(marketStats.fundingRate) >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
-              }
+              color={(() => {
+                // Use live funding if available, otherwise fall back to marketStats
+                const fundingValue =
+                  liveFunding !== undefined
+                    ? liveFunding * 100
+                    : marketStats.fundingRate &&
+                      marketStats.fundingRate !== '0.0000%'
+                    ? parseFloat(marketStats.fundingRate.replace('%', ''))
+                    : 0;
+                return fundingValue >= 0 ? TextColor.Success : TextColor.Error;
+              })()}
             >
-              {marketStats.fundingRate}
+              {(() => {
+                // Display logic: use live funding if available, otherwise use marketStats
+                if (liveFunding !== undefined) {
+                  const percentage = (liveFunding * 100).toFixed(4);
+                  return `${percentage}%`;
+                }
+                // Fall back to marketStats if no live data
+                const statsRate = marketStats.fundingRate;
+                if (statsRate && statsRate !== '0.0000%') {
+                  return statsRate;
+                }
+                return '0.0000%';
+              })()}
             </Text>
             <FundingCountdown
               variant={TextVariant.BodyXS}

@@ -5,7 +5,6 @@ import type { PriceUpdate } from '../controllers/types';
 import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface MarketStats {
   high24h: string;
@@ -70,19 +69,6 @@ export const usePerpsMarketStats = (
                   return prev; // Return same reference if no change
                 }
 
-                // Debug ETH funding rate in market stats hook
-                if (symbol === 'ETH' && update.funding !== undefined) {
-                  DevLogger.log(
-                    '🔍 ETH usePerpsMarketStats: Funding rate received from subscription:',
-                    {
-                      symbol,
-                      rawFunding: update.funding,
-                      previousFunding: prev.funding,
-                      changed: prev.funding !== update.funding,
-                    },
-                  );
-                }
-
                 return {
                   funding: update.funding,
                   openInterest: update.openInterest,
@@ -98,7 +84,7 @@ export const usePerpsMarketStats = (
           },
         });
       } catch (error) {
-        DevLogger.log('Error subscribing to market data:', error);
+        console.error('Error subscribing to market data:', error);
       }
     };
 
@@ -139,28 +125,12 @@ export const usePerpsMarketStats = (
         ? `$${formatLargeNumber(marketData.openInterest)}`
         : '$0.00',
       fundingRate: marketData.funding
-        ? (() => {
-            // Debug raw funding rate format from HyperLiquid API
-            if (symbol === 'ETH') {
-              DevLogger.log('🔍 ETH funding rate final display:', {
-                symbol,
-                rawFunding: marketData.funding,
-                finalDisplayValue: (marketData.funding * 100).toFixed(4) + '%',
-                source: 'predictedFundings cache',
-              });
-            }
-
-            // Try without any conversion first - maybe the API rate is already correct
-            const percentage = (marketData.funding * 100).toFixed(4);
-            const result = `${percentage}%`;
-
-            return result;
-          })()
+        ? `${(marketData.funding * 100).toFixed(4)}%`
         : '0.0000%',
       currentPrice: fallbackPrice,
       isLoading: !candleData,
     };
-  }, [candleData, marketData, initialPrice, symbol]);
+  }, [candleData, marketData, initialPrice]);
 
   // Refresh function to reload market data
   const refresh = useCallback(async () => {

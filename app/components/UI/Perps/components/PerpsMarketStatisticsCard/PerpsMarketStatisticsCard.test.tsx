@@ -41,6 +41,11 @@ jest.mock('../../../../hooks/useStyles', () => ({
   })),
 }));
 
+// Mock the usePerpsLivePrices hook
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
 describe('PerpsMarketStatisticsCard', () => {
   const mockMarketStats = {
     high24h: '$50,000.00',
@@ -57,6 +62,7 @@ describe('PerpsMarketStatisticsCard', () => {
   const mockOnTooltipPress = jest.fn();
 
   const defaultProps: PerpsMarketStatisticsCardProps = {
+    symbol: 'BTC',
     marketStats: mockMarketStats,
     onTooltipPress: mockOnTooltipPress,
   };

@@ -67,7 +67,6 @@ import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
-import { FundingRateDebugger } from '../../components/FundingRateDebugger';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -362,6 +361,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Market Tabs Section */}
           <View style={styles.section}>
             <PerpsMarketTabs
+              symbol={market?.symbol || ''}
               marketStats={marketStats}
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
@@ -370,13 +370,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               fundingIntervalHours={market?.fundingIntervalHours}
             />
           </View>
-
-          {/* Funding Rate Debug Section - Only for ETH and BTC */}
-          {(market?.symbol === 'ETH' || market?.symbol === 'BTC') && (
-            <View style={styles.section}>
-              <FundingRateDebugger symbol={market.symbol} />
-            </View>
-          )}
 
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
