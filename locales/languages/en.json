@@ -1307,7 +1307,9 @@
       "failed": "Connection Failed",
       "error_message": "Unable to connect to Perps trading service.",
       "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "retrying_connection": "Connecting...",
+      "connecting_to_perps": "Connecting to Perps...",
+      "perps_will_be_available_shortly": "Perps will be available shortly"
     },
     "chart": {
       "no_data": "No chart data available"

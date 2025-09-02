@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -10,12 +10,18 @@ import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  BatchTransaction,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { cloneDeep } from 'lodash';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { TransactionBridgeQuote } from '../../utils/bridge';
+import { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
@@ -44,6 +50,15 @@ export function useTransactionConfirm() {
 
   const waitForResult = !shouldUseSmartTransaction && !quotes?.length;
 
+  const hasSameChainQuote =
+    quotes?.length &&
+    quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+
+  const batchTransactions = useMemo(
+    () => (hasSameChainQuote ? getQuoteBatchTransactions(quotes) : undefined),
+    [hasSameChainQuote, quotes],
+  );
+
   const onConfirm = useCallback(async () => {
     if (!transactionMetadata) {
       return;
@@ -56,6 +71,11 @@ export function useTransactionConfirm() {
     updatedMetadata.metamaskPay.networkFeeFiat = networkFeeFiat;
     updatedMetadata.metamaskPay.tokenAddress = payToken?.address;
     updatedMetadata.metamaskPay.totalFiat = totalFiat;
+
+    if (batchTransactions) {
+      updatedMetadata.batchTransactions = batchTransactions;
+      updatedMetadata.batchTransactionsOptions = {};
+    }
 
     await onRequestConfirm(
       {
@@ -82,6 +102,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork(chainId);
     }
   }, [
+    batchTransactions,
     bridgeFeeFiat,
     chainId,
     dispatch,
@@ -98,4 +119,30 @@ export function useTransactionConfirm() {
   ]);
 
   return { onConfirm };
+}
+
+function getQuoteBatchTransactions(
+  quotes: TransactionBridgeQuote[],
+): BatchTransaction[] {
+  return quotes.flatMap((quote) => [
+    ...(quote.approval ? [getQuoteBatchTransaction(quote.approval)] : []),
+    getQuoteBatchTransaction(quote.trade),
+  ]);
+}
+
+function getQuoteBatchTransaction(
+  transaction: TransactionBridgeQuote['trade'],
+): BatchTransaction {
+  const data = transaction.data as Hex;
+  const gas = transaction.gasLimit ? toHex(transaction.gasLimit) : undefined;
+  const to = transaction.to as Hex;
+  const value = transaction.value as Hex;
+
+  return {
+    data,
+    gas,
+    isAfter: false,
+    to,
+    value,
+  };
 }
