@@ -316,7 +316,6 @@ describe('AccountGroupDetails', () => {
     });
   });
 
-
   it('navigates to edit account name when account name is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <AccountGroupDetails {...defaultProps} />,
