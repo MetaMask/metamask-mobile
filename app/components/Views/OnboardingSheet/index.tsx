@@ -272,6 +272,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                 style={styles.link}
                 onPress={onPressPrivacyNotice}
                 suppressHighlighting
+                testID="privacy-notice-link"
               >
                 {strings('onboarding.privacy_notice')}
               </Text>
