@@ -14,7 +14,10 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsOrderViewSelectorsIDs,
+  PerpsGeneralSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -211,7 +214,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
             onPress: () => toastRef?.current?.closeToast(),
-            testID: 'perps-order-success-toast-dismiss-button',
+            testID: PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
           },
         });
       },
@@ -656,7 +659,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         ],
         iconName: IconName.Clock,
         iconColor: IconColor.Primary,
-        hasNoTimeout: false, // Auto-dismiss after a few seconds
+        hasNoTimeout: true,
       });
 
       // Track trade transaction submitted
@@ -942,7 +945,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
       </ScrollView>
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
-        <View style={styles.bottomSection}>
+        <View
+          style={styles.bottomSection}
+          testID={PerpsOrderViewSelectorsIDs.KEYPAD}
+        >
           <View style={styles.percentageButtonsContainer}>
             <Button
               variant={ButtonVariants.Secondary}

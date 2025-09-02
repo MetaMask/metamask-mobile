@@ -134,6 +134,20 @@ jobs:
       total_splits: 1
     secrets: inherit
 
+  perps-android-smoke:
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: perps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokePerps"
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+    secrets: inherit
+
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
@@ -148,6 +162,7 @@ jobs:
       - network-expansion-android-smoke
       - performance-android-smoke
       - card-android-smoke
+      - perps-android-smoke
 
     steps:
       - name: Checkout
