@@ -66,7 +66,7 @@ export function ensureValidState<T>(
         hasVault,
       );
     } catch (error) {
-      captureException(
+      Logger.error(
         new Error(
           `Migration ${migrationNumber}: Failed to log vault status: ${
             error instanceof Error ? error.message : 'Unknown error'

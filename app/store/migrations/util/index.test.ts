@@ -1,5 +1,4 @@
 import { ensureValidState } from './';
-import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 
 jest.mock('@sentry/react-native', () => ({
@@ -8,10 +7,11 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
-const mockCaptureException = captureException as jest.MockedFunction<
-  typeof captureException
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
 >;
 const mockLogger = Logger.log as jest.MockedFunction<typeof Logger.log>;
 
@@ -20,25 +20,25 @@ describe('ensureValidState', () => {
     jest.clearAllMocks();
   });
 
-  it('should return false for non-object states', () => {
+  it('return false for non-object states', () => {
     const state = 'not an object';
     const result = ensureValidState(state, 1);
     expect(result).toBe(false);
   });
 
-  it('should return false if state.engine is not an object', () => {
+  it('return false if state.engine is not an object', () => {
     const state = { engine: 'not an object' };
     const result = ensureValidState(state, 1);
     expect(result).toBe(false);
   });
 
-  it('should return false if state.engine.backgroundState is not an object', () => {
+  it('return false if state.engine.backgroundState is not an object', () => {
     const state = { engine: { backgroundState: 'not an object' } };
     const result = ensureValidState(state, 1);
     expect(result).toBe(false);
   });
 
-  it('should return true for valid state objects', () => {
+  it('return true for valid state objects', () => {
     const state = { engine: { backgroundState: {} } };
     const result = ensureValidState(state, 1);
     expect(result).toBe(true);
@@ -59,7 +59,7 @@ describe('ensureValidState', () => {
       ...overrides,
     });
 
-    it('should log vault existence when existingUser is true and vault exists', () => {
+    it('log vault existence when existingUser is true and vault exists', () => {
       const state = createValidStateWithVault();
       const migrationNumber = 10;
 
@@ -70,10 +70,10 @@ describe('ensureValidState', () => {
         'Is vault defined at KeyringController at migration when existingUser',
         true,
       );
-      expect(mockCaptureException).not.toHaveBeenCalled();
+      expect(mockLoggerError).not.toHaveBeenCalled();
     });
 
-    it('should log vault missing when existingUser is true but vault does not exist', () => {
+    it('log vault missing when existingUser is true but vault does not exist', () => {
       const state = createValidStateWithVault({
         engine: {
           backgroundState: {
@@ -90,10 +90,10 @@ describe('ensureValidState', () => {
         'Is vault defined at KeyringController at migration when existingUser',
         false,
       );
-      expect(mockCaptureException).not.toHaveBeenCalled();
+      expect(mockLoggerError).not.toHaveBeenCalled();
     });
 
-    it('should log vault missing when KeyringController is entirely missing', () => {
+    it('log vault missing when KeyringController is entirely missing', () => {
       const state = createValidStateWithVault({
         engine: {
           backgroundState: {},
@@ -110,7 +110,7 @@ describe('ensureValidState', () => {
       );
     });
 
-    it('should handle vault being null', () => {
+    it('handle vault being null', () => {
       const state = createValidStateWithVault({
         engine: {
           backgroundState: {
@@ -131,7 +131,7 @@ describe('ensureValidState', () => {
       );
     });
 
-    it('should handle vault being empty string', () => {
+    it('handle vault being empty string', () => {
       const state = createValidStateWithVault({
         engine: {
           backgroundState: {
@@ -152,7 +152,7 @@ describe('ensureValidState', () => {
       );
     });
 
-    it('should not log vault status when existingUser is false', () => {
+    it('not log vault status when existingUser is false', () => {
       const state = createValidStateWithVault({
         user: {
           existingUser: false,
@@ -164,10 +164,10 @@ describe('ensureValidState', () => {
 
       expect(result).toBe(true);
       expect(mockLogger).not.toHaveBeenCalled();
-      expect(mockCaptureException).not.toHaveBeenCalled();
+      expect(mockLoggerError).not.toHaveBeenCalled();
     });
 
-    it('should not log vault status when existingUser is undefined', () => {
+    it('not log vault status when existingUser is undefined', () => {
       const state = createValidStateWithVault({
         user: {},
       });
@@ -179,7 +179,7 @@ describe('ensureValidState', () => {
       expect(mockLogger).not.toHaveBeenCalled();
     });
 
-    it('should not log vault status when user object is missing', () => {
+    it('not log vault status when user object is missing', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -199,7 +199,7 @@ describe('ensureValidState', () => {
       expect(mockLogger).not.toHaveBeenCalled();
     });
 
-    it('should not log vault status when user is not an object', () => {
+    it('not log vault status when user is not an object', () => {
       const state = createValidStateWithVault({
         user: 'not an object',
       });
@@ -211,7 +211,7 @@ describe('ensureValidState', () => {
       expect(mockLogger).not.toHaveBeenCalled();
     });
 
-    it('should not log vault status when existingUser is not exactly true', () => {
+    it('not log vault status when existingUser is not exactly true', () => {
       const state = createValidStateWithVault({
         user: {
           existingUser: 'yes', // String instead of boolean
@@ -225,7 +225,7 @@ describe('ensureValidState', () => {
       expect(mockLogger).not.toHaveBeenCalled();
     });
 
-    it('should handle KeyringController not being an object', () => {
+    it('handle KeyringController not being an object', () => {
       const state = createValidStateWithVault({
         engine: {
           backgroundState: {
@@ -261,7 +261,7 @@ describe('ensureValidState', () => {
       security: {},
     });
 
-    it('should handle Logger.log throwing an error and log to Sentry', () => {
+    it('handle Logger.log throwing an error and log to Sentry', () => {
       const state = createValidStateWithVault();
       const migrationNumber = 21;
       const logError = new Error('Logger failed');
@@ -272,14 +272,14 @@ describe('ensureValidState', () => {
       const result = ensureValidState(state, migrationNumber);
 
       expect(result).toBe(true);
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error(
           `Migration ${migrationNumber}: Failed to log vault status: Logger failed`,
         ),
       );
     });
 
-    it('should handle non-Error objects being thrown', () => {
+    it('handle non-Error objects being thrown', () => {
       const state = createValidStateWithVault();
       const migrationNumber = 22;
       mockLogger.mockImplementationOnce(() => {
@@ -289,17 +289,17 @@ describe('ensureValidState', () => {
       const result = ensureValidState(state, migrationNumber);
 
       expect(result).toBe(true);
-      expect(mockCaptureException).toHaveBeenCalledWith(
+      expect(mockLoggerError).toHaveBeenCalledWith(
         new Error(
           `Migration ${migrationNumber}: Failed to log vault status: Unknown error`,
         ),
       );
     });
 
-    it('should handle captureException itself throwing an error', () => {
+    it('handle captureException itself throwing an error', () => {
       const state = createValidStateWithVault();
       const migrationNumber = 23;
-      mockCaptureException.mockImplementationOnce(() => {
+      mockLoggerError.mockImplementationOnce(() => {
         throw new Error('Sentry failed');
       });
 
@@ -307,7 +307,7 @@ describe('ensureValidState', () => {
       expect(result).toBe(true);
     });
 
-    it('should handle circular references gracefully', () => {
+    it('handle circular references gracefully', () => {
       const circularState: Record<string, unknown> =
         createValidStateWithVault();
       circularState.circular = circularState;
