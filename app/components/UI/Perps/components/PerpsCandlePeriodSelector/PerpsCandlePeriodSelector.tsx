@@ -9,6 +9,7 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod } from '../../constants/chartConfig';
 import { getPerpsCandlePeriodSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
@@ -93,7 +94,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
         }
       >
         <Text variant={TextVariant.BodySm} twClassName="text-text-muted">
-          More
+          {strings('perps.chart.candle_period_selector.show_more')}
         </Text>
       </Pressable>
     </Box>

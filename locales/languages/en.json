@@ -1308,7 +1308,10 @@
     },
     "chart": {
       "no_data": "No chart data available",
-      "candle_intervals": "Candle intervals"
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
