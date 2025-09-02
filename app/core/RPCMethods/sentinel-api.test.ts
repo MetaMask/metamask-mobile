@@ -6,7 +6,6 @@ import {
   getSendBundleSupportedChains,
   isSendBundleSupported,
 } from './sentinel-api';
-import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const fetchMock = jest.fn();
 
@@ -80,18 +79,6 @@ describe('sentinel-api', () => {
     const mainnetHex: Hex = '0x1';
     const polygonHex: Hex = '0x89';
 
-    beforeEach(() => {
-      (convertHexToDecimal as jest.Mock).mockImplementation((hex: string) => {
-        if (hex === '0x1') {
-          return '1';
-        }
-        if (hex === '0x89') {
-          return '137';
-        }
-        return '12345';
-      });
-    });
-
     it('returns network data for provided chainId (Mainnet)', async () => {
       fetchMock.mockResolvedValueOnce({
         json: async () => MOCK_NETWORKS,
@@ -99,7 +86,6 @@ describe('sentinel-api', () => {
       } as Response);
 
       const result = await getSentinelNetworkFlags(mainnetHex);
-      expect(convertHexToDecimal).toHaveBeenCalledWith('0x1');
       expect(result).toStrictEqual(MAINNET_BASE);
     });
 
@@ -110,7 +96,6 @@ describe('sentinel-api', () => {
       } as Response);
 
       const result = await getSentinelNetworkFlags(polygonHex);
-      expect(convertHexToDecimal).toHaveBeenCalledWith('0x89');
       expect(result).toStrictEqual(POLYGON_BASE);
     });
 
@@ -119,7 +104,7 @@ describe('sentinel-api', () => {
         json: async () => MOCK_NETWORKS,
         ok: true,
       } as Response);
-      (convertHexToDecimal as jest.Mock).mockReturnValue('99999');
+
       const result = await getSentinelNetworkFlags('0xFAFA' as Hex);
       expect(result).toBeUndefined();
     });
@@ -134,18 +119,6 @@ describe('sentinel-api', () => {
 
   describe('getSendBundleSupportedChains', () => {
     const chainIds: Hex[] = ['0x1', '0x89', '0xFAFA'];
-
-    beforeEach(() => {
-      (convertHexToDecimal as jest.Mock).mockImplementation((hex: string) => {
-        if (hex === '0x1') {
-          return '1';
-        }
-        if (hex === '0x89') {
-          return '137';
-        }
-        return '12345';
-      });
-    });
 
     it('returns a map of chain IDs to sendBundle support status', async () => {
       fetchMock.mockResolvedValueOnce({
@@ -178,15 +151,6 @@ describe('sentinel-api', () => {
 
     beforeEach(() => {
       jest.resetAllMocks();
-      (convertHexToDecimal as jest.Mock).mockImplementation((hex: string) => {
-        if (hex === mainnetHex) {
-          return '1';
-        }
-        if (hex === polygonHex) {
-          return '137';
-        }
-        return '12345';
-      });
     });
 
     it('returns true if network supports sendBundle', async () => {
@@ -243,9 +207,10 @@ describe('sentinel-api', () => {
     });
 
     it('throws if the fetch fails', async () => {
-      fetchMock.mockRejectedValueOnce(new Error('API error!'));
+      const mockError = 'API mock error';
+      fetchMock.mockRejectedValueOnce(new Error(mockError));
       await expect(isSendBundleSupported(mainnetHex)).rejects.toThrow(
-        'API error!',
+        mockError,
       );
     });
   });
