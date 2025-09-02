@@ -356,6 +356,156 @@ describe('PerpsLeverageBottomSheet', () => {
       // Assert - Should not crash and show 0.0%
       expect(screen.getByText(/0\.0%/)).toBeOnTheScreen();
     });
+
+    it('shows 100% liquidation distance for 1x leverage special case', () => {
+      // Arrange
+      const props1x = {
+        ...defaultProps,
+        leverage: 1,
+        minLeverage: 1,
+        maxLeverage: 20,
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props1x} />);
+
+      // Assert - 1x leverage should show 100% liquidation distance
+      expect(screen.getByText(/100\.0%/)).toBeOnTheScreen();
+    });
+
+    it('uses theoretical calculation when liquidation price is invalid', () => {
+      // Arrange - Mock hook to return invalid liquidation price
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '0.00', // Invalid liquidation price
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        leverage: 5, // Should give theoretical: 1/5 * 100 = 20%
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should use theoretical calculation: 20%
+      expect(screen.getByText(/20\.0%/)).toBeOnTheScreen();
+    });
+
+    it('uses theoretical calculation when liquidation price is NaN', () => {
+      // Arrange - Mock hook to return NaN liquidation price
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: 'invalid', // Will become NaN when parsed
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        leverage: 10, // Should give theoretical: 1/10 * 100 = 10%
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should use theoretical calculation: 10%
+      expect(screen.getByText(/10\.0%/)).toBeOnTheScreen();
+    });
+
+    it('shows correct theoretical percentage for high leverage', () => {
+      // Arrange - Mock hook to return invalid liquidation price
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '0.00', // Invalid, will use theoretical
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        leverage: 50, // Theoretical: 1/50 * 100 = 2.0%
+        maxLeverage: 50,
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should show 2.0%
+      expect(screen.getByText(/2\.0%/)).toBeOnTheScreen();
+    });
+
+    it('uses theoretical calculation correctly for short position', () => {
+      // Arrange - Mock hook to return invalid liquidation price for short position
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '0.00', // Invalid, will use theoretical
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        direction: 'short' as const,
+        leverage: 5, // Theoretical: 1/5 * 100 = 20% (same for both directions)
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should use theoretical calculation: 20% (same as long)
+      expect(screen.getByText(/20\.0%/)).toBeOnTheScreen();
+      expect(screen.getByText(/rises/)).toBeOnTheScreen(); // Direction text for short
+    });
+
+    it('caps actual liquidation percentage at 100% for very high values', () => {
+      // Arrange - Mock hook to return liquidation price very far from current price (>99.9%)
+      const mockUsePerpsLiquidationPrice = jest.requireMock(
+        '../../hooks/usePerpsLiquidationPrice',
+      );
+      mockUsePerpsLiquidationPrice.usePerpsLiquidationPrice.mockReturnValueOnce(
+        {
+          liquidationPrice: '1.00', // Very far from current price of 3000, gives (3000-1)/3000 = 99.97% > 99.9%
+          isCalculating: false,
+          error: null,
+        },
+      );
+
+      const props = {
+        ...defaultProps,
+        leverage: 1000,
+        currentPrice: 3000,
+      };
+
+      // Act
+      render(<PerpsLeverageBottomSheet {...props} />);
+
+      // Assert - Should cap at 100.0% even for actual liquidation price
+      expect(screen.getByText(/100\.0%/)).toBeOnTheScreen();
+    });
   });
 
   describe('Price Information Display', () => {
