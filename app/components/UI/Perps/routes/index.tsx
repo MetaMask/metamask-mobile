@@ -21,12 +21,12 @@ const ModalStack = createStackNavigator();
 
 const PerpsModalStack = () => (
   <ModalStack.Navigator
-    mode="modal"
     screenOptions={{
       headerShown: false,
       cardStyle: {
         backgroundColor: 'transparent',
       },
+      presentation: 'modal',
     }}
   >
     <ModalStack.Screen

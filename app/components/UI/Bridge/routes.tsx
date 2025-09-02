@@ -31,8 +31,7 @@ export const BridgeScreenStack = () => (
 const ModalStack = createStackNavigator();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR}
