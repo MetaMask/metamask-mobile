@@ -37,6 +37,10 @@ import {
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
+import {
+  calculateCloseAmountFromPercentage,
+  validateCloseAmountLimits,
+} from '../../utils/positionCalculations';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
@@ -76,6 +80,7 @@ const PerpsClosePositionView: React.FC = () => {
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isUserInputActive, setIsUserInputActive] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
   const [displayMode, setDisplayMode] = useState<'usd' | 'token'>('usd');
@@ -192,23 +197,36 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Update close amount when percentage changes (but not during active input)
   useEffect(() => {
-    // Skip automatic updates when user is actively typing
-    if (isInputFocused) {
+    // Skip automatic updates when user is actively typing or when input is focused
+    if (isInputFocused || isUserInputActive) {
       return;
     }
 
-    const newAmount = (closePercentage / 100) * absSize;
-    setCloseAmount(newAmount.toString());
-    const newUSDAmount = newAmount * currentPrice;
-    setCloseAmountUSD(newUSDAmount);
-    setCloseAmountUSDString(newUSDAmount.toString());
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: closePercentage,
+      positionSize: absSize,
+      currentPrice,
+    });
 
-    // Track position close value changed
-    if (closePercentage !== 100) {
+    setCloseAmount(tokenAmount.toString());
+    setCloseAmountUSD(usdValue);
+    setCloseAmountUSDString(usdValue.toString());
+  }, [
+    closePercentage,
+    absSize,
+    currentPrice,
+    isInputFocused,
+    isUserInputActive,
+  ]);
+
+  // Track position close value changes (separate effect for performance)
+  useEffect(() => {
+    if (closePercentage !== 100 && !isInputFocused) {
+      const trackingValue = (closePercentage / 100) * absSize * currentPrice;
       track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
         [PerpsEventProperties.ASSET]: position.coin,
         [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-        [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
+        [PerpsEventProperties.CLOSE_VALUE]: trackingValue,
       });
     }
   }, [
@@ -265,42 +283,103 @@ const PerpsClosePositionView: React.FC = () => {
   };
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: { value: string; valueAsNumber: number }) => {
+    ({ value }: { value: string; valueAsNumber: number }) => {
+      const previousValue =
+        displayMode === 'usd' ? closeAmountUSDString : closeAmount;
+      // Special handling for decimal point deletion
+      // If previous value had a decimal and new value is the same, force remove the decimal
+      let adjustedValue = value;
+      if (displayMode === 'usd') {
+        // Check if we're stuck on a decimal (e.g., "2." -> "2." means delete didn't work)
+        if (previousValue.endsWith('.') && value === previousValue) {
+          adjustedValue = value.slice(0, -1);
+        }
+        // Also handle case where decimal is in middle (e.g., "2.5" -> "2." should become "25")
+        else if (
+          previousValue.includes('.') &&
+          value.endsWith('.') &&
+          value.length === previousValue.length - 1
+        ) {
+          // User deleted a digit after decimal, remove the decimal too
+          adjustedValue = value.replace('.', '');
+        }
+      }
+
+      // Set both focus flags immediately to prevent useEffect interference
+      if (!isInputFocused) {
+        setIsInputFocused(true);
+      }
+      if (!isUserInputActive) {
+        setIsUserInputActive(true);
+      }
+
       if (displayMode === 'usd') {
         // USD decimal input logic - preserve raw string for display
-        const numericValue = isNaN(valueAsNumber) ? 0 : valueAsNumber;
-        const maxValue = positionValue;
-        const clampedValue = Math.min(numericValue, maxValue);
+        // Use adjustedValue instead of original value
+        const numericValue = parseFloat(adjustedValue) || 0;
+        const clampedValue = validateCloseAmountLimits({
+          amount: numericValue,
+          maxAmount: positionValue,
+        });
 
-        // Calculate percentage based on USD value
-        const newPercentage =
-          maxValue > 0 ? (clampedValue / maxValue) * 100 : 0;
-        setClosePercentage(newPercentage);
-        setCloseAmountUSD(clampedValue); // Use the clamped numeric value
-        // Keep exactly what user typed, but limit to 2 decimal places to ensure delete works on visible digits
-        const formattedUSDString = value.includes('.')
-          ? value.split('.')[0] + '.' + (value.split('.')[1] || '').slice(0, 2)
-          : value;
+        // For USD mode, preserve user input exactly as typed for proper delete operations
+        // Only limit decimal places if there are digits after the decimal point
+        let formattedUSDString = adjustedValue;
+        if (adjustedValue.includes('.')) {
+          const parts = adjustedValue.split('.');
+          const integerPart = parts[0] || '';
+          const decimalPart = parts[1] || '';
+
+          // If there's a decimal part, limit it to 2 digits
+          if (decimalPart.length > 0) {
+            formattedUSDString = integerPart + '.' + decimalPart.slice(0, 2);
+          } else {
+            // Keep the decimal point if user just typed it (like "2.")
+            formattedUSDString = integerPart + '.';
+          }
+        }
+
+        // Update all states in batch to prevent race conditions
         setCloseAmountUSDString(formattedUSDString);
+        setCloseAmountUSD(clampedValue);
 
-        // Update close amount in asset units
+        // Calculate percentage and token amount
+        const newPercentage =
+          positionValue > 0 ? (clampedValue / positionValue) * 100 : 0;
         const newAmount = (newPercentage / 100) * absSize;
+
+        // Update percentage and token amount after USD values are set
         setCloseAmount(newAmount.toString());
+        setClosePercentage(newPercentage);
       } else {
         // Token decimal input logic - preserve raw string for display
-        const numericValue = isNaN(valueAsNumber) ? 0 : valueAsNumber;
-        const maxTokenAmount = absSize;
-        const clampedTokenAmount = Math.min(numericValue, maxTokenAmount);
+        // Use adjustedValue for consistency
+        const numericValue = parseFloat(adjustedValue) || 0;
+        const clampedTokenAmount = validateCloseAmountLimits({
+          amount: numericValue,
+          maxAmount: absSize,
+        });
 
-        // Calculate percentage based on token amount
-        const newPercentage =
-          maxTokenAmount > 0 ? (clampedTokenAmount / maxTokenAmount) * 100 : 0;
-        setClosePercentage(newPercentage);
-        setCloseAmount(value); // Keep the raw string value to preserve delete operations
+        // Update states in batch
+        setCloseAmount(adjustedValue); // Keep the raw string value to preserve delete operations
         setCloseAmountUSD(numericValue * currentPrice);
+
+        // Calculate percentage after token values are set
+        const newPercentage =
+          absSize > 0 ? (clampedTokenAmount / absSize) * 100 : 0;
+        setClosePercentage(newPercentage);
       }
     },
-    [displayMode, positionValue, absSize, currentPrice],
+    [
+      displayMode,
+      positionValue,
+      absSize,
+      currentPrice,
+      isInputFocused,
+      isUserInputActive,
+      closeAmount,
+      closeAmountUSDString,
+    ],
   );
 
   const handlePercentagePress = (percentage: number) => {
@@ -327,6 +406,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const handleDonePress = () => {
     setIsInputFocused(false);
+    setIsUserInputActive(false);
   };
 
   // Tooltip handlers
