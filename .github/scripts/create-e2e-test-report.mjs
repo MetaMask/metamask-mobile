@@ -152,55 +152,71 @@ function createTestCase(test) {
 }
 
 async function processTestDirectory(dirPath, directory) {
-  const junitPath = path.join(dirPath, 'junit.xml');
+  const results = [];
 
   try {
-    const suites = await parseJUnitXML(junitPath);
-    const results = [];
+    // Look for all junit*.xml files to handle retries
+    const files = await fs.readdir(dirPath);
+    const junitFiles = files.filter(f => f.startsWith('junit') && f.endsWith('.xml'));
 
-    for (const suite of suites) {
-      if (!suite.$ || !suite.testcase) continue;
-
-      const properties = extractProperties(suite);
-      // Get job name from properties, fallback to directory if not present
-      const jobName = properties.JOB_NAME || directory;
-      const runId = properties.RUN_ID ? parseInt(properties.RUN_ID) : env.RUN_ID;
-      const jobId = await getJobId(runId, jobName);
-      const testSuite = createTestSuite(suite, jobName, jobId, properties);
-
-      // Process test cases
-      const testcases = Array.isArray(suite.testcase) ? suite.testcase : [suite.testcase];
-      for (const test of testcases) {
-        if (!test.$) continue;
-        testSuite.testCases.push(createTestCase(test));
-      }
-
-      // Extract file path from first test case classname
-      const firstTestCase = testcases.find(tc => tc.$ && tc.$.classname);
-      const filePath = firstTestCase
-        ? firstTestCase.$.classname
-        : 'unknown';
-
-      // Remove shard number from job name
-      const testRunName = jobName.replace(/\s+\(\d+\)$/, '');
-
-      results.push({
-        testRunName,
-        testFile: {
-          path: filePath,
-          tests: testSuite.tests,
-          passed: testSuite.passed,
-          failed: testSuite.failed,
-          skipped: testSuite.skipped,
-          time: testSuite.time,
-          testSuites: [testSuite],
-        }
-      });
+    if (junitFiles.length === 0) {
+      console.warn(`No junit XML files found in ${dirPath}`);
+      return null;
     }
 
-    return results;
+    for (const junitFile of junitFiles) {
+      const junitPath = path.join(dirPath, junitFile);
+
+      try {
+        const suites = await parseJUnitXML(junitPath);
+
+        for (const suite of suites) {
+          if (!suite.$ || !suite.testcase) continue;
+
+          const properties = extractProperties(suite);
+          // Get job name from properties, fallback to directory if not present
+          const jobName = properties.JOB_NAME || directory;
+          const runId = properties.RUN_ID ? parseInt(properties.RUN_ID) : env.RUN_ID;
+          const jobId = await getJobId(runId, jobName);
+          const testSuite = createTestSuite(suite, jobName, jobId, properties);
+
+          // Process test cases
+          const testcases = Array.isArray(suite.testcase) ? suite.testcase : [suite.testcase];
+          for (const test of testcases) {
+            if (!test.$) continue;
+            testSuite.testCases.push(createTestCase(test));
+          }
+
+          // Extract file path from first test case classname
+          const firstTestCase = testcases.find(tc => tc.$ && tc.$.classname);
+          const filePath = firstTestCase
+            ? firstTestCase.$.classname
+            : 'unknown';
+
+          // Remove shard number from job name
+          const testRunName = jobName.replace(/\s+\(\d+\)$/, '');
+
+          results.push({
+            testRunName,
+            testFile: {
+              path: filePath,
+              tests: testSuite.tests,
+              passed: testSuite.passed,
+              failed: testSuite.failed,
+              skipped: testSuite.skipped,
+              time: testSuite.time,
+              testSuites: [testSuite],
+            }
+          });
+        }
+      } catch (error) {
+        console.warn(`Failed to process ${junitPath}: ${error.message}`);
+      }
+    }
+
+    return results.length > 0 ? results : null;
   } catch (error) {
-    console.warn(`Failed to process ${junitPath}: ${error.message}`);
+    console.warn(`Failed to process directory ${dirPath}: ${error.message}`);
     return null;
   }
 }

@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  
+
   testRunner: {
     args: {
       $0: 'jest',
@@ -25,8 +25,9 @@ module.exports = {
     },
     jest: {
       setupTimeout: 220000,
+      retryTimes: 1, // Jest will retry failed tests once
     },
-    retries: 1,
+    retries: 0, // Disable Detox file-level retries
   },
   configurations: {
     'ios.sim.apiSpecs': {
