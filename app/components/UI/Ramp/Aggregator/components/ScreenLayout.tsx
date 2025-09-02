@@ -2,12 +2,12 @@ import React from 'react';
 import {
   StyleSheet,
   View,
-  SafeAreaView,
   ScrollView,
   ViewStyle,
   TextStyle,
   ViewProps,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import Text from '../../../../Base/Text';
