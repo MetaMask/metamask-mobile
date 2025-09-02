@@ -88,7 +88,6 @@ jest.mock('../../../../../core/Engine', () => ({
           },
         ],
       },
-      getOrAddQRKeyring: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),

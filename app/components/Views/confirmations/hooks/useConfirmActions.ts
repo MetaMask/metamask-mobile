@@ -28,11 +28,8 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const {
-    cancelQRScanRequestIfPresent,
-    isQRSigningInProgress,
-    setScannerVisible,
-  } = useQRHardwareContext();
+  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
+    useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
 
@@ -86,7 +83,7 @@ export const useConfirmActions = () => {
       openLedgerSignModal();
       return;
     }
-    if (isQRSigningInProgress) {
+    if (isSigningQRObject) {
       setScannerVisible(true);
       return;
     }
@@ -118,17 +115,17 @@ export const useConfirmActions = () => {
       }
     }
   }, [
+    isSigningQRObject,
     captureSignatureMetrics,
     dispatch,
-    isFullScreenConfirmation,
-    isQRSigningInProgress,
     isSignatureReq,
     isTransactionReq,
     ledgerSigningInProgress,
     navigation,
-    onRequestConfirm,
     openLedgerSignModal,
     setScannerVisible,
+    onRequestConfirm,
+    isFullScreenConfirmation,
     waitForResult,
     type,
     chainId,
