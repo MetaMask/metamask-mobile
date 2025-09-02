@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -18,48 +18,7 @@ import {
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { Theme } from '../../../../../util/theme/models';
-
-const createStyles = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return StyleSheet.create({
-    container: {
-      paddingTop: 8,
-    },
-    periodOptionsGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'flex-start',
-      paddingHorizontal: 8,
-    },
-    periodOption: {
-      width: '18%',
-      height: 48,
-      paddingVertical: 4,
-      paddingHorizontal: 4,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 8,
-      marginRight: '2%',
-      borderRadius: 12,
-      backgroundColor: colors.background.muted,
-    },
-    periodOptionActive: {
-      backgroundColor: colors.primary.alternative,
-    },
-    sectionTitle: {
-      paddingVertical: 8,
-      paddingHorizontal: 16,
-      marginTop: 8,
-      marginBottom: 4,
-    },
-    sectionSpacing: {
-      marginTop: 16,
-    },
-  });
-};
+import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 
 interface PerpsCandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -82,7 +41,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   showAllPeriods = false,
   testID,
 }) => {
-  const { styles } = useStyles(createStyles, {});
+  const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
