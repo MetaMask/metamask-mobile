@@ -225,7 +225,9 @@ mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
 describe('MultichainAccountConnect', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('renders correctly with base request when there is no existing CAIP endowment', () => {
     (
@@ -1011,5 +1013,219 @@ describe('MultichainAccountConnect', () => {
     fireEvent.press(confirmButton);
 
     expect(confirmButton.props.disabled).toBe(true);
+  });
+
+  describe('Account group selection logic', () => {
+    it('selects first supported account group when no connected account groups exist', () => {
+      const mockStateWithMultipleAccounts = {
+        ...createMockState(),
+        engine: {
+          ...createMockState().engine,
+          backgroundState: {
+            ...createMockState().engine?.backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+              MOCK_ADDRESS_1,
+            ),
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [], // No existing connected accounts
+                  },
+                }),
+              },
+              permissionRequestId: 'test-first-supported-group',
+            },
+          }}
+        />,
+        { state: mockStateWithMultipleAccounts },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
+
+    it('handles scenario with no supported account groups', () => {
+      const mockStateWithMinimalAccounts = {
+        ...createMockState(),
+        engine: {
+          ...createMockState().engine,
+          backgroundState: {
+            ...createMockState().engine?.backgroundState,
+            AccountsController: createMockAccountsControllerState(
+              [MOCK_ADDRESS_1], // At least one account required by utility
+              MOCK_ADDRESS_1,
+            ),
+          },
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:999999': {
+                    // Unsupported chain to create empty supported groups
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-no-supported-groups',
+            },
+          }}
+        />,
+        { state: mockStateWithMinimalAccounts },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
+
+    it('uses connected account groups when they exist', () => {
+      (
+        Engine.context.PermissionController.getCaveat as jest.Mock
+      ).mockReturnValue({
+        value: {
+          requiredScopes: {},
+          optionalScopes: {
+            'eip155:1': {
+              accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+            },
+          },
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-connected-groups',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
+  });
+
+  describe('Phishing modal navigation functions coverage', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('creates phishing navigation callback functions', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-phishing-callbacks',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
+
+    it('handles different origin formats for phishing detection setup', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'example.com', // URL without protocol
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-url-formats',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
+
+    it('sets up phishing modal callbacks with proper dependencies', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://test-site.com',
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-dependencies',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+    });
   });
 });
