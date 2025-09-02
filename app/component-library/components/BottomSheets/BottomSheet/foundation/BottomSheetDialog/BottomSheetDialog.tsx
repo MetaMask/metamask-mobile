@@ -305,17 +305,17 @@ const BottomSheetDialog = forwardRef<
             >
               {/* Complete SVG BottomSheet with dented top */}
               <Svg
-                width={screenWidth}
+                width={screenWidth - 32}
                 height="100%"
                 style={styles.tradeSheetSvg}
-                viewBox={`0 0 ${screenWidth} 400`}
+                viewBox={`0 0 ${screenWidth - 32} 400`}
                 preserveAspectRatio="none"
               >
                 <Path
                   d={buildTradeBottomPath({
-                    w: screenWidth,
+                    w: screenWidth - 32,
                     h: 400,
-                    topRadius: 24,
+                    topRadius: 16,
                     bottomRadius: 16,
                     dentWidth: 40,
                     dentDepth: 42,
@@ -325,9 +325,6 @@ const BottomSheetDialog = forwardRef<
                   fill={styles.sheet.backgroundColor}
                 />
               </Svg>
-
-              {/* Floating Button */}
-              <View style={styles.floatingButton} />
 
               {/* Content positioned above SVG */}
               <View style={styles.tradeContentWithPadding}>

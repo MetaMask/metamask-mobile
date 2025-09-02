@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -9,11 +9,18 @@ import BottomSheet, {
   BottomSheetRef,
   BottomSheetDialogContainerVariant,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  ButtonAnimated,
+  IconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Icon from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
@@ -44,7 +51,9 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation();
+  const { navigate, goBack } = useNavigation();
+  const tw = useTailwind();
+  const { width: screenWidth } = Dimensions.get('window');
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
@@ -147,45 +156,76 @@ const WalletActions = () => {
     return true;
   }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
   return (
-    <BottomSheet
-      ref={sheetRef}
-      containerVariant={BottomSheetDialogContainerVariant.Trade}
-    >
-      <View style={styles.actionsContainer}>
-        {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
-          <ActionListItem
-            label={strings('asset_overview.swap')}
-            description={strings('asset_overview.swap_description')}
-            iconName={IconName.SwapVertical}
-            onPress={goToSwaps}
-            testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-            isDisabled={!canSignTransactions || !swapsIsLive}
-          />
-        )}
+    <>
+      <BottomSheet
+        ref={sheetRef}
+        containerVariant={BottomSheetDialogContainerVariant.Trade}
+      >
+        <View style={styles.actionsContainer}>
+          {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
+            <ActionListItem
+              label={strings('asset_overview.swap')}
+              description={strings('asset_overview.swap_description')}
+              iconName={IconName.SwapVertical}
+              onPress={goToSwaps}
+              testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+              isDisabled={!canSignTransactions || !swapsIsLive}
+            />
+          )}
 
-        {isPerpsEnabled && isEvmSelected && (
-          <ActionListItem
-            label={strings('asset_overview.perps_button')}
-            description={strings('asset_overview.perps_description')}
-            iconName={IconName.Candlestick}
-            onPress={onPerps}
-            testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-            isDisabled={!canSignTransactions}
-          />
-        )}
+          {isPerpsEnabled && isEvmSelected && (
+            <ActionListItem
+              label={strings('asset_overview.perps_button')}
+              description={strings('asset_overview.perps_description')}
+              iconName={IconName.Candlestick}
+              onPress={onPerps}
+              testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+              isDisabled={!canSignTransactions}
+            />
+          )}
 
-        {isEarnWalletActionEnabled && (
-          <ActionListItem
-            label={strings('asset_overview.earn_button')}
-            description={strings('asset_overview.earn_description')}
-            iconName={IconName.Stake}
-            onPress={onEarn}
-            testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-            isDisabled={!canSignTransactions}
+          {isEarnWalletActionEnabled && (
+            <ActionListItem
+              label={strings('asset_overview.earn_button')}
+              description={strings('asset_overview.earn_description')}
+              iconName={IconName.Stake}
+              onPress={onEarn}
+              testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+              isDisabled={!canSignTransactions}
+            />
+          )}
+        </View>
+      </BottomSheet>
+
+      {/* Fixed Close Button - renders in same layer as BottomSheet */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 39.5,
+          left: screenWidth / 2 - 22.5 - 1,
+          zIndex: 1000,
+        }}
+      >
+        <ButtonAnimated
+          style={({ pressed }) =>
+            tw.style(
+              'h-[45px] w-[45px] items-center justify-center rounded-full bg-icon-default px-1 py-1',
+              pressed && 'bg-icon-default-pressed',
+            )
+          }
+          onPress={() => sheetRef.current?.onCloseBottomSheet()}
+          accessibilityLabel="Close"
+          accessible
+          accessibilityRole="button"
+        >
+          <Icon
+            name={IconName.Close}
+            size={IconSize.Md}
+            color={tw.color('text-primary-inverse')}
           />
-        )}
+        </ButtonAnimated>
       </View>
-    </BottomSheet>
+    </>
   );
 };
 

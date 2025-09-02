@@ -1,5 +1,12 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Keyboard,
+  Platform,
+  View,
+  Dimensions,
+} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -121,6 +128,14 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 125,
     height: 50,
+  },
+  container: {
+    flex: 1,
+  },
+  fixedTradeButton: {
+    position: 'absolute',
+    bottom: 39,
+    zIndex: 1000,
   },
 });
 
@@ -571,37 +586,42 @@ const HomeTabs = () => {
   };
 
   return (
-    <Tab.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={renderTabBar}>
-      <Tab.Screen
-        name={Routes.WALLET.HOME}
-        options={options.home}
-        component={WalletTabModalFlow}
-      />
-      <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
-      <Tab.Screen
-        name={Routes.MODAL.WALLET_ACTIONS}
-        options={options.actions}
-        component={WalletTabModalFlow}
-      />
-      <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+    <View style={styles.container}>
+      <Tab.Navigator
+        initialRouteName={Routes.WALLET.HOME}
+        tabBar={renderTabBar}
+      >
+        <Tab.Screen
+          name={Routes.WALLET.HOME}
+          options={options.home}
+          component={WalletTabModalFlow}
+        />
+        <Tab.Screen
+          name={Routes.BROWSER.HOME}
+          options={options.browser}
+          component={BrowserFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+        <Tab.Screen
+          name={Routes.MODAL.WALLET_ACTIONS}
+          options={options.actions}
+          component={WalletTabModalFlow}
+        />
+        <Tab.Screen
+          name={Routes.TRANSACTIONS_VIEW}
+          options={options.activity}
+          component={TransactionsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
 
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
-    </Tab.Navigator>
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      </Tab.Navigator>
+    </View>
   );
 };
 

@@ -59,9 +59,11 @@ const styleSheet = (params: {
     base: Object.assign({
       position: 'absolute',
       bottom:
-        containerVariant === BottomSheetDialogContainerVariant.Trade ? 47 : 0,
-      left: 0,
-      right: 0,
+        containerVariant === BottomSheetDialogContainerVariant.Trade ? 39 : 0,
+      left:
+        containerVariant === BottomSheetDialogContainerVariant.Trade ? 16 : 0,
+      right:
+        containerVariant === BottomSheetDialogContainerVariant.Trade ? 16 : 0,
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
@@ -92,18 +94,7 @@ const styleSheet = (params: {
       borderRadius: 2,
       backgroundColor: colors.border.muted,
     },
-    floatingButton: {
-      position: 'absolute',
-      bottom: -7.5, // Position in the concave dent
-      left: screenWidth / 2 - 22.5 - 1,
-      width: 45,
-      height: 45,
-      borderRadius: 22.5,
-      backgroundColor: colors.background.default,
-      justifyContent: 'center',
-      alignItems: 'center',
-      ...shadows.size.md,
-    },
+
     tradeSvgContainer: {
       position: 'absolute',
       top: 0,
