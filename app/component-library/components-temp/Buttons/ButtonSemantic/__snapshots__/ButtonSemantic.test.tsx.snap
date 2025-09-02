@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonSemantic renders correctly with Danger severity 1`] = `
+exports[`ButtonSemantic Rendering renders with Danger severity 1`] = `
 <View
   style={
     [
@@ -175,7 +175,7 @@ exports[`ButtonSemantic renders correctly with Danger severity 1`] = `
 </View>
 `;
 
-exports[`ButtonSemantic renders correctly with Success severity 1`] = `
+exports[`ButtonSemantic Rendering renders with Success severity 1`] = `
 <View
   style={
     [
