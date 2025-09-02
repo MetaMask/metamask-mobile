@@ -125,6 +125,22 @@ describe('Nft', () => {
     expect(queryByText(/^\(/)).not.toBeOnTheScreen();
   });
 
+  it('display name when tokenId is missing', () => {
+    const mockNft = createMockNft({
+      collectionName: 'No TokenId',
+      name: 'Simple Name',
+      balance: undefined,
+      tokenId: undefined,
+    });
+
+    const { getByText } = renderWithProvider(
+      <Nft asset={mockNft} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('No TokenId')).toBeOnTheScreen();
+    expect(getByText('Simple Name')).toBeOnTheScreen();
+  });
+
   it('calls onPress when pressed', () => {
     const mockNft = createMockNft();
 

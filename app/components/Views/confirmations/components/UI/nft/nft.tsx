@@ -18,8 +18,8 @@ import { BadgePosition } from '../../../../../../component-library/components/Ba
 import { Nft as NftType } from '../../../types/token';
 
 interface NftProps {
-  asset: NftType;
-  onPress: (asset: NftType) => void;
+  readonly asset: NftType;
+  readonly onPress: (asset: NftType) => void;
 }
 
 export function Nft({ asset, onPress }: NftProps) {
@@ -70,7 +70,7 @@ export function Nft({ asset, onPress }: NftProps) {
           >
             {asset.collectionName || asset.name}
           </Text>
-          {(asset.name || asset.tokenId) && (
+          {Boolean(asset.name || asset.tokenId) && (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
