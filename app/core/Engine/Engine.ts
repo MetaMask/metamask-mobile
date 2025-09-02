@@ -1352,13 +1352,13 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
+          'AccountTreeController:stateChange',
           'TransactionController:transactionConfirmed',
           'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
