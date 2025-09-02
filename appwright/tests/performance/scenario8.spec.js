@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test, afterAll } from 'appwright';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -21,7 +21,11 @@ import CommonScreen from '../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
+const performanceTracker = new PerformanceTracker();
+let info;
+
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
+  info = testInfo;
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -55,7 +59,36 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
   await TokenOverviewScreen.isTodaysChangeVisible();
   assetViewScreen.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(assetViewScreen);
+
   await performanceTracker.attachToTest(testInfo);
 });
+
+/*
+test.afterAll(async ({}, testInfo) => {
+  try {
+    // Just attach metrics - video URL will be handled by custom reporter
+    await performanceTracker.attachMetricsOnly(info);
+    console.log('Metrics attached successfully in afterAll');
+
+    // Store session ID for custom reporter to handle video URL fetching
+    if (info && info.annotations) {
+      const sessionId = info.annotations.find(
+        (annotation) => annotation.type === 'sessionId'
+      )?.description;
+
+      if (sessionId) {
+        console.log('Session ID stored for post-test video URL fetch:', sessionId);
+        // Store session ID globally for custom reporter
+        global.lastSessionId = sessionId;
+        global.lastTestInfo = {
+          title: info.title,
+          outputDir: info.outputDir
+        };
+      }
+    }
+  } catch (error) {
+    console.error('Error in afterAll:', error.message);
+  }
+});
+*/
