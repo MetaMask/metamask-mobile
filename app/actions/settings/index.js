@@ -69,11 +69,17 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
     dispatch(setBasicFunctionality(basicFunctionalityEnabled));
 
     // Call MultichainAccountService to update provider states and trigger alignment
+    // TODO: Maybe remove await once wallet state/status is visible on the UI
     const Engine = require('../../core/Engine').default;
     try {
-      await Engine.context.MultichainAccountService.setBasicFunctionality(
+      Engine.context.MultichainAccountService.setBasicFunctionality(
         basicFunctionalityEnabled,
-      );
+      ).catch((error) => {
+        console.error(
+          'Failed to set basic functionality on MultichainAccountService:',
+          error,
+        );
+      });
     } catch (error) {
       console.error(
         'Failed to set basic functionality on MultichainAccountService:',
