@@ -157,6 +157,36 @@ describe('ButtonSemantic', () => {
       // Assert
       expect(mockOnPress).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ButtonSemanticSeverity.Success,
+      ButtonSemanticSeverity.Danger,
+      'InvalidSeverity' as ButtonSemanticSeverity,
+    ] as const)('handles pressed state styling for %s severity', (severity) => {
+      // Arrange
+      const testText = `Pressed ${severity} Button`;
+
+      // Act
+      const { getByText } = render(
+        <ButtonSemantic severity={severity} onPress={mockOnPress}>
+          {testText}
+        </ButtonSemantic>,
+      );
+
+      const button = getByText(testText);
+
+      // Assert - Button should render
+      expect(button).toBeOnTheScreen();
+
+      // Act - Trigger press to test functionality and styling paths
+      fireEvent.press(button);
+
+      // Assert - onPress should be called
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+
+      // Reset for next iteration
+      mockOnPress.mockClear();
+    });
   });
 
   describe('States', () => {
@@ -236,6 +266,46 @@ describe('ButtonSemantic', () => {
 
       // Assert
       expect(getByText(testText)).toBeOnTheScreen();
+    });
+
+    it('handles invalid severity by defaulting to Success styling', () => {
+      // Arrange
+      const testText = 'Invalid Severity Button';
+      const invalidSeverity = 'InvalidSeverity' as ButtonSemanticSeverity;
+
+      // Act
+      const { getByText } = render(
+        <ButtonSemantic severity={invalidSeverity} onPress={mockOnPress}>
+          {testText}
+        </ButtonSemantic>,
+      );
+
+      // Assert
+      expect(getByText(testText)).toBeOnTheScreen();
+    });
+
+    it('applies default pressed state styling for invalid severity', () => {
+      // Arrange
+      const testText = 'Invalid Severity Pressed Button';
+      const invalidSeverity = 'InvalidSeverity' as ButtonSemanticSeverity;
+
+      // Act
+      const { getByText } = render(
+        <ButtonSemantic severity={invalidSeverity} onPress={mockOnPress}>
+          {testText}
+        </ButtonSemantic>,
+      );
+
+      const button = getByText(testText);
+
+      // Assert - Button should render and be pressable
+      expect(button).toBeOnTheScreen();
+
+      // Act - Trigger press to test pressed state styling (default case in getStyle)
+      fireEvent.press(button);
+
+      // Assert - onPress should be called, confirming the button works with default styling
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
   });
 

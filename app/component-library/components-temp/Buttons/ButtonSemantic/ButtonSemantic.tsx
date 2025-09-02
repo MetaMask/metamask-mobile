@@ -16,16 +16,19 @@ const ButtonSemantic: React.FC<ButtonSemanticProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const getTextClassName = useCallback(() => {
-    switch (severity) {
-      case ButtonSemanticSeverity.Success:
-        return 'text-success-default';
-      case ButtonSemanticSeverity.Danger:
-        return 'text-error-default';
-      default:
-        return 'text-success-default';
-    }
-  }, [severity]);
+  const getTextClassName = useCallback(
+    (_pressed: boolean) => {
+      switch (severity) {
+        case ButtonSemanticSeverity.Success:
+          return 'text-success-default';
+        case ButtonSemanticSeverity.Danger:
+          return 'text-error-default';
+        default:
+          return 'text-success-default';
+      }
+    },
+    [severity],
+  );
 
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) => {
