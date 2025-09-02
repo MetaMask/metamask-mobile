@@ -224,6 +224,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   public clearCache(): void {
     // Clear the price-specific cache
     this.priceCache.clear();
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
     // Call parent clearCache
     super.clearCache();
   }
@@ -390,6 +392,13 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
 }
 
 // Specific channel for positions
@@ -437,6 +446,13 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     });
 
     return this.prewarmUnsubscribe;
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 
   /**
@@ -498,6 +514,13 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
   protected getClearedData(): AccountState | null {
     return null;
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 
   /**
