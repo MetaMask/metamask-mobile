@@ -264,21 +264,25 @@ class NetworksSettings extends PureComponent {
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
   onRemoveNetworkPress = (isCustomRPC, networkTypeOrRpcUrl, chainId) => {
+    if (!isCustomRPC || !networkTypeOrRpcUrl || !chainId) {
+      return;
+    }
+
+    const { NetworkEnablementController } = Engine.context;
     const { enabledNetworksByNamespace } = this.props;
+
     const areAllNetworksEnabled = Object.values(
       enabledNetworksByNamespace[KnownCaipNamespace.Eip155],
     ).every((enabledNetwork) => enabledNetwork);
 
     if (areAllNetworksEnabled) {
-      return;
-    }
-
-    const selectedEnabledNetworks =
-      enabledNetworksByNamespace[KnownCaipNamespace.Eip155][chainId];
-
-    !selectedEnabledNetworks &&
-      isCustomRPC &&
+      NetworkEnablementController.enableNetwork(chainId);
       this.showRemoveMenu(networkTypeOrRpcUrl);
+    } else {
+      const selectedEnabledNetworks =
+        enabledNetworksByNamespace[KnownCaipNamespace.Eip155][chainId];
+      !selectedEnabledNetworks && this.showRemoveMenu(networkTypeOrRpcUrl);
+    }
   };
 
   networkElement(
