@@ -150,32 +150,19 @@ async function handleUniversalLink({
     action === SUPPORTED_ACTIONS.BUY_CRYPTO ||
     action === SUPPORTED_ACTIONS.BUY
   ) {
-    const rampPath = urlObj.href
-      .replace(
-        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY_CRYPTO}`,
-        '',
-      )
-      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.BUY}`, '');
+    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleBuyCrypto(rampPath);
   } else if (
     action === SUPPORTED_ACTIONS.SELL_CRYPTO ||
     action === SUPPORTED_ACTIONS.SELL
   ) {
-    const rampPath = urlObj.href
-      .replace(
-        `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL_CRYPTO}`,
-        '',
-      )
-      .replace(`${PROTOCOLS.HTTPS}://${urlObj.hostname}/${ACTIONS.SELL}`, '');
+    const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleSellCrypto(rampPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     handleOpenHome();
     return;
   } else if (action === SUPPORTED_ACTIONS.SWAP) {
-    const swapPath = urlObj.href.replace(
-      `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${SUPPORTED_ACTIONS.SWAP}`,
-      '',
-    );
+    const swapPath = urlObj.href.replace(BASE_URL_ACTION, '');
     handleSwapUrl({ swapPath });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {

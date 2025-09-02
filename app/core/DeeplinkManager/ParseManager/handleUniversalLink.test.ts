@@ -546,14 +546,6 @@ describe('handleUniversalLinks', () => {
         expect(mockDeeplinkManagerParse).toHaveBeenCalledWith(wcUri, {
           origin: 'test-source',
         });
-        expect(handled).toHaveBeenCalled();
-        expect(mockDeeplinkManagerParse).toHaveBeenCalledWith(wcUri, {
-          origin: 'test-source',
-        });
-        expect(handled).toHaveBeenCalled();
-        expect(mockDeeplinkManagerParse).toHaveBeenCalledWith(wcUri, {
-          origin: 'test-source',
-        });
       },
     );
 
