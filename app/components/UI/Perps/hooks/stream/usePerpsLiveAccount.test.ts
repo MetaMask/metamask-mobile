@@ -27,6 +27,8 @@ describe('usePerpsLiveAccount', () => {
     availableBalance: '8000.00',
     marginUsed: '2000.00',
     unrealizedPnl: '150.00',
+    returnOnEquity: '7.5',
+    totalValue: '10150.00',
   };
 
   let mockUnsubscribe: jest.Mock;
@@ -283,6 +285,8 @@ describe('usePerpsLiveAccount', () => {
         availableBalance: '4000.00',
         marginUsed: '1000.00',
         unrealizedPnl: '50.00',
+        returnOnEquity: '5.0',
+        totalValue: '5050.00',
       };
 
       act(() => {

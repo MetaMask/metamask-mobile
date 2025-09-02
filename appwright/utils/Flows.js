@@ -10,7 +10,6 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
-import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -21,7 +20,6 @@ export async function onboardingFlowImportSRP(device, srp) {
   CreatePasswordScreen.device = device;
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
-  SolanaFeatureSheet.device = device;
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
 
@@ -54,8 +52,6 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.isVisible();
   await OnboardingSucessScreen.tapDone();
 
-  // await SolanaFeatureSheet.isVisible();
-  // await SolanaFeatureSheet.tapNotNowButton();
   await WalletMainScreen.isMainWalletViewVisible();
 }
 

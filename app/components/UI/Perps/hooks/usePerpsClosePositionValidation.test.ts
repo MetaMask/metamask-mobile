@@ -67,13 +67,13 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.errors).toContain(errorMessage);
   });
 
-  it('should return error when full close value is below minimum', async () => {
+  it('should allow full close regardless of value', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
       ...defaultParams,
       closePercentage: 100,
-      closingValue: 5, // Below minimum of 10
+      closingValue: 5, // Below minimum of 10 but should be allowed for full close
       isPartialClose: false,
       remainingPositionValue: 0,
     };
@@ -86,20 +86,16 @@ describe('usePerpsClosePositionValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
 
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(
-      strings('perps.order.validation.minimum_amount', {
-        amount: '10',
-      }),
-    );
+    expect(result.current.isValid).toBe(true);
+    expect(result.current.errors).toHaveLength(0);
   });
 
-  it('should return error when remaining position is below minimum', async () => {
+  it('should allow partial close even if remaining position is below minimum', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 
     const params = {
       ...defaultParams,
-      remainingPositionValue: 5, // Below minimum of 10
+      remainingPositionValue: 5,
     };
 
     const { result } = renderHook(() =>
@@ -110,13 +106,8 @@ describe('usePerpsClosePositionValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
 
-    expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(
-      strings('perps.close_position.minimum_remaining_error', {
-        minimum: '10',
-        remaining: '5.00',
-      }),
-    );
+    expect(result.current.isValid).toBe(true);
+    expect(result.current.errors).toHaveLength(0);
   });
 
   it('should return error when user will receive negative amount', async () => {
@@ -194,34 +185,6 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.isValid).toBe(true);
     expect(result.current.warnings).toContain(
       strings('perps.order.validation.limit_price_far_warning'),
-    );
-  });
-
-  it('should return warning for very small partial closes', async () => {
-    mockValidateClosePosition.mockResolvedValue({ isValid: true });
-
-    // Use a percentage below the threshold
-    const smallPercentage =
-      VALIDATION_THRESHOLDS.SMALL_CLOSE_PERCENTAGE_WARNING - 5;
-
-    const params = {
-      ...defaultParams,
-      closePercentage: smallPercentage,
-    };
-
-    const { result } = renderHook(() =>
-      usePerpsClosePositionValidation(params),
-    );
-
-    await waitFor(() => {
-      expect(result.current.isValidating).toBe(false);
-    });
-
-    expect(result.current.isValid).toBe(true);
-    expect(result.current.warnings).toContain(
-      strings('perps.close_position.small_close_warning', {
-        percentage: smallPercentage.toString(),
-      }),
     );
   });
 

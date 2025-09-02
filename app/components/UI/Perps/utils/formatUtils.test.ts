@@ -393,27 +393,35 @@ describe('formatUtils', () => {
   });
 
   describe('formatTransactionDate', () => {
-    it('should format timestamp to readable date string', () => {
-      const timestamp = 1642492800000; // January 18, 2022
-      expect(formatTransactionDate(timestamp)).toBe('January 18, 2022');
+    it('should format timestamp to readable date string with time', () => {
+      const timestamp = 1642492800000; // January 18, 2022 at 12:00 AM UTC
+      expect(formatTransactionDate(timestamp)).toMatch(
+        /January 18, 2022 at \d{1,2}:\d{2} (AM|PM)/,
+      );
     });
 
     it('should handle different months correctly', () => {
       // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
       const julyTimestamp = 1658188800000 + 12 * 60 * 60 * 1000; // July 19, 2022 12:00:00 UTC
-      expect(formatTransactionDate(julyTimestamp)).toBe('July 19, 2022');
+      expect(formatTransactionDate(julyTimestamp)).toMatch(
+        /July 19, 2022 at \d{1,2}:\d{2} (AM|PM)/,
+      );
     });
 
     it('should handle edge cases', () => {
       // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
       const newYear = 1577836800000 + 12 * 60 * 60 * 1000; // January 1, 2020 12:00:00 UTC
-      expect(formatTransactionDate(newYear)).toBe('January 1, 2020');
+      expect(formatTransactionDate(newYear)).toMatch(
+        /January 1, 2020 at \d{1,2}:\d{2} (AM|PM)/,
+      );
     });
 
     it('should handle zero timestamp', () => {
       // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
       const zeroTimestamp = 0 + 12 * 60 * 60 * 1000; // January 1, 1970 12:00:00 UTC
-      expect(formatTransactionDate(zeroTimestamp)).toBe('January 1, 1970');
+      expect(formatTransactionDate(zeroTimestamp)).toMatch(
+        /January 1, 1970 at \d{1,2}:\d{2} (AM|PM)/,
+      );
     });
   });
 

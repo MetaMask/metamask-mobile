@@ -375,8 +375,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
+        "lastWithdrawResult": null,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
+        "withdrawInProgress": false,
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -451,9 +454,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
-        "lastAuthTime": 0,
+        "accounts": {},
         "lastAuthenticatedAccount": null,
-        "subscription": null,
+        "subscriptions": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": true,
@@ -1008,8 +1011,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
+        "lastWithdrawResult": null,
         "pendingOrders": [],
+        "perpsBalances": {},
         "positions": [],
+        "withdrawInProgress": false,
       },
       "PreferencesController": {
         "dismissSmartAccountSuggestionEnabled": false,
@@ -1084,9 +1090,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
-        "lastAuthTime": 0,
+        "accounts": {},
         "lastAuthenticatedAccount": null,
-        "subscription": null,
+        "subscriptions": {},
       },
       "SeedlessOnboardingController": {
         "accessToken": false,

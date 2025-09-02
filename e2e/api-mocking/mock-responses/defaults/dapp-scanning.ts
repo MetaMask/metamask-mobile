@@ -5,11 +5,16 @@ import { MockEventsObject } from '../../../framework';
  * Returns basic feature flags structure to prevent API failures.
  * For specific swap tests, add detailed mocks in the test files.
  */
+/**
+ * Helper function to create dapp scanning URL endpoints
+ */
+const createDappScanningUrl = (domain: string): string =>
+  `https://dapp-scanning.api.cx.metamask.io/v2/scan?url=${domain}`;
+
 export const DAPP_SCANNING_MOCKS: MockEventsObject = {
   GET: [
     {
-      urlEndpoint:
-        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=www.google.com',
+      urlEndpoint: createDappScanningUrl('www.google.com'),
       responseCode: 200,
       response: {
         domainName: 'google.com',
@@ -17,8 +22,7 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=google.com',
+      urlEndpoint: createDappScanningUrl('google.com'),
       responseCode: 200,
       response: {
         domainName: 'google.com',
@@ -26,8 +30,7 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=localhost',
+      urlEndpoint: createDappScanningUrl('localhost'),
       responseCode: 200,
       response: {
         domainName: 'localhost',
@@ -35,8 +38,7 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=verify.walletconnect.com',
+      urlEndpoint: createDappScanningUrl('verify.walletconnect.com'),
       responseCode: 200,
       response: {
         domainName: 'verify.walletconnect.com',
@@ -44,11 +46,26 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint:
-        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=portfolio.metamask.io',
+      urlEndpoint: createDappScanningUrl('portfolio.metamask.io'),
       responseCode: 200,
       response: {
         domainName: 'portfolio.metamask.io',
+        recommendedAction: 'NONE',
+      },
+    },
+    {
+      urlEndpoint: createDappScanningUrl('card.metamask.io'),
+      responseCode: 200,
+      response: {
+        hostname: 'card.metamask.io',
+        recommendedAction: 'VERIFIED',
+      },
+    },
+    {
+      urlEndpoint: createDappScanningUrl('walletconnect.com'),
+      responseCode: 200,
+      response: {
+        domainName: 'walletconnect.com',
         recommendedAction: 'NONE',
       },
     },

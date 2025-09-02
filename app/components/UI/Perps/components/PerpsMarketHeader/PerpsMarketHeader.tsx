@@ -40,7 +40,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
       {onBackPress && (
         <View style={styles.backButton}>
           <ButtonIcon
-            iconName={IconName.ArrowLeft}
+            iconName={IconName.Arrow2Left}
             iconColor={IconColor.Default}
             size={ButtonIconSizes.Md}
             onPress={onBackPress}
@@ -49,11 +49,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
         </View>
       )}
 
-      {/* Icon Section */}
+      {/* Icon Section - Smaller size for better spacing */}
       <View style={styles.perpIcon}>
         <PerpsTokenLogo
           symbol={market.symbol}
-          size={40}
+          size={32}
           style={styles.tokenIcon}
         />
       </View>

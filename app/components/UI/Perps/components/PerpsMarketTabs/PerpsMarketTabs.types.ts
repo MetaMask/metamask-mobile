@@ -10,8 +10,8 @@ export interface PerpsMarketTabsProps {
   position: Position | null;
   isLoadingPosition: boolean;
   unfilledOrders: Order[];
-  onPositionUpdate?: () => Promise<void>;
   onActiveTabChange?: (tabId: string) => void;
+  activeTabId?: string;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
    */

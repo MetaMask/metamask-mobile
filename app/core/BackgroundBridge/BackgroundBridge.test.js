@@ -154,7 +154,7 @@ describe('BackgroundBridge', () => {
       await bridge.onStateUpdate();
       await mmBridge.onStateUpdate();
       // Verify the spy was called with the correct URL
-      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
+      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).origin);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
     });
 
