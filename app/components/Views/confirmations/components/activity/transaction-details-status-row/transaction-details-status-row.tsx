@@ -5,12 +5,16 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import Icon, {
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
+import Tooltip from '../../UI/Tooltip';
 
 export function TransactionDetailsStatusRow() {
   const { transactionMeta } = useTransactionDetails();
@@ -18,6 +22,12 @@ export function TransactionDetailsStatusRow() {
   const statusText = getStatusText(transactionMeta.status);
   const statusColor = getStatusColour(transactionMeta.status);
   const statusIcon = getStatusIcon(transactionMeta.status);
+  const errorMessage = getErrorMessage(transactionMeta);
+
+  const tooltip =
+    transactionMeta.status === TransactionStatus.failed
+      ? errorMessage
+      : undefined;
 
   return (
     <TransactionDetailsRow label={strings('transactions.status')}>
@@ -28,6 +38,9 @@ export function TransactionDetailsStatusRow() {
       >
         <Icon name={statusIcon} color={statusColor} />
         <Text color={statusColor}>{statusText}</Text>
+        {tooltip && (
+          <Tooltip tooltipTestId="status-tooltip" content={tooltip} />
+        )}
       </Box>
     </TransactionDetailsRow>
   );
@@ -67,4 +80,27 @@ function getStatusIcon(status: TransactionStatus): IconName {
     default:
       return IconName.Pending;
   }
+}
+
+function getErrorMessage(transactionMeta: TransactionMeta): string | undefined {
+  const { error } = transactionMeta;
+
+  if (!error) return undefined;
+
+  if (error.stack) {
+    try {
+      const start = error.stack.indexOf('{');
+      const end = error.stack.lastIndexOf('}');
+      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
+      const stackMessage = stackObject?.data?.message;
+
+      if (stackMessage) {
+        return stackMessage;
+      }
+    } catch {
+      // Intentionally empty
+    }
+  }
+
+  return error.message;
 }
