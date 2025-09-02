@@ -13,7 +13,7 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { CandlePeriod } from '../constants/chartConfig';
-import type { AssetRoute, PerpsControllerConfig } from './types';
+import type { AssetRoute } from './types';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -207,10 +207,9 @@ describe('PerpsController', () => {
         getSelectedAccount?: jest.MockedFunction<() => unknown>;
         getNetworkState?: jest.MockedFunction<() => unknown>;
       };
-      clientConfig?: PerpsControllerConfig;
     } = {},
   ): ReturnValue {
-    const { state = {}, mocks = {}, clientConfig } = options;
+    const { state = {}, mocks = {} } = options;
 
     const messenger = new Messenger<any, any>();
 
@@ -245,14 +244,12 @@ describe('PerpsController', () => {
         'TransactionController:transactionSubmitted' as never,
         'TransactionController:transactionConfirmed' as never,
         'TransactionController:transactionFailed' as never,
-        'RemoteFeatureFlagController:stateChange' as never,
       ],
     });
 
     const controller = new PerpsController({
       messenger: restrictedMessenger,
       state,
-      clientConfig,
     });
 
     return fn({ controller, messenger });
@@ -1717,298 +1714,6 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('RemoteFeatureFlagController subscription', () => {
-    it('should subscribe to RemoteFeatureFlagController:stateChange and call refreshEligibility with remote blocked regions', () => {
-      withController(({ controller, messenger }) => {
-        // Spy on refreshEligibility to verify it gets called when the event is published
-        const refreshEligibilitySpy = jest.spyOn(
-          controller,
-          'refreshEligibility',
-        );
-        refreshEligibilitySpy.mockResolvedValue(undefined);
-
-        // Create mock state with valid feature flag
-        const mockState = {
-          remoteFeatureFlags: {
-            perpsPerpTradingGeoBlockedCountries: {
-              blockedRegions: ['US', 'CA-ON'],
-            },
-          },
-        };
-
-        // Publish the event to test the subscription
-        (messenger as any).publish(
-          'RemoteFeatureFlagController:stateChange',
-          mockState,
-        );
-
-        // Verify the controller's refreshEligibility method was called with the blocked regions
-        expect(refreshEligibilitySpy).toHaveBeenCalledWith(['US', 'CA-ON']);
-        refreshEligibilitySpy.mockRestore();
-      });
-    });
-
-    it('should call refreshEligibility with empty array when remote blockedRegions is empty array', () => {
-      withController(({ controller, messenger }) => {
-        // Spy on refreshEligibility to verify it gets called
-        const refreshEligibilitySpy = jest.spyOn(
-          controller,
-          'refreshEligibility',
-        );
-        refreshEligibilitySpy.mockResolvedValue(undefined);
-
-        // Create mock state with empty blockedRegions array
-        const mockState = {
-          remoteFeatureFlags: {
-            perpsPerpTradingGeoBlockedCountries: {
-              blockedRegions: [],
-            },
-          },
-        };
-
-        // Simulate RemoteFeatureFlagController state change
-        (messenger as any).publish(
-          'RemoteFeatureFlagController:stateChange',
-          mockState,
-        );
-
-        // Should call refreshEligibility with empty array (all regions allowed)
-        expect(refreshEligibilitySpy).toHaveBeenCalledWith([]);
-        refreshEligibilitySpy.mockRestore();
-      });
-    });
-
-    it('should fallback to clientConfig.fallbackBlockedRegions when blockedRegions is undefined', () => {
-      // Create controller with fallback regions in clientConfig
-      withController(
-        ({ controller, messenger }) => {
-          // Spy on refreshEligibility method
-          const refreshEligibilitySpy = jest.spyOn(
-            controller,
-            'refreshEligibility',
-          );
-          refreshEligibilitySpy.mockResolvedValue(undefined);
-
-          // Create mock state without blockedRegions
-          const mockState = {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountries: {
-                // Missing blockedRegions - should trigger fallback
-              },
-            },
-          };
-
-          // Simulate RemoteFeatureFlagController state change
-          (messenger as any).publish(
-            'RemoteFeatureFlagController:stateChange',
-            mockState,
-          );
-
-          // Should call refreshEligibility with fallback regions
-          expect(refreshEligibilitySpy).toHaveBeenCalledWith(['UK', 'JP']);
-          refreshEligibilitySpy.mockRestore();
-        },
-        {
-          state: {},
-          clientConfig: {
-            fallbackBlockedRegions: ['UK', 'JP'],
-          },
-        },
-      );
-    });
-
-    it('should fallback to clientConfig when perpsPerpTradingGeoBlockedCountries flag is missing', () => {
-      withController(
-        ({ controller, messenger }) => {
-          // Spy on refreshEligibility method
-          const refreshEligibilitySpy = jest.spyOn(
-            controller,
-            'refreshEligibility',
-          );
-          refreshEligibilitySpy.mockResolvedValue(undefined);
-
-          // Create mock state without the feature flag
-          const mockState = {
-            remoteFeatureFlags: {
-              // Missing perpsPerpTradingGeoBlockedCountries
-            },
-          };
-
-          // Simulate RemoteFeatureFlagController state change
-          (messenger as any).publish(
-            'RemoteFeatureFlagController:stateChange',
-            mockState,
-          );
-
-          // Should call refreshEligibility with fallback regions
-          expect(refreshEligibilitySpy).toHaveBeenCalledWith(['DE', 'FR']);
-          refreshEligibilitySpy.mockRestore();
-        },
-        {
-          state: {},
-          clientConfig: {
-            fallbackBlockedRegions: ['DE', 'FR'],
-          },
-        },
-      );
-    });
-
-    it('should not call refreshEligibility when both remote and fallback blocked regions are undefined', () => {
-      // Create controller without fallback regions
-      withController(
-        ({ controller, messenger }) => {
-          // Spy on refreshEligibility method
-          const refreshEligibilitySpy = jest.spyOn(
-            controller,
-            'refreshEligibility',
-          );
-
-          // Create mock state without blockedRegions
-          const mockState = {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountries: {
-                // Missing blockedRegions
-              },
-            },
-          };
-
-          // Simulate RemoteFeatureFlagController state change
-          (messenger as any).publish(
-            'RemoteFeatureFlagController:stateChange',
-            mockState,
-          );
-
-          // Should NOT call refreshEligibility (early return)
-          expect(refreshEligibilitySpy).not.toHaveBeenCalled();
-          refreshEligibilitySpy.mockRestore();
-        },
-        {
-          state: {},
-          clientConfig: {
-            // No fallbackBlockedRegions defined
-          },
-        },
-      );
-    });
-
-    it('should handle refreshEligibility errors gracefully', () => {
-      withController(({ controller, messenger }) => {
-        // Spy on refreshEligibility method and make it reject
-        const refreshEligibilitySpy = jest.spyOn(
-          controller,
-          'refreshEligibility',
-        );
-        refreshEligibilitySpy.mockRejectedValue(new Error('Network error'));
-
-        // Create mock state with valid feature flag
-        const mockState = {
-          remoteFeatureFlags: {
-            perpsPerpTradingGeoBlockedCountries: {
-              blockedRegions: ['US', 'CA-ON'],
-            },
-          },
-        };
-
-        // Simulate RemoteFeatureFlagController state change
-        (messenger as any).publish(
-          'RemoteFeatureFlagController:stateChange',
-          mockState,
-        );
-
-        expect(refreshEligibilitySpy).toHaveBeenCalledWith(['US', 'CA-ON']);
-
-        refreshEligibilitySpy.mockRestore();
-      });
-    });
-
-    it('should work with different blocked regions configurations', () => {
-      withController(({ controller, messenger }) => {
-        // Test with single region
-        const refreshEligibilitySpy = jest.spyOn(
-          controller,
-          'refreshEligibility',
-        );
-        refreshEligibilitySpy.mockResolvedValue(undefined);
-
-        const mockStateSingleRegion = {
-          remoteFeatureFlags: {
-            perpsPerpTradingGeoBlockedCountries: {
-              blockedRegions: ['US'],
-            },
-          },
-        };
-
-        (messenger as any).publish(
-          'RemoteFeatureFlagController:stateChange',
-          mockStateSingleRegion,
-        );
-
-        expect(refreshEligibilitySpy).toHaveBeenCalledWith(['US']);
-
-        // Test with multiple regions
-        const mockStateMultipleRegions = {
-          remoteFeatureFlags: {
-            perpsPerpTradingGeoBlockedCountries: {
-              blockedRegions: ['US', 'CA-ON', 'FR', 'DE-BY'],
-            },
-          },
-        };
-
-        (messenger as any).publish(
-          'RemoteFeatureFlagController:stateChange',
-          mockStateMultipleRegions,
-        );
-
-        expect(refreshEligibilitySpy).toHaveBeenCalledWith([
-          'US',
-          'CA-ON',
-          'FR',
-          'DE-BY',
-        ]);
-
-        refreshEligibilitySpy.mockRestore();
-      });
-    });
-
-    it('should fallback when blockedRegions is invalid type (not array)', () => {
-      withController(
-        ({ controller, messenger }) => {
-          // Spy on refreshEligibility method
-          const refreshEligibilitySpy = jest.spyOn(
-            controller,
-            'refreshEligibility',
-          );
-          refreshEligibilitySpy.mockResolvedValue(undefined);
-
-          // Create mock state with invalid blockedRegions type
-          const mockState = {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountries: {
-                blockedRegions: 'US,CA-ON' as any, // Invalid: string instead of array
-              },
-            },
-          };
-
-          // Simulate RemoteFeatureFlagController state change
-          (messenger as any).publish(
-            'RemoteFeatureFlagController:stateChange',
-            mockState,
-          );
-
-          // Should fallback to clientConfig regions
-          expect(refreshEligibilitySpy).toHaveBeenCalledWith(['AU', 'NZ']);
-          refreshEligibilitySpy.mockRestore();
-        },
-        {
-          state: {},
-          clientConfig: {
-            fallbackBlockedRegions: ['AU', 'NZ'],
-          },
-        },
-      );
-    });
-  });
-
   describe('refreshEligibility', () => {
     let mockSuccessfulFetch: jest.MockedFunction<typeof successfulFetch>;
 
@@ -2026,7 +1731,7 @@ describe('PerpsController', () => {
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
       withController(async ({ controller }) => {
-        await controller.refreshEligibility(['US', 'CA-ON']);
+        await controller.refreshEligibility();
 
         expect(controller.state.isEligible).toBe(true);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
@@ -2041,7 +1746,7 @@ describe('PerpsController', () => {
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
       withController(async ({ controller }) => {
-        await controller.refreshEligibility(['US', 'CA-ON']);
+        await controller.refreshEligibility();
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
@@ -2056,7 +1761,7 @@ describe('PerpsController', () => {
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
       withController(async ({ controller }) => {
-        await controller.refreshEligibility(['US', 'CA-ON']);
+        await controller.refreshEligibility();
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
@@ -2068,7 +1773,7 @@ describe('PerpsController', () => {
       mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
 
       withController(async ({ controller }) => {
-        await controller.refreshEligibility(['US', 'CA-ON']);
+        await controller.refreshEligibility();
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
@@ -2099,7 +1804,7 @@ describe('PerpsController', () => {
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
 
       withController(async ({ controller }) => {
-        await controller.refreshEligibility(['US', 'CA-ON']);
+        await controller.refreshEligibility();
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
