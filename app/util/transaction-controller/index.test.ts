@@ -590,15 +590,4 @@ describe('Transaction Controller Util', () => {
       ).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
     });
   });
-
-  describe('getLayer1GasFee', () => {
-    it('calls getLayer1GasFee with transactionParams and chainId', () => {
-      const txParams = { from: '0x123', value: '0x5' };
-      const chainId = '0x1';
-      TransactionControllerUtils.getLayer1GasFee(txParams, chainId);
-      expect(
-        Engine.context.TransactionController.getLayer1GasFee,
-      ).toHaveBeenCalledWith(txParams, chainId);
-    });
-  });
 });

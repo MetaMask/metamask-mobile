@@ -12,15 +12,13 @@ import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import {
-  addTransaction,
-  getLayer1GasFee,
-} from '../../../../util/transaction-controller';
+import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 
 const captureSendStartedEvent = (location: string) => {
   const { trackEvent } = MetaMetrics.getInstance();
@@ -211,10 +209,14 @@ export const getLayer1GasFeeForSend = async ({
   chainId: Hex;
   from: Hex;
   value: string;
-}) => {
-  const transactionParams = {
+}): Promise<Hex | undefined> => {
+  const txParams = {
+    chainId,
     from,
     value: fromTokenMinUnits(value, asset.decimals),
   };
-  return await getLayer1GasFee(transactionParams, chainId);
+  return (await fetchEstimatedMultiLayerL1Fee(undefined, {
+    txParams,
+    chainId,
+  })) as Hex;
 };

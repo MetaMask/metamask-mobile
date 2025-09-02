@@ -20,24 +20,6 @@ export async function addTransaction(
   return await TransactionController.addTransaction(transaction, opts);
 }
 
-export async function getLayer1GasFee(
-  transactionParams: TransactionParams,
-  chainId?: Hex,
-) {
-  const { TransactionController } = Engine.context;
-  return await (
-    TransactionController as unknown as {
-      getLayer1GasFee: (args: {
-        transactionParams: TransactionParams;
-        chainId?: Hex;
-      }) => Promise<Hex>;
-    }
-  ).getLayer1GasFee({
-    transactionParams,
-    chainId,
-  });
-}
-
 export async function updateAtomicBatchData(batchData: {
   transactionId: string;
   transactionData: Hex;
