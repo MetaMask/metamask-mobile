@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Linking,
   StyleSheet as RNStyleSheet,
-  TextStyle,
   View,
   ScrollView,
 } from 'react-native';
@@ -183,9 +182,7 @@ const createStyles = ({ colors }: Theme) =>
       backgroundColor: colors.background.default,
     },
     walletAccount: { marginTop: 28 },
-    tabBar: {
-      marginBottom: 8,
-    },
+
     tabContainer: {
       paddingHorizontal: 16,
       flex: 1,
@@ -202,10 +199,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     carouselContainer: {
       marginBottom: 12,
-    },
-    tabStyle: {
-      paddingBottom: 8,
-      paddingVertical: 8,
     },
   });
 
@@ -255,16 +248,6 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   // Track current tab index for Perps visibility
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-  // Tab bar styling for the new TabsList component
-  const tabBarStyle = useMemo(() => styles.tabBar, [styles.tabBar]);
-  const tabStyle = useMemo(() => styles.tabStyle, [styles.tabStyle]);
-  const textStyle = useMemo(
-    () => ({
-      ...(theme.typography.sBodySMBold as TextStyle),
-    }),
-    [theme.typography.sBodySMBold],
-  );
 
   const tokensTabProps = useMemo(
     () => ({
@@ -411,13 +394,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
-      <TabsList
-        ref={tabsListRef}
-        onChangeTab={handleTabChange}
-        style={tabBarStyle}
-        tabStyle={tabStyle}
-        textStyle={textStyle}
-      >
+      <TabsList ref={tabsListRef} onChangeTab={handleTabChange}>
         {tabsToRender}
       </TabsList>
     </View>

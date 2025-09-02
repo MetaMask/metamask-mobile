@@ -11,10 +11,10 @@ import {
   StyleSheet,
   View,
   Image,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -562,7 +562,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlatList
+      <FlashList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (
@@ -587,6 +587,7 @@ const CollectibleContracts = ({
         }
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}
+        estimatedItemSize={100}
       />
     ),
     [

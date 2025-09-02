@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { ViewStyle, TextStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 
 /**
  * Individual tab item data interface
@@ -36,14 +36,6 @@ export interface TabProps {
    */
   onPress: () => void;
   /**
-   * Optional additional styling
-   */
-  style?: ViewStyle;
-  /**
-   * Optional text style
-   */
-  textStyle?: TextStyle;
-  /**
    * Test ID for testing
    */
   testID?: string;
@@ -65,26 +57,6 @@ export interface TabsBarProps {
    * Callback when a tab is selected
    */
   onTabPress: (index: number) => void;
-  /**
-   * Whether tabs should be scrollable horizontally
-   */
-  scrollEnabled?: boolean;
-  /**
-   * Optional additional styling for the tab bar container
-   */
-  style?: ViewStyle;
-  /**
-   * Optional styling for individual tabs
-   */
-  tabStyle?: ViewStyle;
-  /**
-   * Optional styling for tab text
-   */
-  textStyle?: TextStyle;
-  /**
-   * Optional styling for the underline
-   */
-  underlineStyle?: ViewStyle;
   /**
    * Whether the tabs are locked (disabled)
    */
@@ -108,10 +80,6 @@ export interface TabsListProps {
    */
   initialPage?: number;
   /**
-   * Whether tabs should be scrollable horizontally
-   */
-  scrollEnabled?: boolean;
-  /**
    * Callback when tab changes
    */
   onChangeTab?: (changeTabProperties: {
@@ -123,25 +91,9 @@ export interface TabsListProps {
    */
   locked?: boolean;
   /**
-   * Optional custom tab bar renderer
-   */
-  renderTabBar?: (props: TabsBarProps) => React.ReactElement;
-  /**
    * Optional additional styling for the container
    */
   style?: ViewStyle;
-  /**
-   * Optional styling for individual tabs
-   */
-  tabStyle?: ViewStyle;
-  /**
-   * Optional styling for tab text
-   */
-  textStyle?: TextStyle;
-  /**
-   * Optional styling for the underline
-   */
-  underlineStyle?: ViewStyle;
   /**
    * Test ID for testing
    */

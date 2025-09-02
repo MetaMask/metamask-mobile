@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, LayoutChangeEvent } from 'react-native';
 
 // External dependencies.
@@ -18,11 +18,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
   tabs,
   activeIndex,
   onTabPress,
-  scrollEnabled = true,
-  style,
-  tabStyle,
-  textStyle,
-  underlineStyle,
   locked = false,
   testID,
 }) => {
@@ -33,6 +28,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
   const tabLayouts = useRef<{ x: number; width: number }[]>([]);
   const isInitialized = useRef(false);
+
+  // State for automatic overflow detection
+  const [scrollEnabled, setScrollEnabled] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [contentWidth, setContentWidth] = useState(0);
 
   // Animate underline when active tab changes
   useEffect(() => {
@@ -71,8 +71,30 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
   }, [activeIndex, scrollEnabled, underlineAnimated, underlineWidthAnimated]);
 
+  // Check if content overflows and update scroll state
+  useEffect(() => {
+    if (containerWidth > 0 && contentWidth > 0) {
+      const shouldScroll = contentWidth > containerWidth;
+      setScrollEnabled(shouldScroll);
+    }
+  }, [containerWidth, contentWidth]);
+
+  // Handle container layout to measure available width
+  const handleContainerLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    setContainerWidth(width);
+  };
+
+  // Handle content layout to measure total tabs width
+  const handleContentLayout = (event: LayoutChangeEvent) => {
+    const { width } = event.nativeEvent.layout;
+    setContentWidth(width);
+  };
+
   const handleTabLayout = (index: number, event: LayoutChangeEvent) => {
     const { x, width } = event.nativeEvent.layout;
+
+    // Store the wrapper dimensions directly
     tabLayouts.current[index] = { x, width };
 
     // If this is the active tab and we haven't initialized the underline yet, set it immediately
@@ -90,7 +112,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
   };
 
   return (
-    <Box style={tw.style('relative overflow-hidden', style)} testID={testID}>
+    <Box
+      twClassName="relative overflow-hidden"
+      testID={testID}
+      onLayout={handleContainerLayout}
+    >
       {scrollEnabled ? (
         <ScrollView
           ref={scrollViewRef}
@@ -103,7 +129,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="border-b border-border-muted bg-background-default relative"
+            twClassName="relative gap-6"
+            onLayout={handleContentLayout}
           >
             {tabs.map((tab, index) => (
               <Box
@@ -114,8 +141,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
                   label={tab.label}
                   isActive={index === activeIndex}
                   onPress={() => handleTabPress(index)}
-                  style={tabStyle}
-                  textStyle={textStyle}
                   testID={`${testID}-tab-${index}`}
                 />
               </Box>
@@ -123,14 +148,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
             {/* Animated underline for scrollable tabs */}
             <Animated.View
-              style={tw.style(
-                'absolute bottom-0 h-0.5 bg-icon-default',
-                {
-                  width: underlineWidthAnimated,
-                  transform: [{ translateX: underlineAnimated }],
-                },
-                underlineStyle,
-              )}
+              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+                width: underlineWidthAnimated,
+                transform: [{ translateX: underlineAnimated }],
+              })}
             />
           </Box>
         </ScrollView>
@@ -138,7 +159,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="border-b border-border-muted bg-background-default relative"
+          twClassName="relative gap-6"
+          onLayout={handleContentLayout}
         >
           {tabs.map((tab, index) => (
             <Box
@@ -149,8 +171,6 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 label={tab.label}
                 isActive={index === activeIndex}
                 onPress={() => handleTabPress(index)}
-                style={tabStyle}
-                textStyle={textStyle}
                 testID={`${testID}-tab-${index}`}
               />
             </Box>
@@ -158,14 +178,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
           {/* Animated underline for non-scrollable tabs */}
           <Animated.View
-            style={tw.style(
-              'absolute bottom-0 h-0.5 bg-icon-default',
-              {
-                width: underlineWidthAnimated,
-                transform: [{ translateX: underlineAnimated }],
-              },
-              underlineStyle,
-            )}
+            style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+              width: underlineWidthAnimated,
+              transform: [{ translateX: underlineAnimated }],
+            })}
           />
         </Box>
       )}
