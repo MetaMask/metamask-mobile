@@ -75,11 +75,6 @@ interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
   networkConfiguration: NetworkConfigurationOptions;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-  shouldNetworkSwitchPopToWallet: boolean;
-  onNetworkSwitch?: () => void;
   showPopularNetworkModal: boolean;
   safeChains?: SafeChain[];
   onReject?: () => void;
