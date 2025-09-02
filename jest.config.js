@@ -49,6 +49,11 @@ const config = {
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
   ],
+  testPathIgnorePatterns: [
+    '.*/e2e/specs/.*\\.spec\\.(ts|js)$',
+    '.*/e2e/pages/',
+    '.*/e2e/selectors/',
+  ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
