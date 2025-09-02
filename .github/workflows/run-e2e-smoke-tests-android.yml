@@ -1,0 +1,212 @@
+name: Android E2E Smoke Tests
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  confirmations-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: confirmations-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeConfirmations"
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+    secrets: inherit
+
+  trade-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: trade-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeTrade"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  wallet-platform-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: wallet-platform-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeWalletPlatform"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  identity-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: identity-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeIdentity"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  accounts-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: accounts-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeAccounts"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  network-abstraction-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: network-abstraction-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeNetworkAbstractions"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  network-expansion-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: network-expansion-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeNetworkExpansion"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  performance-android-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: performance-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokePerformance"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+
+  card-android-smoke:
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: card-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: "SmokeCard"
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+    secrets: inherit
+
+  report-android-smoke-tests:
+    name: Report Android Smoke Tests
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    needs:
+      - confirmations-android-smoke
+      - trade-android-smoke
+      - wallet-platform-android-smoke
+      - identity-android-smoke
+      - accounts-android-smoke
+      - network-abstraction-android-smoke
+      - network-expansion-android-smoke
+      - performance-android-smoke
+      - card-android-smoke
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+          pattern: "*-android-*-test-results"
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: "Android E2E Smoke Test Results"
+          path: "all-test-results/**/*.xml"
+          reporter: "jest-junit"
+          fail-on-error: false
+          list-suites: "failed"
+          list-tests: "failed"
+
+      - name: Create mobile test report
+        id: create-json-report
+        continue-on-error: true
+        run: |
+          # Create a temporary directory for xml2js to avoid conflicts
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y
+          npm install xml2js@0.5.0 --no-audit --no-fund
+          
+          # Copy node_modules to workspace
+          cp -r node_modules ${{ github.workspace }}/
+          
+          # Run the mobile test report generator
+          cd ${{ github.workspace }}
+          TEST_RESULTS_PATH=all-test-results \
+          TEST_RUNS_PATH=test/test-results/test-runs-android.json \
+          RUN_ID=${{ github.run_id }} \
+          PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+          node .github/scripts/create-e2e-test-report.mjs
+          
+          # Clean up temporary node_modules
+          rm -rf node_modules
+
+      - name: Upload test runs JSON
+        if: steps.create-json-report.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-e2e-android-report
+          path: test/test-results/test-runs-android.json
+
+      - name: Upload merged XML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-merged-test-report
+          path: all-test-results/**/*.xml

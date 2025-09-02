@@ -41,12 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-      backgroundColor: colors.background.alternative,
-    },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
     },
     headerLeft: {
       flex: 1,

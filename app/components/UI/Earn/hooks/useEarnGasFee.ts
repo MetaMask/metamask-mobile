@@ -4,12 +4,14 @@ import { formatEther } from 'ethers/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { hexToBN } from '../../../../util/number';
 import { useStakeContext } from '../../Stake/hooks/useStakeContext';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnTokenDetails } from '../types/lending.types';
+import { EVM_SCOPE } from '../constants/networks';
 
 interface EarnGasFee {
   estimatedEarnGasFeeWei: BN4;
@@ -29,8 +31,12 @@ const useEarnDepositGasFee = (
 ): EarnGasFee => {
   // TODO: move to using the earn controller for gas estimation fot pooled staking
   const { stakingContract, lendingContracts } = useStakeContext();
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const selectedAddress = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : '';
   const [isLoadingEarnGasFee, setIsLoadingEarnGasFee] =
     useState<boolean>(false);
   const [isEarnGasFeeError, setIsEarnGasFeeError] = useState<boolean>(false);

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -102,6 +102,7 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -111,7 +112,8 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -238,6 +240,16 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
+const RewardsHome = () => {
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
+
+  if (!isRewardsEnabled) {
+    return null;
+  }
+  // TODO: Return RewardsNavigator
+  return null;
+};
+
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
   <Stack.Navigator
@@ -332,6 +344,7 @@ const SettingsFlow = () => (
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
     />
+
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}
@@ -466,6 +479,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const accountsLength = useSelector(selectAccountsLength);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
@@ -523,6 +537,15 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
+    },
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
+      callback: () => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
+        );
+      },
+      rootScreenName: Routes.REWARDS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -593,13 +616,21 @@ const HomeTabs = () => {
         component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
-
-      <Tab.Screen
-        name={Routes.SETTINGS_VIEW}
-        options={options.settings}
-        component={SettingsFlow}
-        layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-      />
+      {isRewardsEnabled ? (
+        <Tab.Screen
+          name={Routes.REWARDS_VIEW}
+          options={options.rewards}
+          component={RewardsHome}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      ) : (
+        <Tab.Screen
+          name={Routes.SETTINGS_VIEW}
+          options={options.settings}
+          component={SettingsFlow}
+          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+        />
+      )}
     </Tab.Navigator>
   );
 };
@@ -767,7 +798,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={AccountBackupStep1.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -799,7 +830,16 @@ const SetPasswordFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
+  const { enabled: isSendRedesignEnabled } = useSelector(
+    selectSendRedesignFlags,
+  );
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -836,6 +876,13 @@ const MainNavigator = () => {
         }}
       />
       <Stack.Screen name="Home" component={HomeTabs} />
+      {isRewardsEnabled && (
+        <Stack.Screen
+          name={Routes.SETTINGS_VIEW}
+          component={SettingsFlow}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen name="Asset" component={AssetModalFlow} />
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
@@ -847,7 +894,7 @@ const MainNavigator = () => {
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? Send : SendFlowView}
+        component={isSendRedesignEnabled ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />

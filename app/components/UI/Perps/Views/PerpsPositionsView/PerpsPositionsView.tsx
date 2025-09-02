@@ -4,7 +4,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -29,7 +29,7 @@ import {
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
 import { createStyles } from './PerpsPositionsView.styles';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -133,10 +133,8 @@ const PerpsPositionsView: React.FC = () => {
     );
   };
 
-  const { top } = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}

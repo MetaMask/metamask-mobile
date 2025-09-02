@@ -219,13 +219,17 @@ const ImportFromSecretRecoveryPhrase = ({
           ];
 
           // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace) {
+          if (isEndWithSpace && index === seedPhrase.length - 1) {
             newSeedPhrase.push('');
           }
 
+          const targetIndex = Math.min(
+            newSeedPhrase.length - 1,
+            index + splitArray.length,
+          );
           setSeedPhrase(newSeedPhrase);
           setTimeout(() => {
-            setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+            setNextSeedPhraseInputFocusedIndex(targetIndex);
           }, 0);
           return;
         }

@@ -53,7 +53,9 @@ describe('usePerpsMarketStats', () => {
       timestamp: Date.now(),
       percentChange24h: '2.50',
       funding: 0.01,
-      openInterest: 987654321,
+      // openInterest is now in USD (already converted from token units * price)
+      // For example: 22,000 BTC * $45,000 = $990M
+      openInterest: 990000000,
       volume24h: 1234567890,
     },
   };
@@ -91,6 +93,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -101,7 +104,7 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.high24h).toBe('$46,000.00');
     expect(result.current.low24h).toBe('$43,500.00');
     expect(result.current.volume24h).toBe('$1B'); // No decimals in formatVolume
-    expect(result.current.openInterest).toBe('$988M'); // No decimals in formatLargeNumber
+    expect(result.current.openInterest).toBe('$990M'); // No decimals in formatLargeNumber
     expect(result.current.fundingRate).toBe('1.0000%');
     expect(result.current.isLoading).toBe(false);
   });
@@ -112,6 +115,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
     });
@@ -129,6 +133,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -148,7 +153,8 @@ describe('usePerpsMarketStats', () => {
       BTC: {
         ...mockPriceData.BTC,
         volume24h: 12345678901234,
-        openInterest: 98765432109876,
+        // openInterest is now in USD (already converted from token units * price)
+        openInterest: 99000000000000, // $99T
       },
     };
 
@@ -159,6 +165,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -184,6 +191,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });

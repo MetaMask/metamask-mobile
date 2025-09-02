@@ -5,6 +5,7 @@ import { selectCurrencyRates } from '../../../../../selectors/currencyRateContro
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
 import { useDeepMemo } from '../useDeepMemo';
+import { toChecksumAddress } from '../../../../../util/address';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -15,18 +16,13 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const tokenMarketDataByAddressByChainId = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const safeRequests = useDeepMemo(() => requests, [requests]);
 
   const result = useMemo(
     () =>
-      requests.map(({ address, chainId }) => {
-        const chainTokens = Object.values(
-          tokenMarketDataByAddressByChainId[chainId] ?? {},
-        );
-
-        const token = chainTokens.find(
-          (t) => t.tokenAddress.toLowerCase() === address.toLowerCase(),
-        );
-
+      safeRequests.map(({ address, chainId }) => {
+        const chainTokens = tokenMarketDataByAddressByChainId[chainId] ?? {};
+        const token = chainTokens[toChecksumAddress(address)];
         const networkConfiguration = networkConfigurations[chainId];
 
         const conversionRate =
@@ -39,7 +35,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
         return (token?.price ?? 1) * conversionRate;
       }),
     [
-      requests,
+      safeRequests,
       tokenMarketDataByAddressByChainId,
       currencyRates,
       networkConfigurations,
@@ -47,4 +43,9 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   );
 
   return useDeepMemo(() => result, [result]);
+}
+
+export function useTokenFiatRate(tokenAddress: Hex, chainId: Hex) {
+  const rates = useTokenFiatRates([{ address: tokenAddress, chainId }]);
+  return rates[0];
 }

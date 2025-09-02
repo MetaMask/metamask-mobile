@@ -1,5 +1,5 @@
 import { MultichainAddressRowProps } from './MultichainAddressRow.types';
-import { IconName } from '../../../components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 export const MULTICHAIN_ADDRESS_ROW_TEST_ID = 'multichain-address-row';
 export const MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID =
@@ -14,13 +14,6 @@ export const MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID =
   'multichain-address-row-qr-button';
 
 export const SAMPLE_ICONS = [
-  {
-    name: IconName.Copy,
-    callback: () => {
-      // Do nothing
-    },
-    testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-  },
   {
     name: IconName.QrCode,
     callback: () => {

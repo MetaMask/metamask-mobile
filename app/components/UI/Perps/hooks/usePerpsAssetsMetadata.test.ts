@@ -18,8 +18,6 @@ describe('usePerpsAssetMetadata', () => {
 
     // Assert
     expect(result.current.assetUrl).toBe('');
-    expect(result.current.error).toBe(null);
-    expect(result.current.hasError).toBe(false);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -35,8 +33,6 @@ describe('usePerpsAssetMetadata', () => {
     // Assert
     await waitFor(() => {
       expect(result.current.assetUrl).toBe(expectedUrl);
-      expect(result.current.error).toBe(null);
-      expect(result.current.hasError).toBe(false);
     });
 
     expect(mockFetch).toHaveBeenCalledWith(expectedUrl, { method: 'HEAD' });
@@ -54,8 +50,6 @@ describe('usePerpsAssetMetadata', () => {
     // Assert
     await waitFor(() => {
       expect(result.current.assetUrl).toBe('');
-      expect(result.current.error).toBe('Asset icon not found');
-      expect(result.current.hasError).toBe(true);
     });
 
     expect(mockFetch).toHaveBeenCalledWith(expectedUrl, { method: 'HEAD' });
@@ -73,17 +67,15 @@ describe('usePerpsAssetMetadata', () => {
     // Assert
     await waitFor(() => {
       expect(result.current.assetUrl).toBe('');
-      expect(result.current.error).toBe('Failed to load asset icon');
-      expect(result.current.hasError).toBe(true);
     });
 
     expect(mockFetch).toHaveBeenCalledWith(expectedUrl, { method: 'HEAD' });
   });
 
   it('converts asset symbol to uppercase', async () => {
-    // Arrange
-    const assetSymbol = 'btc';
-    const expectedUrl = `${HYPERLIQUID_ASSET_ICONS_BASE_URL}BTC.svg`;
+    // Arrange - use a unique symbol to avoid cache issues
+    const assetSymbol = 'uniquesymbol';
+    const expectedUrl = `${HYPERLIQUID_ASSET_ICONS_BASE_URL}UNIQUESYMBOL.svg`;
     mockFetch.mockResolvedValueOnce({ ok: true });
 
     // Act
@@ -98,8 +90,8 @@ describe('usePerpsAssetMetadata', () => {
   });
 
   it('resets state when assetSymbol changes from valid to undefined', async () => {
-    // Arrange
-    const assetSymbol = 'BTC';
+    // Arrange - use unique symbol to avoid cache
+    const assetSymbol = 'TESTSYMBOL';
     mockFetch.mockResolvedValueOnce({ ok: true });
     const { result, rerender } = renderHook(
       ({ symbol }: { symbol: string | undefined }) =>
@@ -117,7 +109,5 @@ describe('usePerpsAssetMetadata', () => {
 
     // Assert
     expect(result.current.assetUrl).toBe('');
-    expect(result.current.error).toBe(null);
-    expect(result.current.hasError).toBe(false);
   });
 });

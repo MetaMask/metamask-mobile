@@ -1,11 +1,11 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockEventsObject } from '../../../framework';
 
 /**
  * Minimal mock data for staking API endpoints used in E2E testing.
  * Returns empty/basic responses to prevent API failures.
  * For specific staking tests, add detailed mocks in the test files.
  */
-export const STAKING_MOCKS: TestSpecificMock = {
+export const STAKING_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:

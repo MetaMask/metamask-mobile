@@ -8,6 +8,7 @@ export const QuoteViewSelectorText = {
   CONFIRM_SWAP: enContent.bridge.confirm_swap,
   SELECT_AMOUNT: enContent.bridge.select_amount,
   CANCEL: 'Cancel',
+  FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
 };
 
 export const QuoteViewSelectorIDs = {

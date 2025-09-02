@@ -2051,7 +2051,7 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
-  - react-native-webview-mm (14.4.0):
+  - react-native-webview-mm (14.5.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3362,7 +3362,7 @@ SPEC CHECKSUMS:
   react-native-slider: e4b7f9d0616032ec2909ba073731eabcde242256
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
-  react-native-webview-mm: 0fbb0f4722fb1937065e9e1a84282584e632c8f6
+  react-native-webview-mm: b9630326cca01837e1176dc3fb2310258fe49877
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: cebca2e5320a3d66e123cade23bd90a167ffce5e
   React-perflogger: 72e653eb3aba9122f9e57cf012d22d2486f33358

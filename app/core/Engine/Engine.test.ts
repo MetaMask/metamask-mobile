@@ -27,7 +27,19 @@ jest.mock('../BackupVault', () => ({
 }));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
-  store: { getState: jest.fn(() => ({ engine: {} })) },
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              rewards: true,
+            },
+          },
+        },
+      },
+    })),
+  },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),

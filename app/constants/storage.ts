@@ -61,8 +61,6 @@ export const themeAppearanceLight = 'light';
 
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
 
-export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShownV2`;
-
 export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 
 export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;

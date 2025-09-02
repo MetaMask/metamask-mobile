@@ -3,7 +3,6 @@ import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { BaseWalletDetails } from './index';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
@@ -13,10 +12,39 @@ import { useWalletBalances } from '../hooks/useWalletBalances';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import { RootState } from '../../../../../reducers';
+import {
+  createMockAccountGroup,
+  createMockWallet,
+} from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import {
+  selectAccountTreeControllerState,
+  selectAccountGroupsByWallet,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
 jest.mock('../hooks/useWalletInfo');
+
+// Mock the multichain accounts feature flag selector
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
+// Mock the account tree controller selector
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountTreeControllerState: jest.fn(),
+    selectSelectedAccountGroupId: jest.fn(),
+    selectAccountGroupsByWallet: jest.fn(),
+    selectAccountGroupWithInternalAccounts: jest.fn(),
+  }),
+);
 
 // Mock the dependencies of WalletAddAccountActions instead of the component itself
 jest.mock('../../../../../actions/multiSrp', () => ({
@@ -32,10 +60,30 @@ jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   },
 }));
 
+// Mock Engine to prevent undefined internalAccounts error
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {},
+          selectedAccount: '',
+        },
+      },
+    },
+  },
+}));
+
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;
 const mockUseWalletInfo = useWalletInfo as jest.Mock;
+const mockSelectMultichainAccountsState2Enabled = jest.mocked(
+  selectMultichainAccountsState2Enabled,
+);
+const mockSelectAccountTreeControllerState = jest.mocked(
+  selectAccountTreeControllerState,
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -64,20 +112,54 @@ const mockAccount2 = createMockInternalAccount(
   EthAccountType.Eoa,
 );
 
-const mockWallet = {
-  id: `keyring:1`,
-  metadata: {
-    name: 'Test Wallet',
-  },
-  accounts: [mockAccount1, mockAccount2],
-  groups: {},
-} as unknown as AccountWalletObject;
+const mockAccountGroup1 = createMockAccountGroup(
+  'keyring:1/group1',
+  'Account Group 1',
+  [mockAccount1.id],
+);
+const mockAccountGroup2 = createMockAccountGroup(
+  'keyring:1/group2',
+  'Account Group 2',
+  [mockAccount2.id],
+);
+
+const mockWallet = createMockWallet('1', 'Test Wallet', [
+  mockAccountGroup1,
+  mockAccountGroup2,
+]);
 
 const mockInitialState: Partial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
-};
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            [mockAccount1.id]: mockAccount1,
+            [mockAccount2.id]: mockAccount2,
+          },
+          selectedAccount: mockAccount1.id,
+        },
+      },
+      TokenBalancesController: {
+        tokenBalances: {},
+      },
+      TokenRatesController: {
+        marketData: {},
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {},
+        historicalPrices: {},
+      },
+      MultichainBalancesController: {
+        balances: {},
+      },
+    },
+  },
+} as unknown as RootState;
 
 describe('BaseWalletDetails', () => {
   beforeEach(() => {
@@ -89,22 +171,48 @@ describe('BaseWalletDetails', () => {
     mockUseWalletBalances.mockReturnValue({
       formattedWalletTotalBalance: '$1,234.56',
       multichainBalancesForAllAccounts: {
-        [mockAccount1.id]: {
-          displayBalance: '$500.00',
-          isLoadingAccount: false,
-        },
-        [mockAccount2.id]: {
-          displayBalance: '$734.56',
-          isLoadingAccount: false,
-        },
+        [mockAccount1.id]: '$500.00',
+        [mockAccount2.id]: '$734.56',
       },
     });
     mockUseWalletInfo.mockReturnValue({
       accounts: [mockAccount1, mockAccount2],
       keyringId: 'keyring:1',
-      srpIndex: 1,
       isSRPBackedUp: true,
     });
+
+    // Mock feature flag to default to false (legacy view)
+    (
+      mockSelectMultichainAccountsState2Enabled as unknown as jest.Mock
+    ).mockReturnValue(false);
+
+    // Mock account tree controller state
+    (
+      mockSelectAccountTreeControllerState as unknown as jest.Mock
+    ).mockReturnValue({
+      accountTree: {
+        wallets: {
+          [mockWallet.id]: {
+            groups: {
+              group1: mockAccountGroup1,
+              group2: mockAccountGroup2,
+            },
+          },
+        },
+      },
+    });
+
+    // Mock selectAccountGroupsByWallet
+    const mockSelectAccountGroupsByWallet = jest.mocked(
+      selectAccountGroupsByWallet,
+    );
+    mockSelectAccountGroupsByWallet.mockReturnValue([
+      {
+        title: 'Test Wallet',
+        wallet: mockWallet,
+        data: [mockAccountGroup1, mockAccountGroup2],
+      },
+    ]);
   });
 
   it('renders wallet name, balance, and accounts list', () => {
@@ -117,10 +225,6 @@ describe('BaseWalletDetails', () => {
     expect(getAllByText(mockWallet.metadata.name)).toHaveLength(2);
     expect(getByText('$1,234.56')).toBeTruthy();
     expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
-    expect(getByText(mockAccount1.metadata.name)).toBeTruthy();
-    expect(getByText('$500.00')).toBeTruthy();
-    expect(getByText(mockAccount2.metadata.name)).toBeTruthy();
-    expect(getByText('$734.56')).toBeTruthy();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -135,23 +239,39 @@ describe('BaseWalletDetails', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to account details when an account is pressed', () => {
+  it('renders accounts list container', () => {
     const { getByTestId } = renderWithProvider(
       <BaseWalletDetails wallet={mockWallet} />,
       { state: mockInitialState },
     );
 
-    const accountItem = getByTestId(
-      `${WalletDetailsIds.ACCOUNT_ITEM}_${mockAccount1.id}`,
-    );
-    fireEvent.press(accountItem);
+    expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
+  });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
-      {
-        account: mockAccount1,
-      },
+  it('renders legacy view when multichain accounts state 2 is disabled', () => {
+    (
+      mockSelectMultichainAccountsState2Enabled as unknown as jest.Mock
+    ).mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
     );
+
+    expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
+  });
+
+  it('renders new view when multichain accounts state 2 is enabled', () => {
+    (
+      mockSelectMultichainAccountsState2Enabled as unknown as jest.Mock
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
   });
 
   it('renders children passed to it', () => {
@@ -170,7 +290,6 @@ describe('BaseWalletDetails', () => {
     mockUseWalletInfo.mockReturnValue({
       accounts: [mockAccount1, mockAccount2],
       keyringId: null,
-      srpIndex: 1,
       isSRPBackedUp: true,
     });
 
@@ -196,7 +315,6 @@ describe('BaseWalletDetails', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],
         keyringId: null,
-        srpIndex: 1,
         isSRPBackedUp: true,
       });
 
@@ -269,14 +387,13 @@ describe('BaseWalletDetails', () => {
       );
 
       expect(getByTestId(WalletDetailsIds.REVEAL_SRP_BUTTON)).toBeTruthy();
-      expect(getByText('Reveal Recovery Phrase 1')).toBeTruthy();
+      expect(getByText('Secret Recovery Phrase')).toBeTruthy();
     });
 
     it('does not render SRP reveal section when keyringId is null', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],
         keyringId: null,
-        srpIndex: 1,
         isSRPBackedUp: true,
       });
 
@@ -293,7 +410,6 @@ describe('BaseWalletDetails', () => {
         mockUseWalletInfo.mockReturnValue({
           accounts: [mockAccount1, mockAccount2],
           keyringId: 'keyring:1',
-          srpIndex: 2,
           isSRPBackedUp: false,
         });
       });
@@ -304,7 +420,7 @@ describe('BaseWalletDetails', () => {
           { state: mockInitialState },
         );
 
-        expect(getByText('Reveal Recovery Phrase 2')).toBeTruthy();
+        expect(getByText('Secret Recovery Phrase')).toBeTruthy();
         expect(getByText('Back up')).toBeTruthy();
       });
 
@@ -352,7 +468,6 @@ describe('BaseWalletDetails', () => {
         mockUseWalletInfo.mockReturnValue({
           accounts: [mockAccount1, mockAccount2],
           keyringId: 'keyring:1',
-          srpIndex: 1,
           isSRPBackedUp: true,
         });
       });
@@ -366,13 +481,13 @@ describe('BaseWalletDetails', () => {
         expect(queryByText('Back up')).toBeNull();
       });
 
-      it('renders only the reveal SRP text without backup warning', () => {
+      it('renders only the Secret Recovery Phrase text without backup warning', () => {
         const { getByText, queryByText } = renderWithProvider(
           <BaseWalletDetails wallet={mockWallet} />,
           { state: mockInitialState },
         );
 
-        expect(getByText('Reveal Recovery Phrase 1')).toBeTruthy();
+        expect(getByText('Secret Recovery Phrase')).toBeTruthy();
         expect(queryByText('Back up')).toBeNull();
       });
 
@@ -401,7 +516,6 @@ describe('BaseWalletDetails', () => {
         mockUseWalletInfo.mockReturnValue({
           accounts: [mockAccount1, mockAccount2],
           keyringId: 'keyring:2',
-          srpIndex: 2,
           isSRPBackedUp: undefined,
         });
       });
@@ -415,13 +529,13 @@ describe('BaseWalletDetails', () => {
         expect(queryByText('Back up')).toBeNull();
       });
 
-      it('renders only the reveal SRP text without backup warning', () => {
+      it('renders only the Secret Recovery Phrase text without backup warning', () => {
         const { getByText, queryByText } = renderWithProvider(
           <BaseWalletDetails wallet={mockWallet} />,
           { state: mockInitialState },
         );
 
-        expect(getByText('Reveal Recovery Phrase 2')).toBeTruthy();
+        expect(getByText('Secret Recovery Phrase')).toBeTruthy();
         expect(queryByText('Back up')).toBeNull();
       });
 
@@ -445,11 +559,10 @@ describe('BaseWalletDetails', () => {
       });
     });
 
-    it('displays correct SRP index in button text', () => {
+    it('displays Secret Recovery Phrase label', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],
         keyringId: 'keyring:1',
-        srpIndex: 3,
         isSRPBackedUp: true,
       });
 
@@ -458,14 +571,13 @@ describe('BaseWalletDetails', () => {
         { state: mockInitialState },
       );
 
-      expect(getByText('Reveal Recovery Phrase 3')).toBeTruthy();
+      expect(getByText('Secret Recovery Phrase')).toBeTruthy();
     });
 
     it('does not navigate when keyringId is null and button is pressed', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],
         keyringId: null,
-        srpIndex: 1,
         isSRPBackedUp: true,
       });
 

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -7,35 +7,39 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 
-// todo-changes these ranges once values are provided by design team
-const getFontSizeForInputLength = (inputLength: number) => {
-  if (inputLength > 20) {
-    return 10;
+export const getFontSizeForInputLength = (contentLength: number) => {
+  if (contentLength < 10) {
+    return 60;
   }
-  if (inputLength > 15) {
-    return 15;
+  if (contentLength < 12) {
+    return 48;
   }
-  if (inputLength > 10) {
-    return 25;
+  if (contentLength < 18) {
+    return 32;
   }
-  if (inputLength > 5) {
-    return 40;
+  if (contentLength < 24) {
+    return 24;
   }
-  return 60;
+  return 18;
 };
 
 export const styleSheet = (params: {
   theme: Theme;
-  vars: { inputError: boolean; inputLength: number; isNFT: boolean };
+  vars: {
+    inputError: boolean;
+    inputLength: number;
+    isNFT: boolean;
+    symbolLength: number;
+  };
 }) => {
   const {
     theme,
-    vars: { inputError, inputLength, isNFT },
+    vars: { inputError, inputLength, isNFT, symbolLength },
   } = params;
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 120 : 140,
+      marginTop: isNFT ? 100 : 132,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -58,20 +62,28 @@ export const styleSheet = (params: {
       color: inputError
         ? theme.colors.error.default
         : theme.colors.text.default,
-      height: 50,
-      fontSize: getFontSizeForInputLength(inputLength),
-      width: '100%',
+      fontSize: getFontSizeForInputLength(inputLength + symbolLength),
+      minWidth: '30%',
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      paddingTop: Platform.OS === 'ios' ? 0 : 2,
+      // Dynamic height for large fonts:
+      height: Math.max(
+        50,
+        getFontSizeForInputLength(inputLength + symbolLength) + 10,
+      ),
     },
     inputSection: {
       flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.center,
-      marginTop: isNFT ? 0 : 100,
+      justifyContent:
+        inputLength < 5 ? JustifyContent.center : JustifyContent.flexEnd,
+      marginTop: isNFT ? 0 : 80,
+      width: '100%',
     },
     inputWrapper: {
       alignItems: AlignItems.center,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.flexEnd,
-      width: '45%',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {
@@ -81,11 +93,11 @@ export const styleSheet = (params: {
     },
     tokenSymbol: {
       alignItems: AlignItems.center,
-      fontSize: getFontSizeForInputLength(inputLength),
+      alignSelf: 'flex-end',
+      fontSize: getFontSizeForInputLength(inputLength + symbolLength),
       lineHeight: 75,
       paddingLeft: 2,
       textAlign: 'left',
-      width: '40%',
     },
     topSection: {
       paddingHorizontal: 8,

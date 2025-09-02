@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { parseCurrencyString } from '../utils/formatUtils';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -47,8 +48,7 @@ export interface UsePerpsMarketsOptions {
 
 /**
  * Custom hook to fetch and manage Perps market data from the active provider
- * Uses the PerpsController to get data from the currently active protocol
- * (HyperLiquid, GMX, dYdX, etc.)
+ * Uses the StreamManager's marketData channel for caching and deduplication
  */
 export const usePerpsMarkets = (
   options: UsePerpsMarketsOptions = {},
@@ -59,116 +59,140 @@ export const usePerpsMarkets = (
     skipInitialFetch = false,
   } = options;
 
+  const streamManager = usePerpsStream();
   const [markets, setMarkets] = useState<PerpsMarketData[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMarketData = useCallback(
-    async (isRefresh = false): Promise<void> => {
-      if (isRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
-      setError(null);
+  // Helper function to sort markets by volume
+  const sortMarketsByVolume = useCallback(
+    (marketData: PerpsMarketData[]): PerpsMarketData[] => {
+      const parseVolume = (volumeStr: string | undefined): number => {
+        if (!volumeStr) return -1; // Put undefined at the end
 
-      try {
-        DevLogger.log('Perps: Fetching market data from active provider...');
+        // Handle special cases
+        if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1;
+        if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
-        // Get the active provider via PerpsController
-        const controller = Engine.context.PerpsController;
-        const provider = controller.getActiveProvider();
+        // Handle suffixed values (e.g., "$1.5M", "$2.3B", "$500K")
+        const suffixMatch = volumeStr.match(/\$?([\d.,]+)([KMBT])?/);
+        if (suffixMatch) {
+          const [, numberPart, suffix] = suffixMatch;
+          const baseValue = parseFloat(numberPart.replace(/,/g, ''));
 
-        // Get markets with price data directly from the provider
-        const marketDataWithPrices = await provider.getMarketDataWithPrices();
+          if (isNaN(baseValue)) return -1;
 
-        // Sort markets by 24h volume (highest first)
-        const sortedMarkets = [...marketDataWithPrices].sort((a, b) => {
-          // Helper function to parse volume string and convert to number
-          const getVolumeNumber = (volumeStr: string | undefined): number => {
-            if (!volumeStr) return -1; // Put undefined at the end
-
-            // Handle special cases
-            if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
-            if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
-
-            // Remove $ and commas, handle different suffixes
-            const cleaned = volumeStr.replace(/[$,]/g, '');
-
-            // Handle billion (B), million (M), thousand (K) suffixes
-            if (cleaned.includes('B')) {
-              return parseFloat(cleaned.replace('B', '')) * 1e9;
-            }
-            if (cleaned.includes('M')) {
-              return parseFloat(cleaned.replace('M', '')) * 1e6;
-            }
-            if (cleaned.includes('K')) {
-              return parseFloat(cleaned.replace('K', '')) * 1e3;
-            }
-
-            // Plain number without suffix (including 0)
-            const num = parseFloat(cleaned);
-            return isNaN(num) ? -1 : num;
+          const multipliers: Record<string, number> = {
+            K: 1e3,
+            M: 1e6,
+            B: 1e9,
+            T: 1e12,
           };
 
-          const volumeA = getVolumeNumber(a.volume);
-          const volumeB = getVolumeNumber(b.volume);
+          return suffix ? baseValue * multipliers[suffix] : baseValue;
+        }
 
-          return volumeB - volumeA; // Descending order
-        });
+        // Fallback to currency parser for regular values
+        return parseCurrencyString(volumeStr) || -1;
+      };
 
-        setMarkets(sortedMarkets);
-
-        DevLogger.log(
-          'Perps: Successfully fetched and transformed market data',
-          {
-            marketCount: marketDataWithPrices.length,
-          },
-        );
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(errorMessage);
-        DevLogger.log('Perps: Failed to fetch market data', err);
-
-        // Keep existing data on error to prevent UI flash
-        setMarkets((currentMarkets) => {
-          if (currentMarkets.length === 0) {
-            return [];
-          }
-          return currentMarkets;
-        });
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
+      return [...marketData].sort((a, b) => {
+        const volumeA = parseVolume(a.volume);
+        const volumeB = parseVolume(b.volume);
+        return volumeB - volumeA; // Descending order
+      });
     },
     [],
   );
 
-  const refresh = useCallback(
-    (): Promise<void> => fetchMarketData(true),
-    [fetchMarketData],
-  );
+  // Manual refresh function
+  const refresh = useCallback(async (): Promise<void> => {
+    try {
+      setIsRefreshing(true);
+      setError(null);
 
-  // Initial data fetch
-  useEffect(() => {
-    if (!skipInitialFetch) {
-      fetchMarketData();
+      // Force refresh the market data
+      await streamManager.marketData.refresh();
+
+      DevLogger.log('Perps: Manual refresh completed');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      DevLogger.log('Perps: Failed to refresh market data', err);
+    } finally {
+      setIsRefreshing(false);
     }
-  }, [fetchMarketData, skipInitialFetch]);
+  }, [streamManager.marketData]);
+
+  // Subscribe to market data updates
+  useEffect(() => {
+    if (skipInitialFetch) {
+      setIsLoading(false);
+      return;
+    }
+
+    let isFirstUpdate = true;
+    const subscriptionStartTime = Date.now();
+
+    const unsubscribe = streamManager.marketData.subscribe({
+      callback: (marketData) => {
+        const receiveTime = Date.now();
+        const timeToData = receiveTime - subscriptionStartTime;
+        if (marketData && marketData.length > 0) {
+          const sortedMarkets = sortMarketsByVolume(marketData);
+          setMarkets(sortedMarkets);
+          setIsLoading(false);
+          setError(null);
+
+          if (isFirstUpdate) {
+            DevLogger.log('Perps: Market data received (first load)', {
+              marketCount: marketData.length,
+              timeToDataMs: timeToData,
+              source: timeToData < 100 ? 'cache' : 'fresh_fetch',
+              cacheHit: timeToData < 100,
+            });
+            isFirstUpdate = false;
+          } else {
+            DevLogger.log('Perps: Market data updated', {
+              marketCount: marketData.length,
+            });
+          }
+        } else if (marketData) {
+          // Empty array
+          setMarkets([]);
+          setIsLoading(false);
+          if (isFirstUpdate) {
+            DevLogger.log('Perps: No market data available', {
+              timeToDataMs: timeToData,
+            });
+            isFirstUpdate = false;
+          }
+        }
+      },
+      throttleMs: 0, // No throttle for market data updates
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [streamManager.marketData, sortMarketsByVolume, skipInitialFetch]);
 
   // Polling effect
   useEffect(() => {
     if (!enablePolling) return;
 
-    const intervalId = setInterval(() => {
-      fetchMarketData(true);
+    const intervalId = setInterval(async () => {
+      try {
+        await streamManager.marketData.refresh();
+      } catch (err) {
+        DevLogger.log('Perps: Polling refresh failed', err);
+      }
     }, pollingInterval);
 
     return () => clearInterval(intervalId);
-  }, [enablePolling, pollingInterval, fetchMarketData]);
+  }, [enablePolling, pollingInterval, streamManager.marketData]);
 
   return {
     markets,

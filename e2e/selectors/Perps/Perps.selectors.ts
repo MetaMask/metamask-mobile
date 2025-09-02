@@ -53,17 +53,6 @@ export const PerpsPositionCardSelectorsIDs = {
 };
 
 // ========================================
-// PERPS POSITION HEADER SELECTORS
-// ========================================
-
-export const PerpsPositionHeaderSelectorsIDs = {
-  HEADER: 'position-header',
-  COIN: 'position-header-coin',
-  PNL: 'position-header-pnl',
-  BACK_BUTTON: 'perps-position-header-back-button',
-};
-
-// ========================================
 // PERPS LOADER SELECTORS
 // ========================================
 
@@ -170,6 +159,7 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  TRADINGVIEW_CHART: 'tradingview-chart',
   // Bottom sheets
   TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
   CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
@@ -180,6 +170,18 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
   CHART_TOOLTIP: 'chart-tooltip',
+};
+
+// ========================================
+// TRADINGVIEW CHART SELECTORS
+// ========================================
+
+export const TradingViewChartSelectorsIDs = {
+  // Chart container and webview
+  CONTAINER: 'tradingview-chart-container',
+  WEBVIEW: 'tradingview-chart-webview',
+  ERROR_CONTAINER: 'tradingview-chart-error',
+  LOADING: 'tradingview-chart-loading',
 };
 
 // Helper functions for dynamic view selectors
@@ -211,6 +213,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
   SOURCE_TOKEN_AREA: 'source-token-area',
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
+  BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -333,6 +336,8 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+  TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
+  PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
 };
 
 // ========================================
@@ -343,6 +348,17 @@ export const PerpsOpenOrderCardSelectorsIDs = {
   CARD: 'perps-open-order-card',
   CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
   EDIT_BUTTON: 'perps-open-order-card-edit-button',
+};
+
+// ========================================
+// PERPS CLOSE POSITION VIEW SELECTORS
+// ========================================
+
+export const PerpsClosePositionViewSelectorsIDs = {
+  ORDER_TYPE_BUTTON: 'order-type-button',
+  DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
+  CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
+  CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
 };
 
 // ========================================

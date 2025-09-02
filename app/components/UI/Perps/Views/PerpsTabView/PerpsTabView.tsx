@@ -1,6 +1,7 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -20,7 +21,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsErrorState, {
   PerpsErrorType,
@@ -40,7 +40,9 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
+import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -62,6 +64,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
+  });
+
+  const orders = usePerpsLiveOrders({
+    hideTpSl: true, // Filter out TP/SL orders
+    throttleMs: 1000, // Update orders every second
   });
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
@@ -137,6 +144,28 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     connect();
   }, [connect, resetError]);
 
+  const renderOrdersSection = () => {
+    // Only show orders section if there are active orders
+    if (!orders || orders.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+            {strings('perps.order.open_orders')}
+          </Text>
+        </View>
+        <View>
+          {orders.map((order) => (
+            <PerpsCard key={order.orderId} order={order} />
+          ))}
+        </View>
+      </>
+    );
+  };
+
   const renderPositionsSection = () => {
     if (isInitialLoading) {
       return (
@@ -210,12 +239,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         </View>
         <View>
           {positions.map((position, index) => (
-            <PerpsPositionCard
-              key={`${position.coin}-${index}`}
-              position={position}
-              expanded={false}
-              showIcon
-            />
+            <PerpsCard key={`${position.coin}-${index}`} position={position} />
           ))}
         </View>
       </>
@@ -235,7 +259,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }
 
   return (
-    <View style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
       {isFirstTimeUser ? (
         <View style={[styles.content, styles.firstTimeContent]}>
           <View style={styles.section}>{renderPositionsSection()}</View>
@@ -245,10 +269,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
           <ScrollView style={styles.content}>
             <View style={styles.section}>{renderPositionsSection()}</View>
+            <View style={styles.section}>{renderOrdersSection()}</View>
           </ScrollView>
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

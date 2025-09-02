@@ -22,8 +22,8 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },

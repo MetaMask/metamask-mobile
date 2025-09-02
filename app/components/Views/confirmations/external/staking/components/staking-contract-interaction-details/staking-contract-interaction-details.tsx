@@ -14,18 +14,25 @@ import Badge, {
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import Name from '../../../../../../UI/Name';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import InfoRow from '../../../../components/UI/info-row';
 import InfoRowDivider from '../../../../components/UI/info-row-divider';
 import styleSheet from './staking-contract-interaction-details.styles';
+import { getFormattedAddressFromInternalAccount } from '../../../../../../../core/Multichain/utils';
+import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 
 const StakingContractInteractionDetails = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
-  const address = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const address = selectedAccount
+    ? getFormattedAddressFromInternalAccount(selectedAccount)
+    : '';
 
   return (
     <>

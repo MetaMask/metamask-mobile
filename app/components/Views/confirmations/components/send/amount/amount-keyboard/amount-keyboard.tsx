@@ -43,12 +43,13 @@ export const AmountKeyboard = ({
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError } = useAmountValidation();
   const { asset, updateValue } = useSendContext();
+  const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
-    continueDisabled: Boolean(amountError),
+    amountError: Boolean(amountError),
+    submitDisabled: isNFT && !amount,
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
-  const isNFT = asset?.standard === TokenStandard.ERC1155;
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -94,7 +95,7 @@ export const AmountKeyboard = ({
       additionalRow={
         amount.length > 0 || isNFT ? (
           <Button
-            disabled={Boolean(amountError)}
+            disabled={Boolean(amountError) || !amount}
             label={
               amountError ??
               (isNFT ? strings('send.next') : strings('send.continue'))

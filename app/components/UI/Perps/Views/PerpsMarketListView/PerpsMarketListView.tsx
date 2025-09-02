@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  SafeAreaView,
-  Animated,
-  TextInput,
-} from 'react-native';
+import { View, TouchableOpacity, Animated, TextInput } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -29,7 +23,7 @@ import type {
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
@@ -41,6 +35,7 @@ import { usePerpsPerformance } from '../../hooks';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -104,7 +99,6 @@ const PerpsMarketListView = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const { top } = useSafeAreaInsets();
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
@@ -156,7 +150,10 @@ const PerpsMarketListView = ({
   };
 
   const handleBackPressed = () => {
-    navigation.goBack();
+    // Navigate back to the main Perps tab
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
   const filteredMarkets = useMemo(() => {
@@ -208,16 +205,21 @@ const PerpsMarketListView = ({
 
   // Track screen load performance
   const hasTrackedMarketsView = useRef(false);
-  const hasTrackedSkeletonDisplay = useRef(false);
+  const hasTrackedDataDisplay = useRef(false);
 
-  // Track skeleton display immediately
+  // Track when actual market data is displayed (not just skeleton)
   useEffect(() => {
-    if (isLoadingMarkets && !hasTrackedSkeletonDisplay.current) {
-      // Measure time to skeleton display (should be instant)
-      endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
-      hasTrackedSkeletonDisplay.current = true;
+    if (filteredMarkets.length > 0 && !hasTrackedDataDisplay.current) {
+      // End measurement when actual data is displayed
+      const loadTime = endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
+      DevLogger.log('PerpsMarketListView: Market data displayed', {
+        marketCount: filteredMarkets.length,
+        loadTimeMs: loadTime,
+        targetMs: 200,
+      });
+      hasTrackedDataDisplay.current = true;
     }
-  }, [isLoadingMarkets, endMeasure]);
+  }, [filteredMarkets.length, endMeasure]);
 
   useEffect(() => {
     // Track markets screen viewed event - only once when data is loaded
@@ -294,7 +296,7 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
       <TouchableOpacity
         onPress={handleClose}
@@ -304,11 +306,13 @@ const PerpsMarketListView = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <ButtonIcon
-            iconName={IconName.Arrow2Left}
-            size={ButtonIconSizes.Md}
-            onPress={handleBackPressed}
-          />
+          <View style={styles.backButtonWrapper}>
+            <ButtonIcon
+              iconName={IconName.Arrow2Left}
+              size={ButtonIconSizes.Md}
+              onPress={handleBackPressed}
+            />
+          </View>
           <Text
             variant={TextVariant.HeadingLG}
             color={TextColor.Default}
