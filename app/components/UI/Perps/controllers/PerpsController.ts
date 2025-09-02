@@ -1880,7 +1880,8 @@ export class PerpsController extends BaseController<
         ON_RAMP_GEO_BLOCKING_URLS[environment],
       );
 
-      location = await response?.text();
+      const textResult = await response?.text();
+      location = textResult || 'UNKNOWN';
 
       // Cache the successful result
       this.geoLocationCache = {
