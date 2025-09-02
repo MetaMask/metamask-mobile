@@ -268,20 +268,25 @@ class NetworksSettings extends PureComponent {
       return;
     }
 
-    const { NetworkEnablementController } = Engine.context;
     const { enabledNetworksByNamespace } = this.props;
 
-    const areAllNetworksEnabled = Object.values(
-      enabledNetworksByNamespace[KnownCaipNamespace.Eip155],
-    ).every((enabledNetwork) => enabledNetwork);
+    const evmEnabledNetworks =
+      enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
+    if (!evmEnabledNetworks) {
+      return;
+    }
+
+    const areAllNetworksEnabled = Object.values(evmEnabledNetworks).every(
+      (enabledNetwork) => enabledNetwork,
+    );
 
     if (areAllNetworksEnabled) {
-      NetworkEnablementController.enableNetwork(chainId);
       this.showRemoveMenu(networkTypeOrRpcUrl);
     } else {
-      const selectedEnabledNetworks =
-        enabledNetworksByNamespace[KnownCaipNamespace.Eip155][chainId];
-      !selectedEnabledNetworks && this.showRemoveMenu(networkTypeOrRpcUrl);
+      const isNetworkEnabled = evmEnabledNetworks[chainId];
+      if (!isNetworkEnabled) {
+        this.showRemoveMenu(networkTypeOrRpcUrl);
+      }
     }
   };
 
