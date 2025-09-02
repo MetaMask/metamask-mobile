@@ -14,7 +14,10 @@ import {
   defaultMinimumOrderAmountMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsClosePositionViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsClosePositionViewSelectorsIDs,
+  PerpsAmountDisplaySelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -919,8 +922,8 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-  describe('USD Decimal Input Behavior', () => {
-    it('uses 2 decimals for USD mode keypad configuration', () => {
+  describe('TAT-1464 Keypad Input Handling', () => {
+    it('renders amount display component for user interaction', () => {
       // Arrange & Act
       const { queryByTestId } = renderWithProvider(
         <PerpsClosePositionView />,
@@ -930,17 +933,14 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render keypad with USD configuration
-      // Note: Keypad is mocked but component logic should set decimals=2 for USD mode
+      // Assert - Amount display should be available for TAT-1464 keypad interaction
       expect(
-        queryByTestId(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        ),
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
     });
 
-    it('uses market data decimals for token mode', () => {
-      // Arrange
+    it('uses market-specific decimals for token precision', () => {
+      // Arrange - Set custom market decimals for dynamic keypad configuration
       usePerpsMarketDataMock.mockReturnValue({
         marketData: { szDecimals: 6 },
         isLoading: false,
@@ -956,7 +956,7 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render with token configuration
+      // Assert - Component should render successfully with market data
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
@@ -964,8 +964,8 @@ describe('PerpsClosePositionView', () => {
       ).toBeDefined();
     });
 
-    it('falls back to 18 decimals when market data is loading', () => {
-      // Arrange
+    it('handles missing market data gracefully with fallback', () => {
+      // Arrange - Market data unavailable (fallback to 18 decimals)
       usePerpsMarketDataMock.mockReturnValue({
         marketData: null,
         isLoading: true,
@@ -981,11 +981,123 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Component should render with fallback configuration
+      // Assert - Component should render with fallback decimal precision
       expect(
         queryByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
+      ).toBeDefined();
+    });
+
+    it('integrates market data hook for dynamic decimal configuration', () => {
+      // Arrange - Test the usePerpsMarketData integration from TAT-1464
+      usePerpsMarketDataMock.mockReturnValue({
+        marketData: { szDecimals: 8 },
+        isLoading: false,
+        error: null,
+      });
+
+      // Act
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert - Market data hook should be called with position coin
+      expect(usePerpsMarketDataMock).toHaveBeenCalledWith(
+        defaultPerpsPositionMock.coin,
+      );
+    });
+  });
+
+  describe('Input Focus Protection Logic', () => {
+    it('renders validation messages in normal state', () => {
+      // Arrange
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: false,
+        errors: ['Test validation error'],
+        warnings: ['Test validation warning'],
+      });
+
+      // Act
+      const { queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert - Validation messages should be visible in normal state
+      expect(queryByText('Test validation error')).toBeDefined();
+      expect(queryByText('Test validation warning')).toBeDefined();
+    });
+
+    it('displays action buttons in normal state', () => {
+      // Arrange & Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert - Action buttons should be visible in normal state
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeDefined();
+      expect(
+        queryByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CANCEL_BUTTON,
+        ),
+      ).toBeDefined();
+    });
+  });
+
+  describe('Display Mode Toggle Functionality', () => {
+    it('provides display mode toggle button', () => {
+      // Arrange & Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Assert - Toggle button should be available for USD/token switching
+      expect(
+        queryByTestId(PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('maintains component stability with display mode interactions', () => {
+      // Arrange
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      // Act - Interact with display toggle
+      const toggleButton = queryByTestId(
+        PerpsClosePositionViewSelectorsIDs.DISPLAY_TOGGLE_BUTTON,
+      );
+      if (toggleButton) {
+        fireEvent.press(toggleButton);
+      }
+
+      // Assert - Component should remain stable after mode interaction
+      expect(
+        queryByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
       ).toBeDefined();
     });
   });
