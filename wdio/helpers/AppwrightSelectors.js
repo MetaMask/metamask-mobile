@@ -30,7 +30,7 @@ export default class AppwrightSelectors {
   static async getElementByNameiOS(device, identifier) {
     const isIOS = AppwrightSelectors.isIOS(device);
     if (isIOS) {
-      const xpath = `//*[contains(@name,'${identifier}')][2]`;
+      const xpath = `//*[contains(@name,'${identifier}')][1]`;
       return await AppwrightSelectors.getElementByXpath(device, xpath);
     }
   }
