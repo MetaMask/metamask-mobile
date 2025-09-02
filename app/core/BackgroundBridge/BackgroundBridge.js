@@ -79,7 +79,7 @@ import {
   getChangedAuthorization,
   getRemovedAuthorization,
 } from '../../util/permissions';
-import { createMetamaskMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
+import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
@@ -607,7 +607,7 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // Middleware to handle wallet_xxx requests
-    engine.push(this.setupEip5792MiddlewareHandlers());
+    engine.push(this.createEip5792Middleware());
 
     engine.push(createSanitizationMiddleware());
 
@@ -759,7 +759,7 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    engine.push(this.setupEip5792MiddlewareHandlers());
+    engine.push(this.createEip5792Middleware());
 
     engine.push(async (req, res, _next, end) => {
       const { provider } = NetworkController.getNetworkClientById(
@@ -775,8 +775,8 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * Setup EIP-5792 middleware handlers
    */
-  setupEip5792MiddlewareHandlers() {
-    return createMetamaskMiddleware({
+  createEip5792Middleware() {
+    return createEip5792Middleware({
       getAccounts: () => {
         const { AccountsController } = Engine.context;
         const addresses = AccountsController.listAccounts().map(
@@ -797,18 +797,17 @@ export class BackgroundBridge extends EventEmitter {
               Engine.context.TransactionController,
             ),
           getDismissSmartAccountSuggestionEnabled: () =>
-            Engine.context.PreferencesController.state.preferences
+            Engine.context.PreferencesController.state
               .dismissSmartAccountSuggestionEnabled,
           isAtomicBatchSupported:
             Engine.context.TransactionController.isAtomicBatchSupported.bind(
               Engine.context.TransactionController,
             ),
-          validateSecurity: (securityAlertId, request, chainId) => {
+          validateSecurity: (securityAlertId, request, chainId) =>
             PPOMUtil.validateRequest(request, {
               transactionMeta: { chainId },
               securityAlertId,
-            });
-          },
+            }),
         },
         Engine.controllerMessenger,
       ),
@@ -817,17 +816,17 @@ export class BackgroundBridge extends EventEmitter {
         null,
         {
           getDismissSmartAccountSuggestionEnabled: () =>
-            Engine.context.PreferencesController.state.preferences
+            Engine.context.PreferencesController.state
               .dismissSmartAccountSuggestionEnabled,
           getIsSmartTransaction: (chainId) =>
             selectSmartTransactionsEnabled(store.getState(), chainId),
           isAtomicBatchSupported:
             Engine.context.TransactionController.isAtomicBatchSupported.bind(
-              this.txController,
+              Engine.context.TransactionController,
             ),
           isRelaySupported,
           getSendBundleSupportedChains: async (chainIds) => {
-            const res =
+            const isAtomicBatchSupportedResult =
               await Engine.context.TransactionController.isAtomicBatchSupported(
                 {
                   address:
@@ -836,8 +835,11 @@ export class BackgroundBridge extends EventEmitter {
                   chainIds,
                 },
               );
-
-            return res.map((entry) => ({ [entry.chainId]: entry.isSupported }));
+            return isAtomicBatchSupportedResult.map(
+              ({ chainId, isSupported }) => ({
+                [chainId]: isSupported,
+              }),
+            );
           },
         },
         Engine.controllerMessenger,
