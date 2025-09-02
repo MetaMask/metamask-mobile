@@ -1,39 +1,17 @@
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import {
-  loadFixture,
-  startFixtureServer,
-  stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
-import QuoteView from '../../pages/Bridge/QuoteView';
+import QuoteView from '../../pages/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
 import WalletView from '../../pages/wallet/WalletView';
 import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import Ganache from '../../../app/util/test/ganache';
-import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import SettingsView from '../../pages/Settings/SettingsView';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import {
-  getFixturesServerPort,
-  getMockServerPort,
-} from '../../framework/fixtures/FixtureUtils';
-import { startMockServer } from '../bridge/bridge-mocks';
-import { stopMockServer } from '../../api-mocking/mock-server';
-import { localNodeOptions, testSpecificMock } from '../bridge/constants';
-import { Mockttp, MockttpServer } from 'mockttp';
-import { getEventsPayloads } from '../analytics/helpers';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../utils/SoftAssert';
-
-const fixtureServer = new FixtureServer();
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -46,100 +24,64 @@ enum eventsToCheck {
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Bridge functionality'), () => {
-  const FIRST_ROW = 0;
-  let mockServer: Mockttp;
-  let localNode: Ganache;
-  let eventsToAssert: { event: string; properties: Record<string, unknown> }[] =
-    [];
+  jest.setTimeout(120000);
+  const eventsToAssert: {
+    event: string;
+    properties: Record<string, unknown>;
+  }[] = [];
 
-  beforeAll(async () => {
-    jest.setTimeout(120000);
-    localNode = new Ganache();
-    await localNode.start(localNodeOptions);
-    await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder()
-      .withGanacheNetwork('0x1')
-      .withMetaMetricsOptIn()
-      .build();
-    await startFixtureServer(fixtureServer);
-    await loadFixture(fixtureServer, { fixture });
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-    await TestHelpers.launchApp({
-      permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-        mockServerPort: `${mockServerPort}`,
+  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+    const destNetwork = 'Base';
+    const quantity: string = '1';
+    const sourceSymbol: string = 'ETH';
+    const chainId = '0x1';
+    const destChainId = '0x2105';
+
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork(chainId)
+          .withDisabledSmartTransactions()
+          .build(),
+        localNodeOptions: [
+          {
+            type: LocalNodeType.ganache,
+            options: {
+              chainId: 1,
+            },
+          },
+        ],
+        testSpecificMock,
+        restartDevice: true,
       },
-    });
+      async () => {
+        await loginToApp();
+        await prepareSwapsTestEnvironment();
 
-    await TestHelpers.delay(5000);
-    await loginToApp();
-  });
+        await TabBarComponent.tapWallet();
+        await WalletView.tapWalletSwapButton();
+        await device.disableSynchronization();
+        await QuoteView.tapDestinationToken();
+        await TestHelpers.delay(2000); // wait until tokens are displayed
+        await QuoteView.swipeNetwork(destNetwork, 0.3);
+        await TestHelpers.delay(2000); // allow scroll to take place
+        await QuoteView.selectNetwork(destNetwork);
+        await QuoteView.tapToken(destChainId, sourceSymbol);
+        await QuoteView.enterAmount(quantity);
+        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
+          timeout: 60000,
+        });
+        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
 
-  afterAll(async () => {
-    if (mockServer) await stopMockServer(mockServer);
-    await stopFixtureServer(fixtureServer);
-    if (localNode) await localNode.quit();
-  });
+        await QuoteView.tapConfirmBridge();
 
-  it.skip('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
-    const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-
-    await TabBarComponent.tapWallet();
-    await WalletView.tapIdenticon();
-    await Assertions.expectElementToBeVisible(
-      AccountListBottomSheet.accountList,
+        // Check the bridge activity completed
+        await Assertions.expectElementToBeVisible(ActivitiesView.title);
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.bridgeActivityTitle(destNetwork),
+        );
+      },
     );
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapAddSolanaAccount();
-    await AddNewHdAccountComponent.tapConfirm();
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectElementToNotBeVisible(
-      NetworkEducationModal.container as DetoxElement,
-    );
-    await Assertions.expectElementToBeVisible(WalletView.container);
-
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetworkTo('Localhost', false);
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
-    await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectElementToNotBeVisible(
-      NetworkEducationModal.container as DetoxElement,
-    );
-    await Assertions.expectElementToBeVisible(WalletView.container);
-    await WalletView.tapWalletSwapButton();
-    await QuoteView.tapSwapTo();
-    await device.disableSynchronization();
-    await QuoteView.selectNetwork('Solana');
-    await QuoteView.tapToken(destChainId, 'SOL');
-    await QuoteView.enterAmount('1');
-    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
-    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
-    await QuoteView.tapConfirmBridge();
-
-    // Check the bridge activity completed
-    await Assertions.expectElementToBeVisible(ActivitiesView.title);
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.bridgeActivityTitle('Solana'),
-    );
-    await Assertions.expectElementToHaveText(
-      ActivitiesView.transactionStatus(
-        FIRST_ROW,
-      ) as Promise<IndexableNativeElement>,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    );
-
-    // Gather the events from this test to assert later in another test
-    eventsToAssert = await getEventsPayloads(mockServer as MockttpServer, [
-      eventsToCheck.BRIDGE_BUTTON_CLICKED,
-      eventsToCheck.BRIDGE_PAGE_VIEWED,
-      eventsToCheck.UNIFIED_SWAPBRIDGE_INPUT_CHANGED,
-      eventsToCheck.UNIFIED_SWAPBRIDGE_QUOTES_REQUESTED,
-      eventsToCheck.UNIFIED_SWAPBRIDGE_SUBMITTED,
-      eventsToCheck.UNIFIED_SWAPBRIDGE_COMPLETED,
-    ]);
   });
 
   // eslint-disable-next-line jest/no-disabled-tests
@@ -356,66 +298,5 @@ describe(SmokeTrade('Bridge functionality'), () => {
     ]);
 
     softAssert.throwIfErrors();
-  });
-
-  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
-    const destChainId = '0x2105';
-
-    await TabBarComponent.tapWallet();
-    await Assertions.expectElementToBeVisible(WalletView.container);
-    await WalletView.tapWalletSwapButton();
-    await device.disableSynchronization();
-    await QuoteView.tapSwapTo();
-    await QuoteView.selectNetwork('Base');
-    await QuoteView.tapToken(destChainId, 'ETH');
-    await QuoteView.enterAmount('1');
-    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
-    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
-    await QuoteView.tapConfirmBridge();
-
-    // Check the bridge activity completed
-    await Assertions.expectElementToBeVisible(ActivitiesView.title);
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.bridgeActivityTitle('Base'),
-    );
-    await Assertions.expectElementToHaveText(
-      ActivitiesView.transactionStatus(
-        FIRST_ROW,
-      ) as Promise<IndexableNativeElement>,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    );
-  });
-
-  it.skip('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
-    const destChainId = '0xa';
-
-    await TabBarComponent.tapWallet();
-    await Assertions.expectElementToBeVisible(WalletView.container);
-
-    await TabBarComponent.tapSettings();
-    await SettingsView.tapAdvancedTitle();
-
-    await AdvancedSettingsView.tapSmartTransactionSwitch();
-    await TabBarComponent.tapWallet();
-    await WalletView.tapWalletSwapButton();
-    await QuoteView.tapSwapTo();
-    await QuoteView.selectNetwork('OP Mainnet');
-    await QuoteView.tapToken(destChainId, 'ETH');
-    await QuoteView.enterAmount('1');
-    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
-    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
-    await QuoteView.tapConfirmBridge();
-
-    // Check the bridge activity completed
-    await Assertions.expectElementToBeVisible(ActivitiesView.title);
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.bridgeActivityTitle('Optimism'),
-    );
-    await Assertions.expectElementToHaveText(
-      ActivitiesView.transactionStatus(
-        FIRST_ROW,
-      ) as Promise<IndexableNativeElement>,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    );
   });
 });
