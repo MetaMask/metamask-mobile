@@ -65,6 +65,18 @@ export class PayHook {
       return EMPTY_RESULT;
     }
 
+    // Currently we only support a single source meaning we only check the first quote.
+    const isSameChain =
+      quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+
+    if (isSameChain) {
+      log(
+        'Ignoring quotes as source is same chain',
+        quotes[0].quote.srcChainId,
+      );
+      return EMPTY_RESULT;
+    }
+
     let index = 0;
 
     for (const quote of quotes) {
