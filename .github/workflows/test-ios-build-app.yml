@@ -80,7 +80,7 @@ jobs:
           echo "🚀 Finishing iOS Setup..."
           yarn setup:github-ci --build-ios --no-build-android
           echo "🏗 Building iOS APP..."
-          yarn build:ios:qa
+          yarn build:ios:main:e2e
         shell: bash
         env:
           PLATFORM: ios
@@ -90,7 +90,6 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
-          IS_SIM_BUILD: "true"
 
           NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
 
