@@ -5419,17 +5419,7 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-api@^20.0.0":
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.0.0.tgz#831dee2a44d1521b1f057e095b479ed6a3c88331"
-  integrity sha512-kRJ+dYIiE99MaoH2kmO1lc2m3Jc3sKINJxWp4iBlyiugx7lUd3Fmr+s4rsUv6l/9EXUygOckX/qfYJtR+2I04Q==
-  dependencies:
-    "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    bitcoin-address-validation "^2.2.3"
-
-"@metamask/keyring-api@^20.1.0", "@metamask/keyring-api@^20.1.1":
+"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0", "@metamask/keyring-api@^20.1.1":
   version "20.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.1.tgz#4fdf9b3e9b81a653bf827f57b0c8b61574e3cc50"
   integrity sha512-5gvhFM/wu8ulDeoG8/C+vWfgUApYyTrRopVaGFxZSguBJ+CqnfVJu8pcqQL9u/WYMp2hHiky8WsOA65cEl1D5g==
