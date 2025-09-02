@@ -6,6 +6,24 @@ import configureStore from 'redux-mock-store';
 import { NavigationContainer } from '@react-navigation/native';
 import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+
+// Test-specific state type for mock selectors
+interface MockState {
+  bridge: {
+    destAddress?: string;
+  };
+  engine?: {
+    backgroundState?: {
+      AccountTreeController?: {
+        accountTree?: {
+          selectedAccountGroupId?: string | null;
+          accountGroups?: Record<string, AccountGroupObject>;
+        };
+      };
+    };
+  };
+}
 
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => {
@@ -18,7 +36,8 @@ jest.mock('../../../../../core/Engine', () => {
             accounts: {
               'mock-account-id-1': {
                 id: 'mock-account-id-1',
-                address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                address: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
                 metadata: {
                   name: 'Account 1',
                   keyring: {
@@ -31,7 +50,8 @@ jest.mock('../../../../../core/Engine', () => {
               },
               'mock-account-id-2': {
                 id: 'mock-account-id-2',
-                address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                address: '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                scopes: ['eip155:0'],
                 metadata: {
                   name: 'Account 2',
                   keyring: {
@@ -53,8 +73,8 @@ jest.mock('../../../../../core/Engine', () => {
             {
               type: KeyringTypes.hd,
               accounts: [
-                '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-                '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+                '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
               ],
               metadata: {
                 id: '01JNG71B7GTWH0J1TSJY9891S0',
@@ -81,15 +101,18 @@ jest.mock('../../../../hooks/useAccounts', () => ({
     accounts: [
       {
         id: 'mock-account-id-1',
-        address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
-        caipAccountId: 'eip155:1:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        address: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        caipAccountId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 1',
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
       },
       {
         id: 'mock-account-id-2',
-        address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+        address: '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         caipAccountId: 'eip155:1:0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 2',
+        scopes: ['eip155:0'],
       },
     ],
     ensByAccountAddress: {},
@@ -120,6 +143,47 @@ jest.mock('@react-navigation/native', () => {
 
 const mockStore = configureStore([]);
 
+// Mock the bridge selectors
+jest.mock('../../../../../selectors/bridge', () => ({
+  selectValidDestInternalAccountIds: () =>
+    new Set(['mock-account-id-1', 'mock-account-id-2']),
+  selectDestAddress: (state: MockState) => state.bridge.destAddress,
+  selectIsEvmToSolana: () => false,
+  selectIsSolanaToEvm: () => true,
+}));
+
+// Mock the account tree controller selectors
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountGroups: (state: MockState) =>
+      state.engine?.backgroundState?.AccountTreeController?.accountTree
+        ?.accountGroups
+        ? Object.values(
+            state.engine.backgroundState.AccountTreeController.accountTree
+              .accountGroups,
+          )
+        : [],
+    selectSelectedAccountGroup: (state: MockState) => {
+      const selectedId =
+        state.engine?.backgroundState?.AccountTreeController?.accountTree
+          ?.selectedAccountGroupId;
+      const accountGroups =
+        state.engine?.backgroundState?.AccountTreeController?.accountTree
+          ?.accountGroups;
+      return selectedId && accountGroups ? accountGroups[selectedId] : null;
+    },
+  }),
+);
+
+// Mock the feature flag selector
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () => true,
+  }),
+);
+
 describe('DestinationAccountSelector', () => {
   const renderComponent = (storeState = {}) => {
     const mockEngine = jest.requireMock('../../../../../core/Engine');
@@ -131,6 +195,12 @@ describe('DestinationAccountSelector', () => {
           AccountsController: mockEngine.context.AccountsController.state,
           PreferencesController: {
             privacyMode: false,
+          },
+          AccountTreeController: {
+            accountTree: {
+              selectedAccountGroupId: null,
+              accountGroups: {},
+            },
           },
         },
       },
@@ -188,7 +258,7 @@ describe('DestinationAccountSelector', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
     const closeButton = getByTestId('cellselect').findByProps({
-      iconName: 'Close',
+      iconName: 'Edit',
     });
     fireEvent.press(closeButton);
 
@@ -236,7 +306,7 @@ describe('DestinationAccountSelector', () => {
   it('clears destination when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     const closeButton = getByTestId('cellselect').findByProps({
-      iconName: 'Close',
+      iconName: 'Edit',
     });
     fireEvent.press(closeButton);
 
@@ -244,6 +314,162 @@ describe('DestinationAccountSelector', () => {
     expect(actions).toContainEqual({
       type: 'bridge/setDestAddress',
       payload: undefined,
+    });
+  });
+
+  describe('Account Group Priority Selection', () => {
+    it('selects account from currently selected account group when available', () => {
+      const { store } = renderComponent({
+        bridge: {
+          destAddress: undefined,
+          sourceToken: {
+            address: '0x123',
+            symbol: 'ETH',
+            decimals: 18,
+            image: 'https://example.com/eth.png',
+            chainId: '0x1',
+            name: 'Ethereum',
+            balance: '100',
+            balanceFiat: '100',
+          },
+          destToken: {
+            address: '0x456',
+            symbol: 'SOL',
+            decimals: 9,
+            image: 'https://example.com/sol.png',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana',
+            balance: '100',
+            balanceFiat: '100',
+          },
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroupId: 'group-1',
+                accountGroups: {
+                  'group-1': {
+                    id: 'group-1',
+                    accounts: ['mock-account-id-2'], // Has account 2
+                    metadata: {
+                      name: 'Account Group 1',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const actions = store.getActions();
+      // Should select account 2 (from the selected group) instead of account 1 (first in list)
+      expect(actions).toContainEqual({
+        type: 'bridge/setDestAddress',
+        payload: '0x5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+      });
+    });
+
+    it('falls back to first account when selected account group has no compatible accounts', () => {
+      const { store } = renderComponent({
+        bridge: {
+          destAddress: undefined,
+          sourceToken: {
+            address: '0x123',
+            symbol: 'ETH',
+            decimals: 18,
+            image: 'https://example.com/eth.png',
+            chainId: '0x1',
+            name: 'Ethereum',
+            balance: '100',
+            balanceFiat: '100',
+          },
+          destToken: {
+            address: '0x456',
+            symbol: 'SOL',
+            decimals: 9,
+            image: 'https://example.com/sol.png',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana',
+            balance: '100',
+            balanceFiat: '100',
+          },
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroupId: 'group-1',
+                accountGroups: {
+                  'group-1': {
+                    id: 'group-1',
+                    accounts: ['mock-account-id-3'], // Has different account not in filtered list
+                    metadata: {
+                      name: 'Account Group 1',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const actions = store.getActions();
+      // Should fall back to account 1 (first in filtered list)
+      expect(actions).toContainEqual({
+        type: 'bridge/setDestAddress',
+        payload: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+      });
+    });
+
+    it('falls back to first account when no account group is selected', () => {
+      const { store } = renderComponent({
+        bridge: {
+          destAddress: undefined,
+          sourceToken: {
+            address: '0x123',
+            symbol: 'ETH',
+            decimals: 18,
+            image: 'https://example.com/eth.png',
+            chainId: '0x1',
+            name: 'Ethereum',
+            balance: '100',
+            balanceFiat: '100',
+          },
+          destToken: {
+            address: '0x456',
+            symbol: 'SOL',
+            decimals: 9,
+            image: 'https://example.com/sol.png',
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+            name: 'Solana',
+            balance: '100',
+            balanceFiat: '100',
+          },
+        },
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AccountTreeController: {
+              accountTree: {
+                selectedAccountGroupId: null,
+                accountGroups: {},
+              },
+            },
+          },
+        },
+      });
+
+      const actions = store.getActions();
+      // Should fall back to account 1 (first in filtered list)
+      expect(actions).toContainEqual({
+        type: 'bridge/setDestAddress',
+        payload: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+      });
     });
   });
 });
