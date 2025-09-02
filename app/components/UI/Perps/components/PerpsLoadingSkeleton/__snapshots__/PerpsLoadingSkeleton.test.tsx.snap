@@ -20,7 +20,7 @@ exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
     twClassName="text-default mb-2"
     variant="HeadingMd"
   >
-    Connecting to Hyperliquid...
+    Connecting to Perps...
   </Text>
   <Text
     twClassName="text-alternative"

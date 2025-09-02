@@ -20,7 +20,7 @@ interface PerpsLoadingSkeletonProps {
  *
  * This component shows a simple loading state with:
  * - A spinner/activity indicator
- * - "Connecting to Hyperliquid..." message
+ * - "Connecting to Perps..." message
  * - "Perps will be available shortly" subtext
  */
 const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({

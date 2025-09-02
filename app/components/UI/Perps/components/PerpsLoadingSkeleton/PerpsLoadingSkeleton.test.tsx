@@ -99,7 +99,7 @@ describe('PerpsLoadingSkeleton', () => {
   it('should render connecting text', () => {
     const { getByText } = render(<PerpsLoadingSkeleton />);
 
-    const connectingText = getByText('Connecting to Hyperliquid...');
+    const connectingText = getByText('Connecting to Perps...');
     expect(connectingText).toBeDefined();
   });
 
