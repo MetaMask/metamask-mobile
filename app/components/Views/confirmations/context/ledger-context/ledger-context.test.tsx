@@ -33,6 +33,12 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../hooks/transactions/useTransactionConfirm', () => ({
+  useTransactionConfirm: () => ({
+    onConfirm: jest.fn(),
+  }),
+}));
+
 const MockView = View;
 const MockText = Text;
 
