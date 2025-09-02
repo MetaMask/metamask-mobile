@@ -60,7 +60,8 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   timer1.stop();
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
-  await BridgeScreen.enterSourceTokenAmount('0.001');
+  await BridgeScreen.enterSourceTokenAmount('1');
+
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );

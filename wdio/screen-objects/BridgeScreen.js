@@ -54,11 +54,13 @@ class BridgeScreen {
     for (const digit of digits) {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
-          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`);
+          const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
+          await numberKey.waitFor('visible',{ timeout: 10000 });
           await numberKey.tap();
         }
         else {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.ViewGroup[@content-desc="."]`);
+          await numberKey.waitFor('visible',{ timeout: 10000 });
           await numberKey.tap();
         }
       }
