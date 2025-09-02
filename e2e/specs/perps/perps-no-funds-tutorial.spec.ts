@@ -18,10 +18,8 @@ describe(
       await withFixtures(
         {
           fixture: new FixtureBuilder()
-            .withPopularNetworks()
             .withPerpsProfile('no-funds')
             .withPerpsFirstTimeUser(true)
-            .ensureSolanaModalSuppressed()
             .build(),
           restartDevice: true,
         },

@@ -209,7 +209,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           ],
           iconName: IconName.CheckBold,
           iconColor: IconColor.Success,
-          hasNoTimeout: false,
+          hasNoTimeout: true,
           closeButtonOptions: {
             label: strings('perps.order.error.dismiss'),
             variant: ButtonVariants.Secondary,
@@ -659,7 +659,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         ],
         iconName: IconName.Clock,
         iconColor: IconColor.Primary,
-        hasNoTimeout: true,
+        hasNoTimeout: false, // Auto-dismiss after a few seconds
       });
 
       // Track trade transaction submitted

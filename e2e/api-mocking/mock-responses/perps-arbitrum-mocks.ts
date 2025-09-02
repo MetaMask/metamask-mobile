@@ -70,6 +70,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       const urlParam = new URL(request.url).searchParams.get('url');
       return Boolean(urlParam?.includes(ARBITRUM_RPC_URL));
     })
+    .asPriority(1000)
     .thenCallback(async (request) => {
       try {
         const bodyText = await request.body.getText();
@@ -128,6 +129,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
         ? /^https:\/\/app\.hyperliquid\.xyz\/coins\/.*\.svg$/.test(urlParam)
         : false;
     })
+    .asPriority(1000)
     .thenCallback(() => {
       console.log(
         '[Perps E2E Mock] Intercepted HyperLiquid coin image request',

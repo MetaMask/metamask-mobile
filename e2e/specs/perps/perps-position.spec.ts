@@ -23,19 +23,7 @@ describe(SmokePerps('Perps Position'), () => {
   it('should open a long position with custom profit and close it', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPopularNetworks()
-          .withNetworkController({
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0xa4b1',
-              rpcUrl: 'https://arb1.arbitrum.io/rpc',
-              nickname: 'Arbitrum One',
-              ticker: 'ETH',
-            },
-          })
-          .ensureSolanaModalSuppressed()
-          .build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
@@ -52,13 +40,6 @@ describe(SmokePerps('Perps Position'), () => {
 
         await WalletActionsBottomSheet.tapPerpsButton();
 
-        // TODO: Add search token
-        // await PerpsMarketListView.tapSearchToggleButton();
-        // await PerpsMarketListView.tapSearchInput();
-        // await PerpsMarketListView.typeText(PerpsMarketListViewSelectorsIDs.SEARCH_INPUT, 'BTC');
-        // TODO: Search by BTC
-        // await PerpsMarketListView.tapSearchClearButton();
-
         await PerpsMarketListView.tapFirstMarketRowItem();
         await PerpsMarketDetailsView.tapLongButton();
         await PerpsOrderView.tapTakeProfitButton();
@@ -70,16 +51,11 @@ describe(SmokePerps('Perps Position'), () => {
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        // TODO: fix this
-        // await PerpsView.tapOrderSuccessToastDismissButton();
-
         await PerpsHelpers.scrollToBottom();
 
         await PerpsView.tapClosePositionButton();
 
         logger.info('📉 E2E Mock: Preparing to close position');
-
-        // await TestHelpers.delay(1000);
 
         await PerpsView.tapClosePositionBottomSheetButton();
 
