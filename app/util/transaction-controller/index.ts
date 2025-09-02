@@ -25,7 +25,14 @@ export async function getLayer1GasFee(
   chainId?: Hex,
 ) {
   const { TransactionController } = Engine.context;
-  return await TransactionController.getLayer1GasFee({
+  return await (
+    TransactionController as unknown as {
+      getLayer1GasFee: (args: {
+        transactionParams: TransactionParams;
+        chainId?: Hex;
+      }) => Promise<Hex>;
+    }
+  ).getLayer1GasFee({
     transactionParams,
     chainId,
   });
