@@ -1307,7 +1307,9 @@
       "failed": "Connection Failed",
       "error_message": "Unable to connect to Perps trading service.",
       "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "retrying_connection": "Connecting...",
+      "connecting_to_perps": "Connecting to Perps...",
+      "perps_will_be_available_shortly": "Perps will be available shortly"
     },
     "chart": {
       "no_data": "No chart data available"
@@ -2847,6 +2849,7 @@
     "tx_review_staking_unstake": "Unstake",
     "tx_review_lending_deposit": "Lending Deposit",
     "tx_review_lending_withdraw": "Lending Withdrawal",
+    "tx_review_perps_deposit": "Funded Perps account",
     "sent_ether": "Sent Ether",
     "self_sent_ether": "Sent Yourself Ether",
     "received_ether": "Received Ether",
@@ -5513,5 +5516,21 @@
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    },
+    "label": {
+      "bridge_fee": "Bridge fee",
+      "network_fee": "Network fee",
+      "paid_with": "Paid with",
+      "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
+    }
   }
 }
