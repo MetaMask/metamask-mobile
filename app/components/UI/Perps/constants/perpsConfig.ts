@@ -118,6 +118,27 @@ export const LIMIT_PRICE_CONFIG = {
 } as const;
 
 /**
+ * Close position configuration
+ * Controls behavior and constants specific to position closing
+ */
+export const CLOSE_POSITION_CONFIG = {
+  // Decimal places for USD amount input display
+  USD_DECIMAL_PLACES: 2,
+
+  // Default close percentage when opening the close position view
+  DEFAULT_CLOSE_PERCENTAGE: 100,
+
+  // Precision for position size calculations to prevent rounding errors
+  AMOUNT_CALCULATION_PRECISION: 6,
+
+  // Throttle delay for real-time price updates during position closing
+  PRICE_THROTTLE_MS: 3000,
+
+  // Fallback decimal places for tokens without metadata
+  FALLBACK_TOKEN_DECIMALS: 18,
+} as const;
+
+/**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
