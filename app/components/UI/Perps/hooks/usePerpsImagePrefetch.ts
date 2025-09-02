@@ -13,8 +13,6 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 export const usePerpsImagePrefetch = (
   symbols: string[],
   options?: {
-    priority?: 'low' | 'normal' | 'high';
-    onlyWifi?: boolean;
     batchSize?: number; // Number of images to prefetch at once
   },
 ) => {
@@ -138,7 +136,6 @@ export const usePerpsVisibleImagePrefetch = (
   }, [allSymbols, visibleRange, prefetchAhead]);
 
   return usePerpsImagePrefetch(symbolsToPrefetch, {
-    priority: 'high',
     batchSize: 5,
   });
 };
