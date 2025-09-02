@@ -88,6 +88,7 @@ const PerpsClosePositionView: React.FC = () => {
   // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmount, setCloseAmount] = useState(position.size);
+  const [closeAmountString, setCloseAmountString] = useState(position.size); // Raw string for token input
   const [closeAmountUSD, setCloseAmountUSD] = useState(0);
   const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input
 
@@ -283,24 +284,23 @@ const PerpsClosePositionView: React.FC = () => {
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       const previousValue =
-        displayMode === 'usd' ? closeAmountUSDString : closeAmount;
+        displayMode === 'usd' ? closeAmountUSDString : closeAmountString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
       let adjustedValue = value;
-      if (displayMode === 'usd') {
-        // Check if we're stuck on a decimal (e.g., "2." -> "2." means delete didn't work)
-        if (previousValue.endsWith('.') && value === previousValue) {
-          adjustedValue = value.slice(0, -1);
-        }
-        // Also handle case where decimal is in middle (e.g., "2.5" -> "2." should become "25")
-        else if (
-          previousValue.includes('.') &&
-          value.endsWith('.') &&
-          value.length === previousValue.length - 1
-        ) {
-          // User deleted a digit after decimal, remove the decimal too
-          adjustedValue = value.replace('.', '');
-        }
+
+      // Check if we're stuck on a decimal (e.g., "2." -> "2." means delete didn't work)
+      if (previousValue.endsWith('.') && value === previousValue) {
+        adjustedValue = value.slice(0, -1);
+      }
+      // Also handle case where decimal is in middle (e.g., "2.5" -> "2." should become "25")
+      else if (
+        previousValue.includes('.') &&
+        value.endsWith('.') &&
+        value.length === previousValue.length - 1
+      ) {
+        // User deleted a digit after decimal, remove the decimal too
+        adjustedValue = value.replace('.', '');
       }
 
       // Set both focus flags immediately to prevent useEffect interference
@@ -358,9 +358,17 @@ const PerpsClosePositionView: React.FC = () => {
           maxAmount: absSize,
         });
 
+        // Preserve raw input string for display (to keep decimal points)
+        // Only show clamped value if it actually exceeds the limit
+        let displayString = adjustedValue;
+        if (numericValue > absSize) {
+          displayString = clampedTokenAmount.toString();
+        }
+
         // Update states in batch
-        setCloseAmount(adjustedValue); // Keep the raw string value to preserve delete operations
-        setCloseAmountUSD(numericValue * currentPrice);
+        setCloseAmountString(displayString); // Raw string for display
+        setCloseAmount(clampedTokenAmount.toString()); // Clamped value for calculations
+        setCloseAmountUSD(clampedTokenAmount * currentPrice);
 
         // Calculate percentage after token values are set
         const newPercentage =
@@ -375,7 +383,7 @@ const PerpsClosePositionView: React.FC = () => {
       currentPrice,
       isInputFocused,
       isUserInputActive,
-      closeAmount,
+      closeAmountString,
       closeAmountUSDString,
     ],
   );
@@ -470,7 +478,11 @@ const PerpsClosePositionView: React.FC = () => {
           onPress={handleAmountPress}
           isActive={isInputFocused}
           showTokenAmount={displayMode === 'token'}
-          tokenAmount={formatPositionSize(closeAmount)}
+          tokenAmount={
+            displayMode === 'token' && closeAmountString
+              ? closeAmountString
+              : formatPositionSize(closeAmount)
+          }
           tokenSymbol={position.coin}
           showMaxAmount={false}
         />
@@ -486,7 +498,9 @@ const PerpsClosePositionView: React.FC = () => {
           >
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {displayMode === 'usd'
-                ? `${formatPositionSize(closeAmount)} ${position.coin}`
+                ? `${closeAmountString || formatPositionSize(closeAmount)} ${
+                    position.coin
+                  }`
                 : formatPrice(closeAmountUSD, { maximumDecimals: 2 })}
             </Text>
             <Icon
