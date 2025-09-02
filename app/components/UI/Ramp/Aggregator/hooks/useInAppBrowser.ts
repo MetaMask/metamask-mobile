@@ -52,7 +52,7 @@ export default function useInAppBrowser() {
       if (customOrderId) {
         customIdData = createCustomOrderIdData(
           customOrderId,
-          selectedChainId,
+          selectedAsset?.network?.chainId || selectedChainId,
           selectedAddress,
           isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
@@ -106,13 +106,7 @@ export default function useInAppBrowser() {
             return;
           }
           if (customIdData) {
-            const networkFromCrypto =
-              order.cryptoCurrency?.network?.chainId || order.network;
-            const updatedCustomIdData = {
-              ...customIdData,
-              chainId: networkFromCrypto,
-            };
-            dispatch(removeFiatCustomIdData(updatedCustomIdData));
+            dispatch(removeFiatCustomIdData(customIdData));
           }
 
           if (
@@ -145,7 +139,7 @@ export default function useInAppBrowser() {
       isBuy,
       lockTime,
       selectedAddress,
-      selectedAsset?.symbol,
+      selectedAsset,
       selectedChainId,
       selectedPaymentMethodId,
       trackEvent,
