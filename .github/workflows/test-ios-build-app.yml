@@ -22,8 +22,8 @@ jobs:
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
-      ipa-uploaded: ${{ steps.upload-ipa.outcome == 'success' }}
-      archive-uploaded: ${{ steps.upload-archive.outcome == 'success' }}
+      ipa-uploaded: false  # Not generated for simulator builds
+      archive-uploaded: false  # Not generated for simulator builds
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       GITHUB_CI: "true"  # ✅ This ensures it's available during pod install
@@ -87,6 +87,7 @@ jobs:
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
+          IS_SIM_BUILD: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
@@ -120,27 +121,15 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      # Upload iOS .ipa file for device installation (requires certificates - may not exist)
-      - name: Upload iOS IPA Artifact (Device)
+      # Skip IPA and xcarchive uploads for simulator builds (they are not generated)
+      # These would require code signing certificates and device builds
+      - name: Skip iOS IPA Artifact (Not generated for simulator builds)
         id: upload-ipa
-        uses: actions/upload-artifact@v4
-        with:
-          name: MetaMask-QA.ipa
-          path: ios/build/output/MetaMask-QA.ipa
-          retention-days: ${{ inputs.retention_days || '7' }}
-          if-no-files-found: error
-        continue-on-error: true
+        run: echo "Skipping IPA upload - simulator build doesn't generate IPA files"
 
-      # Upload iOS .xcarchive file for debugging and re-signing (requires certificates - may not exist)
-      - name: Upload iOS Archive Artifact
+      - name: Skip iOS Archive Artifact (Not generated for simulator builds)
         id: upload-archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: MetaMask-QA.xcarchive
-          path: ios/build/MetaMask-QA.xcarchive
-          retention-days: ${{ inputs.retention_days || '7' }}
-          if-no-files-found: error
-        continue-on-error: true
+        run: echo "Skipping xcarchive upload - simulator build doesn't generate archive files"
 
       # Upload source map file for crash debugging and error tracking if exists
       - name: Upload iOS Source Map
@@ -163,8 +152,8 @@ jobs:
           echo ""
           echo "Upload Status Summary:"
           echo "-  APP (Simulator): ${{ steps.upload-app.outcome }}"
-          echo "-  IPA (Device): ${{ steps.upload-ipa.outcome }}"
-          echo "-  Archive: ${{ steps.upload-archive.outcome }}"
+          echo "-  IPA (Device): skipped (simulator build)"
+          echo "-  Archive: skipped (simulator build)"
           echo "-  Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
