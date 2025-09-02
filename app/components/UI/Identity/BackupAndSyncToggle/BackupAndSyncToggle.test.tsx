@@ -24,11 +24,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 // Mock SwitchLoadingModal to prevent test pollution from loading/error states
-jest.mock('../../Notification/SwitchLoadingModal', () => {
-  return function MockSwitchLoadingModal() {
-    return null; // Return nothing to avoid rendering extra Views
-  };
-});
+jest.mock('../../Notification/SwitchLoadingModal', () => () => null);
 
 const MOCK_STORE_STATE = {
   engine: {
