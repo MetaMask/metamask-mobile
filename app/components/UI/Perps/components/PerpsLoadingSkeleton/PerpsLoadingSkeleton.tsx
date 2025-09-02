@@ -45,7 +45,7 @@ const PerpsLoadingSkeleton: React.FC<PerpsLoadingSkeletonProps> = ({
 
       {/* Main Text */}
       <Text variant={TextVariant.HeadingMd} twClassName="text-default mb-2">
-        {strings('perps.connection.connecting_to_hyperliquid')}
+        {strings('perps.connection.connecting_to_perps')}
       </Text>
 
       {/* Subtext */}

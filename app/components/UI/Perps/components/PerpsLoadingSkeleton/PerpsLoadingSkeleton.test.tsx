@@ -31,8 +31,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'perps.connection.connecting_to_hyperliquid':
-        'Connecting to Hyperliquid...',
+      'perps.connection.connecting_to_perps': 'Connecting to Perps...',
       'perps.connection.perps_will_be_available_shortly':
         'Perps will be available shortly',
     };
