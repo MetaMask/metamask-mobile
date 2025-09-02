@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { KnownCaipNamespace } from '@metamask/utils';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
@@ -34,6 +35,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../../selectors/networkController';
+import { selectEnabledNetworksByNamespace } from '../../../../selectors/networkEnablementController';
 import {
   AvatarSize,
   AvatarVariant,
@@ -147,6 +149,10 @@ class NetworksSettings extends PureComponent {
      */
     nonEvmNetworkConfigurations: PropTypes.object,
     ///: END:ONLY_INCLUDE_IF
+    /**
+     * Enabled networks by namespace
+     */
+    enabledNetworksByNamespace: PropTypes.object,
   };
 
   actionSheet = null;
@@ -257,7 +263,33 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, networkTypeOrRpcUrl, isCustomRPC, color) {
+  onRemoveNetworkPress = (isCustomRPC, networkTypeOrRpcUrl, chainId) => {
+    const { enabledNetworksByNamespace } = this.props;
+    const areAllNetworksEnabled = Object.values(
+      enabledNetworksByNamespace[KnownCaipNamespace.Eip155],
+    ).every((enabledNetwork) => enabledNetwork);
+
+    if (areAllNetworksEnabled) {
+      return;
+    }
+
+    const selectedEnabledNetworks =
+      enabledNetworksByNamespace[KnownCaipNamespace.Eip155][chainId];
+
+    !selectedEnabledNetworks &&
+      isCustomRPC &&
+      this.showRemoveMenu(networkTypeOrRpcUrl);
+  };
+
+  networkElement(
+    name,
+    image,
+    i,
+    networkTypeOrRpcUrl,
+    isCustomRPC,
+    color,
+    chainId,
+  ) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
@@ -269,7 +301,11 @@ class NetworksSettings extends PureComponent {
             key={`network-${i}`}
             onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
             onLongPress={() =>
-              isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
+              this.onRemoveNetworkPress(
+                isCustomRPC,
+                networkTypeOrRpcUrl,
+                chainId,
+              )
             }
           >
             <View style={styles.network}>
@@ -310,7 +346,7 @@ class NetworksSettings extends PureComponent {
 
   renderTestNetworks() {
     return getTestNetworks().map((networkType, i) => {
-      const { name, imageSource, color } = Networks[networkType];
+      const { name, imageSource, color, chainId } = Networks[networkType];
       return this.networkElement(
         name,
         imageSource,
@@ -318,6 +354,7 @@ class NetworksSettings extends PureComponent {
         networkType,
         false,
         color,
+        chainId,
       );
     });
   }
@@ -346,7 +383,15 @@ class NetworksSettings extends PureComponent {
         const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
         const name = nickname || rpcName;
         const image = getNetworkImageSource({ chainId });
-        return this.networkElement(name, image, i, rpcUrl, true);
+        return this.networkElement(
+          name,
+          image,
+          i,
+          rpcUrl,
+          true,
+          undefined,
+          chainId,
+        );
       },
     );
   };
@@ -524,6 +569,8 @@ class NetworksSettings extends PureComponent {
             i,
             networkTypeOrRpcUrl,
             isCustomRPC,
+            color,
+            chainId,
           )
         );
       });
@@ -612,6 +659,7 @@ const mapStateToProps = (state) => ({
   nonEvmNetworkConfigurations:
     selectNonEvmNetworkConfigurationsByChainId(state),
   ///: END:ONLY_INCLUDE_IF
+  enabledNetworksByNamespace: selectEnabledNetworksByNamespace(state),
 });
 
 export default connect(mapStateToProps)(NetworksSettings);
