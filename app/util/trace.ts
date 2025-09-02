@@ -121,6 +121,7 @@ export enum TraceName {
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
   // Accounts
   AccountAddressList = 'Account Address List',
+  AccountPrivateKeyList = 'Account Private Key List',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',
   PerpsClosePosition = 'Perps Close Position',
@@ -166,6 +167,7 @@ export enum TraceOperation {
   OnboardingError = 'onboarding.error',
   // Accounts
   AccountAddressList = 'account.address_list',
+  AccountPrivateKeyList = 'account.private_key_list',
   // Perps
   PerpsOperation = 'perps.operation',
   PerpsMarketData = 'perps.market_data',

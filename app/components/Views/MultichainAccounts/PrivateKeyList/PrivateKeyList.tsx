@@ -48,6 +48,12 @@ import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccoun
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
@@ -102,6 +108,17 @@ export const PrivateKeyList = () => {
     },
     [],
   );
+
+  // Start tracing the private key list display only after the password is
+  // entered and verified.
+  useEffect(() => {
+    if (reveal) {
+      trace({
+        name: TraceName.AccountPrivateKeyList,
+        op: TraceOperation.AccountPrivateKeyList,
+      });
+    }
+  }, [reveal]);
 
   const onPasswordChange = useCallback((pswd: string) => {
     setPassword(pswd);
@@ -249,6 +266,9 @@ export const PrivateKeyList = () => {
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
           testID={PrivateKeyListIds.LIST}
+          onLoad={() => {
+            endTrace({ name: TraceName.AccountPrivateKeyList });
+          }}
         />
       </View>
     ),
