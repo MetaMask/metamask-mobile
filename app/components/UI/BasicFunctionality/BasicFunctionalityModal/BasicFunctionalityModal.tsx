@@ -69,13 +69,11 @@ const BasicFunctionalityModal = ({ route }: Props) => {
 
   const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
-      const newBasicFunctionalityState = !isEnabled;
-
-      await dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
+      await dispatch(toggleBasicFunctionality(!isEnabled));
 
       trackEvent(
         createEventBuilder(
-          newBasicFunctionalityState
+          !isEnabled
             ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
             : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
         ).build(),
@@ -86,7 +84,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
             settings_group: 'security_privacy',
             settings_type: 'basic_functionality',
             old_value: isEnabled,
-            new_value: newBasicFunctionalityState,
+            new_value: !isEnabled,
             was_notifications_on: isEnabled
               ? isNotificationsFeatureEnabled
               : false,

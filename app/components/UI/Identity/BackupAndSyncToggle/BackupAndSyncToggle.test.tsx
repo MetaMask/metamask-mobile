@@ -12,6 +12,17 @@ import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuil
 
 jest.mock('../../../../components/hooks/useMetrics');
 
+// Mock Engine for MultichainAccountService calls
+jest.mock('../../../../core/Engine', () => ({
+  default: {
+    context: {
+      MultichainAccountService: {
+        setBasicFunctionality: jest.fn().mockResolvedValue(undefined),
+      },
+    },
+  },
+}));
+
 const MOCK_STORE_STATE = {
   engine: {
     backgroundState: {
