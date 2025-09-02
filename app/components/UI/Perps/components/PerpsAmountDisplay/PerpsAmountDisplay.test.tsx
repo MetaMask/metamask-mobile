@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
-import { formatPrice } from '../../utils/formatUtils';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
@@ -29,6 +29,7 @@ jest.mock('../../utils/formatUtils', () => ({
     }
     return `$${value}`;
   }),
+  formatPositionSize: jest.fn((value) => parseFloat(value).toString()),
 }));
 
 describe('PerpsAmountDisplay', () => {
@@ -36,90 +37,224 @@ describe('PerpsAmountDisplay', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly with amount and max amount', () => {
-    const { getByText } = render(
-      <PerpsAmountDisplay amount="1000" maxAmount={5000} />,
-    );
+  describe('Rendering', () => {
+    it('displays amount and max amount with proper formatting', () => {
+      // Arrange
+      const amount = '1000';
+      const maxAmount = 5000;
 
-    expect(getByText('$1000')).toBeTruthy();
-    expect(getByText('$5000 max')).toBeTruthy();
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />,
+      );
+
+      // Assert
+      expect(getByText('$1000')).toBeTruthy();
+      expect(getByText('$5000 max')).toBeTruthy();
+    });
+
+    it('displays $0 when amount is empty', () => {
+      // Arrange
+      const emptyAmount = '';
+      const maxAmount = 5000;
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay amount={emptyAmount} maxAmount={maxAmount} />,
+      );
+
+      // Assert
+      expect(getByText('$0')).toBeTruthy();
+    });
+
+    it('displays label when provided', () => {
+      // Arrange - Testing branch coverage for line 72
+      const label = 'Enter Amount';
+      const amount = '1000';
+      const maxAmount = 10000;
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          label={label}
+          maxAmount={maxAmount}
+        />,
+      );
+
+      // Assert
+      expect(getByText(label)).toBeTruthy();
+    });
+
+    it('displays token amount when showTokenAmount is true', () => {
+      // Arrange - Testing branch coverage for line 85
+      const tokenAmount = '0.5';
+      const tokenSymbol = 'ETH';
+      const amount = '1000';
+      const maxAmount = 10000;
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          maxAmount={maxAmount}
+          showTokenAmount
+          tokenAmount={tokenAmount}
+          tokenSymbol={tokenSymbol}
+        />,
+      );
+
+      // Assert
+      expect(getByText(`${tokenAmount} ${tokenSymbol}`)).toBeTruthy();
+      expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
+    });
   });
 
-  it('should render $0 when amount is empty', () => {
-    const { getByText } = render(
-      <PerpsAmountDisplay amount="" maxAmount={5000} />,
-    );
+  describe('Warning States', () => {
+    it('shows default warning when showWarning is true and maxAmount is 0', () => {
+      // Arrange
+      const amount = '1000';
+      const maxAmount = 0;
 
-    expect(getByText('$0')).toBeTruthy();
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          maxAmount={maxAmount}
+          showWarning
+        />,
+      );
+
+      // Assert
+      expect(
+        getByText('No funds available. Please deposit first.'),
+      ).toBeTruthy();
+    });
+
+    it('shows custom warning message when provided', () => {
+      // Arrange
+      const customMessage = 'Insufficient balance';
+      const amount = '1000';
+      const maxAmount = 5000;
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          maxAmount={maxAmount}
+          showWarning
+          warningMessage={customMessage}
+        />,
+      );
+
+      // Assert
+      expect(getByText(customMessage)).toBeTruthy();
+    });
   });
 
-  it('should show warning when showWarning is true', () => {
-    const { getByText } = render(
-      <PerpsAmountDisplay amount="1000" maxAmount={0} showWarning />,
-    );
+  describe('User Interactions', () => {
+    it('calls onPress handler when amount is pressed', () => {
+      // Arrange
+      const onPressMock = jest.fn();
+      const amount = '1000';
+      const maxAmount = 5000;
 
-    expect(getByText('No funds available. Please deposit first.')).toBeTruthy();
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          maxAmount={maxAmount}
+          onPress={onPressMock}
+        />,
+      );
+      fireEvent.press(getByText('$1000'));
+
+      // Assert
+      expect(onPressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles press gracefully when onPress is not provided', () => {
+      // Arrange
+      const amount = '1000';
+      const maxAmount = 5000;
+
+      // Act
+      const { getByText } = render(
+        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />,
+      );
+
+      // Assert - This should not throw an error
+      expect(() => fireEvent.press(getByText('$1000'))).not.toThrow();
+    });
   });
 
-  it('should show custom warning message', () => {
-    const customMessage = 'Insufficient balance';
-    const { getByText } = render(
-      <PerpsAmountDisplay
-        amount="1000"
-        maxAmount={5000}
-        showWarning
-        warningMessage={customMessage}
-      />,
-    );
+  describe('Active State', () => {
+    it('shows cursor when isActive is true', () => {
+      // Arrange
+      const amount = '1000';
+      const maxAmount = 5000;
 
-    expect(getByText(customMessage)).toBeTruthy();
+      // Act
+      const { getByTestId } = render(
+        <PerpsAmountDisplay amount={amount} maxAmount={maxAmount} isActive />,
+      );
+
+      // Assert
+      expect(getByTestId('cursor')).toBeTruthy();
+    });
+
+    it('hides cursor when isActive is false', () => {
+      // Arrange
+      const amount = '1000';
+      const maxAmount = 5000;
+
+      // Act
+      const { queryByTestId } = render(
+        <PerpsAmountDisplay
+          amount={amount}
+          maxAmount={maxAmount}
+          isActive={false}
+        />,
+      );
+
+      // Assert
+      expect(queryByTestId('cursor')).toBeNull();
+    });
   });
 
-  it('should be pressable when onPress is provided', () => {
-    const onPressMock = jest.fn();
-    const { getByText } = render(
-      <PerpsAmountDisplay
-        amount="1000"
-        maxAmount={5000}
-        onPress={onPressMock}
-      />,
-    );
+  describe('Formatting', () => {
+    it('formats prices with correct decimal places', () => {
+      // Arrange
+      const amount = '1234.56';
+      const maxAmount = 9876.54;
 
-    fireEvent.press(getByText('$1000'));
-    expect(onPressMock).toHaveBeenCalledTimes(1);
-  });
+      // Act
+      render(<PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />);
 
-  it('should not be pressable when onPress is not provided', () => {
-    const { getByText } = render(
-      <PerpsAmountDisplay amount="1000" maxAmount={5000} />,
-    );
+      // Assert
+      expect(formatPrice).toHaveBeenCalledWith('1234.56', {
+        minimumDecimals: 0,
+        maximumDecimals: 2,
+      });
+      expect(formatPrice).toHaveBeenCalledWith(9876.54, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+    });
 
-    // This should not throw an error
-    fireEvent.press(getByText('$1000'));
-  });
+    it('formats USD amounts with maximum 2 decimal places', () => {
+      // Arrange
+      const amount = '1234.5678';
+      const maxAmount = 5000;
 
-  it('should show cursor when isActive is true', () => {
-    const { getByTestId } = render(
-      <PerpsAmountDisplay amount="1000" maxAmount={5000} isActive />,
-    );
+      // Act
+      render(<PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />);
 
-    // The cursor should be rendered when isActive is true
-    expect(getByTestId('cursor')).toBeTruthy();
-  });
-
-  it('should not show cursor when isActive is false', () => {
-    const { queryByTestId } = render(
-      <PerpsAmountDisplay amount="1000" maxAmount={5000} isActive={false} />,
-    );
-
-    // The cursor should not be rendered when isActive is false
-    expect(queryByTestId('cursor')).toBeNull();
-  });
-
-  it('should format prices correctly', () => {
-    render(<PerpsAmountDisplay amount="1234.56" maxAmount={9876.54} />);
-
-    expect(formatPrice).toHaveBeenCalledWith('1234.56', { minimumDecimals: 0 });
-    expect(formatPrice).toHaveBeenCalledWith(9876.54);
+      // Assert - Verify USD amounts are limited to 2 decimal places
+      expect(formatPrice).toHaveBeenCalledWith('1234.5678', {
+        minimumDecimals: 0,
+        maximumDecimals: 2,
+      });
+    });
   });
 });

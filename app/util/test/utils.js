@@ -31,3 +31,5 @@ export const isE2E =
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
+
+export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';

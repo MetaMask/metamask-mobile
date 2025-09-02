@@ -245,6 +245,16 @@ export const selectIsBridgeEnabledDest = createSelector(
   },
 );
 
+export const selectIsSwapsLive = createSelector(
+  [
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledSource(state, chainId),
+    (state: RootState, chainId: Hex | CaipChainId) =>
+      selectIsBridgeEnabledDest(state, chainId),
+  ],
+  (isEnabledSource, isEnabledDest) => isEnabledSource || isEnabledDest,
+);
+
 export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,

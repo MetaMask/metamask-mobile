@@ -42,15 +42,15 @@ export const selectCurrencyRates = createSelector(
 
 export const selectCurrencyRateForChainId = createSelector(
   [
-    (state, chainId: Hex) => {
-      const currencyRates = selectCurrencyRates(state);
-      const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
-      const conversionRate =
-        currencyRates?.[networkConfig?.nativeCurrency]?.conversionRate || 0;
-      return conversionRate;
-    },
+    selectCurrencyRates,
+    (_state: RootState, chainId: Hex) => chainId,
+    (state: RootState, chainId: Hex) =>
+      selectNetworkConfigurationByChainId(state, chainId),
   ],
-  (conversionRate): number => conversionRate,
+  (currencyRates, _chainId, networkConfig): number =>
+    (networkConfig?.nativeCurrency &&
+      currencyRates?.[networkConfig.nativeCurrency]?.conversionRate) ||
+    0,
   {
     memoize: weakMapMemoize,
     argsMemoize: weakMapMemoize,

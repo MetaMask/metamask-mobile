@@ -2,7 +2,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 import Device from '../../../../../util/device';
 
-const { width: DEVICE_WIDTH } = Dimensions.get('window');
+const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get('window');
 
 const createStyles = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -83,6 +83,11 @@ const createStyles = (params: { theme: Theme }) =>
       alignSelf: 'center',
     },
     continueButton: {
+      width: '100%',
+    },
+    animationContainer: {
+      // TEMP Possibly: Waiting for Rive animations to be exported without fullscreen frame.
+      height: Math.min(DEVICE_HEIGHT * 0.45, 400), // Responsive height, max 400px
       width: '100%',
     },
   });

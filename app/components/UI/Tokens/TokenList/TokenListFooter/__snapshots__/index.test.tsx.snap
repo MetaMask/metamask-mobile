@@ -24,7 +24,7 @@ exports[`TokenListFooter renders correctly 1`] = `
       }
     }
   >
-    Ethereum is needed to continue
+    Fund your wallet to get started in web3
   </Text>
   <TouchableOpacity
     accessibilityRole="button"
@@ -60,7 +60,7 @@ exports[`TokenListFooter renders correctly 1`] = `
         }
       }
     >
-      Next
+      Add funds
     </Text>
   </TouchableOpacity>
 </View>

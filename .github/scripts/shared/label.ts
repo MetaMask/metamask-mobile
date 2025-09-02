@@ -28,6 +28,18 @@ export const externalContributorLabel: Label = {
   description: 'Issue or PR created by user outside org',
 };
 
+export const needsTriageLabel: Label = {
+  name: 'needs-triage',
+  color: '68AEE6',
+  description: 'Issue needs to be triaged',
+};
+
+export const areaSentryLabel: Label = {
+  name: 'area-sentry',
+  color: '5319E7',
+  description: 'Issue from Sentry',
+};
+
 export const invalidIssueTemplateLabel: Label = {
   name: 'INVALID-ISSUE-TEMPLATE',
   color: 'EDEDED',
@@ -52,7 +64,7 @@ export function craftRegressionLabel(regressionStage: RegressionStage | undefine
 
     case RegressionStage.DevelopmentMain:
       return {
-        name: `regression-develop`,
+        name: `regression-main`,
         color: '5319E7', // violet
         description: `Regression bug that was found on main branch, but not yet present in production`,
       };
@@ -82,7 +94,7 @@ export function craftRegressionLabel(regressionStage: RegressionStage | undefine
       return {
         name: `regression-*`,
         color: 'EDEDED', // grey
-        description: `TODO: Unknown regression stage. Please replace with correct regression label: 'regression-develop', 'regression-RC-x.y.z', or 'regression-prod-x.y.z' label, where 'x.y.z' is the number of the release where bug was found.`,
+        description: `TODO: Unknown regression stage. Please replace with correct regression label: 'regression-main', 'regression-RC-x.y.z', or 'regression-prod-x.y.z' label, where 'x.y.z' is the number of the release where bug was found.`,
       };
   }
 }
@@ -93,14 +105,14 @@ export function craftTeamLabel(teamName: string): Label {
     case 'extension-platform':
       return {
         name: `team-${teamName}`,
-        color: '#BFD4F2', // light blue
+        color: 'BFD4F2', // light blue
         description: `Extension Platform team`,
       };
 
     case 'mobile-platform':
       return {
         name: `team-${teamName}`,
-        color: '#76E9D0', // light green
+        color: '76E9D0', // light green
         description: `Mobile Platform team`,
       };
 

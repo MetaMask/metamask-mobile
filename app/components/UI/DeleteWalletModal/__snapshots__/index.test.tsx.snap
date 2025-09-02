@@ -447,8 +447,9 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "Geist Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 18,
+                                  "fontWeight": "600",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "marginLeft": "auto",
@@ -532,8 +533,9 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 16,
+                                        "fontWeight": "600",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -589,8 +591,9 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "Geist Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 16,
+                                        "fontWeight": "600",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }

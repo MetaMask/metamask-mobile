@@ -10,7 +10,6 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
 import { selectChainId } from '../../../selectors/networkController';
-import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
@@ -37,6 +36,9 @@ import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { RootState } from '../../../reducers';
+import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -46,11 +48,14 @@ const WalletActions = () => {
   const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
 
   const chainId = useSelector(selectChainId);
-  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
@@ -154,7 +159,7 @@ const WalletActions = () => {
           />
         )}
 
-        {isPerpsEnabled && (
+        {isPerpsEnabled && isEvmSelected && (
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}

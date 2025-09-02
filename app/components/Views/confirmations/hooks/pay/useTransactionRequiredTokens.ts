@@ -5,19 +5,14 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { toHex } from '@metamask/controller-utils';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useDeepMemo } from '../useDeepMemo';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectUSDConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 
 const log = createProjectLogger('transaction-pay');
-
-interface TransactionTokenBase {
-  address: Hex;
-  amount: Hex;
-  skipIfBalance?: boolean;
-}
 
 export interface TransactionToken {
   address: Hex;
@@ -37,21 +32,13 @@ export function useTransactionRequiredTokens() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
-  const balanceTokens = useTokensWithBalance({
-    chainIds: [chainId],
-  });
+  const gasToken = useGasToken(chainId);
+  const tokenTransferToken = useTokenTransferToken(chainId);
 
-  const gasToken = useGasToken();
-  const tokenTransferToken = useTokenTransferToken();
-
-  const requiredTokens = useMemo(
-    () =>
-      [gasToken, tokenTransferToken].filter((t) => t) as TransactionTokenBase[],
+  const result = useMemo(
+    () => [gasToken, tokenTransferToken].filter(Boolean) as TransactionToken[],
     [gasToken, tokenTransferToken],
   );
-
-  const finalTokens = getPartialTokens(requiredTokens, balanceTokens, chainId);
-  const result = useDeepMemo(() => finalTokens, [finalTokens]);
 
   useEffect(() => {
     log('Required tokens', result);
@@ -60,10 +47,12 @@ export function useTransactionRequiredTokens() {
   return result;
 }
 
-function useTokenTransferToken(): TransactionTokenBase | undefined {
+function useTokenTransferToken(chainId: Hex): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
-  const { data, to } = txParams;
+  const { data } = txParams;
+  const to = txParams.to as Hex | undefined;
+  const balanceProperties = useTokenBalance(to ?? '0x0', chainId);
 
   let transferAmount: Hex | undefined;
 
@@ -84,56 +73,83 @@ function useTokenTransferToken(): TransactionTokenBase | undefined {
     }
 
     return {
-      address: to as Hex,
-      amount: transferAmount,
+      ...calculateAmountProperties(transferAmount, balanceProperties.decimals),
+      ...balanceProperties,
+      skipIfBalance: false,
     };
-  }, [transferAmount, to]);
+  }, [balanceProperties, to, transferAmount]);
 }
 
-function useGasToken(): TransactionTokenBase | undefined {
-  const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
+function useGasToken(chainId: Hex): TransactionToken | undefined {
+  const balanceProperties = useTokenBalance(NATIVE_TOKEN_ADDRESS, chainId);
+
+  const maxGasCostHex = useTransactionMaxGasCost();
+
+  const usdConversionRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, chainId as Hex),
+  );
+
+  const oneDollarNativeWei = new BigNumber(1)
+    .dividedBy(usdConversionRate || 1)
+    .shiftedBy(18);
+
+  const maxGasCost = new BigNumber(maxGasCostHex ?? '0x0', 16);
+
+  const hasSufficientBalance = maxGasCost.isLessThanOrEqualTo(
+    balanceProperties.balanceRaw,
+  );
+
+  const amountRawHex = toHex(
+    (usdConversionRate &&
+    maxGasCost.isLessThan(oneDollarNativeWei) &&
+    !hasSufficientBalance
+      ? oneDollarNativeWei
+      : maxGasCost
+    ).toFixed(0, BigNumber.ROUND_CEIL),
+  );
 
   return useMemo(() => {
-    if (maxGasCost === '0x0') {
+    if (!amountRawHex) {
       return undefined;
     }
 
     return {
-      address: NATIVE_TOKEN_ADDRESS,
-      amount: maxGasCost,
+      ...calculateAmountProperties(amountRawHex, balanceProperties.decimals),
+      ...balanceProperties,
       skipIfBalance: true,
     };
-  }, [maxGasCost]);
+  }, [amountRawHex, balanceProperties]);
 }
 
-function getPartialTokens(
-  tokens: TransactionTokenBase[],
-  balanceTokens: BridgeToken[],
-  chainId: Hex,
-): TransactionToken[] {
-  return tokens.reduce((acc, token) => {
-    const balanceToken = balanceTokens.find(
-      (t) =>
-        t.address.toLowerCase() === token.address.toLowerCase() &&
-        t.chainId === chainId,
-    );
+function useTokenBalance(tokenAddress: Hex, chainId: Hex) {
+  const balanceToken = useTokenWithBalance(tokenAddress, chainId);
 
-    const balanceHuman = balanceToken?.balance ?? '0';
-    const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
-    const amountRaw = new BigNumber(token.amount, 16);
-    const amountHuman = amountRaw.shiftedBy(-decimals);
-    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
+  const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
+  const balanceHuman = balanceToken?.balance ?? '0';
 
-    acc.push({
-      address: token.address,
-      amountHuman: amountHuman.toString(10),
-      amountRaw: amountRaw.toFixed(0),
+  const balanceRaw = new BigNumber(balanceHuman, 10)
+    .shiftedBy(decimals)
+    .toFixed(0);
+
+  return useMemo(
+    () => ({
+      address: tokenAddress,
       balanceHuman,
-      balanceRaw: balanceRaw.toFixed(0),
+      balanceRaw,
       decimals,
-      skipIfBalance: token.skipIfBalance ?? false,
-    });
+    }),
+    [balanceHuman, balanceRaw, decimals, tokenAddress],
+  );
+}
 
-    return acc;
-  }, [] as TransactionToken[]);
+function calculateAmountProperties(amountRawHex: Hex, decimals: number) {
+  const amountRawValue = new BigNumber(amountRawHex, 16);
+  const amountHumanValue = amountRawValue.shiftedBy(-decimals);
+  const amountRaw = amountRawValue.toFixed(0);
+  const amountHuman = amountHumanValue.toString(10);
+
+  return {
+    amountHuman,
+    amountRaw,
+  };
 }

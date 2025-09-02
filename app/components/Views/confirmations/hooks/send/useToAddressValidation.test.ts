@@ -15,6 +15,7 @@ describe('useToAddressValidation', () => {
     expect(result.current).toStrictEqual({
       toAddressError: undefined,
       toAddressWarning: undefined,
+      validateToAddress: expect.any(Function),
     });
   });
 });

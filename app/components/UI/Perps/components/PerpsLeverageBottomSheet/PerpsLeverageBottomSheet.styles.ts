@@ -1,5 +1,11 @@
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
+import {
+  LEVERAGE_COLORS,
+  LEVERAGE_BACKGROUND_COLORS,
+} from '../../constants/leverageColors';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -11,46 +17,77 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       paddingTop: 16,
       paddingBottom: 24,
+      marginHorizontal: 12,
     },
     leverageText: {
       fontSize: 48,
       fontWeight: '600',
       lineHeight: 56,
     },
+    leverageTextSafe: {
+      color: LEVERAGE_COLORS.SAFE, // Green - safe leverage
+    },
+    leverageTextCaution: {
+      color: LEVERAGE_COLORS.CAUTION, // Yellow - moderate leverage
+    },
     leverageTextLow: {
       color: colors.text.default,
     },
     leverageTextMedium: {
-      color: colors.warning.default,
+      color: LEVERAGE_COLORS.MEDIUM, // Orange - high leverage
     },
     leverageTextHigh: {
-      color: colors.error.default,
+      color: colors.error.default, // Red - dangerous leverage
     },
     warningContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       padding: 12,
-      backgroundColor: colors.background.alternative,
       borderRadius: 8,
       marginBottom: 24,
+      marginHorizontal: 12,
+    },
+    warningContainerSafe: {
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.SAFE, // Green background
+    },
+    warningContainerCaution: {
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.CAUTION, // Yellow background
+    },
+    warningContainerMedium: {
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.MEDIUM, // Orange background
+    },
+    warningContainerHigh: {
+      backgroundColor: LEVERAGE_BACKGROUND_COLORS.HIGH, // Red background
     },
     warningIcon: {
       marginRight: 8,
+      flexShrink: 0,
+    },
+    warningText: {
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    warningTextSafe: {
+      color: LEVERAGE_COLORS.SAFE, // Green - matches gradient start
+    },
+    warningTextCaution: {
+      color: LEVERAGE_COLORS.CAUTION, // Yellow - matches gradient middle
     },
     warningTextLow: {
       color: colors.text.alternative,
     },
     warningTextMedium: {
-      color: colors.warning.default,
+      color: LEVERAGE_COLORS.MEDIUM, // Orange - matches gradient
     },
     warningTextHigh: {
-      color: colors.error.default,
+      color: colors.error.default, // Red - matches gradient end
     },
     priceInfoContainer: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 16,
       marginBottom: 32,
+      marginHorizontal: 12,
     },
     priceRow: {
       flexDirection: 'row',
@@ -58,8 +95,16 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    priceValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    priceIcon: {
+      marginRight: 4,
+    },
     sliderContainer: {
       marginBottom: 16,
+      marginHorizontal: 12,
     },
     sliderLabels: {
       flexDirection: 'row',
@@ -71,13 +116,14 @@ export const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'space-between',
       marginTop: 24,
       marginBottom: 16,
+      marginHorizontal: 12,
     },
     quickSelectButton: {
       flex: 1,
       marginHorizontal: 4,
       paddingVertical: 12,
       alignItems: 'center',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.muted,
@@ -99,22 +145,22 @@ export const createStyles = (colors: Theme['colors']) =>
       position: 'relative',
     },
     leverageThumb: {
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 32,
       backgroundColor: colors.background.default,
-      borderRadius: 12,
+      borderRadius: 16,
       position: 'absolute',
-      top: -9,
-      left: -12,
+      top: -13,
+      left: -16,
       shadowColor: colors.shadow.default,
       shadowOffset: {
         width: 0,
         height: 2,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3,
-      elevation: 3,
-      borderWidth: 2,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 4,
+      borderWidth: 3,
       borderColor: colors.border.default,
     },
     leverageGradient: {

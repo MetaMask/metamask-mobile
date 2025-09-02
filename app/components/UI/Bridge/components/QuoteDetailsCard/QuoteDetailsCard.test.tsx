@@ -20,7 +20,18 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn().mockImplementation(() => ({
     quoteFetchError: null,
-    activeQuote: mockQuotes[0],
+    activeQuote: {
+      ...mockQuotes[0],
+      quote: {
+        ...mockQuotes[0].quote,
+        feeData: {
+          metabridge: {
+            amount: '1000000', // Non-zero fee to show disclaimer
+            asset: mockQuotes[0].quote.feeData.metabridge.asset,
+          },
+        },
+      },
+    },
     destTokenAmount: '24.44',
     isLoading: false,
     formattedQuoteData: {
@@ -433,5 +444,81 @@ describe('QuoteDetailsCard', () => {
       // False branch - no warning tooltip
       expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
     }
+  });
+
+  it('does not show fee disclaimer when there is no fee', () => {
+    // Given a quote with zero fee
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          feeData: {
+            metabridge: {
+              amount: '0', // Zero fee
+            },
+          },
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    // When rendering the QuoteDetailsCard
+    const { queryByText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    // Then the fee disclaimer should not be displayed
+    expect(queryByText(strings('bridge.fee_disclaimer'))).toBeNull();
+  });
+
+  it('shows fee disclaimer when there is a fee', () => {
+    // Given a quote with a non-zero fee
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      quoteFetchError: null,
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          feeData: {
+            metabridge: {
+              amount: '1000000', // Non-zero fee
+            },
+          },
+        },
+      },
+      destTokenAmount: '24.44',
+      isLoading: false,
+      formattedQuoteData: {
+        networkFee: '0.01',
+        estimatedTime: '1 min',
+        rate: '1 ETH = 24.4 USDC',
+        priceImpact: '-0.06%',
+        slippage: '0.5%',
+      },
+    }));
+
+    // When rendering the QuoteDetailsCard
+    const { getByText } = renderScreen(
+      QuoteDetailsCard,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    // Then the fee disclaimer should be displayed
+    expect(getByText(strings('bridge.fee_disclaimer'))).toBeOnTheScreen();
   });
 });

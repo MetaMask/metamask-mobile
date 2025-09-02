@@ -582,9 +582,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     >
                                       <View
                                         style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
                                         }
                                       >
                                         <TextInput
@@ -737,7 +743,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                 accessible={true}
                                 activeOpacity={1}
                                 disabled={true}
-                                onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={

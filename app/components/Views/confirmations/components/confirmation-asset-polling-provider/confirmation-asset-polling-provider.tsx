@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { AssetPollingProvider } from '../../../../hooks/AssetPolling/AssetPollingProvider';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
@@ -20,22 +20,24 @@ export const ConfirmationAssetPollingProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const transactionMetaData = useTransactionMetadataRequest();
+  const transactionMeta = useTransactionMetadataRequest();
+  const bridgeChains = useSelector(selectEnabledSourceChains);
 
-  const bridgeChainIds = useSelector(selectEnabledSourceChains).map(
-    (chain) => chain.chainId as Hex,
-  );
+  const pollChainIds = useMemo(
+    () =>
+      bridgeChains.filter((chain) => chain.isEvm).map((chain) => chain.chainId),
+    [bridgeChains],
+  ) as Hex[];
 
-  if (!transactionMetaData) {
+  if (!transactionMeta) {
     return children;
   }
 
   return (
     <>
       <AssetPollingProvider
-        chainIds={bridgeChainIds}
-        networkClientId={transactionMetaData.networkClientId}
-        address={transactionMetaData.txParams.from as Hex}
+        chainIds={pollChainIds}
+        address={transactionMeta.txParams.from as Hex}
       />
       {children}
     </>

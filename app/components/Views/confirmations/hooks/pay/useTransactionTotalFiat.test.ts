@@ -10,10 +10,12 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { TransactionBridgeQuote } from '../../utils/bridge';
+import { useFeeCalculations } from '../gas/useFeeCalculations';
 
 jest.mock('../gas/useTransactionMaxGasCost');
 jest.mock('./useTransactionRequiredFiat');
 jest.mock('./useTransactionRequiredTokens');
+jest.mock('../gas/useFeeCalculations');
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const ADDRESS_2_MOCK = '0xabcdef1234567890abcdef1234567890abcdef12';
@@ -38,6 +40,7 @@ function runHook({ quotes }: { quotes?: TransactionBridgeQuote[] } = {}) {
 
 describe('useTransactionTotalFiat', () => {
   const useTransactionMaxGasCostMock = jest.mocked(useTransactionMaxGasCost);
+  const useFeeCalculationsMock = jest.mocked(useFeeCalculations);
 
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
@@ -52,40 +55,40 @@ describe('useTransactionTotalFiat', () => {
       values: [],
       totalFiat: 0,
     });
+
+    useFeeCalculationsMock.mockReturnValue({
+      estimatedFeeFiatPrecise: '7.89',
+    } as ReturnType<typeof useFeeCalculations>);
   });
 
   it('includes quotes cost', () => {
     const { result } = runHook({
       quotes: [
         {
-          adjustedReturn: {
+          sentAmount: {
             valueInCurrency: '12.34',
           },
-          cost: {
-            valueInCurrency: '23.45',
-          },
           totalMaxNetworkFee: {
-            valueInCurrency: '34.56',
+            valueInCurrency: '23.45',
           },
         },
         {
-          adjustedReturn: {
-            valueInCurrency: '45.67',
-          },
-          cost: {
-            valueInCurrency: '56.78',
+          sentAmount: {
+            valueInCurrency: '34.56',
           },
           totalMaxNetworkFee: {
-            valueInCurrency: '67.89',
+            valueInCurrency: '45.67',
           },
         },
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current).toStrictEqual({
-      value: '240.69',
-      formatted: '$240.69',
-    });
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '116.02',
+        formatted: '$116.02',
+      }),
+    );
   });
 
   it('includes balance cost', () => {
@@ -104,10 +107,12 @@ describe('useTransactionTotalFiat', () => {
 
     const { result } = runHook();
 
-    expect(result.current).toStrictEqual({
-      value: '35.79',
-      formatted: '$35.79',
-    });
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '35.79',
+        formatted: '$35.79',
+      }),
+    );
   });
 
   it('ignores balance cost if matching quote', () => {
@@ -127,14 +132,11 @@ describe('useTransactionTotalFiat', () => {
     const { result } = runHook({
       quotes: [
         {
-          adjustedReturn: {
+          sentAmount: {
             valueInCurrency: '30',
           },
-          cost: {
-            valueInCurrency: '40',
-          },
           totalMaxNetworkFee: {
-            valueInCurrency: '50',
+            valueInCurrency: '40',
           },
           quote: {
             destAsset: {
@@ -145,9 +147,92 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current).toStrictEqual({
-      value: '140',
-      formatted: '$140',
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '90',
+        formatted: '$90',
+      }),
+    );
+  });
+
+  it('returns total gas cost', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '4.56',
+          },
+        },
+      ] as TransactionBridgeQuote[],
     });
+
+    expect(result.current.totalGasFormatted).toBe('$13.68');
+  });
+
+  it('returns quote network fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          toTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          toTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2.34',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.quoteNetworkFee).toBe('3.57');
+  });
+
+  it('returns bridge fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          toTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          toTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.bridgeFeeFormatted).toBe('$30');
   });
 });

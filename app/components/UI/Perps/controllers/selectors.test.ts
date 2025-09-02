@@ -8,12 +8,16 @@ describe('PerpsController selectors', () => {
     });
 
     it('should return true when isFirstTimeUser is true', () => {
-      const state = { isFirstTimeUser: true } as PerpsControllerState;
+      const state = {
+        isFirstTimeUser: { testnet: true, mainnet: true },
+      } as PerpsControllerState;
       expect(selectIsFirstTimeUser(state)).toBe(true);
     });
 
     it('should return false when isFirstTimeUser is false', () => {
-      const state = { isFirstTimeUser: false } as PerpsControllerState;
+      const state = {
+        isFirstTimeUser: { testnet: false, mainnet: false },
+      } as PerpsControllerState;
       expect(selectIsFirstTimeUser(state)).toBe(false);
     });
 

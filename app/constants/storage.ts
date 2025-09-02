@@ -9,7 +9,6 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
-export const ONBOARDING_WIZARD = `${prefix}onboardingWizard`;
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
@@ -61,8 +60,6 @@ export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 export const themeAppearanceLight = 'light';
 
 export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;
-
-export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShownV2`;
 
 export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 

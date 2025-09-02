@@ -23,10 +23,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
-import {
-  ONBOARDING_WIZARD,
-  OPTIN_META_METRICS_UI_SEEN,
-} from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
 import { EndTraceRequest, TraceName } from '../../../util/trace';
 import ReduxService from '../../../core/redux/ReduxService';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
@@ -63,6 +60,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     SeedlessOnboardingController: {
       submitGlobalPassword: jest.fn(),
+    },
+    MultichainAccountService: {
+      init: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -679,7 +679,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });
@@ -738,7 +737,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
         return null;
       });
@@ -799,7 +797,7 @@ describe('Login test suite 2', () => {
       mockIsEnabled.mockReturnValue(true);
     });
 
-    it('should replace navigation when non-OAuth login with existing onboarding wizard', async () => {
+    it('should replace navigation when non-OAuth login ', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -807,7 +805,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });

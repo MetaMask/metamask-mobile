@@ -49,6 +49,16 @@
     "batched_unused_approvals": {
       "title": "Quyền không cần thiết",
       "message": "Bạn đang cấp cho người khác quyền rút token của bạn, mặc dù điều đó không cần thiết cho giao dịch này."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
+    },
+    "no_pay_token_quotes": {
+      "title": "We couldn't find any quotes.",
+      "message": "Change the amount or select a different token for payment."
     }
   },
   "blockaid_banner": {
@@ -150,7 +160,7 @@
     "or": "HOẶC",
     "import_existing_wallet": "Nhập ví hiện có",
     "bottom_sheet_title": "Chọn một tùy chọn để tiếp tục",
-    "continue_with_srp": "Tiếp tục với Cụm từ khôi phục bí mật",
+    "continue_with_srp": "Use Secret Recovery Phrase",
     "import_srp": "Nhập bằng Cụm từ khôi phục bí mật",
     "sign_in_with_google": "Đăng nhập bằng Google",
     "sign_in_with_apple": "Đăng nhập bằng Apple",
@@ -176,6 +186,8 @@
     "import_title": "Ví của bạn đã sẵn sàng!",
     "import_description": "Nếu bạn làm mất Cụm từ khôi phục bí mật, bạn sẽ không thể sử dụng ví của mình.",
     "import_description2": "bạn có thể lưu giữ cụm từ này ở nơi an toàn để không bao giờ mất quyền truy cập vào tiền của mình.",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "Hoàn tất",
     "create_hint": "Tạo gợi ý mật khẩu",
     "hint_title": "Gợi ý mật khẩu",
@@ -410,7 +422,7 @@
     "confirm_password_placeholder": "Nhập lại mật khẩu của bạn",
     "confirm_btn": "Lưu",
     "warning_password_change_title": "Bạn có chắc chắn không?",
-    "warning_password_change_description": "Nếu bạn thay đổi mật khẩu tại đây, MetaMask sẽ bị khóa trên các thiết bị khác mà bạn đang sử dụng. Bạn sẽ cần đăng nhập lại bằng mật khẩu mới.",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "Xác nhận",
     "warning_password_cancel_button": "Hủy",
     "changing_password": "Đang thay đổi mật khẩu...",
@@ -461,6 +473,12 @@
     "wallet": "Ví",
     "transfer": "Chuyển"
   },
+  "bottom_nav": {
+    "home": "Home",
+    "browser": "Browser",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
   "drawer": {
     "send_button": "Gửi",
     "receive_button": "Thêm tiền",
@@ -488,16 +506,40 @@
     "public_address": "Địa chỉ công khai"
   },
   "send": {
+    "available": "available",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
+    "continue": "Continue",
+    "unit": "unit",
+    "units": "units",
+    "next": "Next",
     "title": "Gửi",
     "deeplink_failure": "Đã xảy ra lỗi! Vui lòng thử lại",
     "warn_network_change": "Mạng đã đổi thành ",
     "send_to": "Gửi cho",
     "amount": "Số tiền",
     "confirm": "Xác nhận",
+    "paste": "Paste",
+    "no_assets_available": "No assets available to send",
+    "clear": "Clear",
+    "to": "To",
+    "enter_address_to_send_to": "Enter address to send to",
+    "accounts": "Accounts",
+    "contacts": "Contacts",
+    "no_contacts_found": "No contacts found",
+    "review": "Review",
+    "all_networks": "All",
+    "no_tokens_match_filters": "No tokens match your filters",
+    "clear_filters": "Clear filters",
+    "no_tokens_available": "No tokens available",
     "sign": "Ký",
     "network_not_found_title": "Không tìm thấy mạng",
     "network_not_found_description": "Không tìm thấy mạng với ID chuỗi là {{chain_id}} trên ví của bạn. Vui lòng thêm mạng trước.",
-    "network_missing_id": "Thiếu ID chuỗi."
+    "network_missing_id": "Thiếu ID chuỗi.",
+    "search_tokens_and_nfts": "Search tokens and NFTs",
+    "tokens": "Tokens",
+    "nfts": "NFTs",
+    "show_more_nfts": "Show more NFTs"
   },
   "deposit": {
     "title": "Nạp",
@@ -512,8 +554,18 @@
     },
     "token_modal": {
       "select_a_token": "Chọn Token",
+      "select_token": "Select token",
       "search_by_name_or_address": "Tìm kiếm token theo tên hoặc địa chỉ",
       "no_tokens_found": "Không có token nào khớp với \"{{searchString}}\""
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -628,11 +680,11 @@
       "title": "Nhập thông tin cơ bản của bạn",
       "continue": "Tiếp tục",
       "subtitle": "Tiếp theo, chúng tôi cần một số thông tin cơ bản về bạn.",
-      "first_name": "Tên",
-      "last_name": "Họ",
-      "phone_number": "Số điện thoại",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone_number": "Phone number",
       "date_of_birth": "Ngày tháng năm sinh",
-      "social_security_number": "Số An sinh Xã hội",
+      "social_security_number": "Social security number (SSN)",
       "enter_phone_number": "Nhập số điện thoại",
       "select_region": "Chọn khu vực",
       "first_name_required": "Tên là bắt buộc",
@@ -643,7 +695,8 @@
       "mobile_number_invalid": "Vui lòng nhập số điện thoại hợp lệ",
       "dob_required": "Ngày tháng năm sinh là bắt buộc",
       "dob_invalid": "Vui lòng nhập ngày tháng năm sinh hợp lệ",
-      "ssn_required": "Số an sinh xã hội là bắt buộc"
+      "ssn_required": "Số an sinh xã hội là bắt buộc",
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "Xác minh danh tính của bạn",
@@ -719,11 +772,11 @@
     },
     "bank_details": {
       "navbar_title": "Chuyển khoản ngân hàng {{paymentMethod}}",
-      "button": "Chuyển khoản ngân hàng đã được gửi",
+      "button": "Confirm transfer",
       "button_cancel": "Hủy lệnh",
       "main_title": "Để hoàn tất lệnh của bạn",
       "main_content_1": "Thực hiện chuyển khoản từ ngân hàng mong muốn bằng thông tin bên dưới.",
-      "main_content_2": "Sau khi hoàn tất, hãy quay lại và nhấn vào “Đã gửi chuyển khoản ngân hàng” để xác nhận.",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "Hiển thị thông tin ngân hàng",
       "hide_bank_info": "Ẩn thông tin ngân hàng",
       "transfer_amount": "Số tiền chuyển khoản",
@@ -735,6 +788,7 @@
       "bic": "BIC",
       "account_type": "Loại tài khoản",
       "bank_name": "Tên ngân hàng",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Địa chỉ ngân hàng",
       "info_banner_text": "Bạn sẽ thấy tên chủ tài khoản là \"{{accountHolderName}}\". Điều này giúp ngân hàng của bạn xử lý lệnh chuyển khoản.",
       "error_message": "Chúng tôi không thể xác nhận lệnh chuyển khoản ngân hàng của bạn. Vui lòng thử lại.",
@@ -760,8 +814,9 @@
     }
   },
   "perps": {
-    "title": "Giao dịch hợp đồng vĩnh cửu",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "title": "Perps",
+    "perps_trading": "Perps Trading",
+    "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Tổng số dư",
     "available_balance": "Số dư khả dụng",
@@ -770,13 +825,12 @@
     "withdraw": "Rút tiền",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Thêm tiền",
-    "perpetuals": "Hợp đồng vĩnh cửu",
     "your_positions": "Your positions",
     "loading_positions": "Đang tải vị thế...",
     "refreshing_positions": "Refreshing positions...",
+    "no_open_orders": "No open orders",
     "deposit": {
       "title": "Amount to deposit",
-      "pay_with": "Thanh toán bằng",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Không đủ tiền",
       "enter_amount": "Nhập số tiền",
@@ -840,7 +894,13 @@
         "completed": "Đã hoàn tất",
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
-      }
+      },
+      "success_toast": "Deposit Complete",
+      "success_message": "Your balance will update in a few moments",
+      "error_toast": "Deposit Failed",
+      "error_generic": "Something went wrong. Please try again.",
+      "in_progress": "Processing deposit",
+      "processing_message": "Processing your deposit..."
     },
     "withdrawal": {
       "title": "Rút tiền",
@@ -864,16 +924,22 @@
       "done": "Hoàn tất",
       "initiated": "Withdrawal initiated",
       "wait_time_message": "Your funds should arrive within 5 minutes",
+      "submitting": "Submitting...",
       "error": "Withdrawal failed",
-      "success_toast": "{{amount}} {{symbol}} withdrawal initiated",
-      "arrival_time": "Funds will arrive within 5 minutes",
+      "success_toast": "Withdrawal successful",
+      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
       "invalid_amount": "Please enter a valid amount",
-      "completed": "Rút tiền hoàn tất",
       "max": "Tối đa",
       "percentage_10": "10%",
-      "percentage_25": "25%"
+      "percentage_25": "25%",
+      "available_balance": "Available perps balance: {{amount}}",
+      "receive": "Receive",
+      "provider_fee": "Provider fee",
+      "you_will_receive": "You'll receive",
+      "continue": "Continue",
+      "funds_received": "{{amount}} {{symbol}} received"
     },
     "quote": {
       "network_fee": "Phí mạng",
@@ -888,15 +954,28 @@
       "title": "Lệnh mới",
       "leverage": "Đòn bẩy",
       "limit_price": "Limit price",
+      "enter_price": "Enter price",
+      "trigger_price": "Trigger price",
       "liquidation_price": "Giá thanh lý",
       "fees": "Phí",
       "market": "Thị trường",
       "limit": "Limit",
+      "open_orders": "Orders",
+      "max": "max",
+      "cancel_order": "Cancel order",
+      "filled": "filled",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "status": {
+        "open": "Open",
+        "filled": "Filled",
+        "canceled": "Canceled",
+        "rejected": "Rejected"
+      },
       "validation": {
         "failed": "Xác thực lệnh thất bại",
         "amount_required": "Số tiền đặt lệnh phải lớn hơn 0",
         "minimum_amount": "Kích thước lệnh tối thiểu là ${{amount}}",
-        "maximum_amount": "Kích thước lệnh tối đa là ${{amount}}",
         "insufficient_balance": "Số dư không đủ. Yêu cầu: ${{required}}, Khả dụng: ${{available}}",
         "invalid_leverage": "Đòn bẩy phải nằm trong khoảng từ x{{min}} đến x{{max}}",
         "high_leverage_warning": "Đòn bẩy cao làm tăng rủi ro bị thanh lý",
@@ -921,7 +1000,7 @@
       "margin": "Ký quỹ",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
-      "select_payment_asset": "Select asset to pay with",
+      "tp_sl": "TP/SL",
       "button": {
         "long": "Mua khống {{asset}}",
         "short": "Bán khống {{asset}}"
@@ -942,12 +1021,14 @@
         "market": "Thị trường",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
         "confirm": "Xác nhận",
         "entry_price": "Giá vào lệnh",
+        "current_price": "Current price",
         "liquidation_price": "Liquidation Price",
         "liquidation_distance": "Liquidation Distance"
       },
@@ -972,27 +1053,49 @@
         "viewPositions": "Xem vị thế",
         "placeAnother": "Đặt lệnh khác",
         "backToPerps": "Back to Perps"
-      }
+      },
+      "submitted": "Order Submitted",
+      "confirmed": "Order Confirmed"
     },
     "close_position": {
       "title": "Close position",
       "button": "Close position",
       "closing": "Closing position...",
+      "cancel": "Cancel",
+      "margin": "Margin",
       "pnl": "PnL",
+      "estimated_pnl": "Estimated PnL",
       "fees": "Phí",
-      "receive": "You'll receive (Hyperliquid USDC)",
+      "receive": "You'll receive",
+      "you_receive": "You'll receive",
+      "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
-      "title": "Set take profit and stop loss",
-      "set_button": "Thiết lập",
+      "title": "Take profit and stop loss",
+      "set": "Set",
       "updating": "Updating...",
-      "usd_label": "USD"
+      "off": "Off",
+      "current_price": "Current price",
+      "liquidation_price": "Liquidation price",
+      "take_profit_long": "Take profit when price increases by",
+      "take_profit_short": "Take profit when price decreases by",
+      "stop_loss_long": "Stop loss when price drops by",
+      "stop_loss_short": "Stop loss when price increases by",
+      "trigger_price_placeholder": "Trigger price",
+      "profit_percent_placeholder": "Profit",
+      "loss_percent_placeholder": "Loss",
+      "usd_label": "($)"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1011,6 +1114,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1044,46 +1148,62 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "Nạp tiền thất bại"
+      "depositFailed": "Nạp tiền thất bại",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "Vị thế",
       "card": {
-        "entry_price": "Giá vào lệnh",
-        "market_price": "Giá thị trường",
-        "liquidity_price": "Giá thanh lý",
-        "take_profit": "Chốt lời",
-        "stop_loss": "Cắt lỗ",
+        "entry_price": "Entry price",
+        "funding_cost": "Funding cost",
+        "liquidation_price": "Liq. Price",
+        "take_profit": "Take profit",
+        "stop_loss": "Stop loss",
         "margin": "Ký quỹ",
-        "not_set": "Chưa đặt",
+        "not_set": "Not set",
         "edit_tpsl": "Chỉnh sửa Chốt lời/Cắt lỗ",
-        "close_position": "Đóng vị thế"
+        "close_position": "Close position"
       },
       "list": {
         "loading": "Đang tải vị thế...",
         "error_title": "Lỗi khi tải vị thế",
         "empty_title": "Không có vị thế đang mở",
         "empty_description": "Bạn chưa có bất kỳ vị thế nào đang mở.\nBắt đầu giao dịch để xem các vị thế của bạn tại đây.",
+        "first_time_title": "Perps",
+        "first_time_description": "Predict price moves with up to 40x leverage.",
+        "start_trading": "Start trading",
         "open_positions": "Vị thế đang mở",
         "position_count": "{{count}} vị thế",
         "position_count_plural": "{{count}} vị thế"
       },
       "details": {
-        "title": "Chi tiết vị thế",
         "error_message": "Không tìm thấy dữ liệu vị thế. Vui lòng quay lại và thử lại.",
         "section_title": "Vị thế"
-      },
-      "tpsl": {
-        "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL",
-        "update_error": "Error updating TP/SL"
       },
       "account": {
         "summary_title": "Tóm tắt tài khoản",
         "total_balance": "Tổng số dư",
         "available_balance": "Số dư khả dụng",
         "margin_used": "Ký quỹ đã sử dụng",
-        "total_unrealized_pnl": "Tổng Lãi/Lỗ chưa thực hiện"
+        "total_unrealized_pnl": "Tổng Lãi/Lỗ chưa thực hiện",
+        "unrealized_pnl": "Unrealized P&L"
+      },
+      "tpsl": {
+        "update_success": "TP/SL updated successfully"
       }
     },
     "markets": {
@@ -1097,15 +1217,16 @@
       "statistics": "Statistics",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
-      "24h_volume": "24h volume",
+      "24h_volume": "24hr volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
-    },
-    "network": {
-      "hyperliquid": "Hyperliquid"
+      "short": "Short",
+      "add_funds": "Add Funds",
+      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "position": "Position",
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "Lấy số dư tài khoản",
@@ -1114,6 +1235,70 @@
       "switch_to_testnet": "Chuyển sang Mạng thử nghiệm",
       "view_markets": "View Markets",
       "positions": "Vị thế"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "content": "Trading fees are charged when you open or close a position.",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee",
+        "total": "Total fees"
+      },
+      "closing_fees": {
+        "title": "Closing Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "estimated_pnl": {
+        "title": "Estimated P&L",
+        "content": "Your estimated profit or loss when closing this position at the current market price. This is calculated based on your entry price and includes the portion of the position you're closing."
+      },
+      "limit_price": {
+        "title": "Limit Price",
+        "content": "The specific price at which your limit order will execute. For closing long positions, the order executes when the price rises to this level. For closing short positions, it executes when the price falls to this level."
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "receive": {
+        "title": "Receive",
+        "content": "The amount of USDC you'll receive in your wallet after withdrawal."
+      },
+      "withdrawal_fees": {
+        "title": "Provider Fee",
+        "content": "A network fee charged for processing your withdrawal transaction."
+      },
+      "tp_sl": {
+        "title": "Take Profit & Stop Loss",
+        "content": "Take Profit (TP) automatically closes your position when you reach your target profit. Stop Loss (SL) limits your losses by closing your position if the price moves against you."
+      },
+      "notifications": {
+        "title": "Turn on notifications",
+        "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
+        "turn_on_button": "Turn on"
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "Kết nối thất bại",
@@ -1124,12 +1309,87 @@
     "chart": {
       "no_data": "Không có dữ liệu biểu đồ"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    },
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
+    "tutorial": {
+      "continue": "Continue",
+      "skip": "Skip",
+      "add_funds": "Add funds",
+      "what_are_perps": {
+        "title": "What are perps?",
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
+        "subtitle": "Here's how it works."
+      },
+      "go_long_or_short": {
+        "title": "Go long or short on a token",
+        "description": "Pick a token to long or short, then set your margin.",
+        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+      },
+      "choose_leverage": {
+        "title": "Choose your leverage",
+        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+      },
+      "watch_liquidation": {
+        "title": "Watch out for liquidation",
+        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+      },
+      "close_anytime": {
+        "title": "Close any time",
+        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+      },
+      "ready_to_trade": {
+        "title": "Ready to trade?",
+        "description": "Fund your perps account with any token and make your first trade in seconds."
+      },
+      "got_it": "Got it"
+    }
   },
   "receive": {
     "title": "Nhận"
@@ -1199,7 +1459,7 @@
     "collectible": "Bộ sưu tập",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "Hợp đồng vĩnh cửu",
+    "perps": "Perps",
     "transactions": "GIAO DỊCH",
     "no_collectibles": "Không thấy NFT của bạn?",
     "no_available_tokens": "Không thấy Token của bạn?",
@@ -1229,6 +1489,9 @@
     "import": "Nhập",
     "sort_by": "Sắp xếp theo",
     "filter_by": "Lọc theo",
+    "networks": "Networks",
+    "popular": "Popular",
+    "custom": "Custom",
     "current_network": "Mạng hiện tại",
     "popular_networks": "Mạng phổ biến",
     "all_networks": "Tất cả mạng",
@@ -1572,7 +1835,10 @@
     "account_connect_create_initial_account": {
       "description": "Cần có tài khoản Solana để kết nối với trang web này.",
       "button": "Tạo tài khoản Solana"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
@@ -1733,7 +1999,8 @@
       "snaps_title": "Snap",
       "snaps_desc": "Tính năng và cập nhật mới",
       "products_announcements_title": "Thông báo sản phẩm",
-      "products_announcements_desc": "Sản phẩm và tính năng mới"
+      "products_announcements_desc": "Sản phẩm và tính năng mới",
+      "perps_title": "Perps trading"
     },
     "contacts_title": "Danh bạ",
     "contacts_desc": "Thêm, sửa, xóa và quản lý các tài khoản của bạn",
@@ -2133,16 +2400,25 @@
     "change_password": "Đổi mật khẩu",
     "password_hint": "Gợi ý mật khẩu"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
+    "fund_button": "Fund",
     "token_marketplace": "Thị trường token",
-    "sell_button": "Bán",
+    "sell_button": "Withdraw",
     "receive_button": "Nhận",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "Kiếm lợi nhuận",
-    "perps_button": "Hợp đồng vĩnh cửu",
-    "perps_sandbox_button": "Perps Sandbox",
+    "perps_button": "Perps",
     "add_collectible_button": "Thêm",
     "info": "Thông tin",
     "swap": "Hoán đổi",
@@ -2157,8 +2433,7 @@
       "send": "Không hỗ trợ gửi cho tài khoản này",
       "action": "Hành động này không được hỗ trợ cho tài khoản này",
       "earn": "Không hỗ trợ kiếm tiền cho tài khoản này",
-      "perps": "Tài khoản này không hỗ trợ giao dịch hợp đồng vĩnh cửu",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perps trading not supported for this account"
     },
     "description": "Mô tả",
     "totalSupply": "Tổng cung",
@@ -2168,7 +2443,7 @@
     "troubleshooting_missing": "về việc khắc phục sự cố số dư bị thiếu",
     "for_help": "để được trợ giúp.",
     "troubleshoot": "Khắc phục sự cố",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "Bán tiền mã hóa lấy tiền mặt",
     "swap_description": "Chuyển đổi giữa các token",
@@ -2176,8 +2451,7 @@
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
     "earn_description": "Kiếm phần thưởng trên token của bạn",
-    "perps_description": "Giao dịch hợp đồng vĩnh cửu",
-    "perps_sandbox_description": "Explore perpetual trading",
+    "perps_description": "Trade perp contracts",
     "chart_time_period": {
       "1d": "Hôm nay",
       "7d": "7 ngày qua",
@@ -2267,7 +2541,7 @@
     "not_allowed_error_desc": "Để quét mã QR, bạn cần cấp quyền truy cập camera cho MetaMask từ trình đơn cài đặt của thiết bị.",
     "unrecognized_address_qr_code_title": "Không nhận diện được mã QR",
     "unrecognized_address_qr_code_desc": "Rất tiếc, mã QR này không được liên kết với bất kỳ địa chỉ tài khoản hoặc địa chỉ hợp đồng nào.",
-    "url_redirection_alert_title": "Bạn sắp truy cập một liên kết bên ngoài",
+    "url_redirection_alert_title": "You are about to visit an external link",
     "url_redirection_alert_desc": "Các liên kết có thể được sử dụng để cố gắng gian lận hoặc lừa đảo mọi người, vì vậy hãy đảm bảo chỉ truy cập các trang web mà bạn tin tưởng.",
     "label": "Quét mã QR",
     "open_settings": "Cài đặt",
@@ -2276,6 +2550,15 @@
   "action_view": {
     "cancel": "Hủy",
     "confirm": "Xác nhận"
+  },
+  "gas_fee_token_modal": {
+    "title": "Select a token",
+    "title_pay_eth": "Pay with ETH",
+    "native_toggle_wallet": "Pay for network fee using the balance in your wallet.",
+    "list_balance": "Bal:",
+    "insufficient_balance": "Insufficient funds",
+    "native_toggle_metamask": "MetaMask is supplementing the balance to complete this transaction.",
+    "title_pay_with_other_tokens": "Pay with other tokens"
   },
   "transaction": {
     "transaction_id": "ID giao dịch",
@@ -2765,6 +3048,7 @@
     "switch_network": "Chuyển sang mạng",
     "switch": "Chuyển",
     "select_all": "Chọn tất cả",
+    "deselect_all": "Deselect all",
     "new_network": "Đã thêm mạng mới",
     "network_name": "Mạng {{networkName}}",
     "network_added": " hiện có sẵn trong trình chọn mạng.",
@@ -2779,6 +3063,7 @@
     "select_network": "Chọn mạng",
     "enabled_networks": "Mạng được bật",
     "additional_networks": "Mạng bổ sung",
+    "all_popular_networks": "All popular networks",
     "show_test_networks": "Hiển thị các mạng thử nghiệm",
     "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
     "network_deprecated_title": "Mạng này đã ngừng sử dụng",
@@ -4360,12 +4645,16 @@
     "add_multichain_account": "Tạo tài khoản {{networkName}} mới",
     "create_an_account": "Tạo tài khoản mới",
     "add_new_account": "Tài khoản Ethereum",
+    "create_new_wallet": "Create a new wallet",
+    "import_wallet": "Import a wallet",
     "import_srp": "của bạn",
     "add_hardware_wallet": "Ví cứng",
     "import_account": "Khóa riêng tư",
     "add_bitcoin_account": "Tài khoản Bitcoin",
     "add_solana_account": "Tài khoản Solana",
     "switch_to_smart_account": "Chuyển sang Tài khoản Thông minh",
+    "rename_account": "Rename account",
+    "addresses": "Addresses",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"
@@ -4387,14 +4676,6 @@
     "show_display_nft_media_content_3": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi tính năng này bị tắt.",
     "show_display_nft_media_content_4": "Bạn có thể tắt Hiển thị phương tiện NFT trong",
     "show_display_nft_media_content_5": "Cài đặt > Bảo mật và quyền riêng tư."
-  },
-  "solana_new_feature_content": {
-    "title": "Đã hỗ trợ Solana",
-    "title_description": "Nhập ví của bạn, khám phá, giao dịch và gửi. MetaMask hiện đã hỗ trợ Solana gốc.",
-    "not_now": "Không phải bây giờ",
-    "view_solana_account": "Xem tài khoản Solana",
-    "learn_more": "Tìm hiểu thêm về các tài khoản Solana",
-    "import_your_wallet": "Nhập ví của bạn"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Cổng IPFS",
@@ -4729,7 +5010,10 @@
       "signing_in_with": "Đăng nhập bằng",
       "spender": "Người chi tiêu",
       "now": "Ngay bây giờ",
-      "switching_to": "Chuyển sang"
+      "switching_to": "Chuyển sang",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Yêu cầu chữ ký",
@@ -4741,7 +5025,8 @@
       "contract_deployment": "Triển khai hợp đồng",
       "transfer": "Yêu cầu chuyển tiền",
       "switch_account_type": "Cập nhật tài khoản",
-      "approve": "Phê duyệt yêu cầu"
+      "approve": "Phê duyệt yêu cầu",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -4848,7 +5133,10 @@
     "review": "Xem lại",
     "transferRequest": "Yêu cầu chuyển tiền",
     "nested_transaction_heading": "Giao dịch {{index}}",
-    "transaction": "Bảo vệ"
+    "transaction": "Bảo vệ",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done",
+    "deposit_edit_amount_done": "Continue"
   },
   "change_in_simulation_modal": {
     "title": "Kết quả đã thay đổi",
@@ -4896,6 +5184,7 @@
     "receive_at": "Nhận tại",
     "error_banner_description": "Lộ trình giao dịch này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
     "insufficient_funds": "Không đủ tiền",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "Chọn số lượng",
     "bridge_to": "Cầu nối đến",
     "swap_to": "Hoán đổi sang",
@@ -4905,6 +5194,9 @@
     "fee_disclaimer": "Bao gồm phí MM 0,875%",
     "hardware_wallet_not_supported": "Ví cứng hiện chưa được hỗ trợ. Hãy sử dụng ví nóng để tiếp tục.",
     "hardware_wallet_not_supported_solana": "Ví cứng hiện chưa được hỗ trợ cho Solana. Hãy sử dụng ví nóng để tiếp tục.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Tối đa"
   },
@@ -4954,9 +5246,15 @@
     "user_cancelled_title": "Đã hủy đăng nhập",
     "user_cancelled_description": "Bạn đã hủy quá trình đăng nhập.\nHãy thử lại khi bạn sẵn sàng.",
     "user_cancelled_button": "Thử lại",
+    "google_login_no_credential_title": "Google login failed",
+    "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
+    "google_login_no_credential_button": "Try again",
     "oauth_error_title": "Đăng nhập thất bại",
     "oauth_error_description": "Đã xảy ra lỗi khi đăng nhập.\nVui lòng thử lại và nếu sự cố vẫn tiếp diễn, hãy liên hệ bộ phận Hỗ trợ MetaMask.",
-    "oauth_error_button": "Thử lại"
+    "oauth_error_button": "Thử lại",
+    "no_internet_connection_title": "Unable to connect",
+    "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
+    "no_internet_connection_button": "Try again"
   },
   "password_hint": {
     "title": "Gợi ý mật khẩu",
@@ -5010,6 +5308,9 @@
     "account_selector": {
       "title": "Select account"
     },
+    "dropdown": {
+      "title": "Select an option"
+    },
     "hideSentitiveInfo": {
       "message": "Ẩn thông tin nhạy cảm"
     },
@@ -5023,12 +5324,39 @@
     "show_less": "bớt"
   },
   "multichain_accounts": {
+    "add_wallet": "Add wallet",
+    "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
       "header_title": "Chi tiết tài khoản",
       "account_name": "Tên tài khoản",
+      "networks": "Networks",
       "account_address": "Địa chỉ tài khoản",
       "wallet": "Ví",
-      "private_key": "Khóa riêng tư"
+      "private_key": "Khóa riêng tư",
+      "private_keys": "Private keys",
+      "unlock_to_reveal": "Unlock to reveal",
+      "smart_account": "Smart account",
+      "set_up": "Set up",
+      "secret_recovery_phrase": "Secret Recovery Phrase",
+      "back_up": "Back up",
+      "remove_account": "Remove account"
+    },
+    "address_list": {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address",
+      "copied": "Address copied"
+    },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "copied": "Private key copied",
+      "continue": "Continue",
+      "cancel": "Cancel"
     },
     "accounts_list": {
       "details": "Chi tiết"
@@ -5064,6 +5392,12 @@
       "copy_address": "Sao chép địa chỉ",
       "view_on_explorer_button": "Xem trên {{explorer}}",
       "view_on_block_explorer": "Xem trên Trình khám phá khối"
+    },
+    "share_address_qr": {
+      "title": "{{networkName}} Address",
+      "copy_address": "Copy address",
+      "description": "Use this address to receive tokens and collectibles on",
+      "description_prefix": "Use this address to receive tokens and collectibles on"
     },
     "export_credentials": {
       "export_private_key": "Khóa riêng tư",
@@ -5112,6 +5446,27 @@
     "back_button": "Quay lại",
     "continue_button": "Tiếp tục"
   },
+  "card": {
+    "card": "Thẻ MetaMask",
+    "add_funds_bottomsheet": {
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Thử lại",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Thêm tiền",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "Đã xảy ra lỗi",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5125,19 +5480,11 @@
   "pay_with_modal": {
     "title": "Chọn phương thức thanh toán"
   },
-  "card": {
-    "card": "Thẻ MetaMask",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "Thử lại",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "Thêm tiền",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "time": {
     "minutes_format": "{{count}} minute",

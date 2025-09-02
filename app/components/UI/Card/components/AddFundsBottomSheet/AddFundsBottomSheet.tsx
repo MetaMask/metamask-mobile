@@ -29,7 +29,6 @@ import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { strings } from '../../../../../../locales/i18n';
-import { SUPPORTED_BOTTOMSHEET_TOKENS_DEPOSIT } from '../../constants';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 
 export interface AddFundsBottomSheetProps {
@@ -114,16 +113,11 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   const options = [
     {
       label: strings('card.add_funds_bottomsheet.deposit'),
-      description: strings('card.add_funds_bottomsheet.deposit_description', {
-        symbol: priorityToken?.symbol,
-      }),
-      icon: IconName.Add,
+      description: strings('card.add_funds_bottomsheet.deposit_description'),
+      icon: IconName.Bank,
       onPress: openDeposit,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
-      enabled:
-        isDepositEnabled &&
-        priorityToken?.symbol &&
-        SUPPORTED_BOTTOMSHEET_TOKENS_DEPOSIT.includes(priorityToken.symbol),
+      enabled: isDepositEnabled,
     },
     {
       label: strings('card.add_funds_bottomsheet.swap'),

@@ -9,7 +9,8 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion ,
+import {
+  DepositRegion,
   DEBIT_CREDIT_PAYMENT_METHOD,
   USDC_TOKEN,
   USD_CURRENCY,
@@ -26,8 +27,8 @@ const mockUseDepositSDK = useDepositSDK as jest.MockedFunction<
   typeof useDepositSDK
 >;
 
-const mockGetKycWorkflowRunStatus = jest.fn();
-const mockSdkResponse: DepositSdkMethodState<'getKycWorkflowRunStatus'> = {
+const mockGetIdProofStatus = jest.fn();
+const mockSdkResponse: DepositSdkMethodState<'getIdProofStatus'> = {
   data: null,
   error: null,
   isFetching: false,
@@ -45,15 +46,18 @@ describe('useIdProofPolling', () => {
     mockSdkResponse.isFetching = false;
     mockUseDepositSdkMethod.mockReturnValue([
       mockSdkResponse,
-      mockGetKycWorkflowRunStatus,
+      mockGetIdProofStatus,
     ]);
     mockUseDepositSDK.mockReturnValue({
       sdk: {} as NativeRampsSdk,
       sdkError: undefined,
       providerApiKey: 'test-key',
-      providerFrontendAuth: 'test-auth',
       isAuthenticated: true,
-      authToken: { id: 'test-token' } as NativeTransakAccessToken,
+      authToken: {
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+      } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
       logoutFromProvider: jest.fn(),
@@ -80,42 +84,42 @@ describe('useIdProofPolling', () => {
     renderHook(() => useIdProofPolling(mockTestWorkflowId, 10000, true, 30));
 
     // Should call immediately
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     // Should call again after interval
     act(() => {
       jest.advanceTimersByTime(10000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(2);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(2);
   });
 
   it('should not start polling when autoStart is false', () => {
     renderHook(() => useIdProofPolling(mockTestWorkflowId, 10000, false, 30));
 
-    expect(mockGetKycWorkflowRunStatus).not.toHaveBeenCalled();
+    expect(mockGetIdProofStatus).not.toHaveBeenCalled();
 
     act(() => {
       jest.advanceTimersByTime(10000);
     });
-    expect(mockGetKycWorkflowRunStatus).not.toHaveBeenCalled();
+    expect(mockGetIdProofStatus).not.toHaveBeenCalled();
   });
 
   it('should use custom polling interval', () => {
     renderHook(() => useIdProofPolling(mockTestWorkflowId, 2000, true, 30));
 
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     // Should call after custom interval
     act(() => {
       jest.advanceTimersByTime(2000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(2);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(2);
   });
 
   it('should return current idProofStatus submitted status', () => {
     mockSdkResponse.data = {
       status: 'SUBMITTED',
-    } as DepositSdkMethodState<'getKycWorkflowRunStatus'>['data'];
+    } as DepositSdkMethodState<'getIdProofStatus'>['data'];
 
     const { result } = renderHook(() =>
       useIdProofPolling(mockTestWorkflowId, 10000, true, 30),
@@ -127,7 +131,7 @@ describe('useIdProofPolling', () => {
   it('should return current idProofStatus not submitted status', () => {
     mockSdkResponse.data = {
       status: 'NOT_SUBMITTED',
-    } as DepositSdkMethodState<'getKycWorkflowRunStatus'>['data'];
+    } as DepositSdkMethodState<'getIdProofStatus'>['data'];
 
     const { result } = renderHook(() =>
       useIdProofPolling(mockTestWorkflowId, 10000, true, 30),
@@ -141,18 +145,18 @@ describe('useIdProofPolling', () => {
       useIdProofPolling(mockTestWorkflowId, 10000, true, 30),
     );
 
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     mockSdkResponse.data = {
       status: 'SUBMITTED',
-    } as DepositSdkMethodState<'getKycWorkflowRunStatus'>['data'];
+    } as DepositSdkMethodState<'getIdProofStatus'>['data'];
     rerender();
 
     // Should not continue polling
     act(() => {
       jest.advanceTimersByTime(10000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
   });
 
   it('should allow manual start and stop of polling', () => {
@@ -160,12 +164,12 @@ describe('useIdProofPolling', () => {
       useIdProofPolling(mockTestWorkflowId, 10000, false, 30),
     );
 
-    expect(mockGetKycWorkflowRunStatus).not.toHaveBeenCalled();
+    expect(mockGetIdProofStatus).not.toHaveBeenCalled();
 
     act(() => {
       result.current.startPolling();
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     act(() => {
       result.current.stopPolling();
@@ -174,7 +178,7 @@ describe('useIdProofPolling', () => {
     act(() => {
       jest.advanceTimersByTime(10000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
   });
 
   it('should cleanup polling on unmount', () => {
@@ -182,7 +186,7 @@ describe('useIdProofPolling', () => {
       useIdProofPolling(mockTestWorkflowId, 10000, true, 30),
     );
 
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     unmount();
 
@@ -190,7 +194,7 @@ describe('useIdProofPolling', () => {
     act(() => {
       jest.advanceTimersByTime(10000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
   });
 
   it('should pass through loading and error states', () => {
@@ -210,19 +214,19 @@ describe('useIdProofPolling', () => {
       useIdProofPolling(mockTestWorkflowId, 1000, true, 2),
     );
 
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(1);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(1);
 
     // First interval call
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(2);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(2);
 
     // Second interval call should stop and set error without calling fetchKycForms
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    expect(mockGetKycWorkflowRunStatus).toHaveBeenCalledTimes(2);
+    expect(mockGetIdProofStatus).toHaveBeenCalledTimes(2);
     expect(result.current.error).toContain(
       'Kyc workflow polling reached maximum attempts. Please try again later.',
     );

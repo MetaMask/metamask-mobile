@@ -63,6 +63,7 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  TRANSACTION_DETAILS: 'TransactionDetails',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -123,6 +124,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    ADDRESS_SELECTOR: 'AddressSelector',
     ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
@@ -161,10 +163,12 @@ const Routes = {
       EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
+      SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
       SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
+      SMART_ACCOUNT: 'SmartAccount',
     },
   },
   BROWSER: {
@@ -213,19 +217,17 @@ const Routes = {
     ROOT: 'Perps',
     TRADING_VIEW: 'PerpsTradingView',
     ORDER: 'PerpsOrder',
-    DEPOSIT: 'PerpsDeposit',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
-    POSITION_DETAILS: 'PerpsPositionDetails',
     TUTORIAL: 'PerpsTutorial',
+    CLOSE_POSITION: 'PerpsClosePosition',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
+      BALANCE_MODAL: 'PerpsBalanceModal',
     },
-    ORDER_HISTORY: 'PerpsOrderHistory',
-    ORDER_DETAILS: 'PerpsOrderDetails',
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
@@ -277,9 +279,12 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
+    ADDRESS_LIST: 'MultichainAddressList',
+    PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
+    ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
@@ -306,6 +311,8 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
 };
 
 export default Routes;

@@ -46,7 +46,7 @@ export const PerpsDeveloperOptionsSection = () => {
         variant={TextVariant.HeadingLG}
         style={styles.heading}
       >
-        {strings('perps.perpetual_trading')}
+        {strings('perps.perps_trading')}
       </Text>
       <PerpsTestnetToggle />
       <Button

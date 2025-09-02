@@ -9,9 +9,6 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-jest.mock('../../util/permissions', () => ({
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
-}));
 
 jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
@@ -157,7 +154,7 @@ describe('BackgroundBridge', () => {
       await bridge.onStateUpdate();
       await mmBridge.onStateUpdate();
       // Verify the spy was called with the correct URL
-      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).hostname);
+      expect(getProviderSpy).toHaveBeenCalledWith(new URL(url).origin);
       expect(mmGetProviderSpy).toHaveBeenCalledWith(mmBridge.channelId);
     });
 
