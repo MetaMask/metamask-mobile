@@ -1,5 +1,4 @@
 import URL from 'url-parse';
-
 export const tlc = (str) => str?.toLowerCase?.();
 
 /**
@@ -20,27 +19,6 @@ export function timeoutFetch(url, options, timeout = 500) {
   ]);
 }
 
-export function findRouteNameFromNavigatorState(routes) {
-  let route = routes?.[routes.length - 1];
-  if (route.state) {
-    route = route.state;
-  }
-  while (route !== undefined && route.index !== undefined) {
-    route = route?.routes?.[route.index];
-    if (route.state) {
-      route = route.state;
-    }
-  }
-
-  let name = route?.name;
-
-  // For compatibility with the previous way on react navigation 4
-  if (name === 'Main' || name === 'WalletTabHome' || name === 'Home')
-    name = 'WalletView';
-  if (name === 'TransactionsHome') name = 'TransactionsView';
-
-  return name;
-}
 export const capitalize = (str) =>
   (str && str.charAt(0).toUpperCase() + str.slice(1)) || false;
 

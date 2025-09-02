@@ -15,8 +15,11 @@ const initialState = {
 };
 const mockNavigation = {
   navigate: jest.fn(),
-  dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'WalletView' }] })),
 };
+
+jest.mock('../../../util/navigation', () => ({
+  useActiveRouteName: jest.fn().mockReturnValue('WalletView'),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

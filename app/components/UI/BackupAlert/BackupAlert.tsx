@@ -6,7 +6,7 @@ import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useActiveRouteName } from '../../../util/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
 import styleSheet from './BackupAlert.styles';
@@ -55,9 +55,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
 
   const dispatch = useDispatch();
 
-  const currentRouteName = findRouteNameFromNavigatorState(
-    navigation.dangerouslyGetState().routes,
-  );
+  const currentRouteName = useActiveRouteName();
 
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,

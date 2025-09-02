@@ -7,20 +7,26 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import {
-  NavigationContainer,
-  useNavigationState,
-} from '@react-navigation/native';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { NavigationContainer } from '@react-navigation/native';
+import { useActiveRouteName } from '../../../util/navigation';
 import { Text } from 'react-native';
 
 const Stack = createStackNavigator();
 
+/**
+ * Test screen used to test React Navigation API
+ *
+ * @param {Object} props Screen props
+ * @param {Object} props.route Route
+ * @param {Object} props.route.params Route params
+ * @param {string} props.route.params.screenName Route name
+ * @returns
+ */
 const TestScreen = ({ route }) => {
-  const routes = useNavigationState((state) => state.routes);
+  // Get active route name
+  const name = useActiveRouteName();
 
-  const name = findRouteNameFromNavigatorState(routes);
-
+  // Check if the active route name is the same as the route name
   if (name !== route.params.screenName)
     throw new Error(
       'Error, react navigation api changed: https://reactnavigation.org/docs/navigation-prop/#dangerouslygetstate',

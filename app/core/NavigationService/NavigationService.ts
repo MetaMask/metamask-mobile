@@ -5,7 +5,7 @@ import Logger from '../../util/Logger';
  * Navigation service that manages the navigation object
  */
 class NavigationService {
-  static #navigation: NavigationContainerRef;
+  static #navigation: NavigationContainerRef<any>;
 
   /**
    * Checks that the navigation object exists
@@ -22,7 +22,7 @@ class NavigationService {
   /**
    * Checks that the navigation object is valid
    */
-  static #assertNavigationRefType(navRef: NavigationContainerRef) {
+  static #assertNavigationRefType(navRef: NavigationContainerRef<any>) {
     if (typeof navRef?.navigate !== 'function') {
       const error = new Error('Navigation reference is not valid!');
       Logger.error(error);
@@ -35,7 +35,7 @@ class NavigationService {
    * Set the navigation object
    * @param navRef
    */
-  static set navigation(navRef: NavigationContainerRef) {
+  static set navigation(navRef: NavigationContainerRef<any>) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = navRef;
   }

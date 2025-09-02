@@ -17,10 +17,9 @@ import { selectHasAnyBalance } from '../../../selectors/tokenBalancesController'
 import { selectAllTokens } from '../../../selectors/tokensController';
 import { selectAllNfts } from '../../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
-
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useActiveRouteName } from '../../../util/navigation';
 
 const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
@@ -35,12 +34,12 @@ const ProtectWalletMandatoryModal = () => {
   const nfts = useSelector(selectAllNfts);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
-  const { navigate, dangerouslyGetState } = useNavigation();
+  const { navigate } = useNavigation();
+  const currentRouteName = useActiveRouteName();
 
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
   useEffect(() => {
-    const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
     if (!passwordSet || !seedphraseBackedUp) {
       if (
         [
@@ -53,7 +52,7 @@ const ProtectWalletMandatoryModal = () => {
           'ManualBackupStep3',
           'Webview',
           Routes.LOCK_SCREEN,
-        ].includes(route)
+        ].includes(currentRouteName)
       ) {
         setShowProtectWalletModal(false);
         return;
@@ -86,7 +85,7 @@ const ProtectWalletMandatoryModal = () => {
     metrics,
     passwordSet,
     seedphraseBackedUp,
-    dangerouslyGetState,
+    currentRouteName,
     hasAnyTokenBalance,
     allTokens,
     nfts,

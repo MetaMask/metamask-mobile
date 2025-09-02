@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { useNavigationState } from '@react-navigation/native';
 import {
   removeCurrentNotification,
   hideCurrentNotification,
@@ -10,8 +9,7 @@ import { NotificationTypes } from '../../../util/notifications';
 import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
-
-import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useActiveRouteName } from '../../../util/navigation';
 import usePrevious from '../../hooks/usePrevious';
 import {
   useSharedValue,
@@ -31,7 +29,6 @@ function Notification({
   removeCurrentNotification,
 }) {
   const notificationAnimated = useSharedValue(200);
-  const routes = useNavigationState((state) => state.routes);
 
   const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
@@ -43,9 +40,10 @@ function Notification({
     );
   }, []);
 
+  const currentRouteName = useActiveRouteName();
   const isInBrowserView = useMemo(
-    () => findRouteNameFromNavigatorState(routes) === BROWSER_ROUTE,
-    [routes],
+    () => currentRouteName === BROWSER_ROUTE,
+    [currentRouteName],
   );
 
   useEffect(

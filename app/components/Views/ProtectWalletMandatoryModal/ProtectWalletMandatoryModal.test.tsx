@@ -17,14 +17,15 @@ jest.mock('../../../util/device', () => ({
 
 // Mock the navigation
 const mockNavigate = jest.fn();
-const mockDangerouslyGetState = jest.fn();
+jest.mock('../../../util/navigation', () => ({
+  useActiveRouteName: jest.fn().mockReturnValue('Home'),
+}));
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      dangerouslyGetState: mockDangerouslyGetState,
     }),
   };
 });
@@ -75,9 +76,6 @@ const initialState = {
 
 describe('ProtectWalletMandatoryModal', () => {
   beforeEach(() => {
-    mockDangerouslyGetState.mockReturnValue({
-      routes: [{ name: 'Home' }],
-    });
     jest.clearAllMocks();
   });
 
