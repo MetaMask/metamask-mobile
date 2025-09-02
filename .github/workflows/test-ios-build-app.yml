@@ -90,6 +90,12 @@ jobs:
             echo ""
             echo "📱 Booted iOS Simulators:"
             xcrun simctl list | grep Booted || echo "No booted simulators found"
+
+
+            echo "🔍 Checking Pod installation..."
+            bundle exec pod check || true
+            bundle exec pod ipc spec React-Core | head -20 || true
+
         working-directory: ios
         shell: bash
 
@@ -99,7 +105,7 @@ jobs:
       - name: Setup iOS Environment
         run: |
           echo "🚀 Finishing iOS Setup..."
-          yarn setup:github-ci --build-ios --no-build-android --build-on-github-ci
+          yarn setup:github-ci --build-ios --no-build-android
           echo "🏗 Building iOS APP..."
           yarn build:ios:qa
         shell: bash
