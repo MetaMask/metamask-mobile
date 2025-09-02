@@ -22,6 +22,7 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { RootState } from '../../../../../../reducers';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
@@ -77,6 +78,8 @@ function SummaryLine({
     return null;
   }
 
+  const statusIcon = getStatusIcon(transaction.status);
+
   return (
     <Box>
       <Box
@@ -89,7 +92,7 @@ function SummaryLine({
           alignItems={AlignItems.center}
           gap={12}
         >
-          <Icon name={IconName.Check} />
+          <Icon name={statusIcon} />
           <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
       </Box>
@@ -143,5 +146,17 @@ function getLineTitle(
       return strings('transaction_details.summary_title.perps_deposit');
     default:
       return undefined;
+  }
+}
+
+function getStatusIcon(status: TransactionStatus): IconName {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return IconName.Check;
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return IconName.Warning;
+    default:
+      return IconName.Pending;
   }
 }

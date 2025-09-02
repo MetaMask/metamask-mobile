@@ -10,6 +10,7 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import Icon, {
+  IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../../../UI/Box/Box';
@@ -36,11 +37,15 @@ export function TransactionDetailsStatusRow() {
         gap={6}
         alignItems={AlignItems.center}
       >
-        <Icon name={statusIcon} color={statusColor} />
-        <Text color={statusColor}>{statusText}</Text>
+        {!tooltip && <Icon name={statusIcon} color={statusColor} />}
         {tooltip && (
-          <Tooltip tooltipTestId="status-tooltip" content={tooltip} />
+          <Tooltip
+            iconColor={IconColor.Error}
+            tooltipTestId="status-tooltip"
+            content={tooltip}
+          />
         )}
+        <Text color={statusColor}>{statusText}</Text>
       </Box>
     </TransactionDetailsRow>
   );
@@ -76,7 +81,7 @@ function getStatusIcon(status: TransactionStatus): IconName {
       return IconName.Check;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return IconName.Error;
+      return IconName.Warning;
     default:
       return IconName.Pending;
   }
