@@ -203,7 +203,7 @@
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
-    "@consensys/native-ramps-sdk": "1.2.0",
+    "@consensys/native-ramps-sdk": "^2.0.0-beta.2",
     "@consensys/on-ramp-sdk": "2.1.10",
     "@craftzdog/react-native-buffer": "^6.1.0",
     "@deeeed/hyperliquid-node20": "^0.23.1-node20.1",
@@ -299,7 +299,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.3.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
-    "@metamask/transaction-controller": "^59.2.0",
+    "@metamask/transaction-controller": "^60.1.0",
     "@metamask/utils": "^11.4.2",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
