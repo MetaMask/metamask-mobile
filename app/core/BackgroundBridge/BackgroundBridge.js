@@ -79,10 +79,7 @@ import {
   getChangedAuthorization,
   getRemovedAuthorization,
 } from '../../util/permissions';
-import {
-  createAsyncWalletMiddleware,
-  createMetamaskMiddleware,
-} from '../RPCMethods/createAsyncWalletMiddleware';
+import { createMetamaskMiddleware } from '../RPCMethods/createAsyncWalletMiddleware';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
@@ -610,8 +607,6 @@ export class BackgroundBridge extends EventEmitter {
     );
 
     // Middleware to handle wallet_xxx requests
-    engine.push(createAsyncWalletMiddleware()); // TODO [ffmcgee] remove this one in favor of the one below
-
     engine.push(this.setupEip5792MiddlewareHandlers());
 
     engine.push(createSanitizationMiddleware());
@@ -764,10 +759,6 @@ export class BackgroundBridge extends EventEmitter {
       }),
     );
 
-    engine.push(createAsyncWalletMiddleware());
-
-    // TODO [ffmcgee] remove this one in favor of the one below
-
     engine.push(this.setupEip5792MiddlewareHandlers());
 
     engine.push(async (req, res, _next, end) => {
@@ -813,16 +804,10 @@ export class BackgroundBridge extends EventEmitter {
               Engine.context.TransactionController,
             ),
           validateSecurity: (securityAlertId, request, chainId) => {
-            // TODO: [ffmcgee] come back here, this is not corret, compare with extension
-            PPOMUtil.createValidatorForSecurityAlertId(securityAlertId);
-            // validateRequestWithPPOM({
-            //   chainId,
-            //   ppomController: this.ppomController,
-            //   request,
-            //   securityAlertId,
-            //   updateSecurityAlertResponse:
-            //     this.updateSecurityAlertResponse.bind(this),
-            // }),
+            PPOMUtil.validateRequest(request, {
+              transactionMeta: { chainId },
+              securityAlertId,
+            });
           },
         },
         Engine.controllerMessenger,
@@ -855,7 +840,6 @@ export class BackgroundBridge extends EventEmitter {
             return res.map((entry) => ({ [entry.chainId]: entry.isSupported }));
           },
         },
-        Engine.context.AccountsController.getSelectedAccount().address,
         Engine.controllerMessenger,
       ),
     });
