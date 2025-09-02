@@ -69,5 +69,13 @@ export const DAPP_SCANNING_MOCKS: MockEventsObject = {
         recommendedAction: 'NONE',
       },
     },
+    {
+      urlEndpoint: createDappScanningUrl('metamask.github.io'),
+      responseCode: 200,
+      response: {
+        domainName: 'metamask.github.io',
+        recommendedAction: 'NONE',
+      },
+    },
   ],
 };
