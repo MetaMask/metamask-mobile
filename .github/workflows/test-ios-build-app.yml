@@ -14,8 +14,6 @@ permissions:
   contents: write
   id-token: write
 
-
-
 jobs:
   ios-build:
     name: Test iOS QA Build App
