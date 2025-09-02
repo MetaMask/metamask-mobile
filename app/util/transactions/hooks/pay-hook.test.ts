@@ -15,6 +15,7 @@ import { StatusTypes } from '@metamask/bridge-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 jest.mock('../../../selectors/smartTransactionsController');
+jest.mock('../../transaction-controller');
 
 const TRANSACTION_ID_MOCK = '123-456';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';
@@ -153,6 +154,26 @@ describe('Pay Publish Hook', () => {
     jest.spyOn(store, 'getState').mockReturnValue({
       confirmationMetrics: {
         transactionBridgeQuotesById: {},
+      },
+    } as unknown as RootState);
+
+    await runHook();
+
+    expect(submitTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it('does nothing if first quote has same source and target chain', async () => {
+    jest.spyOn(store, 'getState').mockReturnValue({
+      confirmationMetrics: {
+        transactionBridgeQuotesById: {
+          [TRANSACTION_ID_MOCK]: [
+            {
+              ...QUOTE_MOCK,
+              quote: { ...QUOTE_MOCK.quote, destChainId: 123 },
+            },
+            QUOTE_2_MOCK,
+          ],
+        },
       },
     } as unknown as RootState);
 
