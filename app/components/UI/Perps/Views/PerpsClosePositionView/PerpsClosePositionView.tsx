@@ -208,6 +208,7 @@ const PerpsClosePositionView: React.FC = () => {
     });
 
     setCloseAmount(tokenAmount.toString());
+    setCloseAmountString(tokenAmount.toString()); // Update token display string for slider
     setCloseAmountUSD(usdValue);
     setCloseAmountUSDString(usdValue.toString());
   }, [
@@ -702,9 +703,11 @@ const PerpsClosePositionView: React.FC = () => {
           </View>
 
           <Keypad
-            value={displayMode === 'usd' ? closeAmountUSDString : closeAmount}
+            value={
+              displayMode === 'usd' ? closeAmountUSDString : closeAmountString
+            }
             onChange={handleKeypadChange}
-            currency={displayMode === 'usd' ? 'USD' : undefined}
+            currency={displayMode === 'usd' ? 'USD' : 'native'}
             decimals={displayMode === 'usd' ? 2 : marketData?.szDecimals ?? 18}
             style={styles.keypad}
           />
