@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
+import { RegressionAssets } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -12,7 +12,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(SmokeNetworkAbstractions('Import Tokens'), () => {
+describe(RegressionAssets('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await withFixtures(
       {

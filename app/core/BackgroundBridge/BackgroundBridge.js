@@ -111,8 +111,8 @@ export class BackgroundBridge extends EventEmitter {
   }) {
     super();
     this.url = url;
+    this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.hostname = new URL(url).hostname;
     this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
@@ -140,7 +140,7 @@ export class BackgroundBridge extends EventEmitter {
 
     const networkClientId = Engine.controllerMessenger.call(
       'SelectedNetworkController:getNetworkClientIdForDomain',
-      this.hostname,
+      this.origin,
     );
 
     const networkClient = Engine.controllerMessenger.call(
@@ -250,10 +250,8 @@ export class BackgroundBridge extends EventEmitter {
     }
   }
 
-  get origin() {
-    return this.isWalletConnect || this.isMMSDK
-      ? this.channelId
-      : this.hostname;
+  get channelIdOrOrigin() {
+    return this.isWalletConnect || this.isMMSDK ? this.channelId : this.origin;
   }
 
   onUnlock() {
@@ -334,7 +332,8 @@ export class BackgroundBridge extends EventEmitter {
     DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotificationEip1193({
       method: NOTIFICATION_NAMES.chainChanged,
-      params: params ?? (await this.getProviderNetworkState(this.origin)),
+      params:
+        params ?? (await this.getProviderNetworkState(this.channelIdOrOrigin)),
     });
   }
 
@@ -357,7 +356,7 @@ export class BackgroundBridge extends EventEmitter {
       DevLogger.log(
         `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
-      approvedAccounts = getPermittedAccounts(this.origin);
+      approvedAccounts = getPermittedAccounts(this.channelIdOrOrigin);
 
       // Check if selectedAddress is approved
       const found = approvedAccounts.some((addr) =>
@@ -374,8 +373,8 @@ export class BackgroundBridge extends EventEmitter {
         ];
 
         DevLogger.log(
-          `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
-          approvedAccounts,
+          `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
+          { approvedAccounts },
         );
         this.sendNotificationEip1193({
           method: NOTIFICATION_NAMES.accountsChanged,
@@ -396,7 +395,9 @@ export class BackgroundBridge extends EventEmitter {
     if (!memState) {
       memState = this.getState();
     }
-    const publicState = await this.getProviderNetworkState(this.origin);
+    const publicState = await this.getProviderNetworkState(
+      this.channelIdOrOrigin,
+    );
     // Check if update already sent
     if (
       this.lastChainIdSent !== publicState.chainId ||
@@ -521,7 +522,7 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a provider that is safely restricted for the requesting domain.
    **/
   setupProviderEngineEip1193() {
-    const origin = this.origin;
+    const origin = this.channelIdOrOrigin;
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
@@ -593,7 +594,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.hostname,
+        hostname: this.origin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -612,7 +613,7 @@ export class BackgroundBridge extends EventEmitter {
    * A method for creating a CAIP Multichain provider that is safely restricted for the requesting subject.
    */
   setupProviderEngineCaip() {
-    const origin = this.origin;
+    const origin = this.channelIdOrOrigin;
 
     const { NetworkController, AccountsController, PermissionController } =
       Engine.context;
@@ -679,8 +680,7 @@ export class BackgroundBridge extends EventEmitter {
         handleNonEvmRequestForOrigin: (params) =>
           Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
             ...params,
-            // The MultichainRouter expects a proper origin value.
-            origin: new URL(this.url).origin,
+            origin: this.origin,
           }),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
@@ -747,7 +747,7 @@ export class BackgroundBridge extends EventEmitter {
     // user-facing RPC methods
     engine.push(
       this.createMiddleware({
-        hostname: this.hostname,
+        hostname: this.origin,
         getProviderState: this.getProviderState.bind(this),
       }),
     );
@@ -788,14 +788,14 @@ export class BackgroundBridge extends EventEmitter {
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleCaipSessionScopeChanges,
-      getAuthorizedScopes(this.origin),
+      getAuthorizedScopes(this.channelIdOrOrigin),
     );
 
     // wallet_notify for solana accountChanged when permission changes
     controllerMessenger.subscribe(
       `${PermissionController.name}:stateChange`,
       this.handleSolanaAccountChangedFromScopeChanges,
-      getAuthorizedScopes(this.origin),
+      getAuthorizedScopes(this.channelIdOrOrigin),
     );
 
     // wallet_notify for solana accountChanged when selected account changes
@@ -813,7 +813,7 @@ export class BackgroundBridge extends EventEmitter {
    * @returns function that handlers session scope changes.
    */
   handleCaipSessionScopeChanges = async (currentValue, previousValue) => {
-    const origin = this.origin;
+    const origin = this.channelIdOrOrigin;
     const changedAuthorization = getChangedAuthorization(
       currentValue,
       previousValue,
@@ -939,7 +939,7 @@ export class BackgroundBridge extends EventEmitter {
       let caip25Caveat;
       try {
         caip25Caveat = Engine.context.PermissionController.getCaveat(
-          this.origin,
+          this.channelIdOrOrigin,
           Caip25EndowmentPermissionName,
           Caip25CaveatType,
         );
@@ -1076,7 +1076,7 @@ export class BackgroundBridge extends EventEmitter {
     let caip25Caveat;
     try {
       caip25Caveat = Engine.context.PermissionController.getCaveat(
-        this.origin,
+        this.channelIdOrOrigin,
         Caip25EndowmentPermissionName,
         Caip25CaveatType,
       );

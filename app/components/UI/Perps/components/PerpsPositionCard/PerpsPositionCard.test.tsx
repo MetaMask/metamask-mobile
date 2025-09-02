@@ -115,28 +115,6 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
   },
 }));
 
-// Mock PerpsClosePositionBottomSheet
-jest.mock('../PerpsClosePositionBottomSheet', () => ({
-  __esModule: true,
-  default: ({
-    isVisible,
-    onClose,
-  }: {
-    isVisible: boolean;
-    onClose: () => void;
-  }) => {
-    if (!isVisible) return null;
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="perps-close-position-bottomsheet">
-        <TouchableOpacity onPress={onClose}>
-          <Text>Close Position Sheet</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  },
-}));
-
 describe('PerpsPositionCard', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -200,7 +178,7 @@ describe('PerpsPositionCard', () => {
       ).toBeOnTheScreen();
       expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
       expect(
-        screen.getByText('perps.position.card.market_price'),
+        screen.getByText('perps.position.card.funding_cost'),
       ).toBeOnTheScreen();
       expect(
         screen.getByText('perps.position.card.liquidation_price'),
@@ -491,7 +469,7 @@ describe('PerpsPositionCard', () => {
       // Assert - Check that all 6 body items are present
       const bodyLabels = [
         'perps.position.card.entry_price',
-        'perps.position.card.market_price',
+        'perps.position.card.funding_cost',
         'perps.position.card.liquidation_price',
         'perps.position.card.take_profit',
         'perps.position.card.stop_loss',
@@ -593,36 +571,31 @@ describe('PerpsPositionCard', () => {
       expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
     });
 
-    it('renders PerpsClosePositionBottomSheet when isClosePositionVisible is true', () => {
+    it('navigates to close position screen when close button is pressed', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Open the close position bottom sheet
+      // Press the close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
-      expect(
-        screen.getByTestId('perps-close-position-bottomsheet'),
-      ).toBeOnTheScreen();
+      // Assert - should navigate to close position screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.CLOSE_POSITION,
+        { position: mockPosition },
+      );
     });
 
-    it('handles PerpsClosePositionBottomSheet onClose callback', () => {
+    it('does not show close button when card is collapsed', () => {
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Open the close position bottom sheet
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      render(
+        <PerpsPositionCard position={mockPosition} expanded={false} showIcon />,
       );
 
-      // Close the bottom sheet
-      fireEvent.press(screen.getByText('Close Position Sheet'));
-
-      // Assert - bottom sheet should be closed (not visible)
+      // Assert - close button should not be visible in collapsed view
       expect(
-        screen.queryByTestId('perps-close-position-bottomsheet'),
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       ).toBeNull();
     });
   });

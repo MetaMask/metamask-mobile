@@ -61,6 +61,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import {
   getDecimalChainId,
   isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { createNetworkManagerNavDetails } from '../NetworkManager';
@@ -73,6 +74,14 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -88,6 +97,7 @@ const createStyles = (colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginVertical: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -106,15 +116,19 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
       marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
+      borderWidth: isRemoveGlobalNetworkSelectorEnabled() ? 1 : 0,
+      borderRadius: isRemoveGlobalNetworkSelectorEnabled() ? 8 : 0,
+      maxWidth: isRemoveGlobalNetworkSelectorEnabled() ? '80%' : '60%',
+      paddingHorizontal: isRemoveGlobalNetworkSelectorEnabled() ? 12 : 0,
       opacity: 0.5,
     },
     emptyView: {
@@ -153,6 +167,12 @@ const createStyles = (colors) =>
     },
     spinner: {
       marginBottom: 8,
+    },
+    networkManagerWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 
@@ -263,6 +283,10 @@ const CollectibleContracts = ({
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
+  const { areAllNetworksSelected } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
 
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
@@ -271,7 +295,6 @@ const CollectibleContracts = ({
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
     }
   };
-  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !useNftDetection;
@@ -581,6 +604,12 @@ const CollectibleContracts = ({
     ],
   );
 
+  // TODO: Placeholder variable for now until we update the network enablement controller
+  const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
+  const networkImageSource = getNetworkImageSource({
+    chainId: firstEnabledChainId,
+  });
+
   // End trace when component has finished initial loading
   useEffect(() => {
     endTrace({ name: TraceName.CollectibleContractsComponent });
@@ -599,15 +628,26 @@ const CollectibleContracts = ({
             label={
               <>
                 {isRemoveGlobalNetworkSelectorEnabled() ? (
-                  <TextComponent
-                    variant={TextVariant.BodyMDMedium}
-                    numberOfLines={1}
-                    style={styles.controlButtonText}
-                  >
-                    {enabledNetworks.length > 1
-                      ? strings('networks.enabled_networks')
-                      : currentNetworkName ?? strings('wallet.current_network')}
-                  </TextComponent>
+                  <View style={styles.networkManagerWrapper}>
+                    {!areAllNetworksSelected && (
+                      <Avatar
+                        variant={AvatarVariant.Network}
+                        size={AvatarSize.Xs}
+                        name={networkName}
+                        imageSource={networkImageSource}
+                      />
+                    )}
+                    <TextComponent
+                      variant={TextVariant.BodyMDMedium}
+                      style={styles.controlButtonText}
+                      numberOfLines={1}
+                    >
+                      {enabledNetworks.length > 1
+                        ? strings('wallet.all_networks')
+                        : currentNetworkName ??
+                          strings('wallet.current_network')}
+                    </TextComponent>
+                  </View>
                 ) : (
                   <TextComponent
                     variant={TextVariant.BodyMDMedium}

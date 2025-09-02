@@ -21,7 +21,10 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Routes from '../../../constants/navigation/Routes';
-import { MM_SDK_DEEPLINK } from '../../../constants/urls';
+import {
+  MM_SDK_DEEPLINK,
+  MM_WALLETCONNECT_DEEPLINK,
+} from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../../core/Engine';
@@ -150,11 +153,14 @@ const QRScanner = ({
       }
 
       const contentProtocol = getURLProtocol(content);
+      const isWalletConnect = content.startsWith(MM_WALLETCONNECT_DEEPLINK);
+      const isSDK = content.startsWith(MM_SDK_DEEPLINK);
       if (
         (contentProtocol === PROTOCOLS.HTTP ||
           contentProtocol === PROTOCOLS.HTTPS ||
           contentProtocol === PROTOCOLS.DAPP) &&
-        !content.startsWith(MM_SDK_DEEPLINK)
+        !isWalletConnect &&
+        !isSDK
       ) {
         if (contentProtocol === PROTOCOLS.DAPP) {
           content = content.replace(PROTOCOLS.DAPP, PROTOCOLS.HTTPS);

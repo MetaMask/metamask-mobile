@@ -13,6 +13,11 @@ export type ConfirmationRedesignRemoteFlags = {
   transfer: boolean;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SendRedesignFlags = {
+  enabled: boolean;
+};
+
 /**
  * Determines the enabled state of confirmation redesign features by combining
  * local environment variables with remote feature flags.
@@ -96,7 +101,27 @@ export const selectConfirmationRedesignFlagsFromRemoteFeatureFlags = (
   };
 };
 
+export const selectSendRedesignFlagsFromRemoteFeatureFlags = (
+  remoteFeatureFlags: ReturnType<typeof selectRemoteFeatureFlags>,
+): SendRedesignFlags => {
+  const remoteValues = remoteFeatureFlags.sendRedesign as SendRedesignFlags;
+
+  const isEnabled = getFeatureFlagValue(
+    process.env.MM_SEND_REDESIGN_ENABLED,
+    remoteValues?.enabled !== false,
+  );
+
+  return {
+    enabled: isEnabled,
+  };
+};
+
 export const selectConfirmationRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
   selectConfirmationRedesignFlagsFromRemoteFeatureFlags,
+);
+
+export const selectSendRedesignFlags = createSelector(
+  selectRemoteFeatureFlags,
+  selectSendRedesignFlagsFromRemoteFeatureFlags,
 );

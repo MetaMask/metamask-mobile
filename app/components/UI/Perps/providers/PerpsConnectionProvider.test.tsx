@@ -30,6 +30,14 @@ jest.mock('../hooks/usePerpsDepositStatus', () => ({
 jest.mock('../hooks/usePerpsConnectionLifecycle', () => ({
   usePerpsConnectionLifecycle: jest.fn(() => ({ hasConnected: false })),
 }));
+// Mock the withdrawal status hook that uses Redux
+jest.mock('../hooks/usePerpsWithdrawStatus', () => ({
+  usePerpsWithdrawStatus: jest.fn(() => undefined),
+}));
+// Mock network validation hook that may use Redux
+jest.mock('../hooks', () => ({
+  usePerpsNetworkValidation: jest.fn(() => undefined),
+}));
 
 // Test component that uses the hook
 interface ConnectionState {

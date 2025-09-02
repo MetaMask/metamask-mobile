@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { EditAmount } from '../../../../components/edit-amount';
@@ -14,37 +14,47 @@ import { Box } from '../../../../../../UI/Box/Box';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
-
-const AMOUNT_PREFIX = '$';
+import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
 
 export function PerpsDeposit() {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [inputChanged, setInputChanged] = useState(false);
+  useNavbar(strings('confirm.title.perps_deposit'));
+  useClearConfirmationOnBackSwipe();
 
-  const { isFullView } = usePerpsDepositView({
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [pendingTokenAmount, setPendingTokenAmount] = useState<string>();
+  const [inputChanged, setInputChanged] = useState(false);
+  const alerts = usePerpsDepositAlerts({ pendingTokenAmount });
+
+  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
-  useNavbar(strings('confirm.title.perps_deposit'));
-  useClearConfirmationOnBackSwipe();
+  const handleChange = useCallback((amount: string) => {
+    setPendingTokenAmount(amount);
+    setInputChanged(true);
+  }, []);
 
   return (
     <>
       <EditAmount
-        prefix={AMOUNT_PREFIX}
+        alerts={alerts}
         autoKeyboard
+        onChange={handleChange}
         onKeyboardShow={() => setIsKeyboardVisible(true)}
         onKeyboardHide={() => setIsKeyboardVisible(false)}
-        onKeyboardDone={() => setInputChanged(true)}
       >
         {(amountHuman) => (
           <>
             <Box gap={16}>
-              {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
+              {inputChanged && <AlertMessage alerts={alerts} />}
               <PayTokenAmount amountHuman={amountHuman} />
             </Box>
-            {!isKeyboardVisible && (
-              <AlertBanner field={RowAlertKey.PayWith} inline />
+            {!isKeyboardVisible && isPayTokenSelected && (
+              <AlertBanner
+                blockingFields
+                excludeFields={[RowAlertKey.Amount]}
+                inline
+              />
             )}
             <InfoSection>
               <PayWithRow />

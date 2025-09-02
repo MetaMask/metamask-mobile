@@ -16,7 +16,21 @@ import {
   selectInternalAccountByAccountGroupAndScope,
   selectInternalAccountsByGroupId,
   selectInternalAccountListSpreadByScopesByGroupId,
+  selectAccountGroupsByAddress,
 } from './accounts';
+import {
+  AccountWalletType,
+  AccountGroupType,
+  AccountGroupId,
+} from '@metamask/account-api';
+import { selectAccountGroupWithInternalAccounts } from './accountTreeController';
+
+// Test constants
+const ENTROPY_GROUP_1_ID = 'entropy:wallet1/0' as AccountGroupId;
+const ENTROPY_GROUP_2_ID = 'entropy:wallet2/0' as AccountGroupId;
+const ACCOUNT_1_ADDRESS = '0x123456789abcdef123456789abcdef123456789a';
+const ACCOUNT_2_ADDRESS = '0x987654321fedcba987654321fedcba987654321b';
+const ACCOUNT_3_ADDRESS = '0xabcdef123456789abcdef123456789abcdef123456';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'entropy:wallet2' as const;
@@ -155,9 +169,302 @@ const createMockState = (
             },
           },
         },
+        KeyringController: {
+          keyrings: [],
+          isUnlocked: true,
+        },
       },
     },
   } as unknown as RootState);
+
+// Additional test utility functions
+const createStateWithNetworkConfigurations = (
+  accountTreeState: Record<string, unknown>,
+  accountsState: Record<string, unknown>,
+): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        AccountTreeController: {
+          accountTree: accountTreeState,
+        },
+        AccountsController: {
+          internalAccounts: accountsState,
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            '0x1': {
+              chainId: '0x1',
+              name: 'Ethereum',
+            },
+            '0x5': {
+              chainId: '0x5',
+              name: 'Goerli',
+            },
+            '0xaa36a7': {
+              chainId: '0xaa36a7',
+              name: 'Sepolia Test Network',
+            },
+            '0x38': {
+              chainId: '0x38',
+              name: 'BNB Smart Chain',
+            },
+          },
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              name: 'Solana Mainnet',
+              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              isTestnet: false,
+            },
+            'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': {
+              name: 'Solana Testnet',
+              chainId: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+              isTestnet: true,
+            },
+          },
+          KeyringController: {
+            keyrings: [],
+          },
+        },
+      },
+    },
+  } as unknown as RootState);
+
+// Ensure all states created with createStateWithNetworkConfigurations have KeyringController
+const createStateWithNetworkConfigurationsAndKeyring = (
+  accountTreeState: Record<string, unknown>,
+  accountsState: Record<string, unknown>,
+): RootState => {
+  const baseState = createStateWithNetworkConfigurations(
+    accountTreeState,
+    accountsState,
+  );
+  return {
+    ...baseState,
+    engine: {
+      ...baseState.engine,
+      backgroundState: {
+        ...baseState.engine.backgroundState,
+        KeyringController: {
+          keyrings: [],
+          isUnlocked: true,
+        },
+      },
+    },
+  };
+};
+
+const createStateWithMixedAccounts = (): RootState =>
+  createStateWithNetworkConfigurationsAndKeyring(
+    {
+      wallets: {
+        'entropy:test': {
+          id: 'entropy:test',
+          type: AccountWalletType.Entropy,
+          groups: {
+            'entropy:test/0': {
+              id: 'entropy:test/0',
+              type: AccountGroupType.MultichainAccount,
+              accounts: ['existing-account', 'missing-account'],
+              metadata: {
+                name: 'Test',
+                entropy: { groupIndex: 0 },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Test Wallet',
+            entropy: { id: 'test' },
+          },
+        },
+      },
+      selectedAccountGroup: 'entropy:test/0' as AccountGroupId,
+    },
+    {
+      accounts: {
+        'existing-account': {
+          ...createMockInternalAccount('0x123', 'Test Account'),
+          id: 'existing-account',
+        },
+      },
+      selectedAccount: 'existing-account',
+    },
+  );
+
+const createStateWithNoMatchingAccounts = (): RootState =>
+  createStateWithNetworkConfigurationsAndKeyring(
+    {
+      wallets: {
+        'entropy:test': {
+          id: 'entropy:test',
+          type: AccountWalletType.Entropy,
+          groups: {
+            'entropy:test/0': {
+              id: 'entropy:test/0',
+              type: AccountGroupType.MultichainAccount,
+              accounts: ['placeholder-account'],
+              metadata: {
+                name: 'Empty Group',
+                entropy: { groupIndex: 0 },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Test Wallet',
+            entropy: { id: 'test' },
+          },
+        },
+      },
+      selectedAccountGroup: 'entropy:test/0' as AccountGroupId,
+    },
+    {
+      accounts: {},
+      selectedAccount: '',
+    },
+  );
+
+const typedMockState: RootState =
+  createStateWithNetworkConfigurationsAndKeyring(
+    {
+      wallets: {
+        'entropy:wallet1': {
+          id: 'entropy:wallet1',
+          type: AccountWalletType.Entropy,
+          groups: {
+            [ENTROPY_GROUP_1_ID]: {
+              id: ENTROPY_GROUP_1_ID,
+              type: AccountGroupType.MultichainAccount,
+              accounts: ['account1', 'account2'],
+              metadata: {
+                name: 'Entropy Group 1',
+                entropy: { groupIndex: 0 },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Entropy Wallet 1',
+            entropy: { id: 'wallet1' },
+          },
+        },
+        'entropy:wallet2': {
+          id: 'entropy:wallet2',
+          type: AccountWalletType.Entropy,
+          groups: {
+            [ENTROPY_GROUP_2_ID]: {
+              id: ENTROPY_GROUP_2_ID,
+              type: AccountGroupType.MultichainAccount,
+              accounts: ['account3'],
+              metadata: {
+                name: 'Entropy Group 2',
+                entropy: { groupIndex: 0 },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Entropy Wallet 2',
+            entropy: { id: 'wallet2' },
+          },
+        },
+        'keyring:wallet1': {
+          id: 'keyring:wallet1',
+          type: AccountWalletType.Keyring,
+          groups: {
+            'keyring:wallet1/0': {
+              id: 'keyring:wallet1/0',
+              type: AccountGroupType.SingleAccount,
+              accounts: ['keyring-account1'],
+              metadata: {
+                name: 'Keyring Account 1',
+                keyring: { type: 'HD Key Tree' },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Keyring Wallet 1',
+            keyring: { type: 'HD Key Tree' },
+          },
+        },
+        'snap:wallet1': {
+          id: 'snap:wallet1',
+          type: AccountWalletType.Snap,
+          groups: {
+            'snap:wallet1/0': {
+              id: 'snap:wallet1/0',
+              type: AccountGroupType.SingleAccount,
+              accounts: ['snap-account1'],
+              metadata: {
+                name: 'Snap Account 1',
+                snap: { id: 'test-snap', name: 'Test Snap' },
+                pinned: false,
+                hidden: false,
+              },
+            },
+          },
+          metadata: {
+            name: 'Snap Wallet 1',
+            snap: { id: 'test-snap', name: 'Test Snap' },
+          },
+        },
+      },
+      selectedAccountGroup: ENTROPY_GROUP_1_ID,
+    },
+    {
+      accounts: {
+        account1: {
+          ...createMockInternalAccount(ACCOUNT_1_ADDRESS, 'Account 1'),
+          id: 'account1',
+        },
+        account2: {
+          ...createMockInternalAccount(ACCOUNT_2_ADDRESS, 'Account 2'),
+          id: 'account2',
+        },
+        account3: {
+          ...createMockInternalAccount(ACCOUNT_3_ADDRESS, 'Account 3'),
+          id: 'account3',
+        },
+        'keyring-account1': {
+          ...createMockInternalAccount('0xkeyring123', 'Keyring Account 1'),
+          id: 'keyring-account1',
+        },
+        'snap-account1': {
+          ...createMockSnapInternalAccount(
+            'snap123',
+            'Snap Account 1',
+            SolAccountType.DataAccount,
+          ),
+          id: 'snap-account1',
+        },
+      },
+      selectedAccount: 'account1',
+    },
+  );
+
+// Ensure typedMockState has KeyringController
+const typedMockStateWithKeyring: RootState = {
+  ...typedMockState,
+  engine: {
+    ...typedMockState.engine,
+    backgroundState: {
+      ...typedMockState.engine.backgroundState,
+      KeyringController: {
+        keyrings: [],
+        isUnlocked: true,
+      },
+    },
+  },
+};
 
 describe('accounts selectors', () => {
   describe('getWalletIdFromAccountGroup', () => {
@@ -1105,6 +1412,130 @@ describe('accounts selectors', () => {
           networkName: 'Solana Mainnet',
         },
       ]);
+    });
+  });
+
+  describe('selectAccountGroupWithInternalAccounts', () => {
+    it('returns account groups with resolved internal accounts', () => {
+      const result = selectAccountGroupWithInternalAccounts(
+        typedMockStateWithKeyring,
+      );
+
+      expect(result).toHaveLength(4);
+
+      const entropyGroup = result.find(
+        (group) => group.id === ENTROPY_GROUP_1_ID,
+      );
+      expect(entropyGroup?.accounts).toHaveLength(2);
+      expect(entropyGroup?.accounts[0]).toHaveProperty(
+        'address',
+        ACCOUNT_1_ADDRESS,
+      );
+      expect(entropyGroup?.accounts[1]).toHaveProperty(
+        'address',
+        ACCOUNT_2_ADDRESS,
+      );
+    });
+
+    it('filters out undefined accounts', () => {
+      const stateWithMissingAccount = createStateWithMixedAccounts();
+
+      const result = selectAccountGroupWithInternalAccounts(
+        stateWithMissingAccount,
+      );
+      const testGroup = result.find((group) => group.id === 'entropy:test/0');
+
+      expect(testGroup?.accounts).toHaveLength(1);
+      expect(testGroup?.accounts[0].id).toBe('existing-account');
+    });
+
+    it('returns empty accounts array when no internal accounts match', () => {
+      const stateWithNoMatchingAccounts = createStateWithNoMatchingAccounts();
+
+      const result = selectAccountGroupWithInternalAccounts(
+        stateWithNoMatchingAccounts,
+      );
+      expect(result[0].accounts).toEqual([]);
+    });
+  });
+
+  describe('selectAccountGroupsByAddress', () => {
+    const mockState = createMockState(
+      {
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                [ACCOUNT_GROUP_ID_1]: {
+                  accounts: [mockEvmAccount.id],
+                  id: ACCOUNT_GROUP_ID_1,
+                },
+                [ACCOUNT_GROUP_ID_2]: {
+                  accounts: [mockBitcoinAccount.id],
+                  id: ACCOUNT_GROUP_ID_2,
+                },
+              },
+            },
+            [WALLET_ID_2]: {
+              id: WALLET_ID_2,
+              metadata: { name: 'Wallet 2' },
+              groups: {
+                [ACCOUNT_GROUP_ID_3]: {
+                  accounts: [mockSolanaAccount.id],
+                  id: ACCOUNT_GROUP_ID_3,
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        [mockEvmAccount.id]: mockEvmAccount,
+        [mockSolanaAccount.id]: mockSolanaAccount,
+        [mockBitcoinAccount.id]: mockBitcoinAccount,
+      },
+    );
+
+    it('returns an empty array when no addresses match', () => {
+      const result = selectAccountGroupsByAddress(mockState, [
+        'nonExistentAddress',
+      ]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns an empty array when given an empty address list', () => {
+      const result = selectAccountGroupsByAddress(mockState, []);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns the correct account groups without duplicated values', () => {
+      const result = selectAccountGroupsByAddress(mockState, [
+        mockEvmAccount.address,
+        mockSolanaAccount.address,
+        mockBitcoinAccount.address,
+      ]);
+
+      expect(result.length).toBe(3);
+      expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
+      expect(result[1].id).toBe(ACCOUNT_GROUP_ID_2);
+      expect(result[2].id).toBe(ACCOUNT_GROUP_ID_3);
+    });
+
+    it('handles duplicated addresses in the input list', () => {
+      const result = selectAccountGroupsByAddress(mockState, [
+        mockEvmAccount.address,
+        mockEvmAccount.address, // duplicate
+        mockSolanaAccount.address,
+        mockSolanaAccount.address, // duplicate
+      ]);
+
+      expect(result.length).toBe(2);
+      expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
+      expect(result[1].id).toBe(ACCOUNT_GROUP_ID_3);
     });
   });
 });

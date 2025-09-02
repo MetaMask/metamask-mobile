@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
@@ -137,7 +137,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 describe(
-  SmokeWalletPlatform('Relaunch App after Adding Address to Contact Book'),
+  RegressionWalletPlatform('Relaunch App after Adding Address to Contact Book'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

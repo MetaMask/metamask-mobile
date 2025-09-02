@@ -1,16 +1,23 @@
+// eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
-import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
 import { BLOCKLISTED_HOSTS } from './mock-e2e-blocklist.js';
-import { createLogger } from '../framework/logger';
-import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
+import { createLogger, LogLevel } from '../framework/logger';
+import {
+  findMatchingPostEvent,
+  processPostRequestBody,
+} from './helpers/mockHelpers';
 import {
   MockApiEndpoint,
   MockEventsObject,
   TestSpecificMock,
 } from '../framework/index';
 
+// Creates a logger with INFO level as the mockServer produces too much noise
+// Change this to DEBUG as needed
 const logger = createLogger({
   name: 'MockServer',
+  level: LogLevel.INFO,
 });
 
 interface LiveRequest {
@@ -89,9 +96,15 @@ const isAllowlisted = (url: string) => {
   if (ALLOWLISTED_URLS.includes(url)) {
     return true;
   }
+  // Then check if the hostname is in the allowed hosts list
+  const parsedUrl = new URL(url);
+  const hostname = parsedUrl.hostname;
+  // Allow data URLs, e.g. for decoding base64
+  if (parsedUrl.protocol === 'data:') {
+    return true;
+  }
 
   // Check exact hostname match
-  const hostname = new URL(url).hostname;
   return ALLOWLISTED_HOSTS.includes(hostname);
 };
 
@@ -310,11 +323,11 @@ export const validateLiveRequests = (mockServer: MockServer): void => {
 
     const totalCount = mockServer._liveRequests.length;
     const uniqueCount = uniqueRequests.length;
-    // This is temporary, we will remove this in the future when we expect no unknown live request to happen in a test
-    logger.warn(
+    const message =
       `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
-        "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.",
-    );
+      "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.";
+    logger.error(message);
+    throw new Error(message);
   }
 };
 
@@ -322,10 +335,10 @@ export const validateLiveRequests = (mockServer: MockServer): void => {
  * Stops the mock server.
  */
 export const stopMockServer = async (mockServer: Mockttp): Promise<void> => {
-  console.log('Mock server shutting down');
+  logger.info('Mock server shutting down');
   try {
     await mockServer.stop();
   } catch (error) {
-    console.error('Error stopping mock server:', error);
+    logger.error('Error stopping mock server:', error);
   }
 };

@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import SortModal from '../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder, {
@@ -15,7 +15,7 @@ import TestHelpers from '../../helpers';
 import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -69,7 +69,7 @@ const TOKEN_RESPONSE: MockApiEndpoint = {
   responseCode: 200,
 };
 
-describe(SmokeNetworkAbstractions('Import Tokens'), () => {
+describe(RegressionAssets('Import Tokens'), () => {
   beforeAll(async () => {
     await Tenderly.addFunds(
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,

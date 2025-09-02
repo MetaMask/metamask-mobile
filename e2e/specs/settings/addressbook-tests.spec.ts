@@ -1,4 +1,4 @@
-import { SmokeWalletPlatform } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
@@ -14,7 +14,7 @@ import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
-import { setupMockPostRequest } from '../../api-mocking/mockHelpers';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -178,7 +178,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
   );
 };
 
-describe(SmokeWalletPlatform('Addressbook Tests'), () => {
+describe(RegressionWalletPlatform('Addressbook Tests'), () => {
   // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
