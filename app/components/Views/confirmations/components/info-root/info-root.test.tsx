@@ -31,6 +31,23 @@ jest.mock('../../hooks/gas/useGasFeeToken');
 
 jest.mock('../../hooks/useTokenAsset');
 
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: jest.fn().mockReturnValue({
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {
+        eip155: {
+          '0x1': true,
+          '0x89': false,
+          '0x13881': true,
+        },
+      },
+      tryEnableEvmNetwork: jest.fn(),
+    }),
+  }),
+);
+
 const MockText = Text;
 jest.mock('../qr-info', () => () => {
   const View = jest.requireActual('react-native').View;
@@ -91,6 +108,17 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 describe('Info', () => {
+  const mockUseNetworkEnablement = jest.fn();
+  mockUseNetworkEnablement.mockReturnValue({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {
+      eip155: {
+        '0x1': true,
+        '0x89': false,
+        '0x13881': true,
+      },
+    },
+  });
   it('renders correctly for personal sign', () => {
     const { getByTestId } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
