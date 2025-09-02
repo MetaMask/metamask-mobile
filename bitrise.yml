@@ -167,9 +167,9 @@ pipelines:
   nightly_exp_builds_pipeline:
     workflows:
       bump_version_code: {}
-      # deploy_ios_to_store:
-      #   depends_on:
-      #   - build_ios_main_rc
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_rc
       build_android_main_exp:
         depends_on:
         - bump_version_code
@@ -179,9 +179,9 @@ pipelines:
   nightly_rc_builds_pipeline:
     workflows:
       bump_version_code: {}
-      # deploy_ios_to_store:
-      #   depends_on:
-      #   - build_ios_main_rc
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_rc
       build_android_main_rc:
         depends_on:
         - bump_version_code
@@ -510,12 +510,12 @@ workflows:
       - prep_environment
     steps:
       # - restore-cocoapods-cache@2: {}
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-      #     title: Get Yarn cache directory
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+          title: Get Yarn cache directory
       - yarn@0:
           inputs:
             - command: setup
@@ -604,8 +604,8 @@ workflows:
                 # Validate that we found both values
                 if [ -z "$APP_SEM_VER_NAME_TMP" ] || [ -z "$APP_BUILD_NUMBER_TMP" ]; then
                     echo "Error: Could not extract version information from $BUILD_GRADLE_PATH"
-                    echo "APP_SEM_VER_NAME: $NAME1"
-                    echo "APP_BUILD_NUMBER: $NUMBER1"
+                    echo "APP_SEM_VER_NAME: $APP_SEM_VER_NAME_TMP"
+                    echo "APP_BUILD_NUMBER: $APP_SEM_VER_NAME_TMP"
                     exit 1
                 fi
 
@@ -2593,7 +2593,7 @@ workflows:
       - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'    
+      - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
     meta:
@@ -3048,7 +3048,7 @@ workflows:
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
                 fi
 
                 # Copy binary with new name (preserve original)
@@ -3549,16 +3549,16 @@ app:
         is_expand: false
       PROJECT_LOCATION_IOS: ios
     - opts:
-        is_expand: true
+        is_expand: false
       VERSION_NAME: 7.55.0
     - opts:
-        is_expand: true
+        is_expand: false
       VERSION_NUMBER: 2345
     - opts:
-        is_expand: true
+        is_expand: false
       FLASK_VERSION_NAME: 7.55.0
     - opts:
-        is_expand: true
+        is_expand: false
       FLASK_VERSION_NUMBER: 2345
     - opts:
         is_expand: false
