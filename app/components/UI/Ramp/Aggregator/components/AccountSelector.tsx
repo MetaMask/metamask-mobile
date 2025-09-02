@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const AccountSelector = () => {
+const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -62,10 +62,11 @@ const AccountSelector = () => {
     () =>
       navigation.navigate(
         ...createAddressSelectorNavDetails({
+          isEvmOnly,
           displayOnlyCaipChainIds: rampNetworksCaipIds,
         }),
       ),
-    [navigation, rampNetworksCaipIds],
+    [isEvmOnly, navigation, rampNetworksCaipIds],
   );
 
   const shortenedAddress = formatAddress(

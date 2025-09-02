@@ -19,9 +19,6 @@ import { oldConfirmationsRemoteFeatureFlags } from '../../api-mocking/mock-respo
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
-// Quarantining for GNS feature
-// Original path e2e/specs/confirmations/send-erc20-with-dapp.spec.ts
-// Failing on IOS, Passes on Android
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
@@ -40,6 +37,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
