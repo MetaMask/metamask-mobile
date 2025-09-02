@@ -665,7 +665,8 @@ const RevealPrivateCredential = ({
         showsVerticalScrollIndicator={false}
       >
         <View>
-          <View style={[styles.rowWrapper, styles.normalText]}>
+          {/* Fixed: Removed styles.normalText from View - text styles are not valid for View components (TypeScript fix) */}
+          <View style={[styles.rowWrapper]}>
             {isPrivateKey && account ? (
               <>
                 <AccountInfo account={account} />

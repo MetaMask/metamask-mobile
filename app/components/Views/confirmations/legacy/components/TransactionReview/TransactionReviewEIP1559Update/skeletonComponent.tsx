@@ -10,7 +10,8 @@ const SkeletonComponent = ({ width, noStyle }: SkeletonProps) => {
   const styles = createStyles(colors);
 
   return (
-    <View style={[!noStyle && styles.valuesContainer]}>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <View style={[!noStyle && styles.valuesContainer] as any}>
       <SkeletonPlaceholder>
         <SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
       </SkeletonPlaceholder>

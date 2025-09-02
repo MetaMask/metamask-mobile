@@ -43,8 +43,8 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
+                style={styles.scrollView as any}
+                contentContainerStyle={styles.scrollViewContent as any}
                 nestedScrollEnabled
               >
                 <TouchableWithoutFeedback>

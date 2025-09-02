@@ -165,7 +165,8 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       onClose={closeRpcModal}
       shouldNavigateBack={false}
     >
-      <BottomSheetHeader style={styles.baseHeader}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <BottomSheetHeader style={styles.baseHeader as any}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('app_settings.select_rpc_url')}{' '}
         </Text>
@@ -179,14 +180,17 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
             size: AvatarSize.Sm,
             style: { marginRight: 0 },
           }}
-          style={styles.cellBorder}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          style={styles.cellBorder as any}
         >
-          <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Text style={styles.alternativeText as any} variant={TextVariant.BodyMD}>
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
       </BottomSheetHeader>
-      <View style={styles.rpcMenu}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <View style={styles.rpcMenu as any}>
         {rpcEndpoints.map(
           ({
             url,
@@ -210,8 +214,10 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
                 handleRpcSelect(networkClientId, chainId as `0x${string}`)
               }
             >
-              <View style={styles.rpcText}>
-                <Text style={styles.textCentred}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              <View style={styles.rpcText as any}>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <Text style={styles.textCentred as any}>
                   {hideKeyFromUrl(hideProtocolFromUrl(url))}
                 </Text>
               </View>

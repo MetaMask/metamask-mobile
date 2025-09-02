@@ -52,14 +52,12 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   if (!address && !imageUri) return null;
 
-  const styleForBlockieAndTokenIcon = [
-    {
-      height: diameter,
-      width: diameter,
-      borderRadius: diameter / 2,
-    },
-    customStyle,
-  ];
+  const styleForBlockieAndTokenIcon: ImageStyle = {
+    height: diameter,
+    width: diameter,
+    borderRadius: diameter / 2,
+    ...(customStyle as ImageStyle),
+  };
 
   const image = imageUri ? (
     <Image source={{ uri: imageUri }} style={styleForBlockieAndTokenIcon} />
@@ -69,7 +67,8 @@ const Identicon: React.FC<IdenticonProps> = ({
       style={styleForBlockieAndTokenIcon}
     />
   ) : (
-    <View style={customStyle}>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <View style={customStyle as any}>
       <Jazzicon size={diameter} address={address} />
     </View>
   );

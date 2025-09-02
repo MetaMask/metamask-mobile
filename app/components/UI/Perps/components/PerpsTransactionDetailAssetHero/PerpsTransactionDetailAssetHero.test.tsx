@@ -90,7 +90,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={mockTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
@@ -115,7 +115,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
     const { getByText } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={customTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
@@ -136,7 +136,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsTransactionDetailAssetHero
         transaction={btcTransaction}
-        styles={mockStyles}
+        styles={mockStyles as any}
       />,
       {
         state: mockInitialState,
@@ -162,7 +162,7 @@ describe('PerpsTransactionDetailAssetHero', () => {
       const { getByText, getByTestId } = renderWithProvider(
         <PerpsTransactionDetailAssetHero
           transaction={assetTransaction}
-          styles={mockStyles}
+          styles={mockStyles as any}
         />,
         {
           state: mockInitialState,

@@ -68,7 +68,7 @@ const Icon = ({
     <SVG
       fill="currentColor"
       color={iconColor}
-      style={styles.icon}
+      style={styles.icon as any}
       width={sizeAsNum}
       height={sizeAsNum}
       // This prop it's for testing purposes

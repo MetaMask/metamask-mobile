@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
@@ -8,7 +8,17 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsTransactionItemProps {
   item: PerpsTransaction;
-  styles: ReturnType<typeof StyleSheet.create>;
+  styles: {
+    transactionItem?: ViewStyle;
+    tokenIconContainer?: ViewStyle;
+    transactionContent?: ViewStyle;
+    transactionContentCentered?: ViewStyle;
+    transactionTitle?: TextStyle;
+    transactionTitleCentered?: TextStyle;
+    transactionSubtitle?: TextStyle;
+    rightContent?: ViewStyle;
+    [key: string]: ViewStyle | TextStyle | undefined;
+  };
   onPress: (transaction: PerpsTransaction) => void;
   renderRightContent: (transaction: PerpsTransaction) => React.ReactNode;
 }

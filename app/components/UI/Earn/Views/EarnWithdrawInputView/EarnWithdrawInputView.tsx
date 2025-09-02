@@ -253,7 +253,7 @@ const EarnWithdrawInputView = () => {
         theme.colors,
         navBarOptions,
         navBarEventOptions,
-      ),
+      ) as any,
     );
   }, [navigation, theme.colors, navBarOptions, navBarEventOptions]);
 

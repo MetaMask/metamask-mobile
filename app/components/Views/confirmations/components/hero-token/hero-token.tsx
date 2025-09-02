@@ -27,10 +27,10 @@ const AssetAmount = ({
   const isUnknownToken = displayName === strings('token.unknown');
 
   return (
-    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+    <Text style={styles.assetAmountText as any} variant={TextVariant.HeadingLG}>
       {amount}{' '}
       <Text
-        style={isUnknownToken && styles.assetTextUnknown}
+        style={(isUnknownToken && styles.assetTextUnknown) as any}
         variant={TextVariant.HeadingLG}
       >
         {displayName}

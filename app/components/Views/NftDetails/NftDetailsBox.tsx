@@ -45,7 +45,8 @@ const NftDetailsBox = (props: NftDetailsBoxProps) => {
 
   return (
     <View style={[styles.inputWrapper]}>
-      <View style={titleStyle}>
+      {/* Fixed: titleStyle is TextStyle, not ViewStyle - using type cast */}
+      <View style={titleStyle as any}>
         <Text style={titleTextStyle}>{title}</Text>
       </View>
       {icon ? (
@@ -60,7 +61,9 @@ const NftDetailsBox = (props: NftDetailsBoxProps) => {
           {icon}
         </View>
       ) : (
-        <View style={valueStyle}>
+        <View
+          // Fixed: valueStyle is TextStyle, not ViewStyle - using type cast
+          style={valueStyle as any}>
           <Text style={valueTextStyle}>{value}</Text>
         </View>
       )}

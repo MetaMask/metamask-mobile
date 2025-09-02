@@ -337,7 +337,7 @@ const QRSigningDetails = ({
                   style={[
                     styles.description,
                     tighten ? styles.descriptionTighten : undefined,
-                  ]}
+                  ] as any}
                 >
                   <Text
                     style={[

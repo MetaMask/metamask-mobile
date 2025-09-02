@@ -170,7 +170,12 @@ describe('TouchableOpacity Wrapper Logic', () => {
 
   it('should expose disabled prop in test environment', () => {
     const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'test';
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'test',
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
 
     try {
       const { getByTestId } = render(
@@ -182,7 +187,12 @@ describe('TouchableOpacity Wrapper Logic', () => {
       const wrapper = getByTestId('touchable-wrapper');
       expect(wrapper.props.disabled).toBe(true);
     } finally {
-      process.env.NODE_ENV = originalEnv;
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalEnv,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
     }
   });
 
@@ -342,7 +352,12 @@ describe('ButtonBase', () => {
       const originalIsTest = process.env.IS_TEST;
       const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
 
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       delete process.env.IS_TEST;
       delete process.env.METAMASK_ENVIRONMENT;
 
@@ -361,7 +376,12 @@ describe('ButtonBase', () => {
 
         expect(mockOnPress).toHaveBeenCalledTimes(1);
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalEnv,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
@@ -391,7 +411,12 @@ describe('ButtonBase', () => {
       const originalIsTest = process.env.IS_TEST;
       const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
 
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       delete process.env.IS_TEST;
       delete process.env.METAMASK_ENVIRONMENT;
 
@@ -411,7 +436,12 @@ describe('ButtonBase', () => {
 
         expect(mockOnPress).not.toHaveBeenCalled();
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+        value: originalEnv,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
@@ -481,7 +511,12 @@ describe('ButtonBase', () => {
     });
 
     it('should use RNTouchableOpacity in unit test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByRole } = render(
         <ButtonBase
@@ -515,7 +550,12 @@ describe('ButtonBase', () => {
     });
 
     it('should set onPress to undefined when disabled in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByRole } = render(
         <ButtonBase
@@ -533,7 +573,12 @@ describe('ButtonBase', () => {
     });
 
     it('should expose disabled prop in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const { getByRole } = render(
         <ButtonBase
           label="Test Button"

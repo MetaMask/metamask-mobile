@@ -17,11 +17,13 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
   const isStringTitle = typeof title === 'string';
 
   return (
-    <View style={styles.title}>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <View style={styles.title as any}>
       {setIsModalVisible ? (
         <TouchableOpacity onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
-            <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <Text style={styles.titleText as any} variant={TextVariant.HeadingLG}>
               {title}
             </Text>
           ) : (
@@ -29,7 +31,8 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
           )}
         </TouchableOpacity>
       ) : isStringTitle ? (
-        <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <Text style={styles.titleText as any} variant={TextVariant.HeadingLG}>
           {title}
         </Text>
       ) : (

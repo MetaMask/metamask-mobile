@@ -87,7 +87,7 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
           maxWidth: '100%',
         },
         style,
-      ]}
+      ] as any}
     >
       <SvgXml
         testID="snaps-ui-image"

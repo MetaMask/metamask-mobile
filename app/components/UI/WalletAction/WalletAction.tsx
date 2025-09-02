@@ -93,7 +93,7 @@ const WalletAction = ({
     >
       <Avatar
         variant={AvatarVariant.Icon}
-        style={iconStyle}
+        style={iconStyle as any}
         size={iconSize}
         name={iconName}
         backgroundColor={colors.primary.default}

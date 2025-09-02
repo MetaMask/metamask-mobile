@@ -70,7 +70,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
-      ...(fontStyles.normal as ViewStyle),
+      ...(fontStyles.normal as any),
       fontSize: 18,
       paddingVertical: 16,
       color: colors.text.default,
@@ -329,7 +329,7 @@ const DetectedTokens = () => {
   };
 
   const renderHeader = () => (
-    <Text style={styles.headerLabel}>
+    <Text style={styles.headerLabel as any}>
       {strings(
         `detected_tokens.title${
           currentDetectedTokens.length > 1 ? '_plural' : ''

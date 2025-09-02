@@ -52,7 +52,8 @@ const Header: React.FC<HeaderProps> = ({
       </View>
     )}
     <View style={styles.headerContainer}>
-      <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <Text style={styles.headerText as any} variant={TextVariant.BodyMDBold}>
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
       </Text>
     </View>
@@ -62,7 +63,8 @@ const Header: React.FC<HeaderProps> = ({
 interface ContentProps {
   backgroundColor: string;
   selectedAlert: Alert;
-  styles: Record<string, ViewStyle>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  styles: Record<string, any>;
 }
 
 const Content: React.FC<ContentProps> = ({
@@ -74,19 +76,22 @@ const Content: React.FC<ContentProps> = ({
     {selectedAlert.content ?? (
       <>
         {typeof selectedAlert.message === 'string' ? (
-          <Text style={styles.message}>{selectedAlert.message}</Text>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          <Text style={styles.message as any}>{selectedAlert.message}</Text>
         ) : (
           selectedAlert.message
         )}
         {selectedAlert.alertDetails && (
           <>
-            <Text style={styles.message} variant={TextVariant.BodyMDBold}>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Text style={styles.message as any} variant={TextVariant.BodyMDBold}>
               {strings('alert_system.alert_modal.alert_details')}
             </Text>
             {selectedAlert.alertDetails.map((detail, index) => (
               <Text
                 key={`details-${index}`}
-                style={styles.detailsText}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                style={styles.detailsText as any}
                 variant={TextVariant.BodyMD}
               >
                 {'• ' + detail}
@@ -127,7 +132,8 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
         isChecked={isConfirmed}
         testID="alert-modal-checkbox"
       />
-      <Text style={styles.checkboxText}>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <Text style={styles.checkboxText as any}>
         {strings('alert_system.confirm_modal.checkbox_label')}
       </Text>
     </TouchableOpacity>

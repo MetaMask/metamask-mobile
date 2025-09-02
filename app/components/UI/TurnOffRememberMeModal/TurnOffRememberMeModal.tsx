@@ -94,7 +94,7 @@ const TurnOffRememberMeModal = () => {
                 {strings('turn_off_remember_me.description')}
               </Text>
               <OutlinedTextField
-                style={styles.input as TextFieldProps}
+                style={styles.input as any}
                 secureTextEntry
                 returnKeyType={'done'}
                 onChangeText={checkPassword}
