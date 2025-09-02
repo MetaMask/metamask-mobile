@@ -62,7 +62,10 @@ const getAnimationOptions = ({
 });
 
 const MainRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.DEPOSIT.ROOT} headerMode="screen">
+  <Stack.Navigator
+    initialRouteName={Routes.DEPOSIT.ROOT}
+    screenOptions={{ headerMode: 'screen' }}
+  >
     <Stack.Screen
       name={Routes.DEPOSIT.ROOT}
       component={Root}
@@ -176,7 +179,7 @@ const DepositRoutes = () => (
   <DepositSDKProvider>
     <RootStack.Navigator
       initialRouteName={Routes.DEPOSIT.ROOT}
-      headerMode="none"
+      screenOptions={{ headerShown: false }}
     >
       <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
       <RootStack.Screen

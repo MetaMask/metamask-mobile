@@ -703,7 +703,7 @@ const NftDetailsFullImageModeView = (props) => (
 );
 
 const SendFlowView = () => (
-  <Stack.Navigator headerMode="screen">
+  <Stack.Navigator screenOptions={{ headerMode: 'screen' }}>
     <Stack.Screen
       name="SendTo"
       component={SendTo}

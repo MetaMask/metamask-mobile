@@ -7,7 +7,10 @@ const Stack = createStackNavigator();
 
 const CardRoutes = () => (
   <CardSDKProvider>
-    <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="screen">
+    <Stack.Navigator
+      initialRouteName={Routes.CARD.HOME}
+      screenOptions={{ headerMode: 'screen' }}
+    >
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}

@@ -27,7 +27,7 @@ const clearStackNavigatorOptions = {
 // Regular Stack for Screens
 const StakeScreenStack = () => (
   <StakeSDKProvider>
-    <Stack.Navigator headerMode="screen">
+    <Stack.Navigator screenOptions={{ headerMode: 'screen' }}>
       <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
       <Stack.Screen
         name={Routes.STAKING.UNSTAKE}

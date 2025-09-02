@@ -16,7 +16,7 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
     <Stack.Navigator
       initialRouteName={Routes.RAMP.GET_STARTED}
-      headerMode="screen"
+      screenOptions={{ headerMode: 'screen' }}
     >
       <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
       <Stack.Screen

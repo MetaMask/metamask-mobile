@@ -19,7 +19,7 @@ export const Send = () => {
   return (
     <SendContextProvider>
       <SendMetricsContextProvider>
-        <Stack.Navigator headerMode="screen">
+        <Stack.Navigator screenOptions={{ headerMode: 'screen' }}>
           <Stack.Screen
             name={Routes.SEND.AMOUNT}
             component={Amount}
