@@ -95,10 +95,12 @@ export function useTransactionBridgeQuotes() {
     log(
       'Bridge quotes',
       quotes?.map((quote) => ({
+        approval: quote.approval,
         bridgeId: quote.quote?.bridgeId,
         networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
         sourceAmount: quote.sentAmount?.valueInCurrency,
         to: quote.toTokenAmount?.valueInCurrency,
+        trade: quote.trade,
       })),
     );
   }, [dispatch, quotes, transactionId]);
