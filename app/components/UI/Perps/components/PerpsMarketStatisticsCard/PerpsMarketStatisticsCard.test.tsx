@@ -305,15 +305,15 @@ describe('PerpsMarketStatisticsCard', () => {
       expect(getByText('0.0125%')).toBeOnTheScreen();
     });
 
-    it('uses marketStats when no symbol provided', () => {
-      // Test with no symbol
-      const propsWithoutSymbol = {
+    it('uses marketStats when empty symbol provided', () => {
+      // Test with empty symbol
+      const propsWithEmptySymbol = {
         ...defaultProps,
-        symbol: undefined,
+        symbol: '',
       };
 
       const { getByText } = render(
-        <PerpsMarketStatisticsCard {...propsWithoutSymbol} />,
+        <PerpsMarketStatisticsCard {...propsWithEmptySymbol} />,
       );
 
       // Should use marketStats funding rate

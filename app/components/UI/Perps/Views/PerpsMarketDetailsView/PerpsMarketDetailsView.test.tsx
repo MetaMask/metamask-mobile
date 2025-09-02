@@ -35,7 +35,18 @@ const mockCanGoBack = jest.fn();
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
-const mockRouteParams = {
+const mockRouteParams: {
+  market?: {
+    symbol: string;
+    name: string;
+    price: string;
+    change24h: string;
+    change24hPercent: string;
+    volume: string;
+    maxLeverage: string;
+  };
+  isNavigationFromOrderSuccess: boolean;
+} = {
   market: {
     symbol: 'BTC',
     name: 'Bitcoin',
