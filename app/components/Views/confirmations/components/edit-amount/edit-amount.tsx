@@ -68,10 +68,13 @@ export function EditAmount({
 
   const handleInputPress = useCallback(() => {
     inputRef.current?.focus();
+    inputRef.current?.setSelection(amountFiat.length, amountFiat.length);
+
     setShowKeyboard(true);
     setIsFooterVisible?.(false);
+
     onKeyboardShow?.();
-  }, [inputRef, onKeyboardShow, setIsFooterVisible]);
+  }, [amountFiat, inputRef, onKeyboardShow, setIsFooterVisible]);
 
   useEffect(() => {
     if (autoKeyboard && !inputChanged) {
