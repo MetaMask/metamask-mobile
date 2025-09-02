@@ -55,4 +55,57 @@ describe('useSupportedTokens', () => {
 
     expect(result.current).toEqual(SUPPORTED_DEPOSIT_TOKENS);
   });
+
+  it('should include MUSD tokens when metamaskUsdEnabled is true', () => {
+    const mockFeatureFlags = {
+      metamaskUsdEnabled: true,
+    };
+
+    const { result } = renderHookWithProvider(() => useSupportedTokens(), {
+      state: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  features: mockFeatureFlags,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(result.current).toEqual(
+      expect.arrayContaining([
+        ...SUPPORTED_DEPOSIT_TOKENS,
+        expect.objectContaining({ symbol: 'mUSD' }),
+      ]),
+    );
+  });
+
+  it('should not include MUSD tokens when metamaskUsdEnabled is false', () => {
+    const mockFeatureFlags = {
+      metamaskUsdEnabled: false,
+    };
+
+    const { result } = renderHookWithProvider(() => useSupportedTokens(), {
+      state: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  features: mockFeatureFlags,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    expect(result.current).toEqual(SUPPORTED_DEPOSIT_TOKENS);
+  });
 });

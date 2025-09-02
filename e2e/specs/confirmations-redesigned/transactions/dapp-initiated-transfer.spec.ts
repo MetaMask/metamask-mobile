@@ -104,6 +104,9 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withMetaMetricsOptIn()
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
