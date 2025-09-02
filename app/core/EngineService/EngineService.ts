@@ -67,7 +67,7 @@ export class EngineService {
     });
 
     const state = isE2E
-      ? reduxState.engine.backgroundState
+      ? reduxState?.engine?.backgroundState
       : persistedState?.backgroundState ?? {};
 
     const Engine = UntypedEngine;
