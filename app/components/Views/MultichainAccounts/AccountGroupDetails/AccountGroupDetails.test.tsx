@@ -327,7 +327,7 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'MultichainAccountDetailActions',
       {
-        screen: 'EditMultichainAccountName',
+        screen: 'MultichainEditAccountName',
         params: { accountGroup: mockAccountGroup },
       },
     );

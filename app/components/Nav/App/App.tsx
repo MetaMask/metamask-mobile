@@ -907,10 +907,7 @@ const AppFlow = () => {
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
         />
-        <Stack.Screen
-          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
-          component={MultichainAccountActions}
-        />
+
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}

@@ -107,9 +107,7 @@ describe('AccountCell', () => {
       'MultichainAccountDetailActions',
       {
         screen: 'MultichainAccountActions',
-        params: {
-          accountGroup: mockAccountGroup,
-        },
+        params: { accountGroup: mockAccountGroup },
       },
     );
   });
