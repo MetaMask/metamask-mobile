@@ -5270,24 +5270,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^16.0.0":
-  version "16.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.1.0.tgz#2a4d54367ed8a329fb91d1d3200c82f4dd36423b"
-  integrity sha512-JnR14wPksYja+e/3RbEYWxFNukO/yIpmR0hmIiogNj6VWJTQd0F/E8G/5J+0jdyX2ZYtNpzGtJj0vZaNi3wq/w==
-  dependencies:
-    "@ethereumjs/tx" "^5.4.0"
-    "@metamask/base-controller" "^7.1.1"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/keyring-api" "^20.1.0"
-    "@metamask/keyring-internal-api" "^8.1.0"
-    "@metamask/keyring-internal-snap-client" "^6.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    "@types/uuid" "^9.0.8"
-    uuid "^9.0.1"
-
-"@metamask/eth-snap-keyring@^16.1.0":
+"@metamask/eth-snap-keyring@^16.0.0", "@metamask/eth-snap-keyring@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.1.0.tgz#2a4d54367ed8a329fb91d1d3200c82f4dd36423b"
   integrity sha512-JnR14wPksYja+e/3RbEYWxFNukO/yIpmR0hmIiogNj6VWJTQd0F/E8G/5J+0jdyX2ZYtNpzGtJj0vZaNi3wq/w==
@@ -5436,7 +5419,7 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0", "@metamask/keyring-api@^20.1.1":
+"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.1":
   version "20.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.1.tgz#4fdf9b3e9b81a653bf827f57b0c8b61574e3cc50"
   integrity sha512-5gvhFM/wu8ulDeoG8/C+vWfgUApYyTrRopVaGFxZSguBJ+CqnfVJu8pcqQL9u/WYMp2hHiky8WsOA65cEl1D5g==
