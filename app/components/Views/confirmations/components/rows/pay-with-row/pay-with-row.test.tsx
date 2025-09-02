@@ -58,9 +58,12 @@ describe('PayWithRow', () => {
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
         address: ADDRESS_MOCK,
+        balance: '0',
+        balanceFiat: '$0',
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'test',
+        tokenFiatAmount: 0,
       },
       setPayToken: jest.fn(),
     });

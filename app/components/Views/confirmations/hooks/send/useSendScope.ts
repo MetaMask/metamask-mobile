@@ -28,9 +28,9 @@ export function useSendScope(): SendScope {
     };
   }
 
-  if (selectedAccount?.type.includes('solana')) {
+  if (selectedAccount?.type?.includes('solana')) {
     sendScope.isSolanaOnly = true;
-  } else if (selectedAccount?.type.includes('eip155')) {
+  } else if (selectedAccount?.type?.includes('eip155')) {
     sendScope.isEvmOnly = true;
   }
 
