@@ -5529,7 +5529,7 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.1":
+"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0", "@metamask/keyring-api@^20.1.1":
   version "20.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.1.tgz#4fdf9b3e9b81a653bf827f57b0c8b61574e3cc50"
   integrity sha512-5gvhFM/wu8ulDeoG8/C+vWfgUApYyTrRopVaGFxZSguBJ+CqnfVJu8pcqQL9u/WYMp2hHiky8WsOA65cEl1D5g==
