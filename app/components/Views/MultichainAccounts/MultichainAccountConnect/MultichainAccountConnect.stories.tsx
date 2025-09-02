@@ -8,6 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatValue,
+  Caip25CaveatType,
 } from '@metamask/chain-agnostic-permission';
 
 import MultichainAccountConnect from './MultichainAccountConnect';
@@ -89,7 +90,7 @@ const createMockHostInfo = (origin: string, isEip1193Request = false) => ({
       parentCapability: Caip25EndowmentPermissionName,
       caveats: [
         {
-          type: 'caip25',
+          type: Caip25CaveatType,
           value: {
             requiredScopes: {},
             optionalScopes: {

@@ -489,7 +489,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             number_of_accounts: accountsLength,
             number_of_accounts_connected: connectedAccountLength,
             // TODO: Fix this. Not accurate
-            account_type: 'multichain', //getAddressAccountType(activeAddress),
+            account_type: 'multichain',
             source: eventSource,
             chain_id_list: selectedChainIds,
             referrer: request.metadata.origin,
@@ -534,6 +534,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const handleCreateAccount = useCallback(async () => {
     // TODO: use account service when available
+    // Implement when https://github.com/MetaMask/metamask-mobile/pull/18472 is available
   }, []);
 
   const handleAccountGroupsSelected = useCallback(
@@ -674,6 +675,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       tabIndex,
       onCreateAccount: (_clientType, _scope) => {
         // TODO: Implement account creation when account provider is ready
+        // Implement when https://github.com/MetaMask/metamask-mobile/pull/18472 is available
       },
     }),
     [
