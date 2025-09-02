@@ -83,7 +83,7 @@ export const createStyles = (colors: Theme['colors']) =>
       color: colors.error.default, // Red - matches gradient end
     },
     priceInfoContainer: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 16,
       marginBottom: 32,
@@ -123,7 +123,7 @@ export const createStyles = (colors: Theme['colors']) =>
       marginHorizontal: 4,
       paddingVertical: 12,
       alignItems: 'center',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.muted,
