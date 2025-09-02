@@ -587,7 +587,7 @@ export function getSendFlowTitle(
         .build(),
     );
     resetTransaction();
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.goBack();
   };
   const leftAction = () => navigation.pop();
 
@@ -1576,7 +1576,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.goBack();
           onPop?.();
         }}
         style={styles.closeButton}
@@ -1621,7 +1621,7 @@ export function getPaymentMethodApplePayNavbar(
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
         onPress={() => {
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.goBack();
           onExit?.();
         }}
         style={styles.closeButton}
@@ -1750,7 +1750,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.goBack()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -1830,7 +1830,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           .build(),
       );
     }
-    navigation.dangerouslyGetParent()?.pop();
+    navigation.goBack();
   };
 
   return {
@@ -1908,7 +1908,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => navigation.goBack()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
@@ -2079,7 +2079,7 @@ export function getDepositNavbarOptions(
             iconName={IconName.Close}
             size={ButtonIconSize.Lg}
             onPress={() => {
-              navigation.dangerouslyGetParent()?.pop();
+              navigation.goBack();
               onClose?.();
             }}
           />
@@ -2163,7 +2163,7 @@ export function getFiatOnRampAggNavbar(
       return (
         <TouchableOpacity
           onPress={() => {
-            navigation.dangerouslyGetParent()?.pop();
+            navigation.goBack();
             onCancel?.();
           }}
           style={styles.closeButton}

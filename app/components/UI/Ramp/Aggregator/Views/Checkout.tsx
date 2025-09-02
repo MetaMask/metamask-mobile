@@ -108,8 +108,7 @@ const CheckoutWebView = () => {
         if (Object.keys(parsedUrl.query).length === 0) {
           // There was no query params in the URL to parse
           // Most likely the user clicked the X in Wyre widget
-          // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.goBack();
           return;
         }
         const orders = await SDK.orders();

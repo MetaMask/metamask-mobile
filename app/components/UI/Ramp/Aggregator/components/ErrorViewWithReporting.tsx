@@ -30,8 +30,7 @@ function ErrorViewWithReporting({
       ctaLabel={strings('fiat_on_ramp_aggregator.return_home')}
       ctaOnPress={() => {
         //TODO: implement a mechanisim for user to submit a support ticket
-        // @ts-expect-error navigation prop mismatch
-        navigation.dangerouslyGetParent()?.pop();
+        navigation.goBack();
       }}
       location={location}
       asScreen={asScreen}

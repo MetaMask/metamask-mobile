@@ -970,7 +970,7 @@ class Confirm extends PureComponent {
       }
     } finally {
       // Error handling derived to LedgerConfirmationModal component
-      navigation && navigation.dangerouslyGetParent()?.popToTop();
+      navigation.goBack();
     }
   };
 
@@ -1000,7 +1000,7 @@ class Confirm extends PureComponent {
           onReject: () => {
             this.setState({ isChangeInSimulationModalShown: true });
             resetTransaction();
-            navigation?.dangerouslyGetParent()?.pop();
+            navigation.goBack();
           },
         },
       });

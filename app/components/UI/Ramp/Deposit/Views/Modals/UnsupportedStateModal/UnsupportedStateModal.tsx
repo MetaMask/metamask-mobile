@@ -70,8 +70,7 @@ function UnsupportedStateModal() {
 
   const handleTryAnotherOption = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
+      navigation.goBack();
       navigation.navigate(...createBuyNavigationDetails());
     });
   }, [closeBottomSheetAndNavigate, navigation]);
