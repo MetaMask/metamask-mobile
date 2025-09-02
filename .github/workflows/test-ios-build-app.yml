@@ -80,7 +80,7 @@ jobs:
           echo "🚀 Finishing iOS Setup..."
           yarn setup:github-ci --build-ios --no-build-android
           echo "🏗 Building iOS APP..."
-          yarn build:ios:main:e2e
+          yarn build:ios:main:local
         shell: bash
         env:
           PLATFORM: ios
