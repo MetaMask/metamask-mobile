@@ -704,3 +704,8 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
     estimatedProcessingTimeInSeconds: 10,
   },
 ];
+
+export const GET_TOP_ASSETS_BASE_RESPONSE = [
+  { address: '0x0000000000000000000000000000000000000000', symbol: 'ETH' },
+  { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC' },
+];

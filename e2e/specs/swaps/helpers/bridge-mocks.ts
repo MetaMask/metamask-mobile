@@ -1,12 +1,13 @@
 import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../../framework';
-import { setupMockRequest } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
   GET_TOKENS_SOLANA_RESPONSE,
   GET_TOKENS_BASE_RESPONSE,
   GET_QUOTE_ETH_SOLANA_RESPONSE,
   GET_QUOTE_ETH_BASE_RESPONSE,
+  GET_TOP_ASSETS_BASE_RESPONSE,
 } from './constants';
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -33,6 +34,14 @@ export const testSpecificMock: TestSpecificMock = async (
     requestMethod: 'GET',
     url: /getTokens.*chainId=8453/i,
     response: GET_TOKENS_BASE_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock Base top assets list
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /networks\/8453\/topAssets\/?/i,
+    response: GET_TOP_ASSETS_BASE_RESPONSE,
     responseCode: 200,
   });
 

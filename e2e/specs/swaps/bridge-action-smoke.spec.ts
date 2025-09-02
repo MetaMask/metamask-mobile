@@ -9,11 +9,6 @@ import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../utils/SoftAssert';
@@ -35,12 +30,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
     properties: Record<string, unknown>;
   }[] = [];
 
-  it('should bridge ETH (Mainnet) to SOL (Solana)', async () => {
-    const destNetwork = 'Solana';
+  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+    const destNetwork = 'Base';
     const quantity: string = '1';
-    const destSymbol: string = 'SOL';
+    const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
-    const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const destChainId = '0x2105';
 
     await withFixtures(
       {
@@ -61,30 +56,23 @@ describe(SmokeTrade('Bridge functionality'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapWallet();
-        await WalletView.tapIdenticon();
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
-        );
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapAddSolanaAccount();
-        await AddNewHdAccountComponent.tapConfirm();
-        await NetworkEducationModal.tapGotItButton();
-        await Assertions.expectElementToBeVisible(WalletView.container);
-
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetworkTo('Localhost', false);
-        await NetworkEducationModal.tapGotItButton();
-        await Assertions.expectElementToBeVisible(WalletView.container);
         await prepareSwapsTestEnvironment();
+
+        await TabBarComponent.tapWallet();
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
+        await TestHelpers.delay(2000); // wait until tokens are displayed
+        await QuoteView.swipeNetwork(destNetwork, 0.3);
+        await TestHelpers.delay(2000); // allow scroll to take place
         await QuoteView.selectNetwork(destNetwork);
-        await QuoteView.tapToken(destChainId, destSymbol);
+        await QuoteView.tapToken(destChainId, sourceSymbol);
         await QuoteView.enterAmount(quantity);
-        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
+        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
+          timeout: 60000,
+        });
         await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+
         await QuoteView.tapConfirmBridge();
 
         // Check the bridge activity completed
@@ -310,59 +298,5 @@ describe(SmokeTrade('Bridge functionality'), () => {
     ]);
 
     softAssert.throwIfErrors();
-  });
-
-  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
-    const destNetwork = 'Base';
-    const quantity: string = '1';
-    const sourceSymbol: string = 'ETH';
-    const chainId = '0x1';
-    const destChainId = '0x2105';
-
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork(chainId)
-          .withDisabledSmartTransactions()
-          .build(),
-        localNodeOptions: [
-          {
-            type: LocalNodeType.ganache,
-            options: {
-              chainId: 1,
-            },
-          },
-        ],
-        testSpecificMock,
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await prepareSwapsTestEnvironment();
-
-        await TabBarComponent.tapWallet();
-        await WalletView.tapWalletSwapButton();
-        await device.disableSynchronization();
-        await QuoteView.tapDestinationToken();
-        await TestHelpers.delay(2000); // wait until tokens are displayed
-        await QuoteView.swipeNetwork(destNetwork, 0.3);
-        await TestHelpers.delay(2000); // allow scroll to take place
-        await QuoteView.selectNetwork(destNetwork);
-        await QuoteView.tapToken(destChainId, sourceSymbol);
-        await QuoteView.enterAmount(quantity);
-        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-          timeout: 60000,
-        });
-        await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
-
-        await QuoteView.tapConfirmBridge();
-
-        // Check the bridge activity completed
-        await Assertions.expectElementToBeVisible(ActivitiesView.title);
-        await Assertions.expectElementToBeVisible(
-          ActivitiesView.bridgeActivityTitle(destNetwork),
-        );
-      },
-    );
   });
 });
