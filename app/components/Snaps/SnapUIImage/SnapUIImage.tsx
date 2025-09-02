@@ -75,19 +75,21 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
 
   return (
     <View
-      style={[
-        // eslint-disable-next-line react-native/no-inline-styles
-        {
-          width,
-          height,
-          borderRadius,
-          overflow: 'hidden',
-          aspectRatio,
-          maxHeight: '100%',
-          maxWidth: '100%',
-        },
-        style,
-      ] as any}
+      style={
+        [
+          {
+            width,
+            height,
+            borderRadius,
+            overflow: 'hidden',
+            aspectRatio,
+            maxHeight: '100%',
+            maxWidth: '100%',
+          },
+          style,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ] as any
+      }
     >
       <SvgXml
         testID="snaps-ui-image"

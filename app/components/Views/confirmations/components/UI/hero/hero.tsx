@@ -22,8 +22,11 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
       {setIsModalVisible ? (
         <TouchableOpacity onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <Text style={styles.titleText as any} variant={TextVariant.HeadingLG}>
+            <Text
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              style={styles.titleText as any}
+              variant={TextVariant.HeadingLG}
+            >
               {title}
             </Text>
           ) : (

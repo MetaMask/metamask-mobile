@@ -377,11 +377,11 @@ describe('ButtonBase', () => {
         expect(mockOnPress).toHaveBeenCalledTimes(1);
       } finally {
         Object.defineProperty(process.env, 'NODE_ENV', {
-        value: originalEnv,
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
+          value: originalEnv,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
@@ -437,11 +437,11 @@ describe('ButtonBase', () => {
         expect(mockOnPress).not.toHaveBeenCalled();
       } finally {
         Object.defineProperty(process.env, 'NODE_ENV', {
-        value: originalEnv,
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      });
+          value: originalEnv,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;

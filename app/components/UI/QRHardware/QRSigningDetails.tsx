@@ -334,10 +334,13 @@ const QRSigningDetails = ({
               />
               {showHint ? (
                 <View
-                  style={[
-                    styles.description,
-                    tighten ? styles.descriptionTighten : undefined,
-                  ] as any}
+                  style={
+                    [
+                      styles.description,
+                      tighten ? styles.descriptionTighten : undefined,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ] as any
+                  }
                 >
                   <Text
                     style={[

@@ -183,8 +183,11 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           style={styles.cellBorder as any}
         >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Text style={styles.alternativeText as any} variant={TextVariant.BodyMD}>
+          <Text
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            style={styles.alternativeText as any}
+            variant={TextVariant.BodyMD}
+          >
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>

@@ -79,13 +79,19 @@ const getAlertStyles: (
     case AlertType.Warning: {
       return [
         styles.warning as StyleProp<ViewStyle>,
-        { ...styles.textWarning, ...styles.baseTextStyle } as StyleProp<TextStyle>,
+        {
+          ...styles.textWarning,
+          ...styles.baseTextStyle,
+        } as StyleProp<TextStyle>,
       ];
     }
     case AlertType.Error: {
       return [
         styles.error as StyleProp<ViewStyle>,
-        { ...styles.textError, ...styles.baseTextStyle } as StyleProp<TextStyle>,
+        {
+          ...styles.textError,
+          ...styles.baseTextStyle,
+        } as StyleProp<TextStyle>,
       ];
     }
     case AlertType.Info:

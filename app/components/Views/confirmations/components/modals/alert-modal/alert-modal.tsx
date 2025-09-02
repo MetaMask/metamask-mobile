@@ -83,8 +83,11 @@ const Content: React.FC<ContentProps> = ({
         )}
         {selectedAlert.alertDetails && (
           <>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <Text style={styles.message as any} variant={TextVariant.BodyMDBold}>
+            <Text
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              style={styles.message as any}
+              variant={TextVariant.BodyMDBold}
+            >
               {strings('alert_system.alert_modal.alert_details')}
             </Text>
             {selectedAlert.alertDetails.map((detail, index) => (
