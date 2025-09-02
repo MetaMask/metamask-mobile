@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { getLocal, Headers, Mockttp } from 'mockttp';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist';
-import { createLogger } from '../framework/logger';
+import { createLogger, LogLevel } from '../framework/logger';
 import {
   findMatchingPostEvent,
   processPostRequestBody,
@@ -12,8 +12,11 @@ import {
   TestSpecificMock,
 } from '../framework/index';
 
+// Creates a logger with INFO level as the mockServer produces too much noise
+// Change this to DEBUG as needed
 const logger = createLogger({
   name: 'MockServer',
+  level: LogLevel.INFO,
 });
 
 interface LiveRequest {
@@ -242,9 +245,9 @@ export const startMockServer = async (
         });
       } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
         // Explicit debug to help with debugging in CI
-        console.warn(`Allowed URL: ${updatedUrl}`);
+        logger.warn(`Allowed URL: ${updatedUrl}`);
         if (method === 'POST') {
-          console.warn(`Request Body: ${requestBodyText}`);
+          logger.warn(`Request Body: ${requestBodyText}`);
         }
       }
 
@@ -322,10 +325,10 @@ export const validateLiveRequests = (mockServer: MockServer): void => {
  * Stops the mock server.
  */
 export const stopMockServer = async (mockServer: Mockttp): Promise<void> => {
-  console.log('Mock server shutting down');
+  logger.info('Mock server shutting down');
   try {
     await mockServer.stop();
   } catch (error) {
-    console.error('Error stopping mock server:', error);
+    logger.error('Error stopping mock server:', error);
   }
 };

@@ -123,6 +123,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    ADDRESS_SELECTOR: 'AddressSelector',
     ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
@@ -166,6 +167,7 @@ const Routes = {
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
       SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
+      SMART_ACCOUNT: 'SmartAccount',
     },
   },
   BROWSER: {
@@ -282,7 +284,6 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
-  SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
@@ -309,6 +310,7 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  REWARDS_VIEW: 'RewardsView',
 };
 
 export default Routes;
