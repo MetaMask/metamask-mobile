@@ -80,13 +80,22 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => ({
-  __esModule: true,
-  default: {
-    init: jest.fn(),
-    parse: jest.fn(),
-  },
-}));
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => {
+  // Defer resolving the actual implementation until call time to avoid circular import issues
+  const getActual = () =>
+    jest.requireActual('../../core/DeeplinkManager/DeeplinkManager').default;
+
+  const start = (...args: unknown[]) => getActual().start(...(args as []));
+
+  return {
+    __esModule: true,
+    default: {
+      start,
+      init: jest.fn(),
+      parse: jest.fn(),
+    },
+  };
+});
 
 // Use real DeeplinkManager to verify Branch/linking behavior triggered by startAppServices
 
