@@ -166,13 +166,9 @@ async function handleUniversalLink({
     handleSwapUrl({ swapPath });
     return;
   } else if (action === SUPPORTED_ACTIONS.DAPP) {
-    const deeplinkUrl = urlObj.href.replace(
-      `${BASE_URL_ACTION}/`,
-      PREFIXES[ACTIONS.DAPP],
-    );
     // Normal links (same as dapp)
     handleBrowserUrl({
-      url: deeplinkUrl,
+      url: urlObj.href,
       callback: browserCallBack,
     });
   } else if (action === SUPPORTED_ACTIONS.SEND) {
