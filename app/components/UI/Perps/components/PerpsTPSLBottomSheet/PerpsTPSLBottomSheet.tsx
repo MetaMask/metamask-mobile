@@ -44,6 +44,10 @@ import {
   calculatePercentageForPrice,
   hasTPSLValuesChanged,
 } from '../../utils/tpslValidation';
+import {
+  getPerpsTPSLBottomSheetSelector,
+  PerpsTPSLBottomSheetSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Quick percentage buttons constants
 const TAKE_PROFIT_PERCENTAGES = [1, 5, 20, 30];
@@ -439,7 +443,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      testID: 'perps-tpsl-set-button',
+      testID: PerpsTPSLBottomSheetSelectorsIDs.SET_BUTTON,
       isDisabled:
         isUpdating ||
         !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
@@ -463,6 +467,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ref={bottomSheetRef}
       shouldNavigateBack={false}
       onClose={handleClose}
+      testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
       style={styles.bottomSheet}
     >
       <BottomSheetHeader onClose={handleClose} style={styles.header}>
@@ -525,7 +530,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveTP,
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
-                testID={`perps-tpsl-take-profit-percentage-button-${percentage}`}
+                testID={getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(
+                  percentage,
+                )}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {actualDirection === 'short' ? '-' : '+'}
@@ -642,7 +649,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                     styles.percentageButtonActiveSL,
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
-                testID={`perps-tpsl-stop-loss-percentage-button-${percentage}`}
+                testID={getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(
+                  percentage,
+                )}
               >
                 <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {actualDirection === 'short' ? '+' : '-'}

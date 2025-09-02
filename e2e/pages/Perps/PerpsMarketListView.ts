@@ -51,15 +51,6 @@ class PerpsMarketListView {
     return Matchers.getElementByID(/^perps-market-row-item-.*/, 0);
   }
 
-  async tapMarketRowItemBTC() {
-    await Gestures.tap(this.marketRowItemBTC);
-  }
-
-  async tapFirstMarketRowItem() {
-    await Gestures.waitAndTap(this.firstMarketRowItem);
-  }
-
-  // Token selector elements
   get tokenSelectorContainer() {
     return Matchers.getElementByID(PerpsTokenSelectorSelectorsIDs.CONTAINER);
   }
@@ -73,8 +64,12 @@ class PerpsMarketListView {
   }
 
   // Actions
-  async tapCloseButton() {
-    await Gestures.waitAndTap(this.closeButton);
+  async tapMarketRowItemBTC() {
+    await Gestures.tap(this.marketRowItemBTC);
+  }
+
+  async tapFirstMarketRowItem() {
+    await Gestures.waitAndTap(this.firstMarketRowItem);
   }
 
   async tapSearchToggleButton() {

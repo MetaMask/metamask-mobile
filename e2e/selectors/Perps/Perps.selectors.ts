@@ -195,6 +195,22 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS TPSL BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsTPSLBottomSheetSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  SET_BUTTON: 'perps-tpsl-set-button',
+} as const;
+
+export const getPerpsTPSLBottomSheetSelector = {
+  takeProfitPercentageButton: (percentage: number) =>
+    `perps-tpsl-take-profit-percentage-button-${percentage}`,
+  stopLossPercentageButton: (percentage: number) =>
+    `perps-tpsl-stop-loss-percentage-button-${percentage}`,
+};
+
+// ========================================
 // TRADINGVIEW CHART SELECTORS
 // ========================================
 

@@ -4,6 +4,7 @@ import {
   PerpsOrderViewSelectorsIDs,
   PerpsMarketListViewSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  getPerpsTPSLBottomSheetSelector,
 } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -24,6 +25,68 @@ class PerpsView {
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
       ),
+    );
+  }
+
+  get setTpslButton() {
+    return Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
+    );
+  }
+
+  // "Edit TP/SL" button visible on position details
+  get editTpslButton() {
+    return Matchers.getElementByText('Edit TP/SL');
+  }
+
+  get closePositionBottomSheetButton() {
+    return Matchers.getElementByID(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+    );
+  }
+
+  get placeOrderButton() {
+    return Matchers.getElementByID(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+  }
+
+  get backButtonPositionSheet() {
+    return Matchers.getElementByID(
+      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
+    );
+  }
+  get backButtonMarketList() {
+    return Matchers.getElementByID(
+      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
+    );
+  }
+
+  get orderSuccessToastDismissButton() {
+    return Matchers.getElementByID(
+      PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
+    );
+  }
+
+  get toastDismissButton() {
+    return Matchers.getElementByText('Dismiss');
+  }
+
+  get anchor() {
+    return Matchers.getElementByID(
+      'perps-tab-scroll-view',
+    ) as unknown as DetoxElement;
+  }
+
+  getTakeProfitPercentageButton(percentage: number) {
+    return Matchers.getElementByID(
+      getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(percentage),
+    );
+  }
+
+  getStopLossPercentageButton(percentage: number) {
+    return Matchers.getElementByID(
+      getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(percentage),
     );
   }
 
@@ -66,9 +129,7 @@ class PerpsView {
 
   // Scroll helper on Perps tab (swipe over the tab ScrollView)
   async scrollDownOnPerpsTab(times = 1) {
-    const anchor = Matchers.getElementByID(
-      'perps-tab-scroll-view',
-    ) as unknown as DetoxElement;
+    const anchor = this.anchor;
     for (let i = 0; i < times; i++) {
       await Gestures.swipe(anchor, 'up', {
         speed: 'fast',
@@ -110,50 +171,10 @@ class PerpsView {
     }
   }
 
-  get setTpslButton() {
-    return Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
-    );
-  }
-
-  // "Edit TP/SL" button visible on position details
-  get editTpslButton() {
-    return Matchers.getElementByText('Edit TP/SL');
-  }
-
   async tapEditTpslButton() {
     await Gestures.waitAndTap(this.editTpslButton as unknown as DetoxElement, {
       elemDescription: 'Tap Edit TP/SL button',
     });
-  }
-
-  get closePositionBottomSheetButton() {
-    return Matchers.getElementByID(
-      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-    );
-  }
-
-  get placeOrderButton() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-  }
-
-  get backButtonPositionSheet() {
-    return Matchers.getElementByID(
-      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
-    );
-  }
-  get backButtonMarketList() {
-    return Matchers.getElementByID(
-      PerpsMarketListViewSelectorsIDs.BACK_HEADER_BUTTON,
-    );
-  }
-
-  get orderSuccessToastDismissButton() {
-    return Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
-    );
   }
 
   async tapClosePositionButton() {
@@ -166,21 +187,9 @@ class PerpsView {
     });
   }
 
-  getTakeProfitPercentageButton(percentage: number) {
-    return Matchers.getElementByID(
-      `perps-tpsl-take-profit-percentage-button-${percentage}`,
-    );
-  }
-
   async tapTakeProfitPercentageButton(percentage: number) {
     const button = this.getTakeProfitPercentageButton(percentage);
     await Gestures.waitAndTap(button);
-  }
-
-  getStopLossPercentageButton(percentage: number) {
-    return Matchers.getElementByID(
-      `perps-tpsl-stop-loss-percentage-button-${percentage}`,
-    );
   }
 
   async tapStopLossPercentageButton(percentage: number) {
@@ -201,7 +210,7 @@ class PerpsView {
   }
 
   async dismissToast(): Promise<void> {
-    const button = Matchers.getElementByText('Dismiss');
+    const button = this.toastDismissButton;
     await Assertions.expectElementToBeVisible(button, {
       description: 'Toast Dismiss button visible',
       timeout: 3000,
