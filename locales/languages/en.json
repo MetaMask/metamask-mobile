@@ -56,9 +56,11 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
     },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
+    },
     "no_pay_token_quotes": {
-      "title": "We couldn't find any quotes.",
-      "message": "Change the amount or select a different token for payment."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     }
   },
   "blockaid_banner": {

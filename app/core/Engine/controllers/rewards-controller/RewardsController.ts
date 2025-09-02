@@ -1,5 +1,12 @@
 import { BaseController } from '@metamask/base-controller';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  RewardsAccountState,
+  LoginResponseDto,
+  PerpsDiscountData,
+  EstimatePointsDto,
+  EstimatedPointsDto,
+} from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
@@ -8,6 +15,11 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isHardwareAccount } from '../../../../util/address';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { store } from '../../../../store';
+import {
+  CaipAccountId,
+  parseCaipChainId,
+  toCaipAccountId,
+} from '@metamask/utils';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -15,26 +27,26 @@ export type { RewardsControllerMessenger };
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
+const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
+
+// Perps discount refresh threshold
+const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 /**
  * State metadata for the RewardsController
  */
 const metadata = {
   lastAuthenticatedAccount: { persist: true, anonymous: false },
-  lastAuthTime: { persist: true, anonymous: false },
-  subscription: {
-    persist: true,
-    anonymous: false,
-  },
+  accounts: { persist: true, anonymous: false },
+  subscriptions: { persist: true, anonymous: false },
 };
 /**
  * Get the default state for the RewardsController
  */
 export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   lastAuthenticatedAccount: null,
-  lastAuthTime: 0,
-  subscription: null,
+  accounts: {},
+  subscriptions: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -67,8 +79,32 @@ export class RewardsController extends BaseController<
       },
     });
 
+    this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
   }
+
+  /**
+   * Register action handlers for this controller
+   */
+  #registerActionHandlers(): void {
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getHasAccountOptedIn',
+      this.getHasAccountOptedIn.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:estimatePoints',
+      this.estimatePoints.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getPerpsDiscountForAccount',
+      this.getPerpsDiscountForAccount.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:isRewardsFeatureEnabled',
+      this.isRewardsFeatureEnabled.bind(this),
+    );
+  }
+
   /**
    * Initialize event subscriptions based on feature flag state
    */
@@ -93,6 +129,13 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     this.update(() => getRewardsControllerDefaultState());
+  }
+
+  /**
+   * Get account state for a given CAIP-10 address
+   */
+  #getAccountState(account: CaipAccountId): RewardsAccountState | null {
+    return this.state.accounts[account] || null;
   }
 
   /**
@@ -164,18 +207,25 @@ export class RewardsController extends BaseController<
   /**
    * Check if silent authentication should be skipped
    */
-  #shouldSkipSilentAuth(address: string): boolean {
+  #shouldSkipSilentAuth(account: CaipAccountId, address: string): boolean {
     // Skip for hardware and Solana accounts
     if (isHardwareAccount(address) || isSolanaAddress(address)) return true;
 
     const now = Date.now();
-    const { lastAuthTime, lastAuthenticatedAccount } = this.state;
-    const timeSinceLastAuth = now - lastAuthTime;
+    const { lastAuthenticatedAccount } = this.state;
 
     // Skip if within grace period and same account
     if (
-      lastAuthenticatedAccount === address &&
-      timeSinceLastAuth < GRACE_PERIOD_MS
+      lastAuthenticatedAccount?.account === account &&
+      now - lastAuthenticatedAccount.lastAuthTime < AUTH_GRACE_PERIOD_MS
+    ) {
+      return true;
+    }
+
+    const accountState = this.#getAccountState(account);
+    if (
+      accountState &&
+      now - accountState.lastAuthTime < AUTH_GRACE_PERIOD_MS
     ) {
       return true;
     }
@@ -186,9 +236,24 @@ export class RewardsController extends BaseController<
   /**
    * Perform silent authentication for the given address
    */
-  async #performSilentAuth(account: InternalAccount): Promise<void> {
-    const address = account.address;
-    const shouldSkip = this.#shouldSkipSilentAuth(address);
+  async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
+    let account: CaipAccountId | undefined;
+
+    try {
+      const [scope] = internalAccount.scopes;
+      const { namespace, reference } = parseCaipChainId(scope);
+      account = toCaipAccountId(namespace, reference, internalAccount.address);
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        error,
+      );
+    }
+
+    const address = internalAccount.address;
+    const shouldSkip = account
+      ? this.#shouldSkipSilentAuth(account, address)
+      : false;
     Logger.log('RewardsController: Should skip auth?', shouldSkip);
 
     if (shouldSkip || this.#isProcessingSilentAuth) {
@@ -204,7 +269,7 @@ export class RewardsController extends BaseController<
 
       let signature;
       try {
-        signature = await this.#signRewardsMessage(account, timestamp);
+        signature = await this.#signRewardsMessage(internalAccount, timestamp);
       } catch (signError) {
         Logger.log(
           'RewardsController: Failed to generate signature:',
@@ -248,11 +313,39 @@ export class RewardsController extends BaseController<
       await storeSubscriptionToken(subscription.id, loginResponse.sessionId);
 
       this.update((state: RewardsControllerState) => {
+        if (!account) {
+          return;
+        }
+
         const currentTime = Date.now();
 
-        state.subscription = subscription;
-        state.lastAuthenticatedAccount = address;
-        state.lastAuthTime = currentTime;
+        // Create or update account state
+        const accountState: RewardsAccountState = {
+          account,
+          hasOptedIn: !!subscription,
+          subscriptionId: subscription.id,
+          lastAuthTime: currentTime,
+          perpsFeeDiscount: null, // Default value, will be updated when fetched
+          lastPerpsDiscountRateFetched: null,
+        };
+
+        // Update accounts map
+        state.accounts[account] = accountState;
+
+        // Update subscriptions map
+        if (!state.subscriptions[subscription.id]) {
+          state.subscriptions[subscription.id] = {
+            subscription,
+          };
+        } else {
+          state.subscriptions[subscription.id] = {
+            ...state.subscriptions[subscription.id],
+            subscription,
+          };
+        }
+
+        // Update last authenticated account
+        state.lastAuthenticatedAccount = accountState;
       });
     } catch (error: unknown) {
       // Handle 401 (not opted in) or other errors silently
@@ -261,12 +354,26 @@ export class RewardsController extends BaseController<
           'RewardsController: Account not opted in (401), clearing tokens',
         );
 
-        // Update state so that we remember this account is not opted in
-        this.update((state: RewardsControllerState) => {
-          state.subscription = null;
-          state.lastAuthenticatedAccount = address;
-          state.lastAuthTime = Date.now();
-        });
+        if (account) {
+          // Update state so that we remember this account is not opted in
+          this.update((state: RewardsControllerState) => {
+            // Create or update account state with no subscription
+            const accountState: RewardsAccountState = {
+              account: account as CaipAccountId,
+              hasOptedIn: false,
+              subscriptionId: null,
+              lastAuthTime: Date.now(),
+              perpsFeeDiscount: null,
+              lastPerpsDiscountRateFetched: null,
+            };
+
+            // Update accounts map
+            state.accounts[account as CaipAccountId] = accountState;
+
+            // Update last authenticated account
+            state.lastAuthenticatedAccount = accountState;
+          });
+        }
       } else {
         Logger.log(
           'RewardsController: Silent auth failed:',
@@ -277,5 +384,137 @@ export class RewardsController extends BaseController<
     } finally {
       this.#isProcessingSilentAuth = false;
     }
+  }
+
+  /**
+   * Update perps fee discount for a given address
+   * @param address - The account address in CAIP-10 format
+   */
+  async #getPerpsFeeDiscountData(
+    account: CaipAccountId,
+  ): Promise<PerpsDiscountData | null> {
+    const accountState = this.#getAccountState(account);
+
+    // Check if we have a cached discount and if threshold hasn't been reached
+    if (
+      accountState &&
+      accountState.perpsFeeDiscount !== null &&
+      accountState.lastPerpsDiscountRateFetched !== null &&
+      Date.now() - accountState.lastPerpsDiscountRateFetched <
+        PERPS_DISCOUNT_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached perps discount data for',
+        account,
+        accountState.perpsFeeDiscount,
+      );
+      return {
+        hasOptedIn: accountState.hasOptedIn,
+        discount: accountState.perpsFeeDiscount,
+      };
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh perps discount data via API call for',
+        account,
+      );
+      const perpsDiscountData = await this.messagingSystem.call(
+        'RewardsDataService:getPerpsDiscount',
+        { account },
+      );
+
+      this.update((state: RewardsControllerState) => {
+        // Create account state if it doesn't exist
+        if (!state.accounts[account]) {
+          state.accounts[account] = {
+            account,
+            hasOptedIn: perpsDiscountData.hasOptedIn,
+            subscriptionId: null,
+            lastAuthTime: 0,
+            perpsFeeDiscount: perpsDiscountData.discount ?? 0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          };
+        } else {
+          // Update account state
+          state.accounts[account].hasOptedIn = perpsDiscountData.hasOptedIn;
+          if (!perpsDiscountData.hasOptedIn) {
+            state.accounts[account].subscriptionId = null;
+          }
+          state.accounts[account].perpsFeeDiscount =
+            perpsDiscountData.discount ?? 0;
+          state.accounts[account].lastPerpsDiscountRateFetched = Date.now();
+        }
+      });
+      return perpsDiscountData;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to update perps fee discount:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Check if the given account (caip-10 format) has opted in to rewards
+   * @param account - The account address in CAIP-10 format
+   * @returns Promise<boolean> - True if the account has opted in, false otherwise
+   */
+  async getHasAccountOptedIn(account: CaipAccountId): Promise<boolean> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) return false;
+    const accountState = this.#getAccountState(account);
+    if (accountState?.hasOptedIn) return accountState.hasOptedIn;
+
+    // Right now we'll derive this from either cached map state or perps fee discount api call.
+    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
+    return !!perpsDiscountData?.hasOptedIn;
+  }
+
+  /**
+   * Get perps fee discount for an account with caching and threshold logic
+   * @param account - The account address in CAIP-10 format
+   * @returns Promise<number> - The discount number value
+   */
+  async getPerpsDiscountForAccount(account: CaipAccountId): Promise<number> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) return 0;
+    const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
+    return perpsDiscountData?.discount || 0;
+  }
+
+  /**
+   * Estimate points for a given activity
+   * @param request - The estimate points request containing activity type and context
+   * @returns Promise<EstimatedPointsDto> - The estimated points and bonus information
+   */
+  async estimatePoints(
+    request: EstimatePointsDto,
+  ): Promise<EstimatedPointsDto> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) return { pointsEstimate: 0, bonusBips: 0 };
+    try {
+      const estimatedPoints = await this.messagingSystem.call(
+        'RewardsDataService:estimatePoints',
+        request,
+      );
+
+      return estimatedPoints;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to estimate points:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Check if the rewards feature is enabled via feature flag
+   * @returns boolean - True if rewards feature is enabled, false otherwise
+   */
+  isRewardsFeatureEnabled(): boolean {
+    return selectRewardsEnabledFlag(store.getState());
   }
 }

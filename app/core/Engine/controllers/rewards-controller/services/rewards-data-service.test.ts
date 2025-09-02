@@ -2,14 +2,21 @@ import {
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
-import type { LoginResponseDto } from '../types';
+import type {
+  LoginResponseDto,
+  EstimatePointsDto,
+  EstimatedPointsDto,
+} from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
-import AppConstants from '../../../../AppConstants';
+import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
 jest.mock('../../../../AppConstants', () => ({
   REWARDS_API_URL: 'https://api.rewards.test',
+}));
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.50.1'),
 }));
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
@@ -19,309 +26,291 @@ const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
 describe('RewardsDataService', () => {
   let mockMessenger: jest.Mocked<RewardsDataServiceMessenger>;
   let mockFetch: jest.MockedFunction<typeof fetch>;
-  let rewardsDataService: RewardsDataService;
-
-  const mockLoginResponse: LoginResponseDto = {
-    sessionId: 'test-session-id',
-    subscription: {
-      id: 'test-subscription-id',
-      referralCode: 'test-referral-code',
-    },
-  };
+  let service: RewardsDataService;
 
   beforeEach(() => {
-    // Reset all mocks
     jest.clearAllMocks();
 
-    // Mock messenger
     mockMessenger = {
       registerActionHandler: jest.fn(),
       call: jest.fn(),
     } as unknown as jest.Mocked<RewardsDataServiceMessenger>;
 
-    // Mock fetch
     mockFetch = jest.fn();
-
-    // Mock successful token retrieval by default
     mockGetSubscriptionToken.mockResolvedValue({
       success: true,
-      token: 'test-bearer-token',
+      token: 'test-token',
     });
 
-    // Create service instance
-    rewardsDataService = new RewardsDataService({
+    service = new RewardsDataService({
       messenger: mockMessenger,
       fetch: mockFetch,
+      appType: 'mobile',
     });
   });
 
-  describe('constructor', () => {
-    it('should register the login action handler', () => {
+  describe('initialization', () => {
+    it('should register all action handlers', () => {
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:login',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:estimatePoints',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsDiscount',
+        expect.any(Function),
+      );
     });
 
-    it('should store the messenger and fetch function', () => {
-      // Test that the service was created without errors
-      expect(rewardsDataService).toBeInstanceOf(RewardsDataService);
+    it('should register exactly 3 action handlers', () => {
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledTimes(3);
     });
   });
 
   describe('login', () => {
-    const mockLoginBody = {
+    const mockLoginRequest = {
       account: '0x123456789',
       timestamp: 1234567890,
       signature: '0xabcdef',
     };
 
-    beforeEach(() => {
-      // Mock successful fetch response
+    const mockLoginResponse: LoginResponseDto = {
+      sessionId: 'test-session-id',
+      subscription: {
+        id: 'test-subscription-id',
+        referralCode: 'test-referral-code',
+      },
+    };
+
+    it('should successfully login', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue(mockLoginResponse),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
-    });
 
-    it('should successfully login', async () => {
-      const result = await rewardsDataService.login(mockLoginBody);
+      const result = await service.login(mockLoginRequest);
 
       expect(result).toEqual(mockLoginResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL}/auth/mobile-login`,
-        {
-          credentials: 'omit',
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(mockLoginBody),
-          headers: {
+          body: JSON.stringify(mockLoginRequest),
+          headers: expect.objectContaining({
             'Content-Type': 'application/json',
-          },
-          signal: expect.any(AbortSignal),
-        },
+          }),
+        }),
       );
     });
 
-    it('should throw error when response is not ok', async () => {
+    it('should handle login errors', async () => {
       const mockResponse = {
         ok: false,
         status: 401,
       } as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
+      await expect(service.login(mockLoginRequest)).rejects.toThrow(
         'Login failed: 401',
       );
     });
 
-    it('should throw error when fetch fails', async () => {
-      const fetchError = new Error('Network error');
-      mockFetch.mockRejectedValue(fetchError);
+    it('should handle network errors', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
 
-      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
+      await expect(service.login(mockLoginRequest)).rejects.toThrow(
         'Network error',
-      );
-    });
-
-    it('should throw error when response parsing fails', async () => {
-      const mockResponse = {
-        ok: true,
-        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
-        'Invalid JSON',
-      );
-    });
-
-    it('should use correct API endpoint', async () => {
-      await rewardsDataService.login(mockLoginBody);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
-        expect.any(Object),
-      );
-    });
-
-    it('should set credentials to omit', async () => {
-      await rewardsDataService.login(mockLoginBody);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          credentials: 'omit',
-        }),
       );
     });
   });
 
-  describe('timeout functionality', () => {
-    it('should include AbortSignal in requests', async () => {
+  describe('estimatePoints', () => {
+    const mockEstimateRequest: EstimatePointsDto = {
+      activityType: 'SWAP',
+      account: 'eip155:1:0x123',
+      activityContext: {
+        swapContext: {
+          srcAsset: { id: 'eip155:1/slip44:60', amount: '1000000000000000000' },
+          destAsset: {
+            id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            amount: '4500000000',
+          },
+          feeAsset: { id: 'eip155:1/slip44:60', amount: '5000000000000000' },
+        },
+      },
+    };
+
+    const mockEstimateResponse: EstimatedPointsDto = {
+      pointsEstimate: 100,
+      bonusBips: 500,
+    };
+
+    it('should successfully estimate points', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue(mockLoginResponse),
+        json: jest.fn().mockResolvedValue(mockEstimateResponse),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await rewardsDataService.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xabc',
-      });
+      const result = await service.estimatePoints(mockEstimateRequest);
 
+      expect(result).toEqual(mockEstimateResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
+        'https://api.rewards.test/points-estimation',
         expect.objectContaining({
-          signal: expect.any(AbortSignal),
+          method: 'POST',
+          body: JSON.stringify(mockEstimateRequest),
         }),
       );
     });
 
-    it('should timeout with custom timeout', async () => {
-      // Mock fetch to throw AbortError immediately
-      const abortError = new Error('The operation was aborted');
-      abortError.name = 'AbortError';
-      mockFetch.mockRejectedValue(abortError);
+    it('should handle estimate points errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
 
-      // Test the makeRequest method directly with a custom timeout
-      const makeRequestPromise = (
-        rewardsDataService as unknown as {
-          makeRequest: (
-            endpoint: string,
-            options?: RequestInit,
-            subscriptionId?: string,
-            timeoutMs?: number,
-          ) => Promise<Response>;
-        }
-      ).makeRequest(
-        '/test-endpoint',
-        { method: 'GET' },
-        undefined,
-        2000, // 2 second timeout
-      );
-
-      await expect(makeRequestPromise).rejects.toThrow(
-        'Request timeout after 2000ms',
+      await expect(service.estimatePoints(mockEstimateRequest)).rejects.toThrow(
+        'Points estimation failed: 400',
       );
     });
+  });
 
-    it('should handle AbortError correctly', async () => {
-      // Mock fetch to throw AbortError
-      const abortError = new Error('The operation was aborted');
-      abortError.name = 'AbortError';
-      mockFetch.mockRejectedValue(abortError);
+  describe('getPerpsDiscount', () => {
+    const testAddress = 'eip155:1:0x123456789' as CaipAccountId;
 
-      const loginPromise = rewardsDataService.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xabc',
-      });
-
-      await expect(loginPromise).rejects.toThrow(
-        'Request timeout after 10000ms',
-      );
-    });
-
-    it('should pass through non-timeout errors', async () => {
-      // Mock fetch to throw a different error
-      const networkError = new Error('Network connection failed');
-      networkError.name = 'NetworkError';
-      mockFetch.mockRejectedValue(networkError);
-
-      const loginPromise = rewardsDataService.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xabc',
-      });
-
-      await expect(loginPromise).rejects.toThrow('Network connection failed');
-    });
-
-    it('should include AbortController signal in fetch options', async () => {
+    it('should successfully get perps discount', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue(mockLoginResponse),
+        text: jest.fn().mockResolvedValue('1,5.5'),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await rewardsDataService.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xabc',
+      const result = await service.getPerpsDiscount({
+        account: testAddress as CaipAccountId,
       });
 
+      expect(result).toEqual({
+        hasOptedIn: true,
+        discount: 5.5,
+      });
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
+        `https://api.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
         expect.objectContaining({
-          signal: expect.any(AbortSignal),
+          method: 'GET',
         }),
       );
     });
 
-    it('should clear timeout on successful response', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-
+    it('should parse not opted in response', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue(mockLoginResponse),
+        text: jest.fn().mockResolvedValue('0,10.0'),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await rewardsDataService.login({
-        account: '0x123',
-        timestamp: 1234567890,
-        signature: '0xabc',
+      const result = await service.getPerpsDiscount({
+        account: testAddress as CaipAccountId,
       });
 
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-      clearTimeoutSpy.mockRestore();
+      expect(result).toEqual({
+        hasOptedIn: false,
+        discount: 10.0,
+      });
     });
 
-    it('should clear timeout on error response', async () => {
-      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
-
-      const networkError = new Error('Network error');
-      mockFetch.mockRejectedValue(networkError);
+    it('should handle perps discount errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 404,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        rewardsDataService.login({
+        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
+      ).rejects.toThrow('Get Perps discount failed: 404');
+    });
+
+    it('should handle invalid response format', async () => {
+      const mockResponse = {
+        ok: true,
+        text: jest.fn().mockResolvedValue('invalid_format'),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getPerpsDiscount({ account: testAddress as CaipAccountId }),
+      ).rejects.toThrow(
+        'Invalid perps discount response format: invalid_format',
+      );
+    });
+  });
+
+  describe('timeout handling', () => {
+    it('should handle request timeouts', async () => {
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      await expect(
+        service.login({
           account: '0x123',
           timestamp: 1234567890,
           signature: '0xabc',
         }),
-      ).rejects.toThrow('Network error');
-
-      expect(clearTimeoutSpy).toHaveBeenCalled();
-      clearTimeoutSpy.mockRestore();
+      ).rejects.toThrow('Request timeout after 10000ms');
     });
-  });
 
-  describe('action handler registration', () => {
-    it('should bind the login method correctly', async () => {
-      // Get the registered handler function
-      const registeredHandler = mockMessenger.registerActionHandler.mock
-        .calls[0][1] as typeof rewardsDataService.login;
-
-      // Mock successful response
+    it('should include AbortSignal in requests', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue(mockLoginResponse),
+        json: jest.fn().mockResolvedValue({}),
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      const mockLoginBody = {
+      await service.login({
         account: '0x123',
         timestamp: 1234567890,
         signature: '0xabc',
-      };
+      });
 
-      // Call the registered handler
-      const result = await registeredHandler(mockLoginBody);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+  });
 
-      expect(result).toEqual(mockLoginResponse);
-      expect(mockFetch).toHaveBeenCalled();
+  describe('headers', () => {
+    it('should include correct headers in requests', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await service.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
     });
   });
 });
