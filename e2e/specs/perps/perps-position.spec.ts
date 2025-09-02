@@ -51,7 +51,8 @@ describe(SmokePerps('Perps Position'), () => {
         logger.info('📈 E2E Mock: Order placed successfully');
         logger.info('💎 E2E Mock: Position created with mock data');
 
-        await PerpsHelpers.scrollToBottom();
+        // Use Page Object scroll on market details screen
+        await PerpsMarketDetailsView.scrollToBottom();
 
         await PerpsView.tapClosePositionButton();
 

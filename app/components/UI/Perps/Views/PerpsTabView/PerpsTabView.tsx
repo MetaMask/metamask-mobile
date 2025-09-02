@@ -44,7 +44,10 @@ import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsTabViewSelectorsIDs,
+  PerpsPositionsViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsTabViewProps {}
 
@@ -235,13 +238,26 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
+          <Text
+            variant={TextVariant.BodyMDMedium}
+            style={styles.sectionTitle}
+            testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE}
+          >
             {strings('perps.position.title')}
           </Text>
         </View>
         <View>
           {positions.map((position, index) => (
-            <PerpsCard key={`${position.coin}-${index}`} position={position} />
+            <View
+              key={`${position.coin}-${index}`}
+              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${
+                position.coin
+              }-${position.leverage.value}x-${
+                parseFloat(position.size) >= 0 ? 'long' : 'short'
+              }-${index}`}
+            >
+              <PerpsCard position={position} />
+            </View>
           ))}
         </View>
       </>
@@ -269,7 +285,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ) : (
         <>
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-          <ScrollView style={styles.content}>
+          <ScrollView
+            style={styles.content}
+            testID={PerpsTabViewSelectorsIDs.SCROLL_VIEW}
+          >
             <View style={styles.section}>{renderPositionsSection()}</View>
             <View style={styles.section}>{renderOrdersSection()}</View>
           </ScrollView>

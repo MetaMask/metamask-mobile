@@ -70,37 +70,88 @@ export class PerpsE2EMockService {
       totalBalance: profile === 'no-funds' ? '0.00' : '10000.00',
       availableBalance: profile === 'no-funds' ? '0.00' : '8000.00',
       marginUsed: profile === 'no-funds' ? '0.00' : '2000.00',
-      unrealizedPnl: profile === 'no-funds' ? '0.00' : '150.00',
+      // Set a temporary value; we will recompute from positions below
+      unrealizedPnl: '0.00',
       returnOnEquity: '0',
       totalValue: profile === 'no-funds' ? '0.00' : '10000.00',
     };
 
     // Positions based on profile
-    this.mockPositions =
-      profile === 'no-funds' || profile === 'no-positions'
-        ? []
-        : [
-            {
-              coin: 'BTC',
-              entryPrice: '45000.00',
-              size: '0.1',
-              positionValue: '4500.00',
-              unrealizedPnl: '150.00',
-              marginUsed: '900.00',
-              leverage: {
-                type: 'cross',
-                value: 5,
-              },
-              liquidationPrice: '36000.00',
-              maxLeverage: 50,
-              returnOnEquity: '0.167',
-              cumulativeFunding: {
-                allTime: '0',
-                sinceChange: '0',
-                sinceOpen: '0',
-              },
-            },
-          ];
+    if (profile === 'no-funds' || profile === 'no-positions') {
+      this.mockPositions = [];
+    } else if (profile === 'position-testing') {
+      // Rich set of positions for UI validation
+      this.mockPositions = [
+        {
+          coin: 'ETH',
+          entryPrice: '2500.00',
+          size: '1.0', // long
+          positionValue: '2500.00',
+          unrealizedPnl: '125.00',
+          marginUsed: '833.33',
+          leverage: { type: 'cross', value: 3 },
+          liquidationPrice: '2000.00',
+          maxLeverage: 40,
+          returnOnEquity: '0.05', // 5%
+          cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+        },
+        {
+          coin: 'BTC',
+          entryPrice: '45000.00',
+          size: '-0.05', // short
+          positionValue: '2250.00',
+          unrealizedPnl: '-50.00',
+          marginUsed: '225.00',
+          leverage: { type: 'cross', value: 10 },
+          liquidationPrice: '47250.00',
+          maxLeverage: 40,
+          returnOnEquity: '-0.02', // -2%
+          cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+        },
+        {
+          coin: 'SOL',
+          entryPrice: '100.00',
+          size: '5', // long
+          positionValue: '500.00',
+          unrealizedPnl: '25.00',
+          marginUsed: '25.00',
+          leverage: { type: 'cross', value: 20 },
+          liquidationPrice: '80.00',
+          maxLeverage: 40,
+          returnOnEquity: '0.10', // 10%
+          cumulativeFunding: { allTime: '0', sinceChange: '0', sinceOpen: '0' },
+        },
+      ];
+    } else {
+      this.mockPositions = [
+        {
+          coin: 'BTC',
+          entryPrice: '45000.00',
+          size: '0.1',
+          positionValue: '4500.00',
+          unrealizedPnl: '150.00',
+          marginUsed: '900.00',
+          leverage: {
+            type: 'cross',
+            value: 5,
+          },
+          liquidationPrice: '36000.00',
+          maxLeverage: 40,
+          returnOnEquity: '0.167',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceChange: '0',
+            sinceOpen: '0',
+          },
+        },
+      ];
+    }
+
+    // Recompute account-level unrealized PnL from the sum of positions
+    this.mockAccount = {
+      ...this.mockAccount,
+      unrealizedPnl: this.computeTotalUnrealizedPnl().toFixed(2),
+    };
 
     this.mockOrders = [];
     this.mockOrderFills = [];
@@ -193,7 +244,7 @@ export class PerpsE2EMockService {
     };
   }
 
-  // Mock withdrawal
+  // Mock withdrawal (reserved for upcoming tests)
   public async mockWithdraw(params: WithdrawParams): Promise<WithdrawResult> {
     const withdrawAmount = parseFloat(params.amount);
     const currentBalance = parseFloat(this.mockAccount.availableBalance);
@@ -230,7 +281,7 @@ export class PerpsE2EMockService {
   // Mock close position
   public async mockClosePosition(
     coin: string,
-    size?: string,
+    _size?: string,
   ): Promise<OrderResult> {
     const existingPosition = this.mockPositions.find((p) => p.coin === coin);
     if (!existingPosition) {
@@ -240,13 +291,11 @@ export class PerpsE2EMockService {
       };
     }
 
-    const sizeToClose = size || existingPosition.size;
-    const closePrice = parseFloat(existingPosition.entryPrice) * 1.02; // Mock 2% profit
-    const pnl =
-      (closePrice - parseFloat(existingPosition.entryPrice)) *
-      parseFloat(sizeToClose);
+    // Use the current unrealized PnL of the position as the realized PnL on close
+    // This keeps UI estimates and account updates consistent and avoids sign errors
+    const pnl = parseFloat(existingPosition.unrealizedPnl || '0');
 
-    // Update account balance with PnL
+    // Update account balances with realized PnL
     const newAvailableBalance =
       parseFloat(this.mockAccount.availableBalance) +
       parseFloat(existingPosition.marginUsed) +
@@ -254,17 +303,24 @@ export class PerpsE2EMockService {
     const newMarginUsed =
       parseFloat(this.mockAccount.marginUsed) -
       parseFloat(existingPosition.marginUsed);
-    const newUnrealizedPnl = parseFloat(this.mockAccount.unrealizedPnl) - pnl;
-
+    const newTotalBalance = parseFloat(this.mockAccount.totalBalance) + pnl;
     this.mockAccount = {
       ...this.mockAccount,
       availableBalance: newAvailableBalance.toString(),
       marginUsed: newMarginUsed.toString(),
-      unrealizedPnl: newUnrealizedPnl.toString(),
+      totalBalance: newTotalBalance.toString(),
     };
 
     // Remove position
     this.mockPositions = this.mockPositions.filter((p) => p.coin !== coin);
+
+    // Recompute account unrealized PnL based on remaining positions
+    const recomputedUnrealized = this.computeTotalUnrealizedPnl();
+    this.mockAccount.unrealizedPnl = recomputedUnrealized.toFixed(2);
+    // Keep totalValue aligned with equity (realized + unrealized)
+    this.mockAccount.totalValue = (
+      parseFloat(this.mockAccount.totalBalance) + recomputedUnrealized
+    ).toFixed(2);
 
     // Notify position subscribers about the change
     this.notifyPositionCallbacks();
@@ -357,7 +413,7 @@ export class PerpsE2EMockService {
       {
         symbol: 'BTC',
         name: 'Bitcoin',
-        maxLeverage: '50x',
+        maxLeverage: '40x',
         price: '$45,000.00',
         change24h: '+$1,125.00',
         change24hPercent: '+2.5%',
@@ -368,7 +424,7 @@ export class PerpsE2EMockService {
       {
         symbol: 'ETH',
         name: 'Ethereum',
-        maxLeverage: '50x',
+        maxLeverage: '40x',
         price: '$2,500.00',
         change24h: '+$45.00',
         change24hPercent: '+1.8%',
@@ -418,9 +474,23 @@ export class PerpsE2EMockService {
         openInterest: 25000000,
         volume24h: 500000,
       },
+      SOL: {
+        coin: 'SOL',
+        price: '100.00',
+        timestamp: Date.now(),
+        percentChange24h: '-2.3',
+        bestBid: '99.90',
+        bestAsk: '100.10',
+        spread: '0.20',
+        markPrice: '100.00',
+        funding: 0.003,
+        openInterest: 12000000,
+        volume24h: 300000,
+      },
     };
   }
 
+  // Mock funding endpoint (reserved for upcoming tests)
   public async mockGetFunding(): Promise<Funding[]> {
     return [
       {
@@ -445,6 +515,22 @@ export class PerpsE2EMockService {
     return isBuy
       ? entryPrice - liquidationBuffer
       : entryPrice + liquidationBuffer;
+  }
+
+  private computeTotalUnrealizedPnl(): number {
+    return this.mockPositions.reduce((acc, pos) => {
+      const val = parseFloat(pos.unrealizedPnl || '0');
+      return acc + (isNaN(val) ? 0 : val);
+    }, 0);
+  }
+
+  // Update an existing position and notify subscribers (reserved for upcoming tests)
+  public mockUpdatePosition(coin: string, updates: Partial<Position>): boolean {
+    const index = this.mockPositions.findIndex((p) => p.coin === coin);
+    if (index === -1) return false;
+    this.mockPositions[index] = { ...this.mockPositions[index], ...updates };
+    this.notifyPositionCallbacks();
+    return true;
   }
 }
 

@@ -440,36 +440,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
-  /**
-   * Calculate TP/SL display text with percentages
-   * Converts take profit and stop loss prices to percentage distances from current price
-   *
-   * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
-   *
-   * For TP: Shows the percentage gain from current price to take profit price
-   * For SL: Shows the percentage loss from current price to stop loss price
-   */
-  const tpSlDisplayText = useMemo(() => {
-    const price = parseFloat(currentPrice?.price || '0');
-    let tpDisplay = strings('perps.order.off');
-    let slDisplay = strings('perps.order.off');
-
-    if (orderForm.takeProfitPrice && price > 0) {
-      const tpPrice = parseFloat(orderForm.takeProfitPrice);
-      const tpPercentage = ((tpPrice - price) / price) * 100;
-      const absPercentage = Math.abs(tpPercentage);
-      tpDisplay = `${absPercentage.toFixed(0)}%`;
-    }
-
-    if (orderForm.stopLossPrice && price > 0) {
-      const slPrice = parseFloat(orderForm.stopLossPrice);
-      const slPercentage = ((price - slPrice) / price) * 100;
-      const absPercentage = Math.abs(slPercentage);
-      slDisplay = `${absPercentage.toFixed(0)}%`;
-    }
-
-    return `TP ${tpDisplay}, SL ${slDisplay}`;
-  }, [currentPrice?.price, orderForm.takeProfitPrice, orderForm.stopLossPrice]);
+  //
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -843,7 +814,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
                     <Text variant={TextVariant.BodyLGMedium}>
-                      {strings('perps.order.tp_sl')}
+                      {strings('perps.order.stop_loss')}
                     </Text>
                     <TouchableOpacity
                       onPress={() => handleTooltipPress('tp_sl')}
@@ -860,7 +831,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
                   <Text variant={TextVariant.BodyLGMedium}>
-                    {tpSlDisplayText}
+                    {orderForm.stopLossPrice
+                      ? formatPrice(orderForm.stopLossPrice)
+                      : strings('perps.order.off')}
                   </Text>
                 </ListItemColumn>
               </ListItem>

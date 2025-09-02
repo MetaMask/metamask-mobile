@@ -9,7 +9,6 @@ import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { createLogger, LogLevel } from '../../../framework/logger';
-import { PerpsGeneralSelectorsIDs } from '../../../selectors/Perps/Perps.selectors';
 
 const logger = createLogger({
   name: 'PerpsHelpers',
@@ -74,16 +73,8 @@ export class PerpsHelpers {
    */
   static async navigateToPerpsTab() {
     console.log('[PerpsHelpers] Navigating to Perps tab...');
-
     // Navigate to Perps tab
     await WalletView.tapOnPerpsTab();
-
-    // Wait for Perps tab to load using manual timeout
-    // const { waitFor, element, by } = await import('detox');
-    // await waitFor(element(by.text('Perps')))
-    //   .toBeVisible()
-    //   .withTimeout(10000);
-
     console.log('[PerpsHelpers] Perps tab loaded successfully');
   }
 
@@ -147,9 +138,6 @@ export class PerpsHelpers {
     await PerpsOnboarding.tapContinueButton();
     await PerpsOnboarding.tapContinueButton();
     await PerpsOnboarding.tapSkipButton();
-    // await Assertions.expectElementToBeVisible(OnboardingView.container);
-    // await OnboardingView.tapNextButton();
-    // await Assertions.expectElementToBeVisible(OnboardingView.container);
   }
 
   // Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
@@ -162,46 +150,15 @@ export class PerpsHelpers {
 
     await device.disableSynchronization();
 
-    const doneButtonDeposit = Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.DONE_BUTTON,
-    );
-    await Gestures.waitAndTap(doneButtonDeposit, {
-      elemDescription: 'Keypad - done',
+    // Close keypad and continue (selectors removed for reliability in new UI)
+    const done = Matchers.getElementByText('Done');
+    await Gestures.waitAndTap(done as unknown as DetoxElement, {
+      elemDescription: 'Keypad - Done',
       checkStability: false,
     });
-
-    const continueButtonDeposit = Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.CONTINUE_BUTTON,
-    );
-    await Gestures.tap(continueButtonDeposit, {
-      elemDescription: `Deposit - Continue Button`,
-      checkStability: false,
-    });
-  }
-
-  // Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
-  static async completeWithdrawFlow(amount: number) {
-    const keypadButtonWithdraw = Matchers.getElementByText(`${amount}`);
-
-    await Gestures.waitAndTap(keypadButtonWithdraw, {
-      elemDescription: 'keypad button, 6',
-    });
-
-    await device.disableSynchronization();
-
-    const doneButtonWithdraw = Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.DONE_BUTTON,
-    );
-    await Gestures.waitAndTap(doneButtonWithdraw, {
-      elemDescription: 'Keypad - done',
-      checkStability: false,
-    });
-
-    const continueButtonWithdraw = Matchers.getElementByID(
-      PerpsGeneralSelectorsIDs.CONTINUE_BUTTON,
-    );
-    await Gestures.tap(continueButtonWithdraw, {
-      elemDescription: `Withdraw - Continue Button`,
+    const continueButton = Matchers.getElementByText('Continue');
+    await Gestures.waitAndTap(continueButton as unknown as DetoxElement, {
+      elemDescription: 'Deposit - Continue',
       checkStability: false,
     });
   }
@@ -228,10 +185,6 @@ export class PerpsHelpers {
     isOutgoing?: boolean; // true for outgoing transfers, false for incoming
   }) {
     const { recipientAddress, amount, isOutgoing = false } = params;
-    // Mock balance adjustment for E2E testing
-    // const { adjustE2EMockBalance } = await import(
-    //   '../../../../app/components/UI/Perps/utils/e2eBridgePerps'
-    // );
 
     // Check if this transfer affects our test wallet
     if (recipientAddress === USER_ADDRESS && !isOutgoing) {
@@ -243,21 +196,5 @@ export class PerpsHelpers {
       logger.info('E2E: Mock outgoing transfer:', amount);
       // adjustE2EMockBalance(`-${amount}`); // TODO: Implement if needed
     }
-  }
-
-  /**
-   * Scroll to bottom of the current view
-   * Uses the same pattern as other page objects (WalletView.scrollToBottomOfTokensList)
-   */
-  static async scrollToBottom() {
-    // Try to use the Perps market details scroll view, fallback to main container
-    const scrollContainer = Matchers.getElementByID(
-      'perps-market-details-scroll-view',
-    );
-
-    await Gestures.swipe(scrollContainer, 'up', {
-      speed: 'fast',
-      percentage: 0.7,
-    });
   }
 }

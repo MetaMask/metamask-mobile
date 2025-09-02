@@ -8,7 +8,6 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { ToastSelectorsText } from '../../selectors/wallet/ToastModal.selectors';
 
 class PerpsView {
   get closePositionButton() {
@@ -40,32 +39,92 @@ class PerpsView {
     });
   }
 
-  // Perps Tab (home) helpers: search position cards by visible text instead of testIDs
-  get perpsTabPositionText() {
-    return (symbol: string, leverageX: number, direction: 'long' | 'short') =>
-      `${symbol} ${leverageX}x ${direction}`;
-  }
-
   async expectPerpsTabPosition(
     symbol: string,
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
   ) {
-    const text = this.perpsTabPositionText(symbol, leverageX, direction);
-    const el = (await Matchers.getElementByText(
-      text,
-      index,
-    )) as unknown as DetoxElement;
-    await Assertions.expectElementToBeVisible(el, {
-      description: `Expect Perps tab position: ${text} at index ${index}`,
+    const el = this.getPositionItem(symbol, leverageX, direction, index);
+    await Assertions.expectElementToBeVisible(el as DetoxElement, {
+      description: `Expect Perps tab position: ${symbol} ${leverageX}x ${direction} at index ${index}`,
     });
+  }
+
+  // Tap a position in the Perps tab by its testID
+  async tapPerpsTabPosition(
+    symbol: string,
+    leverageX: number,
+    direction: 'long' | 'short',
+    index = 0,
+  ) {
+    const el = this.getPositionItem(symbol, leverageX, direction, index);
+    await Gestures.waitAndTap(el as DetoxElement, {
+      elemDescription: `Tap Perps tab position: ${symbol} ${leverageX}x ${direction} at index ${index}`,
+    });
+  }
+
+  // Scroll helper on Perps tab (swipe over the tab ScrollView)
+  async scrollDownOnPerpsTab(times = 1) {
+    const anchor = Matchers.getElementByID(
+      'perps-tab-scroll-view',
+    ) as unknown as DetoxElement;
+    for (let i = 0; i < times; i++) {
+      await Gestures.swipe(anchor, 'up', {
+        speed: 'fast',
+        percentage: 0.7,
+        elemDescription: 'Perps tab scroll down',
+      });
+    }
+  }
+
+  // Ensure a position card is visible on the Perps tab. Performs best-effort scrolls.
+  async ensurePerpsTabPositionVisible(
+    symbol: string,
+    leverageX: number,
+    direction: 'long' | 'short',
+    index = 0,
+  ) {
+    let visible = false;
+    for (let i = 0; i < 6; i++) {
+      try {
+        const el = this.getPositionItem(
+          symbol,
+          leverageX,
+          direction,
+          index,
+        ) as DetoxElement;
+        await Assertions.expectElementToBeVisible(el as DetoxElement, {
+          description: `Ensure visible: ${symbol} ${leverageX}x ${direction} at index ${index}`,
+          timeout: 750,
+        });
+        visible = true;
+        break;
+      } catch {
+        await this.scrollDownOnPerpsTab(1);
+      }
+    }
+    if (!visible) {
+      // Final attempt assertion to surface a clear error
+      await this.expectPerpsTabPosition(symbol, leverageX, direction, index);
+    }
   }
 
   get setTpslButton() {
     return Matchers.getElementByID(
       PerpsGeneralSelectorsIDs.BOTTOM_SHEET_FOOTER_BUTTON,
     );
+  }
+
+  // "Edit TP/SL" button visible on position details
+  get editTpslButton() {
+    return Matchers.getElementByText('Edit TP/SL');
+  }
+
+  async tapEditTpslButton() {
+    await Gestures.waitAndTap(this.editTpslButton as unknown as DetoxElement, {
+      elemDescription: 'Tap Edit TP/SL button',
+    });
   }
 
   get closePositionBottomSheetButton() {
@@ -107,17 +166,25 @@ class PerpsView {
     });
   }
 
-  async tapTakeProfitPercentageButton(percentage: number) {
-    const button = Matchers.getElementByID(
+  getTakeProfitPercentageButton(percentage: number) {
+    return Matchers.getElementByID(
       `perps-tpsl-take-profit-percentage-button-${percentage}`,
     );
+  }
+
+  async tapTakeProfitPercentageButton(percentage: number) {
+    const button = this.getTakeProfitPercentageButton(percentage);
     await Gestures.waitAndTap(button);
   }
 
-  async tapStopLossPercentageButton(percentage: number) {
-    const button = Matchers.getElementByID(
+  getStopLossPercentageButton(percentage: number) {
+    return Matchers.getElementByID(
       `perps-tpsl-stop-loss-percentage-button-${percentage}`,
     );
+  }
+
+  async tapStopLossPercentageButton(percentage: number) {
+    const button = this.getStopLossPercentageButton(percentage);
     await Gestures.waitAndTap(button);
   }
 
@@ -134,38 +201,26 @@ class PerpsView {
   }
 
   async dismissToast(): Promise<void> {
-    let button: DetoxElement | null = null;
-    try {
-      const tryDismiss = Matchers.getElementByText('Dismiss');
-      await Assertions.expectElementToBeVisible(tryDismiss as DetoxElement, {
-        description: 'Toast Dismiss button visible',
-        timeout: 3000,
-      });
-      button = tryDismiss as DetoxElement;
-    } catch {
-      const tryClose = Matchers.getElementByText(
-        ToastSelectorsText.CLOSE_BUTTON,
-      );
-      await Assertions.expectElementToBeVisible(tryClose as DetoxElement, {
-        description: 'Toast Close button visible',
-        timeout: 5000,
-      });
-      button = tryClose as DetoxElement;
-    }
-    await Gestures.waitAndTap(button as DetoxElement, {
+    const button = Matchers.getElementByText('Dismiss');
+    await Assertions.expectElementToBeVisible(button, {
+      description: 'Toast Dismiss button visible',
+      timeout: 3000,
+    });
+    await Gestures.waitAndTap(button, {
       elemDescription: 'Tap toast close',
       delay: 100,
     });
-    // await Assertions.expectElementToNotBeVisible(this.toastContainer, {
-    //   description: 'Toast container should disappear',
-    //   timeout: 10000,
-    // });
   }
 
   async tapClosePositionBottomSheetButton() {
     await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
       elemDescription: 'Close position bottom sheet button',
     });
+  }
+
+  // Generic scroll to bottom on Perps tab (positions list area)
+  async scrollToBottom(times: number = 1) {
+    await this.scrollDownOnPerpsTab(times);
   }
 
   async tapBackButtonPositionSheet() {

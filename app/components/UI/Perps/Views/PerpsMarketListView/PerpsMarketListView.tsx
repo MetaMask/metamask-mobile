@@ -43,7 +43,7 @@ const PerpsMarketRowItemSkeleton = () => {
   return (
     <View
       style={styles.skeletonContainer}
-      testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST_SKELETON_ROW}
+      testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
     >
       <View style={styles.skeletonLeftSection}>
         {/* Avatar skeleton */}

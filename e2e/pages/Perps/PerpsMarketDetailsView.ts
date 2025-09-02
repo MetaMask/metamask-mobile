@@ -107,6 +107,13 @@ class PerpsMarketDetailsView {
     );
   }
 
+  // Scroll view
+  get scrollView() {
+    return Matchers.getElementByID(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+  }
+
   // Trading action buttons
   get longButton() {
     return Matchers.getElementByID(
@@ -177,6 +184,14 @@ class PerpsMarketDetailsView {
 
   async waitForChartToLoad() {
     await Gestures.waitAndTap(this.candlestickChart);
+  }
+
+  async scrollToBottom() {
+    await Gestures.swipe(this.scrollView as unknown as DetoxElement, 'up', {
+      speed: 'fast',
+      percentage: 0.7,
+      elemDescription: 'Perps market details scroll down',
+    });
   }
 }
 
