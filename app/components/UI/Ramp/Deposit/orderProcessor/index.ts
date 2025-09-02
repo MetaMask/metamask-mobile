@@ -7,7 +7,6 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import transakNetworkToChainId from '../utils/transakNetworkToChainId';
-import { getCryptoCurrencyFromTransakId } from '../utils';
 import { DepositSDKNoAuth } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
@@ -35,35 +34,27 @@ const depositOrderStateToFiatOrderState = (
   }
 };
 
-export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => {
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(
-    depositOrder.cryptoCurrency,
-    depositOrder.network,
-  );
-
-  return {
-    id: depositOrder.id,
-    provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-    createdAt: depositOrder.createdAt,
-    amount: depositOrder.fiatAmount,
-    fee: depositOrder.totalFeesFiat,
-    cryptoAmount: depositOrder.cryptoAmount || 0,
-    cryptoFee: depositOrder.totalFeesFiat || 0,
-    currency: depositOrder.fiatCurrency,
-    currencySymbol: '',
-    cryptocurrency: depositOrder.cryptoCurrency,
-    network:
-      cryptoCurrency?.chainId || transakNetworkToChainId(depositOrder.network),
-    state: depositOrderStateToFiatOrderState(depositOrder.status),
-    account: depositOrder.walletAddress,
-    txHash: depositOrder.txHash,
-    excludeFromPurchases: false,
-    orderType: depositOrder.orderType,
-    errorCount: 0,
-    lastTimeFetched: Date.now(),
-    data: depositOrder,
-  };
-};
+export const depositOrderToFiatOrder = (depositOrder: DepositOrder) => ({
+  id: depositOrder.id,
+  provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+  createdAt: depositOrder.createdAt,
+  amount: depositOrder.fiatAmount,
+  fee: depositOrder.totalFeesFiat,
+  cryptoAmount: depositOrder.cryptoAmount || 0,
+  cryptoFee: depositOrder.totalFeesFiat || 0,
+  currency: depositOrder.fiatCurrency,
+  currencySymbol: '',
+  cryptocurrency: depositOrder.cryptoCurrency,
+  network: transakNetworkToChainId(depositOrder.network),
+  state: depositOrderStateToFiatOrderState(depositOrder.status),
+  account: depositOrder.walletAddress,
+  txHash: depositOrder.txHash,
+  excludeFromPurchases: false,
+  orderType: depositOrder.orderType,
+  errorCount: 0,
+  lastTimeFetched: Date.now(),
+  data: depositOrder,
+});
 
 export async function processDepositOrder(
   order: FiatOrder,
