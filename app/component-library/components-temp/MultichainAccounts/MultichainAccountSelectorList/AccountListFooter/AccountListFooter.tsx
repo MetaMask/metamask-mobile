@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -21,6 +21,12 @@ import { useWalletInfo } from '../../../../../components/Views/MultichainAccount
 import { AccountWalletId } from '@metamask/account-api';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../../../util/trace';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -31,11 +37,20 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
+    const isTracing = useRef(false);
 
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
+
+    // End trace when the loading finishes
+    useEffect(() => {
+      if (!isLoading && isTracing.current) {
+        endTrace({ name: TraceName.CreateMultichainAccount });
+        isTracing.current = false;
+      }
+    }, [isLoading]);
 
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
@@ -44,7 +59,6 @@ const AccountListFooter = memo(
           'Cannot create account without keyring ID',
         );
         setIsLoading(false);
-
         return;
       }
 
@@ -75,6 +89,14 @@ const AccountListFooter = memo(
     const handlePress = useCallback(() => {
       // Force immediate state update
       setIsLoading(true);
+
+      // This ref is used as a guard to ensure that we only call `endTrace`
+      // when the trace is actually active.
+      isTracing.current = true;
+      trace({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.CreateAccount,
+      });
 
       // Use InteractionManager to ensure animations complete before heavy work
       InteractionManager.runAfterInteractions(() => {

@@ -47,6 +47,7 @@ export enum TraceName {
   CreateHdAccount = 'Create HD Account',
   ImportEvmAccount = 'Import EVM Account',
   CreateSnapAccount = 'Create Snap Account',
+  CreateMultichainAccount = 'Create Multichain Account',
   SelectAccount = 'Select Account',
   AddNetwork = 'Add Network',
   UpdateNetwork = 'Update Network',
