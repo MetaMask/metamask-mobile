@@ -34,7 +34,6 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
-import NavigationService from '../NavigationService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
