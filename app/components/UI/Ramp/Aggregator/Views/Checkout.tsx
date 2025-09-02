@@ -129,7 +129,13 @@ const CheckoutWebView = () => {
         }
 
         if (customIdData) {
-          dispatch(removeFiatCustomIdData(customIdData));
+          const networkFromCrypto =
+            order.cryptoCurrency?.network?.chainId || order.network;
+          const updatedCustomIdData = {
+            ...customIdData,
+            chainId: networkFromCrypto,
+          };
+          dispatch(removeFiatCustomIdData(updatedCustomIdData));
         }
 
         const transformedOrder = {
