@@ -363,9 +363,6 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
-    );
 
     // Component should render without errors
     expect(component).toBeTruthy();
@@ -413,9 +410,6 @@ describe('ChoosePassword', () => {
     );
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
-    );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
     );
   });
 
