@@ -1,6 +1,6 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +13,6 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
   AlignItems,
@@ -32,15 +31,15 @@ import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
-import WalletAddAccountActions from './components/WalletAddAccountActions';
-import AddAccountItem from './components/AddAccountItem';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
 import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountItem from './components/AccountItem';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { RootState } from '../../../../../reducers';
+import Logger from '../../../../../util/Logger';
+import Engine from '../../../../../core/Engine';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -54,7 +53,12 @@ export const BaseWalletDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const accountGroupsFlashListRef =
+    useRef<FlashListRef<AccountGroupObject> | null>(null);
+  const accountsFlashListRef = useRef<FlashListRef<InternalAccount> | null>(
+    null,
+  );
 
   const { accounts, keyringId, isSRPBackedUp } = useWalletInfo(wallet);
 
@@ -95,16 +99,6 @@ export const BaseWalletDetails = ({
     });
   }, [navigation]);
 
-  const handleAddAccount = useCallback(() => {
-    if (keyringId) {
-      setShowAddAccountModal(true);
-    }
-  }, [keyringId]);
-
-  const handleCloseAddAccountModal = useCallback(() => {
-    setShowAddAccountModal(false);
-  }, []);
-
   const handleGoToAccountDetails = useCallback(
     (account: InternalAccount) => {
       navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
@@ -113,6 +107,54 @@ export const BaseWalletDetails = ({
     },
     [navigation],
   );
+
+  const handleCreateAccount = useCallback(async () => {
+    if (!keyringId) {
+      Logger.error(
+        new Error('No keyring ID found for wallet'),
+        'Cannot create account without keyring ID',
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { MultichainAccountService } = Engine.context;
+
+      await MultichainAccountService.createNextMultichainAccountGroup({
+        entropySource: keyringId,
+      });
+
+      // Scroll to the bottom to show the newly created account
+      const currentRef = isMultichainAccountsState2Enabled
+        ? accountGroupsFlashListRef.current
+        : accountsFlashListRef.current;
+
+      if (currentRef) {
+        // Use a small delay to ensure the new account is rendered
+        setTimeout(() => {
+          currentRef?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'error while trying to add a new multichain account',
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [keyringId, isMultichainAccountsState2Enabled]);
+
+  const handlePress = useCallback(() => {
+    // Force immediate state update
+    setIsLoading(true);
+
+    // Use InteractionManager to ensure animations complete before heavy work
+    InteractionManager.runAfterInteractions(() => {
+      handleCreateAccount();
+    });
+  }, [handleCreateAccount]);
 
   // Render account group item for multichain accounts state 2
   const renderAccountGroupItem = ({
@@ -161,18 +203,35 @@ export const BaseWalletDetails = ({
     );
   };
 
-  const renderAddAccountItem = () => {
-    const totalItemsCount = isMultichainAccountsState2Enabled
-      ? accountGroups.length + 1
-      : accounts.length + 1;
-
-    return (
-      <AddAccountItem
-        totalItemsCount={totalItemsCount}
-        onPress={handleAddAccount}
-      />
-    );
-  };
+  const renderAddAccountItem = () => (
+    <TouchableOpacity
+      testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
+      onPress={handlePress}
+      disabled={isLoading || !keyringId}
+      style={[
+        styles.addAccountItem,
+        (isLoading || !keyringId) && styles.addAccountItemDisabled,
+      ]}
+      activeOpacity={0.7}
+    >
+      <View style={styles.addAccountIconContainer}>
+        {isLoading ? (
+          <AnimatedSpinner size={SpinnerSize.SM} />
+        ) : (
+          <Icon
+            name={IconName.Add}
+            size={IconSize.Md}
+            color={colors.text.alternative}
+          />
+        )}
+      </View>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.addAccountText}>
+        {isLoading
+          ? strings('multichain_accounts.wallet_details.creating_account')
+          : strings('multichain_accounts.wallet_details.create_account')}
+      </Text>
+    </TouchableOpacity>
+  );
 
   const renderAccountsList = () => {
     if (isMultichainAccountsState2Enabled) {
@@ -181,6 +240,7 @@ export const BaseWalletDetails = ({
           data={accountGroups}
           keyExtractor={(item) => item.id}
           renderItem={renderAccountGroupItem}
+          ref={accountGroupsFlashListRef}
         />
       );
     }
@@ -189,6 +249,7 @@ export const BaseWalletDetails = ({
         data={accounts}
         keyExtractor={(item) => item.id}
         renderItem={renderAccountItem}
+        ref={accountsFlashListRef}
       />
     );
   };
@@ -293,27 +354,6 @@ export const BaseWalletDetails = ({
 
         {children}
       </View>
-
-      {keyringId && (
-        <Modal
-          isVisible={showAddAccountModal}
-          style={styles.modalStyle}
-          animationIn="slideInUp"
-          animationOut="slideOutDown"
-          onBackdropPress={handleCloseAddAccountModal}
-          onBackButtonPress={handleCloseAddAccountModal}
-          swipeDirection="down"
-          onSwipeComplete={handleCloseAddAccountModal}
-          backdropOpacity={0.5}
-        >
-          <View style={styles.modalContent}>
-            <WalletAddAccountActions
-              keyringId={keyringId}
-              onBack={handleCloseAddAccountModal}
-            />
-          </View>
-        </Modal>
-      )}
     </SafeAreaView>
   );
 };

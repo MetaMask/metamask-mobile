@@ -112,6 +112,28 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopRightRadius: 20,
       backgroundColor: colors.background.default,
     },
+    addAccountItem: {
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 8,
+    },
+    addAccountItemDisabled: {
+      opacity: 0.5,
+    },
+    addAccountIconContainer: {
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addAccountText: {
+      color: colors.text.alternative,
+      flex: 1,
+    },
   });
 };
 

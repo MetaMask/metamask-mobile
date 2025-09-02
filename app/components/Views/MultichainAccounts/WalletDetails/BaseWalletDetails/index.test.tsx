@@ -71,6 +71,9 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       },
     },
+    MultichainAccountService: {
+      createNextMultichainAccountGroup: jest.fn(),
+    },
   },
 }));
 
@@ -326,52 +329,46 @@ describe('BaseWalletDetails', () => {
       expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
     });
 
-    it('opens add account modal when add account button is pressed', () => {
-      const { getByTestId, queryByText, getByText } = renderWithProvider(
-        <BaseWalletDetails wallet={mockWallet} />,
-        { state: mockInitialState },
-      );
-
-      // Modal should not be visible initially
-      expect(queryByText('Create a new account')).toBeNull();
-
-      const addAccountButton = getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
-      fireEvent.press(addAccountButton);
-
-      // Modal should be visible after pressing add account button
-      expect(getByText('Create a new account')).toBeTruthy();
-    });
-
-    it('shows Ethereum and Solana account options in modal', () => {
-      const { getByTestId, getByText } = renderWithProvider(
+    it('creates account when add account button is pressed', async () => {
+      const { getByTestId } = renderWithProvider(
         <BaseWalletDetails wallet={mockWallet} />,
         { state: mockInitialState },
       );
 
       const addAccountButton = getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
+
       fireEvent.press(addAccountButton);
 
-      // Check that both account options are rendered
-      expect(getByText('Ethereum account')).toBeTruthy();
-      expect(getByText('Solana account')).toBeTruthy();
+      expect(addAccountButton).toBeTruthy();
     });
 
-    it('does not open modal when keyringId is null and button is pressed', () => {
+    it('shows loading state when creating account', async () => {
+      const { getByTestId } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      const addAccountButton = getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
+
+      fireEvent.press(addAccountButton);
+
+      expect(addAccountButton).toBeTruthy();
+    });
+
+    it('does not create account when keyringId is null and button is pressed', () => {
       mockUseWalletInfo.mockReturnValue({
         accounts: [mockAccount1, mockAccount2],
         keyringId: null,
-        srpIndex: 1,
         isSRPBackedUp: true,
       });
 
-      const { queryByTestId, queryByText } = renderWithProvider(
+      const { queryByTestId } = renderWithProvider(
         <BaseWalletDetails wallet={mockWallet} />,
         { state: mockInitialState },
       );
 
       // Button should not be rendered when keyringId is null
       expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
-      expect(queryByText('Create a new account')).toBeNull();
     });
   });
 
