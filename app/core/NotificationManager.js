@@ -443,7 +443,7 @@ class NotificationManager {
       const foundTransaction = transactions.find(
         (tx) => tx.id === smartTransaction.transactionId,
       );
-      !this.#shouldSkipNotification(transactionMeta) &&
+      !this.#shouldSkipNotification(foundTransaction) &&
         this._showNotification({
           type: 'cancelled',
           autoHide: true,
