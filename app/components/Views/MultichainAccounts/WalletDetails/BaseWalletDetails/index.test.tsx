@@ -77,6 +77,46 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+// Mock InteractionManager and Settings
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  InteractionManager: {
+    runAfterInteractions: jest.fn((callback) => callback()),
+  },
+  Settings: {
+    get: jest.fn(),
+    set: jest.fn(),
+  },
+}));
+
+// Mock TurboModuleRegistry to handle SettingsManager
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+  getEnforcing: (name: string) => {
+    if (name === 'SettingsManager') {
+      return {
+        getConstants: jest.fn(() => ({})),
+        setValues: jest.fn(),
+        deleteValues: jest.fn(),
+      };
+    }
+    return jest
+      .requireActual('react-native/Libraries/TurboModule/TurboModuleRegistry')
+      .getEnforcing(name);
+  },
+  get: (name: string) => {
+    if (name === 'SettingsManager') {
+      return {
+        getConstants: jest.fn(() => ({})),
+        setValues: jest.fn(),
+        deleteValues: jest.fn(),
+      };
+    }
+    return jest
+      .requireActual('react-native/Libraries/TurboModule/TurboModuleRegistry')
+      .get?.(name);
+  },
+}));
+
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;
@@ -369,6 +409,131 @@ describe('BaseWalletDetails', () => {
 
       // Button should not be rendered when keyringId is null
       expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
+    });
+
+    describe('handleCreateAccount logic', () => {
+      let mockCreateNextMultichainAccountGroup: jest.Mock;
+
+      beforeEach(() => {
+        // Mock the Engine context directly
+        const Engine = jest.requireMock('../../../../../core/Engine');
+        Engine.context.MultichainAccountService.createNextMultichainAccountGroup =
+          jest.fn().mockResolvedValue(undefined);
+
+        // Get the mock function
+        mockCreateNextMultichainAccountGroup =
+          Engine.context.MultichainAccountService
+            .createNextMultichainAccountGroup;
+
+        // Mock InteractionManager to run immediately
+        const InteractionManager =
+          jest.requireMock('react-native').InteractionManager;
+        InteractionManager.runAfterInteractions = jest.fn((callback) =>
+          callback(),
+        );
+
+        // Mock setTimeout
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('creates multichain account group when keyringId is available', async () => {
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const addAccountButton = getByTestId(
+          WalletDetailsIds.ADD_ACCOUNT_BUTTON,
+        );
+        fireEvent.press(addAccountButton);
+
+        expect(mockCreateNextMultichainAccountGroup).toHaveBeenCalledWith({
+          entropySource: 'keyring:1',
+        });
+      });
+
+      it('handles error when account creation fails', async () => {
+        const mockError = new Error('Failed to create account');
+        mockCreateNextMultichainAccountGroup.mockRejectedValueOnce(mockError);
+
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const addAccountButton = getByTestId(
+          WalletDetailsIds.ADD_ACCOUNT_BUTTON,
+        );
+        fireEvent.press(addAccountButton);
+
+        expect(mockCreateNextMultichainAccountGroup).toHaveBeenCalledWith({
+          entropySource: 'keyring:1',
+        });
+      });
+
+      it('creates multichain account group successfully', async () => {
+        mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const addAccountButton = getByTestId(
+          WalletDetailsIds.ADD_ACCOUNT_BUTTON,
+        );
+
+        fireEvent.press(addAccountButton);
+
+        expect(mockCreateNextMultichainAccountGroup).toHaveBeenCalledWith({
+          entropySource: 'keyring:1',
+        });
+      });
+
+      it('creates legacy account successfully', async () => {
+        // Disable multichain accounts state 2 (legacy view)
+        mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const addAccountButton = getByTestId(
+          WalletDetailsIds.ADD_ACCOUNT_BUTTON,
+        );
+
+        fireEvent.press(addAccountButton);
+
+        expect(mockCreateNextMultichainAccountGroup).toHaveBeenCalledWith({
+          entropySource: 'keyring:1',
+        });
+      });
+
+      it('handles loading state during account creation', async () => {
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const addAccountButton = getByTestId(
+          WalletDetailsIds.ADD_ACCOUNT_BUTTON,
+        );
+
+        // Initially not loading
+        expect(addAccountButton).toBeEnabled();
+
+        fireEvent.press(addAccountButton);
+
+        // Verify the function was called
+        expect(mockCreateNextMultichainAccountGroup).toHaveBeenCalledWith({
+          entropySource: 'keyring:1',
+        });
+      });
     });
   });
 
