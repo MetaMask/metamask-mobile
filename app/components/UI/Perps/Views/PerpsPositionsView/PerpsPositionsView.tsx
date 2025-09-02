@@ -115,7 +115,10 @@ const PerpsPositionsView: React.FC = () => {
     }
 
     return (
-      <View style={styles.positionsSection}>
+      <View
+        style={styles.positionsSection}
+        testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION}
+      >
         <View style={styles.sectionHeader}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
             {strings('perps.position.list.open_positions')}

@@ -176,6 +176,7 @@ export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
   POSITION_ITEM: 'perps-positions-item',
+  POSITIONS_SECTION: 'perps-positions-section',
   POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
 };
 

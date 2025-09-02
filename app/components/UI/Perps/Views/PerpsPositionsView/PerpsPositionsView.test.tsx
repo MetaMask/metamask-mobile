@@ -4,6 +4,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
@@ -205,10 +206,13 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
-        expect(screen.getByText('2 positions')).toBeOnTheScreen();
-        expect(screen.getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
-        expect(screen.getByText(/0\.5000[\s\S]*BTC/)).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
+        expect(within(section).getByText('2 positions')).toBeOnTheScreen();
+        expect(within(section).getByText(/1\.50[\s\S]*ETH/)).toBeOnTheScreen();
+        expect(
+          within(section).getByText(/0\.5000[\s\S]*BTC/),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -317,7 +321,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
 
@@ -327,7 +332,8 @@ describe('PerpsPositionsView', () => {
 
       // Assert
       await waitFor(() => {
-        expect(screen.getByText('Open Positions')).toBeOnTheScreen();
+        const section = screen.getByTestId('perps-positions-section');
+        expect(within(section).getByText('Open Positions')).toBeOnTheScreen();
       });
     });
   });
