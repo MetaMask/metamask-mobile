@@ -100,7 +100,7 @@ export const SendContextProvider: React.FC<{
 
   const updateValue = useCallback(
     (val: string, maxMode?: boolean) => {
-      setMaxValueMode(Boolean(maxMode));
+      setMaxValueMode(maxMode ?? false);
       setValue(val);
     },
     [setMaxValueMode, setValue],

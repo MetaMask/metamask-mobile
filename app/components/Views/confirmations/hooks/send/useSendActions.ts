@@ -38,7 +38,6 @@ export const useSendActions = () => {
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
           {
-            screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             params: {
               maxValueMode,
             },

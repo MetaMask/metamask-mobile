@@ -192,7 +192,7 @@ export const fromHexWithDecimals = (value: Hex, decimals: number) => {
   return fromBNWithDecimals(bnValue, decimals);
 };
 
-export const fromTokenMinUnitsNumeric = (
+export const fromTokenMinUnits = (
   value: string,
   decimals?: number | string,
 ) => {
@@ -214,7 +214,7 @@ export const getLayer1GasFeeForSend = async ({
 }) => {
   const transactionParams = {
     from,
-    value: fromTokenMinUnitsNumeric(value, asset.decimals),
+    value: fromTokenMinUnits(value, asset.decimals),
   };
   return await getLayer1GasFee(transactionParams, chainId);
 };

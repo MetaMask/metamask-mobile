@@ -4,6 +4,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useCallback } from 'react';
 
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { hexToBN } from '../../../../../util/number';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { AssetType } from '../../types/token';
 import { fromBNWithDecimals, getLayer1GasFeeForSend } from '../../utils/send';
@@ -32,9 +33,8 @@ export const getEstimatedTotalGas = (
     medium: { suggestedMaxFeePerGas },
   } = gasFeeEstimates;
   const totalGas = new BN(suggestedMaxFeePerGas * NATIVE_TRANSFER_GAS_LIMIT);
-
   const conversionrate = new BN(GWEI_TO_WEI_CONVERSION_RATE);
-  return totalGas.mul(conversionrate).add(new BN(layer1GasFee));
+  return totalGas.mul(conversionrate).add(hexToBN(layer1GasFee));
 };
 
 export const getPercentageValueFn = ({
@@ -86,7 +86,11 @@ export const usePercentageAmount = () => {
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
   const { value: layer1GasFee } = useAsyncResult(async () => {
-    if (!isEvmNativeSendType || asset?.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+    if (
+      !isEvmNativeSendType ||
+      asset?.chainId === NETWORKS_CHAIN_ID.MAINNET ||
+      !from
+    ) {
       return '0x0';
     }
     return await getLayer1GasFeeForSend({
