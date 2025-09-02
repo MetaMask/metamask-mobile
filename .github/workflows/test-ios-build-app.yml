@@ -16,7 +16,7 @@ permissions:
 jobs:
   ios-build:
     name: Test iOS QA Build App
-    runs-on: macos-15
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
