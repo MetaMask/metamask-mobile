@@ -68,9 +68,10 @@ export function useTransactionTotalFiat() {
   }, [balanceCost, formatted, quoteTotal, totalNetworkFeeFormatted, value]);
 
   return {
-    value,
     formatted,
+    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
     totalGasFormatted: totalNetworkFeeFormatted,
+    value,
   };
 }
 
