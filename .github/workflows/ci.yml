@@ -5,6 +5,10 @@ on:
   pull_request:
   merge_group:
     types: [checks_requested]
+  schedule:
+    # Run the full suite "overnight," once every hour from 2:00am UTC until 6:00am UTC.
+    # This helps to identy the flaky and failed tests on main branch
+    - cron: '0 2-6 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +23,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
+      - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.1.6'
         env:
@@ -172,7 +176,7 @@ jobs:
     secrets: inherit
 
   e2e-smoke-tests-android:
-    name: "E2E Smoke Tests (Android)"
+    name: "Android E2E Smoke Tests"
     permissions:
       contents: read
       id-token: write

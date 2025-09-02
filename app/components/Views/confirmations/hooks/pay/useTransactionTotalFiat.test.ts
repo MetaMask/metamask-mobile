@@ -173,4 +173,66 @@ describe('useTransactionTotalFiat', () => {
 
     expect(result.current.totalGasFormatted).toBe('$13.68');
   });
+
+  it('returns quote network fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          toTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          toTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2.34',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.quoteNetworkFee).toBe('3.57');
+  });
+
+  it('returns bridge fee', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          sentAmount: {
+            valueInCurrency: '100',
+          },
+          toTokenAmount: {
+            valueInCurrency: '90',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '1',
+          },
+        },
+        {
+          sentAmount: {
+            valueInCurrency: '80',
+          },
+          toTokenAmount: {
+            valueInCurrency: '60',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '2',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.bridgeFeeFormatted).toBe('$30');
+  });
 });

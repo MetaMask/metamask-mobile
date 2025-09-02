@@ -56,17 +56,23 @@ const MOCK_PRIORITY_TOKEN: CardTokenAllowance = {
   allowance: ethers.BigNumber.from('500000000000000000'),
 };
 
+const testAddress = '0x1234567890123456789012345678901234567890';
+
 const CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: CARDHOLDER_ACCOUNTS_MOCK,
-  priorityToken: MOCK_PRIORITY_TOKEN,
-  lastFetched: new Date('2025-08-21T10:00:00Z'),
+  priorityTokensByAddress: {
+    [testAddress.toLowerCase()]: MOCK_PRIORITY_TOKEN,
+  },
+  lastFetchedByAddress: {
+    [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
+  },
   isLoaded: true,
 };
 
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: [],
-  priorityToken: null,
-  lastFetched: null,
+  priorityTokensByAddress: {},
+  lastFetchedByAddress: {},
   isLoaded: false,
 };
 
@@ -237,8 +243,12 @@ describe('Card Reducer', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         cardholderAccounts: ['0x123'],
-        priorityToken: MOCK_PRIORITY_TOKEN,
-        lastFetched: new Date(),
+        priorityTokensByAddress: {
+          '0x123': MOCK_PRIORITY_TOKEN,
+        },
+        lastFetchedByAddress: {
+          '0x123': new Date(),
+        },
         isLoaded: true,
       };
 
@@ -251,42 +261,98 @@ describe('Card Reducer', () => {
 
 describe('Card Caching Functionality', () => {
   describe('selectCardPriorityToken', () => {
-    it('should return the priority token when it exists', () => {
+    it('should return the priority token when it exists for the given address', () => {
       const mockRootState = {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectCardPriorityToken(mockRootState)).toEqual(
-        MOCK_PRIORITY_TOKEN,
-      );
+      const selector = selectCardPriorityToken(testAddress);
+      expect(selector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
     });
 
-    it('should return null when no priority token exists', () => {
+    it('should return null when no priority token exists for the given address', () => {
       const mockRootState = {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectCardPriorityToken(mockRootState)).toBeNull();
+      const selector = selectCardPriorityToken(testAddress);
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('should return null when address is not provided', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityToken();
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('should handle different address cases', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      // Test with uppercase address
+      const upperCaseSelector = selectCardPriorityToken(
+        testAddress.toUpperCase(),
+      );
+      expect(upperCaseSelector(mockRootState)).toEqual(MOCK_PRIORITY_TOKEN);
+
+      // Test with different address that doesn't exist
+      const differentAddressSelector = selectCardPriorityToken(
+        '0x9999999999999999999999999999999999999999',
+      );
+      expect(differentAddressSelector(mockRootState)).toBeNull();
     });
   });
 
   describe('selectCardPriorityTokenLastFetched', () => {
-    it('should return the last fetched timestamp when it exists', () => {
+    it('should return the last fetched timestamp when it exists for the given address', () => {
       const mockRootState = {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectCardPriorityTokenLastFetched(mockRootState)).toEqual(
-        new Date('2025-08-21T10:00:00Z'),
-      );
+      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      expect(selector(mockRootState)).toEqual(new Date('2025-08-21T10:00:00Z'));
     });
 
-    it('should return null when no last fetched timestamp exists', () => {
+    it('should return null when no last fetched timestamp exists for the given address', () => {
       const mockRootState = {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectCardPriorityTokenLastFetched(mockRootState)).toBeNull();
+      const selector = selectCardPriorityTokenLastFetched(testAddress);
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('should return null when address is not provided', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectCardPriorityTokenLastFetched();
+      expect(selector(mockRootState)).toBeNull();
+    });
+
+    it('should handle different address cases', () => {
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      // Test with uppercase address
+      const upperCaseSelector = selectCardPriorityTokenLastFetched(
+        testAddress.toUpperCase(),
+      );
+      expect(upperCaseSelector(mockRootState)).toEqual(
+        new Date('2025-08-21T10:00:00Z'),
+      );
+
+      // Test with different address that doesn't exist
+      const differentAddressSelector = selectCardPriorityTokenLastFetched(
+        '0x9999999999999999999999999999999999999999',
+      );
+      expect(differentAddressSelector(mockRootState)).toBeNull();
     });
   });
 
@@ -301,7 +367,7 @@ describe('Card Caching Functionality', () => {
       dateNowSpy.mockRestore();
     });
 
-    it('should return true when cache is within 5-minute window', () => {
+    it('should return true when cache is within 5-minute window for the given address', () => {
       // Mock Date.now to return 4 minutes after fetch time
       dateNowSpy.mockReturnValue(new Date('2025-08-21T10:04:00Z').getTime());
 
@@ -309,27 +375,30 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(true);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(true);
     });
 
-    it('should return false when cache is older than 5 minutes', () => {
+    it('should return false when cache is older than 5 minutes for the given address', () => {
       // Mock Date.now to return 6 minutes after fetch time
       dateNowSpy.mockReturnValue(new Date('2025-08-21T10:06:00Z').getTime());
 
-      // Use a different state object to avoid selector memoization
       const stateWithOldCache: CardSliceState = {
         ...CARD_STATE_MOCK,
-        lastFetched: new Date('2025-08-21T10:00:00Z'), // Same time but different object
+        lastFetchedByAddress: {
+          [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
+        },
       };
 
       const mockRootState = {
         card: stateWithOldCache,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(false);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(false);
     });
 
-    it('should return false when no last fetched timestamp exists', () => {
+    it('should return false when no last fetched timestamp exists for the given address', () => {
       // Mock Date.now to any time
       dateNowSpy.mockReturnValue(new Date('2025-08-21T10:04:00Z').getTime());
 
@@ -337,7 +406,8 @@ describe('Card Caching Functionality', () => {
         card: EMPTY_CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(false);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(false);
     });
 
     it('should handle ISO date strings from redux-persist', () => {
@@ -346,31 +416,48 @@ describe('Card Caching Functionality', () => {
 
       const stateWithStringDate: CardSliceState = {
         ...CARD_STATE_MOCK,
-        lastFetched: '2025-08-21T10:00:00Z', // String instead of Date object
+        lastFetchedByAddress: {
+          [testAddress.toLowerCase()]: '2025-08-21T10:00:00Z', // String instead of Date object
+        },
       };
 
       const mockRootState = {
         card: stateWithStringDate,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(true);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(true);
+    });
+
+    it('should return false when address is not provided', () => {
+      // Mock Date.now to return 4 minutes after fetch time
+      dateNowSpy.mockReturnValue(new Date('2025-08-21T10:04:00Z').getTime());
+
+      const mockRootState = {
+        card: CARD_STATE_MOCK,
+      } as unknown as RootState;
+
+      const selector = selectIsCardCacheValid();
+      expect(selector(mockRootState)).toBe(false);
     });
 
     it('should return false for cache exactly 5 minutes old', () => {
       // Mock Date.now to return exactly 5 minutes after fetch time
       dateNowSpy.mockReturnValue(new Date('2025-08-21T10:05:00Z').getTime());
 
-      // Use a different state object to avoid selector memoization
       const stateWithExactlyOldCache: CardSliceState = {
         ...CARD_STATE_MOCK,
-        lastFetched: new Date('2025-08-21T10:00:00Z'), // Same time but different object
+        lastFetchedByAddress: {
+          [testAddress.toLowerCase()]: new Date('2025-08-21T10:00:00Z'),
+        },
       };
 
       const mockRootState = {
         card: stateWithExactlyOldCache,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(false);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(false);
     });
 
     it('should return true for cache 4 minutes and 59 seconds old', () => {
@@ -381,104 +468,247 @@ describe('Card Caching Functionality', () => {
         card: CARD_STATE_MOCK,
       } as unknown as RootState;
 
-      expect(selectIsCardCacheValid(mockRootState)).toBe(true);
+      const selector = selectIsCardCacheValid(testAddress);
+      expect(selector(mockRootState)).toBe(true);
     });
   });
-  describe('setCardPriorityToken action', () => {
-    it('should set the priority token', () => {
+
+  describe('setCardPriorityToken', () => {
+    it('should set the priority token for the given address', () => {
       const state = cardReducer(
         initialState,
-        setCardPriorityToken(MOCK_PRIORITY_TOKEN),
+        setCardPriorityToken({
+          address: testAddress,
+          token: MOCK_PRIORITY_TOKEN,
+        }),
       );
 
-      expect(state.priorityToken).toEqual(MOCK_PRIORITY_TOKEN);
-      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
-      expect(state.lastFetched).toEqual(initialState.lastFetched);
-      expect(state.isLoaded).toEqual(initialState.isLoaded);
+      expect(state.priorityTokensByAddress[testAddress.toLowerCase()]).toEqual(
+        MOCK_PRIORITY_TOKEN,
+      );
+      expect(state.lastFetchedByAddress).toEqual(
+        initialState.lastFetchedByAddress,
+      );
     });
 
-    it('should clear the priority token when set to null', () => {
+    it('should set priority token to null for the given address', () => {
       const stateWithToken = {
         ...initialState,
-        priorityToken: MOCK_PRIORITY_TOKEN,
+        priorityTokensByAddress: {
+          [testAddress.toLowerCase()]: MOCK_PRIORITY_TOKEN,
+        },
       };
 
-      const state = cardReducer(stateWithToken, setCardPriorityToken(null));
+      const state = cardReducer(
+        stateWithToken,
+        setCardPriorityToken({
+          address: testAddress,
+          token: null,
+        }),
+      );
 
-      expect(state.priorityToken).toBeNull();
+      expect(
+        state.priorityTokensByAddress[testAddress.toLowerCase()],
+      ).toBeNull();
     });
 
-    it('should overwrite existing priority token', () => {
+    it('should update existing priority token for the given address', () => {
       const newToken: CardTokenAllowance = {
         ...MOCK_PRIORITY_TOKEN,
-        symbol: 'USDT',
-        name: 'Tether',
+        symbol: 'UPDATED',
       };
 
       const stateWithToken = {
         ...initialState,
-        priorityToken: MOCK_PRIORITY_TOKEN,
+        priorityTokensByAddress: {
+          [testAddress.toLowerCase()]: MOCK_PRIORITY_TOKEN,
+        },
       };
 
-      const state = cardReducer(stateWithToken, setCardPriorityToken(newToken));
+      const state = cardReducer(
+        stateWithToken,
+        setCardPriorityToken({
+          address: testAddress,
+          token: newToken,
+        }),
+      );
 
-      expect(state.priorityToken).toEqual(newToken);
+      expect(state.priorityTokensByAddress[testAddress.toLowerCase()]).toEqual(
+        newToken,
+      );
+    });
+
+    it('should store tokens for different addresses separately', () => {
+      const address1 = testAddress;
+      const address2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const token2: CardTokenAllowance = {
+        ...MOCK_PRIORITY_TOKEN,
+        symbol: 'TOKEN2',
+      };
+
+      let state = cardReducer(
+        initialState,
+        setCardPriorityToken({
+          address: address1,
+          token: MOCK_PRIORITY_TOKEN,
+        }),
+      );
+
+      state = cardReducer(
+        state,
+        setCardPriorityToken({
+          address: address2,
+          token: token2,
+        }),
+      );
+
+      expect(state.priorityTokensByAddress[address1.toLowerCase()]).toEqual(
+        MOCK_PRIORITY_TOKEN,
+      );
+      expect(state.priorityTokensByAddress[address2.toLowerCase()]).toEqual(
+        token2,
+      );
+    });
+
+    it('should normalize address to lowercase', () => {
+      const upperCaseAddress = testAddress.toUpperCase();
+
+      const state = cardReducer(
+        initialState,
+        setCardPriorityToken({
+          address: upperCaseAddress,
+          token: MOCK_PRIORITY_TOKEN,
+        }),
+      );
+
+      expect(state.priorityTokensByAddress[testAddress.toLowerCase()]).toEqual(
+        MOCK_PRIORITY_TOKEN,
+      );
+      expect(state.priorityTokensByAddress[upperCaseAddress]).toBeUndefined();
     });
   });
 
-  describe('setCardPriorityTokenLastFetched action', () => {
-    it('should set the last fetched timestamp with Date object', () => {
-      const timestamp = new Date('2025-08-21T12:00:00Z');
+  describe('setCardPriorityTokenLastFetched', () => {
+    it('should set the last fetched timestamp for the given address', () => {
+      const testDate = new Date('2025-08-21T10:00:00Z');
+
       const state = cardReducer(
         initialState,
-        setCardPriorityTokenLastFetched(timestamp),
+        setCardPriorityTokenLastFetched({
+          address: testAddress,
+          lastFetched: testDate,
+        }),
       );
 
-      expect(state.lastFetched).toEqual(timestamp);
-      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
-      expect(state.priorityToken).toEqual(initialState.priorityToken);
-      expect(state.isLoaded).toEqual(initialState.isLoaded);
+      expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
+        testDate,
+      );
+      expect(state.priorityTokensByAddress).toEqual(
+        initialState.priorityTokensByAddress,
+      );
     });
 
-    it('should set the last fetched timestamp with ISO string', () => {
-      const timestamp = '2025-08-21T12:00:00Z';
+    it('should handle ISO date strings', () => {
+      const testDateString = '2025-08-21T10:00:00Z';
+
       const state = cardReducer(
         initialState,
-        setCardPriorityTokenLastFetched(timestamp),
+        setCardPriorityTokenLastFetched({
+          address: testAddress,
+          lastFetched: testDateString,
+        }),
       );
 
-      expect(state.lastFetched).toEqual(timestamp);
+      expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
+        testDateString,
+      );
     });
 
-    it('should clear the last fetched timestamp when set to null', () => {
+    it('should store last fetched timestamps for different addresses separately', () => {
+      const address1 = testAddress;
+      const address2 = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      const date1 = new Date('2025-08-21T10:00:00Z');
+      const date2 = new Date('2025-08-21T11:00:00Z');
+
+      let state = cardReducer(
+        initialState,
+        setCardPriorityTokenLastFetched({
+          address: address1,
+          lastFetched: date1,
+        }),
+      );
+
+      state = cardReducer(
+        state,
+        setCardPriorityTokenLastFetched({
+          address: address2,
+          lastFetched: date2,
+        }),
+      );
+
+      expect(state.lastFetchedByAddress[address1.toLowerCase()]).toEqual(date1);
+      expect(state.lastFetchedByAddress[address2.toLowerCase()]).toEqual(date2);
+    });
+
+    it('should normalize address to lowercase', () => {
+      const upperCaseAddress = testAddress.toUpperCase();
+      const testDate = new Date('2025-08-21T10:00:00Z');
+
+      const state = cardReducer(
+        initialState,
+        setCardPriorityTokenLastFetched({
+          address: upperCaseAddress,
+          lastFetched: testDate,
+        }),
+      );
+
+      expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
+        testDate,
+      );
+      expect(state.lastFetchedByAddress[upperCaseAddress]).toBeUndefined();
+    });
+
+    it('should set lastFetched to null for the given address', () => {
       const stateWithTimestamp = {
         ...initialState,
-        lastFetched: new Date(),
+        lastFetchedByAddress: {
+          [testAddress.toLowerCase()]: new Date(),
+        },
       };
 
       const state = cardReducer(
         stateWithTimestamp,
-        setCardPriorityTokenLastFetched(null),
+        setCardPriorityTokenLastFetched({
+          address: testAddress,
+          lastFetched: null,
+        }),
       );
 
-      expect(state.lastFetched).toBeNull();
+      expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toBeNull();
     });
 
-    it('should overwrite existing timestamp', () => {
+    it('should overwrite existing timestamp for the given address', () => {
       const oldTimestamp = new Date('2025-08-21T10:00:00Z');
       const newTimestamp = new Date('2025-08-21T11:00:00Z');
 
       const stateWithTimestamp = {
         ...initialState,
-        lastFetched: oldTimestamp,
+        lastFetchedByAddress: {
+          [testAddress.toLowerCase()]: oldTimestamp,
+        },
       };
 
       const state = cardReducer(
         stateWithTimestamp,
-        setCardPriorityTokenLastFetched(newTimestamp),
+        setCardPriorityTokenLastFetched({
+          address: testAddress,
+          lastFetched: newTimestamp,
+        }),
       );
 
-      expect(state.lastFetched).toEqual(newTimestamp);
+      expect(state.lastFetchedByAddress[testAddress.toLowerCase()]).toEqual(
+        newTimestamp,
+      );
     });
   });
 });

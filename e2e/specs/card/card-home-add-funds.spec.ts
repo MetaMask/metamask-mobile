@@ -20,6 +20,18 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
           .withAccountTreeController()
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock,
