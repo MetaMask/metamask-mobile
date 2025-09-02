@@ -126,11 +126,9 @@ const PerpsClosePositionView: React.FC = () => {
     isMaker: false, // Closing positions are typically taker orders
   });
 
-  // Calculate what user will receive (effective margin + pnl - fees)
+  // Calculate what user will receive (margin - fees, P&L is settled separately)
   const receiveAmount =
-    (closePercentage / 100) * effectiveMargin +
-    (closePercentage / 100) * pnl -
-    feeResults.totalFee;
+    (closePercentage / 100) * effectiveMargin - feeResults.totalFee;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
