@@ -2131,9 +2131,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
+    DevLogger.log('🔍 HyperLiquid Fee Calculation Started', {
+      orderType,
+      isMaker,
+      amount,
+      baseFeeRate: feeRate,
+      baseTakerRate: FEE_RATES.taker,
+      baseMakerRate: FEE_RATES.maker,
+    });
+
     // Try to get user-specific rates if wallet is connected
     try {
       const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      DevLogger.log('👤 User Address Retrieved', {
+        userAddress,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      });
 
       // Check cache first
       if (this.isFeeCacheValid(userAddress)) {
@@ -2144,8 +2158,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
             orderType === 'market' || !isMaker
               ? cached.perpsTakerRate
               : cached.perpsMakerRate;
+
+          DevLogger.log('📦 Using Cached Fee Rates', {
+            cacheHit: true,
+            perpsTakerRate: cached.perpsTakerRate,
+            perpsMakerRate: cached.perpsMakerRate,
+            spotTakerRate: cached.spotTakerRate,
+            spotMakerRate: cached.spotMakerRate,
+            selectedRate: feeRate,
+            cacheExpiry: new Date(cached.timestamp + cached.ttl).toISOString(),
+            cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`,
+          });
         }
       } else {
+        DevLogger.log('🌐 Fetching Fresh Fee Rates from HyperLiquid API', {
+          cacheHit: false,
+          userAddress,
+        });
+
         // Fetch fresh rates from SDK
         await this.ensureReady();
         const infoClient = this.clientService.getInfoClient();
@@ -2153,11 +2183,53 @@ export class HyperLiquidProvider implements IPerpsProvider {
           user: userAddress as `0x${string}`,
         });
 
-        // Parse the rates (these already include all discounts!)
-        const perpsTakerRate = parseFloat(userFees.feeSchedule.cross);
-        const perpsMakerRate = parseFloat(userFees.feeSchedule.add);
-        const spotTakerRate = parseFloat(userFees.feeSchedule.spotCross);
-        const spotMakerRate = parseFloat(userFees.feeSchedule.spotAdd);
+        DevLogger.log('📡 HyperLiquid userFees API Response', {
+          userCrossRate: userFees.userCrossRate,
+          userAddRate: userFees.userAddRate,
+          activeReferralDiscount: userFees.activeReferralDiscount,
+          activeStakingDiscount: userFees.activeStakingDiscount,
+        });
+
+        // Parse base user rates (these don't include discounts as expected)
+        const baseUserTakerRate = parseFloat(userFees.userCrossRate);
+        const baseUserMakerRate = parseFloat(userFees.userAddRate);
+        const baseUserSpotTakerRate = parseFloat(userFees.userSpotCrossRate);
+        const baseUserSpotMakerRate = parseFloat(userFees.userSpotAddRate);
+
+        // Apply discounts manually since HyperLiquid API doesn't apply them
+        const referralDiscount = parseFloat(
+          userFees.activeReferralDiscount || '0',
+        );
+        const stakingDiscount = parseFloat(
+          userFees.activeStakingDiscount?.discount || '0',
+        );
+
+        // Calculate total discount (referral + staking, but not compounding)
+        const totalDiscount = Math.min(referralDiscount + stakingDiscount, 0.4); // Cap at 40%
+
+        // Apply discount to rates
+        const perpsTakerRate = baseUserTakerRate * (1 - totalDiscount);
+        const perpsMakerRate = baseUserMakerRate * (1 - totalDiscount);
+        const spotTakerRate = baseUserSpotTakerRate * (1 - totalDiscount);
+        const spotMakerRate = baseUserSpotMakerRate * (1 - totalDiscount);
+
+        DevLogger.log('🔢 Fee Discount Calculation', {
+          discounts: {
+            referral: `${(referralDiscount * 100).toFixed(1)}%`,
+            staking: `${(stakingDiscount * 100).toFixed(1)}%`,
+            total: `${(totalDiscount * 100).toFixed(1)}%`,
+          },
+          rates: {
+            before: {
+              taker: `${(baseUserTakerRate * 100).toFixed(4)}%`,
+              maker: `${(baseUserMakerRate * 100).toFixed(4)}%`,
+            },
+            after: {
+              taker: `${(perpsTakerRate * 100).toFixed(4)}%`,
+              maker: `${(perpsMakerRate * 100).toFixed(4)}%`,
+            },
+          },
+        });
 
         // Validate all rates are valid numbers before caching
         if (
@@ -2170,6 +2242,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
           spotTakerRate < 0 ||
           spotMakerRate < 0
         ) {
+          DevLogger.log('❌ Fee Rate Validation Failed', {
+            validation: {
+              perpsTakerValid: !isNaN(perpsTakerRate) && perpsTakerRate >= 0,
+              perpsMakerValid: !isNaN(perpsMakerRate) && perpsMakerRate >= 0,
+              spotTakerValid: !isNaN(spotTakerRate) && spotTakerRate >= 0,
+              spotMakerValid: !isNaN(spotMakerRate) && spotMakerRate >= 0,
+            },
+            rawValues: {
+              perpsTakerRate,
+              perpsMakerRate,
+              spotTakerRate,
+              spotMakerRate,
+            },
+          });
           throw new Error('Invalid fee rates received from API');
         }
 
@@ -2189,16 +2275,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
 
-        DevLogger.log('Fetched user fee rates', {
-          userAddress,
-          perpsTaker: rates.perpsTakerRate,
-          perpsMaker: rates.perpsMakerRate,
+        DevLogger.log('✅ Fee Rates Validated and Cached', {
+          selectedRate: feeRate,
+          selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
+          discountApplied: perpsTakerRate < FEE_RATES.taker,
           cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
         });
       }
     } catch (error) {
       // Silently fall back to base rates
-      DevLogger.log('Failed to fetch user fee rates, using base rates', error);
+      DevLogger.log('⚠️ Fee API Call Failed - Falling Back to Base Rates', {
+        error: error instanceof Error ? error.message : String(error),
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        fallbackTakerRate: FEE_RATES.taker,
+        fallbackMakerRate: FEE_RATES.maker,
+        userAddress: 'unknown',
+      });
     }
 
     const parsedAmount = amount ? parseFloat(amount) : 0;
@@ -2230,7 +2323,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           : parsedAmount * totalFeeRate
         : undefined;
 
-    return {
+    const result = {
       // Total fees
       feeRate: totalFeeRate,
       feeAmount: totalFeeAmount,
@@ -2243,6 +2336,22 @@ export class HyperLiquidProvider implements IPerpsProvider {
       metamaskFeeRate,
       metamaskFeeAmount,
     };
+
+    DevLogger.log('💰 Final Fee Calculation Result', {
+      orderType,
+      amount,
+      fees: {
+        protocolRate: `${(protocolFeeRate * 100).toFixed(4)}%`,
+        metamaskRate: `${(metamaskFeeRate * 100).toFixed(4)}%`,
+        totalRate: `${(totalFeeRate * 100).toFixed(4)}%`,
+        totalAmount: totalFeeAmount,
+      },
+      usingFallbackRates:
+        protocolFeeRate === FEE_RATES.taker ||
+        protocolFeeRate === FEE_RATES.maker,
+    });
+
+    return result;
   }
 
   /**
@@ -2262,8 +2371,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   public clearFeeCache(userAddress?: string): void {
     if (userAddress) {
       this.userFeeCache.delete(userAddress);
+      DevLogger.log('🗑️ Cleared fee cache for user', { userAddress });
     } else {
       this.userFeeCache.clear();
+      DevLogger.log('🗑️ Cleared all fee cache');
     }
   }
 

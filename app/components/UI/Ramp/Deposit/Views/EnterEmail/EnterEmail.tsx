@@ -6,7 +6,10 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -27,12 +30,16 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
-export const createEnterEmailNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_EMAIL,
-);
+export interface EnterEmailParams {
+  redirectToRootAfterAuth?: boolean;
+}
+
+export const createEnterEmailNavDetails =
+  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
 
 const EnterEmail = () => {
   const navigation = useNavigation();
+  const { redirectToRootAfterAuth } = useParams<EnterEmailParams>();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,13 +81,20 @@ const EnterEmail = () => {
 
       if (validateEmail(email)) {
         setValidationError(false);
-        await submitEmail();
+        const otpResponse = await submitEmail();
+
+        if (!otpResponse?.stateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
         trackEvent('RAMPS_EMAIL_SUBMITTED', {
           ramp_type: 'DEPOSIT',
         });
         navigation.navigate(
           ...createOtpCodeNavDetails({
             email,
+            stateToken: otpResponse.stateToken,
+            redirectToRootAfterAuth,
           }),
         );
       } else {
@@ -96,7 +110,7 @@ const EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, navigation, submitEmail, trackEvent]);
+  }, [email, navigation, submitEmail, trackEvent, redirectToRootAfterAuth]);
 
   return (
     <ScreenLayout>

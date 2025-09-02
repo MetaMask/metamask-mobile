@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { BridgeToken } from '../../../../UI/Bridge/types';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -53,7 +54,9 @@ export function useAutomaticTransactionPayToken({
     const requiredBalance = balanceOverride?.balance ?? totalFiat;
 
     const sufficientBalanceTokens = orderBy(
-      tokens.filter((token) => (token.tokenFiatAmount ?? 0) >= requiredBalance),
+      tokens.filter((token) =>
+        isTokenSupported(token, tokens, requiredBalance),
+      ),
       (token) => token?.tokenFiatAmount ?? 0,
       'desc',
     );
@@ -99,4 +102,21 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [automaticToken, isUpdated, requiredTokens, setPayToken]);
+}
+
+function isTokenSupported(
+  token: BridgeToken,
+  tokens: BridgeToken[],
+  requiredBalance: number,
+): boolean {
+  const nativeToken = tokens.find(
+    (t) => t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+  );
+
+  const isTokenBalanceSufficient =
+    (token?.tokenFiatAmount ?? 0) >= requiredBalance;
+
+  const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
+
+  return isTokenBalanceSufficient && hasNativeBalance;
 }
