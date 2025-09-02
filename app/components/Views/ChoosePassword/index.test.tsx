@@ -820,6 +820,66 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
+  it('should navigate to OptinMetrics when oauth2Login is true and metrics disabled', async () => {
+    const mockNewWalletAndKeychain = jest.spyOn(
+      Authentication,
+      'newWalletAndKeychain',
+    );
+    mockNewWalletAndKeychain.mockResolvedValue(undefined);
+    mockMetricsIsEnabled.mockReturnValueOnce(false);
+
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    const passwordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+
+    await act(async () => {
+      fireEvent.press(checkbox);
+      fireEvent.changeText(passwordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+    });
+
+    await act(async () => {
+      fireEvent(confirmPasswordInput, 'submitEditing');
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('OptinMetrics', {
+      onContinue: expect.any(Function),
+    });
+
+    mockNewWalletAndKeychain.mockRestore();
+  });
+
   it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
     const props: ChoosePasswordProps = {
       ...defaultProps,

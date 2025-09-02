@@ -127,6 +127,9 @@ interface LoginProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
 
+const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
+  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
+
 /**
  * View where returning users can authenticate
  */
@@ -555,9 +558,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      //console.log('oauthLoginSuccess', oauthLoginSuccess);
-      //console.log('authType.oauth2Login', authType.oauth2Login);
-      if (oauthLoginSuccess) {
+      if (SOCIAL_LOGIN_UI_CHANGES_ENABLED && oauthLoginSuccess) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
@@ -589,7 +590,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      if (oauthLoginSuccess) {
+      if (SOCIAL_LOGIN_UI_CHANGES_ENABLED && oauthLoginSuccess) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();

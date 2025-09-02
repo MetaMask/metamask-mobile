@@ -218,64 +218,77 @@ const OnboardingSuccessFlow = () => (
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
-const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="OnboardingCarousel">
-    <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
-    <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen
-      name="AccountBackupStep1"
-      component={AccountBackupStep1}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS_FLOW}
-      component={OnboardingSuccessFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccess} // Used in SRP flow
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
-      component={DefaultSettings}
-    />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-      component={ImportFromSecretRecoveryPhrase}
-    />
-    <Stack.Screen
-      name="OptinMetrics"
-      component={OptinMetrics}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountStatus"
-      component={AccountStatus}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="AccountNotFound"
-      component={AccountNotFound}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name="Rehydrate"
-      component={Login}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
+const OnboardingNav = () => {
+  // If true: Start with Onboarding page (shows Create Wallet and Import Wallet buttons)
+  // If false: Start with OnboardingCarousel
+  const isSocialLoginUIEnabled =
+    process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
+  const initialRouteName = isSocialLoginUIEnabled
+    ? 'Onboarding'
+    : 'OnboardingCarousel';
+
+  return (
+    <Stack.Navigator initialRouteName={initialRouteName}>
+      <Stack.Screen name="Onboarding" component={Onboarding} />
+      <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
+      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="AccountBackupStep1"
+        component={AccountBackupStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountBackupStep1B"
+        component={AccountBackupStep1B}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS_FLOW}
+        component={OnboardingSuccessFlow}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS}
+        component={OnboardingSuccess} // Used in SRP flow
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+        component={DefaultSettings}
+      />
+      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+        component={ImportFromSecretRecoveryPhrase}
+      />
+      <Stack.Screen
+        name="OptinMetrics"
+        component={OptinMetrics}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountStatus"
+        component={AccountStatus}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountAlreadyExists"
+        component={AccountAlreadyExists}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AccountNotFound"
+        component={AccountNotFound}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Rehydrate"
+        component={Login}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+};
 
 /**
  * Parent Stack navigator that allows the

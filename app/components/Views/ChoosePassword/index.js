@@ -194,6 +194,9 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
+// Flag to control social login UI changes
+const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
+  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 /**
  * View where users can set their password for the first time
@@ -349,7 +352,9 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
+    if (!SOCIAL_LOGIN_UI_CHANGES_ENABLED) {
+      this.termsOfUse();
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -479,19 +484,45 @@ class ChoosePassword extends PureComponent {
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
       if (authType.oauth2Login) {
-        await StorageWrapper.setItem(USE_TERMS, TRUE);
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        this.props.navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
-            },
-          ],
-        });
+        if (SOCIAL_LOGIN_UI_CHANGES_ENABLED) {
+          await StorageWrapper.setItem(USE_TERMS, TRUE);
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
+            ],
+          });
+        } else if (this.props.metrics.isEnabled()) {
+            this.props.navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.ONBOARDING.SUCCESS,
+                  params: { showPasswordHint: true },
+                },
+              ],
+            });
+          } else {
+            this.props.navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                this.props.navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: Routes.ONBOARDING.SUCCESS,
+                      params: { showPasswordHint: true },
+                    },
+                  ],
+                });
+              },
+            });
+          }
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
         this.props.navigation.replace('AccountBackupStep1', {
@@ -811,9 +842,38 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {this.getOauth2LoginSuccess()
-                      ? strings('choose_password.description_social_login')
-                      : strings('choose_password.description')}
+                    {SOCIAL_LOGIN_UI_CHANGES_ENABLED ? (
+                      this.getOauth2LoginSuccess() ? (
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Alternative}
+                        >
+                          {strings(
+                            'choose_password.description_social_login_update',
+                          )}
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Warning}
+                          >
+                            {' '}
+                            {strings(
+                              'choose_password.description_social_login_update_bold',
+                            )}
+                          </Text>
+                        </Text>
+                      ) : (
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Alternative}
+                        >
+                          {strings('choose_password.description')}
+                        </Text>
+                      )
+                    ) : this.getOauth2LoginSuccess() ? (
+                      strings('choose_password.description_social_login')
+                    ) : (
+                      strings('choose_password.description')
+                    )}
                   </Text>
                 </View>
 
@@ -951,22 +1011,55 @@ class ChoosePassword extends PureComponent {
                     style={styles.learnMoreTextContainer}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     label={
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Default}
-                      >
-                        {this.getOauth2LoginSuccess()
-                          ? strings('import_from_seed.learn_more_social_login')
-                          : strings('import_from_seed.learn_more')}
+                      SOCIAL_LOGIN_UI_CHANGES_ENABLED ? (
                         <Text
                           variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
+                          color={TextColor.Default}
                         >
-                          {' ' + strings('reset_password.learn_more')}
+                          {this.getOauth2LoginSuccess() ? (
+                            strings(
+                              'choose_password.marketing_opt_in_description',
+                            )
+                          ) : (
+                            <>
+                              {strings(
+                                'choose_password.loose_password_description',
+                              )}
+                              <Text
+                                variant={TextVariant.BodyMD}
+                                color={TextColor.Primary}
+                                onPress={this.learnMore}
+                                testID={
+                                  ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID
+                                }
+                              >
+                                {' ' + strings('choose_password.learn_more')}
+                              </Text>
+                            </>
+                          )}
                         </Text>
-                      </Text>
+                      ) : (
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Default}
+                        >
+                          {this.getOauth2LoginSuccess()
+                            ? strings(
+                                'import_from_seed.learn_more_social_login',
+                              )
+                            : strings('import_from_seed.learn_more')}
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Primary}
+                            onPress={this.learnMore}
+                            testID={
+                              ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID
+                            }
+                          >
+                            {' ' + strings('reset_password.learn_more')}
+                          </Text>
+                        </Text>
+                      )
                     }
                   />
                 </View>

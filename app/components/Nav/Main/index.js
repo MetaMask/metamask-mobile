@@ -108,6 +108,8 @@ import { handleShowNetworkActiveToast } from './utils';
 import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
+const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
+  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -464,7 +466,9 @@ const Main = (props) => {
   }, [props.navigation]);
 
   useEffect(() => {
-    termsOfUse();
+    if (!SOCIAL_LOGIN_UI_CHANGES_ENABLED) {
+      termsOfUse();
+    }
   }, [termsOfUse]);
 
   const openDeprecatedNetworksArticle = () => {
