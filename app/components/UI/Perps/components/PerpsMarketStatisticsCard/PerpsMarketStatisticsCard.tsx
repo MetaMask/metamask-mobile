@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
@@ -16,6 +16,8 @@ import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { formatFundingRate } from '../../utils/formatUtils';
+import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -34,6 +36,41 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
 
   // Get live funding rate from WebSocket subscription
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
+
+  // Compute funding rate value and display once
+  const fundingRateData = useMemo(() => {
+    // Determine the actual funding value to use
+    let fundingValue: number;
+    let displayText: string;
+
+    if (liveFunding !== undefined) {
+      // Use live funding if available
+      fundingValue = liveFunding;
+      displayText = formatFundingRate(liveFunding);
+    } else if (
+      marketStats.fundingRate &&
+      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZERO_DISPLAY
+    ) {
+      // Fall back to marketStats if no live data
+      fundingValue =
+        parseFloat(marketStats.fundingRate.replace('%', '')) /
+        FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+      displayText = marketStats.fundingRate;
+    } else {
+      // Default to zero
+      fundingValue = 0;
+      displayText = FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+    }
+
+    // Determine color based on value
+    const color = fundingValue >= 0 ? TextColor.Success : TextColor.Error;
+
+    return {
+      value: fundingValue,
+      displayText,
+      color,
+    };
+  }, [liveFunding, marketStats.fundingRate]);
 
   return (
     <View style={styles.statisticsGrid}>
@@ -123,33 +160,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             </TouchableOpacity>
           </View>
           <View style={styles.fundingRateContainer}>
-            <Text
-              style={styles.statisticsValue}
-              color={(() => {
-                // Use live funding if available, otherwise fall back to marketStats
-                const fundingValue =
-                  liveFunding !== undefined
-                    ? liveFunding * 100
-                    : marketStats.fundingRate &&
-                      marketStats.fundingRate !== '0.0000%'
-                    ? parseFloat(marketStats.fundingRate.replace('%', ''))
-                    : 0;
-                return fundingValue >= 0 ? TextColor.Success : TextColor.Error;
-              })()}
-            >
-              {(() => {
-                // Display logic: use live funding if available, otherwise use marketStats
-                if (liveFunding !== undefined) {
-                  const percentage = (liveFunding * 100).toFixed(4);
-                  return `${percentage}%`;
-                }
-                // Fall back to marketStats if no live data
-                const statsRate = marketStats.fundingRate;
-                if (statsRate && statsRate !== '0.0000%') {
-                  return statsRate;
-                }
-                return '0.0000%';
-              })()}
+            <Text style={styles.statisticsValue} color={fundingRateData.color}>
+              {fundingRateData.displayText}
             </Text>
             <FundingCountdown
               variant={TextVariant.BodyXS}

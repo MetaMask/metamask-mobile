@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
+import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -132,7 +133,7 @@ describe('PerpsMarketStatisticsCard', () => {
   it('displays zero funding rate in default color', () => {
     const zeroFundingStats = {
       ...mockMarketStats,
-      fundingRate: '0.0000%',
+      fundingRate: FUNDING_RATE_CONFIG.ZERO_DISPLAY,
     };
 
     const { getByText } = render(
@@ -142,7 +143,7 @@ describe('PerpsMarketStatisticsCard', () => {
       />,
     );
 
-    const fundingRateText = getByText('0.0000%');
+    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
     expect(fundingRateText).toBeOnTheScreen();
   });
 
@@ -333,7 +334,7 @@ describe('PerpsMarketStatisticsCard', () => {
       );
 
       // Should display zero funding rate
-      expect(getByText('0.0000%')).toBeOnTheScreen();
+      expect(getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY)).toBeOnTheScreen();
     });
   });
 });
