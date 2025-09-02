@@ -37,7 +37,7 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
-    const isTracing = useRef(false);
+    const hasActiveTrace = useRef(false);
 
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
@@ -46,9 +46,9 @@ const AccountListFooter = memo(
 
     // End trace when the loading finishes
     useEffect(() => {
-      if (!isLoading && isTracing.current) {
+      if (!isLoading && hasActiveTrace.current) {
         endTrace({ name: TraceName.CreateMultichainAccount });
-        isTracing.current = false;
+        hasActiveTrace.current = false;
       }
     }, [isLoading]);
 
@@ -92,7 +92,7 @@ const AccountListFooter = memo(
 
       // This ref is used as a guard to ensure that we only call `endTrace`
       // when the trace is actually active.
-      isTracing.current = true;
+      hasActiveTrace.current = true;
       trace({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.CreateAccount,
