@@ -10,7 +10,8 @@ import BitcoinWalletSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-s
 import PreinstalledExampleSnap from '@metamask/preinstalled-example-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import TronWalletSnap from '@metamask/tron-wallet-snap/dist/preinstalled-snap.json';
+// TODO: Uncomment this when Tron wallet snap is published
+// import TronWalletSnap from '@metamask/tron-wallet-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
@@ -25,7 +26,8 @@ const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   PreinstalledExampleSnap as unknown as PreinstalledSnap,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  TronWalletSnap as unknown as PreinstalledSnap,
+  // TODO: Uncomment this when Tron wallet snap is published
+  // TronWalletSnap as unknown as PreinstalledSnap,
   ///: END:ONLY_INCLUDE_IF
 ]);
 

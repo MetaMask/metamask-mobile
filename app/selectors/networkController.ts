@@ -280,7 +280,8 @@ export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
-        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana) ||
+        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Tron),
     ),
 );
 
