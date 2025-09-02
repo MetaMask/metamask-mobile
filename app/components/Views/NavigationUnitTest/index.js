@@ -1,6 +1,5 @@
 /**
  * This view was created in order to test the navigation api since it's possible it can change even with minor upgrades.
- * For reference see: https://reactnavigation.org/docs/navigation-prop/#dangerouslygetstate
  */
 
 /* eslint-disable react/prop-types */
@@ -29,7 +28,7 @@ const TestScreen = ({ route }) => {
   // Check if the active route name is the same as the route name
   if (name !== route.params.screenName)
     throw new Error(
-      'Error, react navigation api changed: https://reactnavigation.org/docs/navigation-prop/#dangerouslygetstate',
+      'Error, react navigation api may have changed: https://reactnavigation.org/docs',
     );
 
   return <Text>{name} THIS SHOULD NOT HAVE CHANGED, take a deeper look</Text>;
