@@ -13,7 +13,6 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
-import { isTest } from '../../util/test/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
@@ -24,6 +23,7 @@ import Routes from '../../constants/navigation/Routes';
 import { MetaMetrics } from '../Analytics';
 import { VaultBackupResult } from './types';
 import { INIT_BG_STATE_KEY, LOG_TAG } from './constants';
+import { isE2E } from '../../util/test/utils';
 
 export class EngineService {
   private engineInitialized = false;
@@ -65,8 +65,10 @@ export class EngineService {
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-    const state = persistedState?.backgroundState ?? {};
 
+    const state = isE2E
+      ? reduxState?.engine?.backgroundState
+      : persistedState?.backgroundState ?? {};
 
     const Engine = UntypedEngine;
     try {

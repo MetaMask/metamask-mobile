@@ -12,7 +12,11 @@ jest.mock('../../core/Engine', () => ({
 
 // Mock Engine constants to prevent lodash dependency issues
 jest.mock('../../core/Engine/constants', () => ({
-  BACKGROUND_STATE_CHANGE_EVENT_NAMES: ['TestController:stateChange'],
+  BACKGROUND_STATE_CHANGE_EVENT_NAMES: [
+    'KeyringController:stateChange',
+    'PreferencesController:stateChange',
+    'NetworkController:stateChange',
+  ],
 }));
 
 jest.mock('../../core/EngineService/constants', () => ({
@@ -64,7 +68,14 @@ interface ControllerMetadata {
 
 // Mock dependencies
 jest.mock('@react-native-async-storage/async-storage');
-jest.mock('redux-persist-filesystem-storage');
+jest.mock('redux-persist-filesystem-storage', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
 jest.mock('../../util/device');
 jest.mock('../../util/Logger');
 jest.mock('@metamask/base-controller', () => ({
@@ -110,10 +121,7 @@ jest.mock('../migrations', () => ({
   migrations: mockMigrations,
 }));
 
-// Mock debounce
-jest.mock('lodash', () => ({
-  debounce: <T extends (...args: unknown[]) => unknown>(fn: T) => fn,
-}));
+// (debounce already mocked above)
 
 describe('persistConfig', () => {
   beforeEach(() => {
@@ -408,7 +416,7 @@ describe('persistConfig', () => {
       (Logger.error as jest.MockedFunction<typeof Logger.error>).mockClear();
       // Reset Engine context
       (Engine as { context: unknown }).context = {
-        TestController: {
+        KeyringController: {
           metadata: {
             field1: { persist: true, anonymous: false },
             field2: { persist: false, anonymous: true },
@@ -433,7 +441,7 @@ describe('persistConfig', () => {
           BACKGROUND_STATE_CHANGE_EVENT_NAMES.length,
         );
         expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
-          'TestController:stateChange',
+          'KeyringController:stateChange',
           expect.any(Function),
         );
         expect(Logger.log).toHaveBeenCalledWith(
@@ -453,7 +461,7 @@ describe('persistConfig', () => {
           BACKGROUND_STATE_CHANGE_EVENT_NAMES.length,
         );
         expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
-          'TestController:stateChange',
+          'KeyringController:stateChange',
           expect.any(Function), // The debounced function
         );
       });
@@ -476,7 +484,7 @@ describe('persistConfig', () => {
         // Setup and capture the subscription callback
         setupEnginePersistence();
         expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
-          'TestController:stateChange',
+          'KeyringController:stateChange',
           expect.any(Function),
         );
 
@@ -497,9 +505,9 @@ describe('persistConfig', () => {
           controllerState,
           (
             (Engine as { context: unknown }).context as {
-              TestController?: { metadata: unknown };
+              KeyringController?: { metadata: unknown };
             }
-          ).TestController?.metadata,
+          ).KeyringController?.metadata,
         );
       });
 
@@ -515,7 +523,7 @@ describe('persistConfig', () => {
 
         // Then
         expect(mockSetItem).toHaveBeenCalledWith(
-          'persist:TestController',
+          'persist:KeyringController',
           JSON.stringify({ filtered: 'state' }),
         );
       });
@@ -531,7 +539,7 @@ describe('persistConfig', () => {
         // Then
         expect(mockDispatch).toHaveBeenCalledWith({
           type: UPDATE_BG_STATE_KEY,
-          payload: { key: 'TestController' },
+          payload: { key: 'KeyringController' },
         });
       });
 
@@ -545,7 +553,7 @@ describe('persistConfig', () => {
 
         // Then
         expect(Logger.log).toHaveBeenCalledWith(
-          'TestController state persisted successfully',
+          'KeyringController state persisted successfully',
         );
       });
 
@@ -565,7 +573,7 @@ describe('persistConfig', () => {
         // Then
         expect(Logger.error).toHaveBeenCalledWith(
           persistError,
-          'Failed to persist TestController state',
+          'Failed to persist KeyringController state',
         );
         // Should not dispatch Redux action on error
         expect(mockDispatch).not.toHaveBeenCalled();
@@ -587,7 +595,7 @@ describe('persistConfig', () => {
         // Then
         expect(Logger.error).toHaveBeenCalledWith(
           filterError,
-          'Failed to persist TestController state',
+          'Failed to persist KeyringController state',
         );
       });
 
@@ -595,9 +603,9 @@ describe('persistConfig', () => {
         // Arrange
         (
           (Engine as { context: unknown }).context as {
-            TestController?: unknown;
+            KeyringController?: unknown;
           }
-        ).TestController = undefined; // Simulate missing metadata
+        ).KeyringController = undefined; // Simulate missing metadata
         const controllerState = { field1: 'value1' };
         jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
 
