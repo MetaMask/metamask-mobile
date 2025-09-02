@@ -5561,12 +5561,12 @@
     "@metamask/utils" "^9.1.0"
     uuid "^11.1.0"
 
-"@metamask/multichain-account-service@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.5.0.tgz#ea98c6f4b9715410128a1ba0c4834169d90829c5"
-  integrity sha512-v/9cjUgW1jbogj3SabvXiRFqYQT/7UtXceYgr9ZSqU05MpfgduuF5mNVj6XClmsztp4l7gjIFtaVzWVfWM+tEw==
+"@metamask/multichain-account-service@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.6.0.tgz#8c724c06da97b6a7fbda76db247bb06262d439de"
+  integrity sha512-SIbkfTGBv9N/WdbFGvhGefKo9tRJzJn2qxGBjidBC5b5zHAIAOkV5M6oMnr4oEBcwfDcGaP8pH4x80fp4TCaDQ==
   dependencies:
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/eth-snap-keyring" "^16.1.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/keyring-internal-api" "^8.1.0"
