@@ -74,15 +74,6 @@ jobs:
             xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
-      # Clean extended attributes from plist files (prevents Xcode copy failures)
-      - name: Clean Extended Attributes from Plist Files
-        run: |
-          echo "🧹 Cleaning extended attributes from plist files..."
-          # Remove extended attributes that macOS adds to programmatically created files
-          # This prevents Xcode's CopyPlistFile build phase from failing
-          find ios -name "*.plist" -exec xattr -c {} \;
-          echo "✅ Extended attributes cleaned from plist files"
-
       # Run project setup and build the iOS QA app for simulator
       - name: Setup iOS Environment
         run: |

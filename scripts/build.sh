@@ -288,6 +288,8 @@ prebuild_ios(){
     echo "GoogleService-Info.plist has been created successfully."
     # Ensure the file has read and write permissions
     chmod 664 ./ios/GoogleServices/GoogleService-Info.plist
+	# Remove extended attributes to prevent Xcode copy failures
+    xattr -c ./ios/GoogleServices/GoogleService-Info.plist 2>/dev/null || true
   else
     echo "GOOGLE_SERVICES_B64_IOS is not set in the .env file."
     exit 1
