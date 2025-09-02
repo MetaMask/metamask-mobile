@@ -671,6 +671,16 @@ export const WHILELIST_NETWORK_NAME = {
   [ChainId['megaeth-testnet']]: 'Mega Testnet',
   [ChainId['monad-testnet']]: 'Monad Testnet',
   [NETWORKS_CHAIN_ID.SEI]: 'Sei Mainnet',
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HyperEVM',
+};
+
+// Whitelisted symbols for specific chain IDs to prevent showing warnings on Network Settings.
+export const WHITELIST_SYMBOL = {
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'HYPE',
+};
+
+export const WHITELIST_NETWORK_RPC_URL = {
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
 };
 
 /**
@@ -686,3 +696,20 @@ export const WHILELIST_NETWORK_NAME = {
  */
 export const isValidNetworkName = (chainId, networkName, nickname) =>
   networkName === nickname || WHILELIST_NETWORK_NAME[chainId] === nickname;
+
+/**
+ * Checks if the symbol is valid for the given chain ID.
+ * This function allows for specific symbols for certain chain IDs.
+ * For example, it allows 'ETH' for Ethereum Mainnet, 'MATIC' or 'POL' for Polygon, etc.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} symbol - The symbol to validate.
+ * @returns {boolean} - Whether the symbol is valid for the given chain ID.
+ */
+export const isValidSymbol = (chainId, symbol) => {
+  if (!chainId || !symbol) {
+    return false;
+  }
+
+  return WHITELIST_SYMBOL[chainId] === symbol;
+};
