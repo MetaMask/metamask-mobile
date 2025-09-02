@@ -169,11 +169,23 @@ pipelines:
       bump_version_code: {}
       # deploy_ios_to_store:
       #   depends_on:
-      #   - build_ios_main_exp
+      #   - build_ios_main_rc
       build_android_main_exp:
         depends_on:
         - bump_version_code
       build_ios_main_exp:
+        depends_on:
+        - bump_version_code    
+  nightly_rc_builds_pipeline:
+    workflows:
+      bump_version_code: {}
+      # deploy_ios_to_store:
+      #   depends_on:
+      #   - build_ios_main_rc
+      build_android_main_rc:
+        depends_on:
+        - bump_version_code
+      build_ios_main_rc:
         depends_on:
         - bump_version_code    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
@@ -584,22 +596,22 @@ workflows:
                 BUILD_GRADLE_PATH="$PROJECT_LOCATION_ANDROID/app/build.gradle"
                 
                 # Extract versionName (remove quotes)
-                NAME1=$(grep -o 'versionName "[^"]*"' "$BUILD_GRADLE_PATH" | sed 's/versionName "\(.*\)"/\1/')
+                APP_SEM_VER_NAME_TMP=$(grep -o 'versionName "[^"]*"' "$BUILD_GRADLE_PATH" | sed 's/versionName "\(.*\)"/\1/')
                 
                 # Extract versionCode
-                NUMBER1=$(grep -o 'versionCode [0-9]*' "$BUILD_GRADLE_PATH" | sed 's/versionCode \([0-9]*\)/\1/')
+                APP_BUILD_NUMBER_TMP=$(grep -o 'versionCode [0-9]*' "$BUILD_GRADLE_PATH" | sed 's/versionCode \([0-9]*\)/\1/')
                 
                 # Validate that we found both values
-                if [ -z "$VERSION_NAME" ] || [ -z "$VERSION_NUMBER" ]; then
+                if [ -z "$APP_SEM_VER_NAME_TMP" ] || [ -z "$APP_BUILD_NUMBER_TMP" ]; then
                     echo "Error: Could not extract version information from $BUILD_GRADLE_PATH"
-                    echo "VERSION_NAME: $NAME1"
-                    echo "VERSION_NUMBER: $NUMBER1"
+                    echo "APP_SEM_VER_NAME: $NAME1"
+                    echo "APP_BUILD_NUMBER: $NUMBER1"
                     exit 1
                 fi
 
                 # Export as environment variables
-                envman add --key NAME1 --value "$NAME1"
-                envman add --key NUMBER1 --value "$NUMBER1"
+                envman add --key APP_SEM_VER_NAME --value "$APP_SEM_VER_NAME_TMP"
+                envman add --key APP_BUILD_NUMBER --value "$APP_BUILD_NUMBER_TMP"
   install_applesimutils:
     steps:
       - script@1:
@@ -821,11 +833,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: standard
-  nightly_exp_build_workflow:
-    before_run:
-      - bump_version_code
-    after_run:
-      - build_ios_main_exp
   # CI Steps
   ci_test:
     before_run:
@@ -2204,9 +2211,9 @@ workflows:
                 # Generate new names based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${NUMBER1}"
+                  NEW_BASE_NAME="metamask-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME1}-${NUMBER1}"
+                  NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
                 fi
 
                 # Rename APK
@@ -3039,9 +3046,9 @@ workflows:
                 # Generate new name based on build type and version
                 if [ -n "$YARN_COMMAND" ]; then
                   NAME_FROM_YARN_COMMAND="$(cut -d':' -f3- <<< "$YARN_COMMAND" | sed 's/:/-/g')"
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${NUMBER1}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${NAME_FROM_YARN_COMMAND}-${APP_BUILD_NUMBER}"
                 else
-                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${NAME1}-${NUMBER1}"
+                  NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}--${APP_SEM_VER_NAME}-${APP_BUILD_NUMBER}"
                 fi
 
                 # Copy binary with new name (preserve original)
