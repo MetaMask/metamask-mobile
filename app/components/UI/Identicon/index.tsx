@@ -52,12 +52,15 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   if (!address && !imageUri) return null;
 
-  const styleForBlockieAndTokenIcon: ImageStyle = {
-    height: diameter,
-    width: diameter,
-    borderRadius: diameter / 2,
-    ...(customStyle as ImageStyle),
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const styleForBlockieAndTokenIcon: any = [
+    {
+      height: diameter,
+      width: diameter,
+      borderRadius: diameter / 2,
+    },
+    customStyle,
+  ];
 
   const image = imageUri ? (
     <Image source={{ uri: imageUri }} style={styleForBlockieAndTokenIcon} />
