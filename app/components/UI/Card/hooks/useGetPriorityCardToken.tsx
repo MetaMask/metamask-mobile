@@ -22,6 +22,8 @@ import {
   setCardPriorityToken,
   setCardPriorityTokenLastFetched,
 } from '../../../../core/redux/slices/card';
+import Engine from '../../../../core/Engine';
+import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 
 /**
  * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
@@ -123,8 +125,10 @@ export const useGetPriorityCardToken = (
   shouldFetch: boolean = true,
 ) => {
   const dispatch = useDispatch();
+  const { TokensController, NetworkController } = Engine.context;
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingAddToken, setIsLoadingAddToken] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
 
   // Extract controller state
@@ -317,13 +321,80 @@ export const useGetPriorityCardToken = (
     lastFetched,
   ]);
 
+  // Add priorityToken to the TokenListController if it exists
+  useEffect(() => {
+    let isCancelled = false;
+
+    const addToken = async () => {
+      try {
+        if (priorityToken && !isCancelled) {
+          const { allTokens } = TokensController.state;
+          const allTokensPerChain =
+            allTokens[priorityToken.chainId as Hex] || {};
+          const allTokensPerAddress =
+            allTokensPerChain[selectedAddress?.toLowerCase() as Hex] || [];
+          const isNotOnAllTokens = !allTokensPerAddress?.find(
+            (token) =>
+              token.address?.toLowerCase() ===
+              priorityToken.address?.toLowerCase(),
+          );
+
+          if (isNotOnAllTokens && !isCancelled) {
+            const iconUrl = buildTokenIconUrl(
+              priorityToken.chainId,
+              priorityToken.address,
+            );
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(
+                priorityToken.chainId as Hex,
+              );
+            setIsLoadingAddToken(true);
+            await TokensController.addToken({
+              address: priorityToken.address,
+              symbol: priorityToken.symbol as string,
+              decimals: priorityToken.decimals as number,
+              name: priorityToken.name as string,
+              image: iconUrl,
+              networkClientId,
+            });
+            if (!isCancelled) {
+              setIsLoadingAddToken(false);
+            }
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          const normalizedError =
+            err instanceof Error ? err : new Error(String(err));
+          Logger.error(
+            normalizedError,
+            'useGetPriorityCardToken::error adding priority token',
+          );
+          setIsLoadingAddToken(false);
+          setError(true);
+        }
+      }
+    };
+
+    addToken();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [priorityToken, TokensController, NetworkController, selectedAddress]);
+
   // Determine if we should show loading state
   // Only show loading if we're actively fetching AND don't have cached data
   const shouldShowLoading = isLoading && (!priorityToken || !cacheIsValid);
 
+  const isLoadingFinal = useMemo(
+    () => isLoadingAddToken || shouldShowLoading,
+    [isLoadingAddToken, shouldShowLoading],
+  );
+
   return {
     fetchPriorityToken,
-    isLoading: shouldShowLoading,
+    isLoading: isLoadingFinal,
     error,
     priorityToken,
   };
