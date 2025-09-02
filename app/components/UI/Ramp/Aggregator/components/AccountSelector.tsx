@@ -2,10 +2,10 @@ import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { isCaipChainId, toCaipChainId } from '@metamask/utils';
 
 import SelectorButton from '../../../../Base/SelectorButton';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
@@ -16,9 +16,11 @@ import Text, {
 import { useAccountName } from '../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { formatAddress } from '../../../../../util/address';
-import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
-import { type RootState } from '../../../../../reducers';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
+import { getRampNetworks } from '../../../../../reducers/fiatOrders';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { selectChainId } from '../../../../../selectors/networkController';
 
 const styles = StyleSheet.create({
   selector: {
@@ -36,26 +38,34 @@ const AccountSelector = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const selectedChainId = useSelector(selectChainId);
   const accountName = useAccountName();
-
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   const selectedFormattedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
 
+  const rampNetworks = useSelector(getRampNetworks);
+
+  const selectedCaipChainId = isCaipChainId(selectedChainId)
+    ? selectedChainId
+    : toCaipChainId('eip155', selectedChainId);
+
+  const rampNetworksCaipIds = rampNetworks.map((network) => {
+    if (isCaipChainId(network.chainId)) {
+      return network.chainId;
+    }
+    return toCaipChainId('eip155', network.chainId);
+  });
+
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
-        ...createAccountSelectorNavDetails({
-          disablePrivacyMode: true,
+        ...createAddressSelectorNavDetails({
+          displayOnlyCaipChainIds: rampNetworksCaipIds,
         }),
       ),
-    [navigation],
+    [navigation, rampNetworksCaipIds],
   );
 
   const shortenedAddress = formatAddress(
@@ -76,10 +86,11 @@ const AccountSelector = () => {
       {selectedAddress && selectedFormattedAddress ? (
         <>
           <Avatar
-            variant={AvatarVariant.Account}
-            type={accountAvatarType}
-            accountAddress={selectedAddress}
+            variant={AvatarVariant.Network}
             size={AvatarSize.Xs}
+            imageSource={getNetworkImageSource({
+              chainId: selectedCaipChainId,
+            })}
           />
           <Text
             variant={TextVariant.BodyMDMedium}
