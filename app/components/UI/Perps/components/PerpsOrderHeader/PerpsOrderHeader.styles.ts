@@ -38,12 +38,18 @@ export const createStyles = (colors: Theme['colors']) =>
       fontSize: 16,
     },
     marketButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 8,
       backgroundColor: colors.background.muted,
       borderWidth: 1,
       borderColor: colors.border.muted,
+    },
+    marketButtonIcon: {
+      marginLeft: 2,
     },
     tokenIcon: {
       width: 24,

@@ -103,6 +103,42 @@ describe('EditAmount', () => {
     expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
   });
 
+  it('sets amount to zero when input cleared', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('keypad-delete-button'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '0');
+  });
+
+  it('does not append to zero', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('0'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
+  });
+
   it('displays keyboard automatically when autoKeyboard is true', () => {
     const { getByTestId } = render({ autoKeyboard: true });
 
