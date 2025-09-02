@@ -520,9 +520,7 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
-            NetworkEnablementController: {
-              enabledNetworkMap: {},
-            },
+            NetworkEnablementController: {},
           },
         },
         privacy: {
