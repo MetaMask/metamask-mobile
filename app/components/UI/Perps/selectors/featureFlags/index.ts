@@ -9,12 +9,7 @@ const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) =>
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as PerpsLaunchDarklyFlag;
-
-    return perpsRemoteFeatureFlag(remoteFlag);
-  },
+  (remoteFeatureFlags) => true,
 );
 
 export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
