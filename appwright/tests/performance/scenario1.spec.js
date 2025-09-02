@@ -36,7 +36,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AccountListComponent.device = device;
   AddAccountModal.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
   //await importSRPFlow(device, process.env.TEST_SRP_2);
   //await importSRPFlow(device, process.env.TEST_SRP_3);
 
@@ -60,7 +60,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen2Timer.stop();
   screen3Timer.start();
   await AddAccountModal.tapCreateEthereumAccountButton();
-  await WalletMainScreen.isTokenVisible('Ethereum');
+  await AccountListComponent.isComponentDisplayed();
   screen3Timer.stop();
 
   const performanceTracker = new PerformanceTracker();

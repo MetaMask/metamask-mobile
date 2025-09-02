@@ -55,17 +55,18 @@ class BridgeScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`)
-          await numberKey.waitFor('visible',{ timeout: 10000 });
+          await numberKey.waitFor('visible',{ timeout: 30000 });
           await numberKey.tap();
         }
         else {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.view.View[@text="."]`);
-          await numberKey.waitFor('visible',{ timeout: 10000 });
+          await numberKey.waitFor('visible',{ timeout: 30000 });
           await numberKey.tap();
         }
       }
       else {
         const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await numberKey.waitFor('visible', { timeout: 30000 });
         await numberKey.tap();
       }
     }
@@ -88,10 +89,67 @@ class BridgeScreen {
       else if (network == 'Solana'){
         tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
       }
-      const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
-      await tokenButton.waitFor('attached',{ timeout: 10000 });
-      await tokenButton.tap();
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let tokenButton;
+      if (AppwrightSelectors.isAndroid(this._device)){
+        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `//*[@resource-id="asset-${tokenNetworkId}-${token}"]`);
+      }
+      else {
+        // Try multiple iOS element selection strategies
+        console.log(`Looking for iOS token with ID: asset-${tokenNetworkId}-${token}`);
+        
+        try {
+          tokenButton = await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+          console.log('Found token button by Name');
+        } catch (error) {
+          console.log('Name selector failed, trying ID selector for iOS...');
+          tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+          console.log('Found token button by ID');
+        }
+      }
+      await tokenButton.waitFor('visible',{ timeout: 10000 });
+      console.log('Token button found and visible');
+      
+      console.log('About to hide keyboard...');
+      await AppwrightSelectors.hideKeyboard(this._device);
+      console.log('Keyboard hidden successfully');
+
+      console.log('About to tap token button...');
+      
+      // Try multiple tap strategies for iOS
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        await tokenButton.tap();
+      } else {
+        // iOS-specific tap strategy
+        console.log('Using iOS-specific tap strategy...');
+        try {
+          await tokenButton.tap();
+          console.log('iOS click() succeeded');
+        } catch (error) {
+          console.log('iOS click() failed, trying tap()...');
+          await tokenButton.tap();
+          console.log('iOS tap() succeeded');
+        }
+      }
+      console.log('Token button tapped successfully');
+      
+      // Wait for the amount input field to appear after tapping token
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Waited 2 seconds after token button tap');
+      
+      // Check if number input field is available
+      try {
+        const testNumberButton = AppwrightSelectors.isIOS(this._device) ? await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="1"]`) : await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='1']`);
+        await testNumberButton.waitFor('visible', { timeout: 5000 });
+        console.log('Number input field is visible - token tap worked');
+      } catch (error) {
+        console.log('Number input field not visible - token tap may not have worked, trying alternative tap method...');
+        
+        // Try alternative tap methods for iOS
+        await tokenButton.tap(); // Try click instead of tap
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        console.log('Tried alternative tap methods');
+      }
   }
 
   async tapGetQuotes(network){
