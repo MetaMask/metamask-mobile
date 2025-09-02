@@ -343,17 +343,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               onMorePress={handleMorePress}
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector`}
             />
-
-            {/* More Candle Periods Bottom Sheet */}
-            <PerpsCandlePeriodBottomSheet
-              isVisible={isMoreCandlePeriodsVisible}
-              onClose={handleMoreCandlePeriodsClose}
-              selectedPeriod={selectedCandlePeriod}
-              selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
-              onPeriodChange={handleCandlePeriodChange}
-              showAllPeriods
-              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
-            />
           </View>
 
           {/* Market Tabs Section */}
@@ -431,6 +420,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
         </View>
       )}
+
+      {/* More Candle Periods Bottom Sheet - Rendered at root level */}
+      <PerpsCandlePeriodBottomSheet
+        isVisible={isMoreCandlePeriodsVisible}
+        onClose={handleMoreCandlePeriodsClose}
+        selectedPeriod={selectedCandlePeriod}
+        selectedDuration={TimeDuration.YEAR_TO_DATE} // Not used when showAllPeriods is true
+        onPeriodChange={handleCandlePeriodChange}
+        showAllPeriods
+        testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
+      />
 
       {/* Notification Tooltip - Shows after first successful order */}
       {isNotificationsEnabled &&
