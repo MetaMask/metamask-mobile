@@ -8,10 +8,15 @@ import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmou
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
-export function useInsufficientPayTokenBalanceAlert(): Alert[] {
+export function useInsufficientPayTokenBalanceAlert({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}): Alert[] {
   const { type } = useTransactionMetadataRequest() ?? {};
-  const { totalHuman } = useTransactionPayTokenAmounts();
+  const { totalHuman } = useTransactionPayTokenAmounts({ amountOverrides });
   const { payToken } = useTransactionPayToken();
   const { balance } = payToken ?? {};
 
