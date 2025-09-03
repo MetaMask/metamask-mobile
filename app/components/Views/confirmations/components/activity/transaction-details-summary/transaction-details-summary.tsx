@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Text, {
   TextColor,
   TextVariant,
@@ -24,6 +24,11 @@ import {
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { useNavigation } from '@react-navigation/native';
+import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -64,6 +69,27 @@ function SummaryLine({
 }) {
   const { styles } = useStyles(styleSheet, { isLast });
   const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
+  const navigation = useNavigation();
+
+  const { chainId: chainIdHex, hash: txHash } = transaction;
+  const chainId = parseInt(chainIdHex, 16);
+
+  const { explorerTxUrl, explorerName } =
+    useMultichainBlockExplorerTxUrl({
+      chainId,
+      txHash,
+    }) ?? {};
+
+  const handleExplorerClick = useCallback(() => {
+    if (!explorerTxUrl) {
+      return;
+    }
+
+    navigation.navigate(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url: explorerTxUrl, title: explorerName },
+    });
+  }, [explorerName, explorerTxUrl, navigation]);
 
   const dateString = getDateString(
     transaction.submittedTime ?? transaction.time,
@@ -90,6 +116,13 @@ function SummaryLine({
           <TransactionDetailsStatusIcon transactionMeta={transaction} />
           <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
+        {explorerTxUrl && (
+          <ButtonIcon
+            testID="block-explorer-button"
+            iconName={IconName.Export}
+            onPress={handleExplorerClick}
+          />
+        )}
       </Box>
       <Box flexDirection={FlexDirection.Row}>
         <Box style={styles.divider} />
