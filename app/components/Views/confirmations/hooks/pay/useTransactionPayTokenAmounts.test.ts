@@ -40,8 +40,16 @@ describe('useTransactionPayTokenAmounts', () => {
 
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [
-        { address: TOKEN_ADDRESS_1_MOCK, totalFiat: 16.123 },
-        { address: TOKEN_ADDRESS_2_MOCK, totalFiat: 40.456 },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          amountHumanOriginal: '1.23',
+          totalFiat: 16.123,
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          amountHumanOriginal: '2.34',
+          totalFiat: 40.456,
+        },
       ],
       totalFiat: 56.579,
     } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
@@ -56,6 +64,7 @@ describe('useTransactionPayTokenAmounts', () => {
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
@@ -69,11 +78,13 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_1_MOCK,
         amountHuman: '4.03075',
         amountRaw: '40308',
+        targetAmountHuman: '1.23',
       },
       {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.114',
         amountRaw: '101140',
+        targetAmountHuman: '2.34',
       },
     ]);
   });
@@ -84,6 +95,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.455,
+          amountHumanOriginal: '2.34',
           balanceFiat: 40.456,
           totalFiat: 41,
           skipIfBalance: false,
@@ -99,6 +111,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountHuman: '2.34',
       },
     ]);
   });
@@ -109,6 +122,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           amountFiat: 16.123,
+          amountHumanOriginal: '1.23',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: true,
@@ -116,6 +130,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.456,
+          amountHumanOriginal: '2.34',
           balanceFiat: 40.455,
           totalFiat: 41,
           skipIfBalance: false,
@@ -131,6 +146,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountHuman: '2.34',
       },
     ]);
   });
@@ -141,12 +157,14 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: tokenAddress1Mock,
           amountFiat: 16.123,
+          amountHumanOriginal: '1.23',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: false,
         },
         {
           address: TOKEN_ADDRESS_2_MOCK,
+          amountHumanOriginal: '2.34',
           amountFiat: 40.456,
           balanceFiat: 40.455,
           totalFiat: 41,
@@ -163,6 +181,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountHuman: '2.34',
       },
     ]);
   });
@@ -173,6 +192,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           amountFiat: 16.123,
+          amountHumanOriginal: '1.23',
           balanceFiat: 16.124,
           totalFiat: 17,
           skipIfBalance: false,
@@ -180,6 +200,7 @@ describe('useTransactionPayTokenAmounts', () => {
         {
           address: TOKEN_ADDRESS_2_MOCK,
           amountFiat: 40.456,
+          amountHumanOriginal: '2.34',
           balanceFiat: 40.455,
           totalFiat: 41,
           skipIfBalance: false,
@@ -195,6 +216,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: TOKEN_ADDRESS_2_MOCK,
         amountHuman: '10.25',
         amountRaw: '102500',
+        targetAmountHuman: '2.34',
       },
     ]);
   });
@@ -207,7 +229,10 @@ describe('useTransactionPayTokenAmounts', () => {
   });
 
   it('returns undefined if no pay token selected', () => {
-    useTransactionPayTokenMock.mockReturnValue({ setPayToken: jest.fn() });
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
 
     const sourceAmounts = runHook();
     expect(sourceAmounts.amounts).toBeUndefined();

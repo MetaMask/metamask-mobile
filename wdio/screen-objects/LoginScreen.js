@@ -1,8 +1,7 @@
-import Gestures from '../helpers/Gestures';
-import Selectors from '../helpers/Selectors';
-import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import { LoginViewSelectors } from '../../e2e/selectors/wallet/LoginView.selectors';
-import { expect as appwrightExpect } from 'appwright';
+import Gestures from "../helpers/Gestures";
+import Selectors from "../helpers/Selectors";
+import AppwrightSelectors from "../helpers/AppwrightSelectors";
+import { LoginViewSelectors } from "../../e2e/selectors/wallet/LoginView.selectors";
 
 class LoginScreen {
   get device() {
@@ -30,28 +29,39 @@ class LoginScreen {
   }
 
   get resetWalletButton() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(LoginViewSelectors.RESET_WALLET);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.RESET_WALLET);
-    }
+    return Selectors.getXpathElementByResourceId(
+      LoginViewSelectors.RESET_WALLET,
+    );
   }
 
   get passwordInput() {
+    // Always return the same selector for backward compatibility
+    // The actual element resolution will be handled in async methods
+    return Selectors.getXpathElementByResourceId(
+      LoginViewSelectors.PASSWORD_INPUT,
+    );
+  }
+
+  async getPasswordInputElement() {
     if (!this._device) {
-      return Selectors.getXpathElementByResourceId(LoginViewSelectors.PASSWORD_INPUT);
+      return Selectors.getXpathElementByResourceId(
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return await AppwrightSelectors.getElementByID(
+          this._device,
+          LoginViewSelectors.PASSWORD_INPUT,
+        );
+      } else {
+        return await AppwrightSelectors.getElementByID(this._device, "textfield");
+      }
     }
   }
 
   get unlockButton() {
     // TODO: update the component to have a testID property and use that instead of text
-    if (!this._device) {
-      return Selectors.getXpathElementByText('Unlock');
-    } else {
-      return AppwrightSelectors.getElementByText(this._device, 'Unlock');
-    }
+    return Selectors.getXpathElementByText("Unlock");
   }
 
   get title() {
@@ -63,11 +73,9 @@ class LoginScreen {
   }
 
   get rememberMeToggle() {
-    if (!this._device) {
-      return Selectors.getXpathElementByResourceId(LoginViewSelectors.REMEMBER_ME_SWITCH);
-    } else {
-      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.REMEMBER_ME_SWITCH);
-    }
+    return Selectors.getXpathElementByResourceId(
+      LoginViewSelectors.REMEMBER_ME_SWITCH,
+    );
   }
 
   async isLoginScreenVisible() {
@@ -104,14 +112,7 @@ class LoginScreen {
 
   async typePassword(password) {
     await this.isLoginScreenVisible();
-    if (!this._device) {
-      await Gestures.typeText(this.passwordInput, password);
-    } else {
-      const screenTitle = await this.title
-      const element = await this.passwordInput;
-      await element.fill(password);
-      await screenTitle.tap()
-    }
+    await Gestures.typeText(this.passwordInput, password);
   }
 
   async tapUnlockButton() {

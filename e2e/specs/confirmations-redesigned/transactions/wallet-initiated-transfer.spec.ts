@@ -67,6 +67,9 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
       {
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
