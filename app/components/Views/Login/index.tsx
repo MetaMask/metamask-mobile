@@ -25,9 +25,10 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
+  setCompletedOnboarding,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -110,6 +111,11 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
+import { useDeleteWallet } from '../../hooks/DeleteWallet';
+import { clearHistory } from '../../../actions/browser';
+import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
+import { RootState } from '../../../reducers';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -653,6 +659,65 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
+  const [resetWalletState, deleteUser] = useDeleteWallet();
+  const dispatch = useDispatch();
+  const { signOut } = useSignOut();
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state: RootState) => state.security.dataCollectionForMarketing,
+  );
+  const navigateOnboardingRoot = (): void => {
+    navigation.reset({
+      routes: [
+        {
+          name: Routes.ONBOARDING.ROOT_NAV,
+          state: {
+            routes: [
+              {
+                name: Routes.ONBOARDING.NAV,
+                params: {
+                  screen: Routes.ONBOARDING.ONBOARDING,
+                  params: { delete: true },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+  };
+  const gotoSeedlessControllerErrorPrompt = () => {
+    const errorSheetParams: SuccessErrorSheetParams = {
+      type: 'error',
+      title: strings('login.seedless_controller_error_prompt_title'),
+      description: strings(
+        'login.seedless_controller_error_prompt_description',
+      ),
+      primaryButtonLabel: strings(
+        'login.seedless_controller_error_prompt_primary_button_label',
+      ),
+      onPrimaryButtonPress: async () => {
+        // reset wallet
+        // redirect to login
+        setLoading(true);
+        dispatch(
+          clearHistory(isMetricsEnabled(), isDataCollectionForMarketingEnabled),
+        );
+        signOut();
+        await resetWalletState();
+        await deleteUser();
+        await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
+        dispatch(setCompletedOnboarding(false));
+        navigateOnboardingRoot();
+        setLoading(false);
+      },
+      closeOnPrimaryButtonPress: true,
+    };
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+      params: errorSheetParams,
+    });
+  };
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -781,6 +846,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 />
               </View>
             )}
+            <Button
+              variant={ButtonVariants.Primary}
+              onPress={gotoSeedlessControllerErrorPrompt}
+              label={'error prompt'}
+            />
           </View>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
