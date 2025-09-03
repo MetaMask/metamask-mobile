@@ -3617,10 +3617,6 @@ app:
       MM_PER_DAPP_SELECTED_NETWORK: false
     - opts:
         is_expand: false
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: false
-
-    - opts:
-        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
