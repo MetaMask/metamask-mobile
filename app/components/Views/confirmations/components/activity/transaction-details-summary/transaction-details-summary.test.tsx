@@ -9,9 +9,22 @@ import { TransactionDetailsSummary } from './transaction-details-summary';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { transactionIdMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { strings } from '../../../../../../../locales/i18n';
+import { fireEvent } from '@testing-library/react-native';
+import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
+jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const REQUIRED_TRANSACTION_ID_MOCK = '123-456';
 const REQUIRED_TRANSACTION_ID_2_MOCK = '789-012';
@@ -41,9 +54,15 @@ function render({
   });
 }
 
+const BLOCK_EXPLORER_URL_MOCK = 'test.com';
+const BLOCK_EXPLORER_TITLE_MOCK = 'Test Title';
+
 describe('TransactionDetailsSummary', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
   const useBridgeTxHistoryDataMock = jest.mocked(useBridgeTxHistoryData);
+  const useMultichainBlockExplorerTxUrlMock = jest.mocked(
+    useMultichainBlockExplorerTxUrl,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -66,6 +85,11 @@ describe('TransactionDetailsSummary', () => {
         },
       },
     } as unknown as ReturnType<typeof useBridgeTxHistoryData>);
+
+    useMultichainBlockExplorerTxUrlMock.mockReturnValue({
+      explorerTxUrl: BLOCK_EXPLORER_URL_MOCK,
+      explorerName: BLOCK_EXPLORER_TITLE_MOCK,
+    } as ReturnType<typeof useMultichainBlockExplorerTxUrl>);
   });
 
   it('renders perps deposit line title', () => {
@@ -164,5 +188,23 @@ describe('TransactionDetailsSummary', () => {
         }),
       ),
     ).toBeDefined();
+  });
+
+  it('navigates to block explorer', () => {
+    const { getByTestId } = render({
+      transactions: [
+        { ...TRANSACTION_META_MOCK, type: TransactionType.perpsDeposit },
+      ],
+    });
+
+    fireEvent.press(getByTestId('block-explorer-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: BLOCK_EXPLORER_URL_MOCK,
+        title: BLOCK_EXPLORER_TITLE_MOCK,
+      },
+    });
   });
 });
