@@ -443,10 +443,6 @@ let cachedConsent: boolean | null = null;
  * Check if user has given consent for metrics
  */
 export async function hasMetricsConsent(): Promise<boolean> {
-  if (__DEV__) {
-    return true;
-  }
-
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;
