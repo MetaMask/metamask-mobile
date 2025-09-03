@@ -57,12 +57,22 @@ export class PerformanceTracker {
           },
         );
 
-        const videoURL = response.data.automation_session.video_url;
-        console.log(`✅ SUCCESS ON ATTEMPT ${attempt}! Video URL:`, videoURL);
+        const sessionData = response.data.automation_session;
+        const buildId = sessionData.build_hashed_id;
+
+        if (buildId) {
+          // Construct the route to the session video without using the auth token
+          const videoURL = `https://app-automate.browserstack.com/builds/${buildId}/sessions/${sessionId}`;
+          console.log(`✅ SUCCESS ON ATTEMPT ${attempt}! Video URL:`, videoURL);
+          console.log(
+            `🕐 Total time elapsed: ${(Date.now() - startTime) / 1000}s`,
+          );
+          return videoURL;
+        }
+
         console.log(
-          `🕐 Total time elapsed: ${(Date.now() - startTime) / 1000}s`,
+          `Build ID not found in session data for attempt ${attempt}`,
         );
-        return videoURL;
       } catch (error) {
         const status = error.response?.status;
         const elapsedTime = (Date.now() - startTime) / 1000;
