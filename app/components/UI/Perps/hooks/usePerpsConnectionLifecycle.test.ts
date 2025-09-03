@@ -96,7 +96,8 @@ describe('usePerpsConnectionLifecycle', () => {
       expect(mockOnDisconnect).not.toHaveBeenCalled();
     });
 
-    it('should disconnect immediately when tab becomes hidden', () => {
+    it('should schedule disconnection when tab becomes hidden (with grace period)', () => {
+      mockIsIos.mockReturnValue(true);
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -113,10 +114,50 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Change to hidden
+      // Change to hidden - should schedule disconnection, not disconnect immediately
       rerender({ isVisible: false });
+      expect(mockOnDisconnect).not.toHaveBeenCalled();
 
+      // Fast-forward timer to trigger disconnection
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cancel scheduled disconnection when tab becomes visible again', () => {
+      mockIsIos.mockReturnValue(true);
+      const { rerender } = renderHook(
+        ({ isVisible }) =>
+          usePerpsConnectionLifecycle({
+            isVisible,
+            onConnect: mockOnConnect,
+            onDisconnect: mockOnDisconnect,
+          }),
+        { initialProps: { isVisible: true } },
+      );
+
+      // Initial connection
+      act(() => {
+        jest.runOnlyPendingTimers();
+      });
+      expect(mockOnConnect).toHaveBeenCalledTimes(1);
+
+      // Tab becomes hidden - should schedule disconnection
+      rerender({ isVisible: false });
+      expect(mockOnDisconnect).not.toHaveBeenCalled();
+
+      // Tab becomes visible again before timer expires - should cancel timer
+      rerender({ isVisible: true });
+      expect(BackgroundTimer.stop).toHaveBeenCalled();
+
+      // Fast-forward past original disconnect time
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      // Should not have disconnected
+      expect(mockOnDisconnect).not.toHaveBeenCalled();
     });
 
     it('should not manage connection when visibility is undefined', () => {
@@ -281,6 +322,7 @@ describe('usePerpsConnectionLifecycle', () => {
 
   describe('Interaction between visibility and app state', () => {
     it('should not reconnect when app comes to foreground if tab is not visible', () => {
+      mockIsIos.mockReturnValue(true);
       const { rerender } = renderHook(
         ({ isVisible }) =>
           usePerpsConnectionLifecycle({
@@ -297,9 +339,9 @@ describe('usePerpsConnectionLifecycle', () => {
       });
       expect(mockOnConnect).toHaveBeenCalledTimes(1);
 
-      // Hide tab
+      // Hide tab - should schedule disconnection
       rerender({ isVisible: false });
-      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
+      expect(mockOnDisconnect).not.toHaveBeenCalled(); // Not immediate anymore
 
       mockOnConnect.mockClear();
 
@@ -314,7 +356,7 @@ describe('usePerpsConnectionLifecycle', () => {
       expect(mockOnConnect).not.toHaveBeenCalled();
     });
 
-    it('should cancel background timer when tab becomes hidden', () => {
+    it('should cancel and reschedule timer when tab becomes hidden after app backgrounding', () => {
       mockIsIos.mockReturnValue(true);
       const { rerender } = renderHook(
         ({ isVisible }) =>
@@ -326,18 +368,20 @@ describe('usePerpsConnectionLifecycle', () => {
         { initialProps: { isVisible: true } },
       );
 
-      // App goes to background
+      // App goes to background - should schedule disconnection
       act(() => {
         mockAppStateListener?.('background');
       });
-
       expect(BackgroundTimer.start).toHaveBeenCalled();
 
-      // Tab becomes hidden before timer expires
+      // Tab becomes hidden - should cancel existing timer and schedule new one
       rerender({ isVisible: false });
-
       expect(BackgroundTimer.stop).toHaveBeenCalled();
-      expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
+      // Should schedule new disconnection timer (BackgroundTimer.start called again)
+      expect(BackgroundTimer.start).toHaveBeenCalledTimes(2);
+
+      // Disconnection should not be immediate
+      expect(mockOnDisconnect).not.toHaveBeenCalled();
     });
   });
 

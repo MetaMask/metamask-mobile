@@ -18,13 +18,14 @@ interface UsePerpsConnectionLifecycleReturn {
 
 /**
  * Hook that manages the Perps WebSocket connection lifecycle based on:
- * - Tab visibility (connect when visible, disconnect when hidden)
- * - App state (disconnect after 20s when backgrounded)
+ * - Tab visibility (connect when visible, disconnect after 30s when hidden)
+ * - App state (disconnect after 30s when backgrounded)
  *
  * This hook ensures optimal battery and network usage by:
- * - Immediately disconnecting when tab is not visible
- * - Delaying disconnection by 20s when app is backgrounded (for quick returns)
+ * - Delaying disconnection by 30s when tab is not visible (for quick returns)
+ * - Delaying disconnection by 30s when app is backgrounded (for quick returns)
  * - Using BackgroundTimer to ensure timers run even when app is suspended
+ * - Providing grace period for users who temporarily exit and return to perps UX
  */
 export function usePerpsConnectionLifecycle({
   isVisible,
@@ -93,14 +94,6 @@ export function usePerpsConnectionLifecycle({
     }
   }, [onConnect, onError]);
 
-  // Handle disconnection
-  const handleDisconnection = useCallback(() => {
-    if (hasConnected.current) {
-      hasConnected.current = false;
-      onDisconnect();
-    }
-  }, [onDisconnect]);
-
   // Handle tab visibility changes
   useEffect(() => {
     if (isVisible === undefined) {
@@ -109,15 +102,15 @@ export function usePerpsConnectionLifecycle({
     }
 
     if (isVisible === false && hasConnected.current) {
-      // Tab is not visible - disconnect immediately
-      cancelBackgroundTimer(); // Cancel any pending background timer
-      handleDisconnection();
+      // Tab is not visible - schedule disconnection with grace period (same as app backgrounding)
+      scheduleBackgroundDisconnection();
     } else if (
       isVisible === true &&
       !hasConnected.current &&
       lastAppState.current === 'active'
     ) {
-      // Tab is visible and app is active - connect
+      // Tab is visible and app is active - cancel any pending disconnection and connect
+      cancelBackgroundTimer();
       // Add small delay to allow any pending disconnection to complete
       const timer = setTimeout(() => {
         if (isVisible === true && !hasConnected.current) {
@@ -125,8 +118,16 @@ export function usePerpsConnectionLifecycle({
         }
       }, 500);
       return () => clearTimeout(timer);
+    } else if (isVisible === true && hasConnected.current) {
+      // Tab became visible and we're already connected - cancel any pending disconnection
+      cancelBackgroundTimer();
     }
-  }, [isVisible, cancelBackgroundTimer, handleConnection, handleDisconnection]);
+  }, [
+    isVisible,
+    cancelBackgroundTimer,
+    handleConnection,
+    scheduleBackgroundDisconnection,
+  ]);
 
   // Handle app state changes (background/foreground)
   useEffect(() => {
