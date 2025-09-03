@@ -68,14 +68,12 @@ export const getPercentageValueFn = ({
   }
 
   let percentageValue = rawBalanceBN.sub(estimatedTotalGas);
-  let decimals = asset.decimals;
 
   if (percentage !== 100) {
-    percentageValue = percentageValue.mul(new BN(percentage));
-    decimals += 2;
+    percentageValue = percentageValue.mul(new BN(percentage)).div(new BN(100));
   }
 
-  return fromBNWithDecimals(percentageValue, decimals);
+  return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
 export const usePercentageAmount = () => {
