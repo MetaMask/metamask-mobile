@@ -36,7 +36,7 @@ interface UseRewardsResult {
 }
 
 /**
- * Formats an Ethereum address to CAIP-10 account ID
+ * Formats an address to CAIP-10 account ID
  */
 const formatAccountToCaipAccountId = (
   address: string,
