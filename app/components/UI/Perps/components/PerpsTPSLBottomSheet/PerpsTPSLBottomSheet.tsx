@@ -149,24 +149,36 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   useEffect(() => {
     if (isVisible && position) {
       // Calculate initial RoE percentages when opening
-      if (initialTakeProfitPrice && takeProfitPercentage === '' && entryPrice && margin && size) {
+      if (
+        initialTakeProfitPrice &&
+        takeProfitPercentage === '' &&
+        entryPrice &&
+        margin &&
+        size
+      ) {
         const roe = calculateRoEForPrice(
           initialTakeProfitPrice,
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setTakeProfitPercentage(roe);
       }
 
-      if (initialStopLossPrice && stopLossPercentage === '' && entryPrice && margin && size) {
+      if (
+        initialStopLossPrice &&
+        stopLossPercentage === '' &&
+        entryPrice &&
+        margin &&
+        size
+      ) {
         const roe = calculateRoEForPrice(
           initialStopLossPrice,
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         // Stop loss RoE is negative, show as positive for UI
         setStopLossPercentage(Math.abs(parseFloat(roe)).toFixed(2));
@@ -190,7 +202,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setTakeProfitPrice(formatPrice(price));
       }
@@ -207,14 +219,19 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setStopLossPrice(formatPrice(price));
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tpUsingPercentage, slUsingPercentage, takeProfitPercentage, stopLossPercentage]); // Update prices when RoE percentages change
+  }, [
+    tpUsingPercentage,
+    slUsingPercentage,
+    takeProfitPercentage,
+    stopLossPercentage,
+  ]); // Update prices when RoE percentages change
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
@@ -290,7 +307,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setTakeProfitPercentage(roe);
       } else {
@@ -314,13 +331,19 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       setTakeProfitPercentage(sanitized);
 
       // Update price based on RoE percentage
-      if (sanitized && !isNaN(parseFloat(sanitized)) && entryPrice && margin && size) {
+      if (
+        sanitized &&
+        !isNaN(parseFloat(sanitized)) &&
+        entryPrice &&
+        margin &&
+        size
+      ) {
         const price = calculatePriceForRoE(
           parseFloat(sanitized),
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setTakeProfitPrice(formatPrice(price));
         setSelectedTpPercentage(parseFloat(sanitized));
@@ -350,7 +373,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         // Always show stop loss RoE as positive
         setStopLossPercentage(Math.abs(parseFloat(roe)).toFixed(2));
@@ -374,14 +397,20 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       setStopLossPercentage(sanitized);
 
       // Update price based on RoE percentage
-      if (sanitized && !isNaN(parseFloat(sanitized)) && entryPrice && margin && size) {
+      if (
+        sanitized &&
+        !isNaN(parseFloat(sanitized)) &&
+        entryPrice &&
+        margin &&
+        size
+      ) {
         // Stop loss uses negative RoE
         const price = calculatePriceForRoE(
           -parseFloat(sanitized),
           entryPrice,
           margin,
           Math.abs(size),
-          actualDirection || 'long'
+          actualDirection || 'long',
         );
         setStopLossPrice(formatPrice(price));
         setSelectedSlPercentage(parseFloat(sanitized));
@@ -404,7 +433,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         entryPrice,
         margin,
         Math.abs(size),
-        actualDirection || 'long'
+        actualDirection || 'long',
       );
 
       setTakeProfitPrice(formatPrice(price));
@@ -425,7 +454,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         entryPrice,
         margin,
         Math.abs(size),
-        actualDirection || 'long'
+        actualDirection || 'long',
       );
 
       setStopLossPrice(formatPrice(price));

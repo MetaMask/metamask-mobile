@@ -209,9 +209,10 @@ export const calculateRoEForPrice = (
 
   // Calculate P&L at target price
   const priceDiff = target - entryPrice;
-  const pnl = direction === 'long'
-    ? priceDiff * Math.abs(size)
-    : -priceDiff * Math.abs(size);
+  const pnl =
+    direction === 'long'
+      ? priceDiff * Math.abs(size)
+      : -priceDiff * Math.abs(size);
 
   // Calculate RoE
   const roe = (pnl / margin) * 100;
@@ -239,9 +240,10 @@ export const calculatePriceForRoE = (
   const targetPnl = (roePercentage / 100) * margin;
 
   // Calculate price difference needed
-  const priceDiff = direction === 'long'
-    ? targetPnl / Math.abs(size)
-    : -targetPnl / Math.abs(size);
+  const priceDiff =
+    direction === 'long'
+      ? targetPnl / Math.abs(size)
+      : -targetPnl / Math.abs(size);
 
   const targetPrice = entryPrice + priceDiff;
   return targetPrice.toFixed(2);
