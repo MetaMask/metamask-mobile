@@ -16,7 +16,13 @@ export const selectReferralCount = (state: RootState) =>
 export const selectSubscriptionId = (state: RootState) =>
   state.rewards.subscriptionId;
 
-export const selectTierStatus = (state: RootState) => state.rewards.tierStatus;
+export const selectCurrentTier = (state: RootState) =>
+  state.rewards.currentTier;
+
+export const selectNextTier = (state: RootState) => state.rewards.nextTier;
+
+export const selectNextTierPointsNeeded = (state: RootState) =>
+  state.rewards.nextTierPointsNeeded;
 
 export const selectBalanceRefereePortion = (state: RootState) =>
   state.rewards.balanceRefereePortion;
@@ -26,3 +32,14 @@ export const selectBalanceUpdatedAt = (state: RootState) =>
 
 export const selectSeasonStatusLoading = (state: RootState) =>
   state.rewards.seasonStatusLoading;
+
+export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
+
+export const selectSeasonStartDate = (state: RootState) =>
+  state.rewards.seasonStartDate;
+
+export const selectSeasonEndDate = (state: RootState) =>
+  state.rewards.seasonEndDate;
+
+export const selectSeasonTiers = (state: RootState) =>
+  state.rewards.seasonTiers;
