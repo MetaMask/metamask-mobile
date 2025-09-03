@@ -7,7 +7,6 @@ export const DummyQuotesNoApproval = {
         requestId: '1467727b-a769-4f87-97de-7a64c46d78e1',
         srcChainId: 10,
         srcTokenAmount: '4956250000000000',
-        minDestTokenAmount: '9812500',
         srcAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:10/slip44:614',
@@ -168,7 +167,6 @@ export const DummyQuotesNoApproval = {
         requestId: '23db9d70-a7e9-4a37-9f31-785c90b34c3b',
         srcChainId: 10,
         srcTokenAmount: '4956250000000000',
-        minDestTokenAmount: '9812500',
         srcAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:10/slip44:614',
@@ -329,7 +327,6 @@ export const DummyQuotesNoApproval = {
         requestId: '59c67bdf-fdac-43b0-89f2-cc66a632ea36',
         srcChainId: 10,
         srcTokenAmount: '4956250000000000',
-        minDestTokenAmount: '9812500',
         srcAsset: {
           address: '0x0000000000000000000000000000000000000000',
           assetId: 'eip155:10/slip44:614',
@@ -495,7 +492,6 @@ export const DummyQuotesWithApproval = {
         requestId: '1541e83a-887a-42b8-a3b6-a983659b9e6f',
         srcChainId: 1,
         srcTokenAmount: '9912500',
-        minDestTokenAmount: '9812500',
         srcAsset: {
           address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -757,7 +753,6 @@ export const DummyQuotesWithApproval = {
         requestId: '0e5d2054-749a-49ee-8c83-1f50030e720d',
         srcChainId: 1,
         srcTokenAmount: '9912500',
-        minDestTokenAmount: '9812500',
         srcAsset: {
           address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -1018,11 +1013,6 @@ export const DummyQuotesWithApproval = {
 };
 
 export const DummyQuoteMetadata: QuoteMetadata = {
-  minToTokenAmount: {
-    amount: '9812500',
-    valueInCurrency: '9.8128810694176015',
-    usd: '9.8128810694176015',
-  },
   sentAmount: {
     amount: '0.005',
     valueInCurrency: '9.8128810694176015',
