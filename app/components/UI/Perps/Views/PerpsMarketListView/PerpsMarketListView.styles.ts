@@ -49,6 +49,16 @@ const styleSheet = (params: { theme: Theme }) => {
     listContainer: {
       flex: 1,
     },
+    listContainerWithTabBar: {
+      flex: 1,
+    },
+    tabBarContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+
     listHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',

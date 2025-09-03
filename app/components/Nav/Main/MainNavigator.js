@@ -958,7 +958,14 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={PerpsScreenStack}
+            options={{
+              animationEnabled: false,
+              cardStyleInterpolator: () => ({}),
+            }}
+          />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}
