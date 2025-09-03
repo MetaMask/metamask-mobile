@@ -112,7 +112,11 @@ const QuoteDetailsCard = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const { estimatedPoints, isLoading: isRewardsLoading } = useRewards({
+  const {
+    estimatedPoints,
+    isLoading: isRewardsLoading,
+    shouldShowRewardsRow,
+  } = useRewards({
     activeQuote,
     isQuoteLoading,
   });
@@ -418,17 +422,25 @@ const QuoteDetailsCard = () => {
             />
 
             {/* Estimated Points */}
-            {estimatedPoints !== null && !isRewardsLoading && (
+            {shouldShowRewardsRow && (
               <KeyValueRow
                 field={{
                   label: {
-                    text: strings('bridge.estimated_points'),
+                    text: strings('bridge.points'),
                     variant: TextVariant.BodyMDMedium,
+                  },
+                  tooltip: {
+                    title: strings('bridge.points_tooltip'),
+                    content: strings('bridge.points_tooltip_content'),
+                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
                   label: {
-                    text: estimatedPoints.toString(),
+                    text:
+                      estimatedPoints !== null && !isRewardsLoading
+                        ? estimatedPoints.toString()
+                        : '-',
                     variant: TextVariant.BodyMD,
                   },
                 }}

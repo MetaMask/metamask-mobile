@@ -31,6 +31,7 @@ interface UseRewardsParams {
 }
 
 interface UseRewardsResult {
+  shouldShowRewardsRow: boolean;
   isLoading: boolean;
   estimatedPoints: number | null;
 }
@@ -61,6 +62,7 @@ export const useRewards = ({
 }: UseRewardsParams): UseRewardsResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedPoints, setEstimatedPoints] = useState<number | null>(null);
+  const [shouldShowRewardsRow, setShouldShowRewardsRow] = useState(false);
 
   // Selectors
   const sourceToken = useSelector(selectSourceToken);
@@ -124,6 +126,8 @@ export const useRewards = ({
         setIsLoading(false);
         return;
       }
+
+      setShouldShowRewardsRow(true);
 
       // Format source asset
       const srcAssetId = formatAddressToAssetId(
@@ -213,6 +217,7 @@ export const useRewards = ({
   ]);
 
   return {
+    shouldShowRewardsRow,
     isLoading: isLoading || isQuoteLoading,
     estimatedPoints,
   };
