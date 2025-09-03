@@ -27,6 +27,7 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
+  symbol,
   marketStats,
   position,
   isLoadingPosition,
@@ -236,6 +237,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         </Text>
 
         <PerpsMarketStatisticsCard
+          symbol={symbol}
           marketStats={marketStats}
           onTooltipPress={handleTooltipPress}
           nextFundingTime={nextFundingTime}
@@ -302,6 +304,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             testID={PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT}
           >
             <PerpsMarketStatisticsCard
+              symbol={symbol}
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
               nextFundingTime={nextFundingTime}
