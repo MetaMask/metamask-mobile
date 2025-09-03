@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/performance-test.js';
+import { test } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
