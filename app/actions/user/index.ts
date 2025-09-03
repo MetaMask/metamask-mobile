@@ -23,6 +23,7 @@ import {
   type PersistedDataLoadedAction,
   type SetAppServicesReadyAction,
   type SetExistingUserAction,
+  type SetIsConnectionRemovedAction,
   UserActionType,
 } from './types';
 
@@ -185,5 +186,17 @@ export function setExistingUser(existingUser: boolean): SetExistingUserAction {
   return {
     type: UserActionType.SET_EXISTING_USER,
     payload: { existingUser },
+  };
+}
+
+/**
+ * Action to set isConnectionRemoved state
+ */
+export function setIsConnectionRemoved(
+  isConnectionRemoved: boolean,
+): SetIsConnectionRemovedAction {
+  return {
+    type: UserActionType.SET_IS_CONNECTION_REMOVED,
+    payload: { isConnectionRemoved },
   };
 }

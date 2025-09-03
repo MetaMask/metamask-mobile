@@ -51,6 +51,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
+app/core/redux/slices/card/          @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations

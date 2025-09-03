@@ -29,6 +29,7 @@ enum SUPPORTED_ACTIONS {
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
+  CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
   WC = ACTIONS.WC,
 }
 
@@ -48,6 +49,7 @@ async function handleUniversalLink({
   source: string;
 }) {
   const validatedUrl = new URL(url);
+
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
@@ -69,7 +71,7 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   if (
-    !Object.keys(SUPPORTED_ACTIONS).includes(action.toUpperCase()) ||
+    !Object.values(SUPPORTED_ACTIONS).includes(action) ||
     !isSupportedDomain
   ) {
     isInvalidLink = true;
@@ -114,8 +116,9 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const pageTitle: string =
-      capitalize(validatedUrl.pathname.split('/')[1]?.toLowerCase()) || '';
+    const [, action] = validatedUrl.pathname.split('/');
+    const sanitizedAction = action?.replace(/-/g, ' ');
+    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
       linkType: linkType(),
@@ -164,6 +167,9 @@ async function handleUniversalLink({
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
     return;
+  } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
+    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleCreateAccount(deeplinkUrl);
   } else if (action === SUPPORTED_ACTIONS.WC) {
     const { params } = extractURLParams(urlObj.href);
     const wcURL = params?.uri;

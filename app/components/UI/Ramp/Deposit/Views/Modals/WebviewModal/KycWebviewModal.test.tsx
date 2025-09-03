@@ -5,6 +5,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import useIdProofPolling from '../../../hooks/useIdProofPolling';
+import { endTrace } from '../../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
@@ -40,6 +41,11 @@ jest.mock('../../../hooks/useDepositRouting', () => ({
 }));
 
 jest.mock('./WebviewModal', () => () => 'WebviewModal');
+
+jest.mock('../../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
 
 describe('KycWebviewModal', () => {
   function render(Component: React.ComponentType) {
@@ -106,5 +112,26 @@ describe('KycWebviewModal', () => {
     render(KycWebviewModal);
 
     expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(KycWebviewModal);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'DepositKycWebviewModal',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'DepositKycWebviewModal',
+      },
+    });
   });
 });

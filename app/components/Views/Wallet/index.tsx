@@ -36,7 +36,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -49,6 +48,7 @@ import {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -129,25 +129,47 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import AppConstants from '../../../core/AppConstants';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsSwapsLive,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../core/redux/slices/bridge';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
+import { selectIsConnectionRemoved } from '../../../reducers/user';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { InitSendLocation } from '../confirmations/constants/send';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
+import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
+    base: {
+      paddingHorizontal: 16,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -258,11 +280,21 @@ const WalletTokensTabView = React.memo(
           renderTabBar={renderTabBar}
           onChangeTab={onChangeTab}
         >
-          <Tokens {...tokensTabProps} />
-          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
-          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          <Tokens {...tokensTabProps} key={tokensTabProps.key} />
+          {isPerpsEnabled && (
+            <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
+          )}
+          {defiEnabled && (
+            <DeFiPositionsList
+              {...defiPositionsTabProps}
+              key={defiPositionsTabProps.key}
+            />
+          )}
           {collectiblesEnabled && (
-            <CollectibleContracts {...collectibleContractsTabProps} />
+            <CollectibleContracts
+              {...collectibleContractsTabProps}
+              key={collectibleContractsTabProps.key}
+            />
           )}
         </ScrollableTabView>
       </View>
@@ -289,6 +321,7 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -321,14 +354,16 @@ const Wallet = ({
   );
 
   const [isNetworkRampSupported] = useRampNetwork();
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -348,7 +383,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayBuyButton = isNetworkRampSupported;
+  const displayFundButton = isNetworkRampSupported;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -366,7 +401,9 @@ const Wallet = ({
     try {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
-      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
       if (wasHandledAsNonEvm) {
         return;
       }
@@ -386,40 +423,23 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigate('SendFlowView', {});
+      navigateToSendPage(InitSendLocation.HomePage);
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigate('SendFlowView', {});
+      navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
     nativeCurrency,
-    navigate,
+    navigateToSendPage,
     dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
   ]);
-
-  const onBuy = useCallback(() => {
-    navigate(
-      ...createBuyNavigationDetails({
-        chainId: getDecimalChainId(chainId),
-      }),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'WalletOverview',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -452,11 +472,12 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   useEffect(() => {
     if (
@@ -497,6 +518,30 @@ const Wallet = ({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     });
   }, [addTraitsToUser, hdKeyrings.length]);
+
+  const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  useEffect(() => {
+    if (isConnectionRemoved && isSocialLogin) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('connection_removed_modal.title'),
+          description: strings('connection_removed_modal.content'),
+          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: () => {
+            dispatch(setIsConnectionRemoved(false));
+          },
+        },
+      });
+    }
+  }, [navigation, isConnectionRemoved, dispatch, isSocialLogin]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -553,17 +598,20 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
+  const selectedNetworkName = useSelector(selectNetworkName);
 
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  const networkName =
+    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
 
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
@@ -615,11 +663,17 @@ const Wallet = ({
         [chainId]: true,
       });
     }
-  }, [chainId, tokenNetworkFilter]);
+    if (
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      enabledEVMNetworks.length === 0
+    ) {
+      selectNetwork(chainId);
+    }
+  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();
-  }, [chainId, handleNetworkFilter]);
+  }, [chainId, handleNetworkFilter, enabledEVMNetworks]);
 
   /**
    * Check to see if notifications are enabled
@@ -677,6 +731,8 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const isCardholder = useSelector(selectIsCardholder);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -684,7 +740,6 @@ const Wallet = ({
         walletRef,
         selectedInternalAccount,
         accountName,
-        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -694,21 +749,22 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
     selectedInternalAccount,
     accountName,
-    accountAvatarType,
-    navigation,
-    colors,
     networkName,
     networkImageSource,
     onTitlePress,
+    navigation,
+    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -924,7 +980,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -932,14 +988,16 @@ const Wallet = ({
             goToSwaps={goToSwaps}
             onReceive={onReceive}
             onSend={onSend}
-            onBuy={onBuy}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
             swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
             bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
             receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
-          <Carousel style={styles.carouselContainer} />
+          {isCarouselBannersEnabled && (
+            <Carousel style={styles.carouselContainer} />
+          )}
+
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -961,13 +1019,13 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayBuyButton,
+      displayFundButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,
       onReceive,
       onSend,
-      onBuy,
+      isCarouselBannersEnabled,
     ],
   );
   const renderLoader = useCallback(

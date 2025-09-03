@@ -54,6 +54,15 @@ const mockInitialState = {
       PreferencesController: {
         privacyMode: false,
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '8.0.0',
+          },
+        },
+      },
     },
   },
   accounts: {
@@ -66,11 +75,45 @@ const mockInitialState = {
 
 // Mock the Redux dispatch
 const mockDispatch = jest.fn();
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (selector: any) => selector(mockInitialState),
+  useSelector: (selector: unknown) => {
+    // Default mock state for selectors
+    const mockState = {
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER_STATE_WITH_SOLANA,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {},
+            },
+          },
+          PreferencesController: {
+            privacyMode: false,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '8.0.0',
+              },
+            },
+          },
+        },
+      },
+      accounts: {
+        reloadAccounts: false,
+      },
+      settings: {
+        useBlockieIcon: false,
+      },
+    };
+    return (selector as (mockState: unknown) => unknown)(mockState);
+  },
 }));
 
 jest.mock('../../hooks/useAccounts', () => ({
@@ -97,15 +140,24 @@ jest.mock('../../../core/Engine', () => {
           internalAccounts: AccountsControllerState.internalAccounts,
         },
       },
+      AccountTreeController: {
+        setSelectedAccountGroup: jest.fn(),
+      },
     },
     setSelectedAddress: jest.fn(),
   };
 });
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -200,5 +252,24 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
     expect(addButton).toBeDefined();
+  });
+
+  it('renders account selector with multichain support', () => {
+    renderScreen(
+      AccountSelectorWrapper,
+      {
+        name: Routes.SHEET.ACCOUNT_SELECTOR,
+      },
+      {
+        state: mockInitialState,
+      },
+      mockRoute.params,
+    );
+
+    // Should render the account list (either multichain or EVM based on feature flag)
+    const accountsList = screen.getByTestId(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
+    expect(accountsList).toBeDefined();
   });
 });

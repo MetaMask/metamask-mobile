@@ -17,6 +17,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { handleSendPageNavigation } from '../../Views/confirmations/utils/send';
 
 const createStyles = (colors) =>
@@ -100,7 +101,11 @@ class CollectibleContractOverview extends PureComponent {
       areAddressesEqual(collectible.address, collectibleContract.address),
     );
     this.props.newAssetTransaction(collectible);
-    handleSendPageNavigation(this.props.navigation.navigate, collectible);
+    handleSendPageNavigation(
+      this.props.navigation.navigate,
+      InitSendLocation.CollectibleContractOverview,
+      collectible,
+    );
   };
 
   onInfo = () => this.props.toggleCollectibleContractModal();

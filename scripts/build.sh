@@ -368,13 +368,11 @@ buildAndroidRunFlask(){
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
+	device_args=()
 	if [ -n "$IOS_SIMULATOR" ]; then
-		SIM_OPTION="--device \"$IOS_SIMULATOR\""
-	else
-		SIM_OPTION=""
+		device_args=(--device "$IOS_SIMULATOR")
 	fi
-	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT $SIM_OPTION
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
 }
 
 buildIosSimulatorQA(){

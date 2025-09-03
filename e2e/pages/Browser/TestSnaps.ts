@@ -19,9 +19,12 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import LegacyGestures from '../../utils/Gestures';
 import { ConfirmationFooterSelectorIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
+import { waitForTestSnapsToLoad } from '../../viewHelper';
+import { RetryOptions } from '../../framework';
+import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.28.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -48,37 +51,116 @@ class TestSnaps {
     );
   }
 
+  get footerButton(): DetoxElement {
+    return Matchers.getElementByID(
+      TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      await Assertions.checkIfTextMatches(actualText, expectedMessage);
+    }, options);
+  }
+
+  async checkInstalledSnaps(
+    expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    return await this.checkResultSpan(
+      'installedSnapResultSpan',
+      expectedMessage,
+      options,
+    );
+  }
+
+  async checkResultJson(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    expectedJson: Json,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      let actualJson: Json;
+      try {
+        actualJson = JSON.parse(actualText);
+      } catch (error) {
+        throw new Error(`Failed to parse JSON from result span: ${actualText}`);
+      }
+
+      await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+    }, options);
   }
 
   async checkResultSpanIncludes(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
+    const webElement = await Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapResultSelectorWebIDS[selector],
-    )) as IndexableWebElement;
+    );
 
-    const actualText = await webElement.getText();
-    if (!actualText.includes(expectedMessage)) {
-      throw new Error(`Text did not contain "${expectedMessage}"`);
-    }
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText.includes(expectedMessage)) {
+        throw new Error(`Text did not contain "${expectedMessage}"`);
+      }
+    }, options);
+  }
+
+  async checkResultSpanNotEmpty(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText || actualText.trim() === '') {
+        throw new Error(`Result span is empty`);
+      }
+    }, options);
   }
 
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
+    await waitForTestSnapsToLoad();
   }
 
   async tapButton(
@@ -87,9 +169,41 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapViewSelectorWebIDS[buttonLocator],
-    ) as any;
+    );
     await Gestures.scrollToWebViewPort(webElement);
     await Gestures.tapWebElement(webElement);
+  }
+
+  async tapOkButton() {
+    const button = Matchers.getElementByText('OK');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapApproveButton() {
+    const button = Matchers.getElementByText('Approve');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapConfirmButton() {
+    const button = Matchers.getElementByText('Confirm');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapCancelButton() {
+    const button = Matchers.getElementByText('Cancel');
+    await Gestures.waitAndTap(button);
+  }
+
+  async tapFooterButton() {
+    await Gestures.waitAndTap(this.footerButton);
+  }
+
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
   }
 
   async getOptionValueByText(

@@ -212,6 +212,10 @@ export const getOrders = createSelector(
     ),
 );
 
+export const getAllDepositOrders = createSelector(ordersSelector, (orders) =>
+  orders.filter((order) => order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT),
+);
+
 export const getPendingOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,

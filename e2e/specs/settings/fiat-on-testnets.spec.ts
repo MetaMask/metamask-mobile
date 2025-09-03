@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstractions } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
@@ -14,46 +14,54 @@ import Assertions from '../../framework/Assertions';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
+describe.skip(RegressionNetworkAbstractions('Fiat On Testnets Setting'), () => {
+  // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition: boolean) => (condition ? it.skip : it);
+
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
-  it('should show fiat values on testnets when enabled', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    'should show fiat values on testnets when enabled',
+    async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
 
-        // Switch to Sepolia
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        await NetworkListModal.changeNetworkTo(SEPOLIA);
-        await NetworkEducationModal.tapGotItButton();
+          // Switch to Sepolia
+          await WalletView.tapNetworksButtonOnNavBar();
+          await NetworkListModal.scrollToBottomOfNetworkList();
+          await NetworkListModal.changeNetworkTo(SEPOLIA);
+          await NetworkEducationModal.tapGotItButton();
 
-        // Verify no fiat values displayed
-        await Assertions.expectElementToHaveText(
-          WalletView.totalBalance as DetoxElement,
-          '$0.00',
-        );
+          // Verify no fiat values displayed
+          await Assertions.expectElementToHaveText(
+            WalletView.totalBalance as DetoxElement,
+            '$0.00',
+          );
 
-        // Enable fiat on testnets setting
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapAdvancedTitle();
-        await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
-        await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
-        await FiatOnTestnetsBottomSheet.tapContinueButton();
+          // Enable fiat on testnets setting
+          await TabBarComponent.tapSettings();
+          await SettingsView.tapAdvancedTitle();
+          await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
+          await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
+          await FiatOnTestnetsBottomSheet.tapContinueButton();
 
-        // Verify fiat values are displayed
-        await TabBarComponent.tapWallet();
-        await Assertions.expectElementToNotHaveText(
-          WalletView.totalBalance as DetoxElement,
-          '$0',
-        );
-      },
-    );
-  });
+          // Verify fiat values are displayed
+          await TabBarComponent.tapWallet();
+          await Assertions.expectElementToNotHaveText(
+            WalletView.totalBalance as DetoxElement,
+            '$0',
+          );
+        },
+      );
+    },
+  );
 });

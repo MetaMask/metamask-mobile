@@ -112,7 +112,7 @@ pipelines:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_performance_ios_android_stage: {}
+      # - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -294,8 +294,9 @@ stages:
     workflows:
       - build_ios_main_e2e:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - build_android_main_e2e:
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      # Disabling in CI to allow GHA runs
+      # - build_android_main_e2e:
+      #     run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -323,6 +324,8 @@ stages:
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -331,27 +334,30 @@ stages:
     workflows:
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
-      - run_trade_swimlane_android_smoke: {}
+      # - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
-      - run_network_abstraction_swimlane_android_smoke: {}
+      # - run_network_abstraction_swimlane_android_smoke: {}
       - run_network_expansion_swimlane_ios_smoke: {}
-      - run_network_expansion_swimlane_android_smoke: {}
+      # - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
-      - run_wallet_platform_swimlane_android_smoke: {}
+      # - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_identity_ios: {}
-      - run_tag_smoke_identity_android: {}
+      # - run_tag_smoke_identity_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
+      # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_performance_ios: {}
-      - run_tag_smoke_performance_android: {}
-  run_smoke_e2e_performance_ios_android_stage:
-    workflows:
+      # - run_tag_smoke_performance_android: {}
+      - run_tag_smoke_card_ios: {}
+      # - run_tag_smoke_card_android: {}
+  # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
+  # run_smoke_e2e_performance_ios_android_stage:
+    # workflows:
       # - run_tag_smoke_performance_ios: {}
-      - run_tag_smoke_performance_android: {}
+      #- run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
     abort_on_fail: true
@@ -362,12 +368,46 @@ stages:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -385,6 +425,8 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
 
   report_results_stage:
     workflows:
@@ -787,9 +829,54 @@ workflows:
   ios_build_regression_tests:
     after_run:
       - ios_e2e_build
-  ios_run_regression_tests:
+  ios_run_regression_confirmations_tests:
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_wallet_platform_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_trade_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_expansion_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_performance_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_identity_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_accounts_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_assets_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_ux_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
     after_run:
       - ios_e2e_test
   android_build_regression_tests:
@@ -799,13 +886,94 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
-  android_run_regression_tests:
+  android_run_regression_confirmations_tests:
+    meta:
+        bitrise.io:
+          stack: linux-docker-android-22.04
+          machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - android_e2e_test
+  android_run_regression_wallet_platform_tests:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - android_e2e_test
+  android_run_regression_trade_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_abstraction_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_expansion_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - android_e2e_test
+  android_run_regression_performance_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - android_e2e_test
+  android_run_regression_identity_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - android_e2e_test
+  android_run_regression_accounts_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - android_e2e_test
+  android_run_regression_ux_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - android_e2e_test
+  android_run_regression_assets_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
     after_run:
       - android_e2e_test
   download_production_qa_apk:
@@ -1094,6 +1262,20 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_card_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_card_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -3402,16 +3584,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.53.1
+      VERSION_NAME: 7.54.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2308
+      VERSION_NUMBER: 2344
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.53.1
+      FLASK_VERSION_NAME: 7.54.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2308
+      FLASK_VERSION_NUMBER: 2344
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

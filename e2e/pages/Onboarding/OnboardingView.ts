@@ -3,6 +3,9 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { BASE_DEFAULTS, Utilities } from '../../framework';
 import OnboardingSheet from './OnboardingSheet';
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
+  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
 
 class OnboardingView {
   get container(): DetoxElement {
@@ -28,12 +31,19 @@ class OnboardingView {
   async tapHaveAnExistingWallet() {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.existingWalletButton, {
-          elemDescription: 'Onboarding Have an Existing Wallet Button',
-        });
-        await Utilities.waitForElementToBeVisible(
-          OnboardingSheet.importSeedButton,
-        );
+        if (SEEDLESS_ONBOARDING_ENABLED) {
+          await Gestures.waitAndTap(this.existingWalletButton, {
+            elemDescription: 'Onboarding Have an Existing Wallet Button',
+          });
+          await Utilities.waitForElementToBeVisible(
+            OnboardingSheet.importSeedButton,
+          );
+        } else {
+          await Gestures.waitAndTap(this.existingWalletButton, {
+            elemDescription: 'Onboarding Have an Existing Wallet Button',
+            waitForElementToDisappear: true,
+          });
+        }
       },
       {
         timeout: BASE_DEFAULTS.timeout,

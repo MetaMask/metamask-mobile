@@ -112,6 +112,7 @@ const createStyles = (colors) =>
     keypad: {
       flexGrow: 1,
       justifyContent: 'space-around',
+      paddingHorizontal: 16,
     },
     tokenButtonContainer: {
       flexDirection: 'row',

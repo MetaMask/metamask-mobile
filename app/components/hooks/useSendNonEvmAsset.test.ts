@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSendNonEvmAsset } from './useSendNonEvmAsset';
+import { InitSendLocation } from '../Views/confirmations/constants/send';
 import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { isEvmAccountType } from '@metamask/keyring-api';
@@ -10,6 +11,12 @@ jest.mock('../../core/SnapKeyring/utils/sendMultichainTransaction');
 jest.mock('../../core/SnapKeyring/utils/snaps');
 jest.mock('@metamask/keyring-api');
 jest.mock('../../util/Logger');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
 
 const mockedSendMultichainTransaction =
   sendMultichainTransaction as jest.MockedFunction<
@@ -23,8 +30,19 @@ const mockedIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
 
 describe('useSendNonEvmAsset', () => {
   const mockAsset = {
-    chainId: 'solana:mainnet',
     address: 'test-token-address',
+    aggregators: [],
+    balance: '400',
+    balanceFiat: '1500',
+    chainId: 'solana:mainnet',
+    decimals: 18,
+    hasBalanceError: false,
+    image: '',
+    isETH: undefined,
+    isNative: true,
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+    name: 'Ethereum',
+    symbol: 'ETH',
   };
 
   const mockCloseModal = jest.fn();
@@ -62,7 +80,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
@@ -89,7 +109,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
@@ -201,7 +223,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -241,7 +265,9 @@ describe('useSendNonEvmAsset', () => {
         { state: stateWithoutSnap },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -257,7 +283,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -275,7 +303,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -291,7 +321,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockedSendMultichainTransaction).toHaveBeenCalled();

@@ -4,19 +4,20 @@ import { selectEvmChainId } from '../../../selectors/networkController';
 import { AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
-import {
-  setSwapsLiveness,
-  swapsLivenessSelector,
-} from '../../../reducers/swaps';
+import { setSwapsLiveness } from '../../../reducers/swaps';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
+import { RootState } from '../../../reducers';
+import { selectIsSwapsLive } from '../../../core/redux/slices/bridge';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
 function SwapLiveness() {
-  const isLive = useSelector(swapsLivenessSelector);
   const chainId = useSelector(selectEvmChainId);
+  const isLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const dispatch = useDispatch();
   const setLiveness = useCallback(
     (_chainId: string, featureFlags?: FeatureFlags | null) => {

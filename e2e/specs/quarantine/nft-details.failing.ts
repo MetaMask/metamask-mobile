@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,10 +8,10 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../framework/Assertions';
 import enContent from '../../../locales/languages/en.json';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
-describe(SmokeNetworkAbstractions('NFT Details page'), () => {
+describe(RegressionAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {

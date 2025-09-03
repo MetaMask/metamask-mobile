@@ -97,7 +97,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyMD
+                : TextVariant.BodyMDMedium
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}

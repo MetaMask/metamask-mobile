@@ -9,6 +9,7 @@ import type { Position } from '../../controllers/types';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: jest.fn(),
 }));
 
 const mockUseTheme = jest.fn();
@@ -28,6 +29,36 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
   }),
 }));
 
+// Mock the new hooks from ../../hooks
+jest.mock('../../hooks', () => ({
+  usePerpsPositions: jest.fn().mockReturnValue({
+    loadPositions: jest.fn().mockResolvedValue(undefined),
+  }),
+  usePerpsMarkets: jest.fn().mockReturnValue({
+    markets: [
+      {
+        name: 'ETH',
+        symbol: 'ETH',
+        priceDecimals: 2,
+        sizeDecimals: 4,
+        maxLeverage: 50,
+        minSize: 0.01,
+        sizeIncrement: 0.01,
+      },
+    ],
+    error: null,
+    isLoading: false,
+  }),
+  usePerpsTPSLUpdate: jest.fn().mockReturnValue({
+    handleUpdateTPSL: jest.fn().mockResolvedValue(undefined),
+    isUpdating: false,
+  }),
+  usePerpsClosePosition: jest.fn().mockReturnValue({
+    handleClosePosition: jest.fn().mockResolvedValue(undefined),
+    isClosing: false,
+  }),
+}));
+
 // Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
 jest.mock('../PerpsTPSLBottomSheet', () => ({
   __esModule: true,
@@ -44,6 +75,28 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
       <View testID="perps-tpsl-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsClosePositionBottomSheet
+jest.mock('../PerpsClosePositionBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-close-position-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close Position Sheet</Text>
         </TouchableOpacity>
       </View>
     );
@@ -90,6 +143,11 @@ describe('PerpsPositionCard', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockUseTheme.mockReturnValue(mockTheme);
+    // Reset the PnL calculation mock to default value
+    const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
+      '../../utils/pnlCalculations',
+    );
+    calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
   });
 
   describe('Component Rendering', () => {
@@ -146,10 +204,10 @@ describe('PerpsPositionCard', () => {
 
     it('handles missing PnL percentage data', () => {
       // Arrange
-      const mockCalculatePnL = jest.requireMock(
+      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(undefined);
+      );
+      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(undefined);
 
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
@@ -174,116 +232,56 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('User Interactions', () => {
-    it('navigates to position details when card is pressed', () => {
-      // Act
+    it('navigates to market details when card is pressed', () => {
+      // Act - render with expanded=false to make card clickable
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: expect.any(Object),
+        },
+      });
+    });
+
+    it('opens close position bottom sheet when close button is pressed', () => {
+      // Arrange & Act
       render(<PerpsPositionCard position={mockPosition} />);
-      fireEvent.press(screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD)); // This might need adjustment based on how the container is identified
 
-      // Assert
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_DETAILS,
-        { position: mockPosition, action: 'view' },
-      );
-    });
+      // Verify bottom sheet is not visible initially
+      expect(screen.queryByText('perps.close_position.title')).toBeNull();
 
-    it('calls onEdit when edit button is pressed', () => {
-      // Arrange
-      const mockOnEdit = jest.fn();
-
-      // Act
-      render(<PerpsPositionCard position={mockPosition} onEdit={mockOnEdit} />);
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert
-      expect(mockOnEdit).toHaveBeenCalledWith(mockPosition);
-    });
-
-    it('calls onClose when close button is pressed', () => {
-      // Arrange
-      const mockOnClose = jest.fn();
-
-      // Act
-      render(
-        <PerpsPositionCard position={mockPosition} onClose={mockOnClose} />,
-      );
+      // Press close button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
       );
 
-      // Assert
-      expect(mockOnClose).toHaveBeenCalledWith(mockPosition);
-    });
-
-    it('navigates to position details with close action when no onClose prop (within Perps nav context)', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} isInPerpsNavContext />);
-      fireEvent.press(
+      // Assert - The bottom sheet should be rendered
+      // Note: The actual bottom sheet content might be mocked, so we check for its presence
+      expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
-
-      // Assert - Direct navigation when within Perps navigation context
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_DETAILS,
-        { position: mockPosition, action: 'close' },
-      );
+      ).toBeDefined();
     });
 
-    it('navigates to position details with close action when no onClose prop (outside Perps nav context)', () => {
-      // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          isInPerpsNavContext={false}
-        />,
-      );
-      fireEvent.press(
-        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
-      );
+    it('opens TP/SL bottom sheet when edit button is pressed', () => {
+      // Arrange & Act
+      render(<PerpsPositionCard position={mockPosition} />);
 
-      // Assert - Nested navigation when outside Perps navigation context
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.POSITION_DETAILS,
-        params: { position: mockPosition, action: 'close' },
-      });
-    });
-
-    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop (within Perps nav context)', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} isInPerpsNavContext />);
+      // Verify bottom sheet is not visible initially
+      expect(screen.queryByText('perps.tpsl.title')).toBeNull();
 
       // Press edit button
       fireEvent.press(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
       );
 
-      // Assert - Direct navigation when within Perps navigation context
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_DETAILS,
-        { position: mockPosition, action: 'edit_tpsl' },
-      );
-    });
-
-    it('navigates to position details with edit_tpsl action when edit is pressed without onEdit prop (outside Perps nav context)', () => {
-      // Act
-      render(
-        <PerpsPositionCard
-          position={mockPosition}
-          isInPerpsNavContext={false}
-        />,
-      );
-
-      // Press edit button
-      fireEvent.press(
+      // Assert - The TP/SL bottom sheet should be opened
+      // Note: The actual bottom sheet content might be mocked, so we check for its presence
+      expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
-      );
-
-      // Assert - Nested navigation when outside Perps navigation context
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.POSITION_DETAILS,
-        params: { position: mockPosition, action: 'edit_tpsl' },
-      });
+      ).toBeDefined();
     });
   });
 
@@ -383,16 +381,16 @@ describe('PerpsPositionCard', () => {
         ...mockPosition,
         unrealizedPnl: '0.00',
       };
-      const mockCalculatePnL = jest.requireMock(
+      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(0);
+      );
+      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(0);
 
       // Act
       render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
       // Assert
-      expect(screen.getByText(/\+\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
+      expect(screen.getByText(/\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
     });
 
     it('handles position with empty liquidation price', () => {
@@ -426,6 +424,212 @@ describe('PerpsPositionCard', () => {
       bodyLabels.forEach((label) => {
         expect(screen.getByText(label)).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('Hook Integration', () => {
+    it('calls loadPositions when usePerpsTPSLUpdate onSuccess is triggered', async () => {
+      // Arrange
+      const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
+      const mockOnPositionUpdate = jest.fn().mockResolvedValue(undefined);
+      const mockHandleUpdateTPSL = jest.fn().mockResolvedValue(undefined);
+
+      const { usePerpsPositions, usePerpsTPSLUpdate } =
+        jest.requireMock('../../hooks');
+
+      usePerpsPositions.mockReturnValue({
+        loadPositions: mockLoadPositions,
+      });
+
+      // Mock implementation to capture and immediately call the onSuccess callback
+      usePerpsTPSLUpdate.mockImplementation(
+        ({ onSuccess }: { onSuccess: () => void }) => {
+          // Simulate the onSuccess callback being called
+          setTimeout(() => {
+            onSuccess();
+          }, 0);
+          return {
+            handleUpdateTPSL: mockHandleUpdateTPSL,
+            isUpdating: false,
+          };
+        },
+      );
+
+      // Act
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          onPositionUpdate={mockOnPositionUpdate}
+        />,
+      );
+
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Assert
+      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockOnPositionUpdate).toHaveBeenCalled();
+    });
+
+    it('calls loadPositions when usePerpsClosePosition onSuccess is triggered', async () => {
+      // Arrange
+      const mockLoadPositions = jest.fn().mockResolvedValue(undefined);
+      const mockOnPositionUpdate = jest.fn().mockResolvedValue(undefined);
+      const mockHandleClosePosition = jest.fn().mockResolvedValue(undefined);
+
+      const { usePerpsPositions, usePerpsClosePosition } =
+        jest.requireMock('../../hooks');
+
+      usePerpsPositions.mockReturnValue({
+        loadPositions: mockLoadPositions,
+      });
+
+      // Mock implementation to capture and immediately call the onSuccess callback
+      usePerpsClosePosition.mockImplementation(
+        ({ onSuccess }: { onSuccess: () => void }) => {
+          // Simulate the onSuccess callback being called
+          setTimeout(() => {
+            onSuccess();
+          }, 0);
+          return {
+            handleClosePosition: mockHandleClosePosition,
+            isClosing: false,
+          };
+        },
+      );
+
+      // Act
+      render(
+        <PerpsPositionCard
+          position={mockPosition}
+          onPositionUpdate={mockOnPositionUpdate}
+        />,
+      );
+
+      // Wait for async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Assert
+      expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+      expect(mockOnPositionUpdate).toHaveBeenCalled();
+    });
+
+    it('returns early from handleCardPress when isLoading is true', () => {
+      // Arrange
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
+        error: null,
+        isLoading: true, // Set loading to true
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert - navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('returns early from handleCardPress when error exists', () => {
+      // Arrange
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
+        error: 'Failed to fetch markets',
+        isLoading: false,
+      });
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
+      fireEvent.press(screen.getByTestId('PerpsPositionCard'));
+
+      // Assert - navigation should not be called
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Bottom Sheet Interactions', () => {
+    it('renders PerpsTPSLBottomSheet when isTPSLVisible is true', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the TP/SL bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Assert
+      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeOnTheScreen();
+    });
+
+    it('handles PerpsTPSLBottomSheet onClose callback', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the TP/SL bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.EDIT_BUTTON),
+      );
+
+      // Close the bottom sheet
+      fireEvent.press(screen.getByText('Close'));
+
+      // Assert - bottom sheet should be closed (not visible)
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+    });
+
+    it('renders PerpsClosePositionBottomSheet when isClosePositionVisible is true', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the close position bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-close-position-bottomsheet'),
+      ).toBeOnTheScreen();
+    });
+
+    it('handles PerpsClosePositionBottomSheet onClose callback', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Open the close position bottom sheet
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      // Close the bottom sheet
+      fireEvent.press(screen.getByText('Close Position Sheet'));
+
+      // Assert - bottom sheet should be closed (not visible)
+      expect(
+        screen.queryByTestId('perps-close-position-bottomsheet'),
+      ).toBeNull();
     });
   });
 });

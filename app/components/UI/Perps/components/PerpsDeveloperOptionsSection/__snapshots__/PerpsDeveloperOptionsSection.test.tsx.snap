@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PerpsDeveloperOptionsSection renders correctly 1`] = `
+<View
+  style={
+    {
+      "gap": 8,
+      "marginTop": 8,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Bold",
+        "fontSize": 24,
+        "letterSpacing": 0,
+        "lineHeight": 32,
+        "marginTop": 16,
+      }
+    }
+  >
+    Perps Trading
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 16,
+      }
+    }
+    testID="perps-testnet-toggle-root"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Hyperliquid Network Toggle
+    </Text>
+    <RCTSwitch
+      accessibilityRole="switch"
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        {
+          "height": 31,
+          "width": 51,
+        }
+      }
+      testID="perps-testnet-toggle-switch"
+      value={false}
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "Geist Regular",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Mainnet
+    </Text>
+  </View>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "#121314",
+        "borderRadius": 12,
+        "flexDirection": "row",
+        "height": 40,
+        "justifyContent": "center",
+        "marginTop": 8,
+        "overflow": "hidden",
+        "paddingHorizontal": 16,
+        "width": "100%",
+      }
+    }
+    testID="perps-developer-options-section-perps-sandbox-button"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#ffffff",
+          "fontFamily": "Geist Medium",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Perps Sandbox
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

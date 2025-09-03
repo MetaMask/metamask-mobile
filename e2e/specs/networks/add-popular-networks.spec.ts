@@ -9,29 +9,37 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
 
 describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
+  // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
+  const isRemoveGlobalNetworkSelectorEnabled =
+    process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';
+  const itif = (condition: boolean) => (condition ? it.skip : it);
+
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
 
-  it(`Add all popular networks to verify the empty list content`, async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
+  itif(isRemoveGlobalNetworkSelectorEnabled)(
+    `Add all popular networks to verify the empty list content`,
+    async () => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder().withPopularNetworks().build(),
+          restartDevice: true,
+        },
+        async () => {
+          await loginToApp();
 
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
+          await WalletView.tapNetworksButtonOnNavBar();
+          await NetworkListModal.scrollToBottomOfNetworkList();
 
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.addPopularNetworkButton,
-        );
-        await NetworkListModal.tapAddNetworkButton();
-        await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapCloseButton();
-      },
-    );
-  });
+          await Assertions.expectElementToBeVisible(
+            NetworkListModal.addPopularNetworkButton,
+          );
+          await NetworkListModal.tapAddNetworkButton();
+          await NetworkApprovalBottomSheet.tapApproveButton();
+          await NetworkAddedBottomSheet.tapCloseButton();
+        },
+      );
+    },
+  );
 });

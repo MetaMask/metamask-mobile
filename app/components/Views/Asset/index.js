@@ -53,6 +53,12 @@ import {
   isNetworkRampSupported,
 } from '../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import {
+  selectDepositActiveFlag,
+  selectDepositMinimumVersionFlag,
+} from '../../../selectors/featureFlagController/deposit';
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
 import Device from '../../../util/device';
 import {
   selectConversionRate,
@@ -76,9 +82,12 @@ import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
-import { getIsSwapsAssetAllowed, getSwapsIsLive } from './utils';
+import { getIsSwapsAssetAllowed } from './utils';
 import MultichainTransactionsView from '../MultichainTransactionsView/MultichainTransactionsView';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsUnifiedSwapsEnabled,
+  selectIsSwapsLive,
+} from '../../../core/redux/slices/bridge';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 const createStyles = (colors) =>
@@ -188,6 +197,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Boolean that indicates if deposit functionality is enabled
+     */
+    isDepositEnabled: PropTypes.bool,
     /**
      * Function to set the swaps liveness
      */
@@ -587,9 +600,12 @@ class Asset extends PureComponent {
         ? isBridgeAllowed(asset.chainId)
         : isBridgeAllowed(chainId));
 
-    const displayBuyButton = asset.isETH
+    // Fund button should be visible if either deposit OR ramp is available
+    const isDepositAvailable = this.props.isDepositEnabled;
+    const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
+    const displayFundButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -604,7 +620,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -630,7 +646,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -765,7 +781,7 @@ const mapStateToProps = (state, { route }) => {
   ///: END:ONLY_INCLUDE_IF
 
   return {
-    swapsIsLive: getSwapsIsLive(state, route.params.chainId),
+    swapsIsLive: selectIsSwapsLive(state, route.params.chainId),
     swapsTokens: isPortfolioViewEnabled()
       ? swapsTokensMultiChainObjectSelector(state)
       : swapsTokensObjectSelector(state),
@@ -790,6 +806,17 @@ const mapStateToProps = (state, { route }) => {
       selectChainId(state),
       getRampNetworks(state),
     ),
+    isDepositEnabled: (() => {
+      const depositMinimumVersionFlag = selectDepositMinimumVersionFlag(state);
+      const depositActiveFlag = selectDepositActiveFlag(state);
+
+      if (!depositMinimumVersionFlag) return false;
+      const currentVersion = getVersion();
+      return (
+        depositActiveFlag &&
+        compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
+      );
+    })(),
     networkClientId: selectNetworkClientId(state),
     isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };

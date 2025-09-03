@@ -4,10 +4,11 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
+import {
+  TransactionToken,
+  useTransactionRequiredTokens,
+} from './useTransactionRequiredTokens';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { toHex } from '@metamask/controller-utils';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import {
   accountsControllerMock,
   tokenAddress1Mock,
@@ -48,46 +49,46 @@ describe('useTransactionRequiredFiat', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       {
         address: tokenAddress1Mock,
-        amount: toHex(20000),
+        amountHuman: '2',
+        balanceHuman: '10',
+        skipIfBalance: false,
       },
       {
         address: tokenAddress2Mock,
-        amount: toHex(3000000),
+        amountHuman: '3',
+        balanceHuman: '20',
+        skipIfBalance: true,
       },
-    ]);
+    ] as unknown as TransactionToken[]);
 
     useTokenFiatRatesMock.mockReturnValue([4, 5]);
   });
 
   it('returns fiat values for each required token', () => {
-    const { fiatValues } = runHook();
-    expect(fiatValues).toEqual([8.2, 15.375]);
-  });
+    const { values } = runHook();
 
-  it('uses 18 decimals if token not found', () => {
-    useTransactionRequiredTokensMock.mockReturnValue([
+    expect(values).toStrictEqual([
       {
-        address: NATIVE_TOKEN_ADDRESS,
-        amount: toHex(5000000000000000000),
+        address: tokenAddress1Mock,
+        amountFiat: 8,
+        balanceFiat: 40,
+        feeFiat: 0.2,
+        skipIfBalance: false,
+        totalFiat: 8.2,
+      },
+      {
+        address: tokenAddress2Mock,
+        amountFiat: 15,
+        balanceFiat: 100,
+        feeFiat: 0.375,
+        skipIfBalance: true,
+        totalFiat: 15.375,
       },
     ]);
-
-    const { fiatValues } = runHook();
-
-    expect(fiatValues).toEqual([20.5]);
-  });
-
-  it('returns undefined if no fiat rate', () => {
-    useTokenFiatRatesMock.mockReturnValue([4]);
-
-    const { fiatValues } = runHook();
-
-    expect(fiatValues).toEqual([8.2, undefined]);
   });
 
   it('returns total fiat value', () => {
-    const { fiatTotal } = runHook();
-
-    expect(fiatTotal).toBe(23.575);
+    const { totalFiat } = runHook();
+    expect(totalFiat).toBe(23.575);
   });
 });

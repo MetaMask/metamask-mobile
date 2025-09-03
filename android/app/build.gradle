@@ -187,8 +187,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.53.1"
-        versionCode 2308
+        versionName "7.54.0"
+        versionCode 2344
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -304,8 +304,8 @@ android {
         }
     }
 
-	  flavorDimensions "version"
-   		  productFlavors {
+    flavorDimensions "version"
+    productFlavors {
           qa {
             dimension "version"
             applicationIdSuffix ".qa"
@@ -315,22 +315,26 @@ android {
           prod {
             dimension "version"
             applicationId "io.metamask"
-            signingConfig signingConfigs.mainProd
-            // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'exp') {
-              signingConfig signingConfigs.mainExp
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
-              signingConfig signingConfigs.mainTest
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
-              signingConfig signingConfigs.mainE2e
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
-              signingConfig signingConfigs.mainProd
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'rc')  {
-              signingConfig signingConfigs.mainRc
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'beta')  {
-              signingConfig signingConfigs.mainBeta
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
-              signingConfig signingConfigs.mainDev
+            // Use appropriate signing config based on environment
+            def env = System.getenv("METAMASK_ENVIRONMENT")
+            def isE2E = System.getenv("E2E")
+
+            if (env == 'exp') {
+                signingConfig signingConfigs.mainExp
+            } else if (env == 'test') {
+                signingConfig signingConfigs.mainTest
+            } else if (env == 'e2e') {
+                signingConfig signingConfigs.mainE2e
+            } else if (env == 'prod') {
+                signingConfig signingConfigs.mainProd
+            } else if (env == 'rc') {
+                signingConfig signingConfigs.mainRc
+            } else if (env == 'beta') {
+                signingConfig signingConfigs.mainBeta
+            } else if (env == 'local') {
+                signingConfig signingConfigs.mainDev
+            } else {
+                signingConfig signingConfigs.mainProd
             }
           }
           flask {
@@ -348,7 +352,7 @@ android {
               signingConfig signingConfigs.flaskDev
             }
           }
-    	  }
+    }
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""

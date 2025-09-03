@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
@@ -7,6 +7,7 @@ import {
   calculateFundingCountdown,
   calculate24hHighLow,
 } from '../utils/marketUtils';
+import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 interface MarketStats {
   high24h: string;
@@ -29,7 +30,13 @@ interface MarketDataUpdate {
 /**
  * Hook to fetch and manage comprehensive market statistics
  */
-export const usePerpsMarketStats = (symbol: string): MarketStats => {
+export interface UsePerpsMarketStatsReturn extends MarketStats {
+  refresh: () => Promise<void>;
+}
+
+export const usePerpsMarketStats = (
+  symbol: string,
+): UsePerpsMarketStatsReturn => {
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [fundingCountdown, setFundingCountdown] = useState('00:00:00');
   const [currentPriceData, setCurrentPriceData] = useState<
@@ -37,9 +44,10 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
   >();
 
   // Get candlestick data for 24h high/low calculation
-  const { candleData } = usePerpsPositionData({
+  const { candleData, refreshCandleData } = usePerpsPositionData({
     coin: symbol,
-    selectedInterval: '1h', // Use 1h candles for 24h calculation
+    selectedInterval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
+    selectedDuration: TimeDuration.ONE_DAY,
   });
 
   // Subscribe to market data updates (funding, open interest, volume)
@@ -121,5 +129,15 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
     };
   }, [currentPriceData, candleData, marketData, fundingCountdown]);
 
-  return stats;
+  // Refresh function to reload market data
+  const refresh = useCallback(async () => {
+    // Refresh candle data for updated 24h high/low
+    await refreshCandleData();
+    // Market data (funding, volume, etc.) will update via WebSocket subscriptions
+  }, [refreshCandleData]);
+
+  return {
+    ...stats,
+    refresh,
+  };
 };

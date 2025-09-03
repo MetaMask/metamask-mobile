@@ -442,6 +442,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   {
                                     "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
+                                    "gap": 16,
                                     "padding": 16,
                                   },
                                   false,
@@ -452,20 +453,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               <View
                                 style={
                                   {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
-                              <View
-                                style={
-                                  {
                                     "alignItems": "center",
                                     "flex": 1,
-                                    "marginHorizontal": 16,
                                   }
                                 }
                               >
@@ -537,17 +526,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   </View>
                                 </View>
                               </View>
-                              <View
-                                style={
-                                  {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
                             </View>
                           </View>
                           <View
@@ -598,7 +576,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -650,7 +628,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 12,
                                       "borderWidth": 1,

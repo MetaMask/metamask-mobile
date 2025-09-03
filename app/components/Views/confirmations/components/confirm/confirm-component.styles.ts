@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isFullScreenConfirmation: boolean };
+}) => {
+  const { theme, vars } = params;
 
   return StyleSheet.create({
     bottomSheetDialogSheet: {
@@ -24,6 +27,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     scrollView: {
       paddingHorizontal: 16,
+    },
+    scrollViewContent: {
+      flex: vars.isFullScreenConfirmation ? 1 : undefined,
     },
     spinnerContainer: {
       backgroundColor: theme.colors.background.alternative,

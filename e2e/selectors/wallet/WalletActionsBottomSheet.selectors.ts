@@ -8,5 +8,4 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   BRIDGE_BUTTON: 'wallet-bridge-action',
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
-  PERPS_SANDBOX_BUTTON: 'wallet-perps-sandbox-action',
 };

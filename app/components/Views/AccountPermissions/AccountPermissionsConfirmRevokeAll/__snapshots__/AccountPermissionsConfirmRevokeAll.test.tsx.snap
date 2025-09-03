@@ -74,8 +74,8 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -132,6 +132,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
                 "padding": 16,
               },
               false,
@@ -142,20 +143,8 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
           <View
             style={
               {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -173,17 +162,6 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             >
               Disconnect all
             </Text>
-          </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
           </View>
         </View>
         <View
@@ -227,7 +205,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

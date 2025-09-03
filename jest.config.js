@@ -8,6 +8,7 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
+process.env.MM_CONFIRMATION_INTENTS = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -41,7 +42,10 @@ const config = {
   snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
-  collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
+  collectCoverageFrom: [
+    '<rootDir>/app/**/*.{js,ts,tsx,jsx}',
+    '!<rootDir>/app/**/*.stories.tsx',
+  ],
   coveragePathIgnorePatterns: [
     '__mocks__/',
     '<rootDir>/app/util/test/',

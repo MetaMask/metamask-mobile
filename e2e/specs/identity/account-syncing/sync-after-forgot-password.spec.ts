@@ -6,7 +6,7 @@ import {
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../framework/Assertions';
-import { SmokeIdentity } from '../../../tags.js';
+import { RegressionIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController.ts';
@@ -20,7 +20,7 @@ import ForgotPasswordModalView from '../../../pages/Common/ForgotPasswordModalVi
 import { createUserStorageController } from '../utils/mocks.ts';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 
-describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
+describe(RegressionIdentity('Account syncing - Forgot Password Flow'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {

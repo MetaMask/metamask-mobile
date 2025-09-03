@@ -3,8 +3,6 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { useSelector } from 'react-redux';
-import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 import { createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
 
@@ -14,57 +12,103 @@ const log = createProjectLogger('transaction-pay');
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
 export function useTransactionPayTokenAmounts() {
-  const { payToken } = useTransactionPayToken();
-  const { address, chainId } = payToken;
+  const { decimals, payToken } = useTransactionPayToken();
+  const { address, chainId } = payToken ?? {};
 
-  const tokens = useSelector((state) =>
-    selectTokensByChainIdAndAddress(state, chainId),
-  );
+  const fiatRequests = useMemo(() => {
+    if (!address || !chainId) {
+      return [];
+    }
 
-  const tokenDecimals = tokens[address.toLowerCase()]?.decimals ?? 18;
-
-  const fiatRequest = useMemo(
-    () => [
+    return [
       {
         address,
         chainId,
       },
-    ],
-    [address, chainId],
-  );
+    ];
+  }, [address, chainId]);
 
-  const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
-
-  const { fiatValues } = useTransactionRequiredFiat();
+  const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
+  const { values } = useTransactionRequiredFiat();
 
   const amounts = useDeepMemo(() => {
-    if (!tokenFiatRate) {
+    if (!address || !chainId || !tokenFiatRate || !decimals) {
       return undefined;
     }
 
-    return fiatValues.map((fiatValue) =>
-      calculateAmount(fiatValue, tokenFiatRate, tokenDecimals),
-    );
-  }, [fiatValues, tokenFiatRate, tokenDecimals]);
+    return values
+      .filter((value) => {
+        const hasBalance = value.balanceFiat > value.amountFiat;
+
+        const isSameTokenSelected =
+          address.toLowerCase() === value.address.toLowerCase();
+
+        const hasOtherTokenWithoutBalance = values.some(
+          (v) =>
+            v.address.toLowerCase() !== address.toLowerCase() &&
+            v.balanceFiat < v.amountFiat,
+        );
+
+        if (value.skipIfBalance && hasBalance) {
+          log('Skipping token due to sufficient balance', value.address);
+          return false;
+        }
+
+        if (isSameTokenSelected && hasBalance) {
+          log(
+            'Skipping token due to sufficient balance and matching pay token',
+            value.address,
+          );
+          return false;
+        }
+
+        if (hasBalance && hasOtherTokenWithoutBalance) {
+          log(
+            'Skipping token due to sufficient balance and other token without balance',
+            value.address,
+          );
+          return false;
+        }
+
+        return true;
+      })
+      .map((value) => {
+        const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
+        const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+
+        return {
+          address: value.address,
+          amountHuman: amountHuman.toString(10),
+          amountRaw,
+        };
+      });
+  }, [address, chainId, decimals, tokenFiatRate, values]);
+
+  const totalHuman = amounts
+    ?.reduce(
+      (acc, { amountHuman }) => acc.plus(new BigNumber(amountHuman ?? '0')),
+      new BigNumber(0),
+    )
+    .toString(10);
+
+  const totalRaw = amounts
+    ?.reduce(
+      (acc, { amountRaw }) => acc.plus(new BigNumber(amountRaw ?? '0')),
+      new BigNumber(0),
+    )
+    .toFixed(0);
 
   useEffect(() => {
-    log('Pay token amounts', amounts);
-  }, [amounts]);
+    log('Pay token amounts', {
+      amounts,
+      totalHuman,
+      totalRaw,
+    });
+  }, [amounts, totalHuman, totalRaw]);
 
-  return amounts;
-}
-
-function calculateAmount(
-  fiatAmount: number | undefined,
-  fiatRate: number,
-  decimals: number,
-) {
-  if (!fiatAmount) {
-    return undefined;
-  }
-
-  const amountDecimals = new BigNumber(fiatAmount).div(fiatRate);
-  const amountRaw = amountDecimals.shiftedBy(decimals).toFixed(0);
-
-  return amountRaw;
+  return {
+    amounts,
+    totalHuman,
+    totalRaw,
+  };
 }

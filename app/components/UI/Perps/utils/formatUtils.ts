@@ -236,13 +236,63 @@ export const parseCurrencyString = (formattedValue: string): number => {
  */
 export const parsePercentageString = (formattedValue: string): number => {
   if (!formattedValue) return 0;
-
-  // Remove percentage sign and any spaces
   const cleanedValue = formattedValue
     .replace(/%/g, '')
     .replace(/\s/g, '')
     .trim();
-
   const parsed = parseFloat(cleanedValue);
   return isNaN(parsed) ? 0 : parsed;
+};
+
+/**
+ * Formats a timestamp for transaction detail views
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date string (e.g., "July 24, 2025")
+ * @example formatTransactionDate(1642492800000) => "January 18, 2022"
+ */
+export const formatTransactionDate = (timestamp: number): string =>
+  new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(timestamp));
+
+/**
+ * Formats a timestamp for transaction section headers
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date section string ("Today", "Yesterday", or "Month Day")
+ * @example formatDateSection(Date.now()) => "Today"
+ */
+export const formatDateSection = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  // Check if it's today
+  if (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  ) {
+    return 'Today';
+  }
+
+  // Check if it's yesterday
+  if (
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear()
+  ) {
+    return 'Yesterday';
+  }
+
+  const month = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+  }).format(new Date(timestamp));
+  const day = new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+  }).format(new Date(timestamp));
+
+  return `${month}, ${day}`; // 'Jul, 26'
 };

@@ -25,6 +25,10 @@ export interface ExtendedNetwork extends Network {
 
 export interface CustomNetworkProps {
   /**
+   * Show list header
+   */
+  listHeader?: string;
+  /**
    * Boolean check to track if Popular network or Custom network form is open
    */
   showPopularNetworkModal: boolean;
@@ -86,4 +90,12 @@ export interface CustomNetworkProps {
    * Once the previous version is removed, this hideWarningIcons wont have any other use and can be removed.
    */
   hideWarningIcons?: boolean;
+  /**
+   * Allow network switch
+   */
+  allowNetworkSwitch?: boolean;
+  /**
+   * Use compact UI with icons instead of text
+   */
+  compactMode?: boolean;
 }

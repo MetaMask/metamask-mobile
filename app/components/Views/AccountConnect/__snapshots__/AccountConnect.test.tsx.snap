@@ -74,8 +74,8 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
           {
             "backgroundColor": "#f3f5f9",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -643,6 +643,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -1386,8 +1387,8 @@ exports[`AccountConnect renders correctly with base request when there is no exi
           {
             "backgroundColor": "#f3f5f9",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -1955,6 +1956,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -2698,8 +2700,8 @@ exports[`AccountConnect renders correctly with request including chains and acco
           {
             "backgroundColor": "#f3f5f9",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -3267,6 +3269,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -4010,8 +4013,8 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
           {
             "backgroundColor": "#f3f5f9",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -4579,6 +4582,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={

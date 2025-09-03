@@ -2,14 +2,22 @@ import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PriceUpdate } from '../controllers/types';
 import type { CandleData } from '../types';
+import {
+  calculateCandleCount,
+  TimeDuration,
+  CandlePeriod,
+} from '../constants/chartConfig';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsPositionDataProps {
   coin: string;
-  selectedInterval: string;
+  selectedDuration: TimeDuration;
+  selectedInterval: CandlePeriod;
 }
 
 export const usePerpsPositionData = ({
   coin,
+  selectedDuration,
   selectedInterval,
 }: UsePerpsPositionDataProps) => {
   const [candleData, setCandleData] = useState<CandleData | null>(null);
@@ -17,14 +25,21 @@ export const usePerpsPositionData = ({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const fetchHistoricalCandles = useCallback(async () => {
+    const candleCount = calculateCandleCount(
+      selectedDuration,
+      selectedInterval,
+    );
+    DevLogger.log(
+      `Fetching ${candleCount} candles for ${selectedDuration} duration with ${selectedInterval} period`,
+    );
     const historicalData =
       await Engine.context.PerpsController.fetchHistoricalCandles(
         coin,
         selectedInterval,
-        100,
+        candleCount,
       );
     return historicalData;
-  }, [coin, selectedInterval]);
+  }, [coin, selectedDuration, selectedInterval]);
 
   const subscribeToPriceUpdates = useCallback(() => {
     try {
@@ -72,9 +87,23 @@ export const usePerpsPositionData = ({
     };
   }, [subscribeToPriceUpdates]);
 
+  // Refresh function to reload candle data
+  const refreshCandleData = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const historicalData = await fetchHistoricalCandles();
+      setCandleData(historicalData);
+    } catch (err) {
+      console.error('Error refreshing candle data:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [fetchHistoricalCandles]);
+
   return {
     candleData,
     priceData,
     isLoadingHistory,
+    refreshCandleData,
   };
 };

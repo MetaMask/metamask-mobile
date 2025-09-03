@@ -101,32 +101,6 @@ function addMetadata(chainId, tokens, tokenList) {
 // * Selectors
 const chainIdSelector = selectEvmChainId;
 const swapsStateSelector = (state) => state.swaps;
-/**
- * Returns the swaps liveness state
- */
-
-export const swapsLivenessSelector = createSelector(
-  swapsStateSelector,
-  chainIdSelector,
-  (swapsState, chainId) => swapsState[chainId]?.isLive || false,
-);
-
-export const swapsLivenessMultichainSelector = createSelector(
-  [
-    swapsStateSelector,
-    (state, chainId) =>
-      chainId !== undefined ? chainId : selectChainId(state),
-  ],
-  (swapsState, chainId) => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (chainId === SolScope.Mainnet) {
-      return true;
-    }
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-    return swapsState?.[chainId]?.isLive || false;
-  },
-);
 
 /**
  * Returns if smart transactions are enabled in feature flags

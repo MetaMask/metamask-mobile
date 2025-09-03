@@ -50,6 +50,7 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
@@ -187,7 +188,7 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigateToSendPage(collectible);
+    navigateToSendPage(InitSendLocation.NftDetails, collectible);
   }, [collectible, chainId, dispatch, navigateToSendPage]);
 
   const isTradable = useCallback(

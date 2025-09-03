@@ -14,6 +14,9 @@ import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
+import { AppState, AppStateStatus } from 'react-native';
+import ReduxService from '../redux';
+import configureStore from '../../util/test/configureStore';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -61,6 +64,11 @@ describe('Engine', () => {
   // Create a shared mock account for tests
   const validAddress = MOCK_ADDRESS_1;
   const mockAccount = createMockInternalAccount(validAddress, 'Test Account');
+  let mockAppStateListener: (state: AppStateStatus) => void;
+
+  beforeEach(() => {
+    ReduxService.store = configureStore({});
+  });
 
   afterEach(() => {
     jest.restoreAllMocks();
@@ -102,6 +110,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
   });
 
@@ -614,5 +623,62 @@ describe('Engine', () => {
         totalNativeTokenBalance: '1',
       });
     });
+  });
+
+  it('calls `SnapController:setClientActive` when app state changes to active', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to active
+    mockAppStateListener('active');
+
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      true,
+    );
+  });
+
+  it('calls `SnapController:setClientActive` when app state changes to background', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to background
+    mockAppStateListener('background');
+
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      false,
+    );
+  });
+
+  it('does not call `SnapController:setClientActive` for other app states', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    // Simulate app state change to inactive
+    mockAppStateListener('inactive');
+
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SnapController:setClientActive',
+      expect.anything(),
+    );
   });
 });

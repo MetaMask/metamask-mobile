@@ -49,6 +49,7 @@ import Toast, {
 import AccountSelector from '../../../components/Views/AccountSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
+import NetworkManager from '../../../components/UI/NetworkManager';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -78,6 +79,7 @@ import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
+import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -351,6 +353,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={WalletActions}
     />
     <Stack.Screen
+      name={Routes.MODAL.FUND_ACTION_MENU}
+      component={FundActionMenu}
+    />
+    <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
       component={DeleteWalletModal}
     />
@@ -439,6 +445,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TOKEN_FILTER}
       component={TokenFilterBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.NETWORK_MANAGER}
+      component={NetworkManager}
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}

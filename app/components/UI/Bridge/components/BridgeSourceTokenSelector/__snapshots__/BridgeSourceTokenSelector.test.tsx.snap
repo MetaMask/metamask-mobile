@@ -442,6 +442,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   {
                                     "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
+                                    "gap": 16,
                                     "padding": 16,
                                   },
                                   false,
@@ -452,20 +453,8 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               <View
                                 style={
                                   {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
-                              <View
-                                style={
-                                  {
                                     "alignItems": "center",
                                     "flex": 1,
-                                    "marginHorizontal": 16,
                                   }
                                 }
                               >
@@ -537,17 +526,6 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   </View>
                                 </View>
                               </View>
-                              <View
-                                style={
-                                  {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
                             </View>
                           </View>
                           <View
@@ -575,7 +553,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#3c4d9d1a",
+                                  "backgroundColor": "#3c4d9d0f",
                                   "borderColor": "#b7bbc866",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
@@ -590,13 +568,13 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               <View
                                 alignItems="center"
                                 flexDirection="row"
-                                gap={4}
+                                gap={8}
                                 style={
                                   [
                                     {
                                       "alignItems": "center",
                                       "flexDirection": "row",
-                                      "gap": 4,
+                                      "gap": 8,
                                     },
                                     undefined,
                                   ]
@@ -605,13 +583,11 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 <View
                                   alignItems="center"
                                   flexDirection="row"
-                                  gap={-8}
                                   style={
                                     [
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
-                                        "gap": -8,
                                       },
                                       undefined,
                                     ]
@@ -619,74 +595,88 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 >
                                   <View
                                     style={
-                                      [
-                                        {},
-                                        {},
-                                      ]
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
                                     }
+                                    testID="avatar-group-container"
                                   >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "height": 16,
-                                          "justifyContent": "center",
-                                          "marginRight": 0,
-                                          "overflow": "hidden",
-                                          "width": 16,
+                                          "marginLeft": 0,
                                         }
                                       }
+                                      testID="avatargroup-avatar-container-0"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#ffffff",
+                                            "borderRadius": 4,
+                                            "borderWidth": 1.5,
                                             "height": 16,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="avatargroup-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={1}
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
-                                  </View>
-                                  <View
-                                    style={
-                                      [
-                                        {},
-                                        {},
-                                      ]
-                                    }
-                                  >
                                     <View
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 4,
-                                          "height": 16,
-                                          "justifyContent": "center",
-                                          "marginRight": 0,
-                                          "overflow": "hidden",
-                                          "width": 16,
+                                          "marginLeft": -6,
                                         }
                                       }
+                                      testID="avatargroup-avatar-container-1"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
+                                      <View
                                         style={
                                           {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#ffffff",
+                                            "borderRadius": 4,
+                                            "borderWidth": 1.5,
                                             "height": 16,
+                                            "justifyContent": "center",
+                                            "overflow": "hidden",
                                             "width": 16,
                                           }
                                         }
-                                        testID="network-avatar-image"
-                                      />
+                                        testID="avatargroup-avatar"
+                                      >
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={1}
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          testID="network-avatar-image"
+                                        />
+                                      </View>
                                     </View>
                                   </View>
                                 </View>

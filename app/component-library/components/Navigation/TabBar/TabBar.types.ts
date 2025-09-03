@@ -47,10 +47,3 @@ type TabBarOptions = BottomTabBarOptions & {
  * TabBar component props.
  */
 export type TabBarProps = BottomTabBarProps<TabBarOptions>;
-
-/**
- * Style sheet input parameters.
- */
-export interface TabBarStyleSheetVars {
-  bottomInset: number;
-}

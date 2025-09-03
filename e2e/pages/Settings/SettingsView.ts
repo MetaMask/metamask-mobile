@@ -54,6 +54,10 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
+  get snapsSectionButton(): DetoxElement {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
+  }
+
   get alertButton(): DetoxElement {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
@@ -164,6 +168,20 @@ class SettingsView {
   async tapBackupAndSync(): Promise<void> {
     await Gestures.tap(this.backupAndSyncSectionButton, {
       elemDescription: 'Settings - Backup and Sync Section Button',
+    });
+  }
+
+  async tapSnaps(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.snapsSectionButton,
+      this.scrollViewIdentifier,
+      {
+        elemDescription: 'Scroll to Snaps Button',
+      },
+    );
+
+    await Gestures.tap(this.snapsSectionButton, {
+      elemDescription: 'Settings - Snaps Button',
     });
   }
 }

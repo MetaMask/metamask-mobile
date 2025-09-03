@@ -1,0 +1,178 @@
+name: Test Android Build QA App
+
+on:
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Number of days to retain artifacts'
+        required: false
+        default: '7'
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  android-build:
+    name: Test Android Build QA App
+    #runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-large
+    runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    outputs:
+      artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
+      aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+    steps:
+      # Get the source code from the repository
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Install Android SDK, Node.js, and other Android development dependencies
+      - name: Installing Android Environment Setup
+        # uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
+        with:
+          platform: android
+          setup-simulator: false
+
+      # Cache Gradle dependencies (most important for build speed)
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+
+
+      # Display Android development tools information for debugging
+      - name: Print Android Environment Info
+        run: |
+          echo "🔧 Node.js Version:"
+          node -v || echo "Node not found"
+          echo "Android Studio Version:"
+          /Applications/Android\ Studio.app/Contents/MacOS/studio --version || echo "Check manually via finder"
+          echo "🧶 Yarn Version:"
+          yarn -v || echo "Yarn not found"
+          echo "📦 SDK Manager Version:"
+          sdkmanager --version || echo "sdkmanager not found"
+          echo "📱 ADB Version:"
+          adb version || echo "adb not found"
+          echo "🖥️ Emulator Version:"
+          emulator -version || echo "emulator not found"
+          echo "🧱 NDK Info:"
+          echo "NDK Dir: $ANDROID_SDK_ROOT/ndk/${NDK_VERSION:-unknown}"
+          if [ -n "${NDK_VERSION}" ] && [ -f "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" ]; then
+            grep "Pkg.Revision" "$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}/source.properties" || echo "NDK version info not found"
+          else
+            echo "NDK not found or NDK_VERSION not set"
+          fi
+          echo "🔧 Checking for ndk-build:"
+          command -v ndk-build || echo "ndk-build not found in PATH"
+          echo "🔧 Checking for clang:"
+          command -v clang || echo "clang not found in PATH"
+          echo "🔧 Checking for llvm-ar:"
+          command -v llvm-ar || echo "llvm-ar not found in PATH"
+          echo "📱 Available AVD Devices:"
+          avdmanager list device || echo "avdmanager not found"
+          echo "📱 Available System Images:"
+          sdkmanager --list | grep "system-images;" || echo "No system images listed"
+          echo "🟢 Emulator Processes:"
+          pgrep -fl emulator || echo "No running emulator processes"
+          echo "📱 Connected Android Devices:"
+          adb devices || echo "adb devices failed"
+        shell: bash
+
+
+
+      # Run project setup and build the Android QA app (APK and AAB)
+      - name: Setup and Build Android App
+        run: |
+          echo "🚀 Finishing Android Setup..."
+          yarn setup:github-ci --no-build-ios
+          echo "🏗 Building Android APP..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:qa
+        shell: bash
+        env:
+          PLATFORM: android
+          METAMASK_ENVIRONMENT: qa
+          METAMASK_BUILD_TYPE: main
+          IS_TEST: true
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: "true"
+          CI: "true"
+
+          NODE_OPTIONS: "--max-old-space-size=8192"
+
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+
+          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
+          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      # Upload the Android APK file for device installation and testing
+      - name: Upload Android APK Artifact
+        id: upload-apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-qa-release.apk
+          path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Upload the Android App Bundle (AAB) for Play Store distribution
+      - name: Upload Android AAB Artifact
+        id: upload-aab
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-qa-release.aab
+          path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: warn
+        continue-on-error: true
+
+      # Upload source map file for crash debugging and error tracking
+      - name: Upload Android Source Map
+        id: upload-sourcemap
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.android.bundle.map
+          path: sourcemaps/android/index.android.bundle.map
+          retention-days: ${{ inputs.retention_days }}
+          if-no-files-found: warn
+        continue-on-error: true
+
+      # Generate artifact download URL and display upload status summary
+      - name: Set Artifacts URL and Status
+        id: set-artifacts-url
+        run: |
+          ARTIFACTS_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "artifacts-url=${ARTIFACTS_URL}" >> "$GITHUB_OUTPUT"
+          echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
+          echo ""
+          echo "Upload Status Summary:"
+          echo "- 🤖 APK: ${{ steps.upload-apk.outcome }}"
+          echo "- 📦 AAB Bundle: ${{ steps.upload-aab.outcome }}"
+          echo "- 📦 Source Map: ${{ steps.upload-sourcemap.outcome }}"
+
+        env:
+          GITHUB_REPOSITORY: "${{ github.repository }}"
+          GITHUB_RUN_ID: "${{ github.run_id }}"

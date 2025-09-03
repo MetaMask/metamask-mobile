@@ -2,16 +2,23 @@
 
 // Third party dependencies.
 import { IconName } from '../../Icons/Icon';
-import Device from '../../../../util/device';
 // Internal dependencies.
 import { IconByTabBarIconKey, TabBarIconKey } from './TabBar.types';
 
 export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
-  [TabBarIconKey.Wallet]: IconName.Wallet,
+  [TabBarIconKey.Wallet]: IconName.Home,
   [TabBarIconKey.Browser]: IconName.Explore,
   [TabBarIconKey.Actions]: IconName.SwapVertical,
   [TabBarIconKey.Activity]: IconName.Activity,
   [TabBarIconKey.Setting]: IconName.Setting,
 };
 
-export const TAB_BAR_HEIGHT = Device.isAndroid() ? 62 : 48;
+export const LABEL_BY_TAB_BAR_ICON_KEY = {
+  [TabBarIconKey.Wallet]: 'bottom_nav.home',
+  [TabBarIconKey.Browser]: 'bottom_nav.browser',
+  [TabBarIconKey.Actions]: '',
+  [TabBarIconKey.Activity]: 'bottom_nav.activity',
+  [TabBarIconKey.Setting]: 'bottom_nav.settings',
+} as const;
+
+export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top

@@ -17,6 +17,13 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
+jest.mock('../components/PerpsLoadingSkeleton', () => ({
+  __esModule: true,
+  default: () => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="perps-loading-skeleton" />;
+  },
+}));
 
 // Test component that uses the hook
 interface ConnectionState {
@@ -58,11 +65,11 @@ describe('PerpsConnectionProvider', () => {
     jest.clearAllTimers();
     jest.useFakeTimers();
 
-    // Setup default mocks
+    // Setup default mocks - set isInitialized to true by default so tests see children
     mockGetConnectionState = jest.fn().mockReturnValue({
       isConnected: false,
       isConnecting: false,
-      isInitialized: false,
+      isInitialized: true,
     });
     mockConnect = jest.fn().mockResolvedValue(undefined);
     mockDisconnect = jest.fn().mockResolvedValue(undefined);
@@ -80,7 +87,7 @@ describe('PerpsConnectionProvider', () => {
     jest.useRealTimers();
   });
 
-  it('should render children correctly', () => {
+  it('should render children correctly when initialized', () => {
     const { getByText } = render(
       <PerpsConnectionProvider>
         <Text>Child Component</Text>
@@ -88,6 +95,24 @@ describe('PerpsConnectionProvider', () => {
     );
 
     expect(getByText('Child Component')).toBeDefined();
+  });
+
+  it('should render loading skeleton when initializing', () => {
+    // Set isInitialized to false to trigger loading skeleton
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: true,
+      isInitialized: false,
+    });
+
+    const { getByTestId, queryByText } = render(
+      <PerpsConnectionProvider>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByTestId('perps-loading-skeleton')).toBeDefined();
+    expect(queryByText('Child Component')).toBeNull();
   });
 
   it('should connect on mount', async () => {
@@ -137,11 +162,11 @@ describe('PerpsConnectionProvider', () => {
   it('should update state when polling', async () => {
     const onRender = jest.fn();
 
-    // Start disconnected
+    // Start with initialized but disconnected state
     mockGetConnectionState.mockReturnValue({
       isConnected: false,
       isConnecting: false,
-      isInitialized: false,
+      isInitialized: true,
     });
 
     render(

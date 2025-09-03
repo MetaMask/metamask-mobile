@@ -141,6 +141,11 @@ const InstallSnapApproval = () => {
   const connectSnapIds = getConnectSnapIds(approvalRequest, currentPermissions);
 
   const snapId = installSnapId ?? connectSnapIds[0];
+
+  if (!snapId) {
+    return null;
+  }
+
   const snapName = getSnapMetadata(snapId).name;
 
   // TODO: This component should support connecting to multiple Snaps at once.

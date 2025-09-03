@@ -50,11 +50,11 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: Device.isAndroid() ? 0 : 10,
       flexDirection: 'column',
       width: '100%',
-      rowGap: 2,
+      rowGap: 8,
       justifyContent: 'flex-start',
     },
     label: {
-      marginBottom: 12,
+      marginBottom: -4,
     },
     ctaWrapper: {
       width: '100%',

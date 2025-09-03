@@ -38,6 +38,7 @@ import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
+import FRAX from './frax.png';
 
 export default {
   PALM,
@@ -82,4 +83,5 @@ export default {
   ABSTRACT,
   OMNI: OMNI_TOKEN,
   HL,
+  FRAX,
 };

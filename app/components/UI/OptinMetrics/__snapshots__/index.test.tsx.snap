@@ -205,6 +205,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -218,6 +219,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -230,6 +232,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 "flex": 1,
                                 "flexDirection": "column",
                                 "marginHorizontal": 20,
+                                "paddingBottom": 80,
                                 "rowGap": 16,
                               }
                             }
@@ -257,7 +260,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                   "color": "#121314",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -297,7 +299,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -310,7 +311,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -325,7 +325,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -366,7 +365,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -379,7 +377,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -394,7 +391,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -435,7 +431,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -448,7 +443,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -463,7 +457,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -523,7 +516,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                     "color": "#121314",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
@@ -540,40 +532,36 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 }
                               }
                             />
-                            <View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 14,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              We’ll let you know if we decide to use this data for other purposes. You can review our 
                               <Text
                                 accessibilityRole="text"
+                                onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
                                 }
                               >
-                                We’ll let you know if we decide to use this data for other purposes. You can review our 
-                                <Text
-                                  accessibilityRole="text"
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Privacy Policy
-                                </Text>
-                                 for more information. Remember, you can go to settings and opt out at any time.
+                                Privacy Policy
                               </Text>
-                            </View>
+                               for more information. Remember, you can go to settings and opt out at any time.
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -596,7 +584,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d1a",
+                              "backgroundColor": "#3c4d9d0f",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -617,7 +605,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 "color": "#121314",
                                 "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -663,7 +650,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 "color": "#ffffff",
                                 "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -997,6 +983,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -1010,6 +997,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -1022,6 +1010,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 "flex": 1,
                                 "flexDirection": "column",
                                 "marginHorizontal": 20,
+                                "paddingBottom": 80,
                                 "rowGap": 16,
                               }
                             }
@@ -1049,7 +1038,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                   "color": "#121314",
                                   "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -1089,7 +1077,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1102,7 +1089,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1117,7 +1103,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1158,7 +1143,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1171,7 +1155,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1186,7 +1169,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1227,7 +1209,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "flex": 1,
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1240,7 +1221,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#121314",
                                       "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1255,7 +1235,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                       "color": "#686e7d",
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1315,7 +1294,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                     "color": "#121314",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 14,
-                                    "fontWeight": "500",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
@@ -1332,40 +1310,36 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 }
                               }
                             />
-                            <View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 14,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              We’ll let you know if we decide to use this data for other purposes. You can review our 
                               <Text
                                 accessibilityRole="text"
+                                onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 14,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 22,
                                   }
                                 }
                               >
-                                We’ll let you know if we decide to use this data for other purposes. You can review our 
-                                <Text
-                                  accessibilityRole="text"
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Privacy Policy
-                                </Text>
-                                 for more information. Remember, you can go to settings and opt out at any time.
+                                Privacy Policy
                               </Text>
-                            </View>
+                               for more information. Remember, you can go to settings and opt out at any time.
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1388,7 +1362,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d1a",
+                              "backgroundColor": "#3c4d9d0f",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,
@@ -1409,7 +1383,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 "color": "#121314",
                                 "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1455,7 +1428,6 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 "color": "#ffffff",
                                 "fontFamily": "Geist Medium",
                                 "fontSize": 16,
-                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1901,6 +1873,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -1914,6 +1887,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -1926,6 +1900,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 "flex": 1,
                                 "flexDirection": "column",
                                 "marginHorizontal": 20,
+                                "paddingBottom": 80,
                                 "rowGap": 16,
                               }
                             }
@@ -2225,12 +2200,25 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 }
                               }
                             />
-                            <View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#686e7d",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 14,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              We’ll let you know if we decide to use this data for other purposes. You can review our 
                               <Text
                                 accessibilityRole="text"
+                                onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#4459ff",
                                     "fontFamily": "Geist Regular",
                                     "fontSize": 14,
                                     "letterSpacing": 0,
@@ -2238,25 +2226,10 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                   }
                                 }
                               >
-                                We’ll let you know if we decide to use this data for other purposes. You can review our 
-                                <Text
-                                  accessibilityRole="text"
-                                  onPress={[Function]}
-                                  style={
-                                    {
-                                      "color": "#4459ff",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  Privacy Policy
-                                </Text>
-                                 for more information. Remember, you can go to settings and opt out at any time.
+                                Privacy Policy
                               </Text>
-                            </View>
+                               for more information. Remember, you can go to settings and opt out at any time.
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2279,7 +2252,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#3c4d9d1a",
+                              "backgroundColor": "#3c4d9d0f",
                               "borderColor": "transparent",
                               "borderRadius": 12,
                               "borderWidth": 1,

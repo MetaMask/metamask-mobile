@@ -17,7 +17,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
       marginRight: 16,
-      marginLeft: 16,
     },
     leftSection: {
       flexDirection: 'row',

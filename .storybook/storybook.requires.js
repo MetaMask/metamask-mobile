@@ -41,17 +41,22 @@ if (parameters) {
 const getStories = () => {
   return {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
+    "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
     "./app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.stories.tsx"),
+    "./app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx"),
     "./app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx": require("../app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.stories.tsx"),
+    "./app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx"),
     "./app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx": require("../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx"),
     "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
+    "./app/component-library/components-temp/QuickActionButtons/QuickActionButton/QuickActionButton.stories.tsx": require("../app/component-library/components-temp/QuickActionButtons/QuickActionButton/QuickActionButton.stories.tsx"),
+    "./app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx": require("../app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx"),
     "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
     "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
@@ -121,6 +126,8 @@ const getStories = () => {
     "./app/components/UI/SolanaNewFeatureContent/SolanaNewFeatureContent.stories.tsx": require("../app/components/UI/SolanaNewFeatureContent/SolanaNewFeatureContent.stories.tsx"),
     "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
+    "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
+    "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
   };
 };

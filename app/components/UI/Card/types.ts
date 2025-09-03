@@ -5,9 +5,9 @@ import { FlashListAssetKey } from '../Tokens/TokenList';
  * Enum for asset delegation status
  */
 export enum AllowanceState {
-  NotActivated = 'not_activated',
-  Unlimited = 'unlimited',
+  Enabled = 'enabled',
   Limited = 'limited',
+  NotEnabled = 'not_enabled',
 }
 
 // Helper interface for token balances

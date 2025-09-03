@@ -159,7 +159,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
-  const { getAccountState } = usePerpsTrading();
+  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
 
@@ -174,7 +174,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   } = usePerpsConnection();
 
   // Get real-time prices for popular assets
-  const priceData = usePerpsPrices(POPULAR_ASSETS);
+  const priceData = usePerpsPrices(POPULAR_ASSETS, {});
 
   // Parse available balance to check if withdrawal should be enabled
   const hasAvailableBalance = useCallback((): boolean => {
@@ -272,9 +272,25 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const handlePositionsNavigation = async () => {
     navigation.navigate(Routes.PERPS.POSITIONS);
   };
+  const handleTransactionsHistoryNavigation = async () => {
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: {
+        redirectToPerpsTransactions: true,
+      },
+    });
+  };
 
   const handleDepositNavigation = () => {
-    navigation.navigate(Routes.PERPS.DEPOSIT);
+    // Navigate immediately to confirmations screen for instant UI response
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   };
 
   const handleWithdrawNavigation = () => {
@@ -410,6 +426,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             width={ButtonWidthTypes.Full}
             label={strings('perps.buttons.positions')}
             onPress={handlePositionsNavigation}
+            loading={isLoading}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Transactions History"
+            onPress={handleTransactionsHistoryNavigation}
             loading={isLoading}
             style={styles.button}
           />

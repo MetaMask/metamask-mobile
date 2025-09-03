@@ -176,14 +176,14 @@ exports[`EditAccountName should render correctly 1`] = `
       accessibilityRole="button"
       accessible={true}
       activeOpacity={1}
-      onPress={[MockFunction]}
+      onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d1a",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,

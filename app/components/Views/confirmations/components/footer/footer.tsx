@@ -30,6 +30,9 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectIsTransactionBridgeQuotesLoadingById } from '../../../../../core/redux/slices/confirmationMetrics';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
 
 export const Footer = () => {
   const {
@@ -39,22 +42,35 @@ export const Footer = () => {
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
-  const { onConfirm, onReject } = useConfirmActions();
+
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
+
+  const { onConfirm, onReject } = useConfirmActions();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
-  const { isTransactionValueUpdating } = useConfirmationContext();
+
+  const { isFooterVisible, isTransactionValueUpdating } =
+    useConfirmationContext();
+
   const navigation = useNavigation();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
+
+  const isQuotesLoading = useSelector((state: RootState) =>
+    selectIsTransactionBridgeQuotesLoadingById(
+      state,
+      transactionMetadata?.id ?? '',
+    ),
+  );
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -95,6 +111,7 @@ export const Footer = () => {
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
+
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
@@ -119,6 +136,12 @@ export const Footer = () => {
     }
   };
 
+  const isConfirmDisabled =
+    needsCameraPermission ||
+    hasBlockingAlerts ||
+    isTransactionValueUpdating ||
+    isQuotesLoading;
+
   const buttons = [
     {
       variant: ButtonVariants.Secondary,
@@ -132,10 +155,7 @@ export const Footer = () => {
       isDanger:
         securityAlertResponse?.result_type === ResultType.Malicious ||
         hasDangerAlerts,
-      isDisabled:
-        needsCameraPermission ||
-        hasBlockingAlerts ||
-        isTransactionValueUpdating,
+      isDisabled: isConfirmDisabled,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,
@@ -143,6 +163,10 @@ export const Footer = () => {
       startIconName: getStartIcon(),
     },
   ];
+
+  if (!isFooterVisible) {
+    return null;
+  }
 
   return (
     <>

@@ -68,8 +68,17 @@ export const BridgeDestTokenSelector: React.FC = () => {
       }
 
       // Open the asset details screen as a bottom sheet
-      const handleInfoButtonPress = () =>
-        navigation.navigate('Asset', { ...item });
+      // Use dispatch with unique key to force new modal instance
+      const handleInfoButtonPress = () => {
+        navigation.dispatch({
+          type: 'NAVIGATE',
+          payload: {
+            name: 'Asset',
+            key: `Asset-${item.address}-${item.chainId}-${Date.now()}`,
+            params: { ...item },
+          },
+        });
+      };
 
       // If the user hasn't added the network, it won't be in the networkConfigurations object
       // So we use the PopularList to get the network name
