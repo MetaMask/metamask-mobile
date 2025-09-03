@@ -3,8 +3,7 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
 import { PerpsLaunchDarklyFlag } from '../../types';
 
-// TODO: Add tests for fallback logic
-const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) => {
+export const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) => {
   // If failed to fetch remote flag or flag is misconfigured, return undefined to trigger fallback
   if (
     !remoteFlag ||
@@ -19,19 +18,6 @@ const perpsRemoteFeatureFlag = (remoteFlag: PerpsLaunchDarklyFlag) => {
   );
 };
 
-export const prioritizeFlagsByEnv = (
-  localFlag: boolean,
-  remoteFlag: PerpsLaunchDarklyFlag,
-) => {
-  if (process.env.METAMASK_ENVIRONMENT === 'production') {
-    // In production, use remote flag if available, otherwise fall back to local
-    return perpsRemoteFeatureFlag(remoteFlag) ?? localFlag;
-  }
-
-  // In development, use local flag.
-  return localFlag;
-};
-
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -39,7 +25,8 @@ export const selectPerpsEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as PerpsLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return perpsRemoteFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -51,7 +38,8 @@ export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as unknown as PerpsLaunchDarklyFlag;
 
-    return prioritizeFlagsByEnv(localFlag, remoteFlag);
+    // Fallback to local flag if remote flag is not available
+    return perpsRemoteFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
