@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 import {
   CreateNewWallet,
   importWalletWithRecoveryPhrase,
