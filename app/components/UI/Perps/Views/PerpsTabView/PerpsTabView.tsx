@@ -226,12 +226,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             <View style={styles.startTradeContent}>
               <View style={styles.startTradeIconContainer}>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.Add}
                   color={IconColor.Default}
                   size={IconSize.Sm}
                 />
               </View>
-              <Text variant={TextVariant.BodyMD} style={styles.startTradeText}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.startTradeText}
+              >
                 {strings('perps.position.list.start_new_trade')}
               </Text>
             </View>
@@ -254,14 +257,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.firstTimeContent}>
               <View style={styles.firstTimeContainer}>
@@ -296,10 +302,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               </View>
             </View>
           ) : (
-            <>
+            <View style={styles.tradeInfoContainer}>
               <View style={styles.section}>{renderPositionsSection()}</View>
               <View style={styles.section}>{renderOrdersSection()}</View>
-            </>
+            </View>
           )}
         </ScrollView>
       </>
