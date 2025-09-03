@@ -333,7 +333,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
         // Small delay ensures the TabsList is fully rendered before selection
         const timer = setTimeout(() => {
-          tabsListRef.current?.goToPage(targetPerpsTabIndex);
+          tabsListRef.current?.goToTabIndex(targetPerpsTabIndex);
 
           // Clear the params to prevent re-selection on subsequent focuses
           // This is important for navigation state management
