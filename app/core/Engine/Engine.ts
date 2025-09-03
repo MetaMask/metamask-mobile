@@ -1280,6 +1280,7 @@ export class Engine {
 
     const networkEnablementController =
       controllersByName.NetworkEnablementController;
+    networkEnablementController.init();
 
     // Set up currency rate sync
     setupCurrencyRateSync(
