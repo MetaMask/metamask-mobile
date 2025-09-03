@@ -60,6 +60,7 @@ const getStories = () => {
     "./app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx": require("../app/component-library/components-temp/QuickActionButtons/QuickActionButtons.stories.tsx"),
     "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
     "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),
+    "./app/component-library/components-temp/Tabs/Tabs.stories.tsx": require("../app/component-library/components-temp/Tabs/Tabs.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/Accordion.stories.tsx": require("../app/component-library/components/Accordions/Accordion/Accordion.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx": require("../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx"),
