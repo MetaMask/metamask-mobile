@@ -86,10 +86,7 @@ module.exports = {
         os: 'iOS 18.1',
       },
       // Optimized for GitHub Actions CI runners
-      bootArgs: [
-        '-no-audio',
-        '-no-boot-anim'
-      ],
+      bootArgs: '-no-audio -no-boot-anim',
       utilBinaryPaths: [
         '/usr/bin/rsync'
       ],
