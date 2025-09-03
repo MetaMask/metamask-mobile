@@ -11,11 +11,7 @@ import { TokenI } from '../../components/UI/Tokens/types';
 import { sortAssets } from '../../components/UI/Tokens/util';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import {
-  selectIsAllNetworks,
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { selectTokenSortConfig } from '../preferencesController';
 import { createDeepEqualSelector } from '../util';
@@ -171,25 +167,23 @@ const selectStakedAssets = createDeepEqualSelector(
 );
 
 const selectEnabledNetworks = createDeepEqualSelector(
-  [selectEnabledNetworksByNamespace, selectIsAllNetworks, selectChainId],
-  (enabledNetworksByNamespace, isAllNetworks, currentChainId) =>
-    isAllNetworks
-      ? Object.values(enabledNetworksByNamespace).flatMap((network) =>
-          Object.entries(network)
-            .filter(([_, enabled]) => enabled)
-            .map(([networkId]) => networkId),
-        )
-      : [currentChainId],
+  [selectEnabledNetworksByNamespace],
+  (enabledNetworksByNamespace) =>
+    Object.values(enabledNetworksByNamespace).flatMap((network) =>
+      Object.entries(network)
+        .filter(([_, enabled]) => enabled)
+        .map(([networkId]) => networkId),
+    ),
 );
 
 export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   [
-    selectEnabledNetworks,
     selectAssetsBySelectedAccountGroup,
+    selectEnabledNetworks,
     selectTokenSortConfig,
     selectStakedAssets,
   ],
-  (enabledNetworks, bip44Assets, tokenSortConfig, stakedAssets) => {
+  (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets);
