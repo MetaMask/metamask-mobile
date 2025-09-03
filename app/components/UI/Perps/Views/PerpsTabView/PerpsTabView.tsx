@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import * as Haptics from 'expo-haptics';
@@ -44,18 +44,8 @@ import {
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-
-const triggerLeverageHaptic = async (): Promise<void> => {
-  try {
-    await impactAsync(ImpactFeedbackStyle.Light);
-  } catch (error) {
-    // Haptic feedback is not critical - fail silently
-    DevLogger.log('Haptic feedback not available:', error);
-  }
-};
 
 interface PerpsTabViewProps {}
 
@@ -86,6 +76,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
   const firstTimeUserIconSize = 48 as unknown as IconSize;
+
+  const hasPositions = positions && positions.length > 0;
+  const hasOrders = orders && orders.length > 0;
+  const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
   // Start measuring position data load time on mount
   useEffect(() => {
@@ -144,12 +138,19 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     });
   }, [navigation]);
 
-  const handleStartTrading = useCallback(() => {
-    // Navigate to tutorial carousel for first-time users
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TUTORIAL,
-    });
-  }, [navigation]);
+  const handleNewTrade = useCallback(() => {
+    if (isFirstTimeUser) {
+      // Navigate to tutorial for first-time users
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
+    } else {
+      // Navigate to trading view for returning users
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    }
+  }, [navigation, isFirstTimeUser]);
 
   const handleRetryConnection = useCallback(() => {
     resetError();
@@ -220,41 +221,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       );
     }
 
-    if (isFirstTimeUser) {
-      return (
-        <View style={styles.firstTimeContainer}>
-          <Icon
-            name={IconName.Details}
-            color={IconColor.Muted}
-            size={firstTimeUserIconSize}
-            style={styles.firstTimeIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.firstTimeTitle}
-          >
-            {strings('perps.position.list.first_time_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
-            style={styles.firstTimeDescription}
-          >
-            {strings('perps.position.list.first_time_description')}
-          </Text>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={strings('perps.position.list.start_trading')}
-            onPress={handleStartTrading}
-            style={styles.startTradingButton}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
-      );
-    }
-
     if (positions.length === 0) {
       // Regular empty state for returning users
       return (
@@ -284,6 +250,24 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {positions.map((position, index) => (
             <PerpsCard key={`${position.coin}-${index}`} position={position} />
           ))}
+          <TouchableOpacity
+            style={styles.startTradeCTA}
+            onPress={handleNewTrade}
+            testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+          >
+            <View style={styles.startTradeContent}>
+              <View style={styles.startTradeIconContainer}>
+                <Icon
+                  name={IconName.Arrow2Right}
+                  color={IconColor.Default}
+                  size={IconSize.Sm}
+                />
+              </View>
+              <Text variant={TextVariant.BodyMD} style={styles.startTradeText}>
+                {strings('perps.position.list.start_new_trade')}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </>
     );
@@ -303,31 +287,54 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
-      {isFirstTimeUser ? (
-        <View style={[styles.content, styles.firstTimeContent]}>
-          <View style={styles.section}>{renderPositionsSection()}</View>
-        </View>
-      ) : (
-        <>
-          <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-
-          {/* Temporary Haptics Test Button - Remove after testing */}
-          <View style={styles.section}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="Test Android Expo Haptics 📳"
-              onPress={triggerLeverageHaptic}
-              width={ButtonWidthTypes.Full}
-            />
-          </View>
-
-          <ScrollView style={styles.content}>
-            <View style={styles.section}>{renderPositionsSection()}</View>
-            <View style={styles.section}>{renderOrdersSection()}</View>
-          </ScrollView>
-        </>
-      )}
+      <>
+        <PerpsTabControlBar
+          onManageBalancePress={handleManageBalancePress}
+          hasPositions={hasPositions}
+          hasOrders={hasOrders}
+        />
+        <ScrollView style={styles.content}>
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <View style={styles.firstTimeContent}>
+              <View style={styles.firstTimeContainer}>
+                <Icon
+                  name={IconName.Details}
+                  color={IconColor.Muted}
+                  size={firstTimeUserIconSize}
+                  style={styles.firstTimeIcon}
+                />
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  color={TextColor.Default}
+                  style={styles.firstTimeTitle}
+                >
+                  {strings('perps.position.list.first_time_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Muted}
+                  style={styles.firstTimeDescription}
+                >
+                  {strings('perps.position.list.first_time_description')}
+                </Text>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  label={strings('perps.position.list.start_trading')}
+                  onPress={handleNewTrade}
+                  style={styles.startTradingButton}
+                  width={ButtonWidthTypes.Full}
+                />
+              </View>
+            </View>
+          ) : (
+            <>
+              <View style={styles.section}>{renderPositionsSection()}</View>
+              <View style={styles.section}>{renderOrdersSection()}</View>
+            </>
+          )}
+        </ScrollView>
+      </>
     </SafeAreaView>
   );
 };

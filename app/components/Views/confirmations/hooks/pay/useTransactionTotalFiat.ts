@@ -4,7 +4,7 @@ import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { BigNumber } from 'bignumber.js';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useEffect } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TransactionBridgeQuote } from '../../utils/bridge';
@@ -48,39 +48,93 @@ export function useTransactionTotalFiat() {
       new BigNumber(0),
     ) ?? new BigNumber(0);
 
-  const total = quoteTotal.plus(balanceCost);
-  const value = total.toString(10);
-  const formatted = fiatFormatter(total);
+  const quoteFeeTotal =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(getQuoteSourceFee(quote)),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
 
   const totalNetworkFee = quoteNetworkFeeTotal.plus(
     new BigNumber(estimatedFeeFiatPrecise ?? 0),
   );
 
+  const dustTotal =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(getQuoteDust(quote, requiredFiat)),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
+  const total = quoteTotal.plus(balanceCost).minus(dustTotal);
+  const value = total.toString(10);
+  const formatted = fiatFormatter(total);
+
   const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
+  const bridgeFeeFormatted = fiatFormatter(quoteFeeTotal);
+  const balanceCostString = balanceCost.toString(10);
+  const quoteTotalString = quoteTotal.toString(10);
+  const dustTotalString = dustTotal.toString(10);
 
   useEffect(() => {
     log('Total fiat', {
-      balances: balanceCost.toString(10),
-      quotes: quoteTotal.toString(10),
+      balances: balanceCostString,
+      bridgeFees: bridgeFeeFormatted,
+      dust: dustTotalString,
       networkFees: totalNetworkFeeFormatted,
+      quotes: quoteTotalString,
       total: formatted,
     });
-  }, [balanceCost, formatted, quoteTotal, totalNetworkFeeFormatted, value]);
+  }, [
+    balanceCostString,
+    bridgeFeeFormatted,
+    dustTotalString,
+    formatted,
+    quoteTotalString,
+    totalNetworkFeeFormatted,
+    value,
+  ]);
 
   return {
-    value,
+    bridgeFeeFormatted,
     formatted,
+    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
     totalGasFormatted: totalNetworkFeeFormatted,
+    value,
   };
 }
 
 function getQuoteTotal(quote: TransactionBridgeQuote): BigNumber {
-  const networkFee = getQuoteGasAndRelayFee(quote);
-  const sourceAmount = new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
+  return getQuoteSourceAmount(quote).plus(getQuoteGasAndRelayFee(quote));
+}
 
-  return sourceAmount.plus(networkFee);
+function getQuoteSourceAmount(quote: TransactionBridgeQuote): BigNumber {
+  return new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
 }
 
 function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
   return new BigNumber(quote.totalMaxNetworkFee?.valueInCurrency ?? 0);
+}
+
+function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
+  return getQuoteSourceAmount(quote).minus(
+    quote.toTokenAmount?.valueInCurrency ?? 0,
+  );
+}
+
+function getQuoteDust(
+  quote: TransactionBridgeQuote,
+  requiredFiat: { address: Hex; amountHumanOriginal: string }[],
+): BigNumber {
+  const targetAmount = quote.toTokenAmount?.valueInCurrency ?? '0';
+
+  const requiredAmount = requiredFiat.find(
+    (token) =>
+      token.address.toLowerCase() ===
+      quote.quote.destAsset.address.toLowerCase(),
+  )?.amountHumanOriginal;
+
+  if (!requiredAmount) {
+    return new BigNumber(0);
+  }
+
+  return new BigNumber(targetAmount).minus(requiredAmount);
 }

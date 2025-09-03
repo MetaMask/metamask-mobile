@@ -21,7 +21,6 @@ import ScrollableTabView, {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import TabBar from '../../../component-library/components-temp/TabBar';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import {
   isPastPrivacyPolicyDate,
@@ -31,6 +30,7 @@ import {
 } from '../../../reducers/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
@@ -161,7 +161,6 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
-import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -169,11 +168,15 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -419,6 +422,11 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsGTMModalEnabled = useSelector(
+    selectPerpsGtmOnboardingModalEnabledFlag,
+  );
+
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -429,9 +437,6 @@ const Wallet = ({
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
-  );
-  const solanaOnboardingModalEnabled = useSelector(
-    selectSolanaOnboardingModalEnabled,
   );
 
   /**
@@ -612,23 +617,21 @@ const Wallet = ({
     navigate,
   ]);
 
-  const checkAndNavigateToSolanaFeature = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(
-      SOLANA_FEATURE_MODAL_SHOWN,
-    );
+  const checkAndNavigateToPerpsGTM = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
 
     if (hasSeenModal !== 'true') {
-      navigate(Routes.SOLANA_NEW_FEATURE_CONTENT);
+      navigate(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.GTM_MODAL,
+      });
     }
   }, [navigate]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    if (solanaOnboardingModalEnabled) {
-      checkAndNavigateToSolanaFeature();
+    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+      checkAndNavigateToPerpsGTM();
     }
-  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
-  ///: END:ONLY_INCLUDE_IF
+  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
   useEffect(() => {
     addTraitsToUser({
@@ -848,6 +851,7 @@ const Wallet = ({
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -870,6 +874,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         isCardholder,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -885,6 +890,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     isCardholder,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(

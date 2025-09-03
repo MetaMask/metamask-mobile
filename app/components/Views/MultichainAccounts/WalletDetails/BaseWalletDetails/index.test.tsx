@@ -42,6 +42,7 @@ jest.mock(
     selectAccountTreeControllerState: jest.fn(),
     selectSelectedAccountGroupId: jest.fn(),
     selectAccountGroupsByWallet: jest.fn(),
+    selectAccountGroupWithInternalAccounts: jest.fn(),
   }),
 );
 
@@ -170,14 +171,8 @@ describe('BaseWalletDetails', () => {
     mockUseWalletBalances.mockReturnValue({
       formattedWalletTotalBalance: '$1,234.56',
       multichainBalancesForAllAccounts: {
-        [mockAccount1.id]: {
-          displayBalance: '$500.00',
-          isLoadingAccount: false,
-        },
-        [mockAccount2.id]: {
-          displayBalance: '$734.56',
-          isLoadingAccount: false,
-        },
+        [mockAccount1.id]: '$500.00',
+        [mockAccount2.id]: '$734.56',
       },
     });
     mockUseWalletInfo.mockReturnValue({

@@ -335,14 +335,29 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
    * For short positions: Shows how much price needs to rise to trigger liquidation
    */
   const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || dynamicLiquidationPrice === 0) return 0;
+    // Validate inputs
+    if (currentPrice === 0 || !currentPrice) return 0;
 
-    // Calculate the percentage difference between current price and liquidation price
+    // Special case for 1x leverage - theoretical 100% price movement to liquidation
+    if (tempLeverage === 1) {
+      return 100; // Show 100% for 1x leverage
+    }
+
+    // If liquidation price is invalid/still calculating, use theoretical calculation
+    if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
+      // Theoretical calculation: 1 / leverage * 100
+      // For 2x: 50%, for 5x: 20%, for 10x: 10%, etc.
+      const theoreticalPercentage = (1 / tempLeverage) * 100;
+      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+    }
+
+    // Use actual liquidation price when available
     const percentageDrop =
       (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
 
-    return percentageDrop;
-  }, [currentPrice, dynamicLiquidationPrice]);
+    // Return 100% for very high percentages, otherwise return calculated value
+    return percentageDrop >= 99.9 ? 100 : percentageDrop;
+  }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {

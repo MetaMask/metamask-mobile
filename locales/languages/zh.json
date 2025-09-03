@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "您可以在此处关闭显示 NFT 媒体：",
     "show_display_nft_media_content_5": "设置 > 安全和隐私."
   },
-  "solana_new_feature_content": {
-    "title": "现已支持 solana",
-    "title_description": "导入您的钱包，探索、交易并发送。MetaMask 现已支持原生 Solana。",
-    "not_now": "暂时不",
-    "view_solana_account": "查看 Solana 账户",
-    "learn_more": "了解有关 Solana 账户的更多详情",
-    "import_your_wallet": "导入钱包"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS 网关",
     "ipfs_gateway_banner_content1": "这是一个 IPFS 网站。要查看此网站，您需要",

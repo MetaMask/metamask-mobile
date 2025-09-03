@@ -12,9 +12,13 @@ import Assertions from '../../framework/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
-import { setupMockPostRequest } from '../../api-mocking/mockHelpers';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../api-mocking/mock-responses/security-alerts-mock';
 
 const PASSWORD = '123123123';
 
@@ -42,11 +46,11 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupMockPostRequest(
             mockServer,
-            'https://security-alerts.api.cx.metamask.io/validate/0x539',
-            mockEvents.POST.securityAlertApiValidate.requestBody,
-            mockEvents.POST.securityAlertApiValidate.response,
+            securityAlertsUrl('0x539'),
+            SECURITY_ALERTS_REQUEST_BODY,
+            SECURITY_ALERTS_BENIGN_RESPONSE,
             {
-              statusCode: mockEvents.POST.securityAlertApiValidate.responseCode,
+              statusCode: 201,
             },
           );
         },
