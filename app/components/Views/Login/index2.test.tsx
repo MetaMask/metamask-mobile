@@ -45,6 +45,13 @@ jest.mock('../../hooks/useMetrics', () => {
   };
 });
 
+const mockSocialLoginUIChangesEnabled = jest.fn();
+jest.mock('../../../util/onboarding', () => ({
+  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
+    return mockSocialLoginUIChangesEnabled();
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockReset = jest.fn();
@@ -645,6 +652,8 @@ describe('Login test suite 2', () => {
 
   describe('OAuth Login', () => {
     afterEach(() => {
+      mockSocialLoginUIChangesEnabled.mockReset();
+      mockNavigate.mockReset();
       jest.clearAllMocks();
     });
 
@@ -835,6 +844,77 @@ describe('Login test suite 2', () => {
       });
 
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+    });
+
+    it('should handle OAuth login success when mockSocialLoginUIChanges flag is enabled', async () => {
+      mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: 'mockTraceContext',
+        },
+      });
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
+        return null;
+      });
+
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'mock-vault',
+            },
+          },
+        },
+      };
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
+      const spyRehydrateSeedPhrase = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValue(undefined);
+
+      mockEndTrace.mockClear();
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(spyRehydrateSeedPhrase).toHaveBeenCalled();
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingPasswordLoginAttempt,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingExistingSocialLogin,
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReset).not.toHaveBeenCalledWith({
+        routes: [
+          {
+            name: Routes.ONBOARDING.ROOT_NAV,
+            params: {
+              screen: Routes.ONBOARDING.NAV,
+              params: {
+                screen: Routes.ONBOARDING.OPTIN_METRICS,
+              },
+            },
+          },
+        ],
+      });
     });
   });
 });

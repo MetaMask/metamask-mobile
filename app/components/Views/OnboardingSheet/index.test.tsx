@@ -2,6 +2,16 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
+
+const mockSocialLoginUIChangesEnabled = jest.fn();
+jest.mock('../../../util/onboarding', () => ({
+  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
+    return mockSocialLoginUIChangesEnabled();
+  },
+}));
+
+const mockNavigate = jest.fn();
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -27,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: jest.fn(),
       setOptions: jest.fn(),
     }),
@@ -161,6 +171,45 @@ describe('OnboardingSheet', () => {
 
         expect(mockOnPressCreate).toHaveBeenCalledTimes(1);
         expect(mockOnPressImport).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('OnboardingSheet - Terms & Privacy', () => {
+      afterEach(() => {
+        mockSocialLoginUIChangesEnabled.mockReset();
+        mockNavigate.mockReset();
+      });
+
+      it('navigates to Terms of Use when terms link is pressed', () => {
+        mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+
+        const termsLink = getByTestId('terms-of-use-link');
+        fireEvent.press(termsLink);
+
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: AppConstants.URLS.TERMS_OF_USE_URL,
+            title: strings('onboarding.terms_of_use'),
+          },
+        });
+      });
+
+      it('navigates to Privacy Notice when privacy link is pressed', () => {
+        mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+
+        const privacyLink = getByTestId('privacy-notice-link');
+        fireEvent.press(privacyLink);
+
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: AppConstants.URLS.PRIVACY_NOTICE,
+            title: strings('onboarding.privacy_notice'),
+          },
+        });
       });
     });
   });
