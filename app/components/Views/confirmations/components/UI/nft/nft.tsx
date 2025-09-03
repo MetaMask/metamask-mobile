@@ -70,16 +70,14 @@ export function Nft({ asset, onPress }: NftProps) {
           >
             {asset.collectionName || asset.name}
           </Text>
-          {Boolean(asset.name || asset.tokenId) && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              numberOfLines={1}
-            >
-              {asset.standard === 'ERC1155' && `(${asset.balance}) `}
-              {asset.standard === 'ERC721' ? `#${asset.tokenId}` : asset.name}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {asset.standard === 'ERC1155' && `(${asset.balance}) `}
+            {asset.standard === 'ERC721' ? `#${asset.tokenId}` : asset.name}
+          </Text>
         </Box>
       </Box>
     </Pressable>
