@@ -80,7 +80,7 @@ export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
 );
 
-// TODO: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
+// BIP44 MAINTENANCE: Add these items at controller level, but have them being optional on selectAssetsBySelectedAccountGroup to avoid breaking changes
 const selectStakedAssets = createDeepEqualSelector(
   [
     (state: RootState) =>
@@ -254,6 +254,7 @@ export const selectAsset = createDeepEqualSelector(
 const oneHundredThousandths = 0.00001;
 const oneHundredths = 0.01;
 
+// BIP44 MAINTENANCE: Review what fields are really needed
 function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
   return {
     address: asset.assetId,
@@ -278,6 +279,7 @@ function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
           currency: asset.fiat.currency,
         })
       : undefined,
+    // BIP44 MAINTENANCE: Review whether this is being used
     logo:
       asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
