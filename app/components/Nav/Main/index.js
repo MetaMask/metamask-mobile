@@ -106,10 +106,9 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleShowNetworkActiveToast } from './utils';
 import { CardVerification } from '../../UI/Card/sdk';
+import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 const Stack = createStackNavigator();
-const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
-  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 const createStyles = (colors) =>
   StyleSheet.create({

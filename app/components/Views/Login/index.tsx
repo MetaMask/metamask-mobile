@@ -110,6 +110,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -124,9 +125,6 @@ interface LoginRouteParams {
 interface LoginProps {
   saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
 }
-
-const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
-  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 /**
  * View where returning users can authenticate

@@ -86,6 +86,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -194,9 +195,6 @@ const createStyles = (colors) =>
   });
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-// Flag to control social login UI changes
-const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
-  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 /**
  * View where users can set their password for the first time
@@ -499,30 +497,30 @@ class ChoosePassword extends PureComponent {
             ],
           });
         } else if (this.props.metrics.isEnabled()) {
-            this.props.navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: Routes.ONBOARDING.SUCCESS,
-                  params: { showPasswordHint: true },
-                },
-              ],
-            });
-          } else {
-            this.props.navigation.navigate('OptinMetrics', {
-              onContinue: () => {
-                this.props.navigation.reset({
-                  index: 0,
-                  routes: [
-                    {
-                      name: Routes.ONBOARDING.SUCCESS,
-                      params: { showPasswordHint: true },
-                    },
-                  ],
-                });
+          this.props.navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
               },
-            });
-          }
+            ],
+          });
+        } else {
+          this.props.navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              this.props.navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.ONBOARDING.SUCCESS,
+                    params: { showPasswordHint: true },
+                  },
+                ],
+              });
+            },
+          });
+        }
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
         this.props.navigation.replace('AccountBackupStep1', {

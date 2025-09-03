@@ -153,6 +153,7 @@ import { PayWithModal } from '../../Views/confirmations/components/modals/pay-wi
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
+import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -205,9 +206,7 @@ const OnboardingSuccessFlow = () => (
 const OnboardingNav = () => {
   // If true: Start with Onboarding page (shows Create Wallet and Import Wallet buttons)
   // If false: Start with OnboardingCarousel
-  const isSocialLoginUIEnabled =
-    process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
-  const initialRouteName = isSocialLoginUIEnabled
+  const initialRouteName = SOCIAL_LOGIN_UI_CHANGES_ENABLED
     ? 'Onboarding'
     : 'OnboardingCarousel';
 

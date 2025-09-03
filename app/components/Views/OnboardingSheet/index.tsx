@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet, InteractionManager } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,6 +21,7 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 export interface OnboardingSheetParams {
   onPressCreate?: () => void;
@@ -35,9 +36,6 @@ export interface OnboardingSheetProps {
     params: OnboardingSheetParams;
   };
 }
-
-const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
-  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -132,14 +130,12 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   };
 
   const goTo = (url: string, title: string) => {
-    InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url,
-          title,
-        },
-      });
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+        title,
+      },
     });
   };
 
