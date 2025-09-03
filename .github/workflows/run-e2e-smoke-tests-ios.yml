@@ -2,12 +2,6 @@ name: iOS E2E Smoke Tests
 
 on:
   workflow_call:
-    inputs:
-      existing-build-run-id:
-        description: 'Use existing build from this run ID instead of building'
-        required: false
-        type: string
-        default: '17433363286'  # TEMPORARY: Remove this line when build is re-enabled
 
 permissions:
   contents: read
@@ -20,7 +14,6 @@ jobs:
       test-suite-name: confirmations-ios-smoke
       platform: ios
       test_suite_tag: "SmokeConfirmations"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   confirmations-redesigned-ios-smoke:
@@ -29,7 +22,6 @@ jobs:
       test-suite-name: confirmations-redesigned-ios-smoke
       platform: ios
       test_suite_tag: "SmokeConfirmationsRedesigned"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   trade-ios-smoke:
@@ -38,7 +30,6 @@ jobs:
       test-suite-name: trade-ios-smoke
       platform: ios
       test_suite_tag: "SmokeTrade"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   wallet-platform-ios-smoke:
@@ -47,7 +38,6 @@ jobs:
       test-suite-name: wallet-platform-ios-smoke
       platform: ios
       test_suite_tag: "SmokeWalletPlatform"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   identity-ios-smoke:
@@ -56,7 +46,6 @@ jobs:
       test-suite-name: identity-ios-smoke
       platform: ios
       test_suite_tag: "SmokeIdentity"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   accounts-ios-smoke:
@@ -65,7 +54,6 @@ jobs:
       test-suite-name: accounts-ios-smoke
       platform: ios
       test_suite_tag: "SmokeAccounts"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   network-abstraction-ios-smoke:
@@ -74,7 +62,6 @@ jobs:
       test-suite-name: network-abstraction-ios-smoke
       platform: ios
       test_suite_tag: "SmokeNetworkAbstractions"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   network-expansion-ios-smoke:
@@ -83,7 +70,6 @@ jobs:
       test-suite-name: network-expansion-ios-smoke
       platform: ios
       test_suite_tag: "SmokeNetworkExpansion"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   performance-ios-smoke:
@@ -92,7 +78,6 @@ jobs:
       test-suite-name: performance-ios-smoke
       platform: ios
       test_suite_tag: "SmokePerformance"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   card-ios-smoke:
@@ -101,7 +86,6 @@ jobs:
       test-suite-name: card-ios-smoke
       platform: ios
       test_suite_tag: "SmokeCard"
-      existing-build-run-id: ${{ inputs.existing-build-run-id }}
     secrets: inherit
 
   report-ios-smoke-tests:

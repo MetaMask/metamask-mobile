@@ -2,12 +2,6 @@ name: Build iOS E2E Apps
 
 on:
   workflow_call:
-    inputs:
-      skip-build:
-        description: 'Skip building and use existing artifacts'
-        required: false
-        type: boolean
-        default: true  # TEMPORARY: Change to false when build is re-enabled
 
 permissions:
   contents: read
@@ -17,7 +11,6 @@ jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
-    if: ${{ !inputs.skip-build }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
