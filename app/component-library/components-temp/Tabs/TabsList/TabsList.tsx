@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 
 // External dependencies.
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
@@ -21,7 +20,6 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
     { children, initialActiveIndex = 0, onChangeTab, testID, ...boxProps },
     ref,
   ) => {
-    const tw = useTailwind();
     const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
 
     // Extract tab items from children
