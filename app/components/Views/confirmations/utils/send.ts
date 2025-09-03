@@ -218,5 +218,5 @@ export const getLayer1GasFeeForSend = async ({
   return (await fetchEstimatedMultiLayerL1Fee(undefined, {
     txParams,
     chainId,
-  })) as Hex;
+  })) as Hex | undefined;
 };

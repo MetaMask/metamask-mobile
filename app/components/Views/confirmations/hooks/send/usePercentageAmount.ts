@@ -1,9 +1,9 @@
 import BN from 'bnjs4';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useCallback } from 'react';
 
-import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 import { hexToBN } from '../../../../../util/number';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { AssetType } from '../../types/token';
@@ -88,7 +88,7 @@ export const usePercentageAmount = () => {
   const { value: layer1GasFee } = useAsyncResult(async () => {
     if (
       !isEvmNativeSendType ||
-      asset?.chainId === NETWORKS_CHAIN_ID.MAINNET ||
+      asset?.chainId === CHAIN_IDS.MAINNET ||
       !from ||
       value === undefined
     ) {
