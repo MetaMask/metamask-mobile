@@ -336,9 +336,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
   useFocusEffect(
     useCallback(() => {
       // Check both navigationParams prop and route params for tab selection
-      // Type assertion needed as route params are not strongly typed in navigation
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params = navigationParams || (route.params as any);
+      const params = navigationParams;
       const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
       const initialTab = params?.initialTab;
 
