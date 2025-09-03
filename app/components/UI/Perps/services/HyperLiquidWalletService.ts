@@ -5,7 +5,7 @@ import {
   isValidHexAddress,
 } from '@metamask/utils';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
@@ -38,13 +38,13 @@ export class HyperLiquidWalletService {
       }): Promise<unknown> => {
         switch (args.method) {
           case 'eth_requestAccounts': {
-            const selectedAddress = selectSelectedInternalAccountAddress(
+            const selectedEvmAccount = selectSelectedInternalAccountByScope(
               store.getState(),
-            );
-            if (!selectedAddress) {
+            )('eip155:1');
+            if (!selectedEvmAccount?.address) {
               throw new Error(strings('perps.errors.noAccountSelected'));
             }
-            return [selectedAddress];
+            return [selectedEvmAccount.address];
           }
           case 'eth_chainId': {
             // Return Arbitrum chain ID in hex format
@@ -61,17 +61,19 @@ export class HyperLiquidWalletService {
 
           case 'eth_signTypedData_v4': {
             const [address, data] = args.params as [string, string | object];
-            const selectedAddress = selectSelectedInternalAccountAddress(
+            const selectedEvmAccount = selectSelectedInternalAccountByScope(
               store.getState(),
-            );
+            )('eip155:1');
 
             // Check if account is selected
-            if (!selectedAddress) {
+            if (!selectedEvmAccount?.address) {
               throw new Error(strings('perps.errors.noAccountSelected'));
             }
 
             // Verify the signing address matches the selected account
-            if (address.toLowerCase() !== selectedAddress.toLowerCase()) {
+            if (
+              address.toLowerCase() !== selectedEvmAccount.address.toLowerCase()
+            ) {
               throw new Error(strings('perps.errors.noAccountSelected'));
             }
 
@@ -107,16 +109,16 @@ export class HyperLiquidWalletService {
    * Get current account ID from Redux store
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const selectedAddress = selectSelectedInternalAccountAddress(
+    const selectedEvmAccount = selectSelectedInternalAccountByScope(
       store.getState(),
-    );
+    )('eip155:1');
 
-    if (!selectedAddress) {
+    if (!selectedEvmAccount?.address) {
       throw new Error(strings('perps.errors.noAccountSelected'));
     }
 
     const chainId = getChainId(this.isTestnet);
-    const caipAccountId: CaipAccountId = `eip155:${chainId}:${selectedAddress}`;
+    const caipAccountId: CaipAccountId = `eip155:${chainId}:${selectedEvmAccount.address}`;
 
     return caipAccountId;
   }

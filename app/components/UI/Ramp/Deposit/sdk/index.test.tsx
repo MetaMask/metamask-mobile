@@ -18,7 +18,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import {
   NativeRampsSdk,
-  TransakEnvironment,
+  SdkEnvironment,
+  Context,
 } from '@consensys/native-ramps-sdk';
 
 const mockDispatch = jest.fn();
@@ -32,6 +33,12 @@ jest.mock('../utils/ProviderTokenVault', () => ({
     .fn()
     .mockResolvedValue({ success: false, token: null }),
   storeProviderToken: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('react-native', () => ({
+  Platform: {
+    OS: 'ios',
+  },
 }));
 
 jest.mock('@consensys/native-ramps-sdk', () => ({
@@ -99,7 +106,6 @@ const mockedState = {
         remoteFeatureFlags: {
           depositConfig: {
             providerApiKey: 'test-provider-api-key',
-            providerFrontendAuth: 'test-provider-frontend-auth',
           },
         },
       },
@@ -120,14 +126,8 @@ describe('Deposit SDK Context', () => {
   describe('DepositSDKProvider', () => {
     it('renders and provides context values', () => {
       const ConsumerComponent = () => {
-        const { providerApiKey, providerFrontendAuth } = useContext(
-          DepositSDKContext,
-        ) as DepositSDK;
-        return (
-          <Text>
-            {`API Key: ${providerApiKey}, Frontend Auth: ${providerFrontendAuth}`}
-          </Text>
-        );
+        const { providerApiKey } = useContext(DepositSDKContext) as DepositSDK;
+        return <Text>{`API Key: ${providerApiKey}`}</Text>;
       };
 
       renderWithProvider(
@@ -139,9 +139,7 @@ describe('Deposit SDK Context', () => {
         },
       );
       expect(screen.toJSON()).toMatchSnapshot();
-      const textElement = screen.getByText(
-        'API Key: test-provider-api-key, Frontend Auth: test-provider-frontend-auth',
-      );
+      const textElement = screen.getByText('API Key: test-provider-api-key');
       expect(textElement).toBeOnTheScreen();
     });
 
@@ -157,10 +155,10 @@ describe('Deposit SDK Context', () => {
 
       expect(NativeRampsSdk).toHaveBeenCalledWith(
         {
-          partnerApiKey: 'test-provider-api-key',
-          frontendAuth: 'test-provider-frontend-auth',
+          apiKey: 'test-provider-api-key',
+          context: Context.MobileIOS,
         },
-        TransakEnvironment.Staging,
+        SdkEnvironment.Staging,
       );
     });
   });
@@ -681,7 +679,6 @@ describe('Deposit SDK Context', () => {
               remoteFeatureFlags: {
                 depositConfig: {
                   providerApiKey: null,
-                  providerFrontendAuth: null,
                 },
               },
             },

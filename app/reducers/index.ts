@@ -8,7 +8,6 @@ import alertReducer from './alert';
 import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
 import userReducer, { UserState } from './user';
-import wizardReducer from './wizard';
 import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
@@ -37,6 +36,7 @@ import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
 import cardReducer from '../core/redux/slices/card';
+import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -88,7 +88,6 @@ export interface RootState {
   user: UserState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wizard: any;
   onboarding: OnboardingState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,6 +128,7 @@ export interface RootState {
   card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
+  rewards: RewardsState;
 }
 
 const baseReducers = {
@@ -145,7 +145,6 @@ const baseReducers = {
   alert: alertReducer,
   transaction: transactionReducer,
   user: userReducer,
-  wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
   signatureRequest: signatureRequestReducer,
@@ -167,6 +166,7 @@ const baseReducers = {
   card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
   cronjobController: cronjobControllerReducer,
+  rewards: rewardsReducer,
 };
 
 if (isTest) {

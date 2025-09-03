@@ -16,6 +16,12 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { merge } from 'lodash';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
+import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
@@ -192,6 +198,29 @@ describe('Footer', () => {
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
+  it('disables confirm button if quotes are loading', () => {
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      {
+        confirmationMetrics: {
+          isTransactionBridgeQuotesLoadingById: {
+            [transactionIdMock]: true,
+          },
+        },
+      },
+    );
+
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state,
+    });
+
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);

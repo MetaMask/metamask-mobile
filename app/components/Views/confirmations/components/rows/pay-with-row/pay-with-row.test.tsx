@@ -1,6 +1,6 @@
 import React from 'react';
 import { PayWithRow } from './pay-with-row';
-import { TokenPillProps } from '../../token-pill/token-pill';
+import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
@@ -19,8 +19,8 @@ jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
 jest.mock('../../../hooks/pay/useTransactionRequiredFiat');
 
-jest.mock('../../token-pill/', () => ({
-  TokenPill: (props: TokenPillProps) => (
+jest.mock('../../token-icon/', () => ({
+  TokenIcon: (props: TokenIconProps) => (
     <MockText>{`${props.address} ${props.chainId}`}</MockText>
   ),
 }));
@@ -56,12 +56,14 @@ describe('PayWithRow', () => {
     jest.resetAllMocks();
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
-      balanceFiat: '$1.23',
-      balanceHuman: '1.23',
-      decimals: 18,
       payToken: {
         address: ADDRESS_MOCK,
+        balance: '0',
+        balanceFiat: '$0',
         chainId: CHAIN_ID_MOCK,
+        decimals: 4,
+        symbol: 'test',
+        tokenFiatAmount: 0,
       },
       setPayToken: jest.fn(),
     });
@@ -108,9 +110,6 @@ describe('PayWithRow', () => {
   it('renders spinner when no pay token selected', () => {
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: undefined,
-      balanceFiat: undefined,
-      balanceHuman: undefined,
-      decimals: undefined,
       setPayToken: jest.fn(),
     });
 

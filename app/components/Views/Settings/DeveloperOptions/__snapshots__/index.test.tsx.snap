@@ -524,7 +524,7 @@ exports[`DeveloperOptions renders correctly 1`] = `
                               }
                             }
                           >
-                            Perpetual Trading
+                            Perps Trading
                           </Text>
                           <View
                             style={

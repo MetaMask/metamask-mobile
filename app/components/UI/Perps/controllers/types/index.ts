@@ -72,6 +72,8 @@ export type AccountState = {
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
+  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
+  totalValue: string; // Based on HyperLiquid: accountValue
 };
 
 export type ClosePositionParams = {
@@ -143,6 +145,18 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
+  /**
+   * Current funding rate as decimal (optional, from predictedFundings API)
+   */
+  fundingRate?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -239,6 +253,15 @@ export interface WithdrawResult {
   error?: string;
   withdrawalId?: string; // Unique ID for tracking
   estimatedArrivalTime?: number; // Provider-specific arrival time
+}
+
+export interface GetHistoricalPortfolioParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface HistoricalPortfolioResult {
+  accountValue1dAgo: string;
+  timestamp: number;
 }
 
 export interface LiveDataConfig {
@@ -340,6 +363,16 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface SubscribeOrdersParams {
+  callback: (orders: Order[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  includeHistory?: boolean; // Optional: include filled/canceled orders
+}
+
+export interface SubscribeAccountParams {
+  callback: (account: AccountState) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -361,9 +394,19 @@ export interface FeeCalculationParams {
 }
 
 export interface FeeCalculationResult {
-  feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
-  feeAmount?: number; // Fee amount in USD (when amount is provided)
-  // Optional breakdown for transparency
+  // Total fees (protocol + MetaMask)
+  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeAmount?: number; // Total fee amount in USD (when amount is provided)
+
+  // Protocol-specific base fees
+  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeAmount?: number; // Protocol fee amount in USD
+
+  // MetaMask builder/revenue fee
+  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeAmount?: number; // MetaMask fee amount in USD
+
+  // Optional detailed breakdown for transparency
   breakdown?: {
     baseFeeRate: number;
     volumeTier?: string;
@@ -390,7 +433,13 @@ export interface Order {
   remainingSize: string; // Amount remaining
   status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
   timestamp: number; // Order timestamp
-  lastUpdated: number; // Last status update timestamp
+  lastUpdated?: number; // Last status update timestamp (optional - not provided by all APIs)
+  // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
+  detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+  isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
+  reduceOnly?: boolean; // Whether this is a reduce-only order
 }
 
 export interface Funding {
@@ -442,11 +491,29 @@ export interface IPerpsProvider {
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
 
   /**
+   * Get historical portfolio data
+   * Purpose: Retrieve account value from previous periods for PnL tracking
+   * Example: Get account value from yesterday to calculate 24h percentage change
+   * @param params - Optional parameters for historical portfolio retrieval
+   */
+  getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult>;
+
+  /**
    * Historical order lifecycle - order placement, modifications, and status changes.
    * Purpose: Track the complete journey of orders from request to completion.
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
    */
   getOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
 
   /**
    * Historical funding payments - periodic costs/rewards for holding positions.
@@ -465,6 +532,8 @@ export interface IPerpsProvider {
   subscribeToPrices(params: SubscribePricesParams): () => void;
   subscribeToPositions(params: SubscribePositionsParams): () => void;
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
+  subscribeToOrders(params: SubscribeOrdersParams): () => void;
+  subscribeToAccount(params: SubscribeAccountParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

@@ -359,1113 +359,87 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                     style={
                       [
                         {
-                          "alignSelf": "flex-start",
-                          "position": "relative",
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
                         },
-                        undefined,
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
                       ]
                     }
                   >
                     <View
-                      onLayout={[Function]}
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
-                            },
-                            {
-                              "alignItems": "center",
-                              "justifyContent": "center",
-                            },
-                          ]
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
                         }
-                      >
-                        <View
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          hitSlop={
-                            {
-                              "bottom": 12,
-                              "left": 12,
-                              "right": 12,
-                              "top": 12,
-                            }
-                          }
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            [
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 40,
-                              },
-                              undefined,
-                            ]
-                          }
-                          testID="wallet-notifications-button"
-                        >
-                          <SvgMock
-                            fill="currentColor"
-                            name="Notification"
-                            style={
-                              [
-                                {
-                                  "color": "#121314",
-                                  "height": 24,
-                                  "width": 24,
-                                },
-                                undefined,
-                              ]
-                            }
-                          />
-                        </View>
-                      </View>
-                    </View>
-                    <View
-                      onLayout={[Function]}
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
                       style={
                         [
                           {
-                            "position": "absolute",
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
                           },
-                          {
-                            "right": 0,
-                            "top": 0,
-                          },
+                          undefined,
                         ]
                       }
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <RNSScreenContainer
-      onLayout={[Function]}
-      style={
-        {
-          "flex": 1,
-        }
-      }
-    >
-      <RNSScreen
-        activityState={2}
-        collapsable={false}
-        gestureResponseDistance={
-          {
-            "bottom": -1,
-            "end": -1,
-            "start": -1,
-            "top": -1,
-          }
-        }
-        onGestureCancel={[Function]}
-        pointerEvents="box-none"
-        sheetAllowedDetents="large"
-        sheetCornerRadius={-1}
-        sheetExpandsWhenScrolledToEdge={true}
-        sheetGrabberVisible={false}
-        sheetLargestUndimmedDetent="all"
-        style={
-          {
-            "bottom": 0,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": undefined,
-          }
-        }
-      >
-        <View
-          collapsable={false}
-          style={
-            {
-              "opacity": 1,
-            }
-          }
-        />
-        <View
-          accessibilityElementsHidden={false}
-          closing={false}
-          gestureVelocityImpact={0.3}
-          importantForAccessibility="auto"
-          onClose={[Function]}
-          onGestureBegin={[Function]}
-          onGestureCanceled={[Function]}
-          onGestureEnd={[Function]}
-          onOpen={[Function]}
-          onTransition={[Function]}
-          pointerEvents="box-none"
-          style={
-            [
-              {
-                "overflow": undefined,
-              },
-              {
-                "bottom": 0,
-                "left": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              },
-            ]
-          }
-          transitionSpec={
-            {
-              "close": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-              "open": {
-                "animation": "spring",
-                "config": {
-                  "damping": 500,
-                  "mass": 3,
-                  "overshootClamping": true,
-                  "restDisplacementThreshold": 10,
-                  "restSpeedThreshold": 10,
-                  "stiffness": 1000,
-                },
-              },
-            }
-          }
-        >
-          <View
-            collapsable={false}
-            needsOffscreenAlphaCompositing={false}
-            pointerEvents="box-none"
-            style={
-              {
-                "flex": 1,
-              }
-            }
-          >
-            <View
-              collapsable={false}
-              enabled={false}
-              handlerTag={32}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
-              style={
-                {
-                  "flex": 1,
-                  "transform": [
-                    {
-                      "translateX": 0,
-                    },
-                    {
-                      "translateX": 0,
-                    },
-                  ],
-                }
-              }
-            >
-              <View
-                collapsable={false}
-                pointerEvents="none"
-                style={
-                  {
-                    "backgroundColor": "rgb(242, 242, 242)",
-                    "bottom": 0,
-                    "left": 0,
-                    "position": "absolute",
-                    "shadowColor": "#000",
-                    "shadowOffset": {
-                      "height": 1,
-                      "width": -1,
-                    },
-                    "shadowOpacity": 0.3,
-                    "shadowRadius": 5,
-                    "top": 0,
-                    "width": 3,
-                  }
-                }
-              />
-              <View
-                style={
-                  [
-                    {
-                      "flex": 1,
-                      "overflow": "hidden",
-                    },
-                    [
-                      {
-                        "backgroundColor": "rgb(242, 242, 242)",
-                      },
-                      undefined,
-                    ],
-                  ]
-                }
-              >
-                <View
-                  style={
-                    {
-                      "flex": 1,
-                      "flexDirection": "column-reverse",
-                    }
-                  }
-                >
-                  <View
-                    style={
-                      {
-                        "flex": 1,
-                      }
-                    }
-                  >
-                    <RNCSafeAreaView
-                      edges={
-                        {
-                          "bottom": "additive",
-                          "left": "additive",
-                          "right": "additive",
-                          "top": "additive",
-                        }
-                      }
-                      style={
-                        {
-                          "backgroundColor": "#ffffff",
-                          "flex": 1,
-                          "padding": 16,
-                        }
-                      }
+                      testID="wallet-scan-button"
                     >
-                      <View
-                        style={
-                          {
-                            "flex": 1,
-                            "flexDirection": "column",
-                            "rowGap": 16,
-                          }
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "alignItems": "center",
-                              "display": "flex",
-                              "flexDirection": "column",
-                              "paddingTop": 20,
-                              "rowGap": 16,
-                            }
-                          }
-                        >
-                          <SvgMock
-                            color="#9a6300"
-                            fill="currentColor"
-                            height={32}
-                            name="Danger"
-                            style={
-                              {
-                                "height": 32,
-                                "width": 32,
-                              }
-                            }
-                            width={32}
-                          />
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Bold",
-                                "fontSize": 24,
-                                "letterSpacing": 0,
-                                "lineHeight": 32,
-                              }
-                            }
-                          >
-                            An error occurred
-                          </Text>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#4459ff1a",
-                              "borderColor": "#4459ff",
-                              "borderLeftWidth": 4,
-                              "borderRadius": 4,
-                              "flexDirection": "row",
-                              "padding": 12,
-                              "paddingLeft": 8,
-                            }
-                          }
-                          testID="banneralert"
-                        >
-                          <View
-                            style={
-                              {
-                                "marginRight": 8,
-                              }
-                            }
-                          >
-                            <SvgMock
-                              color="#4459ff"
-                              fill="currentColor"
-                              height={24}
-                              name="Info"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
-                              width={24}
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
-                            </Text>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "backgroundColor": "#9a63001a",
-                              "borderColor": "#9a6300",
-                              "borderLeftWidth": 4,
-                              "borderRadius": 4,
-                              "flexDirection": "row",
-                              "padding": 12,
-                              "paddingLeft": 8,
-                            }
-                          }
-                          testID="banneralert"
-                        >
-                          <View
-                            style={
-                              {
-                                "marginRight": 8,
-                              }
-                            }
-                          >
-                            <SvgMock
-                              color="#9a6300"
-                              fill="currentColor"
-                              height={24}
-                              name="Danger"
-                              style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
-                              }
-                              width={24}
-                            />
-                          </View>
-                          <View
-                            style={
-                              {
-                                "flex": 1,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Regular",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              If you keep getting this error,
-                               
-                              <Text
-                                accessibilityRole="text"
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Regular",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Save your Secret Recovery Phrase
-                              </Text>
-                               
-                              and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
-                            </Text>
-                          </View>
-                        </View>
-                        <Text
-                          accessibilityRole="text"
-                          onPress={[Function]}
-                          style={
-                            {
-                              "color": "#4459ff",
-                              "fontFamily": "Geist Regular",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
-                          }
-                        >
-                          Save your Secret Recovery Phrase
-                        </Text>
-                        <View>
-                          <View
-                            style={
-                              {
-                                "flexDirection": "row",
-                                "justifyContent": "space-between",
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Error message:
-                            </Text>
-                            <TouchableOpacity
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "columnGapgap": 4,
-                                  "display": "flex",
-                                  "flexDirection": "row",
-                                  "justifyContent": "center",
-                                }
-                              }
-                            >
-                              <SvgMock
-                                color="#4459ff"
-                                fill="currentColor"
-                                height={16}
-                                name="Copy"
-                                style={
-                                  {
-                                    "height": 16,
-                                    "width": 16,
-                                  }
-                                }
-                                width={16}
-                              />
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#4459ff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Copy
-                              </Text>
-                            </TouchableOpacity>
-                          </View>
-                          <View
-                            style={
-                              {
-                                "backgroundColor": "#ca35421a",
-                                "borderRadius": 8,
-                                "flexShrink": 1,
-                                "marginTop": 8,
-                                "padding": 16,
-                              }
-                            }
-                          >
-                            <RCTScrollView
-                              collapsable={false}
-                              handlerTag={31}
-                              handlerType="NativeViewGestureHandler"
-                              onGestureHandlerEvent={[Function]}
-                              onGestureHandlerStateChange={[Function]}
-                            >
-                              <View>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#ca3542",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
-                                </Text>
-                              </View>
-                            </RCTScrollView>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "flexDirection": "column",
-                              "flexGrow": 1,
-                              "justifyContent": "flex-end",
-                              "rowGap": 16,
-                            }
-                          }
-                        >
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
-                                "borderRadius": 12,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#ffffff",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Describe what happened
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Contact support
-                            </Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "#3c4d9d0f",
-                                "borderColor": "transparent",
-                                "borderRadius": 12,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                          >
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "Geist Medium",
-                                  "fontSize": 16,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
-                                }
-                              }
-                            >
-                              Try again
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </RNCSafeAreaView>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-      </RNSScreen>
-    </RNSScreenContainer>
-  </RNCSafeAreaProvider>
-</View>
-`;
-
-exports[`Wallet Conditional Rendering should render loader when no selected account 1`] = `
-<View
-  style={
-    {
-      "flex": 1,
-    }
-  }
->
-  <RNCSafeAreaProvider
-    onInsetsChange={[Function]}
-    style={
-      [
-        {
-          "flex": 1,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      collapsable={false}
-      pointerEvents="box-none"
-      style={
-        {
-          "zIndex": 1,
-        }
-      }
-    >
-      <View
-        accessibilityElementsHidden={false}
-        importantForAccessibility="auto"
-        onLayout={[Function]}
-        pointerEvents="box-none"
-        style={null}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": {
-                  "alternative": "#f3f5f9",
-                  "alternativeHover": "#ebedf1",
-                  "alternativePressed": "#e1e4ea",
-                  "default": "#ffffff",
-                  "defaultHover": "#f6f6f7",
-                  "defaultPressed": "#ebecef",
-                  "hover": "#858b9a14",
-                  "muted": "#3c4d9d0f",
-                  "mutedHover": "#3c4d9d1a",
-                  "mutedPressed": "#3c4d9d26",
-                  "pressed": "#858b9a29",
-                  "section": "#f3f5f9",
-                  "subsection": "#ffffff",
-                },
-                "borderBottomColor": "#b7bbc866",
-                "borderBottomWidth": 1,
-                "flexDirection": "row",
-                "gap": 16,
-                "height": 72,
-              },
-              {
-                "marginTop": 0,
-              },
-            ]
-          }
-          testID="header"
-        >
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-start",
-                  }
-                }
-              >
-                <TouchableOpacity
-                  disabled={false}
-                  hitSlop={
-                    {
-                      "bottom": 12,
-                      "left": 12,
-                      "right": 12,
-                      "top": 12,
-                    }
-                  }
-                  onPress={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "alignSelf": "flex-start",
-                      "backgroundColor": "#f3f5f9",
-                      "borderRadius": 16,
-                      "flexDirection": "row",
-                      "height": 32,
-                      "marginLeft": 16,
-                      "paddingHorizontal": 8,
-                    }
-                  }
-                  testID="open-networks-button"
-                >
-                  <View
-                    style={
-                      {
-                        "marginRight": 8,
-                      }
-                    }
-                  >
-                    <View
-                      accessibilityLabel="Ethereum Mainnet"
-                      style={
-                        {
-                          "alignItems": "center",
-                          "backgroundColor": "#ffffff",
-                          "borderRadius": 4,
-                          "height": 16,
-                          "justifyContent": "center",
-                          "overflow": "hidden",
-                          "width": 16,
-                        }
-                      }
-                      testID="network-avatar-picker"
-                    >
-                      <Image
-                        onError={[Function]}
-                        resizeMode="contain"
-                        source={1}
-                        style={
-                          {
-                            "height": 16,
-                            "width": 16,
-                          }
-                        }
-                        testID="network-avatar-image"
-                      />
-                    </View>
-                  </View>
-                  <SvgMock
-                    color="#121314"
-                    fill="currentColor"
-                    height={12}
-                    name="ArrowDown"
-                    style={
-                      {
-                        "height": 12,
-                        "width": 12,
-                      }
-                    }
-                    testID="pickernetwork-arrow"
-                    width={12}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flex": 1,
-              }
-            }
-          >
-            <TouchableOpacity
-              activeOpacity={1}
-              hitSlop={
-                {
-                  "bottom": 12,
-                  "left": 12,
-                  "right": 12,
-                  "top": 12,
-                }
-              }
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderColor": "#b7bbc8",
-                  "borderRadius": 4,
-                  "borderWidth": 0,
-                  "flexDirection": "row",
-                  "padding": 16,
-                }
-              }
-              testID="account-picker"
-            >
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="account-label"
-              >
-                Account 2
-              </Text>
-              <SvgMock
-                color="#121314"
-                fill="currentColor"
-                height={16}
-                name="ArrowDown"
-                style={
-                  {
-                    "height": 16,
-                    "marginLeft": 8,
-                    "width": 16,
-                  }
-                }
-                width={16}
-              />
-            </TouchableOpacity>
-          </View>
-          <View
-            style={
-              {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            >
-              <View
-                style={
-                  {
-                    "alignItems": "flex-end",
-                    "marginRight": 16,
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "flexDirection": "row",
-                    }
-                  }
-                >
-                  <View
-                    testID="navbar-address-copy-button"
-                  >
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flexDirection": "row",
-                        }
-                      }
-                    >
-                      <View
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
                         style={
                           [
                             {
-                              "transform": [
-                                {
-                                  "scale": 1,
-                                },
-                              ],
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
                             },
-                            {
-                              "alignItems": "center",
-                              "justifyContent": "center",
-                            },
+                            undefined,
                           ]
                         }
-                      >
-                        <View
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": false,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessibilityValue={
-                            {
-                              "max": undefined,
-                              "min": undefined,
-                              "now": undefined,
-                              "text": undefined,
-                            }
-                          }
-                          accessible={true}
-                          collapsable={false}
-                          focusable={true}
-                          hitSlop={
-                            {
-                              "bottom": 12,
-                              "left": 12,
-                              "right": 12,
-                              "top": 12,
-                            }
-                          }
-                          onBlur={[Function]}
-                          onClick={[Function]}
-                          onFocus={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
-                          style={
-                            [
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "transparent",
-                                "borderRadius": 2,
-                                "height": 40,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 40,
-                              },
-                              undefined,
-                            ]
-                          }
-                          testID="wallet-account-copy-button"
-                        >
-                          <SvgMock
-                            fill="currentColor"
-                            name="Copy"
-                            style={
-                              [
-                                {
-                                  "color": "#121314",
-                                  "height": 24,
-                                  "width": 24,
-                                },
-                                undefined,
-                              ]
-                            }
-                          />
-                        </View>
-                      </View>
+                      />
                     </View>
                   </View>
                   <View
@@ -2083,7 +1057,1207 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+TypeError: Cannot read properties of undefined (reading 'key')
+                                </Text>
+                              </View>
+                            </RCTScrollView>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "flexDirection": "column",
+                              "flexGrow": 1,
+                              "justifyContent": "flex-end",
+                              "rowGap": 16,
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#121314",
+                                "borderRadius": 12,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#ffffff",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Describe what happened
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d0f",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Contact support
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d0f",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Try again
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </RNCSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;
+
+exports[`Wallet Conditional Rendering should render loader when no selected account 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "backgroundColor": {
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#ebedf1",
+                  "alternativePressed": "#e1e4ea",
+                  "default": "#ffffff",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#3c4d9d0f",
+                  "mutedHover": "#3c4d9d1a",
+                  "mutedPressed": "#3c4d9d26",
+                  "pressed": "#858b9a29",
+                  "section": "#f3f5f9",
+                  "subsection": "#ffffff",
+                },
+                "borderBottomColor": "#b7bbc866",
+                "borderBottomWidth": 1,
+                "flexDirection": "row",
+                "gap": 16,
+                "height": 72,
+              },
+              {
+                "marginTop": 0,
+              },
+            ]
+          }
+          testID="header"
+        >
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                  }
+                }
+              >
+                <TouchableOpacity
+                  disabled={false}
+                  hitSlop={
+                    {
+                      "bottom": 12,
+                      "left": 12,
+                      "right": 12,
+                      "top": 12,
+                    }
+                  }
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "flex-start",
+                      "backgroundColor": "#f3f5f9",
+                      "borderRadius": 16,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "marginLeft": 16,
+                      "paddingHorizontal": 8,
+                    }
+                  }
+                  testID="open-networks-button"
+                >
+                  <View
+                    style={
+                      {
+                        "marginRight": 8,
+                      }
+                    }
+                  >
+                    <View
+                      accessibilityLabel="Ethereum Mainnet"
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 4,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
+                        }
+                      }
+                      testID="network-avatar-picker"
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 16,
+                            "width": 16,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={12}
+                    name="ArrowDown"
+                    style={
+                      {
+                        "height": 12,
+                        "width": 12,
+                      }
+                    }
+                    testID="pickernetwork-arrow"
+                    width={12}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+              }
+            }
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              hitSlop={
+                {
+                  "bottom": 12,
+                  "left": 12,
+                  "right": 12,
+                  "top": 12,
+                }
+              }
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 4,
+                  "borderWidth": 0,
+                  "flexDirection": "row",
+                  "padding": 16,
+                }
+              }
+              testID="account-picker"
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "Geist Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="account-label"
+              >
+                Account 2
+              </Text>
+              <SvgMock
+                color="#121314"
+                fill="currentColor"
+                height={16}
+                name="ArrowDown"
+                style={
+                  {
+                    "height": 16,
+                    "marginLeft": 8,
+                    "width": 16,
+                  }
+                }
+                width={16}
+              />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "marginRight": 16,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    testID="navbar-address-copy-button"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 2,
+                                "height": 40,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 40,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="wallet-account-copy-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Copy"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                          "position": "relative",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                            {
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          hitSlop={
+                            {
+                              "bottom": 12,
+                              "left": 12,
+                              "right": 12,
+                              "top": 12,
+                            }
+                          }
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 2,
+                                "height": 40,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 40,
+                              },
+                              undefined,
+                            ]
+                          }
+                          testID="wallet-notifications-button"
+                        >
+                          <SvgMock
+                            fill="currentColor"
+                            name="Notification"
+                            style={
+                              [
+                                {
+                                  "color": "#121314",
+                                  "height": 24,
+                                  "width": 24,
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
+                      </View>
+                    </View>
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        [
+                          {
+                            "position": "absolute",
+                          },
+                          {
+                            "right": 0,
+                            "top": 0,
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              enabled={false}
+              handlerTag={36}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flex": 1,
+                          "padding": 16,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "flex": 1,
+                            "flexDirection": "column",
+                            "rowGap": 16,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "display": "flex",
+                              "flexDirection": "column",
+                              "paddingTop": 20,
+                              "rowGap": 16,
+                            }
+                          }
+                        >
+                          <SvgMock
+                            color="#9a6300"
+                            fill="currentColor"
+                            height={32}
+                            name="Danger"
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            width={32}
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist Bold",
+                                "fontSize": 24,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
+                              }
+                            }
+                          >
+                            An error occurred
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#4459ff"
+                              fill="currentColor"
+                              height={24}
+                              name="Info"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#9a6300"
+                              fill="currentColor"
+                              height={24}
+                              name="Danger"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Regular",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              If you keep getting this error,
+                               
+                              <Text
+                                accessibilityRole="text"
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Save your Secret Recovery Phrase
+                              </Text>
+                               
+                              and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                            </Text>
+                          </View>
+                        </View>
+                        <Text
+                          accessibilityRole="text"
+                          onPress={[Function]}
+                          style={
+                            {
+                              "color": "#4459ff",
+                              "fontFamily": "Geist Regular",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
+                        >
+                          Save your Secret Recovery Phrase
+                        </Text>
+                        <View>
+                          <View
+                            style={
+                              {
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Medium",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                }
+                              }
+                            >
+                              Error message:
+                            </Text>
+                            <TouchableOpacity
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "columnGapgap": 4,
+                                  "display": "flex",
+                                  "flexDirection": "row",
+                                  "justifyContent": "center",
+                                }
+                              }
+                            >
+                              <SvgMock
+                                color="#4459ff"
+                                fill="currentColor"
+                                height={16}
+                                name="Copy"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "Geist Medium",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Copy
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ca35421a",
+                                "borderRadius": 8,
+                                "flexShrink": 1,
+                                "marginTop": 8,
+                                "padding": 16,
+                              }
+                            }
+                          >
+                            <RCTScrollView
+                              collapsable={false}
+                              handlerTag={35}
+                              handlerType="NativeViewGestureHandler"
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                            >
+                              <View>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#ca3542",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  View: Wallet
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -2579,6 +2753,93 @@ exports[`Wallet should render correctly 1`] = `
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -3196,7 +3457,7 @@ exports[`Wallet should render correctly 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -3698,6 +3959,93 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     style={
                       [
                         {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
                           "alignSelf": "flex-start",
                           "position": "relative",
                         },
@@ -3929,7 +4277,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4290,7 +4638,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={13}
+                              handlerTag={15}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -4309,7 +4657,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -4805,6 +5153,93 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           />
                         </View>
                       </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      [
+                        {
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                        },
+                        {
+                          "alignItems": "center",
+                          "justifyContent": "center",
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": false,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
+                      }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      hitSlop={
+                        {
+                          "bottom": 12,
+                          "left": 12,
+                          "right": 12,
+                          "top": 12,
+                        }
+                      }
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "transparent",
+                            "borderRadius": 2,
+                            "height": 40,
+                            "justifyContent": "center",
+                            "opacity": 1,
+                            "width": 40,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="wallet-scan-button"
+                    >
+                      <SvgMock
+                        fill="currentColor"
+                        name="QrCode"
+                        style={
+                          [
+                            {
+                              "color": "#121314",
+                              "height": 24,
+                              "width": 24,
+                            },
+                            undefined,
+                          ]
+                        }
+                      />
                     </View>
                   </View>
                   <View
@@ -5422,7 +5857,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>

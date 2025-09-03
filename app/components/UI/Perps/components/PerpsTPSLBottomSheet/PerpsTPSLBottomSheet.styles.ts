@@ -3,16 +3,25 @@ import { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
+    bottomSheet: {},
     container: {
       paddingHorizontal: 16,
-      paddingBottom: 24,
+      paddingBottom: 16,
     },
-    priceDisplay: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      marginBottom: 24,
+    header: {
+      paddingBottom: 8,
+    },
+    footer: {
+      paddingBottom: 8,
+    },
+    priceInfoContainer: {
+      marginTop: 16,
+      marginBottom: 32,
+      gap: 8,
+    },
+    priceInfoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
       alignItems: 'center',
     },
     section: {
@@ -27,7 +36,7 @@ export const createStyles = (colors: Theme['colors']) =>
       marginBottom: 8,
     },
     inputContainer: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.muted,
@@ -54,35 +63,38 @@ export const createStyles = (colors: Theme['colors']) =>
       fontSize: 16,
       color: colors.text.default,
       paddingVertical: 0,
-      textAlign: 'right',
+      textAlign: 'left',
       marginRight: 8,
     },
-    inputPrefix: {
-      marginRight: 8,
-    },
-    toggle: {
-      marginLeft: 16,
-    },
+
     percentageRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 8,
+      marginBottom: 12,
+      gap: 8,
     },
     percentageButton: {
       flex: 1,
-      marginHorizontal: 4,
       paddingVertical: 10,
       paddingHorizontal: 12,
       backgroundColor: colors.background.pressed,
       borderRadius: 8,
       alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border.muted,
     },
-    percentageButtonActive: {
-      backgroundColor: colors.primary.default,
-    },
-    percentageButtonDisabled: {
-      opacity: 0.5,
+    percentageButtonOff: {
       backgroundColor: colors.background.pressed,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+    },
+    percentageButtonActiveTP: {
+      borderWidth: 1,
+      borderColor: colors.primary.default,
+    },
+    percentageButtonActiveSL: {
+      borderWidth: 1,
+      borderColor: colors.primary.default,
     },
     helperText: {
       marginTop: 4,

@@ -37,9 +37,9 @@ import {
   usePerpsConnection,
   usePerpsNetwork,
   usePerpsNetworkConfig,
-  usePerpsPrices,
   usePerpsTrading,
 } from '../hooks';
+import { usePerpsLivePrices } from '../hooks/stream';
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -173,8 +173,11 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     resetError,
   } = usePerpsConnection();
 
-  // Get real-time prices for popular assets
-  const priceData = usePerpsPrices(POPULAR_ASSETS);
+  // Get real-time prices for popular assets with 5s throttle for portfolio view
+  const priceData = usePerpsLivePrices({
+    symbols: POPULAR_ASSETS,
+    throttleMs: 5000,
+  });
 
   // Parse available balance to check if withdrawal should be enabled
   const hasAvailableBalance = useCallback((): boolean => {
@@ -281,14 +284,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     });
   };
 
-  const handleDepositNavigation = async () => {
-    const { result: depositResult } = await depositWithConfirmation();
-
+  const handleDepositNavigation = () => {
+    // Navigate immediately to confirmations screen for instant UI response
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
 
-    await depositResult;
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   };
 
   const handleWithdrawNavigation = () => {
@@ -553,5 +558,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     </ScreenView>
   );
 };
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsView as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsView',
+  };
+}
 
 export default PerpsView;

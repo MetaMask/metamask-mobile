@@ -8,6 +8,7 @@ import {
   TestSnapResultSelectorWebIDS,
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
+  NativeDropdownSelectorWebIDS,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
@@ -55,6 +56,10 @@ class TestSnaps {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
+  }
+
+  get checkboxElement(): DetoxElement {
+    return Matchers.getElementByID('snap-ui-renderer__checkbox');
   }
 
   async checkResultSpan(
@@ -198,6 +203,11 @@ class TestSnaps {
     await Gestures.waitAndTap(this.footerButton);
   }
 
+  async tapSubmitButton() {
+    const button = Matchers.getElementByText('Submit');
+    await Gestures.waitAndTap(button);
+  }
+
   async dismissAlert() {
     // Matches the native WebView alert on each platform
     const button = Matchers.getElementByText(
@@ -240,6 +250,39 @@ class TestSnaps {
       },
       [source],
     );
+  }
+
+  async fillInput(name: string, text: string) {
+    const input = Matchers.getElementByID(`${name}-snap-ui-input`);
+
+    await Gestures.typeText(input, text, { hideKeyboard: true });
+  }
+
+  async selectInNativeDropdown(
+    selector: keyof typeof NativeDropdownSelectorWebIDS,
+    text: string,
+  ): Promise<void> {
+    const dropdown = Matchers.getElementByID(
+      NativeDropdownSelectorWebIDS[selector],
+    );
+
+    await Gestures.tap(dropdown);
+
+    const selectorItem = element(
+      by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
+    ) as unknown as DetoxElement;
+    await Gestures.tap(selectorItem);
+  }
+
+  async selectRadioButton(text: string) {
+    const radioButton = element(
+      by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
+    ) as unknown as DetoxElement;
+    await Gestures.tap(radioButton);
+  }
+
+  async tapCheckbox() {
+    await Gestures.tap(this.checkboxElement);
   }
 
   async installSnap(

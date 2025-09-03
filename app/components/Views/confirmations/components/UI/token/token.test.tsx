@@ -48,11 +48,11 @@ describe('Token', () => {
       balance: '50.0',
     });
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <Token asset={mockToken} onPress={mockOnPress} />,
     );
 
-    expect(getByText('TOKEN')).toBeOnTheScreen();
+    expect(queryByText('Ethereum')).not.toBeOnTheScreen();
     expect(getByText('50.0 TOKEN')).toBeOnTheScreen();
   });
 
@@ -83,5 +83,37 @@ describe('Token', () => {
     );
 
     expect(getByText('Polygon ETH')).toBeOnTheScreen();
+  });
+
+  it('displays balance in selected currency when provided', () => {
+    const mockToken = createMockToken({
+      symbol: 'USDC',
+      name: 'USD Coin',
+      balance: '1000.0',
+      balanceInSelectedCurrency: '$1,000.00',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(getByText('$1,000.00')).toBeOnTheScreen();
+    expect(getByText('1000.0 USDC')).toBeOnTheScreen();
+  });
+
+  it('does not display balance in selected currency when not provided', () => {
+    const mockToken = createMockToken({
+      symbol: 'USDC',
+      name: 'USD Coin',
+      balance: '1000.0',
+      balanceInSelectedCurrency: undefined,
+    });
+
+    const { queryByText, getByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(queryByText('$')).not.toBeOnTheScreen();
+    expect(getByText('1000.0 USDC')).toBeOnTheScreen();
   });
 });

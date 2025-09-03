@@ -21,10 +21,8 @@ import {
 } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
-import {
-  isPerDappSelectedNetworkEnabled,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { RootState } from '../../../reducers';
+import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
 import { safeToChecksumAddress, getTokenDetails } from '../../../util/address';
 import {
   selectContractBalances,
@@ -33,7 +31,6 @@ import {
 import { useAsyncResult } from '../useAsyncResult';
 
 export const ERC20_DEFAULT_DECIMALS = 18;
-import { RootState } from '../../../reducers';
 
 const useAddressBalance = (
   asset?: Asset,
@@ -152,21 +149,11 @@ const useAddressBalance = (
       } else {
         (async () => {
           try {
-            const { AssetsContractController, NetworkController } =
-              Engine.context;
-            let effectiveNetworkClientId = networkClientId;
-
-            if (isRemoveGlobalNetworkSelectorEnabled() && chainId) {
-              const networkClientIdByChainId =
-                NetworkController.findNetworkClientIdByChainId(chainId as Hex);
-              if (networkClientIdByChainId) {
-                effectiveNetworkClientId = networkClientIdByChainId;
-              }
-            }
+            const { AssetsContractController } = Engine.context;
             fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
-              effectiveNetworkClientId,
+              networkClientId,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete

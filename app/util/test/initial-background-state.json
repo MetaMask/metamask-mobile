@@ -379,14 +379,22 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
-    "isFirstTimeUser": true
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -589,5 +597,13 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "accounts": {},
+    "lastAuthenticatedAccount": null,
+    "seasonStatuses": {},
+    "seasons": {},
+    "subscriptionReferralDetails": {},
+    "subscriptions": {}
   }
 }

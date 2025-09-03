@@ -1,4 +1,5 @@
 class Selectors {
+
   static async getElementByPlatform(id, isNested = false) {
     if (!isNested) {
       return $(`~${id}`);

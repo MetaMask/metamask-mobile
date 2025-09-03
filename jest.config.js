@@ -8,7 +8,6 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.PORTFOLIO_VIEW = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
-process.env.MM_CONFIRMATION_INTENTS = 'true';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -31,7 +30,7 @@ const config = {
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
-    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
+    '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
   snapshotSerializers: ['enzyme-to-json/serializer'],

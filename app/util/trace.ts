@@ -118,6 +118,21 @@ export enum TraceName {
   EarnTokenList = 'Earn Token List',
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
+  // Perps
+  PerpsOpenPosition = 'Perps Open Position',
+  PerpsClosePosition = 'Perps Close Position',
+  PerpsDeposit = 'Perps Deposit',
+  PerpsWithdraw = 'Perps Withdraw',
+  PerpsOrderExecution = 'Perps Order Execution',
+  PerpsCancelOrder = 'Perps Cancel Order',
+  PerpsMarketDataUpdate = 'Perps Market Data Update',
+  PerpsAccountStateUpdate = 'Perps Account State Update',
+  PerpsOrderView = 'Perps Order View',
+  PerpsPositionsView = 'Perps Positions View',
+  PerpsMarketListView = 'Perps Market List View',
+  PerpsPositionDetailsView = 'Perps Position Details View',
+  PerpsWebSocketConnected = 'Perps WebSocket Connected',
+  PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
 }
 
 export enum TraceOperation {
@@ -146,6 +161,11 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  // Perps
+  PerpsOperation = 'perps.operation',
+  PerpsMarketData = 'perps.market_data',
+  PerpsOrderSubmission = 'perps.order_submission',
+  PerpsPositionManagement = 'perps.position_management',
 }
 
 const ID_DEFAULT = 'default';

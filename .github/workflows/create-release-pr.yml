@@ -3,14 +3,17 @@ name: Create Release Pull Request
 on:
   workflow_dispatch:
     inputs:
-      base-branch:
-        description: 'The base branch, tag, or SHA for git operations and the pull request.'
+      checkout-base-branch:
+        description: 'The base branch, tag, or SHA for git operations. Usually `main`'
+        required: true
+      release-pr-base-branch:
+        description: 'The base branch, tag, or SHA for the release pull request. Usually `stable`'
         required: true
       semver-version:
         description: 'A semantic version. eg: x.x.x'
         required: true
-      previous-version-tag:
-        description: 'Previous release version tag. eg: v7.7.0'
+      previous-version-ref:
+        description: 'Previous release version branch name, tag or commit hash (e.g., release/7.7.0, v7.7.0, or 76fbc500034db9779e9ff7ce637ac5be1da0493d)'
         required: true
 jobs:
   generate-build-version:
@@ -20,14 +23,15 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@dde6d530bebae07d1e50180894ab2cac64170a2c
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@914cbff8a8d58cfe0053e8690a3c0d4b281e27d6
     with:
       platform: mobile
-      base-branch: ${{ inputs.base-branch }}
+      checkout-base-branch: ${{ inputs.checkout-base-branch }}
+      release-pr-base-branch: ${{ inputs.release-pr-base-branch }}
       semver-version: ${{ inputs.semver-version }}
-      previous-version-tag: ${{ inputs.previous-version-tag }}
+      previous-version-ref: ${{ inputs.previous-version-ref }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-      github-tools-version: dde6d530bebae07d1e50180894ab2cac64170a2c
+      github-tools-version: 914cbff8a8d58cfe0053e8690a3c0d4b281e27d6
 
     secrets:
       # This token needs read permissions to metamask-planning & write permissions to metamask-mobile

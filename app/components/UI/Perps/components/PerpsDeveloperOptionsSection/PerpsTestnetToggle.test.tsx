@@ -186,7 +186,7 @@ describe('PerpsTestnetToggle', () => {
     });
 
     // Resolve the toggle
-    act(() => {
+    await act(async () => {
       resolveToggle({ success: true, isTestnet: false });
     });
 

@@ -13,6 +13,8 @@ import type {
 } from '@metamask/transaction-controller';
 import eth_sendTransaction from './eth_sendTransaction';
 import PPOMUtil from '../../lib/ppom/ppom-util';
+import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
+import { store } from '../../store';
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -153,6 +155,8 @@ function getMockAddTransaction({
 }
 
 describe('eth_sendTransaction', () => {
+  const analytics = { dapp_url: 'example.metamask.io', request_source: 'test' };
+
   it('sends the transaction and returns the resulting hash', async () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const mockTransactionParameters = { from: mockAddress };
@@ -172,6 +176,7 @@ describe('eth_sendTransaction', () => {
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),
+      analytics,
     });
 
     expect(pendingResult.result).toBe(expectedResult);
@@ -193,6 +198,7 @@ describe('eth_sendTransaction', () => {
               returnValue: 'fake-hash',
             }),
             validateAccountAndChainId: jest.fn(),
+            analytics,
           }),
       ).rejects.toThrow('Invalid parameters: expected an array');
     });
@@ -216,6 +222,7 @@ describe('eth_sendTransaction', () => {
               returnValue: 'fake-hash',
             }),
             validateAccountAndChainId: jest.fn(),
+            analytics,
           }),
       ).rejects.toThrow(
         'Invalid parameters: expected the first parameter to be an object',
@@ -239,6 +246,7 @@ describe('eth_sendTransaction', () => {
           validateAccountAndChainId: jest.fn().mockImplementation(async () => {
             throw new Error('test validation error');
           }),
+          analytics,
         }),
     ).rejects.toThrow('test validation error');
   });
@@ -262,6 +270,7 @@ describe('eth_sendTransaction', () => {
             addTransactionError: new Error('Failed to add transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
+          analytics,
         }),
     ).rejects.toThrow('Failed to add transaction');
   });
@@ -285,6 +294,7 @@ describe('eth_sendTransaction', () => {
             processTransactionError: new Error('User rejected the transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
+          analytics,
         }),
     ).rejects.toThrow('User rejected the transaction');
   });
@@ -309,8 +319,50 @@ describe('eth_sendTransaction', () => {
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),
+      analytics: {
+        dapp_url: 'example.metamask.io',
+        request_source: 'test',
+      },
     });
 
     expect(spy).toBeCalledTimes(1);
+  });
+
+  it('dispatches updateConfirmationMetric with analytics payload', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const mockTransactionParameters = { from: mockAddress };
+    const expectedResult = 'fake-hash';
+    const pendingResult = constructPendingJsonRpcResponse();
+
+    const dispatchSpy = jest.spyOn(store, 'dispatch');
+
+    await eth_sendTransaction({
+      hostname: 'example.metamask.io',
+      req: constructSendTransactionRequest([mockTransactionParameters]),
+      res: pendingResult,
+      sendTransaction: getMockAddTransaction({
+        expectedTransaction: mockTransactionParameters,
+        expectedOrigin: {
+          origin: 'example.metamask.io',
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
+        },
+        returnValue: expectedResult,
+      }),
+      validateAccountAndChainId: jest.fn(),
+      analytics: {
+        dapp_url: 'example.metamask.io',
+        request_source: 'test',
+      },
+    });
+
+    const id = '123';
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      updateConfirmationMetric({
+        id,
+        params: {
+          properties: { ...analytics },
+        },
+      }),
+    );
   });
 });

@@ -105,7 +105,6 @@ const BuildQuote = () => {
     setCryptoCurrency,
     fiatCurrency,
   } = useDepositSDK();
-
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [error, setError] = useState<string | null>();

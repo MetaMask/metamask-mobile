@@ -7,6 +7,19 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
 }));
 
+// Mock PerpsStreamManager
+jest.mock('../providers/PerpsStreamManager');
+
+// Mock stream hooks
+jest.mock('../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({
+    'BTC-PERP': { price: '50000', percentChange24h: '2.5' },
+    'ETH-PERP': { price: '3000', percentChange24h: '-1.2' },
+    'SOL-PERP': { price: '100', percentChange24h: '5.0' },
+    'ARB-PERP': { price: '2', percentChange24h: '-3.0' },
+  })),
+}));
+
 jest.mock('../hooks', () => ({
   usePerpsAccount: jest.fn(() => ({
     totalBalance: '1000',
@@ -69,6 +82,20 @@ jest.mock('../../../Base/ScreenView', () => 'MockedScreenView');
 // Mock locales
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
+}));
+
+// Mock theme
+jest.mock('../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      background: { default: '#ffffff' },
+      text: { default: '#000000' },
+      primary: { default: '#0066cc' },
+      error: { default: '#ff0000' },
+      success: { default: '#00cc66' },
+    },
+    themeAppearance: 'light',
+  })),
 }));
 
 describe('PerpsView', () => {

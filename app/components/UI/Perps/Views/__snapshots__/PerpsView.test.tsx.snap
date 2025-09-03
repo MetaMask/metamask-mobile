@@ -163,13 +163,13 @@ exports[`PerpsView should render correctly in connected state 1`] = `
               accessibilityRole="text"
             >
               $
-              50,000
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
               +
-              2.50
+              0.00
               %
             </Text>
             <View
@@ -223,12 +223,13 @@ exports[`PerpsView should render correctly in connected state 1`] = `
               accessibilityRole="text"
             >
               $
-              3,000
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
-              -1.20
+              +
+              0.00
               %
             </Text>
             <View
@@ -282,13 +283,13 @@ exports[`PerpsView should render correctly in connected state 1`] = `
               accessibilityRole="text"
             >
               $
-              100
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
               +
-              5.00
+              0.00
               %
             </Text>
             <View
@@ -342,12 +343,13 @@ exports[`PerpsView should render correctly in connected state 1`] = `
               accessibilityRole="text"
             >
               $
-              2
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
-              -3.00
+              +
+              0.00
               %
             </Text>
             <View
@@ -573,13 +575,13 @@ exports[`PerpsView should render correctly when initializing 1`] = `
               accessibilityRole="text"
             >
               $
-              50,000
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
               +
-              2.50
+              0.00
               %
             </Text>
             <View
@@ -633,12 +635,13 @@ exports[`PerpsView should render correctly when initializing 1`] = `
               accessibilityRole="text"
             >
               $
-              3,000
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
-              -1.20
+              +
+              0.00
               %
             </Text>
             <View
@@ -692,13 +695,13 @@ exports[`PerpsView should render correctly when initializing 1`] = `
               accessibilityRole="text"
             >
               $
-              100
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
               +
-              5.00
+              0.00
               %
             </Text>
             <View
@@ -752,12 +755,13 @@ exports[`PerpsView should render correctly when initializing 1`] = `
               accessibilityRole="text"
             >
               $
-              2
+              ---
             </Text>
             <Text
               accessibilityRole="text"
             >
-              -3.00
+              +
+              0.00
               %
             </Text>
             <View

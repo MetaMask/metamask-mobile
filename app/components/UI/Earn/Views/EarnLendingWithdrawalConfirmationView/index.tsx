@@ -25,7 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -46,6 +46,7 @@ import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
+import { EVM_SCOPE } from '../../constants/networks';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -88,7 +89,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const earnToken = earnTokenPair?.earnToken;
   const outputToken = earnTokenPair?.outputToken;
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
@@ -368,7 +371,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
     !amountFiat ||
     !lendingContractAddress ||
     !lendingProtocol ||
-    !activeAccount?.address
+    !selectedAccount?.address
   )
     return null;
 
@@ -496,8 +499,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 value={{
                   label: (
                     <AccountTag
-                      accountAddress={activeAccount?.address}
-                      accountName={activeAccount.metadata.name}
+                      accountAddress={selectedAccount?.address}
+                      accountName={selectedAccount.metadata.name}
                       useBlockieIcon={useBlockieIcon}
                     />
                   ),

@@ -3,6 +3,7 @@ import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
 } from '../controllers/PerpsController';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Maps error codes to i18n keys
@@ -10,6 +11,8 @@ import {
 const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED]:
     'perps.errors.clientNotInitialized',
+  [PERPS_ERROR_CODES.CLIENT_REINITIALIZING]:
+    'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -125,6 +128,13 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   } else if (typeof error === 'string') {
     errorString = error;
   }
+
+  // Log error for debugging (without event tracking)
+  DevLogger.log('PerpsErrorHandler: Error encountered', {
+    errorMessage: errorString,
+    context,
+    stack: error instanceof Error ? error.stack : undefined,
+  });
 
   // Check if it's a PerpsController error code
   if (

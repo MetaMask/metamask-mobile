@@ -12,6 +12,18 @@ import * as networkManagerUtils from '../../UI/NetworkManager';
 import * as tokenBottomSheetUtils from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 
+jest.mock('react-native-scrollable-tab-view', () => {
+  const MockScrollableTabView = (props: {
+    children?: unknown;
+    [key: string]: unknown;
+  }) => {
+    const ReactLib = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactLib.createElement(View, props, props.children);
+  };
+  return MockScrollableTabView;
+});
+
 const Stack = createStackNavigator();
 
 const mockNavigation = {
@@ -81,9 +93,6 @@ const renderComponent = (state: any = {}) =>
   );
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState,
   },
@@ -153,7 +162,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        9,
+        14,
       );
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -183,7 +192,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        9,
+        14,
       );
       expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
         {},
@@ -209,10 +218,10 @@ describe('ActivityView', () => {
         jest.restoreAllMocks();
       });
 
-      it('shows "Enabled Networks" text when multiple networks are enabled', () => {
+      it('shows "All Networks" text when multiple networks are enabled', () => {
         const { getByText } = renderComponent(mockInitialState);
 
-        expect(getByText('Enabled networks')).toBeTruthy();
+        expect(getByText('All Networks')).toBeTruthy();
       });
 
       it('shows current network name when only one network is enabled', () => {
@@ -242,21 +251,6 @@ describe('ActivityView', () => {
         const { getByText } = renderComponent(mockInitialState);
 
         expect(getByText('Ethereum Mainnet')).toBeTruthy();
-      });
-
-      it('shows fallback text when no network info is available', () => {
-        const noNetworkInfo = {
-          enabledNetworks: [],
-          getNetworkInfo: jest.fn(() => null),
-          getNetworkInfoByChainId: jest.fn(() => null),
-          hasEnabledNetworks: false,
-          isDisabled: false,
-        };
-        mockUseCurrentNetworkInfo.mockReturnValue(noNetworkInfo);
-
-        const { getByText } = renderComponent(mockInitialState);
-
-        expect(getByText('Current network')).toBeTruthy();
       });
 
       it('navigates to NetworkManager when filter button is pressed', () => {

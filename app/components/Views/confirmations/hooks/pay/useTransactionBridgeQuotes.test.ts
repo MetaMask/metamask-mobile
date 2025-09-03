@@ -62,12 +62,14 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '123.456',
-      balanceHuman: '123.456',
-      decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
+        balance: '123.456',
+        balanceFiat: '123.456',
         chainId: CHAIN_ID_SOURCE_MOCK,
+        decimals: 4,
+        symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
@@ -176,22 +178,25 @@ describe('useTransactionBridgeQuotes', () => {
     expect(result.current.quotes).toStrictEqual([]);
   });
 
-  it('returns empty list if blocking alert unless no quotes alert', async () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          key: AlertKeys.NoPayTokenQuotes,
-          isBlocking: true,
-        },
-      ],
-    } as unknown as ReturnType<typeof useAlerts>);
+  it.each([AlertKeys.NoPayTokenQuotes, AlertKeys.InsufficientPayTokenNative])(
+    'returns empty list if blocking alert unless %s alert',
+    async (alertKey) => {
+      useAlertsMock.mockReturnValue({
+        alerts: [
+          {
+            key: alertKey,
+            isBlocking: true,
+          },
+        ],
+      } as unknown as ReturnType<typeof useAlerts>);
 
-    const result = runHook();
+      const result = runHook();
 
-    await act(async () => {
-      // Intentionally empty
-    });
+      await act(async () => {
+        // Intentionally empty
+      });
 
-    expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
-  });
+      expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
+    },
+  );
 });
