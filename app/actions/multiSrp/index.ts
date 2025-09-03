@@ -22,6 +22,7 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
+import { discoverAndCreateAccountsFor } from '../../util/discovery';
 
 interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -130,17 +131,9 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  const discoveredAccountsCount = (
-    await Promise.all(
-      Object.values(WalletClientType).map(async (clientType) => {
-        const snapClient = MultichainWalletSnapFactory.createClient(clientType);
-        return await snapClient.addDiscoveredAccounts(
-          newKeyring.id,
-          WALLET_SNAP_MAP[clientType].discoveryScope,
-        );
-      }),
-    )
-  ).reduce((acc, count) => acc + count || 0, 0);
+  await discoverAndCreateAccountsFor([newKeyring.id]);
+  // We need to check how to get this information back from the discovery.
+  const discoveredAccountsCount = 0;
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccountAddress);

@@ -13,7 +13,6 @@ import { SolScope } from '@metamask/keyring-api';
 
 const mockSnapKeyring = {
   createAccount: jest.fn(),
-  discoverAccounts: jest.fn(),
 };
 
 jest.mock('../Engine', () => ({
@@ -33,7 +32,6 @@ const createMockKeyringClient = () => ({
   getAccount: jest.fn(),
   getAccountBalances: jest.fn(),
   createAccount: jest.fn(),
-  discoverAccounts: jest.fn(),
 });
 
 let mockKeyringClient = createMockKeyringClient();
@@ -140,84 +138,6 @@ describe('MultichainWalletSnapClient', () => {
         mockSnapId,
         mockOptions,
         mockSnapKeyringOptions,
-      );
-    });
-  });
-
-  describe('discoverAccounts', () => {
-    it('discovers accounts with the provided parameters', async () => {
-      const mockScopes = [SolScope.Mainnet];
-      const mockEntropySource = 'test-entropy';
-      const mockGroupIndex = 0;
-      const mockDiscoveredAccounts = [
-        {
-          type: 'bip44',
-          scope: [SolScope.Mainnet],
-          derivationPath: "m/44'/60'/0'/0",
-        },
-      ];
-
-      mockKeyringClient.discoverAccounts.mockResolvedValueOnce(
-        mockDiscoveredAccounts,
-      );
-
-      const result = await client.discoverAccounts(
-        mockScopes,
-        mockEntropySource,
-        mockGroupIndex,
-      );
-
-      expect(result).toEqual(mockDiscoveredAccounts);
-      expect(mockKeyringClient.discoverAccounts).toHaveBeenCalledWith(
-        mockScopes,
-        mockEntropySource,
-        mockGroupIndex,
-      );
-    });
-  });
-
-  describe('addDiscoveredAccounts', () => {
-    it('adds discovered accounts to the keyring', async () => {
-      const expectAccountName = 'Solana Account 1';
-      const mockEntropySource = 'test-entropy';
-      const mockDiscoveredAccounts = [
-        {
-          type: 'bip44',
-          scope: [SolScope.Mainnet],
-          derivationPath: "m/44'/60'/0'/0",
-        },
-      ];
-
-      const mockKeyring = {
-        createAccount: jest.fn(),
-      };
-
-      mockKeyringClient.discoverAccounts
-        .mockResolvedValueOnce(mockDiscoveredAccounts)
-        .mockResolvedValueOnce([]);
-
-      (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
-        async (_, __, callback) => {
-          await callback({ keyring: mockKeyring });
-        },
-      );
-
-      await client.addDiscoveredAccounts(mockEntropySource, SolScope.Mainnet);
-
-      expect(mockSnapKeyring.createAccount).toHaveBeenCalledTimes(1);
-      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
-        mockSnapId,
-        {
-          accountNameSuggestion: expectAccountName,
-          derivationPath: mockDiscoveredAccounts[0].derivationPath,
-          entropySource: mockEntropySource,
-          scope: SolScope.Mainnet,
-        },
-        expect.objectContaining({
-          displayConfirmation: false,
-          displayAccountNameSuggestion: false,
-          setSelectedAccount: false,
-        }),
       );
     });
   });
