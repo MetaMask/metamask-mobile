@@ -312,7 +312,15 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -585,7 +593,7 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

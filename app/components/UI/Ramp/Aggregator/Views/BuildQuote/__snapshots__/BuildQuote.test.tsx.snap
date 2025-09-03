@@ -427,7 +427,15 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -653,7 +661,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1093,7 +1101,15 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1319,7 +1335,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         </View>
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1759,7 +1775,15 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1984,7 +2008,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -2424,7 +2448,15 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2924,7 +2956,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3364,7 +3396,15 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -3589,7 +3629,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4029,7 +4069,15 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -4529,7 +4577,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4969,7 +5017,15 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5194,7 +5250,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -5634,7 +5690,15 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7874,7 +7938,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8314,7 +8378,15 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8814,7 +8886,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -9254,7 +9326,15 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -9479,7 +9559,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -9919,7 +9999,15 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -10419,7 +10507,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -10859,7 +10947,15 @@ exports[`BuildQuote View renders correctly 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -13145,7 +13241,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -13585,7 +13681,15 @@ exports[`BuildQuote View renders correctly 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -15849,7 +15953,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                         <View />
                         <View />
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -16289,7 +16393,15 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -16514,7 +16626,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -16954,7 +17066,15 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -17179,7 +17299,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

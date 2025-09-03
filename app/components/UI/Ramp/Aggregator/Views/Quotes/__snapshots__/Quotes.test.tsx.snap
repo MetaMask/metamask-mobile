@@ -3284,7 +3284,15 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                               </View>
                             </View>
                           </View>
-                          <RCTSafeAreaView
+                          <RNCSafeAreaView
+                            edges={
+                              {
+                                "bottom": "additive",
+                                "left": "additive",
+                                "right": "additive",
+                                "top": "additive",
+                              }
+                            }
                             style={
                               {
                                 "flex": 1,
@@ -4466,7 +4474,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 </RCTScrollView>
                               </View>
                             </View>
-                          </RCTSafeAreaView>
+                          </RNCSafeAreaView>
                         </View>
                       </View>
                     </View>
