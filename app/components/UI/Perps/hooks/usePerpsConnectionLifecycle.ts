@@ -18,12 +18,12 @@ interface UsePerpsConnectionLifecycleReturn {
 
 /**
  * Hook that manages the Perps WebSocket connection lifecycle based on:
- * - Tab visibility (connect when visible, disconnect after 30s when hidden)
- * - App state (disconnect after 30s when backgrounded)
+ * - Tab visibility (connect when visible, disconnect after 20s when hidden)
+ * - App state (disconnect after 20s when backgrounded)
  *
  * This hook ensures optimal battery and network usage by:
- * - Delaying disconnection by 30s when tab is not visible (for quick returns)
- * - Delaying disconnection by 30s when app is backgrounded (for quick returns)
+ * - Delaying disconnection by 20s when tab is not visible (for quick returns)
+ * - Delaying disconnection by 20s when app is backgrounded (for quick returns)
  * - Using BackgroundTimer to ensure timers run even when app is suspended
  * - Providing grace period for users who temporarily exit and return to perps UX
  */

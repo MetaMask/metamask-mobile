@@ -120,7 +120,7 @@ describe('usePerpsConnectionLifecycle', () => {
 
       // Fast-forward timer to trigger disconnection
       act(() => {
-        jest.advanceTimersByTime(30_000);
+        jest.advanceTimersByTime(20_000);
       });
       expect(mockOnDisconnect).toHaveBeenCalledTimes(1);
     });
@@ -153,7 +153,7 @@ describe('usePerpsConnectionLifecycle', () => {
 
       // Fast-forward past original disconnect time
       act(() => {
-        jest.advanceTimersByTime(30_000);
+        jest.advanceTimersByTime(20_000);
       });
 
       // Should not have disconnected
