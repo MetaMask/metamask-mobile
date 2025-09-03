@@ -8,6 +8,7 @@ import { areAddressesEqual } from '../../../../../../util/address';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
+// todo: this should go away as we use snap for name mapping
 export const shouldSkipValidation = ({
   toAddress,
   chainId,

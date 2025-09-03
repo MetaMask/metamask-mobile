@@ -6,16 +6,11 @@ import { EditAmount, EditAmountProps } from './edit-amount';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { act, fireEvent } from '@testing-library/react-native';
-import {
-  AlertsContextParams,
-  useAlerts,
-} from '../../context/alert-system-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../hooks/useTokenAmount');
-jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../hooks/tokens/useTokenFiatRates');
 
@@ -37,7 +32,6 @@ function render(props: EditAmountProps = {}) {
 
 describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
-  const useAlertsMock = jest.mocked(useAlerts);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const updateTokenAmountMock = jest.fn();
@@ -49,10 +43,6 @@ describe('EditAmount', () => {
       fiatUnformatted: '0',
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
-
-    useAlertsMock.mockReturnValue({
-      fieldAlerts: [],
-    } as unknown as AlertsContextParams);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: { balanceFiat: '0' },
@@ -70,8 +60,8 @@ describe('EditAmount', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('edit-amount-input')).toHaveProp(
-      'value',
-      `$${VALUE_MOCK}`,
+      'defaultValue',
+      `${VALUE_MOCK}`,
     );
   });
 
@@ -110,7 +100,43 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5');
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
+  });
+
+  it('sets amount to zero when input cleared', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('keypad-delete-button'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '0');
+  });
+
+  it('does not append to zero', async () => {
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('0'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5');
   });
 
   it('displays keyboard automatically when autoKeyboard is true', () => {
@@ -159,7 +185,7 @@ describe('EditAmount', () => {
 
     await jest.runAllTimersAsync();
 
-    expect(input).toHaveProp('value', '$600.27');
+    expect(input).toHaveProp('defaultValue', '600.27');
   });
 
   it('does nothing if percentage button pressed with no pay token selected', async () => {
@@ -200,7 +226,7 @@ describe('EditAmount', () => {
       });
     }
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', '$5.12');
+    expect(getByTestId('edit-amount-input')).toHaveProp('defaultValue', '5.12');
   });
 
   it('limits length to 28', async () => {
@@ -217,8 +243,8 @@ describe('EditAmount', () => {
     }
 
     expect(getByTestId('edit-amount-input')).toHaveProp(
-      'value',
-      '$123456789012345678901234567',
+      'defaultValue',
+      '123456789012345678901234567',
     );
   });
 });

@@ -16,6 +16,7 @@ import { TransactionBridgeQuote } from '../../../components/Views/confirmations/
 import { cloneDeep } from 'lodash';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { toHex } from '@metamask/controller-utils';
+import { updateRequiredTransactionIds } from '../../transaction-controller';
 
 const log = createProjectLogger('pay-publish-hook');
 
@@ -64,12 +65,24 @@ export class PayHook {
       return EMPTY_RESULT;
     }
 
+    // Currently we only support a single source meaning we only check the first quote.
+    const isSameChain =
+      quotes[0].quote.srcChainId === quotes[0].quote.destChainId;
+
+    if (isSameChain) {
+      log(
+        'Ignoring quotes as source is same chain',
+        quotes[0].quote.srcChainId,
+      );
+      return EMPTY_RESULT;
+    }
+
     let index = 0;
 
     for (const quote of quotes) {
       log('Submitting bridge', index, quote);
 
-      await this.#submitBridgeTransaction(quote);
+      await this.#submitBridgeTransaction(transactionId, quote);
 
       index += 1;
     }
@@ -78,6 +91,7 @@ export class PayHook {
   }
 
   async #submitBridgeTransaction(
+    transactionId: string,
     originalQuote: TransactionBridgeQuote,
   ): Promise<void> {
     const quote = cloneDeep(originalQuote);
@@ -97,6 +111,11 @@ export class PayHook {
     log('Bridge transaction submitted', result);
 
     const { id: bridgeTransactionId } = result;
+
+    updateRequiredTransactionIds({
+      transactionId,
+      requiredTransactionIds: [bridgeTransactionId],
+    });
 
     log('Waiting for bridge completion', bridgeTransactionId);
 
