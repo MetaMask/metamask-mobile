@@ -59,6 +59,21 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
+// Mock NavigationService
+const mockNavigationServiceMethods = {
+  navigate: jest.fn(),
+  setParams: jest.fn(),
+};
+
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    get navigation() {
+      return mockNavigationServiceMethods;
+    },
+  },
+}));
+
 // Mock hooks
 const mockMarkTutorialCompleted = jest.fn();
 const mockTrack = jest.fn();
@@ -131,6 +146,8 @@ describe('PerpsTutorialCarousel', () => {
     mockMarkTutorialCompleted.mockClear();
     mockTrack.mockClear();
     mockDepositWithConfirmation.mockClear();
+    mockNavigationServiceMethods.navigate.mockClear();
+    mockNavigationServiceMethods.setParams.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useRoute as jest.Mock).mockReturnValue({ params: {} });
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
@@ -325,15 +342,17 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
       });
 
-      // Should navigate to wallet home instead of goBack
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      // Should navigate to wallet home using NavigationService instead of goBack
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.WALLET.HOME,
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
 
       // Fast-forward timer to trigger setParams
       jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 
-      // Should set params to select Perps tab
-      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+      // Should set params using NavigationService to select Perps tab
+      expect(mockNavigationServiceMethods.setParams).toHaveBeenCalledWith({
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
       });
@@ -365,15 +384,48 @@ describe('PerpsTutorialCarousel', () => {
       // Should mark tutorial as completed
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
 
-      // Should navigate to wallet home with Perps tab
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      // Should navigate to wallet home with Perps tab using NavigationService
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.WALLET.HOME,
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
 
       // Fast-forward timer to trigger setParams
       jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 
-      // Should set params to select Perps tab
-      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+      // Should set params using NavigationService to select Perps tab
+      expect(mockNavigationServiceMethods.setParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
+    });
+
+    it('should navigate to wallet home with Perps tab when skipping from GTM modal', () => {
+      // Mock route params to indicate GTM modal origin
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          isFromGTMModal: true,
+        },
+      });
+
+      render(<PerpsTutorialCarousel />);
+
+      // Press skip button
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
+      });
+
+      // Should navigate to wallet home using NavigationService instead of goBack
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.WALLET.HOME,
+      );
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      // Fast-forward timer to trigger setParams
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+      // Should set params using NavigationService to select Perps tab
+      expect(mockNavigationServiceMethods.setParams).toHaveBeenCalledWith({
         initialTab: 'perps',
         shouldSelectPerpsTab: true,
       });

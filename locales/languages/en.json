@@ -824,6 +824,12 @@
     "total_balance": "Total Balance",
     "available_balance": "Available Balance",
     "margin_used": "Margin Used",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
