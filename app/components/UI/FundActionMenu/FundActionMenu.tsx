@@ -11,7 +11,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IconName } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../component-library/components-temp/ActionListItem';
-import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -43,7 +42,6 @@ const FundActionMenu = () => {
   const assetContext = route.params?.asset;
 
   const chainId = useSelector(selectChainId);
-  const [isNetworkRampSupported] = useRampNetwork();
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -122,7 +120,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: isNetworkRampSupported || !!customOnBuy,
+          isVisible: true,
           analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',
@@ -152,7 +150,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.sell_description'),
           iconName: IconName.MinusBold,
           testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-          isVisible: isNetworkRampSupported,
+          isVisible: true,
           isDisabled: !canSignTransactions,
           analyticsEvent: MetaMetricsEvents.SELL_BUTTON_CLICKED,
           analyticsProperties: {
@@ -167,7 +165,6 @@ const FundActionMenu = () => {
       ] as ActionConfig[],
     [
       isDepositEnabled,
-      isNetworkRampSupported,
       canSignTransactions,
       chainId,
       getChainIdForAsset,
