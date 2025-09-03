@@ -39,11 +39,9 @@ export const createStyles = (colors: Theme['colors']) =>
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
+      paddingVertical: 8,
+      borderRadius: 12,
       backgroundColor: colors.background.muted,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
     },
     marketButtonIcon: {
       marginLeft: 2,
