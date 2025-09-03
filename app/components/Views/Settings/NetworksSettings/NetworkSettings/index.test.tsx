@@ -1076,6 +1076,20 @@ describe('NetworkSettings', () => {
       expect(instance.state.warningSymbol).toBeUndefined(); // No warning for valid symbol
     });
 
+    it('should validate the symbol when ticker is whitelisted for chainId', async () => {
+      const instance = wrapper.instance();
+
+      // Set up state with a whitelisted symbol combination
+      instance.setState({
+        chainId: '0x1', // HYPER_EVM chain ID
+        ticker: 'HYPE',
+      });
+
+      await instance.validateSymbol();
+
+      expect(instance.state.validatedSymbol).toBe(true);
+    });
+
     it('should validateChainIdOnSubmit', async () => {
       const instance = wrapper.instance();
 
