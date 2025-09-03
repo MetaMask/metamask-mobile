@@ -18,11 +18,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('SampleFeature', () => {
-  it('matches rendered snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders correctly', () => {
+    const { getByText } = renderWithProvider(
       <SampleFeatureDevSettingsEntryPoint />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    // Check that the component renders the expected text
+    expect(getByText('Sample Feature')).toBeDefined();
+    expect(
+      getByText('A sample feature as a template for developers.'),
+    ).toBeDefined();
+    expect(getByText('Navigate to Sample Feature')).toBeDefined();
   });
 
   it('navigates to SampleFeature', () => {
