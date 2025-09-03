@@ -1,10 +1,8 @@
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -16,28 +14,17 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
-import {
-  getDefaultNetworkByChainId,
-  getTestNetImageByChainId,
-  isTestNet,
-} from '../../../../../util/networks';
-import {
-  CustomNetworkImgMapping,
-  PopularList,
-  UnpopularNetworkList,
-  getNonEvmNetworkImageSourceByChainId,
-} from '../../../../../util/networks/customNetworks';
+import { isTestNet } from '../../../../../util/networks';
+
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import AssetElement from '../../../AssetElement';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import createStyles from '../../styles';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../ScamWarningIcon';
-import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 import { FlashListAssetKey } from '..';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
@@ -49,6 +36,8 @@ import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -120,39 +109,10 @@ export const TokenListItemBip44 = React.memo(
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
 
-    const networkBadgeSource = useCallback(() => {
-      if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-      const defaultNetwork = getDefaultNetworkByChainId(chainId) as
-        | {
-            imageSource: string;
-          }
-        | undefined;
-
-      if (defaultNetwork) {
-        return defaultNetwork.imageSource;
-      }
-
-      const unpopularNetwork = UnpopularNetworkList.find(
-        (networkConfig) => networkConfig.chainId === chainId,
-      );
-
-      const customNetworkImg = CustomNetworkImgMapping[chainId];
-
-      const popularNetwork = PopularList.find(
-        (networkConfig) => networkConfig.chainId === chainId,
-      );
-
-      const network = unpopularNetwork || popularNetwork;
-      if (network) {
-        return network.rpcPrefs.imageSource;
-      }
-      if (isCaipChainId(chainId)) {
-        return getNonEvmNetworkImageSourceByChainId(chainId);
-      }
-      if (customNetworkImg) {
-        return customNetworkImg;
-      }
-    }, [chainId]);
+    const networkBadgeSource = useMemo(
+      () => NetworkBadgeSource(chainId),
+      [chainId],
+    );
 
     const onItemPress = (token: TokenI) => {
       trace({ name: TraceName.AssetDetails });
@@ -170,44 +130,6 @@ export const TokenListItemBip44 = React.memo(
         ...token,
       });
     };
-
-    const renderNetworkAvatar = useCallback(() => {
-      if (!asset) {
-        return null;
-      }
-      if (asset.isNative) {
-        const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
-
-        if (isCustomNetwork) {
-          return (
-            <AvatarToken
-              name={asset.symbol}
-              imageSource={CustomNetworkNativeImgMapping[chainId]}
-              size={AvatarSize.Lg}
-            />
-          );
-        }
-
-        return (
-          <NetworkAssetLogo
-            chainId={chainId as Hex}
-            style={styles.ethLogo}
-            ticker={asset.ticker || ''}
-            big={false}
-            biggest={false}
-            testID={asset.name}
-          />
-        );
-      }
-
-      return (
-        <AvatarToken
-          name={asset.symbol}
-          imageSource={{ uri: asset.image }}
-          size={AvatarSize.Lg}
-        />
-      );
-    }, [asset, styles.ethLogo, chainId]);
 
     const renderEarnCta = useCallback(() => {
       if (!asset) {
@@ -254,11 +176,11 @@ export const TokenListItemBip44 = React.memo(
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource()}
+              imageSource={networkBadgeSource}
             />
           }
         >
-          {renderNetworkAvatar()}
+          <AssetLogo asset={asset} />
         </BadgeWrapper>
         <View style={styles.balances}>
           {/*

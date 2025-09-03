@@ -5,10 +5,7 @@ import { FlashListAssetKey } from '..';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
 import { formatWithThreshold } from '../../../../../util/assets';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { TokenI } from '../../types';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { SECONDARY_BALANCE_TEST_ID } from '../../../AssetElement/index.constants';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -309,126 +306,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Render Asset Logo', () => {
-    it('renders asset logo for non-native assets', () => {
-      prepareMocks({
-        asset: defaultAsset,
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      const { UNSAFE_getByType } = renderWithProvider(
-        <TokenListItemBip44
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      const assetAvatar = UNSAFE_getByType(AvatarToken);
-      expect(assetAvatar.props).toStrictEqual({
-        name: 'TEST',
-        imageSource: {
-          uri: 'https://example.com/image.png',
-        },
-        size: AvatarSize.Lg,
-      });
-    });
-
-    it('renders asset logo for native asset', () => {
-      prepareMocks({
-        asset: {
-          decimals: 18,
-          address: '0x000',
-          chainId: '0x1',
-          symbol: 'ETH',
-          ticker: 'ETH',
-          name: 'Ethereum',
-          balance: '1.23',
-          balanceFiat: '$123.00',
-          isNative: true,
-          isETH: false,
-          image: 'https://example.com/image.png',
-          logo: '',
-          aggregators: [],
-        },
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x000',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      const { UNSAFE_getByType } = renderWithProvider(
-        <TokenListItemBip44
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      const assetAvatar = UNSAFE_getByType(NetworkAssetLogo);
-      expect(assetAvatar.props).toStrictEqual(
-        expect.objectContaining({
-          chainId: '0x1',
-          ticker: 'ETH',
-          big: false,
-          biggest: false,
-          testID: 'Ethereum',
-        }),
-      );
-    });
-
-    it('renders asset logo for custom network', () => {
-      prepareMocks({
-        asset: {
-          decimals: 18,
-          address: '0x000',
-          chainId: '0x89',
-          symbol: 'POL',
-          ticker: 'POL',
-          name: 'POL',
-          balance: '1.23',
-          balanceFiat: '$123.00',
-          isNative: true,
-          isETH: false,
-          image: 'https://example.com/image.png',
-          logo: '',
-          aggregators: [],
-        },
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x000',
-        chainId: '0x89',
-        isStaked: false,
-      };
-
-      const { UNSAFE_getByType } = renderWithProvider(
-        <TokenListItemBip44
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      const assetAvatar = UNSAFE_getByType(AvatarToken);
-      expect(assetAvatar.props).toStrictEqual({
-        name: 'POL',
-        imageSource: { uri: 'polygon-native.png' },
-        size: AvatarSize.Lg,
-      });
     });
   });
 });
