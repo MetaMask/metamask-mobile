@@ -62,7 +62,6 @@ const AvatarToken = ({
     } else if (
       imageSource &&
       !isNumber(imageSource) &&
-      typeof imageSource === 'object' &&
       'uri' in imageSource &&
       (imageSource.uri?.endsWith('.svg') ||
         imageSource.uri?.startsWith('data:image/svg+xml'))

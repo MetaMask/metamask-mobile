@@ -121,7 +121,7 @@ jest.mock('../../../../../constants/popular-networks', () => ({
 
 jest.mock('./CustomNetworkNativeImgMapping', () => ({
   CustomNetworkNativeImgMapping: {
-    '0x89': 'polygon-native.png',
+    '0x89': { uri: 'polygon-native.png' },
   },
 }));
 
@@ -359,7 +359,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const assetAvatar = UNSAFE_getByType(AvatarToken);
       expect(assetAvatar.props).toStrictEqual({
         name: 'POL',
-        imageSource: 'polygon-native.png',
+        imageSource: { uri: 'polygon-native.png' },
         size: AvatarSize.Lg,
       });
     });
