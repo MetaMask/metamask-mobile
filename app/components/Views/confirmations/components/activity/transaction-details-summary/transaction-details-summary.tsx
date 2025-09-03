@@ -4,9 +4,6 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
-import Icon, {
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import {
   AlignItems,
   FlexDirection,
@@ -22,11 +19,11 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import { RootState } from '../../../../../../reducers';
 import {
   TransactionMeta,
-  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -78,8 +75,6 @@ function SummaryLine({
     return null;
   }
 
-  const statusIcon = getStatusIcon(transaction.status);
-
   return (
     <Box>
       <Box
@@ -92,7 +87,7 @@ function SummaryLine({
           alignItems={AlignItems.center}
           gap={12}
         >
-          <Icon name={statusIcon} />
+          <TransactionDetailsStatusIcon transactionMeta={transaction} />
           <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
       </Box>
@@ -146,17 +141,5 @@ function getLineTitle(
       return strings('transaction_details.summary_title.perps_deposit');
     default:
       return undefined;
-  }
-}
-
-function getStatusIcon(status: TransactionStatus): IconName {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return IconName.Check;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return IconName.Warning;
-    default:
-      return IconName.Pending;
   }
 }

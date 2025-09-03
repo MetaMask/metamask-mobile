@@ -5,30 +5,16 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import {
-  TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
-import Tooltip from '../../UI/Tooltip';
+import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 
 export function TransactionDetailsStatusRow() {
   const { transactionMeta } = useTransactionDetails();
 
   const statusText = getStatusText(transactionMeta.status);
   const statusColor = getStatusColour(transactionMeta.status);
-  const statusIcon = getStatusIcon(transactionMeta.status);
-  const errorMessage = getErrorMessage(transactionMeta);
-
-  const tooltip =
-    transactionMeta.status === TransactionStatus.failed
-      ? errorMessage
-      : undefined;
 
   return (
     <TransactionDetailsRow label={strings('transactions.status')}>
@@ -37,14 +23,7 @@ export function TransactionDetailsStatusRow() {
         gap={6}
         alignItems={AlignItems.center}
       >
-        {!tooltip && <Icon name={statusIcon} color={statusColor} />}
-        {tooltip && (
-          <Tooltip
-            iconColor={IconColor.Error}
-            tooltipTestId="status-tooltip"
-            content={tooltip}
-          />
-        )}
+        <TransactionDetailsStatusIcon transactionMeta={transactionMeta} />
         <Text color={statusColor}>{statusText}</Text>
       </Box>
     </TransactionDetailsRow>
@@ -73,39 +52,4 @@ function getStatusColour(status: TransactionStatus): TextColor {
     default:
       return TextColor.Warning;
   }
-}
-
-function getStatusIcon(status: TransactionStatus): IconName {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return IconName.Check;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return IconName.Warning;
-    default:
-      return IconName.Pending;
-  }
-}
-
-function getErrorMessage(transactionMeta: TransactionMeta): string | undefined {
-  const { error } = transactionMeta;
-
-  if (!error) return undefined;
-
-  if (error.stack) {
-    try {
-      const start = error.stack.indexOf('{');
-      const end = error.stack.lastIndexOf('}');
-      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
-      const stackMessage = stackObject?.data?.message;
-
-      if (stackMessage) {
-        return stackMessage;
-      }
-    } catch {
-      // Intentionally empty
-    }
-  }
-
-  return error.message;
 }
