@@ -27,31 +27,34 @@ jobs:
             exit 1
           fi
 
-          # Paginate to fetch all branches
-          all_branches="$(mktemp)"
-          page=1
-          total_pages=1  # Placeholder
-          echo "Fetching all branches (paginated)..."
-          while :; do
-            echo "Fetching page $page..."
-            resp="$(mktemp)"
-            url="https://api.github.com/repos/${GITHUB_REPOSITORY}/branches?per_page=100&page=${page}"
-            curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$url" -o "$resp"
+          # Function to paginate and collect refs for a prefix
+          fetch_matching_refs() {
+            local prefix="$1"
+            local temp_file="$(mktemp)"
+            local page=1
+            echo "Fetching branches matching $prefix* (paginated)..." >&2
+            while :; do
+              echo "Fetching page $page for $prefix..." >&2
+              resp="$(mktemp)"
+              url="https://api.github.com/repos/${GITHUB_REPOSITORY}/git/matching-refs/heads/${prefix}?per_page=100&page=${page}"
+              curl -sS -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$url" -o "$resp"
 
-            # Append this page's branches to all_branches
-            cat "$resp" >> "$all_branches"
+              cat "$resp" >> "$temp_file"
 
-            count=$(jq length "$resp")
-            if [ "$count" -lt 100 ]; then
-              total_pages=$page
-              break
-            fi
-            page=$((page + 1))
-          done
-          echo "Fetched $total_pages pages, total branches: $(jq -s 'map(length) | add' "$all_branches")"
+              count=$(jq length "$resp")
+              if [ "$count" -lt 100 ]; then
+                break
+              fi
+              page=$((page + 1))
+            done
+            echo "$temp_file"
+          }
 
-          # Process all branches: extract {name, semver} for matches, sort desc by semver
-          jq -s 'add | [ .[] | .name | select(test("^release/[0-9]+\\.[0-9]+\\.[0-9]+$")) | {name: ., semver: ltrimstr("release/") } ] | sort_by( .semver | split(".") | map(tonumber) ) | reverse' "$all_branches" > all_versions.json
+          # Fetch only for release/ prefix
+          release_file=$(fetch_matching_refs "release/")
+
+          # Combine and process: extract {name, semver} for matches, sort desc by semver
+          jq -s 'add | [ .[] | .ref | ltrimstr("refs/heads/") as $name | select($name | test("^release/[0-9]+\\.[0-9]+\\.[0-9]+$")) | {name: $name, semver: $name | ltrimstr("release/") } ] | sort_by( .semver | split(".") | map(tonumber) ) | reverse' "$release_file" > all_versions.json
 
           # Print all found versions (sorted desc)
           echo "All found versions (sorted desc): $(jq '[ .[].semver ]' all_versions.json)"
@@ -68,8 +71,8 @@ jobs:
 
           # Select the highest lower: first in filtered list
           if [ "$(jq length filtered_versions.json)" -eq 0 ]; then
-            previous_ref="main"
-            echo "No versions lower than $semver found, falling back to: ${previous_ref}"
+            echo "Error: No versions lower than $semver found. Cannot determine previous-version-ref." >&2
+            exit 1
           else
             highest_lower="$(jq -r '.[0].semver' filtered_versions.json)"
             previous_ref="$(jq -r '.[0].name' filtered_versions.json)"
@@ -82,7 +85,7 @@ jobs:
           # Print values passed to call-create-release-pr
           echo "Inputs to call-create-release-pr:"
           echo "  checkout-base-branch: main"
-          echo "  release-pr-base-branch: master"
+          echo "  release-pr-base-branch: stable"
           echo "  semver-version: ${semver}"
           echo "  previous-version-ref: ${previous_ref}"
 
@@ -98,6 +101,6 @@ jobs:
       google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}
     with:
       checkout-base-branch: main
-      release-pr-base-branch: master
+      release-pr-base-branch: stable
       semver-version: ${{ needs.extract.outputs.semver }}
       previous-version-ref: ${{ needs.extract.outputs.previous_ref }}
