@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState, useEffect, useRef } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -37,7 +37,6 @@ const AccountListFooter = memo(
   ({ walletId, onAccountCreated }: AccountListFooterProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const { styles } = useStyles(createStyles, {});
-    const hasActiveTrace = useRef(false);
 
     // Get wallet information to find the keyringId
     const walletsMap = useSelector(selectWalletsMap);
@@ -46,9 +45,8 @@ const AccountListFooter = memo(
 
     // End trace when the loading finishes
     useEffect(() => {
-      if (!isLoading && hasActiveTrace.current) {
+      if (!isLoading) {
         endTrace({ name: TraceName.CreateMultichainAccount });
-        hasActiveTrace.current = false;
       }
     }, [isLoading]);
 
@@ -87,16 +85,14 @@ const AccountListFooter = memo(
     }, [walletInfo?.keyringId, onAccountCreated]);
 
     const handlePress = useCallback(() => {
-      // Force immediate state update
-      setIsLoading(true);
-
-      // This ref is used as a guard to ensure that we only call `endTrace`
-      // when the trace is actually active.
-      hasActiveTrace.current = true;
+      // Start the trace before setting the loading state
       trace({
         name: TraceName.CreateMultichainAccount,
         op: TraceOperation.CreateAccount,
       });
+
+      // Force immediate state update
+      setIsLoading(true);
 
       // Use InteractionManager to ensure animations complete before heavy work
       InteractionManager.runAfterInteractions(() => {
