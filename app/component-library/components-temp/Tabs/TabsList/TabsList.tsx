@@ -14,7 +14,7 @@ import { Box } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsBar from '../TabsBar';
-import { TabsListProps, TabsListRef, TabItem } from '../Tabs.types';
+import { TabsListProps, TabsListRef, TabItem } from './TabsList.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (

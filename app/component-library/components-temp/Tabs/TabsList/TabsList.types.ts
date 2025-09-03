@@ -20,58 +20,6 @@ export interface TabViewProps {
 }
 
 /**
- * Tab component props
- */
-export interface TabProps {
-  /**
-   * The label text for the tab
-   */
-  label: string;
-  /**
-   * Whether the tab is currently active
-   */
-  isActive: boolean;
-  /**
-   * Whether the tab is disabled (locked)
-   */
-  disabled?: boolean;
-  /**
-   * Callback when tab is pressed
-   */
-  onPress: () => void;
-  /**
-   * Test ID for testing
-   */
-  testID?: string;
-}
-
-/**
- * TabsBar component props
- */
-export interface TabsBarProps {
-  /**
-   * Array of tab items
-   */
-  tabs: TabItem[];
-  /**
-   * Current active tab index
-   */
-  activeIndex: number;
-  /**
-   * Callback when a tab is selected
-   */
-  onTabPress: (index: number) => void;
-  /**
-   * Whether the tabs are locked (disabled)
-   */
-  locked?: boolean;
-  /**
-   * Test ID for testing
-   */
-  testID?: string;
-}
-
-/**
  * TabsList component props
  */
 export interface TabsListProps {

@@ -7,7 +7,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsList from './TabsList';
-import { TabViewProps } from './Tabs.types';
+import { TabViewProps } from './TabsList/TabsList.types';
 
 const TabsStoryMeta = {
   title: 'Components Temp / Tabs',

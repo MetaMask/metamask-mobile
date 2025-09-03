@@ -12,7 +12,7 @@ import {
 
 // Internal dependencies.
 import Tab from '../Tab';
-import { TabsBarProps } from '../Tabs.types';
+import { TabsBarProps } from './TabsBar.types';
 
 const TabsBar: React.FC<TabsBarProps> = ({
   tabs,

@@ -11,7 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { TabProps } from '../Tabs.types';
+import { TabProps } from './Tab.types';
 
 const Tab: React.FC<TabProps> = ({
   label,

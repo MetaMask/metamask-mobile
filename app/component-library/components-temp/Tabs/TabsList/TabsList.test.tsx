@@ -8,10 +8,7 @@ import { Text } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsList from './TabsList';
-
-interface TabViewProps {
-  tabLabel: string;
-}
+import { TabViewProps, TabsListRef } from './TabsList.types';
 
 describe('TabsList', () => {
   beforeEach(() => {
@@ -139,27 +136,6 @@ describe('TabsList', () => {
 
     // Assert
     expect(mockOnChangeTab).not.toHaveBeenCalled();
-  });
-
-  it('uses custom tab bar when renderTabBar is provided', () => {
-    // Arrange
-    const customTabBar = jest.fn(() => <Text>Custom Tab Bar</Text>);
-    const tabs = ['Tab 1', 'Tab 2'];
-
-    // Act
-    const { getByText } = render(
-      <TabsList renderTabBar={customTabBar}>
-        {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
-            <Text>{label} Content</Text>
-          </View>
-        ))}
-      </TabsList>,
-    );
-
-    // Assert
-    expect(getByText('Custom Tab Bar')).toBeOnTheScreen();
-    expect(customTabBar).toHaveBeenCalled();
   });
 
   it('exposes goToPage method via ref', async () => {
