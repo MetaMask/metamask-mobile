@@ -13,7 +13,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
   parseCaipChainId,
@@ -31,33 +34,6 @@ interface UseRewardsResult {
   isLoading: boolean;
   estimatedPoints: number | null;
 }
-
-/**
- * Formats a token to CAIP-19 asset ID format
- */
-const formatTokenToCaipAssetId = (
-  chainId: string,
-  tokenAddress?: string,
-): string | null => {
-  try {
-    const caipChainId = formatChainIdToCaip(chainId);
-    // Native token
-    if (
-      !tokenAddress ||
-      tokenAddress === '0x0000000000000000000000000000000000000000'
-    ) {
-      return `${caipChainId}/slip44:60`; // ETH native token
-    }
-    // ERC20 token
-    return `${caipChainId}/erc20:${tokenAddress.toLowerCase()}`;
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'useRewards: Error formatting token to CAIP asset ID',
-    );
-    return null;
-  }
-};
 
 /**
  * Formats an Ethereum address to CAIP-10 account ID
@@ -150,15 +126,15 @@ export const useRewards = ({
       }
 
       // Format source asset
-      const srcAssetId = formatTokenToCaipAssetId(
-        sourceToken.chainId,
+      const srcAssetId = formatAddressToAssetId(
         sourceToken.address,
+        sourceToken.chainId,
       );
 
       // Format destination asset
-      const destAssetId = formatTokenToCaipAssetId(
-        destToken.chainId,
+      const destAssetId = formatAddressToAssetId(
         destToken.address,
+        destToken.chainId,
       );
 
       if (!srcAssetId || !destAssetId) {
