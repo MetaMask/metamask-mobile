@@ -47,7 +47,6 @@ export enum TraceName {
   CreateHdAccount = 'Create HD Account',
   ImportEvmAccount = 'Import EVM Account',
   CreateSnapAccount = 'Create Snap Account',
-  CreateMultichainAccount = 'Create Multichain Account',
   SelectAccount = 'Select Account',
   AddNetwork = 'Add Network',
   UpdateNetwork = 'Update Network',
@@ -122,6 +121,7 @@ export enum TraceName {
   // Accounts
   AccountAddressList = 'Account Address List',
   AccountPrivateKeyList = 'Account Private Key List',
+  CreateMultichainAccount = 'Create Multichain Account',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',
   PerpsClosePosition = 'Perps Close Position',
