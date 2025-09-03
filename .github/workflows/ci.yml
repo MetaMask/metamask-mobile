@@ -199,6 +199,7 @@ jobs:
       contents: read
       id-token: write
     needs: [build-ios-apps]
+    if: ${{ !cancelled() }}  # Run even if build-ios-apps is skipped
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     secrets: inherit
 
