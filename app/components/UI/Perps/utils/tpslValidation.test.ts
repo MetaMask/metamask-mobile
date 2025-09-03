@@ -7,6 +7,8 @@ import {
   calculatePriceForPercentage,
   calculatePercentageForPrice,
   hasTPSLValuesChanged,
+  calculatePriceForRoE,
+  calculateRoEForPrice,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
@@ -402,6 +404,276 @@ describe('TPSL Validation Utilities', () => {
         );
         expect(hasTPSLValuesChanged('100.01', '50.00', '100', '50')).toBe(true);
         expect(hasTPSLValuesChanged('100.00', '50.01', '100', '50')).toBe(true);
+      });
+    });
+  });
+
+  describe('calculatePriceForRoE', () => {
+    describe('Long positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate take profit price correctly for positive RoE', () => {
+        expect(calculatePriceForRoE(10, true, params)).toBe('101.00');
+        expect(calculatePriceForRoE(50, true, params)).toBe('105.00');
+        expect(calculatePriceForRoE(100, true, params)).toBe('110.00');
+      });
+
+      it('should calculate stop loss price correctly for negative RoE', () => {
+        expect(calculatePriceForRoE(-10, false, params)).toBe('99.00');
+        expect(calculatePriceForRoE(-50, false, params)).toBe('95.00');
+        expect(calculatePriceForRoE(-100, false, params)).toBe('90.00');
+      });
+
+      it('should handle different leverage values', () => {
+        const lowLeverageParams = { ...params, leverage: 1 };
+        const highLeverageParams = { ...params, leverage: 50 };
+
+        // With 1x leverage, 10% RoE requires 10% price movement
+        expect(calculatePriceForRoE(10, true, lowLeverageParams)).toBe(
+          '110.00',
+        );
+
+        // With 50x leverage, 10% RoE requires 0.2% price movement
+        expect(calculatePriceForRoE(10, true, highLeverageParams)).toBe(
+          '100.20',
+        );
+      });
+    });
+
+    describe('Short positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'short' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate take profit price correctly for positive RoE', () => {
+        expect(calculatePriceForRoE(10, true, params)).toBe('99.00');
+        expect(calculatePriceForRoE(50, true, params)).toBe('95.00');
+        expect(calculatePriceForRoE(100, true, params)).toBe('90.00');
+      });
+
+      it('should calculate stop loss price correctly for negative RoE', () => {
+        expect(calculatePriceForRoE(-10, false, params)).toBe('101.00');
+        expect(calculatePriceForRoE(-50, false, params)).toBe('105.00');
+        expect(calculatePriceForRoE(-100, false, params)).toBe('110.00');
+      });
+    });
+
+    describe('Uses entry price when available', () => {
+      it('should use entryPrice over currentPrice when both provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+          entryPrice: 120,
+        };
+
+        // Should calculate based on entry price (120), not current price (100)
+        expect(calculatePriceForRoE(10, true, params)).toBe('121.20');
+      });
+
+      it('should fall back to currentPrice when entryPrice not provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculatePriceForRoE(10, true, params)).toBe('101.00');
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return empty string when no base price available', () => {
+        const params = { direction: 'long' as const, leverage: 10 };
+        expect(calculatePriceForRoE(10, true, params)).toBe('');
+      });
+
+      it('should handle zero RoE', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculatePriceForRoE(0, true, params)).toBe('100.00');
+        expect(calculatePriceForRoE(0, false, params)).toBe('100.00');
+      });
+
+      it('should handle very high leverage', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 100,
+        };
+
+        // With 100x leverage, 10% RoE requires only 0.1% price movement
+        expect(calculatePriceForRoE(10, true, params)).toBe('100.10');
+      });
+    });
+  });
+
+  describe('calculateRoEForPrice', () => {
+    describe('Long positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate RoE for take profit prices correctly', () => {
+        expect(calculateRoEForPrice('101', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('105', true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('110', true, params)).toBe('100.00');
+        expect(calculateRoEForPrice('$101.00', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('1,105.00', true, params)).toBe('10050.00'); // 1105 - 100 = 1005, (1005/100)*10 = 100.5% * 100 leverage effect
+      });
+
+      it('should calculate RoE for stop loss prices correctly', () => {
+        expect(calculateRoEForPrice('99', false, params)).toBe('10.00');
+        expect(calculateRoEForPrice('95', false, params)).toBe('50.00');
+        expect(calculateRoEForPrice('90', false, params)).toBe('100.00');
+        expect(calculateRoEForPrice('$99.00', false, params)).toBe('10.00');
+      });
+
+      it('should return negative RoE for invalid directions', () => {
+        // TP price below entry for long (wrong direction)
+        expect(calculateRoEForPrice('99', true, params)).toBe('-10.00');
+
+        // SL price above entry for long (wrong direction)
+        expect(calculateRoEForPrice('101', false, params)).toBe('-10.00');
+      });
+
+      it('should handle different leverage values', () => {
+        const lowLeverageParams = { ...params, leverage: 1 };
+        const highLeverageParams = { ...params, leverage: 50 };
+
+        // With 1x leverage, 1% price move = 1% RoE
+        expect(calculateRoEForPrice('101', true, lowLeverageParams)).toBe(
+          '1.00',
+        );
+
+        // With 50x leverage, 1% price move = 50% RoE
+        expect(calculateRoEForPrice('101', true, highLeverageParams)).toBe(
+          '50.00',
+        );
+      });
+    });
+
+    describe('Short positions', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'short' as const,
+        leverage: 10,
+        entryPrice: 100,
+      };
+
+      it('should calculate RoE for take profit prices correctly', () => {
+        expect(calculateRoEForPrice('99', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('95', true, params)).toBe('50.00');
+        expect(calculateRoEForPrice('90', true, params)).toBe('100.00');
+      });
+
+      it('should calculate RoE for stop loss prices correctly', () => {
+        expect(calculateRoEForPrice('101', false, params)).toBe('10.00');
+        expect(calculateRoEForPrice('105', false, params)).toBe('50.00');
+        expect(calculateRoEForPrice('110', false, params)).toBe('100.00');
+      });
+
+      it('should return negative RoE for invalid directions', () => {
+        // TP price above entry for short (wrong direction)
+        expect(calculateRoEForPrice('101', true, params)).toBe('-10.00');
+
+        // SL price below entry for short (wrong direction)
+        expect(calculateRoEForPrice('99', false, params)).toBe('-10.00');
+      });
+    });
+
+    describe('Uses entry price when available', () => {
+      it('should use entryPrice over currentPrice when both provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+          entryPrice: 120,
+        };
+
+        // Should calculate RoE based on entry price (120), not current price (100)
+        expect(calculateRoEForPrice('121.20', true, params)).toBe('10.00');
+      });
+
+      it('should fall back to currentPrice when entryPrice not provided', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('101', true, params)).toBe('10.00');
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('should return empty string when no base price available', () => {
+        const params = { direction: 'long' as const, leverage: 10 };
+        expect(calculateRoEForPrice('110', true, params)).toBe('');
+      });
+
+      it('should return empty string when price is invalid', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('', true, params)).toBe('');
+        expect(calculateRoEForPrice('invalid', true, params)).toBe('');
+      });
+
+      it('should handle zero leverage by using default value', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 1, // function defaults to 1 when leverage not provided
+        };
+
+        // With 1x leverage, 10% price move = 10% RoE
+        expect(calculateRoEForPrice('110', true, params)).toBe('10.00');
+      });
+
+      it('should handle price equal to base price', () => {
+        const params = {
+          currentPrice: 100,
+          direction: 'long' as const,
+          leverage: 10,
+        };
+
+        expect(calculateRoEForPrice('100', true, params)).toBe('0.00');
+        expect(calculateRoEForPrice('100', false, params)).toBe('0.00');
+      });
+    });
+
+    describe('Price formatting handling', () => {
+      const params = {
+        currentPrice: 100,
+        direction: 'long' as const,
+        leverage: 10,
+      };
+
+      it('should handle various price formats', () => {
+        expect(calculateRoEForPrice('$101.00', true, params)).toBe('10.00');
+        expect(calculateRoEForPrice('1,101.00', true, params)).toBe('10010.00'); // 1101 - 100 = 1001, (1001/100)*10 = 10010%
+        expect(calculateRoEForPrice('$1,101.00', true, params)).toBe(
+          '10010.00',
+        );
       });
     });
   });

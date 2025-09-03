@@ -78,6 +78,8 @@ jest.mock('../../utils/tpslValidation', () => ({
   calculatePriceForPercentage: jest.fn(),
   calculatePercentageForPrice: jest.fn(),
   hasTPSLValuesChanged: jest.fn(),
+  calculatePriceForRoE: jest.fn(),
+  calculateRoEForPrice: jest.fn(),
 }));
 
 // Mock strings
@@ -264,6 +266,8 @@ describe('PerpsTPSLBottomSheet', () => {
     tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
     tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
     tpslValidation.hasTPSLValuesChanged.mockReturnValue(true);
+    tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
+    tpslValidation.calculateRoEForPrice.mockReturnValue('5.00');
   });
 
   describe('Component Rendering', () => {
@@ -311,21 +315,49 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(screen.getByText('$2800.00')).toBeOnTheScreen();
     });
 
-    it('renders percentage buttons with correct values', () => {
+    it('renders percentage buttons with correct RoE values', () => {
       // Act
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      // Assert - Take Profit buttons
-      expect(screen.getByText('+1%')).toBeOnTheScreen();
-      expect(screen.getByText('+5%')).toBeOnTheScreen();
-      expect(screen.getByText('+20%')).toBeOnTheScreen();
-      expect(screen.getByText('+30%')).toBeOnTheScreen();
+      // Assert - Take Profit buttons (RoE percentages)
+      expect(screen.getByText('+10%')).toBeOnTheScreen();
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('+50%')).toBeOnTheScreen();
+      expect(screen.getByText('+100%')).toBeOnTheScreen();
 
-      // Assert - Stop Loss buttons
-      expect(screen.getByText('-1%')).toBeOnTheScreen();
+      // Assert - Stop Loss buttons (RoE percentages)
       expect(screen.getByText('-5%')).toBeOnTheScreen();
-      expect(screen.getByText('-20%')).toBeOnTheScreen();
-      expect(screen.getByText('-30%')).toBeOnTheScreen();
+      expect(screen.getByText('-10%')).toBeOnTheScreen();
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
+      expect(screen.getByText('-50%')).toBeOnTheScreen();
+    });
+
+    it('displays leverage from position when available', () => {
+      // Act
+      render(
+        <PerpsTPSLBottomSheet {...defaultProps} position={mockPosition} />,
+      );
+
+      // Assert
+      expect(screen.getByText('10x')).toBeOnTheScreen();
+    });
+
+    it('displays leverage from prop for new orders', () => {
+      // Act
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={5} />);
+
+      // Assert
+      expect(screen.getByText('5x')).toBeOnTheScreen();
+    });
+
+    it('displays margin when provided', () => {
+      // Act
+      render(
+        <PerpsTPSLBottomSheet {...defaultProps} marginRequired="500.00" />,
+      );
+
+      // Assert - formatPrice should format the margin value
+      expect(screen.getByText('$500.00')).toBeOnTheScreen();
     });
   });
 
@@ -348,22 +380,42 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(stopLossInputs.length).toBeGreaterThan(0);
     });
 
-    it('calculates initial percentages when opening with prices', () => {
+    it('calculates initial RoE percentages when opening with prices', () => {
       // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculateRoEForPrice
+        .mockReturnValueOnce('25.00') // TP RoE
+        .mockReturnValueOnce('15.00'); // SL RoE (absolute value)
+
       const props = {
         ...defaultProps,
         initialTakeProfitPrice: '3300',
         initialStopLossPrice: '2700',
+        leverage: 10,
       };
 
       // Act
       render(<PerpsTPSLBottomSheet {...props} />);
 
-      // Assert - Component should calculate and display the percentages inline
-      // TP: (3300 - 3000) / 3000 * 100 = 10%
-      // SL: (3000 - 2700) / 3000 * 100 = 10%
-      // We can verify this by checking that the percentage inputs show calculated values
-      expect(screen.getAllByDisplayValue('10.00')).toHaveLength(2); // Both TP and SL percentage inputs
+      // Assert - Should call RoE calculation functions for initial prices
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
+        '3300',
+        true,
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
+      );
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
+        '2700',
+        false,
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
+      );
     });
   });
 
@@ -371,8 +423,8 @@ describe('PerpsTPSLBottomSheet', () => {
     it('handles take profit price input changes', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculateRoEForPrice.mockReturnValue('5.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -383,10 +435,14 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert
       expect(takeProfitPriceInput.props.value).toBe('3150');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
         '3150',
         true,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
 
@@ -418,33 +474,37 @@ describe('PerpsTPSLBottomSheet', () => {
       expect(takeProfitPriceInput.props.value).toBe('');
     });
 
-    it('handles take profit percentage input changes', () => {
+    it('handles take profit RoE percentage input changes', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
-      )[0]; // TP percentage input
+        'perps.tpsl.profit_roe_placeholder',
+      )[0]; // TP RoE percentage input
 
       // Act
-      fireEvent.changeText(takeProfitPercentInput, '5');
+      fireEvent.changeText(takeProfitPercentInput, '25');
 
       // Assert
-      expect(takeProfitPercentInput.props.value).toBe('5');
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
+      expect(takeProfitPercentInput.props.value).toBe('25');
+      expect(tpslValidation.calculatePriceForRoE).toHaveBeenCalledWith(
+        25,
         true,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
 
     it('handles stop loss price input changes', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('10.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculateRoEForPrice.mockReturnValue('-10.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
@@ -455,61 +515,73 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert
       expect(stopLossPriceInput.props.value).toBe('2700');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
         '2700',
         false,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
 
-    it('handles stop loss percentage input changes', () => {
+    it('handles stop loss RoE percentage input changes', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2700.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('2700.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
-      )[0]; // SL percentage input
+        'perps.tpsl.loss_roe_placeholder',
+      )[0]; // SL RoE percentage input
 
       // Act
-      fireEvent.changeText(stopLossPercentInput, '10');
+      fireEvent.changeText(stopLossPercentInput, '25');
 
       // Assert
-      expect(stopLossPercentInput.props.value).toBe('10');
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        10,
+      expect(stopLossPercentInput.props.value).toBe('25');
+      expect(tpslValidation.calculatePriceForRoE).toHaveBeenCalledWith(
+        -25, // Negative because it's a loss
         false,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
   });
 
-  describe('Percentage Button Functionality', () => {
-    it('sets take profit price when percentage button is pressed', () => {
+  describe('RoE Percentage Button Functionality', () => {
+    it('sets take profit price when RoE percentage button is pressed', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
-      const fivePercentButton = screen.getByText('+5%');
+      const tenPercentButton = screen.getByText('+10%');
 
       // Act
-      fireEvent.press(fivePercentButton);
+      fireEvent.press(tenPercentButton);
 
       // Assert
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
+      expect(tpslValidation.calculatePriceForRoE).toHaveBeenCalledWith(
+        10,
         true,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
 
-    it('sets stop loss price when percentage button is pressed', () => {
+    it('sets stop loss price when RoE percentage button is pressed', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2850.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('2850.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       const fivePercentButton = screen.getByText('-5%');
 
@@ -517,10 +589,14 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent.press(fivePercentButton);
 
       // Assert
-      expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-        5,
+      expect(tpslValidation.calculatePriceForRoE).toHaveBeenCalledWith(
+        -5, // Negative RoE for stop loss
         false,
-        { currentPrice: 3000, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
   });
@@ -529,24 +605,24 @@ describe('PerpsTPSLBottomSheet', () => {
     it('clears take profit values when take profit off button is pressed', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
-      // First set some take profit values
-      const fivePercentButton = screen.getByText('+5%');
-      fireEvent.press(fivePercentButton);
+      // First set some take profit values using new RoE button
+      const tenPercentButton = screen.getByText('+10%');
+      fireEvent.press(tenPercentButton);
 
       // Get the take profit input to verify it has a value initially
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
+        'perps.tpsl.profit_roe_placeholder',
       )[0];
 
       // Verify values are set before pressing off
       expect(takeProfitPriceInput.props.value).toBe('$3150.00');
-      expect(takeProfitPercentInput.props.value).toBe('5');
+      expect(takeProfitPercentInput.props.value).toBe('10');
 
       // Get the take profit off button - there are two "Off" buttons, get all and find the first one
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -563,10 +639,10 @@ describe('PerpsTPSLBottomSheet', () => {
     it('clears stop loss values when stop loss off button is pressed', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      tpslValidation.calculatePriceForPercentage.mockReturnValue('2850.00');
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      tpslValidation.calculatePriceForRoE.mockReturnValue('2850.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
-      // First set some stop loss values
+      // First set some stop loss values using new RoE button
       const fivePercentButton = screen.getByText('-5%');
       fireEvent.press(fivePercentButton);
 
@@ -575,7 +651,7 @@ describe('PerpsTPSLBottomSheet', () => {
         'perps.tpsl.trigger_price_placeholder',
       )[1];
       const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
+        'perps.tpsl.loss_roe_placeholder',
       )[0];
 
       // Verify values are set before pressing off
@@ -597,25 +673,25 @@ describe('PerpsTPSLBottomSheet', () => {
     it('resets take profit state when off button is pressed after manual input', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      // Make the percentage calculation return a realistic value for 3200 price
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+      // Make the RoE calculation return a realistic value for 3200 price
+      tpslValidation.calculateRoEForPrice.mockReturnValue('66.67');
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       // First manually enter take profit values
       const takeProfitPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[0];
       const takeProfitPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.profit_percent_placeholder',
+        'perps.tpsl.profit_roe_placeholder',
       )[0];
 
       fireEvent.changeText(takeProfitPriceInput, '3200');
 
-      // After entering price, the component calculates percentage and updates display
+      // After entering price, the component calculates RoE percentage and updates display
       // The price input will show the raw input until blur, percentage will show calculated value
       expect(takeProfitPriceInput.props.value).toBe('3200');
-      expect(takeProfitPercentInput.props.value).toBe('6.67');
+      expect(takeProfitPercentInput.props.value).toBe('66.67');
 
       // Get the take profit off button
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -632,24 +708,24 @@ describe('PerpsTPSLBottomSheet', () => {
     it('resets stop loss state when off button is pressed after manual input', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      // Make the percentage calculation return a realistic value for 2800 price
-      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+      // Make the RoE calculation return a realistic value for 2800 price
+      tpslValidation.calculateRoEForPrice.mockReturnValue('-66.67');
 
-      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+      render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       // First manually enter stop loss values
       const stopLossPriceInput = screen.getAllByPlaceholderText(
         'perps.tpsl.trigger_price_placeholder',
       )[1];
       const stopLossPercentInput = screen.getAllByPlaceholderText(
-        'perps.tpsl.loss_percent_placeholder',
+        'perps.tpsl.loss_roe_placeholder',
       )[0];
 
       fireEvent.changeText(stopLossPriceInput, '2800');
 
-      // After entering price, the component calculates percentage and updates display
+      // After entering price, the component calculates RoE percentage and updates display
       expect(stopLossPriceInput.props.value).toBe('2800');
-      expect(stopLossPercentInput.props.value).toBe('6.67');
+      expect(stopLossPercentInput.props.value).toBe('66.67'); // Should show as positive (absolute value)
 
       // Get the stop loss off button
       const offButtons = screen.getAllByText('perps.tpsl.off');
@@ -814,9 +890,13 @@ describe('PerpsTPSLBottomSheet', () => {
   describe('Direction-based Logic', () => {
     it('handles SHORT position direction', () => {
       // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculateRoEForPrice.mockReturnValue('15.00');
+
       const shortProps = {
         ...defaultProps,
         direction: 'short' as const,
+        leverage: 10,
       };
 
       render(<PerpsTPSLBottomSheet {...shortProps} />);
@@ -829,38 +909,45 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent.changeText(takeProfitPriceInput, '2850');
 
       // Assert
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
         '2850',
         true,
-        { currentPrice: 3000, direction: 'short' },
+        expect.objectContaining({
+          currentPrice: 3000,
+          direction: 'short',
+          leverage: 10,
+        }),
       );
     });
 
     it.each(['long', 'short'] as const)(
-      'handles %s direction for percentage calculations',
+      'handles %s direction for RoE percentage calculations',
       (direction) => {
         // Arrange
         const props = {
           ...defaultProps,
           direction,
+          leverage: 10,
         };
 
         render(<PerpsTPSLBottomSheet {...props} />);
 
-        // For short positions, the percentage buttons show negative values
-        const buttonText = direction === 'short' ? '-5%' : '+5%';
-        const fivePercentButton = screen.getByText(buttonText);
+        // TP RoE buttons always show positive values regardless of direction
+        const tenPercentButton = screen.getByText('+10%');
 
         // Act
-        fireEvent.press(fivePercentButton);
+        fireEvent.press(tenPercentButton);
 
         // Assert
         const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-        expect(tpslValidation.calculatePriceForPercentage).toHaveBeenCalledWith(
-          5,
+        expect(tpslValidation.calculatePriceForRoE).toHaveBeenCalledWith(
+          10,
           true,
-          { currentPrice: 3000, direction },
+          expect.objectContaining({
+            currentPrice: 3000,
+            direction,
+            leverage: 10,
+          }),
         );
       },
     );
@@ -895,6 +982,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
     it('uses currentPrice when provided, falls back to entry price', () => {
       // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculateRoEForPrice.mockReturnValue('-75.00');
+
       const propsWithPosition = {
         ...defaultProps,
         position: mockPosition,
@@ -911,16 +1001,22 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent.changeText(takeProfitPriceInput, '2950');
 
       // Assert - Should use currentPrice (3200) when provided
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
         '2950',
         true,
-        { currentPrice: 3200, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 3200,
+          direction: 'long',
+          leverage: 10,
+        }),
       );
     });
 
     it('uses position entry price when currentPrice not provided', () => {
       // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculateRoEForPrice.mockReturnValue('53.57');
+
       const propsWithPosition = {
         ...defaultProps,
         position: mockPosition,
@@ -937,11 +1033,15 @@ describe('PerpsTPSLBottomSheet', () => {
       fireEvent.changeText(takeProfitPriceInput, '2950');
 
       // Assert - Should fall back to position.entryPrice (2800)
-      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
-      expect(tpslValidation.calculatePercentageForPrice).toHaveBeenCalledWith(
+      expect(tpslValidation.calculateRoEForPrice).toHaveBeenCalledWith(
         '2950',
         true,
-        { currentPrice: 2800, direction: 'long' },
+        expect.objectContaining({
+          currentPrice: 2800,
+          direction: 'long',
+          leverage: 10,
+          entryPrice: 2800,
+        }),
       );
     });
   });
