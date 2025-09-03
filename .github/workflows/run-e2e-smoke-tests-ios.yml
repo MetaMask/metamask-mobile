@@ -9,75 +9,129 @@ permissions:
 
 jobs:
   confirmations-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: confirmations-ios-smoke
+      test-suite-name: confirmations-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeConfirmations"
+      split_number: ${{ matrix.split }}
+      total_splits: 3
     secrets: inherit
 
   confirmations-redesigned-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: confirmations-redesigned-ios-smoke
+      test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeConfirmationsRedesigned"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   trade-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: trade-ios-smoke
+      test-suite-name: trade-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeTrade"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   wallet-platform-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: wallet-platform-ios-smoke
+      test-suite-name: wallet-platform-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeWalletPlatform"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   identity-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: identity-ios-smoke
+      test-suite-name: identity-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeIdentity"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   accounts-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: accounts-ios-smoke
+      test-suite-name: accounts-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeAccounts"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   network-abstraction-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: network-abstraction-ios-smoke
+      test-suite-name: network-abstraction-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeNetworkAbstractions"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   network-expansion-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: network-expansion-ios-smoke
+      test-suite-name: network-expansion-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokeNetworkExpansion"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   performance-ios-smoke:
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
-      test-suite-name: performance-ios-smoke
+      test-suite-name: performance-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: "SmokePerformance"
+      split_number: ${{ matrix.split }}
+      total_splits: 2
     secrets: inherit
 
   card-ios-smoke:
