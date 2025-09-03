@@ -159,3 +159,7 @@ export const FUNDING_RATE_CONFIG = {
   // Multiplier to convert decimal funding rate to percentage
   PERCENTAGE_MULTIPLIER: 100,
 } as const;
+
+export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
+export const PERPS_GTM_MODAL_ENGAGE = 'engage';
+export const PERPS_GTM_MODAL_DECLINE = 'decline';
