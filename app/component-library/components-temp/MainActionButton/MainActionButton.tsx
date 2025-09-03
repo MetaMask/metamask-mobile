@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   Pressable,
   View,
@@ -35,11 +35,6 @@ const MainActionButton = ({
   });
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const [shouldUseProtectedText, setShouldUseProtectedText] = useState(false);
-
-  useLayoutEffect(() => {
-    setShouldUseProtectedText(true);
-  }, []);
 
   const handlePressIn = (pressEvent: GestureResponderEvent) => {
     Animated.timing(scaleAnim, {
@@ -78,26 +73,14 @@ const MainActionButton = ({
             size={IconSize.Md}
             color={IconColor.Alternative}
           />
-          {!shouldUseProtectedText ? (
-            // Phase 1: Visible text with flexShrink: 0 (no truncation protection)
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Default}
-              style={[styles.label, { flexShrink: 0 }]}
-            >
-              {label}
-            </Text>
-          ) : (
-            // Phase 2: Protected text after layout is complete
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Default}
-              style={styles.label}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Default}
+            style={styles.label}
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
         </View>
       </Pressable>
     </Animated.View>
