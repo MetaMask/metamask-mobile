@@ -172,7 +172,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     if (isAccountSelector) {
       trace({
         name: TraceName.AccountList,
-        op: TraceOperation.AccountDetails,
+        op: TraceOperation.AccountUi,
         tags: getTraceTags(store.getState()),
       });
     }

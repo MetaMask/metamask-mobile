@@ -115,7 +115,7 @@ export const PrivateKeyList = () => {
     if (reveal) {
       trace({
         name: TraceName.AccountPrivateKeyList,
-        op: TraceOperation.AccountDetails,
+        op: TraceOperation.AccountUi,
       });
     }
   }, [reveal]);
