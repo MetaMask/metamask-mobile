@@ -28,6 +28,11 @@ import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 import createStyles from './PerpsGTMModal.styles';
 
 import { PerpsGTMModalSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PERPS_GTM_MODAL_DECLINE,
+  PERPS_GTM_MODAL_ENGAGE,
+  PERPS_GTM_WHATS_NEW_MODAL,
+} from '../../constants/perpsConfig';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -43,8 +48,8 @@ const PerpsGTMModal = () => {
       createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
-          feature: 'perps-gtm',
-          action: 'decline',
+          feature: PERPS_GTM_WHATS_NEW_MODAL,
+          action: PERPS_GTM_MODAL_DECLINE,
         })
         .build(),
     );
@@ -57,8 +62,8 @@ const PerpsGTMModal = () => {
       createEventBuilder(MetaMetricsEvents.WHATS_NEW_LINK_CLICKED)
         .addProperties({
           ...generateDeviceAnalyticsMetaData(),
-          feature: 'perps-gtm',
-          action: 'engage',
+          feature: PERPS_GTM_WHATS_NEW_MODAL,
+          action: PERPS_GTM_MODAL_ENGAGE,
         })
         .build(),
     );

@@ -42,7 +42,9 @@ let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
-  selectPerpsGTMModalEnabledFlag: jest.fn(() => mockPerpsGTMModalEnabled),
+  selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
+    () => mockPerpsGTMModalEnabled,
+  ),
 }));
 
 // Create shared mock reference

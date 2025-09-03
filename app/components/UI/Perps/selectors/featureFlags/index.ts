@@ -27,11 +27,11 @@ export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
   },
 );
 
-export const selectPerpsGTMModalEnabledFlag = createSelector(
+export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
-      remoteFeatureFlags?.perpsPerpGtmOnboardingModal as unknown as PerpsLaunchDarklyFlag;
+      remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as PerpsLaunchDarklyFlag;
 
     return perpsRemoteFeatureFlag(remoteFlag);
   },

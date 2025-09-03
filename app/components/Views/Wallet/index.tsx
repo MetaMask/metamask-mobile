@@ -170,7 +170,7 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
   selectPerpsEnabledFlag,
-  selectPerpsGTMModalEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
@@ -423,7 +423,9 @@ const Wallet = ({
   const theme = useTheme();
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPerpsGTMModalEnabled = useSelector(selectPerpsGTMModalEnabledFlag);
+  const isPerpsGTMModalEnabled = useSelector(
+    selectPerpsGtmOnboardingModalEnabledFlag,
+  );
 
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();

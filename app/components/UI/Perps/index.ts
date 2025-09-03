@@ -4,7 +4,7 @@ export { default as PerpsScreenStack, PerpsModalStack } from './routes';
 export {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
-  selectPerpsGTMModalEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
 } from './selectors/featureFlags';
 export { PERPS_CONSTANTS } from './constants/perpsConfig';
 
