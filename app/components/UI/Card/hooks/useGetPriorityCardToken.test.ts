@@ -229,10 +229,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityToken'),
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: '0x1234567890123456789012345678901234567890',
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -240,7 +243,10 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityTokenLastFetched'),
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -275,10 +281,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: expect.stringContaining('setCardPriorityToken'),
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: '0x1234567890123456789012345678901234567890',
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -363,14 +372,18 @@ describe('useGetPriorityCardToken', () => {
     const useReduxMocks = jest.requireMock('react-redux');
     useReduxMocks.useDispatch.mockReturnValue(testMockDispatch);
 
-    // Track selector calls for debugging
-    const selectorCalls: string[] = [];
-
     // Mock useSelector to consistently return cached values
+    // We need to track which selector is being called and return appropriate values
+    let selectorCallCount = 0;
+    const expectedSelectorCalls = [
+      'selectAllTokenBalances', // First call for token balances
+      'selectCardPriorityToken', // Second call for cached priority token
+      'selectCardPriorityTokenLastFetched', // Third call for last fetched timestamp
+    ];
+
     useReduxMocks.useSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
         const selectorString = selector.toString();
-        selectorCalls.push(selectorString.substring(0, 50) + '...');
 
         if (selectorString.includes('selectAllTokenBalances')) {
           return {
@@ -381,19 +394,32 @@ describe('useGetPriorityCardToken', () => {
             },
           };
         }
-        if (
-          selectorString.includes('selectCardPriorityToken') &&
-          !selectorString.includes('LastFetched')
-        ) {
+
+        // For the address-based selectors, they will contain references to the state structure
+        // Let's be more explicit about what we return
+        if (selectorString.includes('priorityTokensByAddress')) {
           return cachedToken;
         }
-        if (
-          selectorString.includes('selectCardPriorityTokenLastFetched') ||
-          selectorString.includes('LastFetched')
-        ) {
+
+        if (selectorString.includes('lastFetchedByAddress')) {
           return recentTimestamp;
         }
-        return null;
+
+        // Fallback: if we can't identify the selector, assume it's asking for cached data
+        const currentCall =
+          expectedSelectorCalls[
+            selectorCallCount % expectedSelectorCalls.length
+          ];
+        selectorCallCount++;
+
+        switch (currentCall) {
+          case 'selectCardPriorityToken':
+            return cachedToken;
+          case 'selectCardPriorityTokenLastFetched':
+            return recentTimestamp;
+          default:
+            return null;
+        }
       },
     );
 
@@ -529,9 +555,12 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+          }),
         }),
       }),
     );
@@ -582,10 +611,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -674,10 +706,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -743,10 +778,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -822,123 +860,17 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle address change and refetch', async () => {
-    const address1 = '0x1111111111111111111111111111111111111111';
-    const address2 = '0x2222222222222222222222222222222222222222';
-    const mockSDKAllowance1 = createMockSDKTokenData(
-      '0xToken1',
-      '1000000000000',
-    ); // Large allowance for enabled state
-    const mockSDKAllowance2 = createMockSDKTokenData(
-      '0xToken2',
-      '500000000000',
-    ); // Large allowance for enabled state
-    const mockToken1 = {
-      address: '0xToken1',
-      symbol: 'TKN1',
-      name: 'Token 1',
-      decimals: 18,
-    };
-    const mockToken2 = {
-      address: '0xToken2',
-      symbol: 'TKN2',
-      name: 'Token 2',
-      decimals: 18,
-    };
-
-    // Set up proper token balances for both addresses
-    const { useSelector } = jest.requireMock('react-redux');
-    useSelector.mockImplementation((selector: (state: unknown) => unknown) => {
-      // Mock different selectors based on what they're selecting
-      if (selector.toString().includes('selectAllTokenBalances')) {
-        return {
-          [address1.toLowerCase()]: {
-            '0x1': {
-              '0xToken1': '1000000000000000000',
-            },
-          },
-          [address2.toLowerCase()]: {
-            '0x1': {
-              '0xToken2': '500000000000000000',
-            },
-          },
-        };
-      }
-      if (selector.toString().includes('selectCardPriorityToken')) {
-        return mockPriorityToken; // Use the shared mock state
-      }
-      if (selector.toString().includes('selectCardPriorityTokenLastFetched')) {
-        return mockLastFetched; // Use the shared mock state
-      }
-      return null;
-    });
-
-    // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
-    mockFetchAllowances.mockResolvedValue([mockSDKAllowance1]);
-    mockGetPriorityToken.mockResolvedValue(mockToken1);
-
-    const { rerender } = renderHook(
-      ({ address }) => useGetPriorityCardToken(address),
-      {
-        initialProps: { address: address1 },
-      },
-    );
-
-    // Wait for the useEffect to trigger the fetch
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'card/setCardPriorityToken',
-        payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
-        }),
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenCalledWith(address1, ['0xToken1']);
-
-    // Reset mocks for second address
-    mockFetchAllowances.mockClear();
-    mockGetPriorityToken.mockClear();
-    mockFetchAllowances.mockResolvedValue([mockSDKAllowance2]);
-    mockGetPriorityToken.mockResolvedValue(mockToken2);
-
-    // Change address and verify refetch
-    rerender({ address: address2 });
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'card/setCardPriorityToken',
-        payload: expect.objectContaining({
-          address: '0xToken2',
-          symbol: 'TKN2',
-          name: 'Token 2',
-          allowanceState: AllowanceState.Enabled,
-        }),
-      }),
-    );
-    expect(mockGetPriorityToken).toHaveBeenLastCalledWith(address2, [
-      '0xToken2',
-    ]);
-    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1); // Only once since we cleared
   });
 
   it('should automatically fetch priority token on mount when address is provided', async () => {
@@ -956,10 +888,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.Enabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
         }),
       }),
     );
@@ -1071,12 +1006,15 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.NotEnabled,
-          isStaked: false,
-          chainId: LINEA_CHAIN_ID,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled,
+            isStaked: false,
+            chainId: LINEA_CHAIN_ID,
+          }),
         }),
       }),
     );
@@ -1084,13 +1022,131 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(false);
     expect(mockGetPriorityToken).not.toHaveBeenCalled();
+  });
+
+  it('should handle address change and refetch', async () => {
+    const address1 = '0x1111111111111111111111111111111111111111';
+    const address2 = '0x2222222222222222222222222222222222222222';
+    const mockSDKAllowance1 = createMockSDKTokenData(
+      '0xToken1',
+      '1000000000000',
+    ); // Large allowance for enabled state
+    const mockSDKAllowance2 = createMockSDKTokenData(
+      '0xToken2',
+      '500000000000',
+    ); // Large allowance for enabled state
+    const mockToken1 = {
+      address: '0xToken1',
+      symbol: 'TKN1',
+      name: 'Token 1',
+      decimals: 18,
+    };
+    const mockToken2 = {
+      address: '0xToken2',
+      symbol: 'TKN2',
+      name: 'Token 2',
+      decimals: 18,
+    };
+
+    // Set up proper token balances for both addresses
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation((selector: (state: unknown) => unknown) => {
+      // Mock different selectors based on what they're selecting
+      if (selector.toString().includes('selectAllTokenBalances')) {
+        return {
+          [address1.toLowerCase()]: {
+            '0x1': {
+              '0xToken1': '1000000000000000000',
+            },
+          },
+          [address2.toLowerCase()]: {
+            '0x1': {
+              '0xToken2': '500000000000000000',
+            },
+          },
+        };
+      }
+      if (selector.toString().includes('selectCardPriorityToken')) {
+        return mockPriorityToken; // Use the shared mock state
+      }
+      if (selector.toString().includes('selectCardPriorityTokenLastFetched')) {
+        return mockLastFetched; // Use the shared mock state
+      }
+      return null;
+    });
+
+    // Use mockResolvedValue instead of mockResolvedValueOnce for multiple calls
+    mockFetchAllowances.mockResolvedValue([mockSDKAllowance1]);
+    mockGetPriorityToken.mockResolvedValue(mockToken1);
+
+    const { rerender } = renderHook(
+      ({ address }) => useGetPriorityCardToken(address),
+      {
+        initialProps: { address: address1 },
+      },
+    );
+
+    // Wait for the useEffect to trigger the fetch
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      }),
+    );
+    expect(mockGetPriorityToken).toHaveBeenCalledWith(address1, ['0xToken1']);
+
+    // Reset mocks for second address
+    mockFetchAllowances.mockClear();
+    mockGetPriorityToken.mockClear();
+    mockFetchAllowances.mockResolvedValue([mockSDKAllowance2]);
+    mockGetPriorityToken.mockResolvedValue(mockToken2);
+
+    // Change address and verify refetch
+    rerender({ address: address2 });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken2',
+            symbol: 'TKN2',
+            name: 'Token 2',
+            allowanceState: AllowanceState.Enabled,
+          }),
+        }),
+      }),
+    );
+    expect(mockGetPriorityToken).toHaveBeenLastCalledWith(address2, [
+      '0xToken2',
+    ]);
+    expect(mockGetPriorityToken).toHaveBeenCalledTimes(1); // Only once since we cleared
   });
 
   it('should return null when no allowances and no supported tokens exist', async () => {
@@ -1116,14 +1172,20 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
-        payload: null,
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          token: null,
+        }),
       }),
     );
 
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -1176,10 +1238,13 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1',
-          symbol: 'TKN1',
-          name: 'Token 1',
-          allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1',
+            symbol: 'TKN1',
+            name: 'Token 1',
+            allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+          }),
         }),
       }),
     );
@@ -1187,7 +1252,10 @@ describe('useGetPriorityCardToken', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'card/setCardPriorityTokenLastFetched',
-        payload: expect.any(Date),
+        payload: expect.objectContaining({
+          address: '0x1234567890123456789012345678901234567890',
+          lastFetched: expect.any(Date),
+        }),
       }),
     );
 
@@ -1217,8 +1285,11 @@ describe('useGetPriorityCardToken', () => {
       expect.objectContaining({
         type: 'card/setCardPriorityToken',
         payload: expect.objectContaining({
-          address: '0xToken1', // First supported token as fallback
-          allowanceState: AllowanceState.NotEnabled,
+          address: expect.any(String),
+          token: expect.objectContaining({
+            address: '0xToken1', // First supported token as fallback
+            allowanceState: AllowanceState.NotEnabled,
+          }),
         }),
       }),
     );
@@ -1311,11 +1382,11 @@ describe('useGetPriorityCardToken', () => {
           if (selectorStr.includes('selectAllTokenBalances')) {
             return STATIC_TOKEN_BALANCES;
           }
-          if (selectorStr.includes('selectCardPriorityTokenLastFetched')) {
-            return new Date();
-          }
-          if (selectorStr.includes('selectCardPriorityToken')) {
+          if (selectorStr.includes('priorityTokensByAddress')) {
             return STATIC_PRIORITY_TOKEN;
+          }
+          if (selectorStr.includes('lastFetchedByAddress')) {
+            return new Date();
           }
           // As a fallback, try invoking the selector with a minimal card state
           try {
@@ -1323,8 +1394,12 @@ describe('useGetPriorityCardToken', () => {
               card: {
                 cardholderAccounts: [],
                 isLoaded: true,
-                priorityToken: STATIC_PRIORITY_TOKEN,
-                lastFetched: new Date(),
+                priorityTokensByAddress: {
+                  [mockAddress.toLowerCase()]: STATIC_PRIORITY_TOKEN,
+                },
+                lastFetchedByAddress: {
+                  [mockAddress.toLowerCase()]: new Date(),
+                },
               },
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as unknown as any);
