@@ -4677,14 +4677,6 @@
     "show_display_nft_media_content_4": "आप इसमें 'NFT मीडिया दिखाएं' को बंद कर सकते हैं",
     "show_display_nft_media_content_5": "सेटिंग्स > सुरक्षा और गोपनीयता।"
   },
-  "solana_new_feature_content": {
-    "title": "solana यहां है",
-    "title_description": "अपना वॉलेट इंपोर्ट करें, एक्सप्लोर करें, ट्रेड करें और भेजें। नेटिव Solana सपोर्ट अब MetaMask पर उपलब्ध है।",
-    "not_now": "अभी नहीं",
-    "view_solana_account": "Solana अकाउंट देखें",
-    "learn_more": "Solana एकाउंट्स के बारे में अधिक जानें",
-    "import_your_wallet": "अपना वॉलेट इंपोर्ट करें"
-  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS गेटवे",
     "ipfs_gateway_banner_content1": "यह एक IPFS वेबसाइट है। इस साइट को देखने के लिए आपको चालू करना होगा",

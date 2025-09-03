@@ -5,11 +5,9 @@ import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
 import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
-import {
-  FIAT_ORDER_STATES,
-  FIAT_ORDER_PROVIDERS,
-} from '../../../../../../constants/on-ramp';
+import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
+import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
 const Root = () => {
   const navigation = useNavigation();
@@ -20,39 +18,51 @@ const Root = () => {
 
   useEffect(() => {
     const initializeFlow = async () => {
-      if (hasCheckedToken.current) return;
-      await checkExistingToken();
+      if (hasCheckedToken.current || !getStarted) return;
+
+      const isAuthenticatedFromToken = await checkExistingToken();
       hasCheckedToken.current = true;
+
+      const createdOrder = orders.find(
+        (order) => order.state === FIAT_ORDER_STATES.CREATED,
+      );
+
+      if (createdOrder) {
+        if (!isAuthenticatedFromToken) {
+          const [routeName, params] = createEnterEmailNavDetails({
+            redirectToRootAfterAuth: true,
+          });
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: routeName,
+                params: { ...params, animationEnabled: false },
+              },
+            ],
+          });
+          return;
+        }
+
+        const [routeName, params] = createBankDetailsNavDetails({
+          orderId: createdOrder.id,
+        });
+        navigation.reset({
+          index: 0,
+          routes: [
+            { name: routeName, params: { ...params, animationEnabled: false } },
+          ],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+        });
+      }
     };
+
     initializeFlow();
-  }, [checkExistingToken]);
-
-  useEffect(() => {
-    if (initialRoute === null || !getStarted) return;
-
-    const createdOrder = orders.find(
-      (order) =>
-        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
-        order.state === FIAT_ORDER_STATES.CREATED,
-    );
-
-    if (createdOrder) {
-      const [routeName, params] = createBankDetailsNavDetails({
-        orderId: createdOrder.id,
-      });
-      navigation.reset({
-        index: 0,
-        routes: [
-          { name: routeName, params: { ...params, animationEnabled: false } },
-        ],
-      });
-    } else {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: initialRoute, params: { animationEnabled: false } }],
-      });
-    }
-  }, [getStarted, initialRoute, navigation, orders]);
+  }, [checkExistingToken, getStarted, orders, navigation, initialRoute]);
 
   return <GetStarted />;
 };
