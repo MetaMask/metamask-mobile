@@ -12,6 +12,7 @@ import AvatarToken from '../../../../../component-library/components/Avatars/Ava
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { TokenI } from '../../types';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import { SECONDARY_BALANCE_TEST_ID } from '../../../AssetElement/index.constants';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -160,7 +161,25 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     typeof formatWithThreshold
   >;
 
-  function prepareMocks({ asset }: { asset?: TokenI } = {}) {
+  const defaultAsset = {
+    decimals: 18,
+    address: '0x456',
+    chainId: '0x1',
+    symbol: 'TEST',
+    name: 'Test Token',
+    balance: '1.23',
+    balanceFiat: '$123.00',
+    isNative: false,
+    isETH: false,
+    image: 'https://example.com/image.png',
+    logo: 'https://example.com/logo.png',
+    aggregators: [],
+  };
+
+  function prepareMocks({
+    asset,
+    pricePercentChange1d = 5.67,
+  }: { asset?: TokenI; pricePercentChange1d?: number } = {}) {
     jest.clearAllMocks();
 
     // Default mock setup
@@ -178,7 +197,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       },
     );
 
-    mockUseTokenPricePercentageChange.mockReturnValue(5.67);
+    mockUseTokenPricePercentageChange.mockReturnValue(pricePercentChange1d);
     mockIsTestNet.mockReturnValue(false);
     mockFormatWithThreshold.mockImplementation((value) => `${value} FORMATTED`);
   }
@@ -186,20 +205,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   describe('Render asset information', () => {
     it('renders asset name, balance, fiat amount and percentage change', () => {
       prepareMocks({
-        asset: {
-          decimals: 18,
-          address: '0x456',
-          chainId: '0x1',
-          symbol: 'TEST',
-          name: 'Test Token',
-          balance: '1.23',
-          balanceFiat: '$123.00',
-          isNative: false,
-          isETH: false,
-          image: 'https://example.com/image.png',
-          logo: 'https://example.com/logo.png',
-          aggregators: [],
-        },
+        asset: defaultAsset,
       });
 
       const assetKey: FlashListAssetKey = {
@@ -226,23 +232,118 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
+  describe('Percentage Logic', () => {
+    it('covers Number.isFinite check for valid finite number', () => {
+      prepareMocks({
+        asset: defaultAsset,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByTestId } = render(
+        <MockProvider>
+          <TokenListItemBip44
+            assetKey={assetKey}
+            showRemoveMenu={jest.fn()}
+            setShowScamWarningModal={jest.fn()}
+            privacyMode={false}
+          />
+        </MockProvider>,
+      );
+
+      const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
+
+      expect(percentageText.props.children).toBe('+5.67%');
+      expect(percentageText.props.style.color).toBe('#457a39');
+    });
+
+    it('covers Number.isFinite check preventing Infinity', () => {
+      prepareMocks({
+        asset: defaultAsset,
+        pricePercentChange1d: Infinity,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { queryByTestId } = render(
+        <MockProvider>
+          <TokenListItemBip44
+            assetKey={assetKey}
+            showRemoveMenu={jest.fn()}
+            setShowScamWarningModal={jest.fn()}
+            privacyMode={false}
+          />
+        </MockProvider>,
+      );
+
+      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('covers Number.isFinite check preventing NaN', () => {
+      prepareMocks({
+        asset: defaultAsset,
+        pricePercentChange1d: NaN,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { queryByTestId } = render(
+        <MockProvider>
+          <TokenListItemBip44
+            assetKey={assetKey}
+            showRemoveMenu={jest.fn()}
+            setShowScamWarningModal={jest.fn()}
+            privacyMode={false}
+          />
+        </MockProvider>,
+      );
+
+      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('covers Number.isFinite check preventing negative Infinity', () => {
+      prepareMocks({
+        asset: defaultAsset,
+        pricePercentChange1d: -Infinity,
+      });
+
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { queryByTestId } = render(
+        <MockProvider>
+          <TokenListItemBip44
+            assetKey={assetKey}
+            showRemoveMenu={jest.fn()}
+            setShowScamWarningModal={jest.fn()}
+            privacyMode={false}
+          />
+        </MockProvider>,
+      );
+
+      expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
+    });
+  });
+
   describe('Render Asset Logo', () => {
     it('renders asset logo for non-native assets', () => {
       prepareMocks({
-        asset: {
-          decimals: 18,
-          address: '0x456',
-          chainId: '0x1',
-          symbol: 'TEST',
-          name: 'Test Token',
-          balance: '1.23',
-          balanceFiat: '$123.00',
-          isNative: false,
-          isETH: false,
-          image: 'https://example.com/image.png',
-          logo: 'https://example.com/logo.png',
-          aggregators: [],
-        },
+        asset: defaultAsset,
       });
 
       const assetKey: FlashListAssetKey = {
