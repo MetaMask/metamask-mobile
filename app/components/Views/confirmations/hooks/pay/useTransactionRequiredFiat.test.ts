@@ -20,7 +20,7 @@ jest.mock('../tokens/useTokenFiatRates');
 jest.mock('./useTransactionRequiredTokens');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 
-function runHook() {
+function runHook(props: Parameters<typeof useTransactionRequiredFiat>[0] = {}) {
   const state = merge(
     {
       engine: {
@@ -33,8 +33,9 @@ function runHook() {
     accountsControllerMock,
   );
 
-  return renderHookWithProvider(useTransactionRequiredFiat, { state }).result
-    .current;
+  return renderHookWithProvider(() => useTransactionRequiredFiat(props), {
+    state,
+  }).result.current;
 }
 
 describe('useTransactionRequiredFiat', () => {
@@ -71,6 +72,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress1Mock,
         amountFiat: 8,
+        amountHumanOriginal: '2',
         balanceFiat: 40,
         feeFiat: 0.2,
         skipIfBalance: false,
@@ -79,6 +81,7 @@ describe('useTransactionRequiredFiat', () => {
       {
         address: tokenAddress2Mock,
         amountFiat: 15,
+        amountHumanOriginal: '3',
         balanceFiat: 100,
         feeFiat: 0.375,
         skipIfBalance: true,
@@ -90,5 +93,34 @@ describe('useTransactionRequiredFiat', () => {
   it('returns total fiat value', () => {
     const { totalFiat } = runHook();
     expect(totalFiat).toBe(23.575);
+  });
+
+  it('supports amount overrides', () => {
+    const { values } = runHook({
+      amountOverrides: {
+        [tokenAddress1Mock]: '4',
+      },
+    });
+
+    expect(values).toStrictEqual([
+      {
+        address: tokenAddress1Mock,
+        amountFiat: 16,
+        amountHumanOriginal: '4',
+        balanceFiat: 40,
+        feeFiat: 0.4,
+        skipIfBalance: false,
+        totalFiat: 16.4,
+      },
+      {
+        address: tokenAddress2Mock,
+        amountFiat: 15,
+        amountHumanOriginal: '3',
+        balanceFiat: 100,
+        feeFiat: 0.375,
+        skipIfBalance: true,
+        totalFiat: 15.375,
+      },
+    ]);
   });
 });

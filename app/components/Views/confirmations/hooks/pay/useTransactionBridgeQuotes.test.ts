@@ -27,6 +27,8 @@ const TOKEN_ADDRESS_TARGET_2_MOCK = '0x789' as Hex;
 const ACCOUNT_ADDRESS_MOCK = '0xabc';
 const SOURCE_AMOUNT_1_MOCK = '1234';
 const SOURCE_AMOUNT_2_MOCK = '5678';
+const MINIMUM_TOKEN_AMOUNT_1_MOCK = '1.23';
+const MINIMUM_TOKEN_AMOUNT_2_MOCK = '2.34';
 
 const QUOTE_MOCK = {
   quote: {},
@@ -69,6 +71,7 @@ describe('useTransactionBridgeQuotes', () => {
         chainId: CHAIN_ID_SOURCE_MOCK,
         decimals: 4,
         symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
@@ -78,10 +81,12 @@ describe('useTransactionBridgeQuotes', () => {
         {
           address: TOKEN_ADDRESS_TARGET_1_MOCK,
           amountRaw: SOURCE_AMOUNT_1_MOCK,
+          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         },
         {
           address: TOKEN_ADDRESS_TARGET_2_MOCK,
           amountRaw: SOURCE_AMOUNT_2_MOCK,
+          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         },
       ],
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
@@ -99,6 +104,7 @@ describe('useTransactionBridgeQuotes', () => {
     expect(getBridgeQuotesMock).toHaveBeenCalledWith([
       {
         from: ACCOUNT_ADDRESS_MOCK,
+        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_1_MOCK,
@@ -107,6 +113,7 @@ describe('useTransactionBridgeQuotes', () => {
       },
       {
         from: ACCOUNT_ADDRESS_MOCK,
+        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_2_MOCK,
@@ -177,22 +184,25 @@ describe('useTransactionBridgeQuotes', () => {
     expect(result.current.quotes).toStrictEqual([]);
   });
 
-  it('returns empty list if blocking alert unless no quotes alert', async () => {
-    useAlertsMock.mockReturnValue({
-      alerts: [
-        {
-          key: AlertKeys.NoPayTokenQuotes,
-          isBlocking: true,
-        },
-      ],
-    } as unknown as ReturnType<typeof useAlerts>);
+  it.each([AlertKeys.NoPayTokenQuotes, AlertKeys.InsufficientPayTokenNative])(
+    'returns empty list if blocking alert unless %s alert',
+    async (alertKey) => {
+      useAlertsMock.mockReturnValue({
+        alerts: [
+          {
+            key: alertKey,
+            isBlocking: true,
+          },
+        ],
+      } as unknown as ReturnType<typeof useAlerts>);
 
-    const result = runHook();
+      const result = runHook();
 
-    await act(async () => {
-      // Intentionally empty
-    });
+      await act(async () => {
+        // Intentionally empty
+      });
 
-    expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
-  });
+      expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
+    },
+  );
 });
