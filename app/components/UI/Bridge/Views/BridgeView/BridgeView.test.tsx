@@ -308,7 +308,7 @@ describe('BridgeView', () => {
     );
 
     // Find and click the destination token area
-    const destTokenArea = getByText('Bridge to');
+    const destTokenArea = getByText('Swap to');
     expect(destTokenArea).toBeTruthy();
 
     fireEvent.press(destTokenArea);
@@ -685,7 +685,7 @@ describe('BridgeView', () => {
           willRefresh: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByText, getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -693,7 +693,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Confirm Bridge')).toBeTruthy();
+      // Use getAllByText to handle multiple elements with "Bridge" text
+      const bridgeElements = getAllByText(strings('bridge.confirm_bridge'));
+      expect(bridgeElements.length).toBeGreaterThan(0);
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
@@ -713,7 +715,7 @@ describe('BridgeView', () => {
         },
       });
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -723,7 +725,9 @@ describe('BridgeView', () => {
         },
       );
 
-      const button = getByText('Confirm Bridge');
+      // Use getAllByText to handle multiple elements and get the button
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const button = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       fireEvent.press(button);
 
       // TODO: Add expectations once quote response is implemented
@@ -1128,7 +1132,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1136,8 +1140,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_bridge'));
+      // Find and press the continue button - use getAllByText to handle multiple elements
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       await act(async () => {
         fireEvent.press(continueButton);
       });
@@ -1251,7 +1256,7 @@ describe('BridgeView', () => {
           isLoading: false,
         }));
 
-      const { getByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -1259,8 +1264,9 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Find and press the continue button
-      const continueButton = getByText(strings('bridge.confirm_bridge'));
+      // Find and press the continue button - use getAllByText to handle multiple elements
+      const bridgeButtons = getAllByText(strings('bridge.confirm_bridge'));
+      const continueButton = bridgeButtons[bridgeButtons.length - 1]; // Use the last one (should be the button)
       await act(async () => {
         fireEvent.press(continueButton);
       });
