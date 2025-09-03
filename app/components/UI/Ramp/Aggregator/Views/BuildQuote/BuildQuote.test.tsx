@@ -26,6 +26,7 @@ import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { createTokenSelectModalNavigationDetails } from '../../components/TokenSelectModal';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -519,12 +520,13 @@ describe('BuildQuote View', () => {
       expect(mockGetCryptoCurrencies).toBeCalledTimes(1);
     });
 
-    it('calls setSelectedAsset when selecting a crypto', async () => {
+    it('navigates to token select modal when pressing asset selector', async () => {
       render(BuildQuote);
       fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[0].name));
-      fireEvent.press(getByRoleButton(mockCryptoCurrenciesData[1].name));
-      expect(mockSetSelectedAsset).toHaveBeenCalledWith(
-        mockCryptoCurrenciesData[1],
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...createTokenSelectModalNavigationDetails({
+          tokens: mockCryptoCurrenciesData,
+        }),
       );
     });
   });
