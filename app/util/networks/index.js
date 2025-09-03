@@ -680,7 +680,7 @@ export const WHITELIST_SYMBOL = {
 };
 
 export const WHITELIST_NETWORK_RPC_URL = {
-  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz2',
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
 };
 
 /**
