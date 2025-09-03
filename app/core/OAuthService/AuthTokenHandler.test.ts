@@ -73,7 +73,7 @@ describe('AuthTokenHandler', () => {
         mockConnection,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://test-auth-server.com/api/v1/oauth/token',
+        'https://test-auth-server.com/api/v2/oauth/token',
         {
           method: 'POST',
           headers: {
@@ -177,11 +177,11 @@ describe('AuthTokenHandler', () => {
     });
   });
 
-  describe('revokeRefreshToken', () => {
+  describe('renewRefreshToken', () => {
     const mockRevokeToken = 'test-revoke-token';
     const mockConnection = AuthConnection.Google;
 
-    it('successfully revokes refresh token with valid parameters', async () => {
+    it('successfully renews refresh token with valid parameters', async () => {
       // Arrange
       const mockResponse = {
         refresh_token: 'new-refresh-token',
@@ -189,12 +189,12 @@ describe('AuthTokenHandler', () => {
       };
 
       fetchSpy.mockResolvedValueOnce({
-        ok: jest.fn().mockResolvedValueOnce(true),
+        ok: true,
         json: jest.fn().mockResolvedValueOnce(mockResponse),
       });
 
       // Act
-      const result = await AuthTokenHandler.revokeRefreshToken({
+      const result = await AuthTokenHandler.renewRefreshToken({
         connection: mockConnection,
         revokeToken: mockRevokeToken,
       });
@@ -205,7 +205,7 @@ describe('AuthTokenHandler', () => {
         mockConnection,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://test-auth-server.com/api/v1/oauth/revoke',
+        'https://test-auth-server.com/api/v2/oauth/revoke',
         {
           method: 'POST',
           headers: {
@@ -235,7 +235,7 @@ describe('AuthTokenHandler', () => {
       });
 
       // Act
-      const result = await AuthTokenHandler.revokeRefreshToken({
+      const result = await AuthTokenHandler.renewRefreshToken({
         connection: AuthConnection.Apple,
         revokeToken: mockRevokeToken,
       });
@@ -246,6 +246,118 @@ describe('AuthTokenHandler', () => {
         AuthConnection.Apple,
       );
       expect(result.newRefreshToken).toBe('apple-refresh-token');
+    });
+
+    it('throws error when fetch request fails', async () => {
+      // Arrange
+      const mockError = new Error('Network error');
+      fetchSpy.mockRejectedValueOnce(mockError);
+
+      // Act & Assert
+      await expect(
+        AuthTokenHandler.renewRefreshToken({
+          connection: mockConnection,
+          revokeToken: mockRevokeToken,
+        }),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('throws error when response is not ok', async () => {
+      // Arrange
+      fetchSpy.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+
+      // Act & Assert
+      await expect(
+        AuthTokenHandler.renewRefreshToken({
+          connection: mockConnection,
+          revokeToken: mockRevokeToken,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('handles missing tokens in response', async () => {
+      // Arrange
+      const mockResponse = {
+        // Both tokens are missing
+      };
+
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce(mockResponse),
+      });
+
+      // Act
+      const result = await AuthTokenHandler.renewRefreshToken({
+        connection: mockConnection,
+        revokeToken: mockRevokeToken,
+      });
+
+      // Assert
+      expect(result).toEqual({
+        newRefreshToken: undefined,
+        newRevokeToken: undefined,
+      });
+    });
+  });
+
+  describe('revokeRefreshToken', () => {
+    const mockRevokeToken = 'test-revoke-token';
+    const mockConnection = AuthConnection.Google;
+
+    it('successfully revokes refresh token with valid parameters', async () => {
+      // Arrange
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+      });
+
+      // Act
+      const result = await AuthTokenHandler.revokeRefreshToken({
+        connection: mockConnection,
+        revokeToken: mockRevokeToken,
+      });
+
+      // Assert
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        Platform.OS,
+        mockConnection,
+      );
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://test-auth-server.com/api/v2/oauth/renew_refresh_token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            revoke_token: mockRevokeToken,
+          }),
+        },
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it('handles Apple connection type correctly', async () => {
+      // Arrange
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+      });
+
+      // Act
+      const result = await AuthTokenHandler.revokeRefreshToken({
+        connection: AuthConnection.Apple,
+        revokeToken: mockRevokeToken,
+      });
+
+      // Assert
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        Platform.OS,
+        AuthConnection.Apple,
+      );
+      expect(result).toBeUndefined();
     });
 
     it('throws error when fetch request fails', async () => {
@@ -276,31 +388,7 @@ describe('AuthTokenHandler', () => {
           connection: mockConnection,
           revokeToken: mockRevokeToken,
         }),
-      ).rejects.toThrow();
-    });
-
-    it('handles missing tokens in response', async () => {
-      // Arrange
-      const mockResponse = {
-        // Both tokens are missing
-      };
-
-      fetchSpy.mockResolvedValueOnce({
-        ok: true,
-        json: jest.fn().mockResolvedValueOnce(mockResponse),
-      });
-
-      // Act
-      const result = await AuthTokenHandler.revokeRefreshToken({
-        connection: mockConnection,
-        revokeToken: mockRevokeToken,
-      });
-
-      // Assert
-      expect(result).toEqual({
-        newRefreshToken: undefined,
-        newRevokeToken: undefined,
-      });
+      ).rejects.toThrow('Failed to revoke refresh token');
     });
   });
 
@@ -321,7 +409,7 @@ describe('AuthTokenHandler', () => {
       ).rejects.toThrow('Invalid JSON');
     });
 
-    it('handles JSON parsing errors in revokeRefreshToken', async () => {
+    it('handles JSON parsing errors in renewRefreshToken', async () => {
       // Arrange
       fetchSpy.mockResolvedValueOnce({
         ok: true,
@@ -330,11 +418,28 @@ describe('AuthTokenHandler', () => {
 
       // Act & Assert
       await expect(
-        AuthTokenHandler.revokeRefreshToken({
+        AuthTokenHandler.renewRefreshToken({
           connection: AuthConnection.Google,
           revokeToken: 'test-token',
         }),
       ).rejects.toThrow('Invalid JSON');
+    });
+
+    it('revokeRefreshToken does not parse JSON response', async () => {
+      // Arrange
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        // No json method needed since revokeRefreshToken doesn't parse response
+      });
+
+      // Act
+      const result = await AuthTokenHandler.revokeRefreshToken({
+        connection: AuthConnection.Google,
+        revokeToken: 'test-token',
+      });
+
+      // Assert
+      expect(result).toBeUndefined();
     });
   });
 
@@ -393,9 +498,9 @@ describe('AuthTokenHandler', () => {
         refreshToken: 'test-token',
       });
 
-      await AuthTokenHandler.refreshJWTToken({
+      await AuthTokenHandler.renewRefreshToken({
         connection: AuthConnection.Apple,
-        refreshToken: 'test-token',
+        revokeToken: 'test-token',
       });
 
       // Assert

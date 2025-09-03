@@ -110,11 +110,7 @@ class AuthTokenHandler {
       throw new Error('Failed to revoke refresh token');
     }
 
-    const responseData = await response.json();
-    return {
-      newRefreshToken: responseData.refresh_token,
-      newRevokeToken: responseData.revoke_token,
-    };
+    return;
   }
 }
 
