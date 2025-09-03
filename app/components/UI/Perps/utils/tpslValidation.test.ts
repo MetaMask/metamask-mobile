@@ -492,7 +492,11 @@ describe('TPSL Validation Utilities', () => {
 
     describe('Edge cases', () => {
       it('should return empty string when no base price available', () => {
-        const params = { direction: 'long' as const, leverage: 10 };
+        const params = {
+          currentPrice: 0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
         expect(calculatePriceForRoE(10, true, params)).toBe('');
       });
 
@@ -623,7 +627,11 @@ describe('TPSL Validation Utilities', () => {
 
     describe('Edge cases', () => {
       it('should return empty string when no base price available', () => {
-        const params = { direction: 'long' as const, leverage: 10 };
+        const params = {
+          currentPrice: 0,
+          direction: 'long' as const,
+          leverage: 10,
+        };
         expect(calculateRoEForPrice('110', true, params)).toBe('');
       });
 
