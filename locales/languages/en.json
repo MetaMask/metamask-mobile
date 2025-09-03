@@ -1307,7 +1307,9 @@
       "failed": "Connection Failed",
       "error_message": "Unable to connect to Perps trading service.",
       "retry_connection": "Retry Connection",
-      "retrying_connection": "Connecting..."
+      "retrying_connection": "Connecting...",
+      "connecting_to_perps": "Connecting to Perps...",
+      "perps_will_be_available_shortly": "Perps will be available shortly"
     },
     "chart": {
       "no_data": "No chart data available"
@@ -2812,7 +2814,7 @@
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
     "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
-  },
+    },
   "backup_alert": {
     "title": "Protect your wallet",
     "left_button": "Remind me later",
@@ -5499,6 +5501,36 @@
     "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
     "tryAgain": "Try again",
     "close": "Close"
+  },
+  "rewards": {
+    "not_implemented": "Coming soon",
+    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+    "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
+    "main_title": "Rewards",
+    "referral_title": "Referrals",
+    "tab_overview_title": "Overview",
+    "tab_activity_title": "Activity",
+    "tab_levels_title": "Levels",
+    "referral_stats_earned_from_referrals": "Earned from referrals",
+    "referral_stats_referrals": "Referrals",
+
+    "referral": {
+      "actions": {
+        "share_referral_link": "Refer a friend",
+        "share_referral_subject": "Join MetaMask Rewards"
+      },
+      "info": {
+        "title": "Share your code to earn more",
+        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+      }
+    }
   },
   "time": {
     "minutes_format": "{{count}} minute",
