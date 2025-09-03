@@ -24,7 +24,7 @@ import Networks, {
   isPortfolioViewEnabled,
   isValidNetworkName,
   getDecimalChainId,
-  isValidSymbol,
+  isWhitelistedSymbol,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -1182,7 +1182,7 @@ export class NetworkSettings extends PureComponent {
   validateSymbol = (chainToMatch = null) => {
     const { ticker, networkList, chainId } = this.state;
 
-    if (isValidSymbol(chainId, ticker)) {
+    if (isWhitelistedSymbol(chainId, ticker)) {
       return this.setState({
         warningSymbol: undefined,
         validatedSymbol: !!ticker,

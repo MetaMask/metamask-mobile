@@ -5,9 +5,9 @@ import { PopularList } from '../../util/networks/customNetworks';
 
 import { toHex } from '@metamask/controller-utils';
 import {
-  WHILELIST_NETWORK_NAME,
-  WHITELIST_NETWORK_RPC_URL,
-  WHITELIST_SYMBOL,
+  isWhitelistedNetworkName,
+  isWhitelistedRpcUrl,
+  isWhitelistedSymbol,
 } from '../../util/networks';
 
 const findPopularNetwork = (rpcUrl: string, chainId: string) =>
@@ -51,7 +51,7 @@ const checkSafeNetwork = async (
         ?.map((rpc: string) => new URL(rpc).origin)
         .includes(origin) &&
       !findPopularNetwork(origin, toHex(chainIdDecimal)) &&
-      WHITELIST_NETWORK_RPC_URL[toHex(chainIdDecimal)] !== origin
+      !isWhitelistedRpcUrl(toHex(chainIdDecimal), origin)
     ) {
       alerts.push({
         alertError: strings('add_custom_network.invalid_rpc_url'),
@@ -69,7 +69,7 @@ const checkSafeNetwork = async (
     if (
       matchedChain.name?.toLowerCase() !== nickname?.toLowerCase() &&
       !findPopularNetworkName(nickname, toHex(chainIdDecimal)) &&
-      WHILELIST_NETWORK_NAME[toHex(chainIdDecimal)] !== nickname
+      !isWhitelistedNetworkName(toHex(chainIdDecimal), nickname)
     ) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_name'),
@@ -80,7 +80,7 @@ const checkSafeNetwork = async (
     if (
       matchedChain.nativeCurrency?.symbol !== ticker &&
       !findPopularNetworkSymbol(ticker, toHex(chainIdDecimal)) &&
-      WHITELIST_SYMBOL[toHex(chainIdDecimal)] !== ticker
+      !isWhitelistedSymbol(toHex(chainIdDecimal), ticker)
     ) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_ticker'),

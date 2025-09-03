@@ -680,7 +680,7 @@ export const WHITELIST_SYMBOL = {
 };
 
 export const WHITELIST_NETWORK_RPC_URL = {
-  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz',
+  [NETWORKS_CHAIN_ID.HYPER_EVM]: 'https://rpc.hyperliquid.xyz2',
 };
 
 /**
@@ -698,18 +698,53 @@ export const isValidNetworkName = (chainId, networkName, nickname) =>
   networkName === nickname || WHILELIST_NETWORK_NAME[chainId] === nickname;
 
 /**
- * Checks if the symbol is valid for the given chain ID.
+ * Checks if the symbol is whitelisted for the given chain ID.
  * This function allows for specific symbols for certain chain IDs.
- * For example, it allows 'ETH' for Ethereum Mainnet, 'MATIC' or 'POL' for Polygon, etc.
  *
  * @param {string} chainId - The chain ID to check.
- * @param {string} symbol - The symbol to validate.
- * @returns {boolean} - Whether the symbol is valid for the given chain ID.
+ * @param {string} symbol - The symbol to check.
+ * @returns {boolean} - Whether the symbol is whitelisted for the given chain ID.
  */
-export const isValidSymbol = (chainId, symbol) => {
+export const isWhitelistedSymbol = (chainId, symbol) => {
   if (!chainId || !symbol) {
     return false;
   }
 
-  return WHITELIST_SYMBOL[chainId] === symbol;
+  return WHITELIST_SYMBOL[chainId]?.toLowerCase() === symbol.toLowerCase();
+};
+
+/**
+ * Checks if the RPC URL is whitelisted for the given chain ID.
+ * This function allows for specific RPC URLs for certain chain IDs.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} rpcUrl - The RPC URL to check.
+ * @returns {boolean} - Whether the RPC URL is whitelisted for the given chain ID.
+ */
+export const isWhitelistedRpcUrl = (chainId, rpcUrl) => {
+  if (!chainId || !rpcUrl) {
+    return false;
+  }
+
+  return (
+    WHITELIST_NETWORK_RPC_URL[chainId]?.toLowerCase() === rpcUrl.toLowerCase()
+  );
+};
+
+/**
+ * Checks if the network name is whitelisted for the given chain ID.
+ * This function allows for specific network names for certain chain IDs.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} networkName - The network name to check.
+ * @returns {boolean} - Whether the network name is whitelisted for the given chain ID.
+ */
+export const isWhitelistedNetworkName = (chainId, networkName) => {
+  if (!chainId || !networkName) {
+    return false;
+  }
+
+  return (
+    WHILELIST_NETWORK_NAME[chainId]?.toLowerCase() === networkName.toLowerCase()
+  );
 };
