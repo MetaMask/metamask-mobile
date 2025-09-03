@@ -196,6 +196,7 @@ export type SeasonTierState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonStatusState = {
+  season: SeasonDtoState;
   balance: SeasonStatusBalanceDtoState;
   tier: SeasonTierState;
   lastFetched?: number;
