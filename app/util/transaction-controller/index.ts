@@ -1,13 +1,13 @@
+import { Hex } from '@metamask/utils';
 import {
   GasFeeEstimateType,
   TransactionParams,
   TransactionEnvelopeType,
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { NetworkClientId } from '@metamask/network-controller';
 
 import Engine from '../../core/Engine';
-import { NetworkClientId } from '@metamask/network-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
 
@@ -180,6 +180,13 @@ export function updateSelectedGasFeeToken(
     transactionId,
     selectedGasFeeToken,
   );
+}
+
+export function updateRequiredTransactionIds(
+  ...args: Parameters<BaseTransactionController['updateRequiredTransactionIds']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateRequiredTransactionIds(...args);
 }
 
 function sanitizeTransactionParamsGasValues(

@@ -114,6 +114,9 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import RewardsView from '../../UI/Rewards/Views/RewardsView';
+import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
+import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -224,6 +227,10 @@ const TransactionsHome = () => (
       component={ActivityView}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.TRANSACTION_DETAILS}
+      component={TransactionDetails}
+    />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
       name={Routes.DEPOSIT.ORDER_DETAILS}
@@ -246,8 +253,20 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  // TODO: Return RewardsNavigator
-  return null;
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REFERRAL_REWARDS_VIEW}
+        component={ReferralRewardsView}
+        options={{ headerShown: true }}
+      />
+    </Stack.Navigator>
+  );
 };
 
 /* eslint-disable react/prop-types */
@@ -344,6 +363,7 @@ const SettingsFlow = () => (
       component={SecuritySettings}
       options={SecuritySettings.navigationOptions}
     />
+
     <Stack.Screen name={Routes.RAMP.SETTINGS} component={RampSettings} />
     <Stack.Screen
       name={Routes.RAMP.ACTIVATION_KEY_FORM}

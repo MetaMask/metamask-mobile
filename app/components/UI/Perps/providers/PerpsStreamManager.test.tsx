@@ -45,6 +45,9 @@ const TestPriceComponent = ({
 describe('PerpsStreamManager', () => {
   let mockSubscribeToPrices: jest.Mock;
   let mockUnsubscribeFromPrices: jest.Mock;
+  let mockSubscribeToOrders: jest.Mock;
+  let mockSubscribeToPositions: jest.Mock;
+  let mockSubscribeToAccount: jest.Mock;
   let testStreamManager: PerpsStreamManager;
 
   beforeEach(() => {
@@ -58,10 +61,21 @@ describe('PerpsStreamManager', () => {
     // Setup default mocks
     mockSubscribeToPrices = jest.fn();
     mockUnsubscribeFromPrices = jest.fn();
+    mockSubscribeToOrders = jest.fn();
+    mockSubscribeToPositions = jest.fn();
+    mockSubscribeToAccount = jest.fn();
+
+    // Setup mock return values for all subscription methods
+    mockSubscribeToOrders.mockReturnValue(jest.fn());
+    mockSubscribeToPositions.mockReturnValue(jest.fn());
+    mockSubscribeToAccount.mockReturnValue(jest.fn());
 
     mockEngine.context.PerpsController = {
       subscribeToPrices: mockSubscribeToPrices,
       unsubscribeFromPrices: mockUnsubscribeFromPrices,
+      subscribeToOrders: mockSubscribeToOrders,
+      subscribeToPositions: mockSubscribeToPositions,
+      subscribeToAccount: mockSubscribeToAccount,
     } as unknown as typeof mockEngine.context.PerpsController;
 
     mockDevLogger.log = jest.fn();
@@ -634,6 +648,171 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
       });
+    });
+
+    it('should cleanup prewarm subscription when clearing price cache', async () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      await testStreamManager.prices.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing order cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.orders,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.orders.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.orders.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing position cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.positions,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.positions.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.positions.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup prewarm subscription when clearing account cache', () => {
+      // Mock the cleanupPrewarm method to verify it's called
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.account,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription
+      testStreamManager.account.prewarm();
+
+      // Clear cache - should call cleanupPrewarm
+      act(() => {
+        testStreamManager.account.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should reset all prewarm state when clearing price cache', async () => {
+      // Mock market data to populate allMarketSymbols
+      const mockGetMarketDataWithPrices = jest.fn();
+      const mockMarketData = [
+        { symbol: 'BTC', name: 'Bitcoin' },
+        { symbol: 'ETH', name: 'Ethereum' },
+      ];
+
+      mockEngine.context.PerpsController.getActiveProvider = jest
+        .fn()
+        .mockReturnValue({
+          getMarketDataWithPrices:
+            mockGetMarketDataWithPrices.mockResolvedValue(mockMarketData),
+        });
+
+      // Mock the cleanupPrewarm method to verify it's called and resets state
+      const cleanupPrewarmSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscription which populates allMarketSymbols
+      await testStreamManager.prices.prewarm();
+
+      // Clear cache - should call cleanupPrewarm which resets all state
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Verify cleanupPrewarm was called
+      expect(cleanupPrewarmSpy).toHaveBeenCalled();
+
+      cleanupPrewarmSpy.mockRestore();
+    });
+
+    it('should cleanup all prewarm subscriptions when clearing all channel caches', async () => {
+      // Create spies for all cleanupPrewarm methods
+      const priceCleanupSpy = jest.spyOn(
+        testStreamManager.prices,
+        'cleanupPrewarm',
+      );
+      const orderCleanupSpy = jest.spyOn(
+        testStreamManager.orders,
+        'cleanupPrewarm',
+      );
+      const positionCleanupSpy = jest.spyOn(
+        testStreamManager.positions,
+        'cleanupPrewarm',
+      );
+      const accountCleanupSpy = jest.spyOn(
+        testStreamManager.account,
+        'cleanupPrewarm',
+      );
+
+      // Set up prewarm subscriptions for all channels
+      await testStreamManager.prices.prewarm();
+      testStreamManager.orders.prewarm();
+      testStreamManager.positions.prewarm();
+      testStreamManager.account.prewarm();
+
+      // Clear all caches - should call cleanupPrewarm on each channel
+      act(() => {
+        testStreamManager.prices.clearCache();
+        testStreamManager.orders.clearCache();
+        testStreamManager.positions.clearCache();
+        testStreamManager.account.clearCache();
+      });
+
+      // Verify all cleanupPrewarm methods were called
+      expect(priceCleanupSpy).toHaveBeenCalled();
+      expect(orderCleanupSpy).toHaveBeenCalled();
+      expect(positionCleanupSpy).toHaveBeenCalled();
+      expect(accountCleanupSpy).toHaveBeenCalled();
+
+      // Clean up spies
+      priceCleanupSpy.mockRestore();
+      orderCleanupSpy.mockRestore();
+      positionCleanupSpy.mockRestore();
+      accountCleanupSpy.mockRestore();
     });
 
     it('should disconnect WebSocket when clearing cache', async () => {

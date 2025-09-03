@@ -525,7 +525,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
               >
-                <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {actualDirection === 'short' ? '-' : '+'}
                   {percentage}%
                 </Text>
@@ -641,7 +641,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
               >
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {actualDirection === 'short' ? '+' : '-'}
                   {percentage}%
                 </Text>

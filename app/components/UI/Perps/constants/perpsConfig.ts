@@ -118,6 +118,27 @@ export const LIMIT_PRICE_CONFIG = {
 } as const;
 
 /**
+ * Close position configuration
+ * Controls behavior and constants specific to position closing
+ */
+export const CLOSE_POSITION_CONFIG = {
+  // Decimal places for USD amount input display
+  USD_DECIMAL_PLACES: 2,
+
+  // Default close percentage when opening the close position view
+  DEFAULT_CLOSE_PERCENTAGE: 100,
+
+  // Precision for position size calculations to prevent rounding errors
+  AMOUNT_CALCULATION_PRECISION: 6,
+
+  // Throttle delay for real-time price updates during position closing
+  PRICE_THROTTLE_MS: 3000,
+
+  // Fallback decimal places for tokens without metadata
+  FALLBACK_TOKEN_DECIMALS: 18,
+} as const;
+
+/**
  * Data Lake API configuration
  * Endpoints for reporting perps trading activity for notifications
  */
@@ -125,3 +146,20 @@ export const DATA_LAKE_API_CONFIG = {
   // Order reporting endpoint - only used for mainnet perps trading
   ORDERS_ENDPOINT: 'https://perps.api.cx.metamask.io/api/v1/orders',
 } as const;
+
+/**
+ * Funding rate display configuration
+ * Controls how funding rates are formatted and displayed across the app
+ */
+export const FUNDING_RATE_CONFIG = {
+  // Number of decimal places to display for funding rates
+  DECIMALS: 4,
+  // Default display value when funding rate is zero or unavailable
+  ZERO_DISPLAY: '0.0000%',
+  // Multiplier to convert decimal funding rate to percentage
+  PERCENTAGE_MULTIPLIER: 100,
+} as const;
+
+export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
+export const PERPS_GTM_MODAL_ENGAGE = 'engage';
+export const PERPS_GTM_MODAL_DECLINE = 'decline';

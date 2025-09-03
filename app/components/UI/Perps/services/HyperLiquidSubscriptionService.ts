@@ -76,10 +76,10 @@ export class HyperLiquidSubscriptionService {
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
   private accountSubscriberCount = 0;
+
   private cachedPositions: Position[] | null = null;
   private cachedOrders: Order[] | null = null;
   private cachedAccount: AccountState | null = null;
-
   // Global price data cache
   private cachedPriceData: Map<string, PriceUpdate> | null = null;
 
@@ -115,11 +115,15 @@ export class HyperLiquidSubscriptionService {
     this.walletService = walletService;
   }
 
+  // updateFundingRatesCache method removed - funding rates now come directly from assetCtx
+
   /**
    * Subscribe to live price updates with singleton subscription architecture
-   * Uses allMids for fast price updates and activeAssetCtx for market data
+   * Uses allMids for fast price updates and predictedFundings for accurate funding rates
    */
-  public subscribeToPrices(params: SubscribePricesParams): () => void {
+  public async subscribeToPrices(
+    params: SubscribePricesParams,
+  ): Promise<() => void> {
     const {
       symbols,
       callback,
@@ -166,6 +170,46 @@ export class HyperLiquidSubscriptionService {
 
     // Ensure global subscriptions are established
     this.ensureGlobalAllMidsSubscription();
+
+    // Cache funding rates from initial market data fetch if available
+    if (includeMarketData) {
+      // Get initial market data to cache funding rates
+      try {
+        // Get the provider through the clientService instead of Engine directly
+        const infoClient = this.clientService.getInfoClient();
+        const [perpsMeta, assetCtxs] = await Promise.all([
+          infoClient.meta(),
+          infoClient.metaAndAssetCtxs(),
+        ]);
+
+        if (perpsMeta?.universe && assetCtxs?.[1]) {
+          // Cache funding rates directly from assetCtxs
+          perpsMeta.universe.forEach((asset, index) => {
+            const assetCtx = assetCtxs[1][index];
+            if (assetCtx && 'funding' in assetCtx) {
+              const existing = this.marketDataCache.get(asset.name) || {
+                lastUpdated: 0,
+              };
+              this.marketDataCache.set(asset.name, {
+                ...existing,
+                funding: parseFloat(assetCtx.funding),
+                lastUpdated: Date.now(),
+              });
+            }
+          });
+
+          DevLogger.log('🔍 Cached funding rates from initial market data:', {
+            cachedCount: perpsMeta.universe.filter((_asset, index) => {
+              const assetCtx = assetCtxs[1][index];
+              return assetCtx && 'funding' in assetCtx;
+            }).length,
+            totalMarkets: perpsMeta.universe.length,
+          });
+        }
+      } catch (error) {
+        DevLogger.log('Failed to cache initial funding rates:', error);
+      }
+    }
 
     symbols.forEach((symbol) => {
       // Subscribe to activeAssetCtx only when market data is requested
@@ -349,10 +393,7 @@ export class HyperLiquidSubscriptionService {
 
           // Only notify position subscribers on first update (when cachedPositions is null) or when data changes
           // This prevents repeated notifications when positions remain empty
-          const shouldNotifyPositions =
-            positionsChanged || this.cachedPositions === null; // Only notify if we haven't sent initial data yet
-
-          if (shouldNotifyPositions) {
+          if (positionsChanged) {
             this.cachedPositions = positionsWithTPSL;
             this.positionSubscribers.forEach((callback) => {
               callback(positionsWithTPSL);
@@ -360,10 +401,7 @@ export class HyperLiquidSubscriptionService {
           }
 
           // Only notify order subscribers on first update (when cachedOrders is null) or when data changes
-          const shouldNotifyOrders =
-            ordersChanged || this.cachedOrders === null; // Only notify if we haven't sent initial data yet
-
-          if (shouldNotifyOrders) {
+          if (ordersChanged) {
             this.cachedOrders = orders;
             this.orderSubscribers.forEach((callback) => {
               callback(orders);
@@ -433,7 +471,7 @@ export class HyperLiquidSubscriptionService {
     this.positionSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedPositions && this.cachedPositions.length > 0) {
+    if (this.cachedPositions) {
       callback(this.cachedPositions);
     }
 
@@ -460,6 +498,7 @@ export class HyperLiquidSubscriptionService {
     );
 
     let subscription: Subscription | undefined;
+    let cancelled = false;
 
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
@@ -498,7 +537,17 @@ export class HyperLiquidSubscriptionService {
           );
         })
         .then((sub) => {
-          subscription = sub;
+          // If cleanup was called before subscription completed, immediately unsubscribe
+          if (cancelled) {
+            sub.unsubscribe().catch((error: Error) => {
+              DevLogger.log(
+                strings('perps.errors.failedToUnsubscribeOrderFill'),
+                error,
+              );
+            });
+          } else {
+            subscription = sub;
+          }
         })
         .catch((error) => {
           DevLogger.log(
@@ -509,6 +558,7 @@ export class HyperLiquidSubscriptionService {
     }
 
     return () => {
+      cancelled = true;
       unsubscribe();
 
       if (subscription) {
@@ -537,7 +587,7 @@ export class HyperLiquidSubscriptionService {
     this.orderSubscriberCount++;
 
     // Immediately provide cached data if available
-    if (this.cachedOrders && this.cachedOrders.length > 0) {
+    if (this.cachedOrders) {
       callback(this.cachedOrders);
     }
 
@@ -630,7 +680,7 @@ export class HyperLiquidSubscriptionService {
       this.marketDataSubscribers.has(symbol) &&
       (this.marketDataSubscribers.get(symbol)?.size ?? 0) > 0;
 
-    return {
+    const priceUpdate = {
       coin: symbol,
       price, // This is the mid price from allMids
       timestamp: Date.now(),
@@ -643,13 +693,16 @@ export class HyperLiquidSubscriptionService {
       bestBid: orderBookData?.bestBid,
       bestAsk: orderBookData?.bestAsk,
       spread: orderBookData?.spread,
+      // Always include funding when available (don't default to 0, preserve undefined)
+      funding: marketData?.funding,
       // Add market data only if requested by at least one subscriber
-      funding: hasMarketDataSubscribers ? marketData?.funding : undefined,
       openInterest: hasMarketDataSubscribers
         ? marketData?.openInterest
         : undefined,
       volume24h: hasMarketDataSubscribers ? marketData?.volume24h : undefined,
     };
+
+    return priceUpdate;
   }
 
   /**
@@ -776,9 +829,11 @@ export class HyperLiquidSubscriptionService {
             // Cache market data for consolidation with price updates
             const marketData = {
               prevDayPx: parseFloat(ctx.prevDayPx?.toString() || '0'),
-              funding: isPerpsContext(ctx)
-                ? parseFloat(ctx.funding?.toString() || '0')
-                : 0,
+              // Cache funding rate from activeAssetCtx for real-time updates
+              funding:
+                isPerpsContext(ctx) && ctx.funding !== undefined
+                  ? parseFloat(ctx.funding.toString())
+                  : undefined,
               // Convert openInterest from token units to USD by multiplying by current price
               // Note: openInterest from API is in token units (e.g., BTC), while volume is already in USD
               openInterest: isPerpsContext(ctx)
