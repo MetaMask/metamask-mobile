@@ -44,17 +44,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockSetAccountName = jest.fn();
-const mockSetAccountGroupName = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     AccountsController: {
       setAccountName: (address: string, name: string) =>
         mockSetAccountName(address, name),
-    },
-    AccountTreeController: {
-      setAccountGroupName: (groupId: string, name: string) =>
-        mockSetAccountGroupName(groupId, name),
     },
   },
 }));
@@ -70,11 +65,10 @@ describe('EditAccountName', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSetAccountName.mockReset();
-    mockSetAccountGroupName.mockReset();
     mockUseRoute.mockReturnValue(mockRoute);
   });
 
-  describe('when editing individual account', () => {
+  describe('when editing internal account', () => {
     it('renders correctly with account information', () => {
       const { getByText, getByTestId } = render();
 
@@ -165,119 +159,6 @@ describe('EditAccountName', () => {
     });
   });
 
-  describe('when editing account group', () => {
-    const mockAccountGroup = {
-      id: 'entropy:wallet1/0',
-      metadata: { name: 'Test Account Group' },
-    };
-
-    it('displays account group name input when editing group', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          ...mockRoute.params,
-          accountGroup: mockAccountGroup,
-        },
-      });
-
-      const { getByTestId } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      expect(nameInput).toBeTruthy();
-      expect(nameInput.props.value).toBe('Test Account Group');
-    });
-
-    it('saves account group name when save button is pressed', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          ...mockRoute.params,
-          accountGroup: mockAccountGroup,
-        },
-      });
-
-      const { getByTestId } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      const saveButton = getByTestId(EditAccountNameIds.SAVE_BUTTON);
-
-      fireEvent.changeText(nameInput, 'Updated Group Name');
-      fireEvent.press(saveButton);
-
-      expect(mockSetAccountGroupName).toHaveBeenCalledWith(
-        mockAccountGroup.id,
-        'Updated Group Name',
-      );
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('handles save error for account group and displays error message', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          ...mockRoute.params,
-          accountGroup: mockAccountGroup,
-        },
-      });
-
-      mockSetAccountGroupName.mockImplementation(() => {
-        throw new Error('Duplicate name');
-      });
-
-      const { getByTestId, getByText } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      const saveButton = getByTestId(EditAccountNameIds.SAVE_BUTTON);
-
-      fireEvent.changeText(nameInput, 'Duplicate Group Name');
-      fireEvent.press(saveButton);
-
-      expect(getByText('Failed to edit account name')).toBeTruthy();
-    });
-
-    it('does not save when account group name is empty', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          ...mockRoute.params,
-          accountGroup: mockAccountGroup,
-        },
-      });
-
-      const { getByTestId, getByText } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      const saveButton = getByTestId(EditAccountNameIds.SAVE_BUTTON);
-
-      fireEvent.changeText(nameInput, '');
-      fireEvent.press(saveButton);
-
-      expect(mockSetAccountGroupName).not.toHaveBeenCalled();
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getByText('Account name cannot be empty')).toBeTruthy();
-    });
-
-    it('works when only accountGroup is provided (no account)', () => {
-      mockUseRoute.mockReturnValue({
-        params: {
-          accountGroup: mockAccountGroup,
-        },
-      });
-
-      const { getByTestId } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      const saveButton = getByTestId(EditAccountNameIds.SAVE_BUTTON);
-
-      expect(nameInput.props.value).toBe('Test Account Group');
-
-      fireEvent.changeText(nameInput, 'New Group Name');
-      fireEvent.press(saveButton);
-
-      expect(mockSetAccountGroupName).toHaveBeenCalledWith(
-        mockAccountGroup.id,
-        'New Group Name',
-      );
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('edge cases', () => {
     it('handles different account types', () => {
       const snapAccount = createMockInternalAccount(
@@ -334,16 +215,6 @@ describe('EditAccountName', () => {
       fireEvent.changeText(nameInput, 'Duplicate Name');
       fireEvent.press(saveButton);
       expect(getByText('Failed to edit account name')).toBeTruthy();
-    });
-
-    it('falls back to account name when no accountGroup is provided', () => {
-      // Route without accountGroup
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      const { getByTestId } = render();
-
-      const nameInput = getByTestId(EditAccountNameIds.ACCOUNT_NAME_INPUT);
-      expect(nameInput.props.value).toBe('Test Account');
     });
   });
 });

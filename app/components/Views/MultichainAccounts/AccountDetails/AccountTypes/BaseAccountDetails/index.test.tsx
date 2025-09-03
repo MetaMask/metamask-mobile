@@ -181,7 +181,7 @@ describe('BaseAccountDetails', () => {
     fireEvent.press(accountNameLink);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
       {
         screen:
           Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
