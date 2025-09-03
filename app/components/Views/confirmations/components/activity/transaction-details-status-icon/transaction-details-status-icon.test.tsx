@@ -6,6 +6,8 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionDetailsStatusIcon } from './transaction-details-status-icon';
 import { fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
+import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
@@ -16,7 +18,9 @@ function render(transactionMeta: Partial<TransactionMeta>) {
     <TransactionDetailsStatusIcon
       transactionMeta={transactionMeta as TransactionMeta}
     />,
-    {},
+    {
+      state: merge({}, otherControllersMock),
+    },
   );
 }
 
