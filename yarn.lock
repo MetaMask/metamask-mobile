@@ -5124,10 +5124,10 @@
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
-"@metamask/eip-5792-middleware@npm:@metamask-previews/eip-5792-middleware@1.0.0-preview-cc039d53":
-  version "1.0.0-preview-cc039d53"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/eip-5792-middleware/-/eip-5792-middleware-1.0.0-preview-cc039d53.tgz#cac024bcaac695f946a23a34c5e26ed513398070"
-  integrity sha512-bYHL2rFA9LHJIBcUb6zYvNk0Dvva9Fi8wR2NDsVZh0OHvMtW++BdMfFMohH69V5mJxySlJQVgTcRw6yGj7tcEA==
+"@metamask/eip-5792-middleware@npm:@metamask-previews/eip-5792-middleware@1.0.0-preview-e94ec490":
+  version "1.0.0-preview-e94ec490"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/eip-5792-middleware/-/eip-5792-middleware-1.0.0-preview-e94ec490.tgz#78e02f94b54bcb180e678a9c8af5db66389d8689"
+  integrity sha512-aYzoHdavmuXdkQZDfFEqcM7Z4+pCiSvcEETXMxHq1fJlgBEOhtbydQwo7grgZ+7TNUEyCw1fqcHFTLl1lg9t9A==
   dependencies:
     "@metamask/eth-json-rpc-middleware" "^17.0.1"
     "@metamask/transaction-controller" "^60.1.0"
