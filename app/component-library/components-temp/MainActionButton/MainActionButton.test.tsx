@@ -175,7 +175,7 @@ describe('MainActionButton', () => {
 
       // Text should be immediately visible
       expect(getByText('Test Label')).toBeTruthy();
-      
+
       // Should render with flexShrink: 0 initially (no numberOfLines protection)
       const initialSnapshot = toJSON();
       expect(initialSnapshot).toMatchSnapshot();
@@ -196,12 +196,12 @@ describe('MainActionButton', () => {
       // Wait for useLayoutEffect to complete
       await act(async () => {
         // useLayoutEffect runs synchronously, but we need to let React process the state update
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       // Text should still be visible after layout effect
       expect(getByText('Test Label')).toBeTruthy();
-      
+
       // Snapshot should reflect the protected text phase
       const finalSnapshot = toJSON();
       expect(finalSnapshot).toMatchSnapshot();
@@ -222,7 +222,7 @@ describe('MainActionButton', () => {
 
       // Wait for transition to phase 2
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       // Phase 2: Text still visible but now with numberOfLines protection
@@ -246,7 +246,7 @@ describe('MainActionButton', () => {
 
       // Wait for phase transition
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       // Should still be functional in phase 2
