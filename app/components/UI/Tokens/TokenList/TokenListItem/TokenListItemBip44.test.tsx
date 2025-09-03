@@ -1,8 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { Provider, useSelector } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
-import { configureStore } from '@reduxjs/toolkit';
+import { useSelector } from 'react-redux';
 import { TokenListItemBip44 } from './TokenListItemBip44';
 import { FlashListAssetKey } from '..';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -13,6 +10,7 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { TokenI } from '../../types';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { SECONDARY_BALANCE_TEST_ID } from '../../../AssetElement/index.constants';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -126,22 +124,6 @@ jest.mock('./CustomNetworkNativeImgMapping', () => ({
   },
 }));
 
-// Mock all selectors
-const mockStore = configureStore({
-  reducer: {
-    root: (state = {}) => state,
-  },
-  preloadedState: {
-    root: {},
-  },
-});
-
-const MockProvider = ({ children }: { children: React.ReactNode }) => (
-  <Provider store={mockStore}>
-    <NavigationContainer>{children}</NavigationContainer>
-  </Provider>
-);
-
 // Mock useSelector to return controlled data
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -214,15 +196,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { getByText } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { getByText } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       expect(getByText('Test Token')).toBeDefined();
@@ -244,15 +224,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { getByTestId } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { getByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
@@ -273,15 +251,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
@@ -299,15 +275,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
@@ -325,15 +299,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { queryByTestId } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { queryByTestId } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       expect(queryByTestId(SECONDARY_BALANCE_TEST_ID)).not.toBeOnTheScreen();
@@ -352,15 +324,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { UNSAFE_getByType } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { UNSAFE_getByType } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       const assetAvatar = UNSAFE_getByType(AvatarToken);
@@ -398,15 +368,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { UNSAFE_getByType } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { UNSAFE_getByType } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       const assetAvatar = UNSAFE_getByType(NetworkAssetLogo);
@@ -446,15 +414,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         isStaked: false,
       };
 
-      const { UNSAFE_getByType } = render(
-        <MockProvider>
-          <TokenListItemBip44
-            assetKey={assetKey}
-            showRemoveMenu={jest.fn()}
-            setShowScamWarningModal={jest.fn()}
-            privacyMode={false}
-          />
-        </MockProvider>,
+      const { UNSAFE_getByType } = renderWithProvider(
+        <TokenListItemBip44
+          assetKey={assetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
       );
 
       const assetAvatar = UNSAFE_getByType(AvatarToken);
