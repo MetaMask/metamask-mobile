@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, InteractionManager , ActivityIndicator } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  InteractionManager,
+  ActivityIndicator,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
@@ -392,7 +397,6 @@ const BuildQuote = () => {
           ? routeError.message
           : strings('deposit.buildQuote.unexpectedError'),
       );
-      return;
     } finally {
       setIsRoutingImmediately(false);
       setIsLoading(false);
