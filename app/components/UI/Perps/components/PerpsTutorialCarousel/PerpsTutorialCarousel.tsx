@@ -25,12 +25,14 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import NavigationService from '../../../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
+
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -100,6 +102,7 @@ const tutorialScreens: TutorialScreen[] = [
 
 interface PerpsTutorialRouteParams {
   isFromDeeplink?: boolean;
+  isFromGTMModal?: boolean;
 }
 
 const PerpsTutorialCarousel: React.FC = () => {
@@ -108,6 +111,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const route =
     useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
   const isFromDeeplink = route.params?.isFromDeeplink || false;
+  const isFromGTMModal = route.params?.isFromGTMModal || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -220,15 +224,18 @@ const PerpsTutorialCarousel: React.FC = () => {
       markTutorialCompleted();
     }
 
-    // Navigate based on deeplink flag
-    if (isFromDeeplink) {
-      // Navigate to wallet home first
-      navigation.navigate(Routes.WALLET.HOME);
+    // Navigate based on deeplink/gtm modal flag
+    if (isFromDeeplink || isFromGTMModal) {
+      // Navigate to wallet home first (using global navigation service like deeplink handler)
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
-      // The timeout is REQUIRED - React Navigation needs time to complete
-      // the navigation before params can be set on the new screen
+      // The timeout is REQUIRED - React Navigation needs time to:
+      // 1. Complete the navigation transition
+      // 2. Mount the Wallet component
+      // 3. Make navigation context available for setParams
+      // Without this delay, the tab selection will fail
       setTimeout(() => {
-        navigation.setParams({
+        NavigationService.navigation.setParams({
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
@@ -242,6 +249,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     currentTab,
     track,
+    isFromGTMModal,
     isFromDeeplink,
   ]);
 

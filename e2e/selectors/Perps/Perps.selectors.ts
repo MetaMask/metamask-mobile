@@ -376,6 +376,18 @@ export const PerpsTutorialSelectorsIDs = {
 } as const;
 
 // ========================================
+// PERPS GTM MODAL SELECTORS
+// ========================================
+
+export const PerpsGTMModalSelectorsIDs = {
+  PERPS_GTM_MODAL: 'perps-gtm-modal',
+  PERPS_LEARN_MORE_BUTTON: 'perps-learn-more-button',
+  PERPS_TRY_NOW_BUTTON: 'perps-try-now-button',
+  PERPS_NOT_NOW_BUTTON: 'perps-not-now-button',
+};
+
+
+// ========================================
 // PERPS ORDER VIEW SELECTORS
 // ========================================
 
