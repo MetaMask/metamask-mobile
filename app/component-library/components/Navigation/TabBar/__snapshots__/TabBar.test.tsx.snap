@@ -116,6 +116,7 @@ exports[`TabBar renders correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
@@ -219,6 +220,7 @@ exports[`TabBar renders correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
@@ -412,6 +414,7 @@ exports[`TabBar renders correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
@@ -515,6 +518,7 @@ exports[`TabBar renders correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 12,
                 "letterSpacing": 0.25,
