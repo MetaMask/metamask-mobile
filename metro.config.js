@@ -48,7 +48,7 @@ module.exports = function (baseConfig) {
   // if you have 10 cores but only 16GB, only 3 workers would get used.
   const maxWorkers = Math.ceil(
     os.availableParallelism() *
-      Math.max(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+      Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
   );
 
   return wrapWithReanimatedMetroConfig(
