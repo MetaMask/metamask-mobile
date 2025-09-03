@@ -76,6 +76,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const firstTimeUserIconSize = 48 as unknown as IconSize;
 
+  const hasPositions = positions && positions.length > 0;
+  const hasOrders = orders && orders.length > 0;
+  const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
   // Start measuring position data load time on mount
   useEffect(() => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
@@ -133,13 +137,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     });
   }, [navigation]);
 
-  const handleStartTrading = useCallback(() => {
-    // Navigate to tutorial carousel for first-time users
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TUTORIAL,
-    });
-  }, [navigation]);
-
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
       // Navigate to tutorial for first-time users
@@ -149,7 +146,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     } else {
       // Navigate to trading view for returning users
       navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TRADING_VIEW,
+        screen: Routes.PERPS.MARKETS,
       });
     }
   }, [navigation, isFirstTimeUser]);
@@ -261,14 +258,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
-          hasPositions={positions.length > 0}
-          hasOrders={orders.length > 0}
+          hasPositions={hasPositions}
+          hasOrders={hasOrders}
         />
         <ScrollView style={styles.content}>
-          {!isInitialLoading &&
-          isFirstTimeUser &&
-          positions.length === 0 &&
-          orders.length === 0 ? (
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.firstTimeContent}>
               <View style={styles.firstTimeContainer}>
                 <Icon
@@ -295,7 +289,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                   variant={ButtonVariants.Primary}
                   size={ButtonSize.Lg}
                   label={strings('perps.position.list.start_trading')}
-                  onPress={handleStartTrading}
+                  onPress={handleNewTrade}
                   style={styles.startTradingButton}
                   width={ButtonWidthTypes.Full}
                 />

@@ -328,7 +328,7 @@ describe('PerpsTabView', () => {
       });
     });
 
-    it('should navigate to trading view when Start a new trade CTA is pressed by returning user', () => {
+    it('should navigate to markets when Start a new trade CTA is pressed by returning user', () => {
       mockUsePerpsFirstTimeUser.mockReturnValue({
         isFirstTimeUser: false,
         markTutorialCompleted: jest.fn(),
@@ -349,7 +349,7 @@ describe('PerpsTabView', () => {
       });
 
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TRADING_VIEW,
+        screen: Routes.PERPS.MARKETS,
       });
     });
 
@@ -389,17 +389,26 @@ describe('PerpsTabView', () => {
 
   describe('State Management', () => {
     it('should handle refresh state correctly', () => {
+      // Arrange - Mock refreshing state with no positions or orders
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
+        isRefreshing: true,
+        loadPositions: jest.fn(),
       });
 
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      // Act - Render component
       render(<PerpsTabView />);
 
-      // Verify component renders with refreshing state
+      // Assert - Component should render first-time content when no positions or orders exist
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('perps.position.list.empty_title')),
+        screen.getByText(strings('perps.position.list.first_time_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_trading')),
       ).toBeOnTheScreen();
     });
 
