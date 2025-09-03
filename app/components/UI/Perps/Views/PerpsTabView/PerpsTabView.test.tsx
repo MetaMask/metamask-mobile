@@ -1,5 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -145,7 +151,7 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
-  default: ({ onClose, testID }: { onClose: () => void; testID: string }) => {
+  default: ({ onClose, testID }: { onClose: () => void; testID?: string }) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
       <TouchableOpacity testID={testID} onPress={onClose}>
@@ -465,7 +471,7 @@ describe('PerpsTabView', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should close geo block modal when onClose is called', () => {
+    it('should close geo block modal when onClose is called', async () => {
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
       ).selectPerpsEligibility;
@@ -494,15 +500,18 @@ describe('PerpsTabView', () => {
 
       expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
 
-      const tooltip = screen.getByTestId(
-        'perps-tab-view-geo-block-bottom-sheet-tooltip',
-      );
+      // The mock renders TouchableOpacity with the text "Geo Block Tooltip" inside it
+      // We can press the text element directly since TouchableOpacity propagates press events
+      const geoBlockText = screen.getByText('Geo Block Tooltip');
 
       act(() => {
-        fireEvent.press(tooltip);
+        fireEvent.press(geoBlockText);
       });
 
-      expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+      // Wait for the modal to be removed from the DOM
+      await waitFor(() => {
+        expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+      });
     });
   });
 
