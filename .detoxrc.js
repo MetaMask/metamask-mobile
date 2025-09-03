@@ -87,9 +87,6 @@ module.exports = {
       },
       // Optimized for GitHub Actions CI runners
       bootArgs: '-no-audio -no-boot-anim',
-      utilBinaryPaths: [
-        '/usr/bin/rsync'
-      ],
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
