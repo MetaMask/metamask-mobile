@@ -4921,10 +4921,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@74.3.2-preview-a07d61d4":
-  version "74.3.2-preview-a07d61d4"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask-previews/assets-controllers/-/assets-controllers-74.3.2-preview-a07d61d4.tgz#ce4d9871d146ffa6db709d792003034bc719a37f"
-  integrity sha512-QH89s2ueqWH+5u2YuOp65x1I0v0LRbs++ZBQ3xvcbP82eMqFdPBcwv1WzvdHeGYnxeFhUyYma+Y1YmR55yOp/g==
+"@metamask/assets-controllers@^74.3.1", "@metamask/assets-controllers@^74.3.1@npm:@metamask-previews/assets-controllers@74.3.2-preview-a07d61d4":
+  version "74.3.2"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-74.3.2.tgz#6fa7564f3912dc02d90ea81a3cc32dcada255f21"
+  integrity sha512-J2xey02mmoelhpi+tF/+IuZZMlCL449gI8+dJhX1VSSVdJ4kwqOWyxdKYsHyqgOD5W8xRTTWMU8+ZDGE2Lsqpw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
