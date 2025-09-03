@@ -17,6 +17,24 @@ jobs:
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       GITHUB_CI: "true"  # This ensures it's available during pod install
+      PLATFORM: ios
+      METAMASK_ENVIRONMENT: qa
+      METAMASK_BUILD_TYPE: main
+      IS_TEST: true
+      E2E: "true"
+      IGNORE_BOXLOGS_DEVELOPMENT: true
+      MM_NOTIFICATIONS_UI_ENABLED: "true"
+      MM_NETWORK_UI_REDESIGN_ENABLED: "false"
+      PORTFOLIO_VIEW: "true"
+      MM_PER_DAPP_SELECTED_NETWORK: "false"
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "false"
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: "false"
+      MM_SECURITY_ALERTS_API_ENABLED: "true"
+      BRIDGE_USE_DEV_APIS: "true"
+      MM_BRIDGE_ENABLED: "true"
+      MM_UNIFIED_SWAPS_ENABLED: "true"
+      SEEDLESS_ONBOARDING_ENABLED: "true"
+  
     steps:
       # Get the source code from the repository
       - name: Checkout repo
