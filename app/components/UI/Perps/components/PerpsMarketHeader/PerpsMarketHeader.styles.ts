@@ -13,6 +13,7 @@ interface PerpsMarketHeaderStyles {
   positionValue: TextStyle;
   priceChange24h: TextStyle;
   moreButton: ViewStyle;
+  maxLeverage: ViewStyle;
 }
 
 export const styleSheet = ({
@@ -70,5 +71,11 @@ export const styleSheet = ({
     },
     moreButton: {
       padding: 4,
+    },
+    maxLeverage: {
+      backgroundColor: theme.colors.background.muted,
+      paddingVertical: 2,
+      paddingHorizontal: 4,
+      borderRadius: 4,
     },
   });

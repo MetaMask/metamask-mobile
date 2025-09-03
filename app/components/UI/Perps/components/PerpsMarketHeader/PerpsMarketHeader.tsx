@@ -68,9 +68,11 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           >
             {market.symbol}-USD
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {market.maxLeverage}
-          </Text>
+          <View style={styles.maxLeverage}>
+            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+              {market.maxLeverage}
+            </Text>
+          </View>
         </View>
         <View style={styles.positionValueRow}>
           <LivePriceHeader

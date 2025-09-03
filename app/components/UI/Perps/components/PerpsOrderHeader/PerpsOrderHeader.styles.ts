@@ -34,9 +34,6 @@ export const createStyles = (colors: Theme['colors']) =>
     headerTitle: {
       fontSize: 18,
     },
-    headerPriceChange: {
-      fontSize: 16,
-    },
     marketButton: {
       flexDirection: 'row',
       alignItems: 'center',
