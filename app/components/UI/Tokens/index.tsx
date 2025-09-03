@@ -57,6 +57,7 @@ const Tokens = memo(() => {
 
   const styles = createStyles(colors);
 
+  // BIP44 MAINTENANCE: Once stable, only use selectSortedAssetsBySelectedAccountGroup
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );

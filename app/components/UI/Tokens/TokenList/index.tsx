@@ -48,8 +48,14 @@ const TokenListComponent = ({
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
-  const isMultichainAccountsState2Enabled = useSelector(selectMultichainAccountsState2Enabled);
-  const TokenListItemComponent = isMultichainAccountsState2Enabled ? TokenListItemBip44 : TokenListItem;
+
+  // BIP44 MAINTENANCE: Once stable, only use TokenListItemBip44
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+  const TokenListItemComponent = isMultichainAccountsState2Enabled
+    ? TokenListItemBip44
+    : TokenListItem;
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 

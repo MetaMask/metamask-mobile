@@ -279,7 +279,6 @@ function assetToToken(asset: Asset & { isStaked?: boolean }): TokenI {
           currency: asset.fiat.currency,
         })
       : undefined,
-    // BIP44 MAINTENANCE: Review whether this is being used
     logo:
       asset.type.startsWith('eip155') && asset.isNative
         ? '../images/eth-logo-new.png'
