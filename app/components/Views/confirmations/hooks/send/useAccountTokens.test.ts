@@ -8,6 +8,7 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { TokenStandard } from '../../types/token';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { isTestNet } from '../../../../../util/networks';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -23,6 +24,10 @@ jest.mock('../../utils/network', () => ({
 
 jest.mock('../../../../../util/intl', () => ({
   getIntlNumberFormatter: jest.fn(),
+}));
+
+jest.mock('../../../../../util/networks', () => ({
+  isTestNet: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -46,6 +51,7 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
   selectAssetsBySelectedAccountGroup,
 );
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
+const mockIsTestNet = jest.mocked(isTestNet);
 
 const mockAssets = {
   '0x1': [
@@ -102,6 +108,7 @@ describe('useAccountTokens', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
+    mockIsTestNet.mockReturnValue(false);
   });
 
   describe('when no scope filter is applied', () => {
@@ -376,6 +383,73 @@ describe('useAccountTokens', () => {
       const { result } = renderHook(() => useAccountTokens());
 
       expect(result.current).toEqual([]);
+    });
+
+    it('includes test network assets with non-zero raw balance even without fiat balance', () => {
+      const testNetAssets = {
+        '0x5': [
+          {
+            chainId: '0x5',
+            type: 'eip155:5/erc20:0xtoken1',
+            rawBalance: '0x1234',
+            symbol: 'TESTTOKEN',
+          },
+        ],
+      };
+
+      mockIsTestNet.mockReturnValue(true);
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testNetAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return testNetAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('TESTTOKEN');
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x5');
+    });
+
+    it('excludes test network assets with zero raw balance and no fiat balance', () => {
+      const testNetAssets = {
+        '0x5': [
+          {
+            chainId: '0x5',
+            type: 'eip155:5/erc20:0xtoken1',
+            rawBalance: '0x0',
+            symbol: 'TESTTOKEN',
+          },
+        ],
+      };
+
+      mockIsTestNet.mockReturnValue(true);
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testNetAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return testNetAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toEqual([]);
+      expect(mockIsTestNet).toHaveBeenCalledWith('0x5');
     });
   });
 });
