@@ -11,6 +11,13 @@ jest.mock('../../../../core/Engine');
 
 // Mock data - using the state format that the controller now returns
 const mockSeasonStatus: SeasonStatusState = {
+  season: {
+    id: 'season-1',
+    name: 'Season 1',
+    startDate: new Date('2024-01-01').getTime(),
+    endDate: new Date('2024-12-31').getTime(),
+    tiers: [{ id: 'tier-1', name: 'Bronze', pointsNeeded: 0 }],
+  },
   balance: {
     total: 1250,
     refereePortion: 250,
