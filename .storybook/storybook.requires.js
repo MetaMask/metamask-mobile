@@ -43,6 +43,7 @@ const getStories = () => {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
+    "./app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),

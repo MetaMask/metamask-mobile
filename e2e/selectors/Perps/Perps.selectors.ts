@@ -208,6 +208,13 @@ export const getPerpsCandlePeriodBottomSheetSelector = {
     `${baseTestID}-period-${period}`,
 };
 
+// Helper functions for PerpsCandlePeriodSelector dynamic selectors
+export const getPerpsCandlePeriodSelector = {
+  periodButton: (baseTestID: string, period: string) =>
+    `${baseTestID}-period-${period}`,
+  moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
+};
+
 // ========================================
 // PERPS WITHDRAW VIEW SELECTORS
 // ========================================
