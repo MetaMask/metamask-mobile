@@ -13,10 +13,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import {
-  formatAddressToAssetId,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
   parseCaipChainId,
@@ -129,24 +126,6 @@ export const useRewards = ({
 
       setShouldShowRewardsRow(true);
 
-      // Format source asset
-      const srcAssetId = formatAddressToAssetId(
-        sourceToken.address,
-        sourceToken.chainId,
-      );
-
-      // Format destination asset
-      const destAssetId = formatAddressToAssetId(
-        destToken.address,
-        destToken.chainId,
-      );
-
-      if (!srcAssetId || !destAssetId) {
-        setEstimatedPoints(null);
-        setIsLoading(false);
-        return;
-      }
-
       // Convert source amount to atomic unit
       const atomicSourceAmount = activeQuote.quote.srcTokenAmount;
 
@@ -155,21 +134,21 @@ export const useRewards = ({
 
       // Prepare source asset
       const srcAsset: EstimateAssetDto = {
-        id: srcAssetId,
+        id: activeQuote.quote.srcAsset.assetId,
         amount: atomicSourceAmount,
       };
 
       // Prepare destination asset
       const destAsset: EstimateAssetDto = {
-        id: destAssetId,
+        id: activeQuote.quote.destAsset.assetId,
         amount: atomicDestAmount,
       };
 
       // Prepare fee asset (using MetaMask fee from quote data)
       const feeAsset: EstimateAssetDto = {
-        id: srcAssetId,
+        id: activeQuote.quote.feeData.metabridge.asset.assetId,
         amount: activeQuote.quote.feeData.metabridge.amount || '0',
-        usdPrice: sourceToken.currencyExchangeRate?.toString(),
+        // usdPrice: sourceToken.currencyExchangeRate?.toString(), // TODO add this once we get it from backend
       };
 
       // Create estimate request
