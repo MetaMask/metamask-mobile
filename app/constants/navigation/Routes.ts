@@ -310,6 +310,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
 };
 
 export default Routes;

@@ -31,6 +31,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -99,6 +100,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -164,6 +166,7 @@ describe('getBridgeTxActivityTitle', () => {
       account: '0x123',
       quote: {
         requestId: 'test-request-id',
+        minDestTokenAmount: '1000000000000000000',
         srcChainId: 1,
         srcAsset: {
           chainId: 1,
@@ -665,6 +668,7 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
     account: '0x123',
     quote: {
       requestId: 'test-request-id',
+      minDestTokenAmount: '1000000000000000000',
       srcChainId: 1,
       srcAsset: {
         chainId: 1,
