@@ -117,6 +117,12 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     navigation.navigate('SmartAccountDetails', { account });
   }, [navigation, account]);
 
+  const handleEditAccountName = useCallback(() => {
+    navigation.navigate(
+      ...createEditAccountNameNavigationDetails(accountGroup),
+    );
+  }, [navigation, accountGroup]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
@@ -151,11 +157,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
         <TouchableOpacity
           style={styles.accountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
-          onPress={() => {
-            navigation.navigate(
-              ...createEditAccountNameNavigationDetails(accountGroup),
-            );
-          }}
+          onPress={handleEditAccountName}
         >
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('multichain_accounts.account_details.account_name')}

@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
 import {
   ParamListBase,
@@ -22,31 +22,42 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import styleSheet from './EditAccountName.styles';
+import styleSheet from './MultichainEditAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { RootState } from '../../../../../reducers';
+import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface RootNavigationParamList extends ParamListBase {
-  EditAccountName: {
-    account: InternalAccount;
+  MultichainEditAccountName: {
+    accountGroup: AccountGroupObject;
   };
 }
 
-type EditAccountNameRouteProp = RouteProp<
+type MultichainEditAccountNameRouteProp = RouteProp<
   RootNavigationParamList,
-  'EditAccountName'
+  'MultichainEditAccountName'
 >;
 
-export const EditAccountName = () => {
+export const MultichainEditAccountName = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = useTheme();
-  const route = useRoute<EditAccountNameRouteProp>();
-  const { account } = route.params;
+  const route = useRoute<MultichainEditAccountNameRouteProp>();
+  const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
 
-  const initialName = account?.metadata.name || '';
+  const accountGroupFromSelector = useSelector((state: RootState) =>
+    initialAccountGroup
+      ? selectAccountGroupById(state, initialAccountGroup.id)
+      : undefined,
+  );
+
+  const accountGroup = accountGroupFromSelector || initialAccountGroup;
+
+  const initialName = accountGroup?.metadata?.name || '';
 
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +74,13 @@ export const EditAccountName = () => {
     //TODO: Validate that account name is not duplicate after it's added to the AccountTreeController
 
     try {
-      const { AccountsController } = Engine.context;
-      AccountsController.setAccountName(account.id, accountName);
+      const { AccountTreeController } = Engine.context;
+      AccountTreeController.setAccountGroupName(accountGroup.id, accountName);
       navigation.goBack();
     } catch {
       setError(strings('multichain_accounts.edit_account_name.error'));
     }
-  }, [accountName, account, navigation]);
+  }, [accountName, accountGroup, navigation]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();

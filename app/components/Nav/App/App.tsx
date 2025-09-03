@@ -75,7 +75,7 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import { MultichainEditAccountName } from '../../Views/MultichainAccounts/sheets/MultichainEditAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
