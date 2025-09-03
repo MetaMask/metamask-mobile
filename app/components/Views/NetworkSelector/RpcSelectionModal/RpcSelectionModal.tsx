@@ -165,8 +165,8 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       onClose={closeRpcModal}
       shouldNavigateBack={false}
     >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <BottomSheetHeader style={styles.baseHeader as any}>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+      <BottomSheetHeader style={styles.baseHeader}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('app_settings.select_rpc_url')}{' '}
         </Text>
@@ -180,20 +180,22 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
             size: AvatarSize.Sm,
             style: { marginRight: 0 },
           }}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          style={styles.cellBorder as any}
+          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+          style={styles.cellBorder}
         >
           <Text
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            style={styles.alternativeText as any}
+            // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+            // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+            style={styles.alternativeText}
             variant={TextVariant.BodyMD}
           >
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
       </BottomSheetHeader>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <View style={styles.rpcMenu as any}>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+      <View style={styles.rpcMenu}>
         {rpcEndpoints.map(
           ({
             url,
@@ -217,10 +219,10 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
                 handleRpcSelect(networkClientId, chainId as `0x${string}`)
               }
             >
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              <View style={styles.rpcText as any}>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                <Text style={styles.textCentred as any}>
+              {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+              <View style={styles.rpcText}>
+                {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+                <Text style={styles.textCentred}>
                   {hideKeyFromUrl(hideProtocolFromUrl(url))}
                 </Text>
               </View>

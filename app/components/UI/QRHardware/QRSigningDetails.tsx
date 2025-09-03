@@ -334,13 +334,12 @@ const QRSigningDetails = ({
               />
               {showHint ? (
                 <View
-                  style={
-                    [
-                      styles.description,
-                      tighten ? styles.descriptionTighten : undefined,
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    ] as any
-                  }
+                  style={[
+                    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+                    styles.description,
+                    tighten ? styles.descriptionTighten : undefined,
+                  ]}
                 >
                   <Text
                     style={[

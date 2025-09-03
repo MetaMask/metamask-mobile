@@ -52,8 +52,8 @@ const Header: React.FC<HeaderProps> = ({
       </View>
     )}
     <View style={styles.headerContainer}>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Text style={styles.headerText as any} variant={TextVariant.BodyMDBold}>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native */}
+      <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
       </Text>
     </View>
@@ -63,8 +63,7 @@ const Header: React.FC<HeaderProps> = ({
 interface ContentProps {
   backgroundColor: string;
   selectedAlert: Alert;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: Record<string, any>;
+  styles: Record<string, ViewStyle>;
 }
 
 const Content: React.FC<ContentProps> = ({
@@ -76,16 +75,18 @@ const Content: React.FC<ContentProps> = ({
     {selectedAlert.content ?? (
       <>
         {typeof selectedAlert.message === 'string' ? (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          <Text style={styles.message as any}>{selectedAlert.message}</Text>
+          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+          <Text style={styles.message}>{selectedAlert.message}</Text>
         ) : (
           selectedAlert.message
         )}
         {selectedAlert.alertDetails && (
           <>
             <Text
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              style={styles.message as any}
+              // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+              // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+              style={styles.message}
               variant={TextVariant.BodyMDBold}
             >
               {strings('alert_system.alert_modal.alert_details')}
@@ -93,8 +94,9 @@ const Content: React.FC<ContentProps> = ({
             {selectedAlert.alertDetails.map((detail, index) => (
               <Text
                 key={`details-${index}`}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style={styles.detailsText as any}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+                style={styles.detailsText}
                 variant={TextVariant.BodyMD}
               >
                 {'• ' + detail}
@@ -135,8 +137,8 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
         isChecked={isConfirmed}
         testID="alert-modal-checkbox"
       />
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Text style={styles.checkboxText as any}>
+      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+      <Text style={styles.checkboxText}>
         {strings('alert_system.confirm_modal.checkbox_label')}
       </Text>
     </TouchableOpacity>

@@ -75,21 +75,21 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
 
   return (
     <View
-      style={
-        [
-          {
-            width,
-            height,
-            borderRadius,
-            overflow: 'hidden',
-            aspectRatio,
-            maxHeight: '100%',
-            maxWidth: '100%',
-          },
-          style,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ] as any
-      }
+      style={[
+        // eslint-disable-next-line react-native/no-inline-styles
+        {
+          width,
+          height,
+          borderRadius,
+          overflow: 'hidden',
+          aspectRatio,
+          maxHeight: '100%',
+          maxWidth: '100%',
+        },
+        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+        style,
+      ]}
     >
       <SvgXml
         testID="snaps-ui-image"

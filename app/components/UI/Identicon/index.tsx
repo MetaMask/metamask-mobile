@@ -52,8 +52,7 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   if (!address && !imageUri) return null;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const styleForBlockieAndTokenIcon: any = [
+  const styleForBlockieAndTokenIcon = [
     {
       height: diameter,
       width: diameter,
@@ -70,8 +69,9 @@ const Identicon: React.FC<IdenticonProps> = ({
       style={styleForBlockieAndTokenIcon}
     />
   ) : (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <View style={customStyle as any}>
+    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+    <View style={customStyle}>
       <Jazzicon size={diameter} address={address} />
     </View>
   );

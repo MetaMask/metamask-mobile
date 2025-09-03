@@ -64,8 +64,7 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 18,
       paddingVertical: 16,
       color: colors.text.default,
@@ -324,8 +323,7 @@ const DetectedTokens = () => {
   };
 
   const renderHeader = () => (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <Text style={styles.headerLabel as any}>
+    <Text style={styles.headerLabel}>
       {strings(
         `detected_tokens.title${
           currentDetectedTokens.length > 1 ? '_plural' : ''

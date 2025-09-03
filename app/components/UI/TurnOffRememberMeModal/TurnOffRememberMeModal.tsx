@@ -91,8 +91,7 @@ const TurnOffRememberMeModal = () => {
                 {strings('turn_off_remember_me.description')}
               </Text>
               <OutlinedTextField
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style={styles.input as any}
+                style={styles.input}
                 secureTextEntry
                 returnKeyType={'done'}
                 onChangeText={checkPassword}

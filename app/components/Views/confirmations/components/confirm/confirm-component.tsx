@@ -43,10 +43,12 @@ const ConfirmWrapped = ({
             <LedgerContextProvider>
               <Title />
               <ScrollView
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style={styles.scrollView as any}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                contentContainerStyle={styles.scrollViewContent as any}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+                style={styles.scrollView}
+                // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+                // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+                contentContainerStyle={styles.scrollViewContent}
                 nestedScrollEnabled
               >
                 <TouchableWithoutFeedback>

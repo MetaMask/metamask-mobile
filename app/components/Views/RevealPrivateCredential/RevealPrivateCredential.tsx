@@ -665,8 +665,8 @@ const RevealPrivateCredential = ({
         showsVerticalScrollIndicator={false}
       >
         <View>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <View style={[styles.rowWrapper, styles.normalText] as any}>
+          {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
+          <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
                 <AccountInfo account={account} />

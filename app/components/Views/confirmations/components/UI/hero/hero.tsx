@@ -17,14 +17,16 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
   const isStringTitle = typeof title === 'string';
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <View style={styles.title as any}>
+    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+    <View style={styles.title}>
       {setIsModalVisible ? (
         <TouchableOpacity onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
             <Text
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              style={styles.titleText as any}
+              // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+              // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+              style={styles.titleText}
               variant={TextVariant.HeadingLG}
             >
               {title}
@@ -34,8 +36,9 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
           )}
         </TouchableOpacity>
       ) : isStringTitle ? (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <Text style={styles.titleText as any} variant={TextVariant.HeadingLG}>
+        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+        <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
           {title}
         </Text>
       ) : (
