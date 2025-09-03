@@ -88,7 +88,7 @@ const AccountListFooter = memo(
       // Start the trace before setting the loading state
       trace({
         name: TraceName.CreateMultichainAccount,
-        op: TraceOperation.CreateAccount,
+        op: TraceOperation.AccountCreate,
       });
 
       // Force immediate state update
