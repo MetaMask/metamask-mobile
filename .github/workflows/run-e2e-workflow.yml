@@ -43,6 +43,7 @@ jobs:
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
+      PREBUILT_IOS_APP_PATH: artifacts/MetaMask.app
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -151,13 +152,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-
-      - name: Move iOS artifacts to expected locations
-        if: ${{ inputs.platform == 'ios' }}
-        run: |
-          mkdir -p "ios/build/Build/Products/Release-iphonesimulator/"
-          cp -r "artifacts/MetaMask.app" "ios/build/Build/Products/Release-iphonesimulator/"
-
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
         run: |
