@@ -77,6 +77,7 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { EUR_CURRENCY, USD_CURRENCY } from '../../constants';
 
 interface BuildQuoteParams {
   shouldRouteImmediately?: boolean;
@@ -104,7 +105,9 @@ const BuildQuote = () => {
     cryptoCurrency,
     setCryptoCurrency,
     fiatCurrency,
+    setFiatCurrency,
   } = useDepositSDK();
+
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
   const [error, setError] = useState<string | null>();
@@ -168,6 +171,16 @@ const BuildQuote = () => {
       },
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedRegion?.currency) {
+      if (selectedRegion.currency === 'USD') {
+        setFiatCurrency(USD_CURRENCY);
+      } else if (selectedRegion.currency === 'EUR') {
+        setFiatCurrency(EUR_CURRENCY);
+      }
+    }
+  }, [selectedRegion?.currency, setFiatCurrency]);
 
   useEffect(() => {
     if (selectedRegion?.isoCode && paymentMethods.length > 0) {

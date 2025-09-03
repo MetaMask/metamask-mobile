@@ -38,7 +38,6 @@ import {
   USDC_TOKEN,
   DEBIT_CREDIT_PAYMENT_METHOD,
   USD_CURRENCY,
-  EUR_CURRENCY,
 } from '../constants';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
@@ -137,16 +136,6 @@ export const DepositSDKProvider = ({
     },
     [dispatch],
   );
-
-  useEffect(() => {
-    if (selectedRegion?.currency) {
-      if (selectedRegion.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (selectedRegion.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    }
-  }, [selectedRegion?.currency]);
 
   useEffect(() => {
     async function setRegionByGeolocation() {
