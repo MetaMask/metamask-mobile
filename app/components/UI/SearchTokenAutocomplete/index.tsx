@@ -38,6 +38,12 @@ import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/Im
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
 import NetworkImageComponent from '../NetworkImages';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from 'app/core/redux/slices/performance';
+import { PerformanceEventNames } from 'app/core/redux/slices/performance/constants';
+import { store } from '../../../store';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,6 +214,11 @@ const SearchTokenAutocomplete = ({
       name: string;
       chainId: Hex;
     }) => {
+      store.dispatch(
+        startPerformanceTrace({
+          eventName: PerformanceEventNames.AddToken,
+        }),
+      );
       const networkConfig =
         Engine.context.NetworkController.state
           ?.networkConfigurationsByChainId?.[networkId];
@@ -248,6 +259,11 @@ const SearchTokenAutocomplete = ({
             .build(),
         );
       }
+      store.dispatch(
+        endPerformanceTrace({
+          eventName: PerformanceEventNames.AddToken,
+        }),
+      );
     },
     [getTokenAddedAnalyticsParams, trackEvent, createEventBuilder],
   );

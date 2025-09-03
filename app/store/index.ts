@@ -15,6 +15,11 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { toggleBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import {
+  endPerformanceTrace,
+  startPerformanceTrace,
+} from '../core/redux/slices/performance';
+import { PerformanceEventNames } from '../core/redux/slices/performance/constants';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -63,6 +68,11 @@ const createStoreAndPersistor = async () => {
    */
   const onPersistComplete = () => {
     endTrace({ name: TraceName.StoreInit });
+    store.dispatch(
+      endPerformanceTrace({
+        eventName: PerformanceEventNames.RehydrateStore,
+      }),
+    );
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
 
@@ -74,6 +84,17 @@ const createStoreAndPersistor = async () => {
     );
   };
 
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.RehydrateStore,
+    }),
+  );
+  // Start end-to-end rehydration trace at the same time Redux rehydration starts
+  store.dispatch(
+    startPerformanceTrace({
+      eventName: PerformanceEventNames.RehydrateEndToEnd,
+    }),
+  );
   persistor = persistStore(store, null, onPersistComplete);
 };
 
