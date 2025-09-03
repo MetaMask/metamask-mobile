@@ -152,6 +152,10 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
@@ -323,6 +327,17 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
   TITLE: 'perps-bottom-sheet-tooltip-title',
   CONTENT: 'perps-bottom-sheet-tooltip-content',
   GOT_IT_BUTTON: 'perps-bottom-sheet-tooltip-got-it-button',
+};
+
+// ========================================
+// PERPS GTM MODAL SELECTORS
+// ========================================
+
+export const PerpsGTMModalSelectorsIDs = {
+  PERPS_GTM_MODAL: 'perps-gtm-modal',
+  PERPS_LEARN_MORE_BUTTON: 'perps-learn-more-button',
+  PERPS_TRY_NOW_BUTTON: 'perps-try-now-button',
+  PERPS_NOT_NOW_BUTTON: 'perps-not-now-button',
 };
 
 // ========================================
