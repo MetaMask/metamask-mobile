@@ -169,7 +169,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           leverage,
           entryPrice,
         });
-        setTakeProfitPercentage(roePercent);
+        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
       }
 
       if (initialStopLossPrice && stopLossPercentage === '') {
@@ -202,7 +202,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           leverage,
           entryPrice,
         });
-        setTakeProfitPercentage(roePercent);
+        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
         // Only clear button selection if leverage changed (not on price updates)
         if (leverageChanged) {
           setSelectedTpPercentage(null);
@@ -303,7 +303,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           leverage,
           entryPrice,
         });
-        setTakeProfitPercentage(roePercent);
+        setTakeProfitPercentage(safeParseRoEPercentage(roePercent));
       } else {
         setTakeProfitPercentage('');
       }
@@ -416,7 +416,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       });
 
       setTakeProfitPrice(formatPrice(price));
-      setTakeProfitPercentage(roePercentage.toString());
+      setTakeProfitPercentage(safeParseRoEPercentage(roePercentage.toString()));
       setSelectedTpPercentage(roePercentage);
       setTpUsingPercentage(true); // Using RoE percentage button
     },

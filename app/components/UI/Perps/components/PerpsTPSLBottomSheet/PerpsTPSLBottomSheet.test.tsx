@@ -608,6 +608,7 @@ describe('PerpsTPSLBottomSheet', () => {
       // Arrange
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
       tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
+      tpslValidation.safeParseRoEPercentage.mockReturnValue('10');
       render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
       // First set some take profit values using new RoE button
@@ -677,6 +678,7 @@ describe('PerpsTPSLBottomSheet', () => {
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
       // Make the RoE calculation return a realistic value for 3200 price
       tpslValidation.calculateRoEForPrice.mockReturnValue('66.67');
+      tpslValidation.safeParseRoEPercentage.mockReturnValue('66.67');
 
       render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 
