@@ -11,6 +11,46 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+
+// Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
+jest.mock('../../../components/UI/Ramp', () => ({
+  RampOrders: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('../../../components/UI/Ramp/Deposit/sdk', () => ({
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+  DepositSDKContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+}));
+
+jest.mock('../../../components/UI/Ramp/Deposit/orderProcessor', () => ({}));
+
+jest.mock('@consensys/native-ramps-sdk', () => ({
+  SdkEnvironment: {
+    Production: 'production',
+    Staging: 'staging',
+  },
+  Context: {
+    MobileIOS: 'mobile-ios',
+    MobileAndroid: 'mobile-android',
+  },
+  NativeRampsSdk: jest.fn(),
+}));
+
+const mockSocialLoginUIChangesEnabled = jest.fn();
+jest.mock('../../../util/onboarding', () => ({
+  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
+    return mockSocialLoginUIChangesEnabled();
+  },
+}));
+
+const mockNavigateTermsOfUse = jest.fn();
+jest.mock('../../../util/termsOfUse/termsOfUse', () => ({
+  __esModule: true,
+  default: mockNavigateTermsOfUse,
+}));
+
 const mockStore = configureMockStore();
 const mockInitialState = {
   user: {
@@ -216,6 +256,29 @@ describe('Main', () => {
         .mock.calls[0][1](txMeta as never);
 
       expect(result.current.transactionMetaIdsForListening).toEqual([]);
+    });
+  });
+
+  describe('SOCIAL_LOGIN_UI_CHANGES_ENABLED functionality', () => {
+    it('should not call termsOfUse when SOCIAL_LOGIN_UI_CHANGES_ENABLED is true', async () => {
+      mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+
+      const MainAppContainer = () => (
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer>
+            <Main />
+          </NavigationContainer>
+        </Provider>
+      );
+
+      const wrapper = shallow(<MainAppContainer />);
+      expect(wrapper).toMatchSnapshot();
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      expect(mockNavigateTermsOfUse).not.toHaveBeenCalled();
     });
   });
 });
