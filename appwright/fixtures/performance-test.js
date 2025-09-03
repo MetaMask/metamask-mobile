@@ -23,6 +23,16 @@ export const test = base.extend({
     }
 
     if (sessionId) {
+      // Store session data as a test attachment for the reporter to find
+      await testInfo.attach('session-data', {
+        body: JSON.stringify({
+          sessionId,
+          testTitle: testInfo.title,
+          timestamp: new Date().toISOString(),
+        }),
+        contentType: 'application/json',
+      });
+
       await performanceTracker.storeSessionData(sessionId, testInfo.title);
       console.log(`✅ Session data stored successfully: ${sessionId}`);
     } else {

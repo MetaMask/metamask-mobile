@@ -6,8 +6,7 @@ import path from 'path';
 class CustomReporter {
   constructor() {
     this.metrics = [];
-    this.videoURL = null;
-    this.sessionId = null;
+    this.sessions = []; // Array to store all session data
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
@@ -17,19 +16,46 @@ class CustomReporter {
     console.log(`📊 Test status: ${result.status}`);
     console.log(`📊 Test duration: ${result.duration}ms`);
 
-    // Try to capture session ID from test result as fallback
-    if (!this.sessionId && result.annotations) {
+    // Look for session data in attachments (preferred method)
+    const sessionAttachment = result.attachments.find(
+      (att) => att.name === 'session-data',
+    );
+
+    if (sessionAttachment && sessionAttachment.body) {
+      try {
+        const sessionData = JSON.parse(sessionAttachment.body.toString());
+        this.sessions.push({
+          ...sessionData,
+          testStatus: result.status,
+          testDuration: result.duration,
+        });
+        console.log(
+          `✅ Captured session data for test: ${sessionData.sessionId}`,
+        );
+      } catch (error) {
+        console.log(`❌ Error parsing session data: ${error.message}`);
+      }
+    }
+
+    // Fallback: Try to capture session ID from test result annotations
+    if (result.annotations) {
       const sessionIdAnnotation = result.annotations.find(
         (annotation) => annotation.type === 'sessionId',
       );
       if (sessionIdAnnotation) {
-        this.sessionId = sessionIdAnnotation.description;
-        console.log(
-          `✅ Captured session ID from test result: ${this.sessionId}`,
-        );
-        // Store it for the custom reporter
-        process.env.TEMP_SESSION_ID = this.sessionId;
-        process.env.TEMP_TEST_TITLE = test.title;
+        const sessionId = sessionIdAnnotation.description;
+        console.log(`✅ Captured session ID from annotations: ${sessionId}`);
+
+        // Only add if we didn't already capture it from attachments
+        if (!this.sessions.find((s) => s.sessionId === sessionId)) {
+          this.sessions.push({
+            sessionId,
+            testTitle: test.title,
+            testStatus: result.status,
+            testDuration: result.duration,
+            timestamp: new Date().toISOString(),
+          });
+        }
       }
     }
 
@@ -84,35 +110,48 @@ class CustomReporter {
 
   async onEnd() {
     console.log(
-      `\n🔍 onEnd called - Processing ${this.metrics.length} metrics entries`,
+      `\n🔍 onEnd called - Processing ${this.metrics.length} metrics entries and ${this.sessions.length} sessions`,
     );
 
-    // Handle video URL fetching if we have stored session data
-    this.sessionId = this.sessionId || process.env.TEMP_SESSION_ID;
-
-    if (this.sessionId) {
-      console.log(`🎬 Fetching video URL for session: ${this.sessionId}`);
+    // Fetch video URLs for all sessions
+    if (this.sessions.length > 0) {
       const tracker = new PerformanceTracker();
 
-      try {
-        this.videoURL = await tracker.getVideoURL(this.sessionId, 60, 3000);
-        if (this.videoURL) {
-          console.log('✅ Video URL fetched successfully:', this.videoURL);
-        } else {
-          console.log(
-            '❌ Video URL could not be fetched (but session ID was valid)',
+      for (const session of this.sessions) {
+        console.log(
+          `🎬 Fetching video URL for session: ${session.sessionId} (${session.testTitle})`,
+        );
+
+        try {
+          const videoURL = await tracker.getVideoURL(
+            session.sessionId,
+            60,
+            3000,
+          );
+          if (videoURL) {
+            session.videoURL = videoURL;
+            console.log(
+              `✅ Video URL fetched for ${session.testTitle}: ${videoURL}`,
+            );
+          } else {
+            console.log(
+              `❌ Video URL could not be fetched for ${session.testTitle}`,
+            );
+          }
+        } catch (error) {
+          console.error(
+            `❌ Error fetching video URL for ${session.testTitle}:`,
+            error.message,
           );
         }
-      } catch (error) {
-        console.error('❌ Error fetching video URL:', error.message);
       }
-
-      // Clean up session data
-      delete process.env.TEMP_SESSION_ID;
-      delete process.env.TEMP_TEST_TITLE;
     } else {
-      console.log('❌ No session ID available for video URL fetching');
+      console.log('❌ No session data available for video URL fetching');
     }
+
+    // Clean up any leftover environment variables
+    delete process.env.TEMP_SESSION_ID;
+    delete process.env.TEMP_TEST_TITLE;
 
     // If we have a sessionId but no metrics (failed test scenario), create a minimal entry
     if (this.sessionId && this.metrics.length === 0) {
@@ -149,12 +188,17 @@ class CustomReporter {
       }
 
       if (this.metrics.length > 0) {
-        // Add video URL to metrics if available
-        const metricsWithVideo = this.metrics.map((metric) => ({
-          ...metric,
-          videoURL: this.videoURL,
-          sessionId: this.sessionId,
-        }));
+        // Add video URLs to metrics by matching test names with sessions
+        const metricsWithVideo = this.metrics.map((metric) => {
+          const matchingSession = this.sessions.find(
+            (session) => session.testTitle === metric.testName,
+          );
+          return {
+            ...metric,
+            videoURL: matchingSession?.videoURL || null,
+            sessionId: matchingSession?.sessionId || null,
+          };
+        });
 
         // Save JSON metrics
         const jsonPath = path.join(
@@ -255,14 +299,21 @@ class CustomReporter {
               .join('')}
             <p><small>Generated: ${new Date().toLocaleString()}</small></p>
             ${
-              this.sessionId
-                ? `<p><small>Session ID: ${this.sessionId}</small></p>`
-                : ''
-            }
-            ${
-              this.videoURL
-                ? `<p><strong>📹 Video Recording: <a href="${this.videoURL}" target="_blank">View Recording</a></strong></p>`
-                : ''
+              this.sessions.length > 0
+                ? `<div>
+                    <h3>📹 Video Recordings</h3>
+                    ${this.sessions
+                      .map(
+                        (session) =>
+                          `<p><strong>${session.testTitle}:</strong> ${
+                            session.videoURL
+                              ? `<a href="${session.videoURL}" target="_blank">View Recording</a> (${session.sessionId})`
+                              : `No video available (${session.sessionId})`
+                          }</p>`,
+                      )
+                      .join('')}
+                   </div>`
+                : '<p>No video recordings available</p>'
             }
           </body>
           </html>
@@ -291,11 +342,17 @@ class CustomReporter {
             `Device: ${test.device.name} - OS: ${test.device.osVersion}`,
           );
         }
-        if (this.sessionId) {
-          csvRows.push(`Session ID: ${this.sessionId}`);
-        }
-        if (this.videoURL) {
-          csvRows.push(`Video Recording: ${this.videoURL}`);
+        if (this.sessions.length > 0) {
+          csvRows.push('Video Recordings:');
+          this.sessions.forEach((session, index) => {
+            csvRows.push(`  ${index + 1}. ${session.testTitle}`);
+            csvRows.push(`     Session ID: ${session.sessionId}`);
+            if (session.videoURL) {
+              csvRows.push(`     Video: ${session.videoURL}`);
+            } else {
+              csvRows.push(`     Video: Not available`);
+            }
+          });
         }
         csvRows.push(''); // Blank line for readability
 
