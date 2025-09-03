@@ -73,6 +73,10 @@ export const getPercentageValueFn = ({
     percentageValue = percentageValue.mul(new BN(percentage)).div(new BN(100));
   }
 
+  if (percentageValue.isNeg() || percentageValue.isZero()) {
+    return '0';
+  }
+
   return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
