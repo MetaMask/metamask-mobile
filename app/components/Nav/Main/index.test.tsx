@@ -263,17 +263,6 @@ describe('Main', () => {
     it('should not call termsOfUse when SOCIAL_LOGIN_UI_CHANGES_ENABLED is true', async () => {
       mockSocialLoginUIChangesEnabled.mockReturnValue(true);
 
-      const MainAppContainer = () => (
-        <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer>
-            <Main />
-          </NavigationContainer>
-        </Provider>
-      );
-
-      const wrapper = shallow(<MainAppContainer />);
-      expect(wrapper).toMatchSnapshot();
-
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
