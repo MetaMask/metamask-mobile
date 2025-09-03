@@ -22,30 +22,16 @@ export const usePerpsImagePrefetch = (
   const [isPrefetching, setIsPrefetching] = useState(false);
   const prefetchedRef = useRef<Set<string>>(new Set());
   const isPrefetchingRef = useRef(false);
+  const pendingSymbolsRef = useRef<string[]>([]);
 
-  useEffect(() => {
-    if (!symbols?.length || isPrefetchingRef.current) {
-      return;
-    }
-
-    // Filter out invalid symbols and already prefetched symbols
-    const symbolsToPrefetch = symbols
-      .filter((symbol) => symbol && typeof symbol === 'string' && symbol.trim())
-      .filter((symbol) => !prefetchedRef.current.has(symbol.toUpperCase()));
-
-    if (symbolsToPrefetch.length === 0) {
-      return;
-    }
-
-    const prefetchImages = async () => {
-      isPrefetchingRef.current = true;
-      setIsPrefetching(true);
+  const processBatch = useCallback(
+    async (symbolsToProcess: string[]) => {
       const batchSize = options?.batchSize || 25; // Increased default for ~173 markets
 
       try {
         // Process in batches to avoid overwhelming the network
-        for (let i = 0; i < symbolsToPrefetch.length; i += batchSize) {
-          const batch = symbolsToPrefetch.slice(i, i + batchSize);
+        for (let i = 0; i < symbolsToProcess.length; i += batchSize) {
+          const batch = symbolsToProcess.slice(i, i + batchSize);
           // Additional safety check before URL construction
           const urls = batch
             .filter(
@@ -96,20 +82,97 @@ export const usePerpsImagePrefetch = (
           }
 
           // Smaller delay between batches for faster loading
-          if (i + batchSize < symbolsToPrefetch.length) {
+          if (i + batchSize < symbolsToProcess.length) {
             await new Promise((resolve) => setTimeout(resolve, 50));
           }
         }
       } catch (error) {
         DevLogger.log('Error prefetching images:', error);
+      }
+    },
+    [options?.batchSize],
+  );
+
+  const processPendingSymbols = useCallback(async () => {
+    const pendingSymbols = pendingSymbolsRef.current;
+    if (pendingSymbols.length === 0) {
+      return;
+    }
+
+    pendingSymbolsRef.current = [];
+
+    // Process pending symbols
+    const pendingSymbolsToPrefetch = pendingSymbols
+      .filter((symbol) => symbol && typeof symbol === 'string' && symbol.trim())
+      .filter((symbol) => !prefetchedRef.current.has(symbol.toUpperCase()));
+
+    if (pendingSymbolsToPrefetch.length > 0) {
+      // Small delay to allow state to settle
+      setTimeout(async () => {
+        if (!isPrefetchingRef.current) {
+          isPrefetchingRef.current = true;
+          setIsPrefetching(true);
+
+          try {
+            await processBatch(pendingSymbolsToPrefetch);
+          } finally {
+            isPrefetchingRef.current = false;
+            setIsPrefetching(false);
+            // Recursively handle any new pending symbols
+            await processPendingSymbols();
+          }
+        }
+      }, 100);
+    }
+  }, [processBatch]);
+
+  const prefetchImages = useCallback(
+    async (symbolsToPrefetch: string[]) => {
+      isPrefetchingRef.current = true;
+      setIsPrefetching(true);
+
+      try {
+        await processBatch(symbolsToPrefetch);
       } finally {
         isPrefetchingRef.current = false;
         setIsPrefetching(false);
+        // Process any pending symbols that arrived during prefetching
+        await processPendingSymbols();
       }
-    };
+    },
+    [processBatch, processPendingSymbols],
+  );
 
-    prefetchImages();
-  }, [symbols, options?.batchSize]);
+  const filterSymbolsToPrefetch = useCallback(
+    (inputSymbols: string[]) =>
+      inputSymbols
+        .filter(
+          (symbol) => symbol && typeof symbol === 'string' && symbol.trim(),
+        )
+        .filter((symbol) => !prefetchedRef.current.has(symbol.toUpperCase())),
+    [],
+  );
+
+  useEffect(() => {
+    if (!symbols?.length) {
+      return;
+    }
+
+    // If currently prefetching, queue these symbols for later processing
+    if (isPrefetchingRef.current) {
+      pendingSymbolsRef.current = symbols;
+      return;
+    }
+
+    // Filter out invalid symbols and already prefetched symbols
+    const symbolsToPrefetch = filterSymbolsToPrefetch(symbols);
+
+    if (symbolsToPrefetch.length === 0) {
+      return;
+    }
+
+    prefetchImages(symbolsToPrefetch);
+  }, [symbols, prefetchImages, filterSymbolsToPrefetch]);
 
   return {
     prefetchedCount: prefetchedSymbols.size,
