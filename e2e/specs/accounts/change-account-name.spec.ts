@@ -1,5 +1,5 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { Regression } from '../../tags.js';
+import { RegressionAccounts } from '../../tags.js';
 import WalletView from '../../pages/wallet/WalletView';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import EditAccountNameView from '../../pages/wallet/EditAccountNameView';
@@ -31,7 +31,7 @@ const testSpecificMock = async (mockServer: Mockttp) => {
 };
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.
-describe(Regression('Change Account Name'), () => {
+describe(RegressionAccounts('Change Account Name'), () => {
   it('renames an account and verifies the new name persists after locking and unlocking the wallet', async () => {
     await withFixtures(
       {

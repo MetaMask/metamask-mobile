@@ -1,4 +1,4 @@
-import { SmokeConfirmations } from '../../tags';
+import { RegressionConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -13,7 +13,7 @@ import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
-describe(SmokeConfirmations('ERC721 tokens'), () => {
+describe(RegressionConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   it('approve an ERC721 token from a dapp', async () => {

@@ -320,17 +320,25 @@ export const parsePercentageString = (formattedValue: string): number => {
 };
 
 /**
- * Formats a timestamp for transaction detail views
+ * Formats a timestamp for transaction detail views with time
  * @param timestamp - Unix timestamp in milliseconds
- * @returns Formatted date string (e.g., "July 24, 2025")
- * @example formatTransactionDate(1642492800000) => "January 18, 2022"
+ * @returns Formatted date string with time (e.g., "July 24, 2025 at 2:30 PM")
+ * @example formatTransactionDate(1642492800000) => "January 18, 2022 at 12:00 AM"
  */
-export const formatTransactionDate = (timestamp: number): string =>
-  new Intl.DateTimeFormat('en-US', {
+export const formatTransactionDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const dateStr = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(new Date(timestamp));
+  }).format(date);
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${dateStr} at ${timeStr}`;
+};
 
 /**
  * Formats a timestamp for transaction section headers

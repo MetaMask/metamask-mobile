@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../tags';
+import { RegressionNetworkAbstractions } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
@@ -14,7 +14,7 @@ import Assertions from '../../framework/Assertions';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe.skip(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
+describe.skip(RegressionNetworkAbstractions('Fiat On Testnets Setting'), () => {
   // This test depends on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.
   const isRemoveGlobalNetworkSelectorEnabled =
     process.env.MM_REMOVE_GLOBAL_NETWORK_SELECTOR === 'true';

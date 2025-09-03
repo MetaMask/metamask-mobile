@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionNetworkAbstractions } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -24,7 +24,7 @@ const accountPrivateKey = Accounts.getAccountPrivateKey();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(
-  Regression(
+  RegressionNetworkAbstractions(
     'Permission System Test: Revoking accounts after connecting to a dapp',
   ),
   () => {

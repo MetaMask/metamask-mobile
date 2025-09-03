@@ -53,23 +53,47 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [isLoadingPosition, fadeAnim]);
 
-  // Tab configuration
-  const tabs = [
-    {
-      id: 'position',
-      label: strings('perps.market.position'),
-    },
-    {
-      id: 'orders',
-      label: strings('perps.market.orders'),
-    },
-    {
+  const tabs = React.useMemo(() => {
+    const dynamicTabs = [];
+
+    // Only show position tab if there's a position
+    if (position) {
+      dynamicTabs.push({
+        id: 'position',
+        label: strings('perps.market.position'),
+      });
+    }
+
+    // Only show orders tab if there are orders
+    if (unfilledOrders.length > 0) {
+      dynamicTabs.push({
+        id: 'orders',
+        label: strings('perps.market.orders'),
+      });
+    }
+
+    // Always show statistics tab
+    dynamicTabs.push({
       id: 'statistics',
       label: strings('perps.market.statistics'),
-    },
-  ];
+    });
 
-  const [activeTabId, setActiveTabId] = useState(tabs[0].id);
+    return dynamicTabs;
+  }, [position, unfilledOrders.length]);
+
+  // Set initial active tab to the first available tab
+  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id || 'statistics');
+
+  // Update active tab if current tab is no longer available
+  useEffect(() => {
+    const tabIds = tabs.map((t) => t.id);
+    if (!tabIds.includes(activeTabId)) {
+      // Switch to first available tab if current tab is hidden
+      const newTabId = tabs[0]?.id || 'statistics';
+      setActiveTabId(newTabId);
+      onActiveTabChange?.(newTabId);
+    }
+  }, [tabs, activeTabId, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(
@@ -152,8 +176,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }
 
-  // If no position and no orders after loading, show just statistics
-  if (!position && unfilledOrders.length === 0) {
+  if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text

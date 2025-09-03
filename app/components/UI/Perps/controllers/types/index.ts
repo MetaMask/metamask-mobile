@@ -379,9 +379,19 @@ export interface FeeCalculationParams {
 }
 
 export interface FeeCalculationResult {
-  feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
-  feeAmount?: number; // Fee amount in USD (when amount is provided)
-  // Optional breakdown for transparency
+  // Total fees (protocol + MetaMask)
+  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeAmount?: number; // Total fee amount in USD (when amount is provided)
+
+  // Protocol-specific base fees
+  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeAmount?: number; // Protocol fee amount in USD
+
+  // MetaMask builder/revenue fee
+  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeAmount?: number; // MetaMask fee amount in USD
+
+  // Optional detailed breakdown for transparency
   breakdown?: {
     baseFeeRate: number;
     volumeTier?: string;

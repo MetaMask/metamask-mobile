@@ -5,7 +5,7 @@ import Assertions from '../../framework/Assertions';
 import { defaultGanacheOptions } from '../../framework/Constants';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import { Regression } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
@@ -13,7 +13,7 @@ import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { testSpecificMock } from './helpers/swap-mocks';
 
-describe(Regression('Multiple Swaps from Actions'), (): void => {
+describe(RegressionTrade('Multiple Swaps from Actions'), (): void => {
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
 

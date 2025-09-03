@@ -1,0 +1,317 @@
+name: iOS E2E Regression Tests
+
+# TODO: Add schedule once iOS builds are available
+on:
+  workflow_call:
+    inputs:
+      confirmations-suite:
+        description: 'Confirmations Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      trade-suite:
+        description: 'Trade Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      wallet-platform-suite:
+        description: 'Wallet Platform Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      identity-suite:
+        description: 'Identity Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      accounts-suite:
+        description: 'Accounts Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-abstraction-suite:
+        description: 'Network Abstraction Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-expansion-suite:
+        description: 'Network Expansion Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      confirmations-suite:
+        description: 'Confirmations Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      trade-suite:
+        description: 'Trade Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      wallet-platform-suite:
+        description: 'Wallet Platform Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      identity-suite:
+        description: 'Identity Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      accounts-suite:
+        description: 'Accounts Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-abstraction-suite:
+        description: 'Network Abstraction Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      network-expansion-suite:
+        description: 'Network Expansion Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      assets-suite:
+        description: 'Assets Regression Suite'
+        required: false
+        type: boolean
+        default: false
+      ux-suite:
+        description: 'UX Regression Suite'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate-suites:
+    name: Validate suite selection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure at least one suite is selected (non-schedule)
+        if: ${{ github.event_name != 'schedule' }}
+        run: |
+          selected=0
+          for v in \
+            "${{ inputs.confirmations-suite }}" \
+            "${{ inputs.trade-suite }}" \
+            "${{ inputs.wallet-platform-suite }}" \
+            "${{ inputs.identity-suite }}" \
+            "${{ inputs.accounts-suite }}" \
+            "${{ inputs.network-abstraction-suite }}" \
+            "${{ inputs.network-expansion-suite }}" \
+            "${{ inputs.assets-suite }}" \
+            "${{ inputs.ux-suite }}" \
+          ; do
+            if [ "$v" = "true" ]; then
+              selected=1
+            fi
+          done
+          if [ "$selected" -ne 1 ]; then
+            echo "No regression suites selected. Enable at least one suite input."
+            exit 1
+          fi
+  regression-confirmations-ios:
+    name: 'Confirmations Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.confirmations-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-confirmations-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionConfirmations'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-trade-ios:
+    name: 'Trade Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.trade-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-trade-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionTrade'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-wallet-platform-ios:
+    name: 'Wallet Platform Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.wallet-platform-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-wallet-platform-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionWalletPlatform'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-identity-ios:
+    name: 'Identity Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.identity-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-identity-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionIdentity'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-accounts-ios:
+    name: 'Accounts Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.accounts-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-accounts-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionAccounts'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-network-abstraction-ios:
+    name: 'Network Abstraction Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.network-abstraction-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-network-abstraction-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionNetworkAbstractions'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-network-expansion-ios:
+    name: 'Network Expansion Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.network-expansion-suite }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-network-expansion-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionNetworkExpansion'
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+    secrets: inherit
+
+  regression-assets-ios:
+    name: 'Assets Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.assets-suite }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-assets-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionAssets'
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+    secrets: inherit
+  
+  regression-ux-ios:
+    name: 'UX Regression (iOS) - ${{ matrix.split }}'
+    needs: validate-suites
+    if: ${{ github.event_name == 'schedule' || inputs.ux-suite }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: regression-ux-ios-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: 'RegressionWalletUX'
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+    secrets: inherit
+
+  report-ios-regression-tests:
+    name: Report iOS Regression Tests
+    runs-on: ubuntu-latest
+    if: always()
+    needs: validate-suites
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: all-test-results/
+          pattern: '*-ios-*-test-results'
+
+      - name: Post Test Report
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: 'iOS E2E Regression Test Results'
+          path: 'all-test-results/**/*.xml'
+          reporter: 'jest-junit'
+          fail-on-error: false
+          list-suites: 'failed'
+          list-tests: 'failed'
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: ios-merged-test-report
+          path: all-test-results/**/*.xml

@@ -67,6 +67,7 @@ import { getEnvironment } from './utils';
  */
 export const PERPS_ERROR_CODES = {
   CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
+  CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
   BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
@@ -321,6 +322,7 @@ export class PerpsController extends BaseController<
   private providers: Map<string, IPerpsProvider>;
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
+  private isReinitializing = false;
 
   constructor({ messenger, state = {} }: PerpsControllerOptions) {
     super({
@@ -412,9 +414,21 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Get the currently active provider - ensures initialization first
+   * Get the currently active provider
+   * @returns The active provider
+   * @throws Error if provider is not initialized or reinitializing
    */
   getActiveProvider(): IPerpsProvider {
+    // Check if we're in the middle of reinitializing
+    if (this.isReinitializing) {
+      this.update((state) => {
+        state.lastError = PERPS_ERROR_CODES.CLIENT_REINITIALIZING;
+        state.lastUpdateTimestamp = Date.now();
+      });
+      throw new Error(PERPS_ERROR_CODES.CLIENT_REINITIALIZING);
+    }
+
+    // Check if not initialized
     if (!this.isInitialized) {
       this.update((state) => {
         state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
@@ -1244,14 +1258,40 @@ export class PerpsController extends BaseController<
    * Get supported withdrawal routes - returns complete asset and routing information
    */
   getWithdrawalRoutes(): AssetRoute[] {
-    const provider = this.getActiveProvider();
-    return provider.getWithdrawalRoutes();
+    try {
+      const provider = this.getActiveProvider();
+      return provider.getWithdrawalRoutes();
+    } catch (error) {
+      DevLogger.log('PerpsController: Error getting withdrawal routes', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return empty array if provider is not available
+      return [];
+    }
   }
 
   /**
    * Toggle between testnet and mainnet
    */
   async toggleTestnet(): Promise<ToggleTestnetResult> {
+    // Prevent concurrent reinitializations
+    if (this.isReinitializing) {
+      DevLogger.log(
+        'PerpsController: Already reinitializing, skipping toggle',
+        {
+          timestamp: new Date().toISOString(),
+        },
+      );
+      return {
+        success: false,
+        isTestnet: this.state.isTestnet,
+        error: PERPS_ERROR_CODES.CLIENT_REINITIALIZING,
+      };
+    }
+
+    this.isReinitializing = true;
+
     try {
       const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
 
@@ -1289,6 +1329,8 @@ export class PerpsController extends BaseController<
             ? error.message
             : PERPS_ERROR_CODES.UNKNOWN_ERROR,
       };
+    } finally {
+      this.isReinitializing = false;
     }
   }
 
@@ -1325,48 +1367,110 @@ export class PerpsController extends BaseController<
    * Subscribe to live price updates
    */
   subscribeToPrices(params: SubscribePricesParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToPrices(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToPrices(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to prices', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live position updates
    */
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToPositions(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToPositions(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to positions', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live order fill updates
    */
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToOrderFills(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrderFills(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to order fills', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live order updates
    */
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToOrders(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToOrders(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to orders', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Subscribe to live account updates
    */
   subscribeToAccount(params: SubscribeAccountParams): () => void {
-    const provider = this.getActiveProvider();
-    return provider.subscribeToAccount(params);
+    try {
+      const provider = this.getActiveProvider();
+      return provider.subscribeToAccount(params);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error subscribing to account', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+      // Return a no-op unsubscribe function
+      return () => {
+        // No-op: Provider not initialized
+      };
+    }
   }
 
   /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
-    const provider = this.getActiveProvider();
-    provider.setLiveDataConfig(config);
+    try {
+      const provider = this.getActiveProvider();
+      provider.setLiveDataConfig(config);
+    } catch (error) {
+      DevLogger.log('PerpsController: Error setting live data config', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 
   /**
@@ -1394,8 +1498,21 @@ export class PerpsController extends BaseController<
       },
     );
 
-    const provider = this.getActiveProvider();
-    await provider.disconnect();
+    // Only disconnect the provider if we're initialized
+    if (this.isInitialized && !this.isReinitializing) {
+      try {
+        const provider = this.getActiveProvider();
+        await provider.disconnect();
+      } catch (error) {
+        DevLogger.log(
+          'PerpsController: Error getting provider during disconnect',
+          {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          },
+        );
+      }
+    }
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
@@ -1407,25 +1524,43 @@ export class PerpsController extends BaseController<
    * Called when user switches accounts or networks
    */
   async reconnectWithNewContext(): Promise<void> {
-    DevLogger.log('PerpsController: Reconnecting with new account/network', {
-      timestamp: new Date().toISOString(),
-    });
+    // Prevent concurrent reinitializations
+    if (this.isReinitializing) {
+      DevLogger.log('PerpsController: Already reinitializing, waiting...', {
+        timestamp: new Date().toISOString(),
+      });
+      // Wait for the current reinitialization to complete
+      if (this.initializationPromise) {
+        await this.initializationPromise;
+      }
+      return;
+    }
 
-    // Clear Redux state immediately to reset UI
-    this.update((state) => {
-      state.positions = [];
-      state.accountState = null;
-      state.pendingOrders = [];
-      state.lastError = null;
-    });
+    this.isReinitializing = true;
 
-    // Clear state and force reinitialization
-    // initializeProviders() will handle disconnection if needed
-    this.isInitialized = false;
-    this.initializationPromise = null;
+    try {
+      DevLogger.log('PerpsController: Reconnecting with new account/network', {
+        timestamp: new Date().toISOString(),
+      });
 
-    // Reinitialize with new context
-    await this.initializeProviders();
+      // Clear Redux state immediately to reset UI
+      this.update((state) => {
+        state.positions = [];
+        state.accountState = null;
+        state.pendingOrders = [];
+        state.lastError = null;
+      });
+
+      // Clear state and force reinitialization
+      // initializeProviders() will handle disconnection if needed
+      this.isInitialized = false;
+      this.initializationPromise = null;
+
+      // Reinitialize with new context
+      await this.initializeProviders();
+    } finally {
+      this.isReinitializing = false;
+    }
   }
 
   /**

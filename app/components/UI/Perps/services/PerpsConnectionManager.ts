@@ -4,6 +4,7 @@ import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
+import { PERPS_ERROR_CODES } from '../controllers/PerpsController';
 
 /**
  * Singleton manager for Perps connection state
@@ -172,8 +173,27 @@ class PerpsConnectionManagerClass {
         await Engine.context.PerpsController.initializeProviders();
         this.isInitialized = true;
 
-        // Trigger connection
-        await Engine.context.PerpsController.getAccountState();
+        // Trigger connection - may fail if still initializing
+        try {
+          await Engine.context.PerpsController.getAccountState();
+        } catch (error) {
+          // If it's a CLIENT_REINITIALIZING error, wait and retry once
+          if (
+            error instanceof Error &&
+            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING
+          ) {
+            DevLogger.log(
+              'PerpsConnectionManager: Provider reinitializing, retrying...',
+              {
+                error: error.message,
+              },
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            await Engine.context.PerpsController.getAccountState();
+          } else {
+            throw error;
+          }
+        }
 
         this.isConnected = true;
         this.isConnecting = false;
@@ -210,6 +230,7 @@ class PerpsConnectionManagerClass {
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
+      streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
@@ -224,11 +245,34 @@ class PerpsConnectionManagerClass {
       // Force the controller to reinitialize with new context
       await Engine.context.PerpsController.reconnectWithNewContext();
 
+      // Wait a bit for initialization to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Re-establish connection
       this.isConnecting = true;
 
-      // Trigger connection with new account
-      await Engine.context.PerpsController.getAccountState();
+      // Trigger connection with new account - wrap in try/catch to handle initialization errors
+      try {
+        await Engine.context.PerpsController.getAccountState();
+      } catch (error) {
+        // If it's a CLIENT_NOT_INITIALIZED or CLIENT_REINITIALIZING error, wait and retry once
+        if (
+          error instanceof Error &&
+          (error.message === PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED ||
+            error.message === PERPS_ERROR_CODES.CLIENT_REINITIALIZING)
+        ) {
+          DevLogger.log(
+            'PerpsConnectionManager: Waiting for initialization to complete',
+            {
+              error: error.message,
+            },
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          await Engine.context.PerpsController.getAccountState();
+        } else {
+          throw error;
+        }
+      }
 
       this.isConnected = true;
       this.isInitialized = true;
@@ -323,7 +367,7 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm the positions, orders, account, and market data channels
+      // Pre-warm all channels including prices for all markets
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
@@ -331,11 +375,15 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
+      // Price channel prewarm is async and subscribes to all market prices
+      const priceCleanup = await streamManager.prices.prewarm();
+
       this.prewarmCleanups.push(
         positionCleanup,
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
+        priceCleanup,
       );
 
       // Give subscriptions a moment to receive initial data

@@ -57,6 +57,7 @@ import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { isE2E } from '../../../../../util/test/utils';
 
 /**
  * CardHome Component
@@ -227,9 +228,11 @@ const CardHome = () => {
 
   const isLoading = useMemo(
     () =>
-      isLoadingPriorityToken ||
-      isLoadingNetworkChange ||
-      (!priorityToken && !hasError),
+      isE2E
+        ? false
+        : isLoadingPriorityToken ||
+          isLoadingNetworkChange ||
+          (!priorityToken && !hasError),
     [isLoadingPriorityToken, isLoadingNetworkChange, priorityToken, hasError],
   );
 
