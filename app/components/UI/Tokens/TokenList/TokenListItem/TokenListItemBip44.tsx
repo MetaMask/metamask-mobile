@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -13,6 +12,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
@@ -46,6 +46,9 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -68,10 +71,6 @@ export const TokenListItemBip44 = React.memo(
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
-    const primaryCurrency = useSelector(
-      (state: RootState) => state.settings.primaryCurrency,
-    );
-
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
         address: assetKey.address,
@@ -91,6 +90,32 @@ export const TokenListItemBip44 = React.memo(
     );
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
+
+    // Secondary balance shows percentage change (if available and not on testnet)
+    const hasPercentageChange =
+      !isTestNet(chainId) &&
+      showPercentageChange &&
+      pricePercentChange1d !== null &&
+      pricePercentChange1d !== undefined &&
+      Number.isFinite(pricePercentChange1d);
+
+    // Determine the color for percentage change
+    let percentageColor = TextColor.Alternative;
+    if (hasPercentageChange) {
+      if (pricePercentChange1d === 0) {
+        percentageColor = TextColor.Alternative;
+      } else if (pricePercentChange1d > 0) {
+        percentageColor = TextColor.Success;
+      } else {
+        percentageColor = TextColor.Error;
+      }
+    }
+
+    const percentageText = hasPercentageChange
+      ? `${pricePercentChange1d >= 0 ? '+' : ''}${pricePercentChange1d.toFixed(
+          2,
+        )}%`
+      : undefined;
 
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
     const earnToken = getEarnToken(asset as TokenI);
@@ -216,23 +241,16 @@ export const TokenListItemBip44 = React.memo(
       return null;
     }
 
-    const mainBalance =
-      primaryCurrency === 'Fiat'
-        ? asset.balanceFiat
-        : `${asset.balance} ${asset.symbol}`;
-    const secondaryBalance =
-      primaryCurrency === 'Fiat'
-        ? `${asset.balance} ${asset.symbol}`
-        : asset.balanceFiat;
-
     return (
       <AssetElement
         onPress={onItemPress}
         onLongPress={asset.isNative ? null : showRemoveMenu}
         asset={asset}
-        balance={mainBalance}
-        secondaryBalance={secondaryBalance}
+        balance={asset.balanceFiat}
+        secondaryBalance={percentageText}
+        secondaryBalanceColor={percentageColor}
         privacyMode={privacyMode}
+        hideSecondaryBalanceInPrivacyMode={false}
       >
         <BadgeWrapper
           style={styles.badge}
@@ -259,9 +277,16 @@ export const TokenListItemBip44 = React.memo(
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
           </View>
           <View style={styles.percentageChange}>
-            {!isTestNet(chainId) && showPercentageChange ? (
-              <PercentageChange value={pricePercentChange1d ?? 0} />
-            ) : null}
+            {
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.balanceFiat}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {asset.balance} {asset.symbol}
+              </SensitiveText>
+            }
             {renderEarnCta()}
           </View>
         </View>
