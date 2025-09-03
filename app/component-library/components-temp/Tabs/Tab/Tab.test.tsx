@@ -77,15 +77,15 @@ describe('Tab', () => {
   });
 
   describe('Disabled State', () => {
-    it('applies disabled styling when disabled is true', () => {
-      const { toJSON } = render(<Tab {...defaultProps} disabled />);
+    it('applies disabled styling when isDisabled is true', () => {
+      const { toJSON } = render(<Tab {...defaultProps} isDisabled />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not call onPress when disabled and pressed', () => {
       const mockOnPress = jest.fn();
       const { getAllByText } = render(
-        <Tab {...defaultProps} onPress={mockOnPress} disabled />,
+        <Tab {...defaultProps} onPress={mockOnPress} isDisabled />,
       );
 
       fireEvent.press(getAllByText('Test Tab')[0]);
@@ -95,19 +95,19 @@ describe('Tab', () => {
 
     it('shows muted text color when disabled and inactive', () => {
       const { toJSON } = render(
-        <Tab {...defaultProps} disabled isActive={false} />,
+        <Tab {...defaultProps} isDisabled isActive={false} />,
       );
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('shows active color when disabled but active', () => {
-      const { toJSON } = render(<Tab {...defaultProps} disabled isActive />);
+    it('shows disabled styling even when marked as active', () => {
+      const { toJSON } = render(<Tab {...defaultProps} isDisabled isActive />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not show pressed feedback when disabled', () => {
       const { getByTestId } = render(
-        <Tab {...defaultProps} disabled testID="disabled-tab" />,
+        <Tab {...defaultProps} isDisabled testID="disabled-tab" />,
       );
 
       const tab = getByTestId('disabled-tab');
@@ -145,7 +145,7 @@ describe('Tab', () => {
     });
 
     it('is accessible when disabled', () => {
-      const { getAllByText } = render(<Tab {...defaultProps} disabled />);
+      const { getAllByText } = render(<Tab {...defaultProps} isDisabled />);
       const tab = getAllByText('Test Tab')[0];
       expect(tab).toBeOnTheScreen();
     });

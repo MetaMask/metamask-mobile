@@ -18,8 +18,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   tabs,
   activeIndex,
   onTabPress,
-  locked = false,
   testID,
+  ...boxProps
 }) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -42,6 +42,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   // Animate underline when active tab changes
   useEffect(() => {
+    // If activeIndex is -1, no tab is active, so don't animate underline
+    if (activeIndex < 0) {
+      return;
+    }
+
     const activeTabLayout = tabLayouts.current[activeIndex];
     if (activeTabLayout) {
       if (!isInitialized.current) {
@@ -118,7 +123,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
     tabLayouts.current[index] = { x, width };
 
     // If this is the active tab and we haven't initialized the underline yet, set it immediately
-    if (index === activeIndex && !isInitialized.current) {
+    // Only initialize if activeIndex is valid (>= 0)
+    if (index === activeIndex && activeIndex >= 0 && !isInitialized.current) {
       underlineAnimated.setValue(x);
       underlineWidthAnimated.setValue(width);
       isInitialized.current = true;
@@ -143,7 +149,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
   };
 
   const handleTabPress = (index: number) => {
-    if (!locked) {
+    const tab = tabs[index];
+    if (!tab?.isDisabled) {
       onTabPress(index);
     }
   };
@@ -153,6 +160,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
       twClassName="relative overflow-hidden"
       testID={testID}
       onLayout={handleContainerLayout as (event: unknown) => void}
+      {...boxProps}
     >
       {scrollEnabled ? (
         <ScrollView
@@ -178,20 +186,22 @@ const TabsBar: React.FC<TabsBarProps> = ({
                 <Tab
                   label={tab.label}
                   isActive={index === activeIndex}
-                  disabled={locked}
+                  isDisabled={tab.isDisabled}
                   onPress={() => handleTabPress(index)}
                   testID={`${testID}-tab-${index}`}
                 />
               </Box>
             ))}
 
-            {/* Animated underline for scrollable tabs */}
-            <Animated.View
-              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-                width: underlineWidthAnimated,
-                transform: [{ translateX: underlineAnimated }],
-              })}
-            />
+            {/* Animated underline for scrollable tabs - only show if there's an active tab */}
+            {activeIndex >= 0 && (
+              <Animated.View
+                style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+                  width: underlineWidthAnimated,
+                  transform: [{ translateX: underlineAnimated }],
+                })}
+              />
+            )}
           </Box>
         </ScrollView>
       ) : (
@@ -210,20 +220,22 @@ const TabsBar: React.FC<TabsBarProps> = ({
               <Tab
                 label={tab.label}
                 isActive={index === activeIndex}
-                disabled={locked}
+                isDisabled={tab.isDisabled}
                 onPress={() => handleTabPress(index)}
                 testID={`${testID}-tab-${index}`}
               />
             </Box>
           ))}
 
-          {/* Animated underline for non-scrollable tabs */}
-          <Animated.View
-            style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
-              width: underlineWidthAnimated,
-              transform: [{ translateX: underlineAnimated }],
-            })}
-          />
+          {/* Animated underline for non-scrollable tabs - only show if there's an active tab */}
+          {activeIndex >= 0 && (
+            <Animated.View
+              style={tw.style('absolute bottom-0 h-0.5 bg-icon-default', {
+                width: underlineWidthAnimated,
+                transform: [{ translateX: underlineAnimated }],
+              })}
+            />
+          )}
         </Box>
       )}
     </Box>

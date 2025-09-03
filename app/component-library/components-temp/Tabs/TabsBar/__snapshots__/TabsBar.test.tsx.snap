@@ -1080,28 +1080,11 @@ exports[`TabsBar Edge Cases handles negative activeIndex gracefully 1`] = `
         </Text>
       </View>
     </View>
-    <View
-      collapsable={false}
-      style={
-        {
-          "backgroundColor": "#121314",
-          "bottom": 0,
-          "height": 2,
-          "position": "absolute",
-          "transform": [
-            {
-              "translateX": 0,
-            },
-          ],
-          "width": 0,
-        }
-      }
-    />
   </View>
 </View>
 `;
 
-exports[`TabsBar Locked State passes disabled prop to tabs when locked 1`] = `
+exports[`TabsBar Individual Tab Disabling hides underline when no tab is active (activeIndex = -1) 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -1211,8 +1194,8 @@ exports[`TabsBar Locked State passes disabled prop to tabs when locked 1`] = `
           style={
             [
               {
-                "color": "#121314",
-                "fontFamily": "Geist Bold",
+                "color": "#b7bbc8",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
                 "letterSpacing": 0,
@@ -1424,6 +1407,356 @@ exports[`TabsBar Locked State passes disabled prop to tabs when locked 1`] = `
             [
               {
                 "color": "#b7bbc8",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "alignItems": "center",
+                "bottom": 0,
+                "display": "flex",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+        >
+          Tab 3
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`TabsBar Individual Tab Disabling renders disabled tabs with correct styling 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "display": "flex",
+        "overflow": "hidden",
+        "position": "relative",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "gap": 24,
+          "position": "relative",
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "paddingBottom": 8,
+            "paddingLeft": 0,
+            "paddingRight": 0,
+            "paddingTop": 8,
+            "position": "relative",
+          }
+        }
+        testID="undefined-tab-0"
+      >
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "opacity": 0,
+              },
+            ]
+          }
+        >
+          Tab 1
+        </Text>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "alignItems": "center",
+                "bottom": 0,
+                "display": "flex",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+        >
+          Tab 1
+        </Text>
+      </View>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": true,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "paddingBottom": 8,
+            "paddingLeft": 0,
+            "paddingRight": 0,
+            "paddingTop": 8,
+            "position": "relative",
+          }
+        }
+        testID="undefined-tab-1"
+      >
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "opacity": 0,
+              },
+            ]
+          }
+        >
+          Tab 2
+        </Text>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#b7bbc8",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "alignItems": "center",
+                "bottom": 0,
+                "display": "flex",
+                "justifyContent": "center",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+        >
+          Tab 2
+        </Text>
+      </View>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "paddingBottom": 8,
+            "paddingLeft": 0,
+            "paddingRight": 0,
+            "paddingTop": 8,
+            "position": "relative",
+          }
+        }
+        testID="undefined-tab-2"
+      >
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Bold",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              {
+                "opacity": 0,
+              },
+            ]
+          }
+        >
+          Tab 3
+        </Text>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#686e7d",
                 "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "fontWeight": 400,

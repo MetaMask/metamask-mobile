@@ -16,9 +16,10 @@ import { TabProps } from './Tab.types';
 const Tab: React.FC<TabProps> = ({
   label,
   isActive,
-  disabled = false,
+  isDisabled = false,
   onPress,
   testID,
+  ...pressableProps
 }) => {
   const tw = useTailwind();
 
@@ -27,12 +28,13 @@ const Tab: React.FC<TabProps> = ({
       style={({ pressed }) =>
         tw.style(
           'px-0 py-2 flex-row items-center justify-center relative',
-          pressed && !disabled && 'opacity-70',
+          pressed && !isDisabled && 'opacity-70',
         )
       }
-      onPress={disabled ? undefined : onPress}
-      disabled={disabled}
+      onPress={isDisabled ? undefined : onPress}
+      disabled={isDisabled}
       testID={testID}
+      {...pressableProps}
     >
       {/* Hidden bold text that determines layout size */}
       <Text
@@ -47,12 +49,14 @@ const Tab: React.FC<TabProps> = ({
       {/* Visible text positioned absolutely over the hidden text */}
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={isActive ? FontWeight.Bold : FontWeight.Regular}
+        fontWeight={
+          isActive && !isDisabled ? FontWeight.Bold : FontWeight.Regular
+        }
         twClassName={
-          isActive
-            ? 'text-default'
-            : disabled
+          isDisabled
             ? 'text-muted'
+            : isActive
+            ? 'text-default'
             : 'text-alternative'
         }
         numberOfLines={1}

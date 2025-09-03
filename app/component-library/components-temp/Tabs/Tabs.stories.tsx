@@ -75,17 +75,51 @@ export const ManyTabs = () => (
   </Box>
 );
 
-export const LockedTabs = () => (
+export const IndividuallyDisabledTabs = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">
-    <TabsList locked initialPage={1}>
-      <View key="disabled1" {...({ tabLabel: 'Disabled 1' } as TabViewProps)}>
+    <TabsList initialActiveIndex={1}>
+      <View
+        key="disabled1"
+        {...({ tabLabel: 'Disabled 1', isDisabled: true } as TabViewProps)}
+      >
         <ExampleTabContent title="Disabled 1" />
       </View>
       <View key="active" {...({ tabLabel: 'Active' } as TabViewProps)}>
         <ExampleTabContent title="Active" />
       </View>
-      <View key="disabled2" {...({ tabLabel: 'Disabled 2' } as TabViewProps)}>
+      <View
+        key="disabled2"
+        {...({ tabLabel: 'Disabled 2', isDisabled: true } as TabViewProps)}
+      >
         <ExampleTabContent title="Disabled 2" />
+      </View>
+      <View key="enabled" {...({ tabLabel: 'Enabled' } as TabViewProps)}>
+        <ExampleTabContent title="Enabled" />
+      </View>
+    </TabsList>
+  </Box>
+);
+
+export const AllTabsDisabled = () => (
+  <Box twClassName="flex-1 p-4 bg-background-default">
+    <TabsList initialActiveIndex={1}>
+      <View
+        key="disabled1"
+        {...({ tabLabel: 'All Disabled 1', isDisabled: true } as TabViewProps)}
+      >
+        <ExampleTabContent title="All Disabled 1" />
+      </View>
+      <View
+        key="active"
+        {...({ tabLabel: 'All Disabled 2', isDisabled: true } as TabViewProps)}
+      >
+        <ExampleTabContent title="All Disabled 2" />
+      </View>
+      <View
+        key="disabled2"
+        {...({ tabLabel: 'All Disabled 3', isDisabled: true } as TabViewProps)}
+      >
+        <ExampleTabContent title="All Disabled 3" />
       </View>
     </TabsList>
   </Box>

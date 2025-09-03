@@ -130,15 +130,20 @@ describe('TabsBar', () => {
     });
   });
 
-  describe('Locked State', () => {
-    it('does not call onTabPress when locked', () => {
+  describe('Individual Tab Disabling', () => {
+    it('does not call onTabPress when individual tab is disabled', () => {
       const mockOnTabPress = jest.fn();
+      const tabsWithDisabled: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null },
+        { key: 'tab2', label: 'Tab 2', content: null, isDisabled: true },
+        { key: 'tab3', label: 'Tab 3', content: null },
+      ];
+
       const { getByTestId } = render(
         <TabsBar
-          tabs={mockTabs}
+          tabs={tabsWithDisabled}
           activeIndex={0}
           onTabPress={mockOnTabPress}
-          locked
           testID="tabs-bar"
         />,
       );
@@ -148,34 +153,64 @@ describe('TabsBar', () => {
       expect(mockOnTabPress).not.toHaveBeenCalled();
     });
 
-    it('passes disabled prop to tabs when locked', () => {
+    it('allows interaction with enabled tabs when some are disabled', () => {
       const mockOnTabPress = jest.fn();
-      const { toJSON } = render(
+      const tabsWithDisabled: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null },
+        { key: 'tab2', label: 'Tab 2', content: null, isDisabled: true },
+        { key: 'tab3', label: 'Tab 3', content: null },
+      ];
+
+      const { getByTestId } = render(
         <TabsBar
-          tabs={mockTabs}
+          tabs={tabsWithDisabled}
           activeIndex={0}
           onTabPress={mockOnTabPress}
-          locked
+          testID="tabs-bar"
+        />,
+      );
+
+      fireEvent.press(getByTestId('tabs-bar-tab-2'));
+      expect(mockOnTabPress).toHaveBeenCalledWith(2);
+
+      fireEvent.press(getByTestId('tabs-bar-tab-0'));
+      expect(mockOnTabPress).toHaveBeenCalledWith(0);
+    });
+
+    it('renders disabled tabs with correct styling', () => {
+      const mockOnTabPress = jest.fn();
+      const tabsWithDisabled: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null },
+        { key: 'tab2', label: 'Tab 2', content: null, isDisabled: true },
+        { key: 'tab3', label: 'Tab 3', content: null },
+      ];
+
+      const { toJSON } = render(
+        <TabsBar
+          tabs={tabsWithDisabled}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
         />,
       );
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('allows interaction when not locked', () => {
+    it('hides underline when no tab is active (activeIndex = -1)', () => {
       const mockOnTabPress = jest.fn();
-      const { getByTestId } = render(
+      const tabsAllDisabled: TabItem[] = [
+        { key: 'tab1', label: 'Tab 1', content: null, isDisabled: true },
+        { key: 'tab2', label: 'Tab 2', content: null, isDisabled: true },
+        { key: 'tab3', label: 'Tab 3', content: null, isDisabled: true },
+      ];
+
+      const { toJSON } = render(
         <TabsBar
-          tabs={mockTabs}
-          activeIndex={0}
+          tabs={tabsAllDisabled}
+          activeIndex={-1}
           onTabPress={mockOnTabPress}
-          locked={false}
-          testID="tabs-bar"
         />,
       );
-
-      fireEvent.press(getByTestId('tabs-bar-tab-1'));
-
-      expect(mockOnTabPress).toHaveBeenCalledWith(1);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -366,23 +401,6 @@ describe('TabsBar', () => {
       const mockOnTabPress = jest.fn();
       const { getAllByText } = render(
         <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
-      );
-
-      mockTabs.forEach((tab) => {
-        const tabElements = getAllByText(tab.label);
-        expect(tabElements[0]).toBeOnTheScreen();
-      });
-    });
-
-    it('maintains accessibility when locked', () => {
-      const mockOnTabPress = jest.fn();
-      const { getAllByText } = render(
-        <TabsBar
-          tabs={mockTabs}
-          activeIndex={0}
-          onTabPress={mockOnTabPress}
-          locked
-        />,
       );
 
       mockTabs.forEach((tab) => {

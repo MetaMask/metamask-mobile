@@ -1,6 +1,8 @@
 // Third party dependencies.
 import React from 'react';
-import { ViewStyle } from 'react-native';
+
+// External dependencies.
+import { BoxProps } from '@metamask/design-system-react-native';
 
 /**
  * Individual tab item data interface
@@ -9,6 +11,7 @@ export interface TabItem {
   key: string;
   label: string;
   content: React.ReactNode;
+  isDisabled?: boolean;
 }
 
 /**
@@ -17,12 +20,13 @@ export interface TabItem {
 export interface TabViewProps {
   tabLabel: string;
   key?: string;
+  isDisabled?: boolean;
 }
 
 /**
  * TabsList component props
  */
-export interface TabsListProps {
+export interface TabsListProps extends BoxProps {
   /**
    * Array of tab items or React children with tabLabel prop
    */
@@ -30,7 +34,7 @@ export interface TabsListProps {
   /**
    * Initial active tab index
    */
-  initialPage?: number;
+  initialActiveIndex?: number;
   /**
    * Callback when tab changes
    */
@@ -38,18 +42,6 @@ export interface TabsListProps {
     i: number;
     ref: React.ReactNode;
   }) => void;
-  /**
-   * Whether the tabs are locked (disabled)
-   */
-  locked?: boolean;
-  /**
-   * Optional additional styling for the container
-   */
-  style?: ViewStyle;
-  /**
-   * Test ID for testing
-   */
-  testID?: string;
 }
 
 /**
@@ -57,12 +49,11 @@ export interface TabsListProps {
  */
 export interface TabsListRef {
   /**
-   * Go to a specific page/tab
+   * Go to a specific tab by index
    */
-  goToPage: (pageNumber: number) => void;
+  goToTabIndex: (tabIndex: number) => void;
   /**
    * Get current active tab index
    */
   getCurrentIndex: () => number;
 }
-

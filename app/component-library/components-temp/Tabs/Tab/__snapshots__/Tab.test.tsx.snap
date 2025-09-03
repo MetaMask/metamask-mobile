@@ -192,7 +192,7 @@ exports[`Tab Active State applies inactive styling when isActive is false 1`] = 
 </View>
 `;
 
-exports[`Tab Disabled State applies disabled styling when disabled is true 1`] = `
+exports[`Tab Disabled State applies disabled styling when isDisabled is true 1`] = `
 <View
   accessibilityState={
     {
@@ -288,7 +288,7 @@ exports[`Tab Disabled State applies disabled styling when disabled is true 1`] =
 </View>
 `;
 
-exports[`Tab Disabled State shows active color when disabled but active 1`] = `
+exports[`Tab Disabled State shows disabled styling even when marked as active 1`] = `
 <View
   accessibilityState={
     {
@@ -359,8 +359,8 @@ exports[`Tab Disabled State shows active color when disabled but active 1`] = `
     style={
       [
         {
-          "color": "#121314",
-          "fontFamily": "Geist Bold",
+          "color": "#b7bbc8",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
           "fontWeight": 400,
           "letterSpacing": 0,

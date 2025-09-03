@@ -1,6 +1,9 @@
 // Third party dependencies.
 import React from 'react';
 
+// External dependencies.
+import { BoxProps } from '@metamask/design-system-react-native';
+
 /**
  * Individual tab item data interface
  */
@@ -8,12 +11,13 @@ export interface TabItem {
   key: string;
   label: string;
   content: React.ReactNode;
+  isDisabled?: boolean;
 }
 
 /**
  * TabsBar component props
  */
-export interface TabsBarProps {
+export interface TabsBarProps extends BoxProps {
   /**
    * Array of tab items
    */
@@ -26,13 +30,4 @@ export interface TabsBarProps {
    * Callback when a tab is selected
    */
   onTabPress: (index: number) => void;
-  /**
-   * Whether the tabs are locked (disabled)
-   */
-  locked?: boolean;
-  /**
-   * Test ID for testing
-   */
-  testID?: string;
 }
-

@@ -43,7 +43,7 @@ describe('TabsList', () => {
 
     // Act
     const { getByText, queryByText } = render(
-      <TabsList initialPage={0}>
+      <TabsList initialActiveIndex={0}>
         {tabs.map((tab, index) => (
           <View
             key={`tab${index}`}
@@ -116,29 +116,37 @@ describe('TabsList', () => {
     });
   });
 
-  it('does not change tabs when locked', () => {
+  it('does not change to disabled tabs when pressed', () => {
     // Arrange
     const mockOnChangeTab = jest.fn();
-    const tabs = ['Tab 1', 'Tab 2'];
+    const tabs = [
+      { label: 'Tab 1', content: 'Tab 1 Content' },
+      { label: 'Tab 2 (Disabled)', content: 'Tab 2 Content' },
+    ];
 
     // Act
-    const { getAllByText } = render(
-      <TabsList locked onChangeTab={mockOnChangeTab}>
-        {tabs.map((label, index) => (
-          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
-            <Text>{label} Content</Text>
-          </View>
-        ))}
+    const { getAllByText, getByText } = render(
+      <TabsList onChangeTab={mockOnChangeTab}>
+        <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+          <Text>{tabs[0].content}</Text>
+        </View>
+        <View
+          key="tab1"
+          {...({ tabLabel: tabs[1].label, isDisabled: true } as TabViewProps)}
+        >
+          <Text>{tabs[1].content}</Text>
+        </View>
       </TabsList>,
     );
 
-    fireEvent.press(getAllByText('Tab 2')[0]);
+    fireEvent.press(getAllByText('Tab 2 (Disabled)')[0]);
 
     // Assert
     expect(mockOnChangeTab).not.toHaveBeenCalled();
+    expect(getByText('Tab 1 Content')).toBeOnTheScreen(); // Should still show first tab
   });
 
-  it('exposes goToPage method via ref', async () => {
+  it('exposes goToTabIndex method via ref', async () => {
     // Arrange
     const ref = React.createRef<TabsListRef>();
     const tabs = ['Tab 1', 'Tab 2', 'Tab 3'];
@@ -156,7 +164,7 @@ describe('TabsList', () => {
 
     // Navigate to second tab via ref
     await act(async () => {
-      ref.current?.goToPage(1);
+      ref.current?.goToTabIndex(1);
     });
 
     // Assert
@@ -170,7 +178,7 @@ describe('TabsList', () => {
 
     // Act
     render(
-      <TabsList ref={ref} initialPage={1}>
+      <TabsList ref={ref} initialActiveIndex={1}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
             <Text>{label} Content</Text>
@@ -181,6 +189,51 @@ describe('TabsList', () => {
 
     // Assert
     expect(ref.current?.getCurrentIndex()).toBe(1);
+  });
+
+  it('goToTabIndex method respects disabled tabs', async () => {
+    // Arrange
+    const ref = React.createRef<TabsListRef>();
+    const tabs = [
+      { label: 'Tab 1', content: 'Tab 1 Content' },
+      { label: 'Tab 2', content: 'Tab 2 Content' },
+      { label: 'Tab 3', content: 'Tab 3 Content' },
+    ];
+
+    // Act
+    const { getByText } = render(
+      <TabsList ref={ref} initialActiveIndex={0}>
+        <View key="tab0" {...({ tabLabel: tabs[0].label } as TabViewProps)}>
+          <Text>{tabs[0].content}</Text>
+        </View>
+        <View
+          key="tab1"
+          {...({ tabLabel: tabs[1].label, isDisabled: true } as TabViewProps)}
+        >
+          <Text>{tabs[1].content}</Text>
+        </View>
+        <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+          <Text>{tabs[2].content}</Text>
+        </View>
+      </TabsList>,
+    );
+
+    // Try to navigate to disabled tab
+    await act(async () => {
+      ref.current?.goToTabIndex(1);
+    });
+
+    // Should still be on first tab
+    expect(getByText('Tab 1 Content')).toBeOnTheScreen();
+    expect(ref.current?.getCurrentIndex()).toBe(0);
+
+    // Navigate to enabled tab should work
+    await act(async () => {
+      ref.current?.goToTabIndex(2);
+    });
+
+    expect(getByText('Tab 3 Content')).toBeOnTheScreen();
+    expect(ref.current?.getCurrentIndex()).toBe(2);
   });
 
   it('handles empty children gracefully', () => {
@@ -201,7 +254,7 @@ describe('TabsList', () => {
 
     // Act
     const { getByText } = render(
-      <TabsList initialPage={2}>
+      <TabsList initialActiveIndex={2}>
         {tabs.map((tab, index) => (
           <View
             key={`tab${index}`}
@@ -215,5 +268,86 @@ describe('TabsList', () => {
 
     // Assert
     expect(getByText('Third Content')).toBeOnTheScreen();
+  });
+
+  it('passes BoxProps to underlying Box component', () => {
+    // Arrange
+    const tabs = ['Tab 1', 'Tab 2'];
+
+    // Act
+    const { toJSON } = render(
+      <TabsList twClassName="bg-background-alternative" padding={4}>
+        {tabs.map((label, index) => (
+          <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
+            <Text>{label} Content</Text>
+          </View>
+        ))}
+      </TabsList>,
+    );
+
+    // Assert - Box should receive the props and render correctly
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('handles all tabs disabled by setting activeIndex to -1', () => {
+    // Arrange
+    const tabs = [
+      { label: 'Tab 1', content: 'Tab 1 Content' },
+      { label: 'Tab 2', content: 'Tab 2 Content' },
+    ];
+
+    // Act
+    const { queryByText } = render(
+      <TabsList initialActiveIndex={0}>
+        <View
+          key="tab0"
+          {...({ tabLabel: tabs[0].label, isDisabled: true } as TabViewProps)}
+        >
+          <Text>{tabs[0].content}</Text>
+        </View>
+        <View
+          key="tab1"
+          {...({ tabLabel: tabs[1].label, isDisabled: true } as TabViewProps)}
+        >
+          <Text>{tabs[1].content}</Text>
+        </View>
+      </TabsList>,
+    );
+
+    // Assert - No content should be displayed when all tabs are disabled
+    expect(queryByText('Tab 1 Content')).toBeNull();
+    expect(queryByText('Tab 2 Content')).toBeNull();
+  });
+
+  it('switches to first enabled tab when initialActiveIndex points to disabled tab', () => {
+    // Arrange
+    const tabs = [
+      { label: 'Disabled Tab', content: 'Disabled Content' },
+      { label: 'Active Tab', content: 'Active Content' },
+      { label: 'Another Tab', content: 'Another Content' },
+    ];
+
+    // Act
+    const { getByText, queryByText } = render(
+      <TabsList initialActiveIndex={0}>
+        <View
+          key="tab0"
+          {...({ tabLabel: tabs[0].label, isDisabled: true } as TabViewProps)}
+        >
+          <Text>{tabs[0].content}</Text>
+        </View>
+        <View key="tab1" {...({ tabLabel: tabs[1].label } as TabViewProps)}>
+          <Text>{tabs[1].content}</Text>
+        </View>
+        <View key="tab2" {...({ tabLabel: tabs[2].label } as TabViewProps)}>
+          <Text>{tabs[2].content}</Text>
+        </View>
+      </TabsList>,
+    );
+
+    // Assert - Should display the first enabled tab (index 1) instead of the disabled tab (index 0)
+    expect(getByText('Active Content')).toBeOnTheScreen();
+    expect(queryByText('Disabled Content')).toBeNull();
+    expect(queryByText('Another Content')).toBeNull();
   });
 });
