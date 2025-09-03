@@ -121,18 +121,32 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 12,
       marginTop: 8,
     },
+    addAccountButton: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+    },
     addAccountItemDisabled: {
       opacity: 0.5,
     },
     addAccountIconContainer: {
-      width: 24,
-      height: 24,
+      backgroundColor: colors.background.muted,
+      borderRadius: 8,
+      padding: 8,
+      marginRight: 16,
+      width: 32,
+      height: 32,
       alignItems: 'center',
       justifyContent: 'center',
     },
     addAccountText: {
       color: colors.text.alternative,
       flex: 1,
+    },
+    addAccountButtonText: {
+      color: colors.primary.default,
+      fontWeight: '500',
     },
   });
 };
