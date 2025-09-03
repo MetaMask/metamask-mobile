@@ -218,6 +218,7 @@ import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './controllers/network-controller/messenger-action-handlers';
+import { initializeProviderWithTimeout } from './controllers/network-controller/initialize-provider-with-timeout';
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { SECOND } from '../../constants/time';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
@@ -467,7 +468,12 @@ export class Engine {
         });
       },
     );
-    networkController.initializeProvider();
+
+    // Network provider initialization is handled asynchronously
+    // See initializeProviderWithTimeout for network timeout
+    initializeProviderWithTimeout(networkController).catch((error) => {
+      Logger.error(error as Error, 'Failed to initialize network provider');
+    });
 
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({

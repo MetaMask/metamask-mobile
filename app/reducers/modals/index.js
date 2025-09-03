@@ -4,6 +4,9 @@ const initialState = {
   collectibleContractModalVisible: false,
   dappTransactionModalVisible: false,
   signMessageModalVisible: true,
+  slowRpcConnectionModalVisible: false,
+  slowRpcConnectionState: null,
+  slowRpcConnectionBannerVisible: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -54,6 +57,20 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         signMessageModalVisible: !state.signMessageModalVisible,
+      };
+    case 'TOGGLE_SLOW_RPC_CONNECTION_MODAL':
+      return {
+        ...state,
+        slowRpcConnectionModalVisible:
+          action.visible ?? !state.slowRpcConnectionModalVisible,
+        slowRpcConnectionState:
+          action.connectionState ?? state.slowRpcConnectionState,
+      };
+    case 'TOGGLE_SLOW_RPC_CONNECTION_BANNER':
+      return {
+        ...state,
+        slowRpcConnectionBannerVisible:
+          action.visible ?? !state.slowRpcConnectionBannerVisible,
       };
     default:
       return state;
