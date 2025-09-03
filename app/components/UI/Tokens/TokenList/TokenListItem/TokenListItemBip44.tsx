@@ -136,7 +136,7 @@ export const TokenListItemBip44 = React.memo(
         return null;
       }
       const isCurrentAssetEth =
-        asset.isNative && asset.chainId?.startsWith('eip'); // TODO: Add that it's not staked
+        asset.isNative && asset.chainId?.startsWith('eip') && !asset.isStaked;
       const shouldShowPooledStakingCta =
         isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
 
