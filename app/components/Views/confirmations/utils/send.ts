@@ -13,7 +13,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
-import { toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -181,4 +181,9 @@ export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
   const fracPart = bnValue.mod(base).toString().padStart(decimals, '0');
   const trimmedFrac = fracPart.replace(/0+$/, '');
   return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart;
+};
+
+export const fromHexWithDecimals = (value: Hex, decimals: number) => {
+  const bnValue = hexToBN(value);
+  return fromBNWithDecimals(bnValue, decimals);
 };

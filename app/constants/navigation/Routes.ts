@@ -63,6 +63,7 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  TRANSACTION_DETAILS: 'TransactionDetails',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -311,6 +312,7 @@ const Routes = {
     DEFAULT: 'Send',
   },
   REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
 };
 
 export default Routes;

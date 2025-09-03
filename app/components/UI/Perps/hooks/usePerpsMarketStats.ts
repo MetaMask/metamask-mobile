@@ -2,7 +2,11 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import type { PriceUpdate } from '../controllers/types';
-import { formatPrice, formatLargeNumber } from '../utils/formatUtils';
+import {
+  formatPrice,
+  formatLargeNumber,
+  formatFundingRate,
+} from '../utils/formatUtils';
 import { calculate24hHighLow } from '../utils/marketUtils';
 import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
@@ -68,6 +72,7 @@ export const usePerpsMarketStats = (
                 ) {
                   return prev; // Return same reference if no change
                 }
+
                 return {
                   funding: update.funding,
                   openInterest: update.openInterest,
@@ -123,9 +128,7 @@ export const usePerpsMarketStats = (
       openInterest: marketData.openInterest
         ? `$${formatLargeNumber(marketData.openInterest)}`
         : '$0.00',
-      fundingRate: marketData.funding
-        ? `${(marketData.funding * 100).toFixed(4)}%`
-        : '0.0000%',
+      fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,
     };
