@@ -6,7 +6,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { formatPrice } from '../../utils/formatUtils';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 import createStyles from './PerpsAmountDisplay.styles';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -80,11 +80,16 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       )}
       <View style={styles.amountRow}>
         <RNText
-          style={[styles.amountValue, isActive && styles.amountValueActive]}
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+          style={[
+            showTokenAmount && tokenAmount && tokenSymbol
+              ? styles.amountValueToken
+              : styles.amountValue,
+            isActive && styles.amountValueActive,
+          ]}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
-            ? `${tokenAmount} ${tokenSymbol}`
+            ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
             ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
             : '$0'}

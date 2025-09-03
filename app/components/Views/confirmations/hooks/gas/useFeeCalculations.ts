@@ -10,7 +10,11 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
-import { decimalToHex, multiplyHexes } from '../../../../../util/conversions';
+import {
+  addHexes,
+  decimalToHex,
+  multiplyHexes,
+} from '../../../../../util/conversions';
 import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
@@ -133,17 +137,21 @@ export const useFeeCalculations = (
   // Max fee
   const maxFee = useMemo(
     () =>
-      multiplyHexes(
-        supportsEIP1559
-          ? (decimalToHex(maxFeePerGas) as Hex)
-          : (txParamsGasPrice as Hex),
-        transactionMeta.txParams.gas,
-      ),
+      addHexes(
+        multiplyHexes(
+          supportsEIP1559
+            ? (decimalToHex(maxFeePerGas) as Hex)
+            : (txParamsGasPrice as Hex),
+          transactionMeta.txParams.gas,
+        ),
+        transactionMeta.layer1GasFee ?? '0x0',
+      ).toString(),
     [
       supportsEIP1559,
       maxFeePerGas,
       txParamsGasPrice,
       transactionMeta.txParams.gas,
+      transactionMeta.layer1GasFee,
     ],
   );
 
