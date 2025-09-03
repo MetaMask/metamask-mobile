@@ -881,6 +881,7 @@ describe('RewardsController', () => {
       };
 
       const mockSeasonStatus: SeasonStatusState = {
+        season: mockSeasonData,
         balance: {
           total: 1500,
           refereePortion: 300,
@@ -921,6 +922,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockSeasonStatus);
+      expect(result?.season.id).toBe(mockSeasonId);
       expect(result?.balance.total).toBe(1500);
       expect(result?.tier.currentTier.id).toBe('silver');
       expect(result?.tier.nextTier?.id).toBe('gold');

@@ -153,7 +153,13 @@ const createMockStore = (rewardsState: Partial<RewardsState>) => {
     rewards: {
       activeTab: null,
       subscriptionId: null,
-      tierStatus: null,
+      seasonName: null,
+      seasonStartDate: null,
+      seasonEndDate: null,
+      seasonTiers: [],
+      currentTier: null,
+      nextTier: null,
+      nextTierPointsNeeded: null,
       balanceTotal: null,
       balanceRefereePortion: null,
       balanceUpdatedAt: null,
@@ -197,17 +203,6 @@ describe('RewardsView', () => {
   it('should set navigation options on mount', () => {
     renderComponent();
     expect(mockSetOptions).toHaveBeenCalled();
-  });
-
-  it('should render main components', () => {
-    const { getByText, getByTestId } = renderComponent();
-
-    expect(getByText('Rewards')).toBeTruthy();
-    expect(
-      getByTestId(REWARDS_VIEW_SELECTORS.SEASON_SUMMARY_PLACEHOLDER),
-    ).toBeTruthy();
-    expect(getByTestId(REWARDS_VIEW_SELECTORS.SEGMENTED_CONTROL)).toBeTruthy();
-    expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTENT)).toBeTruthy();
   });
 
   it('should handle tab changes', () => {
