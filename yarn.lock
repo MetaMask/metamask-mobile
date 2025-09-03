@@ -4859,10 +4859,10 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.12.0":
-  version "0.12.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.12.0.tgz#e4bbae9aa0670137d009b21c93d87c8a8135fc41"
-  integrity sha512-q56BPnz1Ze5LHr4g05AFqpLVg4Cu3EFaMduoQWqCpEc5B6rqeeXHjtzGHiBo0z2A00NCOHjEZnksY1h4DQETkw==
+"@metamask/account-tree-controller@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.12.1.tgz#e1417749f218248d04836bc1c71aa9cdcef8651f"
+  integrity sha512-4qKZpQ47LCbItwM/Uy47nGqjSv958n5oWyy3mH60EXzR2lEUh02CsGUKofCjIMpEdTC5SJZGxlCNSTOI7p6QBg==
   dependencies:
     "@metamask/base-controller" "^8.2.0"
     "@metamask/snaps-sdk" "^9.0.0"
