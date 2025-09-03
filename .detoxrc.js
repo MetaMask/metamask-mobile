@@ -82,10 +82,9 @@ module.exports = {
     'ios.github_ci.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15 Pro',
+        type: 'iPhone 16 Pro',
+        os: 'iOS 18.6',
       },
-      // Optimized for GitHub Actions CI runners
-      bootArgs: '-no-audio -no-boot-anim',
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
