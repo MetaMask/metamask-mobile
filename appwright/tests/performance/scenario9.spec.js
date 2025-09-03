@@ -29,6 +29,7 @@ import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -81,7 +82,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await ConfirmationScreen.isAdvancedSettingsDisplayed();
   timer3.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
@@ -90,6 +90,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
 
 test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -139,7 +140,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();
 
   timer2.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);

@@ -14,6 +14,14 @@ export class PerformanceTracker {
     this.timers[timer.id] = timer;
   }
 
+  async storeSessionData(sessionId, testTitle) {
+    // Store in process environment
+    process.env.TEMP_SESSION_ID = sessionId;
+    process.env.TEMP_TEST_TITLE = testTitle;
+
+    console.log(`✅ Session data stored: ${sessionId}`);
+  }
+
   async getVideoURL(sessionId, maxRetries = 60, delayMs = 3000) {
     const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
     const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
@@ -28,9 +36,9 @@ export class PerformanceTracker {
 
     // Initial delay to let BrowserStack process the session
     console.log(
-      '⏱️ Initial 45-second wait for BrowserStack session processing...',
+      '⏱️ Initial 15-second wait for BrowserStack session processing...',
     );
-    await new Promise((resolve) => setTimeout(resolve, 45000));
+    await new Promise((resolve) => setTimeout(resolve, 15000));
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const startTime = Date.now();
@@ -39,7 +47,7 @@ export class PerformanceTracker {
           `🎯 === ATTEMPT ${attempt}/${maxRetries} === Time: ${new Date().toISOString()}`,
         );
         const response = await axios.get(
-          `https://api.browserstack.com/automate/sessions/${sessionId}.json`,
+          `https://api.browserstack.com/app-automate/sessions/${sessionId}.json`,
           {
             auth: {
               username: BS_USERNAME,
@@ -115,143 +123,5 @@ export class PerformanceTracker {
       contentType: 'application/json',
     });
     return metrics;
-  }
-
-  async attachMetricsOnly(testInfo) {
-    console.log('Attaching performance metrics only (no video URL)');
-    const metrics = {};
-    let totalSeconds = 0;
-    for (const [id, timer] of Object.entries(this.timers)) {
-      metrics[id] = timer.getDuration();
-      totalSeconds += timer.getDurationInSeconds();
-    }
-    metrics.total = totalSeconds;
-    metrics.device = testInfo.project.use.device;
-
-    await testInfo.attach(`performance-metrics-${testInfo.title}`, {
-      body: JSON.stringify(metrics),
-      contentType: 'application/json',
-    });
-    return metrics;
-  }
-
-  async getVideoURLAggressiveRetry(sessionId) {
-    const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
-    const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
-
-    console.log('Starting aggressive retry strategy...');
-
-    // Try immediate fetch first (session might already be ready)
-    try {
-      console.log(
-        'Quick attempt - checking if session is immediately available...',
-      );
-      const response = await axios.get(
-        `https://api.browserstack.com/automate/sessions/${sessionId}.json`,
-        {
-          auth: { username: BS_USERNAME, password: BS_ACCESS_KEY },
-          timeout: 3000,
-        },
-      );
-      const videoURL = response.data.automation_session.video_url;
-      console.log('SUCCESS on immediate attempt:', videoURL);
-      return videoURL;
-    } catch (error) {
-      console.log('Immediate attempt failed, starting progressive retry...');
-    }
-
-    // Progressive delays: start fast, then increase delay
-    const delays = [5000, 10000, 15000, 20000]; // 5s, 10s, 15s, 20s
-
-    for (let i = 0; i < delays.length; i++) {
-      const delay = delays[i];
-      console.log(`Waiting ${delay}ms before attempt ${i + 2}...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-
-      // Try multiple quick attempts after each delay
-      for (let quickAttempt = 1; quickAttempt <= 10; quickAttempt++) {
-        try {
-          console.log(`Progressive attempt ${i + 2}.${quickAttempt}`);
-          const response = await axios.get(
-            `https://api.browserstack.com/automate/sessions/${sessionId}.json`,
-            {
-              auth: { username: BS_USERNAME, password: BS_ACCESS_KEY },
-              timeout: 3000,
-            },
-          );
-          const videoURL = response.data.automation_session.video_url;
-          console.log(
-            `SUCCESS on progressive attempt ${i + 2}.${quickAttempt}:`,
-            videoURL,
-          );
-          return videoURL;
-        } catch (error) {
-          if (error.response?.status !== 404) {
-            console.error('Non-404 error, aborting:', error.message);
-            return null;
-          }
-          // Quick retry within this delay period
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-    }
-
-    console.error('All progressive retry attempts failed');
-    return null;
-  }
-
-  async getVideoURLWithBackgroundRetry(
-    sessionId,
-    maxRetries = 50,
-    delayMs = 1000,
-  ) {
-    const BS_USERNAME = process.env.BROWSERSTACK_USERNAME;
-    const BS_ACCESS_KEY = process.env.BROWSERSTACK_ACCESS_KEY;
-
-    console.log(
-      `Background video URL fetch: ${maxRetries} retries, ${delayMs}ms delay`,
-    );
-
-    // Initial delay to let BrowserStack session finalize
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`Background attempt ${attempt}/${maxRetries}`);
-        const response = await axios.get(
-          `https://api.browserstack.com/automate/sessions/${sessionId}.json`,
-          {
-            auth: {
-              username: BS_USERNAME,
-              password: BS_ACCESS_KEY,
-            },
-            timeout: 5000, // Shorter timeout per request
-          },
-        );
-
-        const videoURL = response.data.automation_session.video_url;
-        console.log(`SUCCESS: Got video URL on attempt ${attempt}:`, videoURL);
-        return videoURL;
-      } catch (error) {
-        const status = error.response?.status;
-
-        if (status === 404 && attempt < maxRetries) {
-          console.log(
-            `Background retry ${attempt}/${maxRetries} - 404, waiting ${delayMs}ms...`,
-          );
-          await new Promise((resolve) => setTimeout(resolve, delayMs));
-          continue;
-        }
-
-        console.error(
-          `Background fetch failed after ${attempt} attempts:`,
-          error.message,
-        );
-        return null;
-      }
-    }
-
-    console.error(`Background fetch exhausted all ${maxRetries} attempts`);
-    return null;
   }
 }

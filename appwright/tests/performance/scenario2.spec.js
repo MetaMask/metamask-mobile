@@ -15,6 +15,7 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -93,7 +94,6 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   await OnboardingSucessScreen.tapDone();
   timer8.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);

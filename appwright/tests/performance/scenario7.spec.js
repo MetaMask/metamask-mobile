@@ -26,6 +26,7 @@ import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
 test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -69,7 +70,6 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   timer2.start();
   await BridgeScreen.isQuoteDisplayed();
   timer2.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);

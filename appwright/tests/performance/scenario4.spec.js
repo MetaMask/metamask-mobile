@@ -18,6 +18,7 @@ import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -43,7 +44,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   await WalletMainScreen.isTokenVisible('Ethereum');
 
   await WalletMainScreen.tapIdenticon();
-  const performanceTracker = new PerformanceTracker();
   timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });

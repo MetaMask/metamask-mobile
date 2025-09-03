@@ -1,7 +1,6 @@
-import { test, afterAll } from 'appwright';
+import { test, expect } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -21,11 +20,10 @@ import CommonScreen from '../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
-const performanceTracker = new PerformanceTracker();
-let info;
-
-test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
-  info = testInfo;
+test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
+  device,
+  performanceTracker,
+}, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -63,32 +61,3 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
 
   await performanceTracker.attachToTest(testInfo);
 });
-
-/*
-test.afterAll(async ({}, testInfo) => {
-  try {
-    // Just attach metrics - video URL will be handled by custom reporter
-    await performanceTracker.attachMetricsOnly(info);
-    console.log('Metrics attached successfully in afterAll');
-
-    // Store session ID for custom reporter to handle video URL fetching
-    if (info && info.annotations) {
-      const sessionId = info.annotations.find(
-        (annotation) => annotation.type === 'sessionId'
-      )?.description;
-
-      if (sessionId) {
-        console.log('Session ID stored for post-test video URL fetch:', sessionId);
-        // Store session ID globally for custom reporter
-        global.lastSessionId = sessionId;
-        global.lastTestInfo = {
-          title: info.title,
-          outputDir: info.outputDir
-        };
-      }
-    }
-  } catch (error) {
-    console.error('Error in afterAll:', error.message);
-  }
-});
-*/

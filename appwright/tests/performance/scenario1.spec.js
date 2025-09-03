@@ -20,6 +20,7 @@ import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -63,7 +64,6 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   await AccountListComponent.isComponentDisplayed();
   screen3Timer.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
   performanceTracker.addTimer(screen3Timer);
