@@ -80,6 +80,7 @@ jest.mock('../../utils/tpslValidation', () => ({
   hasTPSLValuesChanged: jest.fn(),
   calculatePriceForRoE: jest.fn(),
   calculateRoEForPrice: jest.fn(),
+  safeParseRoEPercentage: jest.fn(),
 }));
 
 // Mock strings
@@ -268,6 +269,7 @@ describe('PerpsTPSLBottomSheet', () => {
     tpslValidation.hasTPSLValuesChanged.mockReturnValue(true);
     tpslValidation.calculatePriceForRoE.mockReturnValue('3150.00');
     tpslValidation.calculateRoEForPrice.mockReturnValue('5.00');
+    tpslValidation.safeParseRoEPercentage.mockReturnValue('5.00');
   });
 
   describe('Component Rendering', () => {
@@ -710,6 +712,7 @@ describe('PerpsTPSLBottomSheet', () => {
       const tpslValidation = jest.requireMock('../../utils/tpslValidation');
       // Make the RoE calculation return a realistic value for 2800 price
       tpslValidation.calculateRoEForPrice.mockReturnValue('-66.67');
+      tpslValidation.safeParseRoEPercentage.mockReturnValue('66.67');
 
       render(<PerpsTPSLBottomSheet {...defaultProps} leverage={10} />);
 

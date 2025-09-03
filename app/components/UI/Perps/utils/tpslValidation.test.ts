@@ -9,6 +9,7 @@ import {
   hasTPSLValuesChanged,
   calculatePriceForRoE,
   calculateRoEForPrice,
+  safeParseRoEPercentage,
 } from './tpslValidation';
 
 describe('TPSL Validation Utilities', () => {
@@ -682,6 +683,34 @@ describe('TPSL Validation Utilities', () => {
         expect(calculateRoEForPrice('$1,101.00', true, params)).toBe(
           '10010.00',
         );
+      });
+    });
+  });
+
+  describe('safeParseRoEPercentage', () => {
+    it('should format valid RoE percentages with 2 decimal places', () => {
+      expect(safeParseRoEPercentage('25.556')).toBe('25.56'); // Changed from 25.555 to get proper rounding
+      expect(safeParseRoEPercentage('-10.123')).toBe('10.12'); // Should use absolute value
+      expect(safeParseRoEPercentage('0')).toBe('0.00');
+      expect(safeParseRoEPercentage('100')).toBe('100.00');
+    });
+
+    it('should return empty string for invalid input', () => {
+      expect(safeParseRoEPercentage('')).toBe('');
+      expect(safeParseRoEPercentage('   ')).toBe(''); // whitespace only
+      expect(safeParseRoEPercentage('invalid')).toBe('');
+      expect(safeParseRoEPercentage('NaN')).toBe('');
+      expect(safeParseRoEPercentage('undefined')).toBe('');
+    });
+
+    it('should prevent NaN display that was causing the UI bug', () => {
+      // These are the edge cases that were causing "NaN%" to appear in UI
+      const invalidInputs = ['', '   ', 'invalid', 'NaN', 'abc123'];
+
+      invalidInputs.forEach((input) => {
+        const result = safeParseRoEPercentage(input);
+        expect(result).toBe('');
+        expect(result).not.toContain('NaN');
       });
     });
   });

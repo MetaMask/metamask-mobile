@@ -1,49 +1,50 @@
-import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../../util/theme';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../../../util/theme';
 import { formatPrice } from '../../utils/formatUtils';
-import { strings } from '../../../../../../locales/i18n';
 
-import type { Position } from '../../controllers/types';
-import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { usePerpsPerformance } from '../../hooks';
-import { usePerpsLivePrices } from '../../hooks/stream';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import type { Position } from '../../controllers/types';
+import { usePerpsPerformance } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  isValidTakeProfitPrice,
-  isValidStopLossPrice,
-  validateTPSLPrices,
-  getTakeProfitErrorDirection,
-  getStopLossErrorDirection,
   calculatePriceForRoE,
   calculateRoEForPrice,
+  getStopLossErrorDirection,
+  getTakeProfitErrorDirection,
   hasTPSLValuesChanged,
+  isValidStopLossPrice,
+  isValidTakeProfitPrice,
+  safeParseRoEPercentage,
+  validateTPSLPrices,
 } from '../../utils/tpslValidation';
+import { createStyles } from './PerpsTPSLBottomSheet.styles';
 
 // Quick percentage buttons constants - RoE percentages
 const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
@@ -179,7 +180,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
         });
         // Show stop loss as negative RoE
-        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
+        setStopLossPercentage(safeParseRoEPercentage(roePercent));
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
@@ -216,7 +217,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           leverage,
           entryPrice,
         });
-        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
+        setStopLossPercentage(safeParseRoEPercentage(roePercent));
         // Only clear button selection if leverage changed (not on price updates)
         if (leverageChanged) {
           setSelectedSlPercentage(null);
@@ -362,7 +363,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
         });
         // Always show stop loss RoE as positive (it's a loss magnitude)
-        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
+        setStopLossPercentage(safeParseRoEPercentage(roePercent));
       } else {
         setStopLossPercentage('');
       }

@@ -284,3 +284,21 @@ export const calculateRoEForPrice = (
 
   return roePercentage.toFixed(2);
 };
+
+/**
+ * Safely parse RoE percentage to avoid NaN display in UI
+ * @param roePercent - RoE percentage string from calculateRoEForPrice
+ * @returns Formatted percentage string or empty string for invalid input
+ */
+export const safeParseRoEPercentage = (roePercent: string): string => {
+  if (!roePercent || roePercent.trim() === '') {
+    return ''; // Return empty string for invalid input
+  }
+
+  const parsed = parseFloat(roePercent);
+  if (isNaN(parsed)) {
+    return ''; // Return empty string for NaN
+  }
+
+  return Math.abs(parsed).toFixed(2);
+};
