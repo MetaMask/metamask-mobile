@@ -8,11 +8,11 @@ import { SmokeTrade } from '../../tags.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers.js';
-import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
+import { submitSwapUnifiedUI } from '../swaps/helpers/swap-unified-ui';
 import { loginToApp } from '../../viewHelper.js';
-import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger.js';
-import { testSpecificMock } from './helpers/swap-mocks';
+import { testSpecificMock } from '../swaps/helpers/swap-mocks';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
