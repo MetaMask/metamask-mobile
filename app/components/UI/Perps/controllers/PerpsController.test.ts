@@ -132,9 +132,9 @@ jest.mock('../../../../util/transactions', () => ({
   generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
 }));
 
-// Use any type for messenger to avoid complex type constraints in tests
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TestMessenger = any;
+// Use imported types for reference but create a flexible test messenger
+// This ensures we leverage existing types while allowing test flexibility
+type TestMessenger = Messenger<any, any>;
 
 describe('PerpsController', () => {
   let mockHyperLiquidProvider: jest.Mocked<HyperLiquidProvider>;
@@ -221,20 +221,20 @@ describe('PerpsController', () => {
     // Register mock external actions
     messenger.registerActionHandler(
       'AccountsController:getSelectedAccount',
-      (mocks.getSelectedAccount ??
+      mocks.getSelectedAccount ??
         jest.fn().mockReturnValue({
           id: 'mock-account-id',
           address: '0x1234567890123456789012345678901234567890',
           metadata: { name: 'Test Account' },
-        })) as any,
+        }),
     );
 
     messenger.registerActionHandler(
       'NetworkController:getState',
-      (mocks.getNetworkState ??
+      mocks.getNetworkState ??
         jest.fn().mockReturnValue({
           selectedNetworkClientId: 'mainnet',
-        })) as any,
+        }),
     );
 
     const restrictedMessenger = messenger.getRestricted({
@@ -361,7 +361,9 @@ describe('PerpsController', () => {
           ({ controller, messenger }) => {
             // Get the callback function that was registered for state changes
             const stateChangeCallback = (
-              messenger.subscribe as jest.MockedFunction<any>
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
             ).mock.calls.find(
               (call: any[]) =>
                 call[0] === 'RemoteFeatureFlagController:stateChange',
@@ -386,7 +388,7 @@ describe('PerpsController', () => {
             };
 
             if (stateChangeCallback) {
-              stateChangeCallback(mockRemoteFeatureFlagState);
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
             }
 
             // Should now have remote regions
@@ -404,7 +406,9 @@ describe('PerpsController', () => {
         withController(
           ({ controller, messenger }) => {
             const stateChangeCallback = (
-              messenger.subscribe as jest.MockedFunction<any>
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
             ).mock.calls.find(
               (call: any[]) =>
                 call[0] === 'RemoteFeatureFlagController:stateChange',
@@ -427,7 +431,7 @@ describe('PerpsController', () => {
             };
 
             if (stateChangeCallback) {
-              stateChangeCallback(mockRemoteFeatureFlagState);
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
             }
 
             // Should still have fallback regions since remote data was invalid
@@ -444,7 +448,9 @@ describe('PerpsController', () => {
       it('prevents downgrading from remote to fallback', () => {
         withController(({ controller, messenger }) => {
           const stateChangeCallback = (
-            messenger.subscribe as jest.MockedFunction<any>
+            messenger.subscribe as jest.MockedFunction<
+              typeof messenger.subscribe
+            >
           ).mock.calls.find(
             (call: any[]) =>
               call[0] === 'RemoteFeatureFlagController:stateChange',
@@ -460,7 +466,7 @@ describe('PerpsController', () => {
           };
 
           if (stateChangeCallback) {
-            stateChangeCallback(mockRemoteFeatureFlagState1);
+            stateChangeCallback(mockRemoteFeatureFlagState1, []);
           }
 
           // Should now have remote regions
@@ -487,7 +493,9 @@ describe('PerpsController', () => {
         withController(
           ({ controller, messenger }) => {
             const stateChangeCallback = (
-              messenger.subscribe as jest.MockedFunction<any>
+              messenger.subscribe as jest.MockedFunction<
+                typeof messenger.subscribe
+              >
             ).mock.calls.find(
               (call: any[]) =>
                 call[0] === 'RemoteFeatureFlagController:stateChange',
@@ -511,7 +519,7 @@ describe('PerpsController', () => {
             };
 
             if (stateChangeCallback) {
-              stateChangeCallback(mockRemoteFeatureFlagState);
+              stateChangeCallback(mockRemoteFeatureFlagState, []);
             }
 
             // Should still have fallback regions
