@@ -155,17 +155,8 @@ jobs:
       - name: Move iOS artifacts to expected locations
         if: ${{ inputs.platform == 'ios' }}
         run: |
-          # Move iOS app
-          if [[ -d "artifacts/MetaMask.app/" ]]; then
-            mkdir -p "ios/build/Build/Products/Release-iphonesimulator/"
-            cp -r "artifacts/MetaMask.app/" "ios/build/Build/Products/Release-iphonesimulator/"
-            echo "✅ iOS app ready for E2E tests"
-          else
-            echo "❌ iOS app not found"
-            echo "Available artifacts:"
-            ls -la artifacts/
-            exit 1
-          fi
+          mkdir -p "ios/build/Build/Products/Release-iphonesimulator/"
+          cp -r "artifacts/MetaMask.app" "ios/build/Build/Products/Release-iphonesimulator/"
 
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
