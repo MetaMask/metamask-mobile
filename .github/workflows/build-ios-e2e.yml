@@ -10,7 +10,7 @@ permissions:
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -41,6 +41,25 @@ jobs:
             xcode-select -p || echo "Xcode not found"
             echo "📱 Booted iOS Simulators:"
             xcrun simctl list | grep Booted || echo "No booted simulators found"
+        shell: bash
+
+      - name: Debug available iOS simulators
+        run: |
+            echo "🔍 Debugging available iOS simulators on Cirrus runner..."
+            echo ""
+            echo "Available device types:"
+            xcrun simctl list devicetypes | grep iPhone || echo "No iPhone device types found"
+            echo ""
+            echo "Available runtimes:"
+            xcrun simctl list runtimes | grep iOS || echo "No iOS runtimes found"
+            echo ""
+            echo "Available simulators from applesimutils:"
+            applesimutils --list || echo "applesimutils not available"
+            echo ""
+            echo "All available simulators:"
+            xcrun simctl list devices available | grep iPhone || echo "No iPhone simulators available"
+            echo ""
+            echo "✅ Simulator debug complete"
         shell: bash
 
       # Clean iOS plist files to prevent extended attribute issues
