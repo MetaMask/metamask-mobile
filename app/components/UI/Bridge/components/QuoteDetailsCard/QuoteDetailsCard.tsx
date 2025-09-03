@@ -34,13 +34,8 @@ import {
   JustifyContent,
 } from '../../../Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge/Badge.types';
-import Badge from '../../../../../component-library/components/Badges/Badge';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import {
   selectSourceAmount,
   selectDestToken,
@@ -58,41 +53,6 @@ if (
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-interface NetworkBadgeProps {
-  chainId: string;
-}
-
-const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
-  const theme = useTheme();
-  const styles = createStyles(theme);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const networkConfig = networkConfigurations[chainId];
-  const displayName = networkConfig?.name || '';
-
-  return (
-    <Box
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={2}
-      style={styles.networkBadgeContainer}
-    >
-      <Badge
-        variant={BadgeVariant.Network}
-        imageSource={getNetworkImageSource({ chainId })}
-        isScaled={false}
-        size={AvatarSize.Sm}
-      />
-      <Text
-        variant={TextVariant.BodyMDMedium}
-        numberOfLines={1}
-        style={styles.networkBadgeText}
-      >
-        {displayName}
-      </Text>
-    </Box>
-  );
-};
 
 const QuoteDetailsCard = () => {
   const theme = useTheme();
@@ -181,41 +141,26 @@ const QuoteDetailsCard = () => {
         <Box
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
-          justifyContent={JustifyContent.spaceBetween}
+          justifyContent={JustifyContent.flexEnd}
         >
-          {!isSameChainId && (
-            <>
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                style={styles.networkContainer}
+          {!isSameChainId && isEvmSolanaBridge && (
+            <Animated.View style={arrowStyle}>
+              <TouchableOpacity
+                onPress={toggleAccordion}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isExpanded ? 'Collapse quote details' : 'Expand quote details'
+                }
+                testID="expand-quote-details"
               >
-                <NetworkBadge chainId={String(sourceToken.chainId)} />
-                <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-                <NetworkBadge chainId={String(destToken.chainId)} />
-              </Box>
-              {isEvmSolanaBridge && (
-                <Animated.View style={arrowStyle}>
-                  <TouchableOpacity
-                    onPress={toggleAccordion}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      isExpanded
-                        ? 'Collapse quote details'
-                        : 'Expand quote details'
-                    }
-                    testID="expand-quote-details"
-                  >
-                    <Icon
-                      name={IconName.ArrowDown}
-                      size={IconSize.Sm}
-                      color={theme.colors.icon.muted}
-                    />
-                  </TouchableOpacity>
-                </Animated.View>
-              )}
-            </>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={theme.colors.icon.muted}
+                />
+              </TouchableOpacity>
+            </Animated.View>
           )}
         </Box>
 
@@ -392,21 +337,6 @@ const QuoteDetailsCard = () => {
               }}
             />
 
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.time'),
-                  variant: TextVariant.BodyMDMedium,
-                },
-              }}
-              value={{
-                label: {
-                  text: estimatedTime,
-                  variant: TextVariant.BodyMD,
-                },
-              }}
-            />
-
             {activeQuote?.minToTokenAmount && (
               <KeyValueRow
                 field={{
@@ -423,6 +353,23 @@ const QuoteDetailsCard = () => {
                 value={{
                   label: {
                     text: `${activeQuote.minToTokenAmount.amount} ${destToken?.symbol}`,
+                    variant: TextVariant.BodyMD,
+                  },
+                }}
+              />
+            )}
+
+            {!isSameChainId && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.time'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: {
+                    text: estimatedTime,
                     variant: TextVariant.BodyMD,
                   },
                 }}

@@ -67,7 +67,6 @@ import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
-import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
@@ -293,16 +292,6 @@ const BridgeView = () => {
     }
   };
 
-  const handleTermsPress = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: AppConstants.URLS.TERMS_AND_CONDITIONS,
-        title: strings('bridge.terms_and_conditions'),
-      },
-    });
-  };
-
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -405,15 +394,6 @@ const BridgeView = () => {
           {activeQuote?.approval && sourceAmount && sourceToken && (
             <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
           )}
-          <Button
-            variant={ButtonVariants.Link}
-            label={
-              <Text color={TextColor.Primary}>
-                {strings('bridge.terms_and_conditions')}
-              </Text>
-            }
-            onPress={handleTermsPress}
-          />
         </Box>
       )
     );

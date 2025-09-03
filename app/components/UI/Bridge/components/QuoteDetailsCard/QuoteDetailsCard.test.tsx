@@ -213,20 +213,6 @@ describe('QuoteDetailsCard', () => {
     });
   });
 
-  it('displays network names', () => {
-    const initialTestState = createBridgeTestState();
-
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: initialTestState },
-    );
-
-    expect(getByText('Solana')).toBeDefined();
-  });
-
   it('displays slippage value', () => {
     const { getByLabelText, getByText } = renderScreen(
       QuoteDetailsCard,

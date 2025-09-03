@@ -685,7 +685,7 @@ describe('BridgeView', () => {
           willRefresh: false,
         }));
 
-      const { getByText, getAllByText } = renderScreen(
+      const { getAllByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -696,7 +696,6 @@ describe('BridgeView', () => {
       // Use getAllByText to handle multiple elements with "Bridge" text
       const bridgeElements = getAllByText(strings('bridge.confirm_bridge'));
       expect(bridgeElements.length).toBeGreaterThan(0);
-      expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
@@ -734,35 +733,6 @@ describe('BridgeView', () => {
       // expect(mockSubmitBridgeTx).toHaveBeenCalled();
     });
 
-    it('should handle Terms & Conditions press', () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: 12,
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      });
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      const termsButton = getByText('Terms & Conditions');
-      fireEvent.press(termsButton);
-
-      // TODO: Add expectations once Terms navigation is implemented
-    });
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
