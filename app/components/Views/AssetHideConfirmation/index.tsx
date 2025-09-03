@@ -5,6 +5,8 @@ import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../util/navigation';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,13 +55,7 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  route: {
-    params: {
-      onConfirm: () => void;
-    };
-  };
-}
+type Props = StackScreenProps<RootParamList, 'AssetHideConfirmation'>;
 
 const AssetHideConfirmation = ({ route }: Props) => {
   const { onConfirm } = route.params;

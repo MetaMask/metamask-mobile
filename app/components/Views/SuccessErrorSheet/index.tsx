@@ -16,34 +16,17 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import Icon, {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-export interface SuccessErrorSheetParams {
-  onClose?: () => void;
-  onButtonPress?: () => void;
-  title: string | React.ReactNode;
-  description: string | React.ReactNode;
-  customButton?: React.ReactNode;
-  type: 'success' | 'error';
-  icon?: IconName;
-  secondaryButtonLabel?: string;
-  onSecondaryButtonPress?: () => void;
-  primaryButtonLabel?: string;
-  onPrimaryButtonPress?: () => void;
-  isInteractable?: boolean;
-  closeOnPrimaryButtonPress?: boolean;
-  closeOnSecondaryButtonPress?: boolean;
-  reverseButtonOrder?: boolean;
-  descriptionAlign?: 'center' | 'left';
-  iconColor?: IconColor;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../util/navigation';
 
-export interface SuccessErrorSheetProps {
-  route: { params: SuccessErrorSheetParams };
-}
+export type SuccessErrorSheetProps = StackScreenProps<
+  RootParamList,
+  'SuccessErrorSheet'
+>;
 
 const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   const {
@@ -103,7 +86,11 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       isInteractable={isInteractable}
     >
       <View style={styles.statusContainer}>
-        <Icon name={getIcon} size={IconSize.Xl} color={getIconColor} />
+        <Icon
+          name={getIcon as IconName}
+          size={IconSize.Xl}
+          color={getIconColor}
+        />
 
         {typeof title === 'string' ? (
           <Text

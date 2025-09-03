@@ -9,6 +9,8 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { RequestedPermissions } from '@metamask/permission-controller';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../util/navigation';
 
 /**
  * Enum to track states of the connect screen.
@@ -42,14 +44,10 @@ export interface AccountConnectParams {
 /**
  * AccountConnect props.
  */
-export interface AccountConnectProps {
-  /**
-   * Props that are passed in while navigating to screen.
-   */
-  route: {
-    params: AccountConnectParams;
-  };
-}
+export type AccountConnectProps = StackScreenProps<
+  RootParamList,
+  'AccountConnect'
+>;
 
 export interface NetworkAvatarProps {
   size: AvatarSize;

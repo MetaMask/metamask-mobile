@@ -29,11 +29,7 @@ import {
   WEBVIEW_SCROLL_END_EVENT,
   WEBVIEW_SCROLL_NOT_END_EVENT,
 } from './ModalMandatory.constants';
-import {
-  BodyWebView,
-  BodyWebViewUri,
-  MandatoryModalProps,
-} from './ModalMandatory.types';
+import { MandatoryModalProps } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
@@ -147,16 +143,14 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   };
 
-  const isBodyWebViewUri = (
-    webviewBody: BodyWebView,
-  ): webviewBody is BodyWebViewUri =>
-    (webviewBody as BodyWebViewUri).uri !== undefined;
-
   const scrollToEnd = () => {
     if (body.source === 'WebView') {
-      const source = isBodyWebViewUri(body)
-        ? { uri: body.uri }
-        : { html: body.html };
+      let source = { uri: '', html: '' };
+      if (body.uri) {
+        source.uri = body.uri;
+      } else if (body.html) {
+        source.html = body.html;
+      }
 
       if (source.uri) {
         scrollToEndWebView();
@@ -257,10 +251,18 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     return html;
   };
 
-  const renderWebView = (webviewBody: BodyWebView) => {
-    const source = isBodyWebViewUri(webviewBody)
-      ? { uri: webviewBody.uri }
-      : { html: webviewBody.html };
+  const renderWebView = (
+    body: Extract<
+      MandatoryModalProps['route']['params']['body'],
+      { source: 'WebView' }
+    >,
+  ) => {
+    let source = { uri: '', html: '' };
+    if (body.uri) {
+      source.uri = body.uri;
+    } else if (body.html) {
+      source.html = body.html;
+    }
 
     if (source.html) {
       const themedHTML = `

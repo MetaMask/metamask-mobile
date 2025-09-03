@@ -9,8 +9,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import PropTypes from 'prop-types';
-import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,9 +19,15 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
+import { useStyles } from '../../hooks/useStyles';
+import { type RootParamList } from '../../../util/navigation/types';
+import { type StackScreenProps } from '@react-navigation/stack';
+import { type Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { colors } = params.theme;
+
+  return StyleSheet.create({
     imageWarning: {
       alignSelf: 'center',
       color: colors.error.default,
@@ -68,11 +72,16 @@ const createStyles = (colors) =>
       backgroundColor: colors.error.default,
     },
   });
+};
 
-const SkipAccountSecurityModal = ({ route }) => {
+type SkipAccountSecurityModalProps = StackScreenProps<
+  RootParamList,
+  'SkipAccountSecurityModal'
+>;
+
+const SkipAccountSecurityModal = ({ route }: SkipAccountSecurityModalProps) => {
   const sheetRef = useRef(null);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const [skipCheckbox, setSkipCheckbox] = useState(false);
@@ -137,7 +146,6 @@ const SkipAccountSecurityModal = ({ route }) => {
           <Button
             onPress={onCancelAction}
             label={strings('account_backup_step_1.skip_button_cancel')}
-            type={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
@@ -147,7 +155,6 @@ const SkipAccountSecurityModal = ({ route }) => {
           <Button
             onPress={onConfirmAction}
             label={strings('account_backup_step_1.skip_button_confirm')}
-            type={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
@@ -160,16 +167,5 @@ const SkipAccountSecurityModal = ({ route }) => {
     </BottomSheet>
   );
 };
-
-const propTypes = {
-  route: PropTypes.shape({
-    params: PropTypes.shape({
-      onConfirm: PropTypes.func,
-      onCancel: PropTypes.func,
-    }),
-  }),
-};
-
-SkipAccountSecurityModal.propTypes = propTypes;
 
 export default SkipAccountSecurityModal;
