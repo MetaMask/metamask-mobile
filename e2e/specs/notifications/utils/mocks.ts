@@ -28,6 +28,7 @@ import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../identity/utils/mocks';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { createLogger } from '../../../framework/logger';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 mockListNotificationsResponse.response = [
@@ -52,6 +53,10 @@ mockListNotificationsResponse.response = [
   n.created_at = date.toString();
   n.unread = false;
   return n;
+});
+
+const logger = createLogger({
+  name: 'MockNotificationServices',
 });
 
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
@@ -135,8 +140,7 @@ export async function mockAPICall(server: Mockttp, response: ResponseParam) {
     })
     .asPriority(999)
     .thenCallback((request) => {
-      // eslint-disable-next-line no-console
-      console.log(
+      logger.info(
         `Mocking ${request.method} request to: ${getDecodedProxiedURL(
           request.url,
         )}`,

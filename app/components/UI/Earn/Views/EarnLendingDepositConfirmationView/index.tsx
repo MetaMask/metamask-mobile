@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { capitalize } from '../../../../../util/general';
 import {
@@ -40,6 +40,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { EVM_SCOPE } from '../../constants/networks';
 import Logger from '../../../../../util/Logger';
 
 export interface LendingDepositViewRouteParams {
@@ -95,7 +96,9 @@ const EarnLendingDepositConfirmationView = () => {
   const [isApprovalLoading, setIsApprovalLoading] = useState(false);
   const [isDepositLoading, setIsDepositLoading] = useState(false);
 
-  const activeAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -716,7 +719,7 @@ const EarnLendingDepositConfirmationView = () => {
 
       // Guards
       if (
-        !activeAccount?.address ||
+        !selectedAccount?.address ||
         !earnToken?.chainId ||
         !isSupportedLendingAction ||
         !earnToken?.experience?.market?.protocol ||

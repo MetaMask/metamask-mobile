@@ -1,5 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
-
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 import { AssetType, TokenStandard } from '../types/token';
@@ -7,6 +9,7 @@ import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
   fromBNWithDecimals,
+  fromHexWithDecimals,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
@@ -146,6 +149,46 @@ describe('submitEvmTransaction', () => {
     });
     expect(mockAddTransaction).toHaveBeenCalled();
   });
+
+  describe('sets transaction type', () => {
+    it.each([
+      [TransactionType.simpleSend, { isNative: true } as AssetType],
+      [
+        TransactionType.tokenMethodTransfer,
+        { standard: TokenStandard.ERC20 } as AssetType,
+      ],
+      [
+        TransactionType.tokenMethodTransferFrom,
+        { standard: TokenStandard.ERC721 } as AssetType,
+      ],
+      [
+        TransactionType.tokenMethodSafeTransferFrom,
+        { standard: TokenStandard.ERC1155 } as AssetType,
+      ],
+    ])('as %s for %s token', (expectedType, asset) => {
+      const mockAddTransaction = jest
+        .spyOn(TransactionUtils, 'addTransaction')
+        .mockImplementation(() =>
+          Promise.resolve({
+            result: Promise.resolve('123'),
+            transactionMeta: { id: '123' } as TransactionMeta,
+          }),
+        );
+      submitEvmTransaction({
+        asset,
+        chainId: '0x1',
+        from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        to: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA967b',
+        value: '10',
+      });
+
+      expect(mockAddTransaction.mock.calls[0][1]).toEqual(
+        expect.objectContaining({
+          type: expectedType,
+        }),
+      );
+    });
+  });
 });
 
 describe('formatToFixedDecimals', () => {
@@ -201,5 +244,13 @@ describe('fromBNWithDecimals', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
       '0',
     );
+  });
+});
+
+describe('fromHexWithDecimals', () => {
+  it('converts hex to string with decimals correctly', () => {
+    expect(fromHexWithDecimals('0xa12', 5).toString()).toEqual('0.02578');
+    expect(fromHexWithDecimals('0x5', 0).toString()).toEqual('5');
+    expect(fromHexWithDecimals('0x0', 2).toString()).toEqual('0');
   });
 });
