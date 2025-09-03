@@ -15,7 +15,6 @@ import {
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { TransactionBridgeQuote } from '../../utils/bridge';
 import { ConfirmationMetricsState } from '../../../../../core/redux/slices/confirmationMetrics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -53,6 +52,25 @@ const TOTAL_FIAT_MOCK = '$123.45';
 const NETWORK_FEE_MOCK = '$234.56';
 const BRIDGE_FEE_MOCK = '$345.67';
 
+const QUOTE_MOCK = {
+  quote: {
+    srcChainId: 1,
+    destChainId: 1,
+  },
+  approval: {
+    data: '0x1',
+    gasLimit: 1,
+    to: '0x2',
+    value: '0x3',
+  },
+  trade: {
+    data: '0x4',
+    gasLimit: 2,
+    to: '0x5',
+    value: '0x6',
+  },
+};
+
 function renderHook(
   { hasQuotes }: { hasQuotes: boolean } = {
     hasQuotes: false,
@@ -68,7 +86,7 @@ function renderHook(
         confirmationMetrics: {
           transactionBridgeQuotesById: hasQuotes
             ? {
-                [transactionIdMock]: [{} as TransactionBridgeQuote],
+                [transactionIdMock]: [QUOTE_MOCK],
               }
             : {},
         } as unknown as ConfirmationMetricsState,
@@ -251,6 +269,34 @@ describe('useTransactionConfirm', () => {
     await flushPromises();
 
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
+  });
+
+  it('adds batch transactions if quotes on same chain', async () => {
+    const { result } = renderHook({ hasQuotes: true });
+
+    await result.current.onConfirm();
+
+    expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+      txMeta: expect.objectContaining({
+        batchTransactions: [
+          {
+            data: QUOTE_MOCK.approval.data,
+            gas: '0x1',
+            isAfter: false,
+            to: QUOTE_MOCK.approval.to,
+            value: QUOTE_MOCK.approval.value,
+          },
+          {
+            data: QUOTE_MOCK.trade.data,
+            gas: '0x2',
+            isAfter: false,
+            to: QUOTE_MOCK.trade.to,
+            value: QUOTE_MOCK.trade.value,
+          },
+        ],
+        batchTransactionsOptions: {},
+      }),
+    });
   });
 
   describe('navigates to', () => {

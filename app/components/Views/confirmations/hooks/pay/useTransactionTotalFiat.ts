@@ -64,20 +64,22 @@ export function useTransactionTotalFiat() {
 
   const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
   const bridgeFeeFormatted = fiatFormatter(quoteFeeTotal);
+  const balanceCostString = balanceCost.toString(10);
+  const quoteTotalString = quoteTotal.toString(10);
 
   useEffect(() => {
     log('Total fiat', {
-      balances: balanceCost.toString(10),
-      quotes: quoteTotal.toString(10),
+      balances: balanceCostString,
+      quotes: quoteTotalString,
       networkFees: totalNetworkFeeFormatted,
       bridgeFees: bridgeFeeFormatted,
       total: formatted,
     });
   }, [
-    balanceCost,
+    balanceCostString,
     bridgeFeeFormatted,
     formatted,
-    quoteTotal,
+    quoteTotalString,
     totalNetworkFeeFormatted,
     value,
   ]);
