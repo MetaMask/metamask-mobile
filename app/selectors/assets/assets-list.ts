@@ -117,7 +117,6 @@ const selectStakedAssets = createDeepEqualSelector(
               decimals: 18,
               name: nativeCurrency === 'ETH' ? 'Ethereum' : nativeCurrency,
               symbol: nativeCurrency,
-              image: '../images/eth-logo-new.png',
             };
 
             const conversionRate =
@@ -128,7 +127,8 @@ const selectStakedAssets = createDeepEqualSelector(
               : undefined;
 
             const account = Object.values(internalAccounts).find(
-              (account) => account.address === address.toLowerCase(),
+              (internalAccount) =>
+                internalAccount.address === address.toLowerCase(),
             );
 
             const stakedAsset = {
@@ -137,7 +137,7 @@ const selectStakedAssets = createDeepEqualSelector(
               isNative: true,
               isStaked: true,
               address: nativeToken.address,
-              image: nativeToken.image,
+              image: '',
               name: 'Staked Ethereum',
               symbol: nativeToken.symbol,
               accountId: account?.id,

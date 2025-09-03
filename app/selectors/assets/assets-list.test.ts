@@ -294,6 +294,7 @@ const mockState = ({
             '0x1': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                 balance: '0x8AC7230489E80000', // 10000000000000000000 (10 - 18 decimals)
+                stakedBalance: '0x56BC75E2D63100000', // 100000000000000000000 (100 18 decimals)
               },
             },
             '0xa': {
@@ -320,6 +321,7 @@ const mockState = ({
           tokenSortConfig: {
             key: 'tokenFiatAmount',
             order: 'dsc',
+            sortCallback: 'stringNumeric',
           },
         },
       },
@@ -485,6 +487,27 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 
     expect(result).toEqual([
       {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+        isStaked: true,
+      },
+      {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      },
+      {
+        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
+        chainId: '0xa',
+      },
+      {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0xa',
+      },
+      {
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
+      {
         address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
       },
@@ -494,24 +517,8 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       },
       {
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: '0x1',
-      },
-      {
-        address: '0x0000000000000000000000000000000000000000',
-        chainId: '0xa',
-      },
-      {
         address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
         chainId: '0x1',
-      },
-      {
-        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      },
-      {
-        address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
-        chainId: '0xa',
       },
     ]);
   });
@@ -522,11 +529,16 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 
     expect(result).toEqual([
       {
-        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
+        isStaked: true,
       },
       {
         address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+      },
+      {
+        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         chainId: '0x1',
       },
       {
@@ -562,6 +574,32 @@ describe('selectAsset', () => {
     });
   });
 
+  it('returns formatted staked evm native asset based on filter criteria', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+      isStaked: true,
+    });
+
+    expect(result).toEqual({
+      chainId: '0x1',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      ticker: 'ETH',
+      name: 'Staked Ethereum',
+      decimals: 18,
+      balance: '100',
+      balanceFiat: '$240,000.00',
+      isETH: true,
+      isNative: true,
+      isStaked: true,
+      logo: '../images/eth-logo-new.png',
+      image: '',
+      aggregators: [],
+    });
+  });
+
   it('returns formatted evm token asset based on filter criteria', () => {
     const state = mockState();
     const result = selectAsset(state, {
@@ -583,6 +621,31 @@ describe('selectAsset', () => {
       logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
       image:
         'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
+      aggregators: [],
+    });
+  });
+
+  it('returns formatted non-evm asset based on filter criteria', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    });
+
+    expect(result).toEqual({
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      symbol: 'SOL',
+      ticker: 'SOL',
+      name: 'Solana',
+      decimals: 9,
+      balance: '10',
+      balanceFiat: '$1,635.50',
+      isETH: false,
+      isNative: true,
+      logo: 'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
       aggregators: [],
     });
   });
