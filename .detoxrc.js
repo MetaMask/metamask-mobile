@@ -50,6 +50,10 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.flask.release',
     },
+    'ios.github_ci.main.release': {
+      device: 'ios.github_ci.simulator',
+      app: 'ios.debug',
+    },
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
@@ -74,6 +78,21 @@ module.exports = {
         type: 'iPhone 16 Pro',
         os: 'iOS 18.6',
       },
+    },
+    'ios.github_ci.simulator': {
+      type: 'ios.simulator',
+      device: {
+        type: 'iPhone 15 Pro',
+        os: 'iOS 18.1',
+      },
+      // Optimized for GitHub Actions CI runners
+      bootArgs: [
+        '-no-audio',
+        '-no-boot-anim'
+      ],
+      utilBinaryPaths: [
+        '/usr/bin/rsync'
+      ],
     },
     'android.bitrise.emulator': {
       type: 'android.emulator',
