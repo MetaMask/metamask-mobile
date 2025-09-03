@@ -33,6 +33,11 @@ on:
         required: false
         type: number
         default: 30
+      existing-build-run-id:
+        description: 'Use existing build from this run ID instead of building'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   test-e2e-mobile:
@@ -147,11 +152,19 @@ jobs:
           # Create required directories
           mkdir -p ios/build/Build/Products/Release-iphonesimulator/
 
-      - name: Download iOS build artifacts
-        if: ${{ inputs.platform == 'ios' }}
+      - name: Download iOS build artifacts (from current run)
+        if: ${{ inputs.platform == 'ios' && inputs.existing-build-run-id == '' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
+
+      - name: Download iOS build artifacts (from existing run)
+        if: ${{ inputs.platform == 'ios' && inputs.existing-build-run-id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          run-id: ${{ inputs.existing-build-run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clean environment before tests (iOS only)
         if: ${{ inputs.platform == 'ios' }}
         run: |
