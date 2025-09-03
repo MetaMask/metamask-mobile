@@ -170,31 +170,26 @@ const selectStakedAssets = createDeepEqualSelector(
   },
 );
 
-export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectEnabledNetworksByNamespace,
-    selectTokenSortConfig,
-    selectIsAllNetworks,
-    selectChainId,
-    selectStakedAssets,
-  ],
-  (
-    bip44Assets,
-    enabledNetworksByNamespace,
-    tokenSortConfig,
-    isAllNetworks,
-    currentChainId,
-    stakedAssets,
-  ) => {
-    const enabledNetworks = isAllNetworks
+const selectEnabledNetworks = createDeepEqualSelector(
+  [selectEnabledNetworksByNamespace, selectIsAllNetworks, selectChainId],
+  (enabledNetworksByNamespace, isAllNetworks, currentChainId) =>
+    isAllNetworks
       ? Object.values(enabledNetworksByNamespace).flatMap((network) =>
           Object.entries(network)
             .filter(([_, enabled]) => enabled)
             .map(([networkId]) => networkId),
         )
-      : [currentChainId];
+      : [currentChainId],
+);
 
+export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
+  [
+    selectEnabledNetworks,
+    selectAssetsBySelectedAccountGroup,
+    selectTokenSortConfig,
+    selectStakedAssets,
+  ],
+  (enabledNetworks, bip44Assets, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
       .flatMap(([_, chainAssets]) => chainAssets);
