@@ -3,20 +3,15 @@ import { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
-    bottomSheet: {
-      backgroundColor: colors.background.alternative,
-    },
+    bottomSheet: {},
     container: {
       paddingHorizontal: 16,
       paddingBottom: 16,
-      backgroundColor: colors.background.alternative,
     },
     header: {
       paddingBottom: 8,
-      backgroundColor: colors.background.alternative,
     },
     footer: {
-      backgroundColor: colors.background.alternative,
       paddingBottom: 8,
     },
     priceInfoContainer: {
@@ -95,11 +90,11 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     percentageButtonActiveTP: {
       borderWidth: 1,
-      borderColor: colors.success.default,
+      borderColor: colors.primary.default,
     },
     percentageButtonActiveSL: {
       borderWidth: 1,
-      borderColor: colors.error.default,
+      borderColor: colors.primary.default,
     },
     helperText: {
       marginTop: 4,

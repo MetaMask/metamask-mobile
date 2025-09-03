@@ -1,10 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import Icon, {
   IconName,
@@ -54,7 +49,6 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
-import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
@@ -62,6 +56,17 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { useIsCardholder } from '../../hooks/useIsCardholder';
+import {
+  Skeleton,
+  SkeletonProps,
+} from '../../../../../component-library/components/Skeleton';
+import { isE2E } from '../../../../../util/test/utils';
+
+const SkeletonLoading = (props: SkeletonProps) => {
+  if (isE2E) return null;
+
+  return <Skeleton {...props} />;
+};
 
 /**
  * CardHome Component
@@ -230,6 +235,14 @@ const CardHome = () => {
     cardholderAddresses,
   ]);
 
+  const isLoading = useMemo(
+    () =>
+      isLoadingPriorityToken ||
+      isLoadingNetworkChange ||
+      (!priorityToken && !hasError),
+    [isLoadingPriorityToken, isLoadingNetworkChange, priorityToken, hasError],
+  );
+
   if (hasError) {
     return (
       <View style={styles.errorContainer}>
@@ -269,22 +282,6 @@ const CardHome = () => {
     );
   }
 
-  if (
-    isLoadingPriorityToken ||
-    isLoadingNetworkChange ||
-    (!priorityToken && !hasError)
-  ) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary.default}
-          testID={CardHomeSelectors.LOADER}
-        />
-      </View>
-    );
-  }
-
   return (
     <ScrollView
       style={styles.wrapper}
@@ -292,103 +289,119 @@ const CardHome = () => {
       alwaysBounceVertical={false}
       contentContainerStyle={styles.contentContainer}
     >
-      {priorityToken && (
-        <View style={styles.cardBalanceContainer}>
-          <View
-            style={[
-              styles.balanceTextContainer,
-              styles.defaultHorizontalPadding,
-            ]}
+      <View style={styles.cardBalanceContainer}>
+        <View
+          style={[styles.balanceTextContainer, styles.defaultHorizontalPadding]}
+        >
+          <SensitiveText
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Long}
+            variant={TextVariant.HeadingLG}
           >
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              variant={TextVariant.HeadingLG}
-            >
-              {balanceAmount === TOKEN_BALANCE_LOADING ||
-              balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
-              ) : (
-                balanceAmount ?? '0'
-              )}
-            </SensitiveText>
-            <TouchableOpacity
-              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
-            >
-              <Icon
-                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-                color={theme.colors.icon.alternative}
+            {isLoading ||
+            balanceAmount === TOKEN_BALANCE_LOADING ||
+            balanceAmount === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+              <SkeletonLoading
+                height={28}
+                width={'50%'}
+                style={styles.skeletonRounded}
+                testID={CardHomeSelectors.BALANCE_SKELETON}
               />
-            </TouchableOpacity>
-          </View>
-          {isAllowanceLimited && (
-            <View
-              style={[
-                styles.limitedAllowanceWarningContainer,
-                styles.defaultHorizontalPadding,
-              ]}
-            >
-              <Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={theme.colors.text.alternative}
-                >
-                  {strings('card.card_home.limited_spending_warning', {
-                    manageCard: '',
-                  })}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={theme.colors.text.alternative}
-                  style={styles.limitedAllowanceManageCardText}
-                >
-                  {strings('card.card_home.manage_card_options.manage_card')}
-                  {'.'}
-                </Text>
-              </Text>
-            </View>
-          )}
-          <View
-            style={[
-              styles.cardImageContainer,
-              styles.defaultHorizontalPadding,
-              isAllowanceLimited && styles.defaultMarginTop,
-            ]}
+            ) : (
+              balanceAmount ?? '0'
+            )}
+          </SensitiveText>
+          <TouchableOpacity
+            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+            testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
           >
-            <CardImage />
-          </View>
-          <View
-            style={[
-              styles.cardAssetItemContainer,
-              styles.defaultHorizontalPadding,
-            ]}
-          >
-            <CardAssetItem
-              assetKey={priorityToken}
-              privacyMode={privacyMode}
-              disabled
+            <Icon
+              name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+              size={IconSize.Md}
+              color={theme.colors.icon.alternative}
             />
-          </View>
-
+          </TouchableOpacity>
+        </View>
+        {isAllowanceLimited && (
           <View
             style={[
-              styles.addFundsButtonContainer,
+              styles.limitedAllowanceWarningContainer,
               styles.defaultHorizontalPadding,
             ]}
           >
+            <Text>
+              <Text
+                variant={TextVariant.BodySM}
+                color={theme.colors.text.alternative}
+              >
+                {strings('card.card_home.limited_spending_warning', {
+                  manageCard: '',
+                })}
+              </Text>
+              <Text
+                variant={TextVariant.BodySM}
+                color={theme.colors.text.alternative}
+                style={styles.limitedAllowanceManageCardText}
+              >
+                {strings('card.card_home.manage_card_options.manage_card')}
+                {'.'}
+              </Text>
+            </Text>
+          </View>
+        )}
+        <View
+          style={[
+            styles.cardImageContainer,
+            styles.defaultHorizontalPadding,
+            isAllowanceLimited && styles.defaultMarginTop,
+          ]}
+        >
+          <CardImage />
+        </View>
+        <View
+          style={[
+            styles.cardAssetItemContainer,
+            styles.defaultHorizontalPadding,
+          ]}
+        >
+          {isLoading || !priorityToken ? (
+            <SkeletonLoading
+              height={50}
+              width={'100%'}
+              style={styles.skeletonRounded}
+              testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
+            />
+          ) : (
+            <CardAssetItem assetKey={priorityToken} privacyMode={privacyMode} />
+          )}
+        </View>
+
+        <View
+          style={[
+            styles.addFundsButtonContainer,
+            styles.defaultHorizontalPadding,
+          ]}
+        >
+          {isLoading ? (
+            <SkeletonLoading
+              height={28}
+              width={'100%'}
+              style={styles.skeletonRounded}
+              testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
+            />
+          ) : (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
               size={ButtonSize.Sm}
               onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
+              loading={isLoading}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
-          </View>
+          )}
         </View>
-      )}
+      </View>
 
       <ManageCardListItem
         title={strings('card.card_home.manage_card_options.manage_card')}

@@ -1,14 +1,15 @@
 import { StyleSheet } from 'react-native';
-import type { ThemeColors } from '@metamask/design-tokens';
 import { fontStyles } from '../../../../../../styles/common';
 
-const createStyles = (colors: ThemeColors) =>
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    inputWrapper: {
+    imputWrapper: {
       flex: 0,
       borderBottomWidth: 1,
       borderBottomColor: colors.border.muted,
@@ -85,35 +86,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     warningIcon: {
       marginRight: 8,
-    },
-    base: {
-      flexDirection: 'row',
-      paddingVertical: 5,
-      paddingHorizontal: 16,
-      borderRadius: 24,
-      borderWidth: 1,
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderColor: colors.border.muted,
-    },
-    accountSelectorWrapper: {
-      height: 40,
-      backgroundColor: colors.background.default,
-      paddingHorizontal: 16,
-      flexDirection: 'row',
-      width: '100%',
-      marginBottom: 16,
-    },
-    avatarWrapper: {
-      marginRight: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
     },
   });
 

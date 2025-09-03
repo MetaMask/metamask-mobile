@@ -22,6 +22,24 @@ jest.mock('../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => false,
   selectIsPopularNetwork: () => true,
   selectChainId: () => '0x1',
+  selectPopularNetworkConfigurationsByCaipChainId: () => ({
+    '0x1': {
+      chainId: '0x1',
+      nickname: 'Ethereum Mainnet',
+      rpcUrl: 'https://mainnet.infura.io/v3/',
+      ticker: 'ETH',
+      caipChainId: 'eip155:1',
+    },
+  }),
+  selectCustomNetworkConfigurationsByCaipChainId: () => ({
+    '0x89': {
+      chainId: '0x89',
+      nickname: 'Polygon',
+      rpcUrl: 'https://polygon-rpc.com',
+      ticker: 'MATIC',
+      caipChainId: 'eip155:137',
+    },
+  }),
 }));
 
 jest.mock('../../../selectors/networkInfos', () => ({
@@ -30,7 +48,7 @@ jest.mock('../../../selectors/networkInfos', () => ({
 
 jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
   useCurrentNetworkInfo: () => ({
-    enabledNetworks: ['0x1', '0x89'],
+    enabledNetworks: [{ chainId: '0x1' }, { chainId: '0x89' }],
     getNetworkInfo: jest.fn().mockReturnValue({
       networkName: 'Ethereum Mainnet',
     }),
@@ -95,6 +113,9 @@ describe('DeFiPositionsControlBar', () => {
             },
           },
         },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+        },
         PreferencesController: {
           selectedAddress: '0x123',
         },
@@ -127,6 +148,9 @@ describe('DeFiPositionsControlBar', () => {
               chainId: CHAIN_IDS.MAINNET,
               type: 'mainnet',
             },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
           },
           PreferencesController: {
             selectedAddress: '0x123',
@@ -178,7 +202,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    expect(getByText(strings('networks.enabled_networks'))).toBeDefined();
+    expect(getByText(strings('wallet.all_networks'))).toBeDefined();
   });
 
   it('should show current network name when isRemoveGlobalNetworkSelectorEnabled is true and single network enabled', () => {
@@ -189,7 +213,7 @@ describe('DeFiPositionsControlBar', () => {
       '../../hooks/useCurrentNetworkInfo',
     );
     useCurrentNetworkInfoModule.useCurrentNetworkInfo = () => ({
-      enabledNetworks: ['0x1'],
+      enabledNetworks: [{ chainId: '0x1' }],
       getNetworkInfo: jest.fn().mockReturnValue({
         networkName: 'Ethereum Mainnet',
       }),
@@ -215,7 +239,7 @@ describe('DeFiPositionsControlBar', () => {
       '../../hooks/useCurrentNetworkInfo',
     );
     useCurrentNetworkInfoModule.useCurrentNetworkInfo = () => ({
-      enabledNetworks: ['0x1'],
+      enabledNetworks: [{ chainId: '0x1' }],
       getNetworkInfo: jest.fn().mockReturnValue(null),
     });
 
@@ -305,6 +329,9 @@ describe('DeFiPositionsControlBar', () => {
               chainId: CHAIN_IDS.GOERLI,
               type: 'goerli',
             },
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
           },
           PreferencesController: {
             selectedAddress: '0x123',

@@ -200,7 +200,9 @@ const EnterAddress = (): JSX.Element => {
 
     try {
       setLoading(true);
-      await postKycForm(formData);
+      await postKycForm({
+        addressDetails: formData,
+      });
 
       await routeAfterAuthentication(quote);
     } catch (submissionError) {

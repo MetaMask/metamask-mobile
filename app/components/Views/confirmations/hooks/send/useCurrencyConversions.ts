@@ -122,7 +122,7 @@ export const useCurrencyConversions = () => {
   const getNativeDisplayValue = useCallback(
     (amount: string) =>
       getNativeDisplayValueFn({
-        asset,
+        asset: asset as AssetType,
         conversionRate,
         exchangeRate,
         amount,

@@ -23,6 +23,8 @@ describe('usePerpsOrderForm', () => {
       totalBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
     });
   });
 
@@ -228,6 +230,8 @@ describe('usePerpsOrderForm', () => {
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '0',
       });
 
       const { result } = renderHook(() => usePerpsOrderForm());

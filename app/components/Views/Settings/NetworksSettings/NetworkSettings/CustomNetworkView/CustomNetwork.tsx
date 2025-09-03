@@ -95,7 +95,7 @@ const CustomNetwork = ({
 
   return (
     <>
-      {listHeader && filteredPopularList.length > 0 && (
+      {!!listHeader && filteredPopularList.length > 0 && (
         <Text
           style={customNetworkStyles.listHeader}
           variant={TextVariant.BodyMDBold}
@@ -123,15 +123,6 @@ const CustomNetwork = ({
           onPress={() => showNetworkModal(networkConfiguration)}
         >
           <View style={networkSettingsStyles.popularWrapper}>
-            {compactMode && (
-              <View style={customNetworkStyles.iconContainer}>
-                <Icon
-                  name={IconName.Add}
-                  size={IconSize.Lg}
-                  color={colors.icon.alternative}
-                />
-              </View>
-            )}
             <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
@@ -150,6 +141,7 @@ const CustomNetwork = ({
               {networkConfiguration.nickname}
             </CustomText>
           </View>
+
           <View style={networkSettingsStyles.popularWrapper}>
             {!hideWarningIcons &&
             toggleWarningModal &&
@@ -176,6 +168,15 @@ const CustomNetwork = ({
               )
             )}
           </View>
+          {compactMode && (
+            <View style={customNetworkStyles.iconContainer}>
+              <Icon
+                name={IconName.Add}
+                size={IconSize.Lg}
+                color={colors.icon.alternative}
+              />
+            </View>
+          )}
         </TouchableOpacity>
       ))}
     </>

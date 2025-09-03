@@ -1,20 +1,22 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { TransactionMeta } from '@metamask/transaction-controller';
-
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
-import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtils';
 import { AssetType, TokenStandard } from '../types/token';
-import { SOLANA_ASSET } from '../__mocks__/send.mock';
 import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
   fromBNWithDecimals,
+  fromHexWithDecimals,
+  fromTokenMinUnits,
+  getLayer1GasFeeForSend,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
-  submitNonEvmTransaction,
   toBNWithDecimals,
 } from './send';
 
@@ -27,12 +29,29 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('handleSendPageNavigation', () => {
-  it('navigates to send page', () => {
+  it('navigates to legacy send page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(mockNavigate, InitSendLocation.WalletActions, {
-      name: 'ETHEREUM',
-    } as AssetType);
+    handleSendPageNavigation(
+      mockNavigate,
+      InitSendLocation.WalletActions,
+      false,
+      {
+        name: 'ETHEREUM',
+      } as AssetType,
+    );
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+  });
+  it('navigates to send redesign page', () => {
+    const mockNavigate = jest.fn();
+    handleSendPageNavigation(
+      mockNavigate,
+      InitSendLocation.WalletActions,
+      true,
+      {
+        name: 'ETHEREUM',
+      } as AssetType,
+    );
+    expect(mockNavigate.mock.calls[0][0]).toEqual('Send');
   });
 });
 
@@ -134,18 +153,45 @@ describe('submitEvmTransaction', () => {
     });
     expect(mockAddTransaction).toHaveBeenCalled();
   });
-});
 
-describe('submitNonEvmTransaction', () => {
-  it('invokes function sendMultichainTransaction', () => {
-    const mockSendMultichainTransaction = jest
-      .spyOn(SendMultichainTransactionUtils, 'sendMultichainTransaction')
-      .mockImplementation(() => Promise.resolve());
-    submitNonEvmTransaction({
-      asset: SOLANA_ASSET,
-      fromAccount: { id: 'solana_account_id' } as InternalAccount,
+  describe('sets transaction type', () => {
+    it.each([
+      [TransactionType.simpleSend, { isNative: true } as AssetType],
+      [
+        TransactionType.tokenMethodTransfer,
+        { standard: TokenStandard.ERC20 } as AssetType,
+      ],
+      [
+        TransactionType.tokenMethodTransferFrom,
+        { standard: TokenStandard.ERC721 } as AssetType,
+      ],
+      [
+        TransactionType.tokenMethodSafeTransferFrom,
+        { standard: TokenStandard.ERC1155 } as AssetType,
+      ],
+    ])('as %s for %s token', (expectedType, asset) => {
+      const mockAddTransaction = jest
+        .spyOn(TransactionUtils, 'addTransaction')
+        .mockImplementation(() =>
+          Promise.resolve({
+            result: Promise.resolve('123'),
+            transactionMeta: { id: '123' } as TransactionMeta,
+          }),
+        );
+      submitEvmTransaction({
+        asset,
+        chainId: '0x1',
+        from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
+        to: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA967b',
+        value: '10',
+      });
+
+      expect(mockAddTransaction.mock.calls[0][1]).toEqual(
+        expect.objectContaining({
+          type: expectedType,
+        }),
+      );
     });
-    expect(mockSendMultichainTransaction).toHaveBeenCalled();
   });
 });
 
@@ -179,10 +225,10 @@ describe('toBNWithDecimals', () => {
   it('remove addtional decimal part', () => {
     expect(toBNWithDecimals('.123123', 3).toString()).toEqual('123');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts decimal value to bignumber correctly', () => {
     expect(toBNWithDecimals('.1', 5).toString()).toEqual('10000');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts 0 value to bignumber correctly', () => {
     expect(toBNWithDecimals('0', 5).toString()).toEqual('0');
   });
 });
@@ -193,14 +239,47 @@ describe('fromBNWithDecimals', () => {
       fromBNWithDecimals(toBNWithDecimals('1.20', 5), 5).toString(),
     ).toEqual('1.2');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts decimal value to bignumber correctly', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('.1', 5), 5).toString()).toEqual(
       '0.1',
     );
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts 0 value to bignumber correctly', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
       '0',
     );
+  });
+});
+
+describe('fromHexWithDecimals', () => {
+  it('converts hex to string with decimals correctly', () => {
+    expect(fromHexWithDecimals('0xa12', 5).toString()).toEqual('0.02578');
+    expect(fromHexWithDecimals('0x5', 0).toString()).toEqual('5');
+    expect(fromHexWithDecimals('0x0', 2).toString()).toEqual('0');
+  });
+});
+
+describe('fromTokenMinUnits', () => {
+  it('converts hex to string with decimals correctly', () => {
+    expect(fromTokenMinUnits('0', 5).toString()).toEqual('0x0');
+    expect(fromTokenMinUnits('1000', 2).toString()).toEqual('0x186a0');
+    expect(fromTokenMinUnits('2500', 18).toString()).toEqual(
+      '0x878678326eac900000',
+    );
+  });
+});
+
+describe('getLayer1GasFeeForSend', () => {
+  it('call transaction-controller function getLayer1GasFee', () => {
+    const mockGetLayer1GasFee = jest
+      .spyOn(EngineNetworkUtils, 'fetchEstimatedMultiLayerL1Fee')
+      .mockImplementation(() => Promise.resolve('0x186a0'));
+    getLayer1GasFeeForSend({
+      asset: { decimals: 2 } as unknown as AssetType,
+      chainId: '0x1',
+      from: '0x123',
+      value: '10',
+    });
+    expect(mockGetLayer1GasFee).toHaveBeenCalled();
   });
 });

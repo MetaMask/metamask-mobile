@@ -35,6 +35,7 @@ import { usePerpsPerformance } from '../../hooks';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -149,7 +150,10 @@ const PerpsMarketListView = ({
   };
 
   const handleBackPressed = () => {
-    navigation.goBack();
+    // Navigate back to the main Perps tab
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
   const filteredMarkets = useMemo(() => {
@@ -201,16 +205,21 @@ const PerpsMarketListView = ({
 
   // Track screen load performance
   const hasTrackedMarketsView = useRef(false);
-  const hasTrackedSkeletonDisplay = useRef(false);
+  const hasTrackedDataDisplay = useRef(false);
 
-  // Track skeleton display immediately
+  // Track when actual market data is displayed (not just skeleton)
   useEffect(() => {
-    if (isLoadingMarkets && !hasTrackedSkeletonDisplay.current) {
-      // Measure time to skeleton display (should be instant)
-      endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
-      hasTrackedSkeletonDisplay.current = true;
+    if (filteredMarkets.length > 0 && !hasTrackedDataDisplay.current) {
+      // End measurement when actual data is displayed
+      const loadTime = endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
+      DevLogger.log('PerpsMarketListView: Market data displayed', {
+        marketCount: filteredMarkets.length,
+        loadTimeMs: loadTime,
+        targetMs: 200,
+      });
+      hasTrackedDataDisplay.current = true;
     }
-  }, [isLoadingMarkets, endMeasure]);
+  }, [filteredMarkets.length, endMeasure]);
 
   useEffect(() => {
     // Track markets screen viewed event - only once when data is loaded
@@ -297,11 +306,13 @@ const PerpsMarketListView = ({
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
-          <ButtonIcon
-            iconName={IconName.Arrow2Left}
-            size={ButtonIconSizes.Md}
-            onPress={handleBackPressed}
-          />
+          <View style={styles.backButtonWrapper}>
+            <ButtonIcon
+              iconName={IconName.Arrow2Left}
+              size={ButtonIconSizes.Md}
+              onPress={handleBackPressed}
+            />
+          </View>
           <Text
             variant={TextVariant.HeadingLG}
             color={TextColor.Default}

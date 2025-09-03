@@ -65,6 +65,9 @@ jest.mock('../../../core/Engine', () => ({
     SeedlessOnboardingController: {
       submitGlobalPassword: jest.fn(),
     },
+    MultichainAccountService: {
+      init: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 

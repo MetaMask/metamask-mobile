@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity as RNTouchableOpacity,
   TouchableOpacityProps,
@@ -31,11 +31,22 @@ const TouchableOpacity = ({
   disabled,
   children,
   ...props
-}: TouchableOpacityProps & { children?: React.ReactNode }) => {
+}: TouchableOpacityProps & {
+  children?: React.ReactNode;
+}) => {
   // Handle both 'disabled' and 'isDisabled' props for compatibility
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
+
+  // Simple pass-through to main component coordination
+  // Main component handles ALL coordination logic
+
+  // Gesture detection for ScrollView compatibility on Android
+  // Sets timestamp FIRST, then calls parent function
   const tap = Gesture.Tap()
     .runOnJS(true)
+    .shouldCancelWhenOutside(false)
+    .maxDeltaX(20) // Allow some movement while tapping
+    .maxDeltaY(20)
     .onEnd((gestureEvent) => {
       if (onPress && !isDisabled) {
         // Create a proper GestureResponderEvent-like object from gesture event
@@ -57,19 +68,24 @@ const TouchableOpacity = ({
             /* no-op for synthetic event */
           },
         } as GestureResponderEvent;
+
+        // Call main component function (handles coordination)
         onPress(syntheticEvent);
       }
     });
 
-  // Preserve onPress for accessibility (screen readers, keyboard navigation)
-  // but ensure it respects disabled state
-  const accessibleOnPress = isDisabled ? undefined : onPress;
+  // Simple accessibility handler - main component handles coordination
+  const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
+    if (onPress && !isDisabled) {
+      onPress(pressEvent);
+    }
+  };
 
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={accessibleOnPress} // Preserve for accessibility
+        onPress={accessibilityOnPress} // Restored for accessibility without ScrollView conflicts
         {...props}
         // Ensure disabled prop is available to tests
         {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
@@ -100,6 +116,11 @@ const ButtonBase = ({
     isDisabled,
   });
 
+  // Shared coordination system for maximum reliability
+  // Both custom TouchableOpacity and main component use the same timestamp reference
+  const lastPressTime = useRef(0);
+  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
+
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
     process.env.IS_TEST === 'true' ||
@@ -110,15 +131,23 @@ const ButtonBase = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // Handle disabled state properly in all environments
-  // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
-  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
-  const conditionalOnPress =
-    TouchableComponent === TouchableOpacity
-      ? onPress
-      : isDisabled
-      ? undefined
-      : onPress;
+  const conditionalOnPress = isDisabled
+    ? undefined
+    : (_pressEvent?: GestureResponderEvent) => {
+        // Skip coordination logic in test environments
+        if (process.env.NODE_ENV === 'test') {
+          onPress?.();
+          return;
+        }
+
+        const now = Date.now();
+        const timeSinceLastPress = now - lastPressTime.current;
+
+        if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
+          lastPressTime.current = now;
+          onPress();
+        }
+      };
 
   return (
     <TouchableComponent

@@ -30,7 +30,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   const DEFAULT_ACCOUNT_NAME = 'Account 1';
   const SECOND_ACCOUNT_NAME = 'Account 2';
   const SRP_2_FIRST_ACCOUNT = 'Account 3';
-  const SRP_2_SECOND_ACCOUNT = 'My Fourth Account';
+  const SRP_2_SECOND_ACCOUNT = 'Number 4';
 
   /**
    * This test verifies account syncing when adding accounts across multiple SRPs:
@@ -90,6 +90,10 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await waitUntilSyncedAccountsNumberEquals(3);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
+        const secretPhraseImportedText = 'Secret Recovery Phrase 2 imported';
+        // Waiting for toast notification to appear and disappear
+        await Assertions.expectTextDisplayed(secretPhraseImportedText);
+        await Assertions.expectTextNotDisplayed(secretPhraseImportedText);
 
         // Create second account for SRP 2
         await WalletView.tapIdenticon();
@@ -112,6 +116,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
         await device.enableSynchronization();
+        await waitUntilEventsEmittedNumberEquals(6);
       },
     );
 

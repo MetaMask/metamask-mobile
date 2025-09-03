@@ -24,13 +24,12 @@ import {
 } from '../../utils/formatUtils';
 import styleSheet from './PerpsOpenOrderCard.styles';
 import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import RemoteImage from '../../../../Base/RemoteImage';
 import type {
   PerpsOpenOrderCardProps,
   OpenOrderCardDerivedData,
 } from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 
 /**
  * PerpsOpenOrderCard Component
@@ -66,7 +65,6 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   rightAccessory,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { assetUrl } = usePerpsAssetMetadata(order.symbol);
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
@@ -129,14 +127,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
         {/* Icon Section - Conditionally shown (only in collapsed mode) */}
         {showIcon && !expanded && (
           <View style={styles.perpIcon}>
-            {assetUrl ? (
-              <RemoteImage
-                source={{ uri: assetUrl }}
-                style={styles.tokenIcon}
-              />
-            ) : (
-              <Icon name={IconName.Coin} size={IconSize.Lg} />
-            )}
+            <PerpsTokenLogo symbol={order.symbol} size={40} />
           </View>
         )}
 

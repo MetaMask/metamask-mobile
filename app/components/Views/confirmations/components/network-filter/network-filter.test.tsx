@@ -59,6 +59,7 @@ const mockSetSelectedNetworkFilter = jest.fn();
 const mockOnFilteredTokensChange = jest.fn();
 const mockOnNetworkFilterStateChange = jest.fn();
 const mockOnExposeFilterControls = jest.fn();
+const mockOnNetworkFilterChange = jest.fn();
 
 jest.mock('../../hooks/send/useNetworks', () => ({
   useNetworks: jest.fn(),
@@ -148,15 +149,32 @@ describe('NetworkFilter', () => {
   });
 
   it('calls setSelectedNetworkFilter when network tab is pressed', () => {
-    render(
+    const { rerender } = render(
       <NetworkFilter
         tokens={mockTokens}
         onFilteredTokensChange={mockOnFilteredTokensChange}
+        onNetworkFilterChange={mockOnNetworkFilterChange}
       />,
     );
 
-    fireEvent.press(screen.getByText('Ethereum Mainnet'));
-    expect(mockSetSelectedNetworkFilter).toHaveBeenCalledWith('0x1');
+    jest.clearAllMocks();
+
+    mockUseNetworkFilter.mockReturnValue({
+      selectedNetworkFilter: '0x1',
+      setSelectedNetworkFilter: mockSetSelectedNetworkFilter,
+      filteredTokensByNetwork: [mockTokens[0]],
+      networksWithTokens: mockNetworks,
+    });
+
+    rerender(
+      <NetworkFilter
+        tokens={mockTokens}
+        onFilteredTokensChange={mockOnFilteredTokensChange}
+        onNetworkFilterChange={mockOnNetworkFilterChange}
+      />,
+    );
+
+    expect(mockOnNetworkFilterChange).toHaveBeenCalledWith('0x1');
   });
 
   it('calls onFilteredTokensChange when filtered tokens change', () => {
@@ -220,6 +238,7 @@ describe('NetworkFilter', () => {
       <NetworkFilter
         tokens={mockTokens}
         onFilteredTokensChange={mockOnFilteredTokensChange}
+        onNetworkFilterChange={mockOnNetworkFilterChange}
       />,
     );
 

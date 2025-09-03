@@ -9,9 +9,8 @@ describe('Recipient', () => {
   const createMockRecipient = (
     overrides: Partial<RecipientType> = {},
   ): RecipientType => ({
-    name: 'John Doe',
+    accountName: 'John Doe',
     address: '0x1234567890123456789012345678901234567890',
-    fiatValue: '$1,234.56',
     ...overrides,
   });
 
@@ -23,7 +22,7 @@ describe('Recipient', () => {
 
   it('renders recipient name correctly', () => {
     const mockRecipient = createMockRecipient({
-      name: 'Alice Smith',
+      accountName: 'Alice Smith',
     });
 
     const { getByText } = renderWithProvider(
@@ -37,26 +36,8 @@ describe('Recipient', () => {
     expect(getByText('Alice Smith')).toBeOnTheScreen();
   });
 
-  it('displays fiat value when provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: '$2,500.00',
-    });
-
-    const { getByText } = renderWithProvider(
-      <Recipient
-        recipient={mockRecipient}
-        accountAvatarType={AvatarAccountType.Blockies}
-        onPress={mockOnPress}
-      />,
-    );
-
-    expect(getByText('$2,500.00')).toBeOnTheScreen();
-  });
-
   it('does not display fiat value when not provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: undefined,
-    });
+    const mockRecipient = createMockRecipient();
 
     const { queryByText } = renderWithProvider(
       <Recipient
@@ -114,5 +95,58 @@ describe('Recipient', () => {
     );
 
     expect(getByText('John Doe')).toBeOnTheScreen();
+  });
+
+  it('renders contact name when account name is not provided', () => {
+    const mockRecipient = createMockRecipient({
+      accountName: undefined,
+      contactName: 'Contact Name',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Contact Name')).toBeOnTheScreen();
+  });
+
+  it('renders account group name when BIP44 is true', () => {
+    const mockRecipient = createMockRecipient({
+      accountGroupName: 'Group Name',
+      contactName: 'Contact Name',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        isBIP44
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Group Name')).toBeOnTheScreen();
+  });
+
+  it('renders contact name when BIP44 is true and account group name is not provided', () => {
+    const mockRecipient = createMockRecipient({
+      accountGroupName: undefined,
+      contactName: 'Contact Name',
+    });
+
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        isBIP44
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Contact Name')).toBeOnTheScreen();
   });
 });

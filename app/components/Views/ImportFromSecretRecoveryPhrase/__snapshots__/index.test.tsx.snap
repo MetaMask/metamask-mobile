@@ -582,9 +582,15 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                     >
                                       <View
                                         style={
-                                          {
-                                            "backgroundColor": "inherit",
-                                          }
+                                          [
+                                            {
+                                              "backgroundColor": "inherit",
+                                              "height": 38,
+                                            },
+                                            {
+                                              "flex": 1,
+                                            },
+                                          ]
                                         }
                                       >
                                         <TextInput

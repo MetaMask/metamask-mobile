@@ -72,6 +72,8 @@ export type AccountState = {
   totalBalance: string; // Based on HyperLiquid: accountValue
   marginUsed: string; // Based on HyperLiquid: marginUsed
   unrealizedPnl: string; // Based on HyperLiquid: unrealizedPnl
+  returnOnEquity: string; // Based on HyperLiquid: returnOnEquity adjusted for weighted margin
+  totalValue: string; // Based on HyperLiquid: accountValue
 };
 
 export type ClosePositionParams = {
@@ -151,6 +153,10 @@ export interface PerpsMarketData {
    * Funding interval in hours (optional, market-specific)
    */
   fundingIntervalHours?: number;
+  /**
+   * Current funding rate as decimal (optional, from predictedFundings API)
+   */
+  fundingRate?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -247,6 +253,15 @@ export interface WithdrawResult {
   error?: string;
   withdrawalId?: string; // Unique ID for tracking
   estimatedArrivalTime?: number; // Provider-specific arrival time
+}
+
+export interface GetHistoricalPortfolioParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface HistoricalPortfolioResult {
+  accountValue1dAgo: string;
+  timestamp: number;
 }
 
 export interface LiveDataConfig {
@@ -379,9 +394,19 @@ export interface FeeCalculationParams {
 }
 
 export interface FeeCalculationResult {
-  feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
-  feeAmount?: number; // Fee amount in USD (when amount is provided)
-  // Optional breakdown for transparency
+  // Total fees (protocol + MetaMask)
+  feeRate: number; // Total fee rate as decimal (e.g., 0.00145 for 0.145%)
+  feeAmount?: number; // Total fee amount in USD (when amount is provided)
+
+  // Protocol-specific base fees
+  protocolFeeRate: number; // Protocol fee rate (e.g., 0.00045 for HyperLiquid taker)
+  protocolFeeAmount?: number; // Protocol fee amount in USD
+
+  // MetaMask builder/revenue fee
+  metamaskFeeRate: number; // MetaMask fee rate (e.g., 0.001 for 0.1%)
+  metamaskFeeAmount?: number; // MetaMask fee amount in USD
+
+  // Optional detailed breakdown for transparency
   breakdown?: {
     baseFeeRate: number;
     volumeTier?: string;
@@ -464,6 +489,16 @@ export interface IPerpsProvider {
    * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
    */
   getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Get historical portfolio data
+   * Purpose: Retrieve account value from previous periods for PnL tracking
+   * Example: Get account value from yesterday to calculate 24h percentage change
+   * @param params - Optional parameters for historical portfolio retrieval
+   */
+  getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult>;
 
   /**
    * Historical order lifecycle - order placement, modifications, and status changes.

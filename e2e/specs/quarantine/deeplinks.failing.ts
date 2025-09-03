@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionWalletPlatform } from '../../tags';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
@@ -39,7 +39,7 @@ const networkErrorBodyMessage =
 const validAccount = Accounts.getValidAccount();
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
-describe(Regression('Deep linking Tests'), () => {
+describe(RegressionWalletPlatform('Deep linking Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

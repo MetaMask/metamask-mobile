@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -8,16 +8,16 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength <= 10) {
+  if (contentLength < 10) {
     return 60;
   }
-  if (contentLength <= 12) {
+  if (contentLength < 12) {
     return 48;
   }
-  if (contentLength <= 18) {
+  if (contentLength < 18) {
     return 32;
   }
-  if (contentLength <= 24) {
+  if (contentLength < 24) {
     return 24;
   }
   return 18;
@@ -39,7 +39,7 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 120 : 132,
+      marginTop: isNFT ? 100 : 132,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -62,9 +62,16 @@ export const styleSheet = (params: {
       color: inputError
         ? theme.colors.error.default
         : theme.colors.text.default,
-      height: 50,
       fontSize: getFontSizeForInputLength(inputLength + symbolLength),
       minWidth: '30%',
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      paddingTop: Platform.OS === 'ios' ? 0 : 2,
+      // Dynamic height for large fonts:
+      height: Math.max(
+        50,
+        getFontSizeForInputLength(inputLength + symbolLength) + 10,
+      ),
     },
     inputSection: {
       flexDirection: FlexDirection.Row,

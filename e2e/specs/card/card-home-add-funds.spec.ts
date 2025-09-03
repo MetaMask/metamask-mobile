@@ -19,11 +19,23 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
         fixture: new FixtureBuilder()
           .withMetaMetricsOptIn()
           .withNetworkController(CustomNetworks.Tenderly.Linea)
+          .withTokens(
+            [
+              {
+                address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                decimals: 18,
+                symbol: 'USDC',
+                chainId: '0xe708',
+                name: 'USDCoin',
+              },
+            ],
+            '0xe708',
+          )
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);
         },
       },
