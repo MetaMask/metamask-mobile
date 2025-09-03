@@ -824,6 +824,12 @@
     "total_balance": "Total Balance",
     "available_balance": "Available Balance",
     "margin_used": "Margin Used",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
@@ -1189,6 +1195,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "Open Positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"
@@ -5026,7 +5033,8 @@
       "switching_to": "Switching To",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "Signature request",
@@ -5507,6 +5515,12 @@
     "not_implemented_season_summary": "Season Summary Coming Soon",
     "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
     "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
