@@ -27,6 +27,7 @@ interface AddAccountItemProps {
   totalItemsCount: number;
   isLoading: boolean;
   onPress: () => void;
+  isState2Enabled?: boolean;
 }
 
 export const AddAccountItem: React.FC<AddAccountItemProps> = ({
@@ -34,9 +35,53 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
   totalItemsCount,
   isLoading,
   onPress,
+  isState2Enabled = false,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { colors } = theme;
 
+  // For state 1 (legacy), use the original styling
+  if (!isState2Enabled) {
+    const boxStyles: ViewStyle[] = [styles.addAccountBox];
+
+    if (totalItemsCount > 1) {
+      boxStyles.push(styles.lastAccountBox);
+    }
+
+    return (
+      <TouchableOpacity
+        testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
+        onPress={onPress}
+      >
+        <Box
+          style={boxStyles}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={colors.primary.default}
+            />
+            <Text
+              style={{ color: colors.primary.default }}
+              variant={TextVariant.BodyMDMedium}
+            >
+              {strings('multichain_accounts.wallet_details.create_account')}
+            </Text>
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  }
+
+  // For state 2, use the new styling with loading state
   const boxStyles: ViewStyle[] = [styles.accountBox];
 
   if (totalItemsCount > 1) {

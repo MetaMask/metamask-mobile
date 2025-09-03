@@ -13,6 +13,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
+import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
   AlignItems,
@@ -198,6 +199,7 @@ export const BaseWalletDetails = ({
           totalItemsCount={accountGroupsWithAddItem.length}
           isLoading={isLoading}
           onPress={handlePress}
+          isState2Enabled={isMultichainAccountsState2Enabled}
         />
       );
     }
@@ -380,11 +382,25 @@ export const BaseWalletDetails = ({
 
         {children}
       </View>
-      {showAddAccountModal && keyringId && (
-        <WalletAddAccountActions
-          keyringId={keyringId}
-          onBack={handleCloseAddAccountModal}
-        />
+      {keyringId && (
+        <Modal
+          isVisible={showAddAccountModal}
+          style={styles.modalStyle}
+          animationIn="slideInUp"
+          animationOut="slideOutDown"
+          onBackdropPress={handleCloseAddAccountModal}
+          onBackButtonPress={handleCloseAddAccountModal}
+          swipeDirection="down"
+          onSwipeComplete={handleCloseAddAccountModal}
+          backdropOpacity={0.5}
+        >
+          <View style={styles.modalContent}>
+            <WalletAddAccountActions
+              keyringId={keyringId}
+              onBack={handleCloseAddAccountModal}
+            />
+          </View>
+        </Modal>
       )}
     </SafeAreaView>
   );
