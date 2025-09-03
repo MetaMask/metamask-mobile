@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../components/Icons/Icon';
@@ -161,5 +161,97 @@ describe('MainActionButton', () => {
     expect(button.props.style).toContainEqual(
       expect.objectContaining(customStyle),
     );
+  });
+
+  describe('Layout Timing Fix', () => {
+    it('should render text immediately without numberOfLines in phase 1', () => {
+      const { getByText, toJSON } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Test Label"
+          onPress={jest.fn}
+        />,
+      );
+
+      // Text should be immediately visible
+      expect(getByText('Test Label')).toBeTruthy();
+      
+      // Should render with flexShrink: 0 initially (no numberOfLines protection)
+      const initialSnapshot = toJSON();
+      expect(initialSnapshot).toMatchSnapshot();
+    });
+
+    it('should transition to protected text after useLayoutEffect', async () => {
+      const { getByText, toJSON } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Test Label"
+          onPress={jest.fn}
+        />,
+      );
+
+      // Text should be visible in both phases
+      expect(getByText('Test Label')).toBeTruthy();
+
+      // Wait for useLayoutEffect to complete
+      await act(async () => {
+        // useLayoutEffect runs synchronously, but we need to let React process the state update
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Text should still be visible after layout effect
+      expect(getByText('Test Label')).toBeTruthy();
+      
+      // Snapshot should reflect the protected text phase
+      const finalSnapshot = toJSON();
+      expect(finalSnapshot).toMatchSnapshot();
+    });
+
+    it('should handle long labels properly in both phases', async () => {
+      const longLabel = 'This is a very long label that might get truncated';
+      const { getByText } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label={longLabel}
+          onPress={jest.fn}
+        />,
+      );
+
+      // Phase 1: Text visible with flexShrink: 0
+      expect(getByText(longLabel)).toBeTruthy();
+
+      // Wait for transition to phase 2
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Phase 2: Text still visible but now with numberOfLines protection
+      expect(getByText(longLabel)).toBeTruthy();
+    });
+
+    it('should maintain functionality during phase transition', async () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <MainActionButton
+          iconName={IconName.Add}
+          label="Test Button"
+          onPress={mockOnPress}
+          testID={MAINACTIONBUTTON_TEST_ID}
+        />,
+      );
+
+      // Should be functional in phase 1
+      fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+
+      // Wait for phase transition
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Should still be functional in phase 2
+      fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
+      expect(mockOnPress).toHaveBeenCalledTimes(2);
+    });
   });
 });
