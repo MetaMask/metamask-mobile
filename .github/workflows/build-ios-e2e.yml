@@ -10,7 +10,7 @@ permissions:
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
@@ -61,6 +61,7 @@ jobs:
           METAMASK_ENVIRONMENT: main
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
+          IS_SIM_BUILD: "true"  # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
@@ -88,8 +89,8 @@ jobs:
         id: upload-app
         uses: actions/upload-artifact@v4
         with:
-          name: MetaMask-main.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask-main.app
+          name: MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true

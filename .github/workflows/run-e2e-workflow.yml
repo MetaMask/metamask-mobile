@@ -156,9 +156,9 @@ jobs:
         if: ${{ inputs.platform == 'ios' }}
         run: |
           # Move iOS app
-          if [[ -d "artifacts/MetaMask-main.app/" ]]; then
+          if [[ -d "artifacts/MetaMask.app/" ]]; then
             mkdir -p "ios/build/Build/Products/Release-iphonesimulator/"
-            cp -r "artifacts/MetaMask-main.app/" "ios/build/Build/Products/Release-iphonesimulator/"
+            cp -r "artifacts/MetaMask.app/" "ios/build/Build/Products/Release-iphonesimulator/"
             echo "✅ iOS app ready for E2E tests"
           else
             echo "❌ iOS app not found"
