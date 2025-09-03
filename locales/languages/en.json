@@ -1189,6 +1189,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "Open Positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"

@@ -152,6 +152,10 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
