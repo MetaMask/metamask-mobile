@@ -1,11 +1,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React from 'react';
-import { ImageStyle, StyleProp, View } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
 export interface SnapUIImageProps {
   value: string;
-  style?: StyleProp<ImageStyle>;
+  style?: StyleProp<ViewStyle>;
   width?: number;
   height?: number;
   borderRadius?: number;
@@ -86,8 +86,6 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
           maxHeight: '100%',
           maxWidth: '100%',
         },
-        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
         style,
       ]}
     >
