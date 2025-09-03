@@ -15,6 +15,7 @@ import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
+import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
 
 export function PerpsDeposit() {
   useNavbar(strings('confirm.title.perps_deposit'));
@@ -62,6 +63,7 @@ export function PerpsDeposit() {
             {isFullView && (
               <InfoSection>
                 <GasFeeFiatRow />
+                <BridgeFeeRow />
                 <BridgeTimeRow />
                 <TotalRow />
               </InfoSection>
