@@ -22,7 +22,7 @@ export interface SendContextType {
   chainId?: string;
   fromAccount?: InternalAccount;
   from?: string;
-  maxValueMode?: boolean;
+  maxValueMode: boolean;
   to?: string;
   updateAsset: (asset?: AssetType | Nft) => void;
   updateTo: (to: string) => void;
