@@ -185,3 +185,64 @@ export const hasTPSLValuesChanged = (
 
   return tpChanged || slChanged;
 };
+
+/**
+ * Calculates RoE percentage for a given target price
+ * RoE = (P&L / Margin) * 100
+ * @param targetPrice The target price (TP or SL)
+ * @param entryPrice The position entry price
+ * @param margin The margin used for the position
+ * @param size The position size
+ * @param direction The position direction
+ */
+export const calculateRoEForPrice = (
+  targetPrice: string,
+  entryPrice: number,
+  margin: number,
+  size: number,
+  direction: 'long' | 'short',
+): string => {
+  if (!targetPrice || !entryPrice || !margin) return '';
+
+  const target = parseFloat(targetPrice.replace(/[$,]/g, ''));
+  if (isNaN(target)) return '';
+
+  // Calculate P&L at target price
+  const priceDiff = target - entryPrice;
+  const pnl = direction === 'long'
+    ? priceDiff * Math.abs(size)
+    : -priceDiff * Math.abs(size);
+
+  // Calculate RoE
+  const roe = (pnl / margin) * 100;
+  return roe.toFixed(2);
+};
+
+/**
+ * Calculates target price for a given RoE percentage
+ * @param roePercentage The desired RoE percentage
+ * @param entryPrice The position entry price
+ * @param margin The margin used for the position
+ * @param size The position size
+ * @param direction The position direction
+ */
+export const calculatePriceForRoE = (
+  roePercentage: number,
+  entryPrice: number,
+  margin: number,
+  size: number,
+  direction: 'long' | 'short',
+): string => {
+  if (!entryPrice || !margin || !size) return '';
+
+  // Calculate required P&L for target RoE
+  const targetPnl = (roePercentage / 100) * margin;
+
+  // Calculate price difference needed
+  const priceDiff = direction === 'long'
+    ? targetPnl / Math.abs(size)
+    : -targetPnl / Math.abs(size);
+
+  const targetPrice = entryPrice + priceDiff;
+  return targetPrice.toFixed(2);
+};

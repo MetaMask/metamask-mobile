@@ -40,9 +40,9 @@ import {
   validateTPSLPrices,
   getTakeProfitErrorDirection,
   getStopLossErrorDirection,
-  calculatePriceForPercentage,
-  calculatePercentageForPrice,
   hasTPSLValuesChanged,
+  calculateRoEForPrice,
+  calculatePriceForRoE,
 } from '../../utils/tpslValidation';
 
 // Quick percentage buttons constants
@@ -140,62 +140,81 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible, startMeasure, endMeasure]);
 
-  // Calculate initial percentages only once when component first becomes visible
+  // Get position details for RoE calculations
+  const entryPrice = position?.entryPrice ? parseFloat(position.entryPrice) : 0;
+  const margin = position?.marginUsed ? parseFloat(position.marginUsed) : 0;
+  const size = position?.size ? parseFloat(position.size) : 0;
+
+  // Calculate initial RoE percentages only once when component first becomes visible
   useEffect(() => {
-    if (isVisible && currentPrice) {
-      // Calculate initial percentages when opening
-      if (initialTakeProfitPrice && takeProfitPercentage === '') {
-        const tpPrice = parseFloat(initialTakeProfitPrice);
-        const percentage = ((tpPrice - currentPrice) / currentPrice) * 100;
-        // For short positions, TP percentage is negative (price below current)
-        setTakeProfitPercentage(percentage.toFixed(2));
+    if (isVisible && position) {
+      // Calculate initial RoE percentages when opening
+      if (initialTakeProfitPrice && takeProfitPercentage === '' && entryPrice && margin && size) {
+        const roe = calculateRoEForPrice(
+          initialTakeProfitPrice,
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
+        setTakeProfitPercentage(roe);
       }
 
-      if (initialStopLossPrice && stopLossPercentage === '') {
-        const slPrice = parseFloat(initialStopLossPrice);
-        const percentage =
-          Math.abs((currentPrice - slPrice) / currentPrice) * 100;
-        setStopLossPercentage(percentage.toFixed(2));
+      if (initialStopLossPrice && stopLossPercentage === '' && entryPrice && margin && size) {
+        const roe = calculateRoEForPrice(
+          initialStopLossPrice,
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
+        // Stop loss RoE is negative, show as positive for UI
+        setStopLossPercentage(Math.abs(parseFloat(roe)).toFixed(2));
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]); // Only run when visibility changes, not on price updates
 
-  // Recalculate prices when current price changes but only if using percentage mode
+  // Recalculate prices when RoE percentage changes but only if using percentage mode and we have position data
   useEffect(() => {
-    if (currentPrice && isVisible) {
-      // Only update take profit price if user is using percentage-based calculation
+    if (position && isVisible && entryPrice && margin && size) {
+      // Only update take profit price if user is using RoE-based calculation
       if (
         tpUsingPercentage &&
         takeProfitPercentage &&
         !isNaN(parseFloat(takeProfitPercentage))
       ) {
-        const absPercentage = Math.abs(parseFloat(takeProfitPercentage));
-        const price = calculatePriceForPercentage(absPercentage, true, {
-          currentPrice,
-          direction: actualDirection,
-        });
+        const price = calculatePriceForRoE(
+          parseFloat(takeProfitPercentage),
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
         setTakeProfitPrice(formatPrice(price));
       }
 
-      // Only update stop loss price if user is using percentage-based calculation
+      // Only update stop loss price if user is using RoE-based calculation
       if (
         slUsingPercentage &&
         stopLossPercentage &&
         !isNaN(parseFloat(stopLossPercentage))
       ) {
-        const price = calculatePriceForPercentage(
-          parseFloat(stopLossPercentage),
-          false,
-          { currentPrice, direction: actualDirection },
+        // Stop loss uses negative RoE
+        const price = calculatePriceForRoE(
+          -parseFloat(stopLossPercentage),
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
         );
         setStopLossPrice(formatPrice(price));
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPrice, actualDirection]); // Update prices when current price changes
+  }, [tpUsingPercentage, slUsingPercentage, takeProfitPercentage, stopLossPercentage]); // Update prices when RoE percentages change
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
@@ -264,63 +283,54 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (parts.length > 2) return;
       setTakeProfitPrice(sanitized);
 
-      // Update percentage based on price
-      if (sanitized) {
-        const percentage = calculatePercentageForPrice(sanitized, true, {
-          currentPrice,
-          direction: actualDirection,
-        });
-
-        // For short positions, show take profit percentage as negative
-        // The function returns positive for valid directions, but UI convention
-        // is to show negative percentages for shorts (price going down)
-        const displayPercentage =
-          actualDirection === 'short' &&
-          percentage &&
-          !percentage.startsWith('-')
-            ? `-${percentage}`
-            : percentage;
-        setTakeProfitPercentage(displayPercentage);
+      // Update RoE percentage based on price
+      if (sanitized && entryPrice && margin && size) {
+        const roe = calculateRoEForPrice(
+          sanitized,
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
+        setTakeProfitPercentage(roe);
       } else {
         setTakeProfitPercentage('');
       }
       setSelectedTpPercentage(null);
       setTpUsingPercentage(false); // User is manually entering price
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
-  // Memoized callbacks for take profit percentage input
+  // Memoized callbacks for take profit RoE percentage input
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      // Allow only numbers, decimal point, and minus sign
-      const sanitized = text.replace(/[^0-9.-]/g, '');
-      // Prevent multiple decimal points or minus signs
+      // Allow only numbers and decimal point (no minus for RoE input)
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      if ((sanitized.match(/-/g) || []).length > 1) return;
-      // Ensure minus sign is only at the beginning
-      if (sanitized.indexOf('-') > 0) return;
 
       setTakeProfitPercentage(sanitized);
 
-      // Update price based on percentage
-      if (sanitized && !isNaN(parseFloat(sanitized))) {
-        // Use absolute value for calculation, the function handles direction
-        const absPercentage = Math.abs(parseFloat(sanitized));
-        const price = calculatePriceForPercentage(absPercentage, true, {
-          currentPrice,
-          direction: actualDirection,
-        });
+      // Update price based on RoE percentage
+      if (sanitized && !isNaN(parseFloat(sanitized)) && entryPrice && margin && size) {
+        const price = calculatePriceForRoE(
+          parseFloat(sanitized),
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
         setTakeProfitPrice(formatPrice(price));
-        setSelectedTpPercentage(absPercentage);
+        setSelectedTpPercentage(parseFloat(sanitized));
       } else {
         setTakeProfitPrice('');
         setSelectedTpPercentage(null);
       }
-      setTpUsingPercentage(true); // User is using percentage-based calculation
+      setTpUsingPercentage(true); // User is using RoE-based calculation
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
   // Memoized callbacks for stop loss price input
@@ -333,27 +343,27 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (parts.length > 2) return;
       setStopLossPrice(sanitized);
 
-      // Update percentage based on price
-      if (sanitized) {
-        const percentage = calculatePercentageForPrice(sanitized, false, {
-          currentPrice,
-          direction: actualDirection,
-        });
-        // Always show stop loss percentage as positive
-        const absPercentage = percentage.startsWith('-')
-          ? percentage.substring(1)
-          : percentage;
-        setStopLossPercentage(absPercentage);
+      // Update RoE percentage based on price
+      if (sanitized && entryPrice && margin && size) {
+        const roe = calculateRoEForPrice(
+          sanitized,
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
+        );
+        // Always show stop loss RoE as positive
+        setStopLossPercentage(Math.abs(parseFloat(roe)).toFixed(2));
       } else {
         setStopLossPercentage('');
       }
       setSelectedSlPercentage(null);
       setSlUsingPercentage(false); // User is manually entering price
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
-  // Memoized callbacks for stop loss percentage input
+  // Memoized callbacks for stop loss RoE percentage input
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
       // Allow only numbers and decimal point
@@ -363,12 +373,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (parts.length > 2) return;
       setStopLossPercentage(sanitized);
 
-      // Update price based on percentage
-      if (sanitized && !isNaN(parseFloat(sanitized))) {
-        const price = calculatePriceForPercentage(
-          parseFloat(sanitized),
-          false,
-          { currentPrice, direction: actualDirection },
+      // Update price based on RoE percentage
+      if (sanitized && !isNaN(parseFloat(sanitized)) && entryPrice && margin && size) {
+        // Stop loss uses negative RoE
+        const price = calculatePriceForRoE(
+          -parseFloat(sanitized),
+          entryPrice,
+          margin,
+          Math.abs(size),
+          actualDirection || 'long'
         );
         setStopLossPrice(formatPrice(price));
         setSelectedSlPercentage(parseFloat(sanitized));
@@ -376,44 +389,51 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPrice('');
         setSelectedSlPercentage(null);
       }
-      setSlUsingPercentage(true); // User is using percentage-based calculation
+      setSlUsingPercentage(true); // User is using RoE-based calculation
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
-  // Memoized callbacks for percentage buttons
+  // Memoized callbacks for RoE percentage buttons
   const handleTakeProfitPercentageButton = useCallback(
     (percentage: number) => {
-      const price = calculatePriceForPercentage(percentage, true, {
-        currentPrice,
-        direction: actualDirection,
-      });
+      if (!entryPrice || !margin || !size) return;
+
+      const price = calculatePriceForRoE(
+        percentage,
+        entryPrice,
+        margin,
+        Math.abs(size),
+        actualDirection || 'long'
+      );
 
       setTakeProfitPrice(formatPrice(price));
-      // For short positions, display take profit percentage as negative
-      const displayPercentage =
-        actualDirection === 'short' ? -percentage : percentage;
-      setTakeProfitPercentage(displayPercentage.toString());
+      setTakeProfitPercentage(percentage.toString());
       setSelectedTpPercentage(percentage);
-      setTpUsingPercentage(true); // Using percentage button
+      setTpUsingPercentage(true); // Using RoE percentage button
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
   const handleStopLossPercentageButton = useCallback(
     (percentage: number) => {
-      const price = calculatePriceForPercentage(percentage, false, {
-        currentPrice,
-        direction: actualDirection,
-      });
+      if (!entryPrice || !margin || !size) return;
+
+      // Stop loss uses negative RoE
+      const price = calculatePriceForRoE(
+        -percentage,
+        entryPrice,
+        margin,
+        Math.abs(size),
+        actualDirection || 'long'
+      );
+
       setStopLossPrice(formatPrice(price));
-      // For short positions, stop loss percentage should be positive
-      // (already positive since it's a loss when price goes up)
       setStopLossPercentage(percentage.toString());
       setSelectedSlPercentage(percentage);
-      setSlUsingPercentage(true); // Using percentage button
+      setSlUsingPercentage(true); // Using RoE percentage button
     },
-    [currentPrice, actualDirection],
+    [entryPrice, margin, size, actualDirection],
   );
 
   // Handle "Off" button clicks
@@ -588,7 +608,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 onBlur={() => setTpPercentInputFocused(false)}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                %
+                %RoE
               </Text>
             </View>
           </View>
@@ -704,7 +724,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 onBlur={() => setSlPercentInputFocused(false)}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                %
+                %RoE
               </Text>
             </View>
           </View>

@@ -45,11 +45,13 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
       borderWidth: 1,
       borderColor: colors.border.muted,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
+      minHeight: 44,
+      maxWidth: '48%', // Ensure two inputs fit side by side on small screens
     },
     inputContainerLeft: {
       marginRight: 4,
@@ -65,11 +67,12 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     input: {
       flex: 1,
-      fontSize: 16,
+      fontSize: 14, // Slightly smaller font for small screens
       color: colors.text.default,
       paddingVertical: 0,
       textAlign: 'left',
-      marginRight: 8,
+      marginRight: 4,
+      minWidth: 0, // Allow shrinking on small screens
     },
 
     percentageRow: {
