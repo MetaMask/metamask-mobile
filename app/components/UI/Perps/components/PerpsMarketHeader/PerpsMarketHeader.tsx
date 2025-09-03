@@ -18,6 +18,7 @@ import type { PerpsMarketData } from '../../controllers/types';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { styleSheet } from './PerpsMarketHeader.styles';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 interface PerpsMarketHeaderProps {
   market: PerpsMarketData;
@@ -68,11 +69,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
           >
             {market.symbol}-USD
           </Text>
-          <View style={styles.maxLeverage}>
-            <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-              {market.maxLeverage}
-            </Text>
-          </View>
+          <PerpsLeverage maxLeverage={market.maxLeverage} />
         </View>
         <View style={styles.positionValueRow}>
           <LivePriceHeader

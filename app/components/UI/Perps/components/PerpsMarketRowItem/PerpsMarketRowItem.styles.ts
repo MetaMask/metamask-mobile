@@ -46,11 +46,6 @@ const styleSheet = (params: { theme: Theme }) => {
     priceChange: {
       marginTop: 2,
     },
-    leverageContainer: {
-      backgroundColor: colors.background.muted,
-      paddingHorizontal: 6,
-      borderRadius: 2,
-    },
   });
 };
 
