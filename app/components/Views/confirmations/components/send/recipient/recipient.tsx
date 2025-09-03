@@ -5,10 +5,6 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
-  FontWeight,
-  TextColor,
-  TextVariant,
-  Text,
 } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -18,6 +14,7 @@ import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { RecipientList } from '../../recipient-list/recipient-list';
@@ -41,6 +38,9 @@ export const Recipient = () => {
   const styles = styleSheet();
   const { toAddressError } = useToAddressValidation();
   const isReviewButtonDisabled = Boolean(toAddressError);
+  // This hook needs to be called to update ERC721 NFTs in send flow
+  // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
+  useRouteParams();
 
   const handleReview = useCallback(() => {
     if (toAddressError) {
@@ -96,14 +96,6 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
           />
           <ScrollView>
-            <Text
-              twClassName="m-4"
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('send.accounts')}
-            </Text>
             <RecipientList
               data={accounts}
               onRecipientSelected={onRecipientSelected(
@@ -111,23 +103,14 @@ export const Recipient = () => {
               )}
             />
             {contacts.length > 0 && (
-              <>
-                <Text
-                  twClassName="m-4"
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings('send.contacts')}
-                </Text>
-                <RecipientList
-                  data={contacts}
-                  onRecipientSelected={onRecipientSelected(
-                    RecipientInputMethod.SelectContact,
-                  )}
-                  emptyMessage={strings('send.no_contacts_found')}
-                />
-              </>
+              <RecipientList
+                isContactList
+                data={contacts}
+                onRecipientSelected={onRecipientSelected(
+                  RecipientInputMethod.SelectContact,
+                )}
+                emptyMessage={strings('send.no_contacts_found')}
+              />
             )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (

@@ -152,6 +152,10 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
@@ -213,6 +217,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
   SOURCE_TOKEN_AREA: 'source-token-area',
   DEST_TOKEN_AREA: 'dest-token-area',
   CONTINUE_BUTTON: 'continue-button',
+  BOTTOM_SHEET_TOOLTIP: 'withdraw-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -325,6 +330,17 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 };
 
 // ========================================
+// PERPS GTM MODAL SELECTORS
+// ========================================
+
+export const PerpsGTMModalSelectorsIDs = {
+  PERPS_GTM_MODAL: 'perps-gtm-modal',
+  PERPS_LEARN_MORE_BUTTON: 'perps-learn-more-button',
+  PERPS_TRY_NOW_BUTTON: 'perps-try-now-button',
+  PERPS_NOT_NOW_BUTTON: 'perps-not-now-button',
+};
+
+// ========================================
 // PERPS ORDER VIEW SELECTORS
 // ========================================
 
@@ -347,6 +363,17 @@ export const PerpsOpenOrderCardSelectorsIDs = {
   CARD: 'perps-open-order-card',
   CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
   EDIT_BUTTON: 'perps-open-order-card-edit-button',
+};
+
+// ========================================
+// PERPS CLOSE POSITION VIEW SELECTORS
+// ========================================
+
+export const PerpsClosePositionViewSelectorsIDs = {
+  ORDER_TYPE_BUTTON: 'order-type-button',
+  DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
+  CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
+  CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
 };
 
 // ========================================

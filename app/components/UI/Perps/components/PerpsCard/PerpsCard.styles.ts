@@ -5,7 +5,6 @@ const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
     card: {
       paddingVertical: 12,
-      paddingHorizontal: 16,
       marginVertical: 2,
     },
     cardContent: {

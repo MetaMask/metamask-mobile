@@ -39,6 +39,14 @@ class WalletMainScreen {
     }
   }
 
+  get swapButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_SWAP_BUTTON);
+    }
+  }
+
   get WalletScreenContainer() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
@@ -165,6 +173,14 @@ class WalletMainScreen {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
       const element = await this.accountIcon;
+      await element.tap();
+    }
+  }
+  async tapSwapButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.swapButton);
+    } else {
+      const element = await this.swapButton;
       await element.tap();
     }
   }

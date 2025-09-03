@@ -109,7 +109,7 @@ abstract class StreamChannel<T> {
   }
 
   protected getCachedData(): T | null {
-    // Override in subclasses
+    // Override in subclasses to return null for no cache, or actual data
     return null;
   }
 
@@ -224,6 +224,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   public clearCache(): void {
     // Clear the price-specific cache
     this.priceCache.clear();
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
     // Call parent clearCache
     super.clearCache();
   }
@@ -351,7 +353,9 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('orders') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('orders');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Order[] {
@@ -388,6 +392,13 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
       this.prewarmUnsubscribe = undefined;
     }
   }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
+  }
 }
 
 // Specific channel for positions
@@ -407,7 +418,9 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('positions') || [];
+    // Return null if no cache exists to distinguish from empty array
+    const cached = this.cache.get('positions');
+    return cached !== undefined ? cached : null;
   }
 
   protected getClearedData(): Position[] {
@@ -433,6 +446,13 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
     });
 
     return this.prewarmUnsubscribe;
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 
   /**
@@ -494,6 +514,13 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
   protected getClearedData(): AccountState | null {
     return null;
+  }
+
+  public clearCache(): void {
+    // Cleanup pre-warm subscription
+    this.cleanupPrewarm();
+    // Call parent clearCache
+    super.clearCache();
   }
 
   /**

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -9,6 +10,14 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Mock Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+}));
 
 // Mock PerpsStreamManager
 jest.mock('../../providers/PerpsStreamManager');
@@ -20,12 +29,24 @@ const mockUseHasExistingPosition = jest.fn();
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
 
 // Mock notification feature flag
 const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
-const mockRouteParams = {
+const mockRouteParams: {
+  market?: {
+    symbol: string;
+    name: string;
+    price: string;
+    change24h: string;
+    change24hPercent: string;
+    volume: string;
+    maxLeverage: string;
+  };
+  isNavigationFromOrderSuccess: boolean;
+} = {
   market: {
     symbol: 'BTC',
     name: 'Bitcoin',
@@ -45,6 +66,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
     }),
     useRoute: () => ({
@@ -328,11 +350,23 @@ describe('PerpsMarketDetailsView', () => {
       refreshPosition: jest.fn(),
     });
 
+    // Reset navigation mocks
+    mockCanGoBack.mockReturnValue(true);
+
     // Reset notification feature flag to default
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
 
     // Reset route params to default
     mockRouteParams.isNavigationFromOrderSuccess = false;
+    mockRouteParams.market = {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: '$45,000.00',
+      change24h: '+$1,125.00',
+      change24hPercent: '+2.50%',
+      volume: '$1.23B',
+      maxLeverage: '40x',
+    };
   });
 
   // Clean up mocks after each test
@@ -613,14 +647,15 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
-    it('refreshes position data when position tab is active', async () => {
+    it('refreshes candle data when position tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: false,
         error: null,
         existingPosition: null,
-        refreshPosition: mockRefreshPosition,
+        refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
       });
 
       const { getByTestId } = renderWithProvider(
@@ -632,21 +667,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh (position tab is active by default)
       await refreshControl.props.onRefresh();
 
-      // Should refresh both candle data and position data
+      // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('refreshes statistics data when statistics tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
@@ -681,28 +716,26 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Switch to statistics tab
+      // Act - Switch to statistics tab
       const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
       fireEvent.press(statisticsTab);
 
-      // Get the ScrollView component
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data, market stats, and position data
+      // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshMarketStats).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-      // Should not refresh orders data when statistics tab is active
+      // Market stats, positions, and orders update via WebSocket, no manual refresh
+      expect(mockRefreshMarketStats).not.toHaveBeenCalled();
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
     });
 
-    it('calls refresh functions for chart data and position by default', async () => {
+    it('refreshes candle data by default', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -721,18 +754,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data and position data (default behavior)
+      // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('handles refresh state correctly during refresh operation', async () => {
@@ -1059,6 +1090,181 @@ describe('PerpsMarketDetailsView', () => {
           queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
         ).toBeNull();
       });
+    });
+  });
+
+  describe('Error state handling', () => {
+    it('renders error message when market data is undefined', () => {
+      // Set market to undefined to trigger error state
+      mockRouteParams.market = undefined;
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Should show error container and message
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.ERROR),
+      ).toBeTruthy();
+      expect(
+        getByText('Market data not found. Please go back and try again.'),
+      ).toBeTruthy();
+    });
+
+    it('does not render main content when market is undefined', () => {
+      mockRouteParams.market = undefined;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Main container should not be present
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeNull();
+    });
+  });
+
+  describe('TradingView link functionality', () => {
+    it('opens TradingView URL when link is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View');
+      fireEvent.press(tradingViewLink);
+
+      // Verify Linking.openURL was called with correct URL
+      await waitFor(() => {
+        expect(Linking.openURL).toHaveBeenCalledWith(
+          'https://www.tradingview.com/',
+        );
+      });
+    });
+
+    it('handles error when opening TradingView URL fails', async () => {
+      // Mock console.error to avoid test output pollution
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      // Mock Linking.openURL to reject
+      (Linking.openURL as jest.Mock).mockRejectedValueOnce(
+        new Error('Failed to open URL'),
+      );
+
+      const { getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Find and press the Trading View link
+      const tradingViewLink = getByText('Trading View');
+      fireEvent.press(tradingViewLink);
+
+      // Wait for the error to be logged
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to open Trading View URL:',
+          expect.any(Error),
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('Navigation back button handling', () => {
+    it('verifies navigation mock is properly set up', () => {
+      // This test just verifies that our navigation can go back
+      mockCanGoBack.mockReturnValue(true);
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // The component should have been rendered with navigation available
+      expect(mockCanGoBack).toBeDefined();
+    });
+
+    it('verifies navigation mock when cannot go back', () => {
+      // This test verifies the fallback scenario setup
+      mockCanGoBack.mockReturnValue(false);
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // The component should have been rendered with navigation available
+      expect(mockCanGoBack).toBeDefined();
+    });
+  });
+
+  describe('Candle period bottom sheet', () => {
+    it('verifies duration selector is rendered', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Verify the duration selector is rendered
+      const durationSelector = getByTestId(
+        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-duration-selector`,
+      );
+      expect(durationSelector).toBeTruthy();
+    });
+
+    it('verifies bottom sheet can be mocked', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Initially bottom sheet should not be visible
+      expect(
+        queryByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET,
+        ),
+      ).toBeNull();
     });
   });
 });

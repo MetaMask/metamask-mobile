@@ -54,11 +54,11 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsStream: jest.fn(() => ({
-    prices: { subscribe: jest.fn(), unsubscribe: jest.fn() },
-    positions: { subscribe: jest.fn(), unsubscribe: jest.fn() },
-    orders: { subscribe: jest.fn(), unsubscribe: jest.fn() },
-    account: { subscribe: jest.fn(), unsubscribe: jest.fn() },
-    marketData: { subscribe: jest.fn(), unsubscribe: jest.fn() },
+    prices: { subscribe: jest.fn(() => jest.fn()) },
+    positions: { subscribe: jest.fn(() => jest.fn()) },
+    orders: { subscribe: jest.fn(() => jest.fn()) },
+    account: { subscribe: jest.fn(() => jest.fn()) },
+    marketData: { subscribe: jest.fn(() => jest.fn()) },
   })),
 }));
 
@@ -81,14 +81,16 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
-  usePerpsLiveOrders: jest.fn(() => ({
-    orders: [],
-    isInitialLoading: false,
-  })),
+}));
+
+// Mock stream hooks separately since they're imported from different path
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLiveOrders: jest.fn(() => []),
 }));
 
 // Mock formatUtils
 jest.mock('../../utils/formatUtils', () => ({
+  ...jest.requireActual('../../utils/formatUtils'),
   formatPrice: jest.fn((value) => `$${value}`),
   formatPnl: jest.fn((value) => `${value >= 0 ? '+' : ''}$${Math.abs(value)}`),
 }));
@@ -107,8 +109,12 @@ jest.mock('../../../../Base/RemoteImage', () => jest.fn(() => null));
 jest.mock('../../components/PerpsTabControlBar', () => ({
   PerpsTabControlBar: ({
     onManageBalancePress,
+    hasPositions,
+    hasOrders,
   }: {
     onManageBalancePress: () => void;
+    hasPositions?: boolean;
+    hasOrders?: boolean;
   }) => {
     const { TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
@@ -117,8 +123,17 @@ jest.mock('../../components/PerpsTabControlBar', () => ({
         onPress={onManageBalancePress}
       >
         <Text>Manage Balance</Text>
+        <Text testID="has-positions">{hasPositions ? 'true' : 'false'}</Text>
+        <Text testID="has-orders">{hasOrders ? 'true' : 'false'}</Text>
       </TouchableOpacity>
     );
+  },
+}));
+
+// Mock selectors
+jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
+  PerpsTabViewSelectorsIDs: {
+    START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
   },
 }));
 
@@ -132,7 +147,7 @@ describe('PerpsTabView', () => {
   const mockUsePerpsLivePositions =
     jest.requireMock('../../hooks').usePerpsLivePositions;
   const mockUsePerpsLiveOrders =
-    jest.requireMock('../../hooks').usePerpsLiveOrders;
+    jest.requireMock('../../hooks/stream').usePerpsLiveOrders;
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
@@ -184,10 +199,7 @@ describe('PerpsTabView', () => {
       isInitialLoading: false,
     });
 
-    mockUsePerpsLiveOrders.mockReturnValue({
-      orders: [],
-      isInitialLoading: false,
-    });
+    mockUsePerpsLiveOrders.mockReturnValue([]);
 
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
@@ -274,6 +286,73 @@ describe('PerpsTabView', () => {
       });
     });
 
+    it('should render Start a new trade CTA when positions exist', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      const startNewTradeCTA = screen.getByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      expect(startNewTradeCTA).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_new_trade')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should navigate to tutorial when Start a new trade CTA is pressed by first-time user', () => {
+      mockUsePerpsFirstTimeUser.mockReturnValue({
+        isFirstTimeUser: true,
+        markTutorialCompleted: jest.fn(),
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      const startNewTradeCTA = screen.getByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      act(() => {
+        fireEvent.press(startNewTradeCTA);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
+    });
+
+    it('should navigate to markets when Start a new trade CTA is pressed by returning user', () => {
+      mockUsePerpsFirstTimeUser.mockReturnValue({
+        isFirstTimeUser: false,
+        markTutorialCompleted: jest.fn(),
+      });
+
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsTabView />);
+
+      const startNewTradeCTA = screen.getByTestId(
+        'perps-tab-view-start-new-trade-cta',
+      );
+      act(() => {
+        fireEvent.press(startNewTradeCTA);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    });
+
     it('should have pull-to-refresh functionality configured', async () => {
       const mockLoadPositions = jest.fn();
       mockUsePerpsLivePositions.mockReturnValue({
@@ -310,18 +389,71 @@ describe('PerpsTabView', () => {
 
   describe('State Management', () => {
     it('should handle refresh state correctly', () => {
+      // Arrange - Mock refreshing state with no positions or orders
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+        isRefreshing: true,
+        loadPositions: jest.fn(),
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      // Act - Render component
+      render(<PerpsTabView />);
+
+      // Assert - Component should render first-time content when no positions or orders exist
+      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.first_time_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_trading')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPosition],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('has-positions')).toHaveTextContent('true');
+      expect(screen.getByTestId('has-orders')).toHaveTextContent('false');
+    });
+
+    it('should pass correct hasOrders prop to PerpsTabControlBar when orders exist', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isInitialLoading: false,
       });
 
+      mockUsePerpsLiveOrders.mockReturnValue([
+        { orderId: '123', symbol: 'ETH', size: '1.0' },
+      ]);
+
       render(<PerpsTabView />);
 
-      // Verify component renders with refreshing state
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.position.list.empty_title')),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('has-positions')).toHaveTextContent('false');
+      expect(screen.getByTestId('has-orders')).toHaveTextContent('true');
+    });
+
+    it('should pass false for both props when no positions or orders exist', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsLiveOrders.mockReturnValue([]);
+
+      render(<PerpsTabView />);
+
+      expect(screen.getByTestId('has-positions')).toHaveTextContent('false');
+      expect(screen.getByTestId('has-orders')).toHaveTextContent('false');
     });
   });
 

@@ -110,7 +110,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
-  const [activeTabId, setActiveTabId] = useState('position');
   const [refreshing, setRefreshing] = useState(false);
 
   const account = usePerpsAccount();
@@ -144,14 +143,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
 
   // Check if user has an existing position for this market
-  const {
-    isLoading: isLoadingPosition,
-    existingPosition,
-    refreshPosition,
-  } = useHasExistingPosition({
-    asset: market?.symbol || '',
-    loadOnMount: true,
-  });
+  const { isLoading: isLoadingPosition, existingPosition } =
+    useHasExistingPosition({
+      asset: market?.symbol || '',
+      loadOnMount: true,
+    });
 
   // Track screen load and position data loaded
   useEffect(() => {
@@ -219,44 +215,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
-      // Always refresh chart data regardless of active tab
+      // Only refresh candle data
+      // Position and market stats update automatically via WebSocket
       if (candleData) {
         await refreshCandleData();
       }
-
-      switch (activeTabId) {
-        case 'position':
-          // Refresh position data
-          await refreshPosition();
-          break;
-
-        case 'orders':
-          // Orders update automatically via WebSocket, no refresh needed
-          break;
-
-        case 'statistics':
-          // Refresh market statistics (24h high/low from candle data)
-          await marketStats.refresh();
-          // Also refresh position as it affects some stats
-          await refreshPosition();
-          break;
-
-        default:
-          // Fallback: refresh position
-          await refreshPosition();
-      }
     } catch (error) {
-      console.error(`Failed to refresh ${activeTabId} data:`, error);
+      console.error('Failed to refresh candle data:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    activeTabId,
-    refreshPosition,
-    marketStats,
-    candleData,
-    refreshCandleData,
-  ]);
+  }, [candleData, refreshCandleData]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -392,12 +361,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Market Tabs Section */}
           <View style={styles.section}>
             <PerpsMarketTabs
+              symbol={market?.symbol || ''}
               marketStats={marketStats}
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}
               unfilledOrders={openOrders}
-              onPositionUpdate={refreshPosition}
-              onActiveTabChange={setActiveTabId}
               nextFundingTime={market?.nextFundingTime}
               fundingIntervalHours={market?.fundingIntervalHours}
             />

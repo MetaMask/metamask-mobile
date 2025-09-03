@@ -1,20 +1,13 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { RecipientList } from './recipient-list';
 import { RecipientType } from '../UI/recipient';
 
-const mockOnRecipientSelected = jest.fn();
-
-jest.mock('../../hooks/useAccountAvatarType', () => {
-  const { AvatarAccountType } = jest.requireActual(
-    '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  );
-
-  return {
-    useAccountAvatarType: jest.fn(() => AvatarAccountType.JazzIcon),
-  };
-});
+jest.mock('../../hooks/useAccountAvatarType', () => ({
+  useAccountAvatarType: jest.fn(() => 'JazzIcon'),
+}));
 
 jest.mock('../../context/send-context/send-context', () => ({
   useSendContext: jest.fn(() => ({
@@ -22,65 +15,29 @@ jest.mock('../../context/send-context/send-context', () => ({
   })),
 }));
 
-jest.mock('../UI/recipient', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+jest.mock('../../hooks/send/useSendScope', () => ({
+  useSendScope: jest.fn(() => ({
+    isBIP44: false,
+    isSolanaOnly: false,
+    isEvmOnly: false,
+    account: undefined,
+  })),
+}));
 
-  return {
-    Recipient: ({
-      recipient,
-      isSelected,
-      onPress,
-    }: {
-      recipient: RecipientType;
-      isSelected: boolean;
-      onPress: (recipient: RecipientType) => void;
-    }) => (
-      <Pressable
-        testID={`recipient-${recipient.address}`}
-        onPress={() => onPress(recipient)}
-      >
-        <Text testID={`recipient-name-${recipient.address}`}>
-          {recipient.name}
-        </Text>
-        <Text testID={`recipient-address-${recipient.address}`}>
-          {recipient.address}
-        </Text>
-        {isSelected && (
-          <Text testID={`selected-${recipient.address}`}>Selected</Text>
-        )}
-      </Pressable>
-    ),
-  };
-});
-
-jest.mock('@shopify/flash-list', () => {
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FlashList: ({ data, renderItem, keyExtractor }: any) => {
-      const items = data.map((item: RecipientType, index: number) => (
-        <View key={keyExtractor(item)} testID={`flashlist-item-${index}`}>
-          {renderItem({ item })}
-        </View>
-      ));
-      return <View testID="flashlist">{items}</View>;
-    },
-  };
-});
+const mockOnRecipientSelected = jest.fn();
 
 describe('RecipientList', () => {
   const mockRecipients: RecipientType[] = [
     {
-      name: 'Alice',
+      accountName: 'Alice',
       address: '0x1234567890123456789012345678901234567890',
     },
     {
-      name: 'Bob',
+      accountName: 'Bob',
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
     },
     {
-      name: 'Charlie',
+      accountName: 'Charlie',
       address: '0x9876543210987654321098765432109876543210',
     },
   ];
@@ -91,21 +48,21 @@ describe('RecipientList', () => {
 
   describe('when data is provided', () => {
     it('renders list of recipients', () => {
-      const { getByTestId, getByText } = render(
+      const { getByText } = renderWithProvider(
         <RecipientList
           data={mockRecipients}
           onRecipientSelected={mockOnRecipientSelected}
         />,
       );
 
-      expect(getByTestId('flashlist')).toBeOnTheScreen();
+      expect(getByText('Accounts')).toBeOnTheScreen();
       expect(getByText('Alice')).toBeOnTheScreen();
       expect(getByText('Bob')).toBeOnTheScreen();
       expect(getByText('Charlie')).toBeOnTheScreen();
     });
 
     it('marks selected recipient when address matches context', () => {
-      const { getByTestId } = render(
+      const { getByTestId } = renderWithProvider(
         <RecipientList
           data={mockRecipients}
           onRecipientSelected={mockOnRecipientSelected}
@@ -118,7 +75,7 @@ describe('RecipientList', () => {
     });
 
     it('calls onRecipientSelected when recipient is pressed', () => {
-      const { getByTestId } = render(
+      const { getByTestId } = renderWithProvider(
         <RecipientList
           data={mockRecipients}
           onRecipientSelected={mockOnRecipientSelected}
@@ -134,7 +91,7 @@ describe('RecipientList', () => {
     });
 
     it('renders all recipient addresses correctly', () => {
-      const { getByTestId } = render(
+      const { getByTestId } = renderWithProvider(
         <RecipientList
           data={mockRecipients}
           onRecipientSelected={mockOnRecipientSelected}
@@ -153,7 +110,7 @@ describe('RecipientList', () => {
     it('renders empty message when provided', () => {
       const emptyMessage = 'No recipients found';
 
-      const { getByText, queryByTestId } = render(
+      const { getByText, queryByText } = renderWithProvider(
         <RecipientList
           data={[]}
           onRecipientSelected={mockOnRecipientSelected}
@@ -162,18 +119,18 @@ describe('RecipientList', () => {
       );
 
       expect(getByText(emptyMessage)).toBeOnTheScreen();
-      expect(queryByTestId('flashlist')).toBeNull();
+      expect(queryByText('Accounts')).toBeNull();
     });
 
-    it('renders empty FlashList when no empty message provided', () => {
-      const { getByTestId, queryByText } = render(
+    it('renders empty container when no empty message provided', () => {
+      const { getByText, queryByText } = renderWithProvider(
         <RecipientList
           data={[]}
           onRecipientSelected={mockOnRecipientSelected}
         />,
       );
 
-      expect(getByTestId('flashlist')).toBeOnTheScreen();
+      expect(getByText('Accounts')).toBeOnTheScreen();
       expect(queryByText(/No recipients/)).toBeNull();
     });
   });

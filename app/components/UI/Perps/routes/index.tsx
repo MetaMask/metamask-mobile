@@ -10,10 +10,12 @@ import PerpsView from '../Views/PerpsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
+import PerpsClosePositionView from '../Views/PerpsClosePositionView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsBalanceModal from '../Views/PerpsBalanceModal';
+import PerpsGTMModal from '../components/PerpsGTMModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -35,6 +37,10 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.BALANCE_MODAL}
       component={PerpsBalanceModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.GTM_MODAL}
+      component={PerpsGTMModal}
     />
   </ModalStack.Navigator>
 );
@@ -94,6 +100,15 @@ const PerpsScreenStack = () => (
           component={PerpsOrderView}
           options={{
             title: strings('perps.order.title'),
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name={Routes.PERPS.CLOSE_POSITION}
+          component={PerpsClosePositionView}
+          options={{
+            title: strings('perps.close_position.title'),
             headerShown: false,
           }}
         />

@@ -13,6 +13,7 @@ const createStyles = (colors: Colors) =>
     scrollViewContent: {
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
+      paddingTop: 32,
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -27,15 +28,18 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 32,
     },
     sliderSection: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 32,
+      paddingTop: 32,
       paddingBottom: 24,
     },
     detailsWrapper: {
       paddingHorizontal: 16,
+      flex: 1,
+      flexGrow: 1,
       gap: 2,
     },
     detailItem: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.section,
       overflow: 'hidden',
     },
     detailItemFirst: {
@@ -59,8 +63,8 @@ const createStyles = (colors: Colors) =>
       marginBottom: -10, // Keep icon at same vertical position
     },
     infoSection: {
-      paddingHorizontal: 24,
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      borderRadius: 12,
     },
     infoRow: {
       flexDirection: 'row',

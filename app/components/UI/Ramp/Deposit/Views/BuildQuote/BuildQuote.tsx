@@ -78,7 +78,6 @@ import {
   selectNetworkConfigurations,
 } from '../../../../../../selectors/networkController';
 import {
-  USDC_TOKEN,
   DepositCryptoCurrency,
   DepositPaymentMethod,
   USD_CURRENCY,
@@ -115,8 +114,10 @@ const BuildQuote = () => {
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
     DEBIT_CREDIT_PAYMENT_METHOD,
   );
-  const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(USDC_TOKEN);
+  const [cryptoCurrency, setCryptoCurrency] = useState<DepositCryptoCurrency>(
+    supportedTokens[0],
+  );
+
   const [fiatCurrency, setFiatCurrency] =
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');

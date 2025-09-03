@@ -182,6 +182,7 @@ app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
+app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux

@@ -9,10 +9,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { formatPrice, formatPnl } from '../../utils/formatUtils';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
+import {
+  formatPrice,
+  formatPnl,
+  formatPercentage,
+} from '../../utils/formatUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import RemoteImage from '../../../../Base/RemoteImage';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 
@@ -33,7 +36,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
   // Determine which type of data we have
   const symbol = position?.coin || order?.symbol || '';
-  const { assetUrl } = usePerpsAssetMetadata(symbol);
 
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
@@ -54,14 +56,17 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
     // Calculate PnL display
     const pnlValue = parseFloat(position.unrealizedPnl);
     valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    valueText = formatPnl(pnlValue);
-    const roeValue = parseFloat(position.returnOnEquity);
-    labelText = `${roeValue >= 0 ? '+' : ''}${roeValue.toFixed(2)}%`;
+    valueText = formatPrice(position.positionValue, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
+    const roeValue = parseFloat(position.returnOnEquity) * 100;
+    labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
   } else if (order) {
     primaryText = `${order.symbol} ${order.side === 'buy' ? 'long' : 'short'}`;
     secondaryText = `${order.originalSize} ${order.symbol}`;
     const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPrice(orderValue);
+    valueText = formatPrice(orderValue, { maximumDecimals: 2 });
     labelText = strings('perps.order.limit');
   }
 
@@ -98,14 +103,18 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       <View style={styles.cardContent}>
         {/* Left side: Icon and info */}
         <View style={styles.cardLeft}>
-          {assetUrl && (
-            <RemoteImage source={{ uri: assetUrl }} style={styles.assetIcon} />
+          {symbol && (
+            <PerpsTokenLogo
+              symbol={symbol}
+              size={40}
+              style={styles.assetIcon}
+            />
           )}
           <View style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {primaryText}
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {secondaryText}
             </Text>
           </View>
@@ -113,10 +122,10 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
         {/* Right side: Value and label */}
         <View style={styles.cardRight}>
-          <Text variant={TextVariant.BodyMDMedium} color={valueColor}>
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {valueText}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
+          <Text variant={TextVariant.BodySM} color={valueColor}>
             {labelText}
           </Text>
         </View>
