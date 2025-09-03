@@ -187,9 +187,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   }, [isVisible]); // Only run when visibility changes, not on price updates
 
   // Update ROE% display when leverage changes (keep trigger prices constant)
+  const prevLeverageRef = useRef(leverage);
   useEffect(() => {
+    const leverageChanged = prevLeverageRef.current !== leverage;
+    prevLeverageRef.current = leverage;
+
     if (leverage && isVisible) {
-      // For take profit: recalculate ROE% based on new leverage
+      // For take profit: recalculate ROE% based on new leverage or price
       if (takeProfitPrice) {
         const roePercent = calculateRoEForPrice(takeProfitPrice, true, {
           currentPrice,
@@ -198,11 +202,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
         });
         setTakeProfitPercentage(roePercent);
-        // Clear button selection since ROE% changed
-        setSelectedTpPercentage(null);
+        // Only clear button selection if leverage changed (not on price updates)
+        if (leverageChanged) {
+          setSelectedTpPercentage(null);
+        }
       }
 
-      // For stop loss: recalculate ROE% based on new leverage
+      // For stop loss: recalculate ROE% based on new leverage or price
       if (stopLossPrice) {
         const roePercent = calculateRoEForPrice(stopLossPrice, false, {
           currentPrice,
@@ -211,8 +217,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           entryPrice,
         });
         setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
-        // Clear button selection since ROE% changed
-        setSelectedSlPercentage(null);
+        // Only clear button selection if leverage changed (not on price updates)
+        if (leverageChanged) {
+          setSelectedSlPercentage(null);
+        }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler

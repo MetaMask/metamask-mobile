@@ -1100,8 +1100,8 @@
       "trigger_price_placeholder": "Trigger price",
       "profit_percent_placeholder": "Profit",
       "loss_percent_placeholder": "Loss",
-      "profit_roe_placeholder": "% RoE",
-      "loss_roe_placeholder": "% RoE",
+      "profit_roe_placeholder": "% Profit",
+      "loss_roe_placeholder": "% Loss",
       "usd_label": "($)"
     },
     "token_selector": {

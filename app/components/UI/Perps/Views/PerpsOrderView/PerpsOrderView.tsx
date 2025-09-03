@@ -451,12 +451,18 @@ const PerpsOrderViewContentBase: React.FC = () => {
     let tpDisplay = strings('perps.order.off');
     let slDisplay = strings('perps.order.off');
 
+    // Calculate proper entry price based on order type
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : price; // fallback to current price for market orders or when no limit price set
+
     if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
       const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
         currentPrice: price,
         direction: orderForm.direction,
         leverage: orderForm.leverage,
-        entryPrice: price, // For new orders, entry price is current price
+        entryPrice,
       });
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
@@ -468,7 +474,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         currentPrice: price,
         direction: orderForm.direction,
         leverage: orderForm.leverage,
-        entryPrice: price, // For new orders, entry price is current price
+        entryPrice,
       });
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
@@ -482,6 +488,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderForm.stopLossPrice,
     orderForm.leverage,
     orderForm.direction,
+    orderForm.type,
+    orderForm.limitPrice,
   ]);
 
   // Order validation using new hook
