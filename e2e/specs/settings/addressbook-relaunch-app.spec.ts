@@ -11,7 +11,7 @@ import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { Mockttp } from 'mockttp';
-import { setupMockPostRequest } from '../../api-mocking/mockHelpers';
+import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 
 const MEMO = 'Address for testing 123123123';
 const infuraUrlEndpoint = /^https:\/\/mainnet\.infura\.io\/v3\/.*$/;
