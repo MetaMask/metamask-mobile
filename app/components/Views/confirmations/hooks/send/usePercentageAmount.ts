@@ -73,6 +73,10 @@ export const getPercentageValueFn = ({
     percentageValue = percentageValue.mul(new BN(percentage)).div(new BN(100));
   }
 
+  if (percentageValue.isNeg() || percentageValue.isZero()) {
+    return '0';
+  }
+
   return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
@@ -84,19 +88,14 @@ export const usePercentageAmount = () => {
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
   const { value: layer1GasFee } = useAsyncResult(async () => {
-    if (
-      !isEvmNativeSendType ||
-      asset?.chainId === CHAIN_IDS.MAINNET ||
-      !from ||
-      value === undefined
-    ) {
+    if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {
       return '0x0';
     }
     return await getLayer1GasFeeForSend({
       asset: asset as AssetType,
       chainId: chainId as Hex,
       from: from as Hex,
-      value: value as string,
+      value: (value ?? '0') as string,
     });
   }, [asset, chainId, from, value]);
 
