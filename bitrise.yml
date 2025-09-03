@@ -3639,6 +3639,9 @@ app:
       MM_PERPS_ENABLED: false
     - opts:
         is_expand: false
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON"
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
