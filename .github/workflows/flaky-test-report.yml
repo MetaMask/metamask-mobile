@@ -1,12 +1,9 @@
 name: Flaky test report
 
 on:
-  push:
-    branches:
-      - ci-flaky-test-bot
-  # schedule:
-  #   # Once every day from Monday-Friday at 08:00 UTC
-  #   - cron: 0 8 * * 1-5
+  schedule:
+    # Once every day from Monday-Friday at 08:00 UTC
+    - cron: 0 8 * * 1-5
 
 permissions:
   contents: read
