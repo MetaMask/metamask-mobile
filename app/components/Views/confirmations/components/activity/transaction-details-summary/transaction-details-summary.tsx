@@ -4,9 +4,6 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
-import Icon, {
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
 import {
   AlignItems,
   FlexDirection,
@@ -26,6 +23,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { TransactionDetailsStatusIcon } from '../transaction-details-status-icon';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
@@ -89,7 +87,7 @@ function SummaryLine({
           alignItems={AlignItems.center}
           gap={12}
         >
-          <Icon name={IconName.Check} />
+          <TransactionDetailsStatusIcon transactionMeta={transaction} />
           <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
       </Box>

@@ -121,6 +121,29 @@ describe('usePercentageAmount', () => {
     expect(result.current.getPercentageAmount(100)).toEqual('9685000000000');
   });
 
+  it('return zero if amount of asset available is less than gas', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
+        decimals: 2,
+        isNative: true,
+      },
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseBalance.mockReturnValue({
+      balance: '100',
+      decimals: 2,
+      rawBalanceBN: new BN('100'),
+    });
+
+    const { result } = renderHookWithProvider(
+      () => usePercentageAmount(),
+      mockState,
+    );
+    expect(result.current.isMaxAmountSupported).toBeTruthy();
+    expect(result.current.getPercentageAmount(100)).toEqual('0');
+  });
+
   it('adjust L1 fee for optimism mainnet', async () => {
     mockUseSendContext.mockReturnValue({
       asset: {
