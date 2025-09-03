@@ -148,6 +148,7 @@ export class RewardsController extends BaseController<
     );
 
     return {
+      season: this.#convertSeasonToState(seasonStatus.season),
       balance: {
         total: seasonStatus.balance.total,
         refereePortion: seasonStatus.balance.refereePortion,
