@@ -37,8 +37,8 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AddAccountModal.device = device;
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
-  //await importSRPFlow(device, process.env.TEST_SRP_2);
-  //await importSRPFlow(device, process.env.TEST_SRP_3);
+  await importSRPFlow(device, process.env.TEST_SRP_2);
+  await importSRPFlow(device, process.env.TEST_SRP_3);
 
   const screen1Timer = new TimerHelper(
     'Time since the user clicks on "Account list" button until the account list is visible',
