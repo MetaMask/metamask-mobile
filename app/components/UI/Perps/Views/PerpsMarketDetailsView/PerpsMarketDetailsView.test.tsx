@@ -1244,7 +1244,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify the duration selector is rendered
       const durationSelector = getByTestId(
-        `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-duration-selector`,
+        'perps-market-details-view-candle-period-selector-period-1m',
       );
       expect(durationSelector).toBeTruthy();
     });

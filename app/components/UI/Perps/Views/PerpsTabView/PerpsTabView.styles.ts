@@ -63,7 +63,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     startTradingButton: {
       marginTop: 16,
-      width: '100%',
     },
     // Order card styles to match position cards
     positionCard: {
@@ -92,6 +91,27 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     positionRight: {
       alignItems: 'flex-end',
+    },
+    startTradeCTA: {
+      marginVertical: 4,
+      borderRadius: 8,
+    },
+    startTradeContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    startTradeIconContainer: {
+      width: 40,
+      height: 40,
+      borderWidth: 0,
+      borderRadius: 20,
+      backgroundColor: colors.background.muted,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    startTradeText: {
+      marginLeft: 12,
+      flex: 1,
     },
   });
 };
