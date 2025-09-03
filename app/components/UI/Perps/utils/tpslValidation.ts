@@ -13,6 +13,8 @@
 interface ValidationParams {
   currentPrice: number;
   direction?: 'long' | 'short';
+  leverage?: number;
+  entryPrice?: number; // For existing positions
 }
 
 /**
@@ -184,4 +186,101 @@ export const hasTPSLValuesChanged = (
   const slChanged = normalizedCurrentSL !== normalizedInitialSL;
 
   return tpChanged || slChanged;
+};
+
+/**
+ * Calculates the trigger price for a given RoE percentage
+ * RoE% = (PnL / marginUsed) * 100
+ * PnL = (exitPrice - entryPrice) * size (for long)
+ * PnL = (entryPrice - exitPrice) * size (for short)
+ *
+ * @param roePercentage The target RoE percentage (e.g., 10 for +10%, -5 for -5%)
+ * @param isProfit Whether this is for take profit (true) or stop loss (false)
+ * @param params Entry price, direction, and leverage
+ * @returns The calculated trigger price as a string
+ */
+export const calculatePriceForRoE = (
+  roePercentage: number,
+  isProfit: boolean,
+  { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
+): string => {
+  // Use entry price if available (for existing positions), otherwise use current price
+  const basePrice = entryPrice || currentPrice;
+  if (!basePrice) return '';
+
+  const isLong = direction === 'long';
+
+  // RoE% = (PnL / marginUsed) * 100
+  // PnL = RoE% * marginUsed / 100
+  // marginUsed = positionValue / leverage
+  // positionValue = entryPrice * size
+  // Therefore: PnL = RoE% * (entryPrice * size) / (leverage * 100)
+  // Simplifying: PnL/positionValue = RoE% / (leverage * 100)
+  // priceChange/entryPrice = RoE% / (leverage * 100)
+  // priceChange = entryPrice * RoE% / (leverage * 100)
+
+  const priceChangeRatio = roePercentage / (leverage * 100);
+
+  let calculatedPrice: number;
+  if (isProfit) {
+    // For take profit
+    if (isLong) {
+      // Long TP: price needs to go up
+      calculatedPrice = basePrice * (1 + priceChangeRatio);
+    } else {
+      // Short TP: price needs to go down
+      calculatedPrice = basePrice * (1 - priceChangeRatio);
+    }
+  } else if (isLong) {
+    // For stop loss (negative RoE)
+    // Long SL: price needs to go down
+    calculatedPrice = basePrice * (1 - Math.abs(priceChangeRatio));
+  } else {
+    // Short SL: price needs to go up
+    calculatedPrice = basePrice * (1 + Math.abs(priceChangeRatio));
+  }
+
+  return calculatedPrice.toFixed(2);
+};
+
+/**
+ * Calculates the RoE percentage for a given trigger price
+ *
+ * @param price The trigger price (as string, may include formatting)
+ * @param isProfit Whether this is for take profit (true) or stop loss (false)
+ * @param params Current/entry price, direction, and leverage
+ * @returns The RoE percentage as a string
+ */
+export const calculateRoEForPrice = (
+  price: string,
+  isProfit: boolean,
+  { currentPrice, direction, leverage = 1, entryPrice }: ValidationParams,
+): string => {
+  // Use entry price if available (for existing positions), otherwise use current price
+  const basePrice = entryPrice || currentPrice;
+  if (!basePrice || !price) return '';
+
+  const priceNum = parseFloat(price.replace(/[$,]/g, ''));
+  if (isNaN(priceNum)) return '';
+
+  const isLong = direction === 'long';
+
+  // Calculate price change ratio
+  const priceChangeRatio = (priceNum - basePrice) / basePrice;
+
+  // RoE% = priceChangeRatio * leverage * 100
+  let roePercentage = Math.abs(priceChangeRatio * leverage * 100);
+
+  // Determine sign based on direction and whether it's profit or loss
+  if (isProfit) {
+    // For take profit, check if price moved in the right direction
+    const isValidProfit = isLong ? priceNum > basePrice : priceNum < basePrice;
+    if (!isValidProfit) roePercentage = -roePercentage;
+  } else {
+    // For stop loss, check if price moved in the wrong direction (loss)
+    const isValidLoss = isLong ? priceNum < basePrice : priceNum > basePrice;
+    if (!isValidLoss) roePercentage = -roePercentage;
+  }
+
+  return roePercentage.toFixed(2);
 };

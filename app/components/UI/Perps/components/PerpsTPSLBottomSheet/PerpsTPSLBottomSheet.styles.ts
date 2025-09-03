@@ -76,12 +76,13 @@ export const createStyles = (colors: Theme['colors']) =>
     percentageButton: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: 8,
       backgroundColor: colors.background.pressed,
       borderRadius: 8,
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.border.muted,
+      minWidth: 50,
     },
     percentageButtonOff: {
       backgroundColor: colors.background.pressed,

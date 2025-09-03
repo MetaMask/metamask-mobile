@@ -40,14 +40,14 @@ import {
   validateTPSLPrices,
   getTakeProfitErrorDirection,
   getStopLossErrorDirection,
-  calculatePriceForPercentage,
-  calculatePercentageForPrice,
+  calculatePriceForRoE,
+  calculateRoEForPrice,
   hasTPSLValuesChanged,
 } from '../../utils/tpslValidation';
 
-// Quick percentage buttons constants
-const TAKE_PROFIT_PERCENTAGES = [1, 5, 20, 30];
-const STOP_LOSS_PERCENTAGES = [1, 5, 20, 30];
+// Quick percentage buttons constants - RoE percentages
+const TAKE_PROFIT_PERCENTAGES = [10, 25, 50, 100]; // +10%, +25%, +50%, +100% RoE
+const STOP_LOSS_PERCENTAGES = [5, 10, 25, 50]; // -5%, -10%, -25%, -50% RoE
 
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;
@@ -61,6 +61,8 @@ interface PerpsTPSLBottomSheetProps {
   initialTakeProfitPrice?: string;
   initialStopLossPrice?: string;
   isUpdating?: boolean;
+  leverage?: number; // For new orders
+  marginRequired?: string; // For new orders
 }
 
 const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
@@ -74,6 +76,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   initialTakeProfitPrice,
   initialStopLossPrice,
   isUpdating = false,
+  leverage: propLeverage,
+  marginRequired: propMargin,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -130,6 +134,19 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       : 'short'
     : direction;
 
+  // Determine leverage: from position or from prop (for new orders)
+  const leverage = position?.leverage?.value || propLeverage || 1;
+
+  // Entry price for RoE calculations (use entry price for existing positions, current price for new orders)
+  const entryPrice = position?.entryPrice
+    ? parseFloat(position.entryPrice)
+    : currentPrice;
+
+  // Margin: from position or calculated for new orders
+  // For new orders, this would typically come from the order form context
+  // For existing positions, use the actual margin used
+  const margin = position?.marginUsed || propMargin || null;
+
   useEffect(() => {
     if (isVisible) {
       startMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
@@ -140,62 +157,67 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     }
   }, [isVisible, startMeasure, endMeasure]);
 
-  // Calculate initial percentages only once when component first becomes visible
+  // Calculate initial RoE percentages only once when component first becomes visible
   useEffect(() => {
-    if (isVisible && currentPrice) {
-      // Calculate initial percentages when opening
+    if (isVisible && currentPrice && leverage) {
+      // Calculate initial RoE percentages when opening
       if (initialTakeProfitPrice && takeProfitPercentage === '') {
-        const tpPrice = parseFloat(initialTakeProfitPrice);
-        const percentage = ((tpPrice - currentPrice) / currentPrice) * 100;
-        // For short positions, TP percentage is negative (price below current)
-        setTakeProfitPercentage(percentage.toFixed(2));
+        const roePercent = calculateRoEForPrice(initialTakeProfitPrice, true, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
+        setTakeProfitPercentage(roePercent);
       }
 
       if (initialStopLossPrice && stopLossPercentage === '') {
-        const slPrice = parseFloat(initialStopLossPrice);
-        const percentage =
-          Math.abs((currentPrice - slPrice) / currentPrice) * 100;
-        setStopLossPercentage(percentage.toFixed(2));
+        const roePercent = calculateRoEForPrice(initialStopLossPrice, false, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
+        // Show stop loss as negative RoE
+        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]); // Only run when visibility changes, not on price updates
 
-  // Recalculate prices when current price changes but only if using percentage mode
+  // Update ROE% display when leverage changes (keep trigger prices constant)
   useEffect(() => {
-    if (currentPrice && isVisible) {
-      // Only update take profit price if user is using percentage-based calculation
-      if (
-        tpUsingPercentage &&
-        takeProfitPercentage &&
-        !isNaN(parseFloat(takeProfitPercentage))
-      ) {
-        const absPercentage = Math.abs(parseFloat(takeProfitPercentage));
-        const price = calculatePriceForPercentage(absPercentage, true, {
+    if (leverage && isVisible) {
+      // For take profit: recalculate ROE% based on new leverage
+      if (takeProfitPrice) {
+        const roePercent = calculateRoEForPrice(takeProfitPrice, true, {
           currentPrice,
           direction: actualDirection,
+          leverage,
+          entryPrice,
         });
-        setTakeProfitPrice(formatPrice(price));
+        setTakeProfitPercentage(roePercent);
+        // Clear button selection since ROE% changed
+        setSelectedTpPercentage(null);
       }
 
-      // Only update stop loss price if user is using percentage-based calculation
-      if (
-        slUsingPercentage &&
-        stopLossPercentage &&
-        !isNaN(parseFloat(stopLossPercentage))
-      ) {
-        const price = calculatePriceForPercentage(
-          parseFloat(stopLossPercentage),
-          false,
-          { currentPrice, direction: actualDirection },
-        );
-        setStopLossPrice(formatPrice(price));
+      // For stop loss: recalculate ROE% based on new leverage
+      if (stopLossPrice) {
+        const roePercent = calculateRoEForPrice(stopLossPrice, false, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
+        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
+        // Clear button selection since ROE% changed
+        setSelectedSlPercentage(null);
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPrice, actualDirection]); // Update prices when current price changes
+  }, [leverage, currentPrice, actualDirection]); // Update when leverage or price changes
 
   const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
@@ -264,63 +286,53 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (parts.length > 2) return;
       setTakeProfitPrice(sanitized);
 
-      // Update percentage based on price
-      if (sanitized) {
-        const percentage = calculatePercentageForPrice(sanitized, true, {
+      // Update RoE percentage based on price
+      if (sanitized && leverage) {
+        const roePercent = calculateRoEForPrice(sanitized, true, {
           currentPrice,
           direction: actualDirection,
+          leverage,
+          entryPrice,
         });
-
-        // For short positions, show take profit percentage as negative
-        // The function returns positive for valid directions, but UI convention
-        // is to show negative percentages for shorts (price going down)
-        const displayPercentage =
-          actualDirection === 'short' &&
-          percentage &&
-          !percentage.startsWith('-')
-            ? `-${percentage}`
-            : percentage;
-        setTakeProfitPercentage(displayPercentage);
+        setTakeProfitPercentage(roePercent);
       } else {
         setTakeProfitPercentage('');
       }
       setSelectedTpPercentage(null);
       setTpUsingPercentage(false); // User is manually entering price
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
-  // Memoized callbacks for take profit percentage input
+  // Memoized callbacks for take profit RoE percentage input
   const handleTakeProfitPercentageChange = useCallback(
     (text: string) => {
-      // Allow only numbers, decimal point, and minus sign
-      const sanitized = text.replace(/[^0-9.-]/g, '');
-      // Prevent multiple decimal points or minus signs
+      // Allow only numbers and decimal point (no minus for TP RoE)
+      const sanitized = text.replace(/[^0-9.]/g, '');
+      // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
-      if ((sanitized.match(/-/g) || []).length > 1) return;
-      // Ensure minus sign is only at the beginning
-      if (sanitized.indexOf('-') > 0) return;
 
       setTakeProfitPercentage(sanitized);
 
-      // Update price based on percentage
-      if (sanitized && !isNaN(parseFloat(sanitized))) {
-        // Use absolute value for calculation, the function handles direction
-        const absPercentage = Math.abs(parseFloat(sanitized));
-        const price = calculatePriceForPercentage(absPercentage, true, {
+      // Update price based on RoE percentage
+      if (sanitized && !isNaN(parseFloat(sanitized)) && leverage) {
+        const roeValue = parseFloat(sanitized);
+        const price = calculatePriceForRoE(roeValue, true, {
           currentPrice,
           direction: actualDirection,
+          leverage,
+          entryPrice,
         });
         setTakeProfitPrice(formatPrice(price));
-        setSelectedTpPercentage(absPercentage);
+        setSelectedTpPercentage(roeValue);
       } else {
         setTakeProfitPrice('');
         setSelectedTpPercentage(null);
       }
-      setTpUsingPercentage(true); // User is using percentage-based calculation
+      setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
   // Memoized callbacks for stop loss price input
@@ -333,87 +345,92 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       if (parts.length > 2) return;
       setStopLossPrice(sanitized);
 
-      // Update percentage based on price
-      if (sanitized) {
-        const percentage = calculatePercentageForPrice(sanitized, false, {
+      // Update RoE percentage based on price
+      if (sanitized && leverage) {
+        const roePercent = calculateRoEForPrice(sanitized, false, {
           currentPrice,
           direction: actualDirection,
+          leverage,
+          entryPrice,
         });
-        // Always show stop loss percentage as positive
-        const absPercentage = percentage.startsWith('-')
-          ? percentage.substring(1)
-          : percentage;
-        setStopLossPercentage(absPercentage);
+        // Always show stop loss RoE as positive (it's a loss magnitude)
+        setStopLossPercentage(Math.abs(parseFloat(roePercent)).toFixed(2));
       } else {
         setStopLossPercentage('');
       }
       setSelectedSlPercentage(null);
       setSlUsingPercentage(false); // User is manually entering price
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
-  // Memoized callbacks for stop loss percentage input
+  // Memoized callbacks for stop loss RoE percentage input
   const handleStopLossPercentageChange = useCallback(
     (text: string) => {
-      // Allow only numbers and decimal point
+      // Allow only numbers and decimal point (no minus, SL is always shown as positive)
       const sanitized = text.replace(/[^0-9.]/g, '');
       // Prevent multiple decimal points
       const parts = sanitized.split('.');
       if (parts.length > 2) return;
       setStopLossPercentage(sanitized);
 
-      // Update price based on percentage
-      if (sanitized && !isNaN(parseFloat(sanitized))) {
-        const price = calculatePriceForPercentage(
-          parseFloat(sanitized),
-          false,
-          { currentPrice, direction: actualDirection },
-        );
+      // Update price based on RoE percentage (negative RoE for loss)
+      if (sanitized && !isNaN(parseFloat(sanitized)) && leverage) {
+        const roeValue = -parseFloat(sanitized); // Negative because it's a loss
+        const price = calculatePriceForRoE(roeValue, false, {
+          currentPrice,
+          direction: actualDirection,
+          leverage,
+          entryPrice,
+        });
         setStopLossPrice(formatPrice(price));
         setSelectedSlPercentage(parseFloat(sanitized));
       } else {
         setStopLossPrice('');
         setSelectedSlPercentage(null);
       }
-      setSlUsingPercentage(true); // User is using percentage-based calculation
+      setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
-  // Memoized callbacks for percentage buttons
+  // Memoized callbacks for RoE percentage buttons
   const handleTakeProfitPercentageButton = useCallback(
-    (percentage: number) => {
-      const price = calculatePriceForPercentage(percentage, true, {
+    (roePercentage: number) => {
+      if (!leverage) return;
+
+      const price = calculatePriceForRoE(roePercentage, true, {
         currentPrice,
         direction: actualDirection,
+        leverage,
+        entryPrice,
       });
 
       setTakeProfitPrice(formatPrice(price));
-      // For short positions, display take profit percentage as negative
-      const displayPercentage =
-        actualDirection === 'short' ? -percentage : percentage;
-      setTakeProfitPercentage(displayPercentage.toString());
-      setSelectedTpPercentage(percentage);
-      setTpUsingPercentage(true); // Using percentage button
+      setTakeProfitPercentage(roePercentage.toString());
+      setSelectedTpPercentage(roePercentage);
+      setTpUsingPercentage(true); // Using RoE percentage button
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
   const handleStopLossPercentageButton = useCallback(
-    (percentage: number) => {
-      const price = calculatePriceForPercentage(percentage, false, {
+    (roePercentage: number) => {
+      if (!leverage) return;
+
+      // Stop loss is negative RoE
+      const price = calculatePriceForRoE(-roePercentage, false, {
         currentPrice,
         direction: actualDirection,
+        leverage,
+        entryPrice,
       });
       setStopLossPrice(formatPrice(price));
-      // For short positions, stop loss percentage should be positive
-      // (already positive since it's a loss when price goes up)
-      setStopLossPercentage(percentage.toString());
-      setSelectedSlPercentage(percentage);
-      setSlUsingPercentage(true); // Using percentage button
+      setStopLossPercentage(roePercentage.toString());
+      setSelectedSlPercentage(roePercentage);
+      setSlUsingPercentage(true); // Using RoE percentage button
     },
-    [currentPrice, actualDirection],
+    [currentPrice, actualDirection, leverage, entryPrice],
   );
 
   // Handle "Off" button clicks
@@ -483,6 +500,24 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
+          <View style={styles.priceInfoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.tpsl.leverage') || 'Leverage'}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {leverage}x
+            </Text>
+          </View>
+          {margin && (
+            <View style={styles.priceInfoRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.tpsl.margin') || 'Margin'}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {formatPrice(margin)}
+              </Text>
+            </View>
+          )}
           {position?.liquidationPrice && (
             <View style={styles.priceInfoRow}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
@@ -525,9 +560,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
                 onPress={() => handleTakeProfitPercentageButton(percentage)}
               >
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                  {actualDirection === 'short' ? '-' : '+'}
-                  {percentage}%
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                >
+                  +{percentage}%
                 </Text>
               </TouchableOpacity>
             ))}
@@ -581,7 +621,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={takeProfitPercentage}
                 onChangeText={handleTakeProfitPercentageChange}
-                placeholder={strings('perps.tpsl.profit_percent_placeholder')}
+                placeholder={
+                  strings('perps.tpsl.profit_roe_placeholder') || '% RoE'
+                }
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setTpPercentInputFocused(true)}
@@ -641,9 +683,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 ]}
                 onPress={() => handleStopLossPercentageButton(percentage)}
               >
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                  {actualDirection === 'short' ? '+' : '-'}
-                  {percentage}%
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                >
+                  -{percentage}%
                 </Text>
               </TouchableOpacity>
             ))}
@@ -697,7 +744,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={stopLossPercentage}
                 onChangeText={handleStopLossPercentageChange}
-                placeholder={strings('perps.tpsl.loss_percent_placeholder')}
+                placeholder={
+                  strings('perps.tpsl.loss_roe_placeholder') || '% RoE'
+                }
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setSlPercentInputFocused(true)}
