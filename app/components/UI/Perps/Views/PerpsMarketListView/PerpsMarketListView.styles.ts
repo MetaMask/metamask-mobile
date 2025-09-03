@@ -125,7 +125,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     animatedListContainer: {
       flex: 1,
-      paddingHorizontal: 16,
     },
     searchContainer: {
       marginHorizontal: 16,
@@ -140,7 +139,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 10,
+      paddingVertical: 8,
     },
     searchIcon: {
       marginRight: 10,

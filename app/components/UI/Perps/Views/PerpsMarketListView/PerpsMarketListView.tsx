@@ -79,13 +79,13 @@ const PerpsMarketListHeader = () => {
   return (
     <View style={styles.listHeader}>
       <View style={styles.listHeaderLeft}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-          {strings('perps.token_volume')}
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {strings('perps.volume')}
         </Text>
       </View>
       <View style={styles.listHeaderRight}>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-          {strings('perps.last_price_24h_change')}
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
+          {strings('perps.price_24h_change')}
         </Text>
       </View>
     </View>
@@ -352,7 +352,7 @@ const PerpsMarketListView = ({
             />
             <TextInput
               style={styles.searchInput}
-              placeholder={strings('perps.search')}
+              placeholder={strings('perps.search_by_token_symbol')}
               placeholderTextColor={theme.colors.text.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}

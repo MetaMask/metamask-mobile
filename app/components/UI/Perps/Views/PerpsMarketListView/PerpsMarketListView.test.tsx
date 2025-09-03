@@ -276,8 +276,8 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId('perps-market-list-search-toggle-button'),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Token Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
     });
 
     it('renders market list when data is available', () => {
@@ -306,7 +306,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Initially search should not be visible
-      expect(screen.queryByPlaceholderText('Search')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByPlaceholderText('Search by token symbol'),
+      ).not.toBeOnTheScreen();
 
       // Click search toggle button
       const searchButton = screen.getByTestId(
@@ -317,7 +319,9 @@ describe('PerpsMarketListView', () => {
       });
 
       // Now search input should be visible
-      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
+      expect(
+        screen.getByPlaceholderText('Search by token symbol'),
+      ).toBeOnTheScreen();
     });
 
     it('filters markets based on symbol search', () => {
@@ -331,7 +335,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, 'BTC');
       });
@@ -352,7 +356,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, 'bitcoin');
       });
@@ -373,7 +377,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, 'BTC');
       });
@@ -401,7 +405,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, 'BTC');
       });
@@ -440,7 +444,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, 'ethereum');
       });
@@ -497,8 +501,8 @@ describe('PerpsMarketListView', () => {
 
       render(<PerpsMarketListView />);
 
-      expect(screen.getByText('Token Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
     });
   });
 
@@ -655,8 +659,8 @@ describe('PerpsMarketListView', () => {
 
       render(<PerpsMarketListView />);
 
-      expect(screen.getByText('Token Volume')).toBeOnTheScreen();
-      expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
+      expect(screen.getByText('Volume')).toBeOnTheScreen();
+      expect(screen.getByText('Price / 24h change')).toBeOnTheScreen();
       expect(screen.queryByTestId('market-row-BTC')).not.toBeOnTheScreen();
     });
 
@@ -671,7 +675,8 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+
       act(() => {
         fireEvent.changeText(searchInput, 'NONEXISTENT');
       });
@@ -692,7 +697,7 @@ describe('PerpsMarketListView', () => {
         fireEvent.press(searchButton);
       });
 
-      const searchInput = screen.getByPlaceholderText('Search');
+      const searchInput = screen.getByPlaceholderText('Search by token symbol');
       act(() => {
         fireEvent.changeText(searchInput, '   ');
       });

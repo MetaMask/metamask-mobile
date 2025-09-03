@@ -11,6 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 12,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
     perpIcon: {
@@ -47,8 +48,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     leverageContainer: {
       backgroundColor: colors.background.muted,
-      paddingVertical: 2,
-      paddingHorizontal: 4,
+      paddingHorizontal: 6,
       borderRadius: 2,
     },
   });

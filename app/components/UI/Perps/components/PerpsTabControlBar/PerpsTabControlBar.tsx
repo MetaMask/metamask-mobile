@@ -201,7 +201,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
               <Text
-                style={styles.valueText}
+                style={styles.pnlValueText}
                 variant={TextVariant.HeadingSM}
                 color={pnlColor}
               >

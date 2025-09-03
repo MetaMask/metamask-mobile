@@ -110,14 +110,14 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
               {displayMarket.symbol}
             </Text>
             <View style={styles.leverageContainer}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
                 {displayMarket.maxLeverage}
               </Text>
             </View>
           </View>
           <Text
             variant={TextVariant.BodySM}
-            color={TextColor.Muted}
+            color={TextColor.Alternative}
             style={styles.tokenVolume}
           >
             {displayMarket.volume}

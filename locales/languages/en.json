@@ -822,7 +822,7 @@
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Total Balance",
-    "available_balance": "Available Balance",
+    "available_balance": "Available balance",
     "margin_used": "Margin Used",
     "gtm_content": {
       "title": "WE'VE GOT PERPS",
@@ -1315,8 +1315,7 @@
       "error_message": "Unable to connect to Perps trading service.",
       "retry_connection": "Retry Connection",
       "retrying_connection": "Connecting...",
-      "connecting_to_perps": "Connecting to Perps...",
-      "perps_will_be_available_shortly": "Perps will be available shortly"
+      "connecting_to_perps": "Connecting to Perps"
     },
     "chart": {
       "no_data": "No chart data available",
@@ -1326,11 +1325,11 @@
       }
     },
     "perps_markets": "Perps markets",
-    "token_volume": "Token Volume",
-    "last_price_24h_change": "Last Price / 24h Change",
+    "volume": "Volume",
+    "price_24h_change": "Price / 24h change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search",
+    "search_by_token_symbol": "Search by token symbol",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {

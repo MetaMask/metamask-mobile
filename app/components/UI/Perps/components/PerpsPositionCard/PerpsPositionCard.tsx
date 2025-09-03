@@ -146,21 +146,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {position.coin} {position.leverage.value}x{' '}
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {direction}
                 </Text>
               </Text>
             </View>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Alternative}
+              >
                 {formatPositionSize(absoluteSize.toString())} {position.coin}
               </Text>
             </View>
@@ -168,6 +165,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
+              {/* TODO: Replace with BodyMD */}
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(position.positionValue, {
                   minimumDecimals: 2,
@@ -203,10 +201,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 >
                   {strings('perps.position.card.entry_price')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                >
+                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
                   {formatPrice(position.entryPrice, {
                     minimumDecimals: 2,
                     maximumDecimals: 2,
