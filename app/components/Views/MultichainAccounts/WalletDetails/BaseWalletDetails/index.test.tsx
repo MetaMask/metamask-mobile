@@ -498,21 +498,6 @@ describe('BaseWalletDetails', () => {
         );
       });
 
-      it('does not create account when keyringId is null', async () => {
-        mockUseWalletInfo.mockReturnValue({
-          accounts: [mockAccount1, mockAccount2],
-          keyringId: null,
-          isSRPBackedUp: true,
-        });
-
-        const { queryByTestId } = renderWithProvider(
-          <BaseWalletDetails wallet={mockWallet} />,
-          { state: mockInitialState },
-        );
-
-        expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
-      });
-
       it('does not render add account button when keyringId is falsy', () => {
         mockUseWalletInfo.mockReturnValue({
           accounts: [mockAccount1, mockAccount2],
@@ -526,34 +511,6 @@ describe('BaseWalletDetails', () => {
         );
 
         expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
-      });
-
-      it('logs error and returns early when handleCreateAccount is called without keyringId', async () => {
-        mockUseWalletInfo.mockReturnValue({
-          accounts: [mockAccount1, mockAccount2],
-          keyringId: undefined,
-          isSRPBackedUp: true,
-        });
-
-        const { queryByTestId } = renderWithProvider(
-          <BaseWalletDetails wallet={mockWallet} />,
-          { state: mockInitialState },
-        );
-
-        // Then the add account button should not be rendered (normal behavior)
-        expect(queryByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON)).toBeNull();
-
-        // And if handleCreateAccount were somehow called directly, it would log an error
-        // This tests the safety check in the handleCreateAccount function
-        // Simulate calling handleCreateAccount directly (edge case)
-        // This tests the error logging logic in the original code
-        const mockError = new Error('No keyring ID found for wallet');
-        Logger.error(mockError, 'Cannot create account without keyring ID');
-
-        expect(Logger.error).toHaveBeenCalledWith(
-          mockError,
-          'Cannot create account without keyring ID',
-        );
       });
 
       it('calls createNextMultichainAccountGroup with correct parameters', async () => {
@@ -625,6 +582,34 @@ describe('BaseWalletDetails', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
 
         expect(mockCreateNextMultichainAccountGroup).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('handleGoToAccountDetails function', () => {
+      it('navigates to account details when account item is pressed', () => {
+        mockUseWalletInfo.mockReturnValue({
+          accounts: [mockAccount1, mockAccount2],
+          keyringId: 'keyring:1',
+          isSRPBackedUp: true,
+        });
+
+        const { getByTestId } = renderWithProvider(
+          <BaseWalletDetails wallet={mockWallet} />,
+          { state: mockInitialState },
+        );
+
+        const firstAccountItem = getByTestId(
+          `${WalletDetailsIds.ACCOUNT_ITEM}_${mockAccount1.id}`,
+        );
+
+        fireEvent.press(firstAccountItem);
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+          {
+            account: mockAccount1,
+          },
+        );
       });
     });
   });

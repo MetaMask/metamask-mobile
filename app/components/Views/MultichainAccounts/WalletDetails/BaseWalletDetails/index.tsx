@@ -128,20 +128,11 @@ export const BaseWalletDetails = ({
   );
 
   const handleCreateAccount = useCallback(async () => {
-    if (!keyringId) {
-      Logger.error(
-        new Error('No keyring ID found for wallet'),
-        'Cannot create account without keyring ID',
-      );
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const { MultichainAccountService } = Engine.context;
 
       await MultichainAccountService.createNextMultichainAccountGroup({
-        entropySource: keyringId,
+        entropySource: keyringId as string,
       });
 
       setIsLoading(false);
