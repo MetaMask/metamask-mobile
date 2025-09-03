@@ -20,6 +20,8 @@ import type {
   Position,
   SwitchProviderResult,
   ToggleTestnetResult,
+  MarketCategory,
+  PredictEvent,
 } from '../types';
 import { PolymarketProvider } from '../providers/PolymarketProvider';
 import Engine from '../../../../core/Engine';
@@ -331,7 +333,6 @@ export class PredictController extends BaseController<
       'polymarket',
       new PolymarketProvider({
         isTestnet: this.state.isTestnet,
-        signTypedMessage: () => Promise.resolve(''), // signTypedMessage: KeyringController.signTypedMessage,
       }),
     );
 
@@ -375,10 +376,10 @@ export class PredictController extends BaseController<
   /**
    * Get available markets with optional filtering
    */
-  async getMarkets(): Promise<Market[]> {
+  async getMarkets(params?: { category?: MarketCategory }): Promise<Market[]> {
     try {
       const provider = this.getActiveProvider();
-      const allMarkets = await provider.getMarkets();
+      const allMarkets = await provider.getMarkets(params);
 
       // Clear any previous errors on successful call
       this.update((state) => {
@@ -387,6 +388,40 @@ export class PredictController extends BaseController<
       });
 
       return allMarkets;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKETS_FAILED;
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
+   * Get available events with optional filtering
+   */
+  async getEvents(params?: {
+    category?: MarketCategory;
+  }): Promise<PredictEvent[]> {
+    try {
+      const provider = this.getActiveProvider();
+      const allEvents = await provider.getEvents(params);
+
+      // Clear any previous errors on successful call
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return allEvents;
     } catch (error) {
       const errorMessage =
         error instanceof Error

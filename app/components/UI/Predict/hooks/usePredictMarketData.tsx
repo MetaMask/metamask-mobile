@@ -1,16 +1,23 @@
 /* eslint-disable react/prop-types */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { Market } from '../types';
+import type { MarketCategory, PredictEvent } from '../types';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
+export interface UsePredictMarketDataOptions {
+  category?: MarketCategory;
+}
+
 /**
- * Hook to fetch and manage market data for a specific asset
+ * Hook to fetch and manage market data for a specific category
  * @returns Market data, loading state, and error state
  */
-export const usePredictMarketData = () => {
-  const [marketData, setMarketData] = useState<Market[] | null>(null);
+export const usePredictMarketData = (
+  options: UsePredictMarketDataOptions = {},
+) => {
+  const { category = 'trending' } = options;
+  const [marketData, setMarketData] = useState<PredictEvent[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,10 +26,10 @@ export const usePredictMarketData = () => {
       setIsLoading(true);
       setError(null);
 
-      DevLogger.log('Fetching market data');
+      DevLogger.log('Fetching market data for category:', category);
       const controller = Engine.context.PredictController;
       await controller.initializeProviders();
-      const markets = await controller.getMarkets();
+      const markets = await controller.getEvents({ category });
       DevLogger.log('Market data received:', markets);
 
       if (!markets) {
@@ -39,7 +46,7 @@ export const usePredictMarketData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [category]);
 
   useEffect(() => {
     fetchMarketData();

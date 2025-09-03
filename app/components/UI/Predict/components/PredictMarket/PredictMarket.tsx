@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { Market } from '../../types';
+import { formatVolume } from '../../utils/format';
 import {
   Box,
   BoxFlexDirection,
@@ -67,16 +68,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
 
   const getImageUrl = (): string => market.image || market.icon || market.image_url || '';
 
-  const getVolumeDisplay = (): string => {
-    if (market.volume) {
-      const volume =
-        typeof market.volume === 'string'
-          ? parseFloat(market.volume)
-          : market.volume;
-      return volume.toLocaleString();
-    }
-    return '0';
-  };
+  const getVolumeDisplay = (): string => formatVolume(market.volume || 0);
 
   const outcomeLabels = getOutcomeLabels();
   const yesPercentage = getYesPercentage();
@@ -118,7 +110,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={
-            <Text color={TextColor.Success}>{strings('predict.buy_yes')}</Text>
+            <Text style={tw.style('font-bold')} color={TextColor.Success}>
+              {strings('predict.buy_yes')}
+            </Text>
           }
           onPress={() => navigation.navigate(Routes.PREDICT.MARKET_DETAILS)}
           style={styles.buttonYes}
@@ -128,7 +122,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
           label={
-            <Text color={TextColor.Error}>{strings('predict.buy_no')}</Text>
+            <Text style={tw.style('font-bold')} color={TextColor.Error}>
+              {strings('predict.buy_no')}
+            </Text>
           }
           onPress={() => navigation.navigate(Routes.PREDICT.MARKET_DETAILS)}
           style={styles.buttonNo}
@@ -136,10 +132,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       </View>
       <View style={styles.marketFooter}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {outcomeLabels.length} Outcomes
+          {outcomeLabels.length} outcomes
         </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {getVolumeDisplay()} Vol.
+          ${getVolumeDisplay()} Vol.
         </Text>
       </View>
     </View>

@@ -4,7 +4,10 @@ import type {
 } from '@metamask/keyring-controller';
 import {
   IPredictProvider,
+  PredictEvent,
   Market,
+  MarketCategory,
+  MarketStatus,
   Order,
   OrderParams,
   OrderResult,
@@ -12,8 +15,6 @@ import {
 } from '../types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { getPolymarketEndpoints } from '../utils/polymarket';
-
-const POLYMARKET_API_ENDPOINT = 'https://gamma-api.polymarket.com';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -38,27 +39,102 @@ export class PolymarketProvider implements IPredictProvider {
     // TODO: Implement polymarket disconnection
   }
 
-  async getMarkets(): Promise<Market[]> {
+  async getEvents(params?: {
+    category?: MarketCategory;
+  }): Promise<PredictEvent[]> {
     try {
-      DevLogger.log('Getting markets via Polymarket API');
+      const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+      const { category = 'trending' } = params || {};
+      DevLogger.log(
+        'Getting markets via Polymarket API for category:',
+        category,
+      );
+
+      let queryParams =
+        'limit=20&active=true&archived=false&closed=false&ascending=false&offset=0';
+
+      const categoryTagMap: Record<MarketCategory, string> = {
+        trending: '&exclude_tag_id=100639&order=volume24hr',
+        new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
+        sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+        crypto: '&tag_slug=crypto&order=volume24hr',
+        politics: '&tag_slug=politics&order=volume24hr',
+      };
+
+      queryParams += categoryTagMap[category];
+
       const response = await fetch(
-        `${POLYMARKET_API_ENDPOINT}/markets?limit=5&closed=false&active=true`,
+        `${GAMMA_API_ENDPOINT}/events/pagination?${queryParams}`,
       );
       const data = await response.json();
       DevLogger.log('Polymarket response data:', data);
 
-      const markets = data.map((market: Market) => ({
-        id: market.id.toString(),
-        question: market.question || '',
-        outcomes: market.outcomes || '[]',
-        outcomePrices: market.outcomePrices,
-        image: market.image || '',
-        volume: market.volume,
-        providerId: 'polymarket',
-        status: market.status === 'closed' ? 'closed' : 'open',
-        image_url: market.image,
-        icon: market.icon,
-      }));
+      const events = data?.data;
+
+      if (!events || !Array.isArray(events)) {
+        return [];
+      }
+
+      DevLogger.log('Processed markets:', events);
+      return events;
+    } catch (error) {
+      DevLogger.log('Error getting markets via Polymarket API:', error);
+      return [];
+    }
+  }
+
+  async getMarkets(params?: { category?: MarketCategory }): Promise<Market[]> {
+    try {
+      const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+
+      const { category = 'trending' } = params || {};
+      DevLogger.log(
+        'Getting markets via Polymarket API for category:',
+        category,
+      );
+
+      let queryParams =
+        'limit=3&active=true&archived=false&closed=false&order=volume24hr&ascending=false&offset=0';
+
+      const categoryTagMap: Record<MarketCategory, string> = {
+        trending: '&exclude_tag_id=100639&order=volume24hr',
+        new: '&order=startDate&exclude_tag_id=100639&exclude_tag_id=102169',
+        sports: '&tag_slug=sports&&exclude_tag_id=100639&order=volume24hr',
+        crypto: '&tag_slug=crypto&order=volume24hr',
+        politics: '&tag_slug=politics&order=volume24hr',
+      };
+
+      queryParams += categoryTagMap[category];
+
+      const response = await fetch(
+        `${GAMMA_API_ENDPOINT}/events/pagination?${queryParams}`,
+      );
+      const data = await response.json();
+      DevLogger.log('Polymarket response data:', data);
+
+      const events = data?.data;
+
+      if (!events || !Array.isArray(events)) {
+        return [];
+      }
+
+      const markets = events.flatMap((event: PredictEvent) =>
+        event.markets.map((market: Market) => ({
+          id: market.id?.toString() || '',
+          question: market.question || '',
+          outcomes: market.outcomes || '[]',
+          outcomePrices: market.outcomePrices,
+          image: market.image || '',
+          volume: market.volume,
+          providerId: 'polymarket',
+          status: (market.status === 'closed'
+            ? 'closed'
+            : 'open') as MarketStatus,
+          image_url: market.image,
+          icon: market.icon,
+        })),
+      );
 
       DevLogger.log('Processed markets:', markets);
       return markets;

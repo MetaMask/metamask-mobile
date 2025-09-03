@@ -44,6 +44,13 @@ export type Order = {
   isOffchainTrade?: boolean;
 };
 
+// note: named to avoid conflict with the DOM `Event` type (could be good to add the prefix to Market type too)
+export type PredictEvent = {
+  id: string;
+  title: string;
+  markets: Market[];
+};
+
 export type MarketOutcome = {
   id: string;
   label: string;
@@ -51,15 +58,23 @@ export type MarketOutcome = {
 
 export type MarketStatus = 'open' | 'closed' | 'resolved';
 
+export type MarketCategory =
+  | 'trending'
+  | 'new'
+  | 'sports'
+  | 'crypto'
+  | 'politics';
+
 export type Market = {
   id: string;
   question: string;
-  outcomes: string; // note: temporarily mirroring the return type from the Gamma Markets API
+  outcomes: string;
   outcomePrices?: string;
   image: string;
   volume?: string | number;
   providerId?: string;
   title?: string;
+  groupItemTitle?: string;
   status?: MarketStatus;
   image_url?: string;
   icon?: string;
@@ -93,7 +108,10 @@ export interface IPredictProvider {
   disconnect(): Promise<void>;
 
   // Market data
-  getMarkets(): Promise<Market[]>;
+  getMarkets(params?: { category?: MarketCategory }): Promise<Market[]>;
+
+  // Event data
+  getEvents(params?: { category?: MarketCategory }): Promise<PredictEvent[]>;
 
   // User positions
   getPositions({

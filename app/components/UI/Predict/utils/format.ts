@@ -68,3 +68,30 @@ export const formatPrice = (
     maximumFractionDigits: 4,
   });
 };
+
+/**
+ * Formats a volume value with appropriate suffix based on magnitude
+ * @param volume - Raw numeric volume value
+ * @returns Formatted string with suffix:
+ * - Volume >= 1,000,000: "X.XXM" (millions)
+ * - Volume >= 1,000: "X.XXk" (thousands)
+ * - Volume < 1,000: "X" (whole number)
+ * @example formatVolume(1500000) => "1.5M"
+ * @example formatVolume(2500) => "2.5k"
+ * @example formatVolume(500) => "500"
+ */
+export const formatVolume = (volume: string | number): string => {
+  const num = typeof volume === 'string' ? parseFloat(volume) : volume;
+
+  if (isNaN(num)) {
+    return '0';
+  }
+
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(2).replace(/\.?0+$/, '') + 'k';
+  }
+
+  return Math.floor(num).toString();
+};

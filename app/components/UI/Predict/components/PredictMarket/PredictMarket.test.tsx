@@ -6,7 +6,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Market } from '../../types';
 import Button from '../../../../../component-library/components/Buttons/Button';
 
-// Mock the navigation hook
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -39,7 +38,7 @@ describe('PredictMarket', () => {
     mockNavigate.mockClear();
   });
 
-  it('should render correctly', () => {
+  it('should render market information correctly', () => {
     const { getByText } = renderWithProvider(
       <PredictMarket market={mockMarket} />,
       { state: initialState },
@@ -47,35 +46,43 @@ describe('PredictMarket', () => {
 
     expect(
       getByText('Will Bitcoin reach $150,000 by end of year?'),
-    ).toBeTruthy();
-    expect(getByText('65%')).toBeTruthy();
-    expect(getByText('2 Outcomes')).toBeTruthy();
-    expect(getByText('1,000,000 Vol.')).toBeTruthy();
+    ).toBeOnTheScreen();
+
+    expect(getByText('2 Outcomes')).toBeOnTheScreen();
+    expect(getByText('65%')).toBeOnTheScreen();
+    expect(getByText(/\$\d+.*Vol\./)).toBeOnTheScreen();
   });
 
-  it('should handle buy yes button press', () => {
+  it('should navigate to market details when buttons are pressed', () => {
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarket market={mockMarket} />,
       { state: initialState },
     );
 
     const buttons = UNSAFE_getAllByType(Button);
+
     fireEvent.press(buttons[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('PredictMarketDetails');
 
-    expect(buttons[0]).toBeTruthy();
+    fireEvent.press(buttons[1]);
     expect(mockNavigate).toHaveBeenCalledWith('PredictMarketDetails');
   });
 
-  it('should handle buy no button press', () => {
-    const { UNSAFE_getAllByType } = renderWithProvider(
-      <PredictMarket market={mockMarket} />,
+  it('should handle missing or invalid market data gracefully', () => {
+    const marketWithMissingData: Market = {
+      ...mockMarket,
+      question: '',
+      volume: undefined,
+      outcomes: 'invalid json',
+    };
+
+    const { getByText } = renderWithProvider(
+      <PredictMarket market={marketWithMissingData} />,
       { state: initialState },
     );
 
-    const buttons = UNSAFE_getAllByType(Button);
-    fireEvent.press(buttons[1]);
-
-    expect(buttons[1]).toBeTruthy();
-    expect(mockNavigate).toHaveBeenCalledWith('PredictMarketDetails');
+    expect(getByText('Unknown Market')).toBeOnTheScreen();
+    expect(getByText(/\$0.*Vol\./)).toBeOnTheScreen();
+    expect(getByText('0 Outcomes')).toBeOnTheScreen();
   });
 });
