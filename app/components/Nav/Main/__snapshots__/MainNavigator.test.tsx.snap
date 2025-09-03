@@ -52,6 +52,15 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   />
   <Screen
     component={[Function]}
+    name="Send"
+    options={
+      {
+        "gestureEnabled": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
     name="SendFlowView"
     options={
       {
@@ -201,6 +210,10 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="SampleFeature"
+  />
+  <Screen
+    component={[Function]}
+    name="CardScreens"
   />
 </Navigator>
 `;
