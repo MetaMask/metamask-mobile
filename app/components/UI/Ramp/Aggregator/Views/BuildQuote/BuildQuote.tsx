@@ -849,7 +849,7 @@ const BuildQuote = () => {
         >
           <ScreenLayout.Content>
             <Row style={styles.selectors}>
-              <AccountSelector />
+              <AccountSelector isEvmOnly={isSell} />
               <View style={styles.spacer} />
               <SelectorButton
                 accessibilityRole="button"
