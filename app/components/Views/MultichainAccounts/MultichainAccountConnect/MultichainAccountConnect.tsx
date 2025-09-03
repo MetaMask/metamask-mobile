@@ -75,6 +75,7 @@ import {
   getAllNamespacesFromCaip25CaveatValue,
   getAllScopesFromCaip25CaveatValue,
   getAllScopesFromPermission,
+  getCaipAccountIdsFromCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import styleSheet from './MultichainAccountConnect.styles.ts';
 import { useStyles } from '../../../../component-library/hooks/index.ts';
@@ -125,6 +126,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [hostInfo.permissions, hostInfo.metadata.origin],
   );
 
+  const requestedCaipAccountIds = useMemo(
+    () => getCaipAccountIdsFromCaip25CaveatValue(requestedCaip25CaveatValue),
+    [requestedCaip25CaveatValue],
+  );
+
   const requestedCaipChainIds = useMemo(
     () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
@@ -166,7 +172,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
         origin: channelIdOrHostname,
         allNetworksList,
-        supportedRequestedCaipChainIds: allNetworksList,
+        supportedRequestedCaipChainIds: requestedCaipChainIds,
         requestedNamespaces,
       }),
     [
@@ -175,14 +181,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       isOriginMMSDKRemoteConn,
       channelIdOrHostname,
       allNetworksList,
+      requestedCaipChainIds,
       requestedNamespaces,
     ],
   );
-
-  const requestedCaipChainIdsWithDefault = useMemo(() => {
-    const combined = [...requestedCaipChainIds, ...defaultSelectedChainIds];
-    return [...new Set(combined)];
-  }, [requestedCaipChainIds, defaultSelectedChainIds]);
 
   const {
     connectedAccountGroups,
@@ -190,12 +192,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     existingConnectedCaipAccountIds,
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
-    defaultSelectedChainIds,
+    requestedCaipAccountIds,
+    requestedCaipChainIds.length > 0
+      ? requestedCaipChainIds
+      : defaultSelectedChainIds,
     requestedNamespaces,
   );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
-    requestedCaipChainIdsWithDefault,
+    requestedCaipChainIds.length > 0
+      ? requestedCaipChainIds
+      : defaultSelectedChainIds,
   );
 
   const selectedNetworkAvatars = useMemo(
@@ -236,12 +243,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       suggestedAccountGroups: [firstSupportedAccountGroup],
       suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
         [firstSupportedAccountGroup],
-        defaultSelectedChainIds,
+        requestedCaipChainIds.length > 0
+          ? requestedCaipChainIds
+          : defaultSelectedChainIds,
       ),
     };
   }, [
     connectedAccountGroups,
     existingConnectedCaipAccountIds,
+    requestedCaipChainIds,
     defaultSelectedChainIds,
     supportedAccountGroups,
   ]);
@@ -341,24 +351,15 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [suggestedAccountGroups],
   );
 
-  const connectedCaipAccountIds = useMemo(
-    () =>
-      getCaip25AccountFromAccountGroupAndScope(
-        connectedAccountGroups,
-        defaultSelectedChainIds,
-      ),
-    [connectedAccountGroups, defaultSelectedChainIds],
-  );
-
   useEffect(() => {
     const currentLength = suggestedAccountGroupIds.length;
 
     if (previousIdentitiesListSize.current !== currentLength) {
       setSelectedAccountGroupIds(suggestedAccountGroupIds);
-      setSelectedCaipAccountIds(connectedCaipAccountIds);
+      setSelectedCaipAccountIds(suggestedCaipAccountIds);
       previousIdentitiesListSize.current = currentLength;
     }
-  }, [suggestedAccountGroupIds, connectedCaipAccountIds]);
+  }, [suggestedAccountGroupIds, suggestedCaipAccountIds]);
 
   const cancelPermissionRequest = useCallback(
     (requestId: string) => {
@@ -532,11 +533,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     faviconSource,
   ]);
 
-  const handleCreateAccount = useCallback(async () => {
-    // TODO: use account service when available
-    // Implement when https://github.com/MetaMask/metamask-mobile/pull/18472 is available
-  }, []);
-
   const handleAccountGroupsSelected = useCallback(
     (newSelectedAccountGroupIds: AccountGroupId[]) => {
       const updatedSelectedChains = [...selectedChainIds];
@@ -646,7 +642,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sheetRef,
     cancelPermissionRequest,
     permissionRequestId,
-    handleCreateAccount,
     handleConfirm,
     hideSheet,
     trackEvent,
@@ -673,10 +668,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       networkAvatars: selectedNetworkAvatars,
       setTabIndex,
       tabIndex,
-      onCreateAccount: (_clientType, _scope) => {
-        // TODO: Implement account creation when account provider is ready
-        // Implement when https://github.com/MetaMask/metamask-mobile/pull/18472 is available
-      },
     }),
     [
       faviconSource,
