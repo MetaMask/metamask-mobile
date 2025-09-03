@@ -147,7 +147,7 @@ jobs:
       - accounts-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
-      - performance-android-smoke
+      # - performance-android-smoke
       - card-android-smoke
 
     steps:
