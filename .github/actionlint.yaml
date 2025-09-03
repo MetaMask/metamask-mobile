@@ -5,6 +5,7 @@ self-hosted-runner:
     - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-large"
     - "gha-mm-scale-set-ubuntu-22.04-amd64-large"
     - "macos-15"
+    - "ghcr.io/cirruslabs/macos-runner:sequoia"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

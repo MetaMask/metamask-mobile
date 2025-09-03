@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: [main]
   pull_request:
   merge_group:
     types: [checks_requested]
@@ -175,6 +175,15 @@ jobs:
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
+  build-ios-apps:
+    name: "Build iOS Apps"
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
   e2e-smoke-tests-android:
     name: "Android E2E Smoke Tests"
     permissions:
@@ -182,6 +191,15 @@ jobs:
       id-token: write
     needs: [build-android-apks]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    secrets: inherit
+
+  e2e-smoke-tests-ios:
+    name: "iOS E2E Smoke Tests"
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-ios-apps]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     secrets: inherit
 
   js-bundle-size-check:
@@ -348,6 +366,7 @@ jobs:
         js-bundle-size-check,
         sonar-cloud-quality-gate-status,
         e2e-smoke-tests-android,
+        e2e-smoke-tests-ios,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
