@@ -10,6 +10,42 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+// Mock individual selectors
+jest.mock('../../../../../reducers/rewards/selectors', () => ({
+  selectReferralCode: jest.fn(),
+  selectReferralCount: jest.fn(),
+  selectBalanceRefereePortion: jest.fn(),
+  selectSeasonStatusLoading: jest.fn(),
+  selectSubscriptionId: jest.fn(),
+}));
+
+// Import the mocked selectors
+import {
+  selectReferralCode,
+  selectReferralCount,
+  selectBalanceRefereePortion,
+  selectSeasonStatusLoading,
+  selectSubscriptionId,
+} from '../../../../../reducers/rewards/selectors';
+
+const mockSelectReferralCode = selectReferralCode as jest.MockedFunction<
+  typeof selectReferralCode
+>;
+const mockSelectReferralCount = selectReferralCount as jest.MockedFunction<
+  typeof selectReferralCount
+>;
+const mockSelectBalanceRefereePortion =
+  selectBalanceRefereePortion as jest.MockedFunction<
+    typeof selectBalanceRefereePortion
+  >;
+const mockSelectSeasonStatusLoading =
+  selectSeasonStatusLoading as jest.MockedFunction<
+    typeof selectSeasonStatusLoading
+  >;
+const mockSelectSubscriptionId = selectSubscriptionId as jest.MockedFunction<
+  typeof selectSubscriptionId
+>;
+
 // Mock Clipboard
 const mockClipboard = {
   setString: jest.fn(),
@@ -33,7 +69,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock hooks
-const mockUseRewardsStore = jest.fn();
 const mockUseReferralDetails = jest.fn();
 
 jest.mock('../../hooks/useReferralDetails', () => ({
@@ -139,18 +174,13 @@ jest.mock('./ReferralActionsSection', () => ({
 describe('ReferralDetails', () => {
   const mockFetchReferralDetails = jest.fn();
 
-  const defaultRewardsStore = {
-    referralDetails: {
-      referralCode: 'TEST123',
-      refereeCount: 3,
-    },
-    balance: {
-      total: 2000,
-      refereePortion: 1500,
-      updatedAt: new Date('2024-01-01'),
-    },
-    subscriptionId: 'sub-123',
+  // Default values for individual selectors
+  const defaultValues = {
+    referralCode: 'TEST123',
+    refereeCount: 3,
+    balanceRefereePortion: 1500,
     seasonStatusLoading: false,
+    subscriptionId: 'sub-123',
   };
 
   const defaultReferralDetails = {
@@ -160,24 +190,23 @@ describe('ReferralDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseRewardsStore.mockReturnValue(defaultRewardsStore);
     mockUseReferralDetails.mockReturnValue(defaultReferralDetails);
 
-    // Setup Redux selector mocks
-    mockUseSelector.mockImplementation((selector) => {
-      // Mock the selectors used in ReferralDetails component
-      const mockState = {
-        rewards: {
-          referralCode: defaultRewardsStore.referralDetails.referralCode,
-          refereeCount: defaultRewardsStore.referralDetails.refereeCount,
-          balanceRefereePortion: defaultRewardsStore.balance.refereePortion,
-          seasonStatusLoading: defaultRewardsStore.seasonStatusLoading,
-          subscriptionId: defaultRewardsStore.subscriptionId,
-        },
-      };
+    // Setup individual selector mocks
+    mockSelectReferralCode.mockReturnValue(defaultValues.referralCode);
+    mockSelectReferralCount.mockReturnValue(defaultValues.refereeCount);
+    mockSelectBalanceRefereePortion.mockReturnValue(
+      defaultValues.balanceRefereePortion,
+    );
+    mockSelectSeasonStatusLoading.mockReturnValue(
+      defaultValues.seasonStatusLoading,
+    );
+    mockSelectSubscriptionId.mockReturnValue(defaultValues.subscriptionId);
 
-      return selector(mockState);
-    });
+    // Setup useSelector to call the appropriate selector function
+    mockUseSelector.mockImplementation(
+      (selector) => selector({} as unknown), // The selectors are mocked, so we don't need the actual state
+    );
   });
 
   describe('rendering', () => {
@@ -203,25 +232,8 @@ describe('ReferralDetails', () => {
     });
 
     it('should not fetch referral details when subscription ID is missing', async () => {
-      const updatedStore = {
-        ...defaultRewardsStore,
-        subscriptionId: null,
-      };
-      mockUseRewardsStore.mockReturnValue(updatedStore);
-
-      // Update Redux selectors
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: updatedStore.referralDetails.referralCode,
-            refereeCount: updatedStore.referralDetails.refereeCount,
-            balanceRefereePortion: updatedStore.balance.refereePortion,
-            seasonStatusLoading: updatedStore.seasonStatusLoading,
-            subscriptionId: updatedStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
+      // Override subscription ID to null for this test
+      mockSelectSubscriptionId.mockReturnValue(null);
 
       render(<ReferralDetails />);
 
@@ -238,25 +250,7 @@ describe('ReferralDetails', () => {
       });
 
       // Change subscription ID
-      const updatedStore = {
-        ...defaultRewardsStore,
-        subscriptionId: 'sub-456',
-      };
-      mockUseRewardsStore.mockReturnValue(updatedStore);
-
-      // Update Redux selectors for new subscription ID
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: updatedStore.referralDetails.referralCode,
-            refereeCount: updatedStore.referralDetails.refereeCount,
-            balanceRefereePortion: updatedStore.balance.refereePortion,
-            seasonStatusLoading: updatedStore.seasonStatusLoading,
-            subscriptionId: updatedStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
+      mockSelectSubscriptionId.mockReturnValue('sub-456');
 
       rerender(<ReferralDetails />);
 
@@ -273,24 +267,10 @@ describe('ReferralDetails', () => {
         isLoading: true,
       });
 
-      // Ensure Redux selectors are properly mocked for this test too
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: defaultRewardsStore.referralDetails.referralCode,
-            refereeCount: defaultRewardsStore.referralDetails.refereeCount,
-            balanceRefereePortion: defaultRewardsStore.balance.refereePortion,
-            seasonStatusLoading: defaultRewardsStore.seasonStatusLoading,
-            subscriptionId: defaultRewardsStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
-
       const { getByText } = render(<ReferralDetails />);
 
       expect(getByText('Count Loading: true')).toBeTruthy();
-      expect(getByText('Points Loading: false')).toBeTruthy(); // Points loading is hardcoded to false
+      expect(getByText('Points Loading: false')).toBeTruthy(); // Points loading comes from seasonStatusLoading
     });
 
     it('should show not loading when fetch is complete', () => {
@@ -303,30 +283,8 @@ describe('ReferralDetails', () => {
 
   describe('copy functionality', () => {
     it('should not copy when referral code is null', async () => {
-      const updatedStore = {
-        ...defaultRewardsStore,
-        referralDetails: {
-          ...defaultRewardsStore.referralDetails,
-          referralCode: null,
-        },
-        balance: defaultRewardsStore.balance,
-        seasonStatusLoading: defaultRewardsStore.seasonStatusLoading,
-      };
-      mockUseRewardsStore.mockReturnValue(updatedStore);
-
-      // Update Redux selectors
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: updatedStore.referralDetails.referralCode,
-            refereeCount: updatedStore.referralDetails.refereeCount,
-            balanceRefereePortion: updatedStore.balance.refereePortion,
-            seasonStatusLoading: updatedStore.seasonStatusLoading,
-            subscriptionId: updatedStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
+      // Override referral code to null for this test
+      mockSelectReferralCode.mockReturnValue(null);
 
       const { getByTestId } = render(<ReferralDetails />);
 
@@ -339,30 +297,8 @@ describe('ReferralDetails', () => {
 
   describe('edge cases', () => {
     it('should handle empty referral code', () => {
-      const updatedStore = {
-        ...defaultRewardsStore,
-        referralDetails: {
-          ...defaultRewardsStore.referralDetails,
-          referralCode: '',
-        },
-        balance: defaultRewardsStore.balance,
-        seasonStatusLoading: defaultRewardsStore.seasonStatusLoading,
-      };
-      mockUseRewardsStore.mockReturnValue(updatedStore);
-
-      // Update Redux selectors
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: updatedStore.referralDetails.referralCode,
-            refereeCount: updatedStore.referralDetails.refereeCount,
-            balanceRefereePortion: updatedStore.balance.refereePortion,
-            seasonStatusLoading: updatedStore.seasonStatusLoading,
-            subscriptionId: updatedStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
+      // Override referral code to empty string for this test
+      mockSelectReferralCode.mockReturnValue('');
 
       const { getByText } = render(<ReferralDetails />);
 
@@ -370,34 +306,9 @@ describe('ReferralDetails', () => {
     });
 
     it('should handle zero values for stats', () => {
-      const updatedStore = {
-        ...defaultRewardsStore,
-        referralDetails: {
-          referralCode: 'TEST123',
-          refereeCount: 0,
-        },
-        balance: {
-          total: 0,
-          refereePortion: 0,
-          updatedAt: new Date('2024-01-01'),
-        },
-        seasonStatusLoading: false,
-      };
-      mockUseRewardsStore.mockReturnValue(updatedStore);
-
-      // Update Redux selectors
-      mockUseSelector.mockImplementation((selector) => {
-        const mockState = {
-          rewards: {
-            referralCode: updatedStore.referralDetails.referralCode,
-            refereeCount: updatedStore.referralDetails.refereeCount,
-            balanceRefereePortion: updatedStore.balance.refereePortion,
-            seasonStatusLoading: updatedStore.seasonStatusLoading,
-            subscriptionId: updatedStore.subscriptionId,
-          },
-        };
-        return selector(mockState);
-      });
+      // Override values to zero for this test
+      mockSelectReferralCount.mockReturnValue(0);
+      mockSelectBalanceRefereePortion.mockReturnValue(0);
 
       const { getByText } = render(<ReferralDetails />);
 

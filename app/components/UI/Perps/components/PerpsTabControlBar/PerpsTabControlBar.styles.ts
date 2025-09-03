@@ -32,6 +32,15 @@ const styleSheet = (params: { theme: Theme }) => {
       borderBottomLeftRadius: 12,
       borderBottomRightRadius: 12,
     },
+    pillContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.background.section,
+      borderRadius: 12,
+    },
     leftSection: {
       flexDirection: 'row',
       alignItems: 'center',
