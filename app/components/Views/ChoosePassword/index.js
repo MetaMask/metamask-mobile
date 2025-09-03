@@ -497,30 +497,30 @@ class ChoosePassword extends PureComponent {
             ],
           });
         } else if (this.props.metrics.isEnabled()) {
-          this.props.navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true },
+            this.props.navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.ONBOARDING.SUCCESS,
+                  params: { showPasswordHint: true },
+                },
+              ],
+            });
+          } else {
+            this.props.navigation.navigate('OptinMetrics', {
+              onContinue: () => {
+                this.props.navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: Routes.ONBOARDING.SUCCESS,
+                      params: { showPasswordHint: true },
+                    },
+                  ],
+                });
               },
-            ],
-          });
-        } else {
-          this.props.navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              this.props.navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.SUCCESS,
-                    params: { showPasswordHint: true },
-                  },
-                ],
-              });
-            },
-          });
-        }
+            });
+          }
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
         this.props.navigation.replace('AccountBackupStep1', {
