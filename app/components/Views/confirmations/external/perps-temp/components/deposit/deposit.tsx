@@ -15,6 +15,7 @@ import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePerpsDepositAlerts } from '../../hooks/usePerpsDepositAlerts';
+import { BridgeFeeRow } from '../../../../components/rows/bridge-fee-row';
 
 export function PerpsDeposit() {
   useNavbar(strings('confirm.title.perps_deposit'));
@@ -25,7 +26,7 @@ export function PerpsDeposit() {
   const [inputChanged, setInputChanged] = useState(false);
   const alerts = usePerpsDepositAlerts({ pendingTokenAmount });
 
-  const { isFullView } = usePerpsDepositView({
+  const { isFullView, isPayTokenSelected } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
@@ -49,8 +50,12 @@ export function PerpsDeposit() {
               {inputChanged && <AlertMessage alerts={alerts} />}
               <PayTokenAmount amountHuman={amountHuman} />
             </Box>
-            {!isKeyboardVisible && (
-              <AlertBanner field={RowAlertKey.PayWith} inline />
+            {!isKeyboardVisible && isPayTokenSelected && (
+              <AlertBanner
+                blockingFields
+                excludeFields={[RowAlertKey.Amount]}
+                inline
+              />
             )}
             <InfoSection>
               <PayWithRow />
@@ -58,6 +63,7 @@ export function PerpsDeposit() {
             {isFullView && (
               <InfoSection>
                 <GasFeeFiatRow />
+                <BridgeFeeRow />
                 <BridgeTimeRow />
                 <TotalRow />
               </InfoSection>

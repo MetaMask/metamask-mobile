@@ -62,16 +62,19 @@ export function EditAmount({
   const { tokenFiatAmount } = payToken ?? {};
   const hasAmount = amountFiat !== '0';
 
-  const amountHuman = new BigNumber(amountFiat)
+  const amountHuman = new BigNumber(amountFiat.replace(/,/g, ''))
     .dividedBy(fiatRate ?? 1)
     .toString(10);
 
   const handleInputPress = useCallback(() => {
     inputRef.current?.focus();
+    inputRef.current?.setSelection(amountFiat.length, amountFiat.length);
+
     setShowKeyboard(true);
     setIsFooterVisible?.(false);
+
     onKeyboardShow?.();
-  }, [inputRef, onKeyboardShow, setIsFooterVisible]);
+  }, [amountFiat, inputRef, onKeyboardShow, setIsFooterVisible]);
 
   useEffect(() => {
     if (autoKeyboard && !inputChanged) {
@@ -80,11 +83,13 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback((amount: string) => {
-    if (amount.length >= MAX_LENGTH) {
+    const newAmount = amount.replace(/^0+/, '') || '0';
+
+    if (newAmount.length >= MAX_LENGTH) {
       return;
     }
 
-    setAmountFiat(amount);
+    setAmountFiat(newAmount);
     setInputChanged(true);
   }, []);
 

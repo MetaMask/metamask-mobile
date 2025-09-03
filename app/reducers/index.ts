@@ -39,6 +39,7 @@ import performanceReducer, {
 import sampleCounterReducer from '../features/SampleFeature/reducers/sample-counter';
 ///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
+import rewardsReducer, { RewardsState } from './rewards';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -133,6 +134,7 @@ export interface RootState {
   sampleCounter: StateFromReducer<typeof sampleCounterReducer>;
   ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
+  rewards: RewardsState;
 }
 
 const baseReducers = {
@@ -173,6 +175,7 @@ const baseReducers = {
   sampleCounter: sampleCounterReducer,
   ///: END:ONLY_INCLUDE_IF
   cronjobController: cronjobControllerReducer,
+  rewards: rewardsReducer,
 };
 
 if (isTest) {

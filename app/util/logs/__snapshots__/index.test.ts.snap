@@ -454,9 +454,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
-        "lastAuthTime": 0,
+        "accounts": {},
         "lastAuthenticatedAccount": null,
-        "subscription": null,
+        "seasonStatuses": {},
+        "seasons": {},
+        "subscriptionReferralDetails": {},
+        "subscriptions": {},
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},
@@ -1093,9 +1096,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "remoteFeatureFlags": {},
       },
       "RewardsController": {
-        "lastAuthTime": 0,
+        "accounts": {},
         "lastAuthenticatedAccount": null,
-        "subscription": null,
+        "seasonStatuses": {},
+        "seasons": {},
+        "subscriptionReferralDetails": {},
+        "subscriptions": {},
       },
       "SamplePetnamesController": {
         "namesByChainIdAndAddress": {},

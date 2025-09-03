@@ -361,6 +361,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Market Tabs Section */}
           <View style={styles.section}>
             <PerpsMarketTabs
+              symbol={market?.symbol || ''}
               marketStats={marketStats}
               position={existingPosition}
               isLoadingPosition={isLoadingPosition}

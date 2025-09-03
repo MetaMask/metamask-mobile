@@ -176,13 +176,12 @@ const MultichainAccountSelectorList = ({
     setLastCreatedAccountId(newAccountId);
   }, []);
 
-  // Handle account selection with debouncing to prevent rapid successive calls
+  // Handle account selection/deselection toggle
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      if (selectedIdSet.has(accountGroup.id)) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedIdSet],
+    [onSelectAccount],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =

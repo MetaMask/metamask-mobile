@@ -14,6 +14,11 @@ import { useDeepMemo } from '../useDeepMemo';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
 
+const EXCLUDED_ALERTS = [
+  AlertKeys.NoPayTokenQuotes,
+  AlertKeys.InsufficientPayTokenNative,
+];
+
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
@@ -22,7 +27,7 @@ export function useTransactionBridgeQuotes() {
   const { alerts } = useAlerts();
 
   const hasBlockingAlert = alerts.some(
-    (a) => a.isBlocking && a.key !== AlertKeys.NoPayTokenQuotes,
+    (a) => a.isBlocking && !EXCLUDED_ALERTS.includes(a.key as AlertKeys),
   );
 
   const {
@@ -50,10 +55,11 @@ export function useTransactionBridgeQuotes() {
 
     return sourceAmounts.map((sourceAmount, index) => {
       const { address: targetTokenAddress } = sourceAmounts[index] || {};
-      const { amountRaw: sourceTokenAmount } = sourceAmount;
+      const { amountRaw: sourceTokenAmount, targetAmountHuman } = sourceAmount;
 
       return {
         from: from as Hex,
+        minimumTargetAmount: targetAmountHuman,
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
@@ -75,7 +81,7 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
-    return getBridgeQuotes(requests as BridgeQuoteRequest[]);
+    return getBridgeQuotes(requests);
   }, [requests]);
 
   useEffect(() => {
@@ -90,10 +96,12 @@ export function useTransactionBridgeQuotes() {
     log(
       'Bridge quotes',
       quotes?.map((quote) => ({
+        approval: quote.approval,
         bridgeId: quote.quote?.bridgeId,
         networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
         sourceAmount: quote.sentAmount?.valueInCurrency,
         to: quote.toTokenAmount?.valueInCurrency,
+        trade: quote.trade,
       })),
     );
   }, [dispatch, quotes, transactionId]);

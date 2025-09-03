@@ -1,23 +1,54 @@
 import { Messenger, RestrictedMessenger } from '@metamask/base-controller';
-import type {
-  RewardsControllerMessengerActions,
-  RewardsControllerMessengerEvents,
-} from './types';
+
+import {
+  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
+import {
+  RewardsDataServiceLoginAction,
+  RewardsDataServiceEstimatePointsAction,
+  RewardsDataServiceGetPerpsDiscountAction,
+  RewardsDataServiceGetSeasonStatusAction,
+  RewardsDataServiceGetReferralDetailsAction,
+} from '../../controllers/rewards-controller/services';
+import {
+  RewardsControllerActions,
+  RewardsControllerEvents,
+} from '../../controllers/rewards-controller/types';
+import {
+  AccountsControllerGetSelectedMultichainAccountAction,
+  AccountsControllerSelectedAccountChangeEvent,
+} from '@metamask/accounts-controller';
 
 const name = 'RewardsController';
 
+// Don't reexport as per guidelines
+type AllowedActions =
+  | AccountsControllerGetSelectedMultichainAccountAction
+  | KeyringControllerSignPersonalMessageAction
+  | RewardsDataServiceLoginAction
+  | RewardsDataServiceEstimatePointsAction
+  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetSeasonStatusAction
+  | RewardsDataServiceGetReferralDetailsAction;
+
+// Don't reexport as per guidelines
+type AllowedEvents =
+  | AccountsControllerSelectedAccountChangeEvent
+  | KeyringControllerUnlockEvent;
+
 export type RewardsControllerMessenger = RestrictedMessenger<
   typeof name,
-  RewardsControllerMessengerActions,
-  RewardsControllerMessengerEvents,
-  RewardsControllerMessengerActions['type'],
-  RewardsControllerMessengerEvents['type']
+  RewardsControllerActions | AllowedActions,
+  RewardsControllerEvents | AllowedEvents,
+  AllowedActions['type'],
+  AllowedEvents['type']
 >;
 
 export function getRewardsControllerMessenger(
   messenger: Messenger<
-    RewardsControllerMessengerActions,
-    RewardsControllerMessengerEvents
+    RewardsControllerActions | AllowedActions,
+    RewardsControllerEvents | AllowedEvents
   >,
 ): RewardsControllerMessenger {
   return messenger.getRestricted({
@@ -26,6 +57,10 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
+      'RewardsDataService:estimatePoints',
+      'RewardsDataService:getPerpsDiscount',
+      'RewardsDataService:getSeasonStatus',
+      'RewardsDataService:getReferralDetails',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',
