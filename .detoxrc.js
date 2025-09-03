@@ -83,7 +83,6 @@ module.exports = {
       type: 'ios.simulator',
       device: {
         type: 'iPhone 15 Pro',
-        os: 'iOS 18.1',
       },
       // Optimized for GitHub Actions CI runners
       bootArgs: '-no-audio -no-boot-anim',
