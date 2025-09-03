@@ -12,13 +12,21 @@ import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
+import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 
 export function TransactionDetailsStatusIcon({
   transactionMeta,
 }: {
   transactionMeta: TransactionMeta;
 }) {
-  const { status } = transactionMeta;
+  const { status: statusRaw } = transactionMeta;
+
+  const { isBridgeComplete } = useBridgeTxHistoryData({
+    evmTxMeta: transactionMeta,
+  });
+
+  const status =
+    isBridgeComplete === false ? TransactionStatus.submitted : statusRaw;
 
   const iconName = getStatusIcon(status);
   const iconColour = getStatusColour(status);
@@ -27,7 +35,8 @@ export function TransactionDetailsStatusIcon({
   if (status === TransactionStatus.failed && errorMessage) {
     return (
       <Tooltip
-        iconColor={IconColor.Error}
+        iconColor={iconColour}
+        iconName={iconName}
         tooltipTestId="status-tooltip"
         content={errorMessage}
       />
@@ -57,7 +66,7 @@ function getStatusIcon(status: TransactionStatus): IconName | undefined {
       return IconName.Check;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return IconName.Warning;
+      return IconName.Close;
     default:
       return undefined;
   }
