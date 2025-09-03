@@ -55,10 +55,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
   };
 
   useEffect(() => {
-    // Only start animation if no children are present or if children should be hidden
-    if (!isE2E && (!children || hideChildren)) {
-      startAnimation();
-    }
+    startAnimation();
 
     return () => {
       // Cleanup animation when component unmounts
