@@ -6,6 +6,12 @@ import type {
   PerpsDiscountData,
   EstimatePointsDto,
   EstimatedPointsDto,
+  SeasonStatusDto,
+  SeasonDtoState,
+  SeasonStatusState,
+  SeasonTierState,
+  SeasonTierDto,
+  SubscriptionReferralDetailsState,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
@@ -32,6 +38,12 @@ const AUTH_GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 // Perps discount refresh threshold
 const PERPS_DISCOUNT_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
+// Season status cache threshold
+const SEASON_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
+
+// Referral details cache threshold
+const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
+
 /**
  * State metadata for the RewardsController
  */
@@ -39,6 +51,9 @@ const metadata = {
   lastAuthenticatedAccount: { persist: true, anonymous: false },
   accounts: { persist: true, anonymous: false },
   subscriptions: { persist: true, anonymous: false },
+  seasons: { persist: true, anonymous: false },
+  subscriptionReferralDetails: { persist: true, anonymous: false },
+  seasonStatuses: { persist: true, anonymous: false },
 };
 /**
  * Get the default state for the RewardsController
@@ -47,6 +62,9 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   lastAuthenticatedAccount: null,
   accounts: {},
   subscriptions: {},
+  seasons: {},
+  subscriptionReferralDetails: {},
+  seasonStatuses: {},
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -61,6 +79,85 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #isProcessingSilentAuth = false;
+
+  /**
+   * Calculate tier status and next tier information
+   */
+  #calculateTierStatus(
+    seasonTiers: SeasonTierDto[],
+    currentTierId: string,
+    currentPoints: number,
+  ): SeasonTierState {
+    // Sort tiers by points needed (ascending)
+    const sortedTiers = [...seasonTiers].sort(
+      (a, b) => a.pointsNeeded - b.pointsNeeded,
+    );
+
+    // Find current tier
+    const currentTier = sortedTiers.find((tier) => tier.id === currentTierId);
+    if (!currentTier) {
+      throw new Error(
+        `Current tier ${currentTierId} not found in season tiers`,
+      );
+    }
+
+    // Find next tier (first tier with more points needed than current tier)
+    const currentTierIndex = sortedTiers.findIndex(
+      (tier) => tier.id === currentTierId,
+    );
+    const nextTier =
+      currentTierIndex < sortedTiers.length - 1
+        ? sortedTiers[currentTierIndex + 1]
+        : null;
+
+    // Calculate points needed for next tier
+    const nextTierPointsNeeded = nextTier
+      ? Math.max(0, nextTier.pointsNeeded - currentPoints)
+      : null;
+
+    return {
+      currentTier,
+      nextTier,
+      nextTierPointsNeeded,
+    };
+  }
+
+  /**
+   * Convert SeasonDto to SeasonDtoState for storage
+   */
+  #convertSeasonToState(season: SeasonStatusDto['season']): SeasonDtoState {
+    return {
+      id: season.id,
+      name: season.name,
+      startDate: season.startDate.getTime(),
+      endDate: season.endDate.getTime(),
+      tiers: season.tiers,
+    };
+  }
+
+  /**
+   * Convert SeasonStatusDto to SeasonStatusState and update seasons map
+   */
+  #convertSeasonStatusToSubscriptionState(
+    seasonStatus: SeasonStatusDto,
+  ): SeasonStatusState {
+    const tierState = this.#calculateTierStatus(
+      seasonStatus.season.tiers,
+      seasonStatus.currentTierId,
+      seasonStatus.balance.total,
+    );
+
+    return {
+      season: this.#convertSeasonToState(seasonStatus.season),
+      balance: {
+        total: seasonStatus.balance.total,
+        refereePortion: seasonStatus.balance.refereePortion,
+        updatedAt: seasonStatus.balance.updatedAt?.getTime(),
+      },
+      tier: tierState,
+      lastFetched: Date.now(),
+    };
+  }
 
   constructor({
     messenger,
@@ -103,6 +200,14 @@ export class RewardsController extends BaseController<
       'RewardsController:isRewardsFeatureEnabled',
       this.isRewardsFeatureEnabled.bind(this),
     );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getSeasonStatus',
+      this.getSeasonStatus.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getReferralDetails',
+      this.getReferralDetails.bind(this),
+    );
   }
 
   /**
@@ -136,6 +241,30 @@ export class RewardsController extends BaseController<
    */
   #getAccountState(account: CaipAccountId): RewardsAccountState | null {
     return this.state.accounts[account] || null;
+  }
+
+  /**
+   * Create composite key for season status storage
+   */
+  #createSeasonStatusCompositeKey(
+    seasonId: string,
+    subscriptionId: string,
+  ): string {
+    return `${seasonId}:${subscriptionId}`;
+  }
+
+  /**
+   * Get stored season status for a given composite key
+   */
+  #getSeasonStatus(
+    subscriptionId: string,
+    seasonId: string | 'current' = 'current',
+  ): SeasonStatusState | null {
+    const compositeKey = this.#createSeasonStatusCompositeKey(
+      seasonId,
+      subscriptionId,
+    );
+    return this.state.seasonStatuses[compositeKey] || null;
   }
 
   /**
@@ -333,16 +462,7 @@ export class RewardsController extends BaseController<
         state.accounts[account] = accountState;
 
         // Update subscriptions map
-        if (!state.subscriptions[subscription.id]) {
-          state.subscriptions[subscription.id] = {
-            subscription,
-          };
-        } else {
-          state.subscriptions[subscription.id] = {
-            ...state.subscriptions[subscription.id],
-            subscription,
-          };
-        }
+        state.subscriptions[subscription.id] = subscription;
 
         // Update last authenticated account
         state.lastAuthenticatedAccount = accountState;
@@ -516,5 +636,137 @@ export class RewardsController extends BaseController<
    */
   isRewardsFeatureEnabled(): boolean {
     return selectRewardsEnabledFlag(store.getState());
+  }
+
+  /**
+   * Get season status with caching
+   * @param seasonId - The ID of the season to get status for
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SeasonStatusState> - The season status data
+   */
+  async getSeasonStatus(
+    subscriptionId: string,
+    seasonId: string | 'current' = 'current',
+  ): Promise<SeasonStatusState | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    // Check if we have cached season status and if threshold hasn't been reached
+    const cachedSeasonStatus = this.#getSeasonStatus(subscriptionId, seasonId);
+    if (
+      cachedSeasonStatus?.lastFetched &&
+      Date.now() - cachedSeasonStatus.lastFetched <
+        SEASON_STATUS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached season status data for',
+        subscriptionId,
+        seasonId,
+      );
+
+      return cachedSeasonStatus;
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh season status data via API call for subscriptionId & seasonId',
+        subscriptionId,
+        seasonId,
+      );
+      const seasonStatus = await this.messagingSystem.call(
+        'RewardsDataService:getSeasonStatus',
+        seasonId,
+        subscriptionId,
+      );
+
+      const seasonState = this.#convertSeasonToState(seasonStatus.season);
+      const subscriptionSeasonStatus =
+        this.#convertSeasonStatusToSubscriptionState(seasonStatus);
+
+      const compositeKey = this.#createSeasonStatusCompositeKey(
+        seasonId,
+        subscriptionId,
+      );
+
+      this.update((state: RewardsControllerState) => {
+        // Update seasons map with season data
+        state.seasons[seasonId] = seasonState;
+
+        // Update season status with composite key
+        state.seasonStatuses[compositeKey] = subscriptionSeasonStatus;
+      });
+
+      return subscriptionSeasonStatus;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get season status:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get referral details with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<SubscriptionReferralDetailsDto> - The referral details data
+   */
+  async getReferralDetails(
+    subscriptionId: string,
+  ): Promise<SubscriptionReferralDetailsState | null> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return null;
+    }
+
+    const cachedReferralDetails =
+      this.state.subscriptionReferralDetails[subscriptionId];
+
+    // Check if we have cached referral details and if threshold hasn't been reached
+    if (
+      cachedReferralDetails?.lastFetched &&
+      Date.now() - cachedReferralDetails.lastFetched <
+        REFERRAL_DETAILS_CACHE_THRESHOLD_MS
+    ) {
+      Logger.log(
+        'RewardsController: Using cached referral details data for',
+        subscriptionId,
+      );
+      return cachedReferralDetails;
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching fresh referral details data via API call for',
+        subscriptionId,
+      );
+      const referralDetails = await this.messagingSystem.call(
+        'RewardsDataService:getReferralDetails',
+        subscriptionId,
+      );
+
+      const subscriptionReferralDetailsState: SubscriptionReferralDetailsState =
+        {
+          referralCode: referralDetails.referralCode,
+          totalReferees: referralDetails.totalReferees,
+          lastFetched: Date.now(),
+        };
+
+      this.update((state: RewardsControllerState) => {
+        // Update subscription referral details at root level
+        state.subscriptionReferralDetails[subscriptionId] =
+          subscriptionReferralDetailsState;
+      });
+
+      return subscriptionReferralDetailsState;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get referral details:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
   }
 }

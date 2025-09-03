@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
-import { formatPrice } from '../../utils/formatUtils';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
 
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
@@ -29,6 +29,7 @@ jest.mock('../../utils/formatUtils', () => ({
     }
     return `$${value}`;
   }),
+  formatPositionSize: jest.fn((value) => parseFloat(value).toString()),
 }));
 
 describe('PerpsAmountDisplay', () => {
@@ -105,6 +106,7 @@ describe('PerpsAmountDisplay', () => {
 
       // Assert
       expect(getByText(`${tokenAmount} ${tokenSymbol}`)).toBeTruthy();
+      expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
     });
   });
 
@@ -236,6 +238,21 @@ describe('PerpsAmountDisplay', () => {
       });
       expect(formatPrice).toHaveBeenCalledWith(9876.54, {
         minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+    });
+
+    it('formats USD amounts with maximum 2 decimal places', () => {
+      // Arrange
+      const amount = '1234.5678';
+      const maxAmount = 5000;
+
+      // Act
+      render(<PerpsAmountDisplay amount={amount} maxAmount={maxAmount} />);
+
+      // Assert - Verify USD amounts are limited to 2 decimal places
+      expect(formatPrice).toHaveBeenCalledWith('1234.5678', {
+        minimumDecimals: 0,
         maximumDecimals: 2,
       });
     });
