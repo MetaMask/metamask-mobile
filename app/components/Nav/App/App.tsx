@@ -336,8 +336,7 @@ interface RootModalFlowProps {
 }
 const RootModalFlow = (props: RootModalFlowProps) => (
   <Stack.Navigator
-    screenOptions={{ presentation: 'modal' }}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -801,10 +800,10 @@ const ModalSwitchAccountType = () => (
 const ModalSmartAccountOptIn = () => (
   <Stack.Navigator
     screenOptions={{
+      presentation: 'modal',
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
-    screenOptions={{ presentation: 'modal' }}
   >
     <Stack.Screen
       name={Routes.SMART_ACCOUNT_OPT_IN}
