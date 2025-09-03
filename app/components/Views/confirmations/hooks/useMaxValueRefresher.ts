@@ -34,7 +34,6 @@ export function useMaxValueRefresher() {
     transactionMetadata as TransactionMeta,
   );
   const { balanceWeiInHex } = useAccountNativeBalance(chainId, txParams.from);
-  const layer1GasFee = transactionMetadata?.layer1GasFee as Hex;
 
   useEffect(() => {
     if (!maxModeEnabled || type !== TransactionType.simpleSend) {
@@ -43,10 +42,7 @@ export function useMaxValueRefresher() {
     }
 
     const balance = new BigNumber(balanceWeiInHex);
-    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex).plus(
-      new BigNumber(layer1GasFee ?? '0x0'),
-    );
-
+    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex);
     const maxValue = balance.minus(maxPossibleFee);
     const maxValueHex = add0x(maxValue.toString(16));
     const shouldUpdate = maxValueHex !== txParams.value;
@@ -61,7 +57,6 @@ export function useMaxValueRefresher() {
   }, [
     balanceWeiInHex,
     id,
-    layer1GasFee,
     maxModeEnabled,
     maxFeeNativeHex,
     setIsTransactionValueUpdating,
