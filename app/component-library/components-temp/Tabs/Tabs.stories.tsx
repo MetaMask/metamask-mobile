@@ -7,8 +7,7 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsList from './TabsList';
-import TabsBar from './TabsBar';
-import { TabViewProps, TabsBarProps } from './Tabs.types';
+import { TabViewProps } from './Tabs.types';
 
 const TabsStoryMeta = {
   title: 'Components Temp / Tabs',
@@ -50,7 +49,7 @@ export const Default = () => (
 
 export const ManyTabs = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">
-    <TabsList scrollEnabled>
+    <TabsList>
       <View key="tokens" {...({ tabLabel: 'Tokens' } as TabViewProps)}>
         <ExampleTabContent title="Tokens" />
       </View>
@@ -75,30 +74,6 @@ export const ManyTabs = () => (
     </TabsList>
   </Box>
 );
-
-export const CustomTabBar = () => {
-  const renderCustomTabBar = (props: TabsBarProps) => (
-    <Box twClassName="bg-primary-default">
-      <TabsBar {...props} />
-    </Box>
-  );
-
-  return (
-    <Box twClassName="flex-1 p-4 bg-background-default">
-      <TabsList renderTabBar={renderCustomTabBar}>
-        <View key="overview" {...({ tabLabel: 'Overview' } as TabViewProps)}>
-          <ExampleTabContent title="Overview" />
-        </View>
-        <View key="details" {...({ tabLabel: 'Details' } as TabViewProps)}>
-          <ExampleTabContent title="Details" />
-        </View>
-        <View key="activity" {...({ tabLabel: 'Activity' } as TabViewProps)}>
-          <ExampleTabContent title="Activity" />
-        </View>
-      </TabsList>
-    </Box>
-  );
-};
 
 export const LockedTabs = () => (
   <Box twClassName="flex-1 p-4 bg-background-default">

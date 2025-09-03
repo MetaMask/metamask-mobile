@@ -18,19 +18,7 @@ import { TabsListProps, TabsListRef, TabItem } from '../Tabs.types';
 
 const TabsList = forwardRef<TabsListRef, TabsListProps>(
   (
-    {
-      children,
-      initialPage = 0,
-      scrollEnabled = true,
-      onChangeTab,
-      locked = false,
-      renderTabBar,
-      style,
-      tabStyle,
-      textStyle,
-      underlineStyle,
-      testID,
-    },
+    { children, initialPage = 0, onChangeTab, locked = false, style, testID },
     ref,
   ) => {
     const tw = useTailwind();
@@ -101,23 +89,14 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       tabs,
       activeIndex,
       onTabPress: handleTabPress,
-      scrollEnabled,
-      style: undefined,
-      tabStyle,
-      textStyle,
-      underlineStyle,
       locked,
       testID: testID ? `${testID}-bar` : undefined,
     };
 
     return (
       <Box style={tw.style('flex-1', style)} testID={testID}>
-        {/* Render custom tab bar or default TabsBar */}
-        {renderTabBar ? (
-          renderTabBar(tabBarProps)
-        ) : (
-          <TabsBar {...tabBarProps} />
-        )}
+        {/* Render default TabsBar */}
+        <TabsBar {...tabBarProps} />
 
         {/* Tab content with dynamic height */}
         <Box twClassName="flex-1">{currentContent}</Box>

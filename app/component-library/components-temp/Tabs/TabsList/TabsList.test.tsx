@@ -164,7 +164,7 @@ describe('TabsList', () => {
 
   it('exposes goToPage method via ref', async () => {
     // Arrange
-    const ref = React.createRef<{ goToPage: (pageNumber: number) => void }>();
+    const ref = React.createRef<TabsListRef>();
     const tabs = ['Tab 1', 'Tab 2', 'Tab 3'];
 
     // Act
@@ -189,7 +189,7 @@ describe('TabsList', () => {
 
   it('exposes getCurrentIndex method via ref', () => {
     // Arrange
-    const ref = React.createRef<{ getCurrentIndex: () => number }>();
+    const ref = React.createRef<TabsListRef>();
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
