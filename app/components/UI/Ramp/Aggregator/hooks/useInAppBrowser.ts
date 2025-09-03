@@ -52,7 +52,7 @@ export default function useInAppBrowser() {
       if (customOrderId) {
         customIdData = createCustomOrderIdData(
           customOrderId,
-          selectedChainId,
+          selectedAsset?.network?.chainId || selectedChainId,
           selectedAddress,
           isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
@@ -119,7 +119,6 @@ export default function useInAppBrowser() {
           const transformedOrder: FiatOrder = {
             ...aggregatorOrderToFiatOrder(order),
             account: selectedAddress,
-            network: selectedChainId,
           };
 
           handleSuccessfulOrder(transformedOrder);
@@ -140,7 +139,7 @@ export default function useInAppBrowser() {
       isBuy,
       lockTime,
       selectedAddress,
-      selectedAsset?.symbol,
+      selectedAsset,
       selectedChainId,
       selectedPaymentMethodId,
       trackEvent,
