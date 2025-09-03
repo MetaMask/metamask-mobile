@@ -46,12 +46,14 @@ describe('TabsBar', () => {
 
     it('displays all tab labels', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
 
       mockTabs.forEach((tab) => {
-        expect(getByText(tab.label)).toBeOnTheScreen();
+        const elements = getAllByText(tab.label);
+        expect(elements.length).toBeGreaterThan(0);
+        expect(elements[0]).toBeOnTheScreen();
       });
     });
 
@@ -80,57 +82,68 @@ describe('TabsBar', () => {
   describe('Tab Interaction', () => {
     it('calls onTabPress when tab is pressed', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
-        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
       );
 
-      fireEvent.press(getByText('Tab 2'));
+      fireEvent.press(getByTestId('tabs-bar-tab-1'));
 
       expect(mockOnTabPress).toHaveBeenCalledWith(1);
     });
 
     it('calls onTabPress with correct index for different tabs', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
-        <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
       );
 
-      fireEvent.press(getByText('Tab 3'));
+      fireEvent.press(getByTestId('tabs-bar-tab-2'));
       expect(mockOnTabPress).toHaveBeenCalledWith(2);
 
-      fireEvent.press(getByText('Tab 1'));
+      fireEvent.press(getByTestId('tabs-bar-tab-0'));
       expect(mockOnTabPress).toHaveBeenCalledWith(0);
     });
 
     it('maintains correct active state for different indices', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText, rerender } = render(
+      const { getAllByText, rerender } = render(
         <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
 
-      expect(getByText('Tab 1')).toBeOnTheScreen();
+      expect(getAllByText('Tab 1')[0]).toBeOnTheScreen();
 
       rerender(
         <TabsBar tabs={mockTabs} activeIndex={2} onTabPress={mockOnTabPress} />,
       );
 
-      expect(getByText('Tab 3')).toBeOnTheScreen();
+      expect(getAllByText('Tab 3')[0]).toBeOnTheScreen();
     });
   });
 
   describe('Locked State', () => {
     it('does not call onTabPress when locked', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TabsBar
           tabs={mockTabs}
           activeIndex={0}
           onTabPress={mockOnTabPress}
           locked
+          testID="tabs-bar"
         />,
       );
 
-      fireEvent.press(getByText('Tab 2'));
+      fireEvent.press(getByTestId('tabs-bar-tab-1'));
 
       expect(mockOnTabPress).not.toHaveBeenCalled();
     });
@@ -150,16 +163,17 @@ describe('TabsBar', () => {
 
     it('allows interaction when not locked', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getByTestId } = render(
         <TabsBar
           tabs={mockTabs}
           activeIndex={0}
           onTabPress={mockOnTabPress}
           locked={false}
+          testID="tabs-bar"
         />,
       );
 
-      fireEvent.press(getByText('Tab 2'));
+      fireEvent.press(getByTestId('tabs-bar-tab-1'));
 
       expect(mockOnTabPress).toHaveBeenCalledWith(1);
     });
@@ -274,33 +288,95 @@ describe('TabsBar', () => {
     it('handles single tab correctly', () => {
       const singleTab = [{ key: 'single', label: 'Single Tab', content: null }];
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <TabsBar
           tabs={singleTab}
           activeIndex={0}
           onTabPress={mockOnTabPress}
         />,
       );
-      expect(getByText('Single Tab')).toBeOnTheScreen();
+      expect(getAllByText('Single Tab')[0]).toBeOnTheScreen();
+    });
+
+    it('handles out-of-order layout events without sparse array errors', () => {
+      const mockOnTabPress = jest.fn();
+      const { getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const container = getByTestId('tabs-bar');
+
+      // Simulate out-of-order layout events (tab 2 before tab 0)
+      act(() => {
+        // Container layout first
+        fireEvent(container, 'onLayout', mockLayoutEvent(300));
+
+        // Tab layouts in random order - this used to cause sparse array issues
+        const tab2 = getByTestId('tabs-bar-tab-2');
+        const tab0 = getByTestId('tabs-bar-tab-0');
+        const tab1 = getByTestId('tabs-bar-tab-1');
+
+        fireEvent(tab2, 'onLayout', mockLayoutEvent(80));
+        fireEvent(tab0, 'onLayout', mockLayoutEvent(60));
+        fireEvent(tab1, 'onLayout', mockLayoutEvent(70));
+      });
+
+      // Should not throw errors and component should still be rendered
+      expect(container).toBeOnTheScreen();
+    });
+
+    it('resets layout data when tabs change', () => {
+      const mockOnTabPress = jest.fn();
+      const { rerender, getByTestId } = render(
+        <TabsBar
+          tabs={mockTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      // Change to different tabs
+      const newTabs = [
+        { key: 'new1', label: 'New Tab 1', content: null },
+        { key: 'new2', label: 'New Tab 2', content: null },
+      ];
+
+      rerender(
+        <TabsBar
+          tabs={newTabs}
+          activeIndex={0}
+          onTabPress={mockOnTabPress}
+          testID="tabs-bar"
+        />,
+      );
+
+      const container = getByTestId('tabs-bar');
+      expect(container).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
     it('provides proper accessibility for tabs', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <TabsBar tabs={mockTabs} activeIndex={0} onTabPress={mockOnTabPress} />,
       );
 
       mockTabs.forEach((tab) => {
-        const tabElement = getByText(tab.label);
-        expect(tabElement).toBeOnTheScreen();
+        const tabElements = getAllByText(tab.label);
+        expect(tabElements[0]).toBeOnTheScreen();
       });
     });
 
     it('maintains accessibility when locked', () => {
       const mockOnTabPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <TabsBar
           tabs={mockTabs}
           activeIndex={0}
@@ -310,8 +386,8 @@ describe('TabsBar', () => {
       );
 
       mockTabs.forEach((tab) => {
-        const tabElement = getByText(tab.label);
-        expect(tabElement).toBeOnTheScreen();
+        const tabElements = getAllByText(tab.label);
+        expect(tabElements[0]).toBeOnTheScreen();
       });
     });
   });

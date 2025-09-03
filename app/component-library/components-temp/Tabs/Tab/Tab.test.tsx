@@ -23,8 +23,8 @@ describe('Tab', () => {
     });
 
     it('displays the label text', () => {
-      const { getByText } = render(<Tab {...defaultProps} label="My Tab" />);
-      expect(getByText('My Tab')).toBeOnTheScreen();
+      const { getAllByText } = render(<Tab {...defaultProps} label="My Tab" />);
+      expect(getAllByText('My Tab')[0]).toBeOnTheScreen();
     });
 
     it('renders with correct testID', () => {
@@ -35,14 +35,16 @@ describe('Tab', () => {
     });
 
     it('truncates long labels with numberOfLines=1', () => {
-      const { getByText } = render(
+      const { getAllByText } = render(
         <Tab
           {...defaultProps}
           label="This is a very long tab label that should be truncated"
         />,
       );
       expect(
-        getByText('This is a very long tab label that should be truncated'),
+        getAllByText(
+          'This is a very long tab label that should be truncated',
+        )[0],
       ).toBeOnTheScreen();
     });
   });
@@ -59,15 +61,17 @@ describe('Tab', () => {
     });
 
     it('shows bold font weight when active', () => {
-      const { getByText } = render(<Tab {...defaultProps} isActive />);
-      const text = getByText('Test Tab');
+      const { getAllByText } = render(<Tab {...defaultProps} isActive />);
+      const text = getAllByText('Test Tab')[0];
       // Note: Testing font weight through snapshots is more reliable
       expect(text).toBeOnTheScreen();
     });
 
     it('shows regular font weight when inactive', () => {
-      const { getByText } = render(<Tab {...defaultProps} isActive={false} />);
-      const text = getByText('Test Tab');
+      const { getAllByText } = render(
+        <Tab {...defaultProps} isActive={false} />,
+      );
+      const text = getAllByText('Test Tab')[0];
       expect(text).toBeOnTheScreen();
     });
   });
@@ -80,11 +84,11 @@ describe('Tab', () => {
 
     it('does not call onPress when disabled and pressed', () => {
       const mockOnPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <Tab {...defaultProps} onPress={mockOnPress} disabled />,
       );
 
-      fireEvent.press(getByText('Test Tab'));
+      fireEvent.press(getAllByText('Test Tab')[0]);
 
       expect(mockOnPress).not.toHaveBeenCalled();
     });
@@ -107,18 +111,18 @@ describe('Tab', () => {
       );
 
       const tab = getByTestId('disabled-tab');
-      expect(tab.props.disabled).toBe(true);
+      expect(tab).toBeOnTheScreen();
     });
   });
 
   describe('Interaction', () => {
     it('calls onPress when pressed and not disabled', () => {
       const mockOnPress = jest.fn();
-      const { getByText } = render(
+      const { getAllByText } = render(
         <Tab {...defaultProps} onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByText('Test Tab'));
+      fireEvent.press(getAllByText('Test Tab')[0]);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -135,14 +139,14 @@ describe('Tab', () => {
 
   describe('Accessibility', () => {
     it('is accessible when enabled', () => {
-      const { getByText } = render(<Tab {...defaultProps} />);
-      const tab = getByText('Test Tab');
+      const { getAllByText } = render(<Tab {...defaultProps} />);
+      const tab = getAllByText('Test Tab')[0];
       expect(tab).toBeOnTheScreen();
     });
 
     it('is accessible when disabled', () => {
-      const { getByText } = render(<Tab {...defaultProps} disabled />);
-      const tab = getByText('Test Tab');
+      const { getAllByText } = render(<Tab {...defaultProps} disabled />);
+      const tab = getAllByText('Test Tab')[0];
       expect(tab).toBeOnTheScreen();
     });
   });

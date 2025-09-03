@@ -35,3 +35,4 @@ export interface TabsBarProps {
    */
   testID?: string;
 }
+

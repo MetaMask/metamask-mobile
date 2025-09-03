@@ -29,7 +29,6 @@ exports[`TabsList handles empty children gracefully 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
       style={
         [
           {
@@ -107,7 +106,6 @@ exports[`TabsList renders correctly with multiple tabs 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
       style={
         [
           {

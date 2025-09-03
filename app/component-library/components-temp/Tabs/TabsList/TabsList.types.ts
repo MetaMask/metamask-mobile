@@ -65,3 +65,4 @@ export interface TabsListRef {
    */
   getCurrentIndex: () => number;
 }
+

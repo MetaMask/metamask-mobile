@@ -32,7 +32,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // State for automatic overflow detection
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [contentWidth, setContentWidth] = useState(0);
+
+  // Reset layout data when tabs change
+  useEffect(() => {
+    tabLayouts.current = new Array(tabs.length);
+    isInitialized.current = false;
+    setScrollEnabled(false);
+  }, [tabs.length]);
 
   // Animate underline when active tab changes
   useEffect(() => {
@@ -74,18 +80,25 @@ const TabsBar: React.FC<TabsBarProps> = ({
   // Check if content overflows and update scroll state
   useEffect(() => {
     if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
-      // Calculate total content width by summing tab widths + gaps
-      const totalTabsWidth = tabLayouts.current.reduce(
-        (sum, layout) => sum + layout.width,
-        0,
+      // Validate that all tab layouts are defined (prevent sparse array issues)
+      const allLayoutsDefined = tabLayouts.current.every(
+        (layout) => layout && typeof layout.width === 'number',
       );
-      const gapsWidth = (tabs.length - 1) * 24; // 24px = gap-6 in Tailwind
-      const calculatedContentWidth = totalTabsWidth + gapsWidth;
 
-      const shouldScroll = calculatedContentWidth > containerWidth;
-      setScrollEnabled(shouldScroll);
+      if (allLayoutsDefined) {
+        // Calculate total content width by summing tab widths + gaps
+        const totalTabsWidth = tabLayouts.current.reduce(
+          (sum, layout) => sum + layout.width,
+          0,
+        );
+        const gapsWidth = (tabs.length - 1) * 24; // 24px = gap-6 in Tailwind
+        const calculatedContentWidth = totalTabsWidth + gapsWidth;
+
+        const shouldScroll = calculatedContentWidth > containerWidth;
+        setScrollEnabled(shouldScroll);
+      }
     }
-  }, [containerWidth, contentWidth, tabs.length]);
+  }, [containerWidth, tabs.length]);
 
   // Handle container layout to measure available width
   const handleContainerLayout = (event: LayoutChangeEvent) => {
@@ -93,14 +106,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
     setContainerWidth(width);
   };
 
-  // Handle content layout to measure total tabs width
-  const handleContentLayout = (event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    setContentWidth(width);
-  };
-
   const handleTabLayout = (index: number, event: LayoutChangeEvent) => {
     const { x, width } = event.nativeEvent.layout;
+
+    // Initialize array to proper length if needed to prevent sparse arrays
+    if (tabLayouts.current.length < tabs.length) {
+      tabLayouts.current = new Array(tabs.length);
+    }
 
     // Store the wrapper dimensions directly
     tabLayouts.current[index] = { x, width };
@@ -113,7 +125,11 @@ const TabsBar: React.FC<TabsBarProps> = ({
     }
 
     // Trigger scroll detection recalculation when all tabs are measured
-    if (tabLayouts.current.length === tabs.length && containerWidth > 0) {
+    const allLayoutsDefined = tabLayouts.current.every(
+      (layout) => layout && typeof layout.width === 'number',
+    );
+
+    if (allLayoutsDefined && containerWidth > 0) {
       const totalTabsWidth = tabLayouts.current.reduce(
         (sum, layout) => sum + layout.width,
         0,
@@ -136,7 +152,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
     <Box
       twClassName="relative overflow-hidden"
       testID={testID}
-      onLayout={handleContainerLayout}
+      onLayout={handleContainerLayout as (event: unknown) => void}
     >
       {scrollEnabled ? (
         <ScrollView
@@ -151,12 +167,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="relative gap-6"
-            onLayout={handleContentLayout}
           >
             {tabs.map((tab, index) => (
               <Box
                 key={tab.key}
-                onLayout={(event) => handleTabLayout(index, event)}
+                onLayout={(event: unknown) =>
+                  handleTabLayout(index, event as LayoutChangeEvent)
+                }
               >
                 <Tab
                   label={tab.label}
@@ -182,12 +199,13 @@ const TabsBar: React.FC<TabsBarProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="relative gap-6"
-          onLayout={handleContentLayout}
         >
           {tabs.map((tab, index) => (
             <Box
               key={tab.key}
-              onLayout={(event) => handleTabLayout(index, event)}
+              onLayout={(event: unknown) =>
+                handleTabLayout(index, event as LayoutChangeEvent)
+              }
             >
               <Tab
                 label={tab.label}

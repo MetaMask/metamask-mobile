@@ -68,7 +68,7 @@ describe('TabsList', () => {
     ];
 
     // Act
-    const { getByText, queryByText } = render(
+    const { getByText, queryByText, getAllByText } = render(
       <TabsList>
         {tabs.map((tab, index) => (
           <View
@@ -82,7 +82,7 @@ describe('TabsList', () => {
     );
 
     // Switch to second tab
-    fireEvent.press(getByText('NFTs'));
+    fireEvent.press(getAllByText('NFTs')[0]);
 
     // Assert
     expect(getByText('NFTs Content')).toBeOnTheScreen();
@@ -95,7 +95,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
-    const { getByText } = render(
+    const { getAllByText } = render(
       <TabsList onChangeTab={mockOnChangeTab}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -106,7 +106,7 @@ describe('TabsList', () => {
     );
 
     await act(async () => {
-      fireEvent.press(getByText('Tab 2'));
+      fireEvent.press(getAllByText('Tab 2')[0]);
     });
 
     // Assert
@@ -122,7 +122,7 @@ describe('TabsList', () => {
     const tabs = ['Tab 1', 'Tab 2'];
 
     // Act
-    const { getByText } = render(
+    const { getAllByText } = render(
       <TabsList locked onChangeTab={mockOnChangeTab}>
         {tabs.map((label, index) => (
           <View key={`tab${index}`} {...({ tabLabel: label } as TabViewProps)}>
@@ -132,7 +132,7 @@ describe('TabsList', () => {
       </TabsList>,
     );
 
-    fireEvent.press(getByText('Tab 2'));
+    fireEvent.press(getAllByText('Tab 2')[0]);
 
     // Assert
     expect(mockOnChangeTab).not.toHaveBeenCalled();
