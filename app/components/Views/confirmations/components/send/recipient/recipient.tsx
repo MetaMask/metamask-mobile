@@ -22,7 +22,6 @@ import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRec
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
-import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../hooks/send/useSendType';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
