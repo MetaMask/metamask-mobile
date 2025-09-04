@@ -1,6 +1,11 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { getFeatureFlagValue } from '../env';
+import { Json } from '@metamask/utils';
+
+export const BUFFER_STEP_DEFAULT = 0.025;
+export const INITIAL_BUFFER_DEFAULT = 0.025;
+export const MAX_ATTEMPTS_DEFAULT = 2;
 
 // A type predicate's type must be assignable to its parameter's type
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -17,6 +22,12 @@ export type ConfirmationRedesignRemoteFlags = {
 export type SendRedesignFlags = {
   enabled: boolean;
 };
+
+export interface MetaMaskPayFlags {
+  bufferStep: number;
+  initialBuffer: number;
+  maxAttempts: number;
+}
 
 /**
  * Determines the enabled state of confirmation redesign features by combining
@@ -124,4 +135,24 @@ export const selectConfirmationRedesignFlags = createSelector(
 export const selectSendRedesignFlags = createSelector(
   selectRemoteFeatureFlags,
   selectSendRedesignFlagsFromRemoteFeatureFlags,
+);
+
+export const selectMetaMaskPayFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags) => {
+    const metaMaskPayFlags = featureFlags?.confirmation_pay as
+      | Record<string, Json>
+      | undefined;
+
+    const initialBuffer =
+      metaMaskPayFlags?.initialBuffer ?? INITIAL_BUFFER_DEFAULT;
+    const maxAttempts = metaMaskPayFlags?.maxAttempts ?? MAX_ATTEMPTS_DEFAULT;
+    const bufferStep = metaMaskPayFlags?.bufferStep ?? BUFFER_STEP_DEFAULT;
+
+    return {
+      initialBuffer,
+      maxAttempts,
+      bufferStep,
+    } as MetaMaskPayFlags;
+  },
 );

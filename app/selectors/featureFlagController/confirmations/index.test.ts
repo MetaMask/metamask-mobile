@@ -1,8 +1,13 @@
+import { cloneDeep } from 'lodash';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
   SendRedesignFlags,
   selectSendRedesignFlags,
+  selectMetaMaskPayFlags,
+  BUFFER_STEP_DEFAULT,
+  INITIAL_BUFFER_DEFAULT,
+  MAX_ATTEMPTS_DEFAULT,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -267,5 +272,64 @@ describe('Send Redesign Feature Flags', () => {
       selectSendRedesignFlags(stateWithUndefinedEnabled),
       sendRedesignFlagsDefaultValues,
     );
+  });
+});
+
+describe('MetaMask Pay Feature Flags', () => {
+  it('returns default buffer step if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferStep).toEqual(
+      BUFFER_STEP_DEFAULT,
+    );
+  });
+
+  it('returns default initial buffer if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).initialBuffer).toEqual(
+      INITIAL_BUFFER_DEFAULT,
+    );
+  });
+
+  it('returns default max attempts if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).maxAttempts).toEqual(
+      MAX_ATTEMPTS_DEFAULT,
+    );
+  });
+
+  it('returns buffer step from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferStep: 1.234,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferStep).toEqual(1.234);
+  });
+
+  it('returns initial buffer from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          initialBuffer: 2.345,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).initialBuffer).toEqual(2.345);
+  });
+
+  it('returns max attempts from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          maxAttempts: 3,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).maxAttempts).toEqual(3);
   });
 });
