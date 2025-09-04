@@ -84,6 +84,7 @@ class ImportFromSeedScreen {
         const firstWord = phraseArray[0];
         const lastWord = phraseArray[phraseArray.length - 1];
         const form = await this.seedPhraseInput
+
         await form.fill(`${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
           let index = i;  
@@ -98,6 +99,7 @@ class ImportFromSeedScreen {
           else
             input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
           await input.fill(`${phraseArray[i]} `);
+          await input.tap();
         }
         const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
         const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
@@ -107,6 +109,7 @@ class ImportFromSeedScreen {
           const wordElement = await this.inputOfIndex(i, false);
           const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           await input.fill(`${phraseArray[i-1]} `);
+          await input.tap();
         }
       }
     }

@@ -27,7 +27,10 @@ import {
 } from '../../utils/formatUtils';
 import PerpsTPSLBottomSheet from '../PerpsTPSLBottomSheet';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import styleSheet from './PerpsPositionCard.styles';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 
 interface PerpsPositionCardProps {
   position: Position;
@@ -46,6 +49,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(
@@ -92,6 +100,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const handleClosePress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     DevLogger.log('PerpsPositionCard: Navigating to close position screen');
     navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
   };
@@ -104,6 +117,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
   const handleEditTPSL = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     setSelectedPosition(position);
     setIsTPSLVisible(true);
   };
@@ -340,6 +358,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             initialTakeProfitPrice={selectedPosition.takeProfitPrice}
             initialStopLossPrice={selectedPosition.stopLossPrice}
             isUpdating={isUpdating}
+          />
+        </Modal>
+      )}
+      {isEligibilityModalVisible && (
+        <Modal visible transparent animationType="fade">
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={() => setIsEligibilityModalVisible(false)}
+            contentKey={'geo_block'}
           />
         </Modal>
       )}
