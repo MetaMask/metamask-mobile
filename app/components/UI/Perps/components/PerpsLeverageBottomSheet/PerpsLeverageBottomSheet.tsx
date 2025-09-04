@@ -175,7 +175,7 @@ const LeverageSlider: React.FC<{
     (newValue: number) => {
       const prevValue = previousValueRef.current;
       // Define leverage thresholds based on risk levels
-      const thresholds = [2, 5, 10, 20];
+      const thresholds = [2, 5, 10];
 
       for (const threshold of thresholds) {
         // Check if we crossed the threshold in either direction
