@@ -13,9 +13,10 @@ import { RootState } from '../../../../../../reducers';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export function BridgeFeeRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+  const { id: transactionId, type } = useTransactionMetadataOrThrow();
   const { bridgeFeeFormatted } = useTransactionTotalFiat();
 
   const isQuotesLoading = useSelector((state: RootState) =>
@@ -33,7 +34,10 @@ export function BridgeFeeRow() {
   }
 
   return (
-    <InfoRow label={strings('confirm.label.bridge_fee')}>
+    <InfoRow
+      label={strings('confirm.label.bridge_fee')}
+      tooltip={getTooltip(type)}
+    >
       {isQuotesLoading ? (
         <AnimatedSpinner size={SpinnerSize.SM} />
       ) : (
@@ -41,4 +45,13 @@ export function BridgeFeeRow() {
       )}
     </InfoRow>
   );
+}
+
+function getTooltip(type?: TransactionType) {
+  switch (type) {
+    case TransactionType.perpsDeposit:
+      return strings('confirm.tooltip.perps_deposit.bridge_fee');
+    default:
+      return undefined;
+  }
 }

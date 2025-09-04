@@ -5057,7 +5057,7 @@
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
       "total": "Total",
-      "bridge_fee": "Bridge Fee"
+      "bridge_fee": "Swap Fee"
     },
     "title": {
       "signature": "Signature request",
@@ -5084,6 +5084,12 @@
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
       "contract_deployment": "This site wants you to deploy a contract",
       "decrease_allowance": "This site wants decrease the spending cap for your tokens."
+    },
+    "tooltip": {
+      "perps_deposit": {
+        "bridge_fee": "You need USDC on HyperEVM to use Perps. We'll move your funds for you. Swap providers may charge a fee, but MetaMask doesn't.",
+        "total": "You might get a small amount of USDC on Arbitrum, depending on slippage."
+      }
     },
     "spending_cap": "Spending cap",
     "withdraw": "Withdraw",
