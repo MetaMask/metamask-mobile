@@ -37,6 +37,7 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
+import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 
 export interface BaseControlBarProps {
   /**
@@ -86,6 +87,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   // Shared hooks
   const {
@@ -170,12 +174,18 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       label={renderNetworkLabel()}
       isDisabled={isDisabled}
       onPress={
-        useEvmSelectionLogic && !isEvmSelected
+        useEvmSelectionLogic &&
+        !isEvmSelected &&
+        !isMultichainAccountsState2Enabled
           ? () => null
           : handleFilterControls
       }
       endIconName={
-        useEvmSelectionLogic && !isEvmSelected ? undefined : IconName.ArrowDown
+        useEvmSelectionLogic &&
+        !isEvmSelected &&
+        !isMultichainAccountsState2Enabled
+          ? undefined
+          : IconName.ArrowDown
       }
       style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
       disabled={isDisabled}

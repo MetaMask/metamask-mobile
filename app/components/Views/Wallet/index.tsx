@@ -106,7 +106,7 @@ import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { Nft, Token } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
+import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
@@ -163,6 +163,7 @@ import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementCo
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
   NetworkType,
+  useNetworksByCustomNamespace,
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
@@ -172,6 +173,9 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { SolScope } from '@metamask/keyring-api';
+import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -587,8 +591,51 @@ const Wallet = ({
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { selectNetwork } = useNetworkSelection({
+
+  const { networks: evmNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
+  });
+
+  const { networks: solanaNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Solana,
+  });
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    EVM_SCOPE,
+  );
+  const selectedSolanaAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )(SolScope.Mainnet);
+
+  const allNetworks = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      if (selectedEvmAccount && selectedSolanaAccount) {
+        return [...evmNetworks, ...solanaNetworks];
+      } else if (selectedEvmAccount) {
+        return evmNetworks;
+      } else if (selectedSolanaAccount) {
+        return solanaNetworks;
+      }
+      return networks;
+    }
+    return networks;
+  }, [
+    isMultichainAccountsState2Enabled,
+    selectedEvmAccount,
+    selectedSolanaAccount,
+    evmNetworks,
+    solanaNetworks,
     networks,
+  ]);
+
+  const { selectNetwork } = useNetworkSelection({
+    networks: allNetworks,
   });
 
   useEffect(() => {
@@ -751,11 +798,13 @@ const Wallet = ({
     // TODO: Come back possibly just add the chain id of the eth
     // network as the default state instead of doing this
     const { PreferencesController } = Engine.context;
+
     if (Object.keys(tokenNetworkFilter).length === 0) {
       PreferencesController.setTokenNetworkFilter({
         [chainId]: true,
       });
     }
+
     if (
       isRemoveGlobalNetworkSelectorEnabled() &&
       enabledEVMNetworks.length === 0
@@ -826,10 +875,6 @@ const Wallet = ({
 
   const isCardholder = useSelector(selectIsCardholder);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -957,7 +1002,9 @@ const Wallet = ({
         );
       }
     };
-    importAllDetectedTokens();
+    if (isEvmSelected) {
+      importAllDetectedTokens();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isTokenDetectionEnabled,

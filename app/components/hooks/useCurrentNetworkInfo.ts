@@ -4,6 +4,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
+import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts';
 
 export interface NetworkInfo {
   caipChainId: string;
@@ -27,6 +28,9 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     selectNetworkConfigurationsByCaipChainId,
   );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
@@ -66,7 +70,7 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  const isDisabled = !isEvmSelected;
+  const isDisabled = !isEvmSelected && !isMultichainAccountsState2Enabled;
   const hasEnabledNetworks = enabledNetworks.length > 0;
 
   return {
