@@ -47,6 +47,7 @@ export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
+export { usePerpsTPSLForm } from './usePerpsTPSLForm';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

@@ -99,6 +99,25 @@ describe('shouldSkipValidation', () => {
 });
 
 describe('validateToAddress', () => {
+  it('returns error if address is burn address', async () => {
+    expect(
+      await validateToAddress({
+        toAddress: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1',
+        addressBook: {},
+        internalAccounts: [],
+      }),
+    ).toStrictEqual({ error: 'Invalid address' });
+
+    expect(
+      await validateToAddress({
+        toAddress: '0x000000000000000000000000000000000000dead',
+        chainId: '0x1',
+        addressBook: {},
+        internalAccounts: [],
+      }),
+    ).toStrictEqual({ error: 'Invalid address' });
+  });
   it('returns warning if address is contract address', async () => {
     Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
       Promise.resolve('ABC');
@@ -159,7 +178,7 @@ describe('validateToAddress', () => {
     });
   });
 
-  it('returns error for confusables if it has hasZeroWidthPoints', async () => {
+  it('returns error and warning for confusables if it has hasZeroWidthPoints', async () => {
     jest
       .spyOn(ENSUtils, 'doENSLookup')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,8 +197,9 @@ describe('validateToAddress', () => {
         ],
       }),
     ).toStrictEqual({
-      error:
-        "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam. - 'ⅼ' is similar to 'l'",
+      warning:
+        'We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam.',
+      error: 'Invalid address',
     });
   });
 });
