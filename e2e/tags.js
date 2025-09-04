@@ -1,4 +1,5 @@
 const tags = {
+  regressionPerps: 'RegressionPerps:',
   smokeAccounts: 'SmokeAccounts:',
   regressionAccounts: 'RegressionAccounts:',
   smokeCore: 'SmokeCore:',
@@ -26,6 +27,7 @@ const tags = {
   smokeNotifications: 'SmokeNotifications:',
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
+  smokePerps: 'SmokePerps:',
   FlaskBuildTests: 'FlaskBuildTests:',
   performance: 'Performance:',
   smokeCard: 'SmokeCard:',
@@ -77,6 +79,8 @@ const RegressionWalletUX = (testName) =>
   `${tags.regressionWalletUX} ${testName}`;
 const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
 
+const SmokePerps = (testName) => `${tags.smokePerps} ${testName}`;
+const RegressionPerps = (testName) => `${tags.regressionPerps} ${testName}`;
 const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {
@@ -106,8 +110,10 @@ export {
   SmokeNotifications,
   SmokeAnalytics,
   SmokeMultiChainAPI,
+  SmokePerps,
   SmokePerformance,
   SmokeCard,
   SmokeWalletUX,
   RegressionWalletUX,
+  RegressionPerps,
 };

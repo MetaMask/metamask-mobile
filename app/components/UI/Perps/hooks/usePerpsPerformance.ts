@@ -22,7 +22,7 @@ const validatePerformance = (
     const percentOver = ((duration - target) / target) * 100;
     const priority = PerpsMetricPriorities[name] || 'MEDIUM';
 
-    DevLogger.log('⚠️ Performance target exceeded', {
+    DevLogger.log('Performance target exceeded', {
       metric: name,
       duration: `${duration.toFixed(0)}ms`,
       target: `${target}ms`,

@@ -1639,7 +1639,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     try {
-      DevLogger.log('🚀 HyperLiquidProvider: STARTING WITHDRAWAL', {
+      DevLogger.log('HyperLiquidProvider: STARTING WITHDRAWAL', {
         params,
         timestamp: new Date().toISOString(),
         assetId: params.assetId,
@@ -1649,7 +1649,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Step 1: Validate withdrawal parameters
-      DevLogger.log('🔍 HyperLiquidProvider: VALIDATING PARAMETERS');
+      DevLogger.log('HyperLiquidProvider: VALIDATING PARAMETERS');
       const validation = validateWithdrawalParams(params);
       if (!validation.isValid) {
         DevLogger.log('❌ HyperLiquidProvider: PARAMETER VALIDATION FAILED', {
@@ -1659,12 +1659,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
         throw new Error(validation.error);
       }
-      DevLogger.log('✅ HyperLiquidProvider: PARAMETERS VALIDATED');
+      DevLogger.log('HyperLiquidProvider: PARAMETERS VALIDATED');
 
       // Step 2: Get supported withdrawal routes and validate asset
-      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ASSET SUPPORT');
+      DevLogger.log('HyperLiquidProvider: CHECKING ASSET SUPPORT');
       const supportedRoutes = this.getWithdrawalRoutes();
-      DevLogger.log('📋 HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
+      DevLogger.log('HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
         routeCount: supportedRoutes.length,
         routes: supportedRoutes.map((route) => ({
           assetId: route.assetId,
@@ -1678,7 +1678,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const error = strings(
           'perps.errors.withdrawValidation.assetIdRequired',
         );
-        DevLogger.log('❌ HyperLiquidProvider: MISSING ASSET ID', {
+        DevLogger.log('HyperLiquidProvider: MISSING ASSET ID', {
           error,
           params,
         });
@@ -1697,36 +1697,36 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
         throw new Error(assetValidation.error);
       }
-      DevLogger.log('✅ HyperLiquidProvider: ASSET SUPPORTED', {
+      DevLogger.log('HyperLiquidProvider: ASSET SUPPORTED', {
         assetId: params.assetId,
       });
 
       // Step 3: Determine destination address
-      DevLogger.log('🔍 HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
+      DevLogger.log('HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
       let destination: Hex;
       if (params.destination) {
         destination = params.destination;
-        DevLogger.log('📍 HyperLiquidProvider: USING PROVIDED DESTINATION', {
+        DevLogger.log('HyperLiquidProvider: USING PROVIDED DESTINATION', {
           destination,
         });
       } else {
         destination = await this.walletService.getUserAddressWithDefault();
-        DevLogger.log('📍 HyperLiquidProvider: USING USER WALLET ADDRESS', {
+        DevLogger.log('HyperLiquidProvider: USING USER WALLET ADDRESS', {
           destination,
         });
       }
 
       // Step 4: Ensure client is ready
-      DevLogger.log('🔌 HyperLiquidProvider: ENSURING CLIENT READY');
+      DevLogger.log('HyperLiquidProvider: ENSURING CLIENT READY');
       await this.ensureReady();
       const exchangeClient = this.clientService.getExchangeClient();
-      DevLogger.log('✅ HyperLiquidProvider: CLIENT READY');
+      DevLogger.log('HyperLiquidProvider: CLIENT READY');
 
       // Step 5: Validate amount against account balance
-      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
+      DevLogger.log('HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
       const accountState = await this.getAccountState();
       const availableBalance = parseFloat(accountState.availableBalance);
-      DevLogger.log('💰 HyperLiquidProvider: ACCOUNT BALANCE', {
+      DevLogger.log('HyperLiquidProvider: ACCOUNT BALANCE', {
         availableBalance,
         totalBalance: accountState.totalBalance,
         marginUsed: accountState.marginUsed,
@@ -1736,7 +1736,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
         const error = strings('perps.errors.withdrawValidation.amountRequired');
-        DevLogger.log('❌ HyperLiquidProvider: MISSING AMOUNT', {
+        DevLogger.log('HyperLiquidProvider: MISSING AMOUNT', {
           error,
           params,
         });
@@ -1744,7 +1744,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const withdrawAmount = parseFloat(params.amount);
-      DevLogger.log('🔢 HyperLiquidProvider: WITHDRAWAL AMOUNT', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL AMOUNT', {
         requestedAmount: withdrawAmount,
         availableBalance,
         sufficientBalance: withdrawAmount <= availableBalance,
@@ -1755,7 +1755,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         availableBalance,
       );
       if (!balanceValidation.isValid) {
-        DevLogger.log('❌ HyperLiquidProvider: INSUFFICIENT BALANCE', {
+        DevLogger.log('HyperLiquidProvider: INSUFFICIENT BALANCE', {
           error: balanceValidation.error,
           requestedAmount: withdrawAmount,
           availableBalance,
@@ -1766,7 +1766,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
       // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
-      DevLogger.log('📡 HyperLiquidProvider: CALLING WITHDRAW3 API', {
+      DevLogger.log('HyperLiquidProvider: CALLING WITHDRAW3 API', {
         destination,
         amount: params.amount,
         endpoint: 'withdraw3',
@@ -1778,7 +1778,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         amount: params.amount,
       });
 
-      DevLogger.log('📊 HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
         status: result.status,
         response: result,
         timestamp: new Date().toISOString(),
@@ -1786,7 +1786,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (result.status === 'ok') {
         DevLogger.log(
-          '✅ HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
+          'HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
           {
             destination,
             amount: params.amount,
@@ -1808,7 +1808,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       const errorMessage = `Withdrawal failed: ${result.status}`;
-      DevLogger.log('❌ HyperLiquidProvider: WITHDRAWAL FAILED', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL FAILED', {
         error: errorMessage,
         status: result.status,
         response: result,
@@ -1821,7 +1821,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      DevLogger.log('💥 HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
+      DevLogger.log('HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
@@ -2138,7 +2138,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    DevLogger.log('🔍 HyperLiquid Fee Calculation Started', {
+    DevLogger.log('HyperLiquid Fee Calculation Started', {
       orderType,
       isMaker,
       amount,
@@ -2151,7 +2151,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
     try {
       const userAddress = await this.walletService.getUserAddressWithDefault();
 
-      DevLogger.log('👤 User Address Retrieved', {
+      DevLogger.log('User Address Retrieved', {
         userAddress,
         network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
       });
@@ -2178,7 +2178,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           });
         }
       } else {
-        DevLogger.log('🌐 Fetching Fresh Fee Rates from HyperLiquid API', {
+        DevLogger.log('Fetching Fresh Fee Rates from HyperLiquid API', {
           cacheHit: false,
           userAddress,
         });
@@ -2190,7 +2190,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           user: userAddress as `0x${string}`,
         });
 
-        DevLogger.log('📡 HyperLiquid userFees API Response', {
+        DevLogger.log('HyperLiquid userFees API Response', {
           userCrossRate: userFees.userCrossRate,
           userAddRate: userFees.userAddRate,
           activeReferralDiscount: userFees.activeReferralDiscount,
@@ -2220,7 +2220,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         const spotTakerRate = baseUserSpotTakerRate * (1 - totalDiscount);
         const spotMakerRate = baseUserSpotMakerRate * (1 - totalDiscount);
 
-        DevLogger.log('🔢 Fee Discount Calculation', {
+        DevLogger.log('Fee Discount Calculation', {
           discounts: {
             referral: `${(referralDiscount * 100).toFixed(1)}%`,
             staking: `${(stakingDiscount * 100).toFixed(1)}%`,
@@ -2249,7 +2249,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           spotTakerRate < 0 ||
           spotMakerRate < 0
         ) {
-          DevLogger.log('❌ Fee Rate Validation Failed', {
+          DevLogger.log('Fee Rate Validation Failed', {
             validation: {
               perpsTakerValid: !isNaN(perpsTakerRate) && perpsTakerRate >= 0,
               perpsMakerValid: !isNaN(perpsMakerRate) && perpsMakerRate >= 0,
@@ -2282,7 +2282,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? rates.perpsTakerRate
             : rates.perpsMakerRate;
 
-        DevLogger.log('✅ Fee Rates Validated and Cached', {
+        DevLogger.log('Fee Rates Validated and Cached', {
           selectedRate: feeRate,
           selectedRatePercentage: `${(feeRate * 100).toFixed(4)}%`,
           discountApplied: perpsTakerRate < FEE_RATES.taker,
@@ -2291,7 +2291,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
     } catch (error) {
       // Silently fall back to base rates
-      DevLogger.log('⚠️ Fee API Call Failed - Falling Back to Base Rates', {
+      DevLogger.log('Fee API Call Failed - Falling Back to Base Rates', {
         error: error instanceof Error ? error.message : String(error),
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
@@ -2344,7 +2344,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       metamaskFeeAmount,
     };
 
-    DevLogger.log('💰 Final Fee Calculation Result', {
+    DevLogger.log('Final Fee Calculation Result', {
       orderType,
       amount,
       fees: {
@@ -2378,10 +2378,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
   public clearFeeCache(userAddress?: string): void {
     if (userAddress) {
       this.userFeeCache.delete(userAddress);
-      DevLogger.log('🗑️ Cleared fee cache for user', { userAddress });
+      DevLogger.log('Cleared fee cache for user', { userAddress });
     } else {
       this.userFeeCache.clear();
-      DevLogger.log('🗑️ Cleared all fee cache');
+      DevLogger.log('Cleared all fee cache');
     }
   }
 

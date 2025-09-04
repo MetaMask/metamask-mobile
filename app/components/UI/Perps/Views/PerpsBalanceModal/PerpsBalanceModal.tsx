@@ -20,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsTrading } from '../../hooks';
 import createStyles from './PerpsBalanceModal.styles';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface PerpsBalanceModalProps {}
 
@@ -75,6 +76,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
           onPress={handleAddFunds}
           style={styles.actionButton}
           startIconName={IconName.Add}
+          testID={PerpsTabViewSelectorsIDs.ADD_FUNDS_BUTTON}
         />
         <Button
           variant={ButtonVariants.Secondary}
