@@ -15,7 +15,9 @@ import {
   parsePercentageString,
   formatTransactionDate,
   formatDateSection,
+  formatFundingRate,
 } from './formatUtils';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 // Mock the formatWithThreshold utility
 jest.mock('../../../../util/assets', () => ({
@@ -31,6 +33,153 @@ jest.mock('../../../../util/assets', () => ({
 }));
 
 describe('formatUtils', () => {
+  describe('formatFundingRate', () => {
+    it('displays zero display value when input is undefined', () => {
+      // Given an undefined funding rate value
+      const value = undefined;
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the zero display constant
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    });
+
+    it('displays zero display value when input is null', () => {
+      // Given a null funding rate value
+      const value = null;
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the zero display constant
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    });
+
+    it('formats positive funding rate correctly', () => {
+      // Given a positive funding rate as decimal
+      const value = 0.0005; // 0.05%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return percentage with correct decimals
+      expect(result).toBe('0.0500%');
+    });
+
+    it('formats negative funding rate correctly', () => {
+      // Given a negative funding rate as decimal
+      const value = -0.0001; // -0.01%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return negative percentage with correct decimals
+      expect(result).toBe('-0.0100%');
+    });
+
+    it('displays zero display value when input is exactly zero', () => {
+      // Given a zero funding rate
+      const value = 0;
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the zero display constant
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    });
+
+    it('formats very small positive funding rate correctly', () => {
+      // Given a very small positive funding rate
+      const value = 0.000001; // 0.0001%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the formatted percentage
+      expect(result).toBe('0.0001%');
+    });
+
+    it('formats very small negative funding rate correctly', () => {
+      // Given a very small negative funding rate
+      const value = -0.000001; // -0.0001%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the formatted percentage
+      expect(result).toBe('-0.0001%');
+    });
+
+    it('formats large positive funding rate correctly', () => {
+      // Given a large positive funding rate
+      const value = 0.01; // 1%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the formatted percentage
+      expect(result).toBe('1.0000%');
+    });
+
+    it('formats large negative funding rate correctly', () => {
+      // Given a large negative funding rate
+      const value = -0.02; // -2%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the formatted percentage
+      expect(result).toBe('-2.0000%');
+    });
+
+    it('returns empty string when showZero option is false and value is undefined', () => {
+      // Given an undefined value with showZero set to false
+      const value = undefined;
+      const options = { showZero: false };
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value, options);
+
+      // Then it should return empty string
+      expect(result).toBe('');
+    });
+
+    it('returns empty string when showZero option is false and value is null', () => {
+      // Given a null value with showZero set to false
+      const value = null;
+      const options = { showZero: false };
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value, options);
+
+      // Then it should return empty string
+      expect(result).toBe('');
+    });
+
+    it('displays zero display value when value rounds to zero', () => {
+      // Given a value that rounds to zero with 4 decimals
+      const value = 0.000000001; // Would round to 0.0000%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should return the zero display constant
+      expect(result).toBe(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    });
+
+    it('handles number precision edge cases correctly', () => {
+      // Given a value with many decimal places
+      const value = 0.00054321; // 0.054321%
+
+      // When formatting the funding rate
+      const result = formatFundingRate(value);
+
+      // Then it should round to configured decimal places
+      expect(result).toBe('0.0543%');
+    });
+  });
+
   describe('formatPerpsFiat', () => {
     it('should format balance with default 2 decimal places', () => {
       expect(formatPerpsFiat(1234.56)).toBe('$1,234.56');

@@ -6,7 +6,6 @@ import WarningIcon from 'react-native-vector-icons/FontAwesome';
 import { toHex } from '@metamask/controller-utils';
 import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
-import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
@@ -39,8 +38,6 @@ const CustomNetwork = ({
   toggleWarningModal,
   showNetworkModal,
   switchTab,
-  shouldNetworkSwitchPopToWallet,
-  onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
   displayContinue,
@@ -79,7 +76,6 @@ const CustomNetwork = ({
     },
   );
 
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const networkSettingsStyles = createStyles();
   const customNetworkStyles = createCustomNetworkStyles({ colors });
@@ -109,9 +105,6 @@ const CustomNetwork = ({
           isVisible={isNetworkModalVisible}
           onClose={closeNetworkModal}
           networkConfiguration={selectedNetwork}
-          navigation={navigation}
-          shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
-          onNetworkSwitch={onNetworkSwitch}
           safeChains={safeChains}
           allowNetworkSwitch={allowNetworkSwitch}
         />
