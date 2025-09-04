@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -9,6 +9,7 @@ import {
 import type { RootState } from '../../../../reducers';
 import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -20,6 +21,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
  * - Automatically clears the result after showing the toast
  */
 export const usePerpsDepositStatus = () => {
+  const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const { clearDepositResult } = usePerpsTrading();
 
@@ -36,6 +38,29 @@ export const usePerpsDepositStatus = () => {
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
   );
+
+  const showDepositErrorToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Warning,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.error.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.deposit.error_toast'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.deposit.error_generic'),
+          isBold: false,
+        },
+      ],
+    });
+  }, [theme.colors.error.default, theme.colors.icon.default, toastRef]);
 
   // Clear stale results on mount
   useEffect(() => {
@@ -83,48 +108,9 @@ export const usePerpsDepositStatus = () => {
 
       let timeoutId: NodeJS.Timeout | null = null;
 
-      if (lastDepositResult.success) {
-        // Show success toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Confirmation,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.deposit.success_toast'),
-              isBold: true,
-            },
-            {
-              label: strings('perps.deposit.success_message'),
-              isBold: false,
-            },
-          ],
-        });
-
-        // Clear the result after showing toast
-        timeoutId = setTimeout(() => {
-          clearDepositResult();
-          hasProcessedResultRef.current = null;
-        }, 500);
-      } else {
-        // Show error toast (but not for 'pending')
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          hasNoTimeout: false,
-          labelOptions: [
-            {
-              label: strings('perps.deposit.error_toast'),
-              isBold: true,
-            },
-            {
-              label:
-                lastDepositResult.error ||
-                strings('perps.deposit.error_generic'),
-              isBold: false,
-            },
-          ],
-        });
+      if (!lastDepositResult.success) {
+        // Show error toast
+        showDepositErrorToast();
 
         // Clear the result after showing toast
         timeoutId = setTimeout(() => {
@@ -140,7 +126,7 @@ export const usePerpsDepositStatus = () => {
         }
       };
     }
-  }, [lastDepositResult, toastRef, clearDepositResult]);
+  }, [lastDepositResult, toastRef, clearDepositResult, showDepositErrorToast]);
 
   return { depositInProgress };
 };

@@ -906,12 +906,14 @@
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
       },
-      "success_toast": "Deposit Complete",
-      "success_message": "Your balance will update in a few moments",
-      "error_toast": "Deposit Failed",
-      "error_generic": "Something went wrong. Please try again.",
-      "in_progress": "Processing deposit",
-      "processing_message": "Processing your deposit..."
+      "success_toast": "Your perps account was funded",
+      "success_message": "You have {{amount}} available to trade",
+      "error_toast": "Transaction failed",
+      "error_generic": "Funds have been returned to you",
+      "in_progress": "Adding funds to your account",
+      "estimated_processing_time": "Estimated time is {{time}}",
+      "funds_available_momentarily": "Funds will be available momentarily",
+      "your_funds_are_available_to_trade": "Your funds are available to trade"
     },
     "withdrawal": {
       "title": "Withdraw",
