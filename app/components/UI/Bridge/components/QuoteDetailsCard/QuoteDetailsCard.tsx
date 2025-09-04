@@ -50,6 +50,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { useRewards } from '../../hooks/useRewards';
 import BigNumber from 'bignumber.js';
+import MetamaskRewardsPointsImage from '../../../../../images/metamask-rewards-points.svg';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -436,13 +437,20 @@ const QuoteDetailsCard = () => {
                   },
                 }}
                 value={{
-                  label: {
-                    text:
-                      estimatedPoints !== null && !isRewardsLoading
-                        ? estimatedPoints.toString()
-                        : '-',
-                    variant: TextVariant.BodyMD,
-                  },
+                  label: (
+                    <Box
+                      flexDirection={FlexDirection.Row}
+                      alignItems={AlignItems.center}
+                      gap={4}
+                    >
+                      <MetamaskRewardsPointsImage name="MetamaskRewardsPoints" />
+                      {!isRewardsLoading && estimatedPoints !== null && (
+                        <Text variant={TextVariant.BodyMD}>
+                          {estimatedPoints.toString()}
+                        </Text>
+                      )}
+                    </Box>
+                  ),
                 }}
               />
             )}
