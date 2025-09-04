@@ -118,6 +118,11 @@ const mockActiveQuote = {
     valueInCurrency: '4470.66',
     usd: '4470.66',
   },
+  minToTokenAmount: {
+    amount: '4348.465238',
+    valueInCurrency: '4348.465238',
+    usd: '4348.465238',
+  },
   toTokenAmount: {
     amount: '4437.209427',
     valueInCurrency: '4436.36635720887',
