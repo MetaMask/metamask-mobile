@@ -38,20 +38,14 @@ const migration = async (state: unknown): Promise<unknown> => {
       const srcChainId =
         historyItem.status?.srcChain?.chainId ?? historyItem.quote?.srcChainId;
       const isSolanaTx = isSolanaChainId(srcChainId);
-      if (isSolanaTx) {
-        // If solana tx, use the src chain tx hash as the key
-        const newId = isSolanaTx
-          ? historyItem.status?.srcChain?.txHash
-          : undefined;
-
-        if (newId) {
-          // If txHash is defined, update the txHistory with the new key and txMetaId
-          txHistory[newId] = {
-            ...historyItem,
-            txMetaId: newId,
-          };
-          delete txHistory[key];
-        }
+      const newId = historyItem.status?.srcChain?.txHash;
+      // If solana tx, use the src chain tx hash as the key and txMetaId
+      if (isSolanaTx && newId) {
+        txHistory[newId] = {
+          ...historyItem,
+          txMetaId: newId,
+        };
+        delete txHistory[key];
       }
     });
 
