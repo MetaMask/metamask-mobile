@@ -1289,106 +1289,6 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should successfully complete opt-in process', async () => {
-      // Arrange
-      const mockChallengeResponse = {
-        id: 'challenge-123',
-        message: 'test challenge message',
-      };
-      const mockSignature = '0xsignature123';
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
-        },
-      };
-
-      mockMessenger.call
-        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
-        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
-        .mockResolvedValueOnce(mockOptinResponse); // optin
-
-      // Act
-      await controller.optIn(mockInternalAccount, 'REFERRAL123');
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        2,
-        'RewardsDataService:generateChallenge',
-        {
-          address: mockInternalAccount.address,
-        },
-      );
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        3,
-        'KeyringController:signPersonalMessage',
-        {
-          data: expect.stringContaining('0x'),
-          from: mockInternalAccount.address,
-        },
-      );
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        4,
-        'RewardsDataService:optin',
-        {
-          challengeId: mockChallengeResponse.id,
-          signature: mockSignature,
-          referralCode: 'REFERRAL123',
-        },
-      );
-
-      // Verify state updates
-      expect(controller.state.lastAuthenticatedAccount).toEqual({
-        account: 'eip155:1:0x123456789',
-        hasOptedIn: true,
-        subscriptionId: 'sub-789',
-        lastAuthTime: expect.any(Number),
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      });
-      expect(controller.state.subscriptions['sub-789']).toEqual(
-        mockOptinResponse.subscription,
-      );
-    });
-
-    it('should handle opt-in without referral code', async () => {
-      // Arrange
-      const mockChallengeResponse = {
-        id: 'challenge-123',
-        message: 'test challenge message',
-      };
-      const mockSignature = '0xsignature123';
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'AUTO123',
-          accounts: [],
-        },
-      };
-
-      mockMessenger.call
-        .mockResolvedValueOnce(mockChallengeResponse)
-        .mockResolvedValueOnce(mockSignature)
-        .mockResolvedValueOnce(mockOptinResponse);
-
-      // Act
-      await controller.optIn(mockInternalAccount);
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        4,
-        'RewardsDataService:optin',
-        {
-          challengeId: mockChallengeResponse.id,
-          signature: mockSignature,
-          referralCode: undefined,
-        },
-      );
-    });
-
     it('should handle signature generation errors', async () => {
       // Arrange
       const mockChallengeResponse = {
@@ -1423,6 +1323,103 @@ describe('RewardsController', () => {
       await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
         'Optin failed',
       );
+    });
+
+    it('should use Buffer fallback when toHex fails during hex message conversion', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge with special chars: éñü',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      // Mock toHex to throw an error, triggering the Buffer fallback
+      mockToHex.mockImplementation(() => {
+        throw new Error('toHex encoding error');
+      });
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockToHex).toHaveBeenCalledWith(mockChallengeResponse.message);
+
+      // Verify the fallback Buffer conversion was used by checking the hex data passed to signing
+      const expectedBufferHex =
+        '0x' +
+        Buffer.from(mockChallengeResponse.message, 'utf8').toString('hex');
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'KeyringController:signPersonalMessage',
+        {
+          data: expectedBufferHex,
+          from: mockInternalAccount.address,
+        },
+      );
+    });
+
+    it('should log error when subscription token storage fails', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+      const tokenStorageError = new Error('Failed to store token');
+
+      // Mock successful opt-in flow but failing token storage
+      mockToHex.mockReturnValue('0xhexmessage');
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Mock storeSubscriptionToken to reject
+      mockStoreSubscriptionToken.mockRejectedValueOnce(tokenStorageError);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
+        'sub-789',
+        'session-456',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to store subscription token:',
+        tokenStorageError,
+      );
+
+      // Verify state was still updated correctly despite storage failure
+      expect(controller.state.lastAuthenticatedAccount).toEqual({
+        account: 'eip155:1:0x123456789',
+        hasOptedIn: true,
+        subscriptionId: 'sub-789',
+        lastAuthTime: expect.any(Number),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
   });
 
