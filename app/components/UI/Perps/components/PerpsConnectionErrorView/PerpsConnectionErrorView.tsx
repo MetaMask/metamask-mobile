@@ -18,7 +18,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import ScreenView from '../../../../Base/ScreenView';
 import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
@@ -63,72 +62,70 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   };
 
   return (
-    <ScreenView>
-      <View style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Icon
-            name={IconName.Details}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            style={styles.errorIcon}
-          />
+    <View style={styles.container}>
+      <View style={styles.errorContainer}>
+        <Icon
+          name={IconName.Details}
+          color={IconColor.Muted}
+          size={IconSize.Xl}
+          style={styles.errorIcon}
+        />
 
-          <Text
-            variant={TextVariant.HeadingLG}
-            color={TextColor.Error}
-            style={styles.errorTitle}
-          >
-            {strings('perps.errors.connectionFailed.title')}
-          </Text>
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Default}
+          style={styles.errorTitle}
+        >
+          {strings('perps.errors.connectionFailed.title')}
+        </Text>
 
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Muted}
+          style={styles.errorMessage}
+        >
+          {strings('perps.errors.connectionFailed.description')}
+        </Text>
+
+        {/* Only show debug details in development */}
+        {shouldShowDebugDetails && (
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodySM}
             color={TextColor.Muted}
-            style={styles.errorMessage}
+            style={styles.debugMessage}
           >
-            {strings('perps.errors.connectionFailed.description')}
+            Debug: {error instanceof Error ? error.message : error}
           </Text>
+        )}
+      </View>
 
-          {/* Only show debug details in development */}
-          {shouldShowDebugDetails && (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Muted}
-              style={styles.debugMessage}
-            >
-              Debug: {error instanceof Error ? error.message : error}
-            </Text>
-          )}
-        </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={
+            isRetrying
+              ? strings('perps.connection.retrying_connection')
+              : strings('perps.errors.connectionFailed.retry')
+          }
+          onPress={onRetry}
+          loading={isRetrying}
+          style={styles.retryButton}
+        />
 
-        <View style={styles.buttonContainer}>
+        {shouldShowBackButton && (
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label={
-              isRetrying
-                ? strings('perps.connection.retrying_connection')
-                : strings('perps.errors.connectionFailed.retry')
-            }
-            onPress={onRetry}
-            loading={isRetrying}
-            style={styles.retryButton}
+            label={strings('navigation.go_back')}
+            onPress={handleGoBack}
+            style={styles.backButton}
           />
-
-          {shouldShowBackButton && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('navigation.go_back')}
-              onPress={handleGoBack}
-              style={styles.backButton}
-            />
-          )}
-        </View>
+        )}
       </View>
-    </ScreenView>
+    </View>
   );
 };
 
