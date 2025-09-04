@@ -75,18 +75,23 @@ export class RewardsDataService {
 
   readonly #appType: 'mobile' | 'extension';
 
+  readonly #locale: string;
+
   constructor({
     messenger,
     fetch: fetchFunction,
     appType = 'mobile',
+    locale = 'en-US',
   }: {
     messenger: RewardsDataServiceMessenger;
     fetch: typeof fetch;
     appType?: 'mobile' | 'extension';
+    locale?: string;
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
     this.#appType = appType;
+    this.#locale = locale;
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -148,6 +153,11 @@ export class RewardsDataService {
     } catch (error) {
       // Continue without bearer token if retrieval fails
       console.warn('Failed to retrieve bearer token:', error);
+    }
+
+    // Add locale header for internationalization
+    if (this.#locale) {
+      headers['Accept-Language'] = this.#locale;
     }
 
     const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
