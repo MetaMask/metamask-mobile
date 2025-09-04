@@ -132,7 +132,6 @@ jobs:
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          build-name: ${{ github.repository }}-${{ github.ref_name }}-android-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
@@ -208,7 +207,6 @@ jobs:
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          build-name: ${{ github.repository }}-${{ github.ref_name }}-ios-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
