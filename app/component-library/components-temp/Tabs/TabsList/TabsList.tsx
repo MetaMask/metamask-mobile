@@ -50,16 +50,46 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
       [children],
     );
 
-    // Update active index when initialActiveIndex changes
+    // Update active index when initialActiveIndex or tabs change
     useEffect(() => {
-      // If the initial active index points to a disabled tab, find the first enabled tab
+      // Store the current active tab key for preservation
+      const currentActiveTabKey = tabs[activeIndex]?.key;
+
+      // First, try to preserve the current active tab by key when tabs array changes
+      if (currentActiveTabKey && tabs.length > 0) {
+        // Try to find the current active tab by key in the new tabs array
+        const newIndexForCurrentTab = tabs.findIndex(
+          (tab) => tab.key === currentActiveTabKey,
+        );
+        if (
+          newIndexForCurrentTab >= 0 &&
+          !tabs[newIndexForCurrentTab].isDisabled &&
+          newIndexForCurrentTab !== activeIndex
+        ) {
+          // Preserve the current selection if the tab still exists and is enabled
+          setActiveIndex(newIndexForCurrentTab);
+          return;
+        }
+      }
+
+      // Fallback: When current tab is no longer available, try to keep current index if valid
+      if (
+        activeIndex >= 0 &&
+        activeIndex < tabs.length &&
+        !tabs[activeIndex]?.isDisabled
+      ) {
+        // Current activeIndex is still valid, keep it
+        return;
+      }
+
+      // If current activeIndex is invalid, fall back to initialActiveIndex or first enabled tab
       const targetTab = tabs[initialActiveIndex];
-      if (targetTab?.isDisabled) {
-        const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
-        // If no enabled tabs exist, set to -1 to indicate no active tab
-        setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
-      } else {
+      if (targetTab && !targetTab.isDisabled) {
         setActiveIndex(initialActiveIndex);
+      } else {
+        // Find first enabled tab
+        const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
+        setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
       }
     }, [initialActiveIndex, tabs]);
 
