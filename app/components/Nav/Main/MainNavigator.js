@@ -963,7 +963,6 @@ const MainNavigator = () => {
             component={PerpsScreenStack}
             options={{
               animationEnabled: false,
-              cardStyleInterpolator: () => ({}),
             }}
           />
           <Stack.Screen
