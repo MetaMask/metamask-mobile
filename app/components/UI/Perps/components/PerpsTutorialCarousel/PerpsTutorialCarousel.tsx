@@ -382,7 +382,11 @@ const PerpsTutorialCarousel: React.FC = () => {
             style={styles.continueButton}
           />
           <View style={styles.skipButton}>
-            <TouchableOpacity onPress={handleSkip} disabled={!isEligible} testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}>
+            <TouchableOpacity
+              onPress={handleSkip}
+              disabled={!isEligible}
+              testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
+            >
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}

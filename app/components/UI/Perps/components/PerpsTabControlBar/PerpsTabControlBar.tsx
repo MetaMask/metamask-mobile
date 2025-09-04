@@ -160,7 +160,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
               style={styles.titleText}
-
             >
               {strings('perps.available_balance')}
             </Text>
