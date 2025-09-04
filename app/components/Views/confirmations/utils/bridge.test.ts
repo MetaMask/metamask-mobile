@@ -43,10 +43,8 @@ const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
 };
 
 const QUOTE_1_MOCK = {
-  minToTokenAmount: {
-    amount: '124',
-  },
   quote: {
+    minDestTokenAmount: '124',
     destAsset: {
       address: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
     },
@@ -54,10 +52,8 @@ const QUOTE_1_MOCK = {
 } as unknown as QuoteResponse;
 
 const QUOTE_2_MOCK = {
-  minToTokenAmount: {
-    amount: '124',
-  },
   quote: {
+    minDestTokenAmount: '124',
     destAsset: {
       address: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
     },
@@ -185,36 +181,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -232,36 +228,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -279,36 +275,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -326,8 +322,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -335,8 +331,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '124',
+          quote: {
+            minDestTokenAmount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -374,8 +370,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '120',
+          quote: {
+            minDestTokenAmount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -383,8 +379,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '121',
+          quote: {
+            minDestTokenAmount: '121',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -392,8 +388,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_3 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -418,8 +414,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '120',
+          quote: {
+            minDestTokenAmount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -427,8 +423,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '121',
+          quote: {
+            minDestTokenAmount: '121',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -456,8 +452,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '120',
+          quote: {
+            minDestTokenAmount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -465,8 +461,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '123',
+          quote: {
+            minDestTokenAmount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -508,8 +504,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '123',
+          quote: {
+            minDestTokenAmount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -517,8 +513,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -567,8 +563,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          minToTokenAmount: {
-            amount: '122',
+          quote: {
+            minDestTokenAmount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -576,8 +572,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '123',
+          quote: {
+            minDestTokenAmount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -585,8 +581,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_3 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          minToTokenAmount: {
-            amount: '123',
+          quote: {
+            minDestTokenAmount: '123',
           },
         },
       ] as TransactionBridgeQuote[];

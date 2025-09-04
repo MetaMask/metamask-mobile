@@ -70,7 +70,7 @@ export function useTransactionBridgeQuotes() {
       const {
         address: targetTokenAddress,
         amountRaw: sourceTokenAmount,
-        targetAmountHuman,
+        targetAmountRaw,
       } = sourceAmount;
 
       return {
@@ -84,7 +84,7 @@ export function useTransactionBridgeQuotes() {
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
-        targetAmountMinimum: targetAmountHuman,
+        targetAmountMinimum: targetAmountRaw,
         targetChainId,
         targetTokenAddress,
       };

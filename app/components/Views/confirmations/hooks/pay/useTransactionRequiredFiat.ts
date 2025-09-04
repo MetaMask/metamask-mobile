@@ -58,8 +58,8 @@ export function useTransactionRequiredFiat({
 
         return {
           address: target.address,
-          amountHumanOriginal: amountHuman,
           amountFiat: amountFiat.toNumber(),
+          amountRaw: target.amountRaw,
           balanceFiat: balanceFiat.toNumber(),
           feeFiat: feeFiat.toNumber(),
           totalFiat: totalFiat.toNumber(),

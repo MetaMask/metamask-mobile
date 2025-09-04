@@ -111,8 +111,16 @@ async function getSufficientSingleBridgeQuote(
         index,
       );
 
+      const dust = new BigNumber(result.quote.minDestTokenAmount)
+        .minus(request.targetAmountMinimum)
+        .toString(10);
+
       log('Found valid quote', {
         attempt: i + 1,
+        target: targetTokenAddress,
+        targetAmount: result.quote.minDestTokenAmount,
+        goalAmount: request.targetAmountMinimum,
+        dust,
         quote: result,
       });
 
@@ -253,7 +261,7 @@ function getBestQuote(
   ).slice(0, 3);
 
   const quotesOverMinimumTarget = fastestQuotes.filter((quote) =>
-    new BigNumber(quote.minToTokenAmount.amount).isGreaterThanOrEqualTo(
+    new BigNumber(quote.quote.minDestTokenAmount).isGreaterThanOrEqualTo(
       request.targetAmountMinimum,
     ),
   );
