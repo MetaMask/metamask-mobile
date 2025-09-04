@@ -12,6 +12,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { DeepLinkModalParams } from '../../components/UI/DeepLinkModal';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -29,7 +30,11 @@ export type RootParamList = {
   OnboardingSuccessFlow: undefined;
   OnboardingNav: undefined;
   HomeNav: undefined;
-  Login: undefined;
+  Login: {
+    locked: boolean;
+    oauthLoginSuccess?: boolean;
+    onboardingTraceCtx?: unknown;
+  };
   OnboardingRootNav: undefined;
   ImportFromSecretRecoveryPhrase: undefined;
   OptinMetrics: undefined;
@@ -116,15 +121,9 @@ export type RootParamList = {
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
   MaxBrowserTabsModal: undefined;
-  DeepLinkModal: undefined;
-  MultichainAccountDetailActions: {
-    screen: string;
-    params?: Record<string, unknown>;
-  };
-  RootModalFlow: {
-    screen: string;
-    params?: Record<string, unknown>;
-  };
+  DeepLinkModal: DeepLinkModalParams;
+  MultichainAccountDetailActions: undefined;
+  RootModalFlow: undefined;
 
   // Sheet Screens
   OnboardingSheet: {
@@ -320,7 +319,7 @@ export type RootParamList = {
 
   // Main App Screens
   FoxLoader: undefined;
-  LockScreen: undefined;
+  LockScreen: { bioStateMachineId: string };
   OptionsSheet: undefined;
   EditAccountName: undefined;
   TransactionsView: undefined;

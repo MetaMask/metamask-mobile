@@ -39,7 +39,6 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import {
   useNetworksByNamespace,
@@ -53,11 +52,6 @@ import {
   NetworkMenuModalState,
   ShowConfirmDeleteModalState,
 } from './index.types';
-
-export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.NETWORK_MANAGER,
-);
 
 const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,

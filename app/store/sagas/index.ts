@@ -46,7 +46,7 @@ export function* appLockStateMachine() {
       biometricsStateMachine,
       bioStateMachineId,
     );
-    NavigationService.navigation?.navigate(Routes.LOCK_SCREEN, {
+    NavigationService.navigation?.navigate('LockScreen', {
       bioStateMachineId,
     });
   }
@@ -120,7 +120,7 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
     // Authentication service will automatically log out.
   } else if (action?.type === UserActionType.AUTH_SUCCESS) {
     // Authentication successful. Navigate to wallet.
-    NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
+    NavigationService.navigation?.navigate('HomeNav');
   }
 }
 

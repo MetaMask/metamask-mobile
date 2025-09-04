@@ -29,7 +29,6 @@ import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../../Tokens/TokensBottomSheet';
-import { createNetworkManagerNavDetails } from '../../NetworkManager';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
   useNetworksByNamespace,
@@ -37,6 +36,8 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
+import { NavigatableRootParamList } from '../../../../util/navigation';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 export interface BaseControlBarProps {
   /**
@@ -79,7 +80,8 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   customWrapper = 'outer',
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   // Shared selectors
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -105,7 +107,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
+      navigation.navigate('RootModalFlow', {
+        screen: 'NetworkManager',
+      });
     } else if (useEvmSelectionLogic && isEvmSelected) {
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
     } else if (!useEvmSelectionLogic) {

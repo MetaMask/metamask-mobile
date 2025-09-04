@@ -2,11 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+import { useParams } from '../../../util/navigation/navUtils';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -36,11 +32,6 @@ export interface LedgerMessageSignModalParams {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deviceId: any;
 }
-
-export const createLedgerMessageSignModalNavDetails =
-  createNavigationDetails<LedgerMessageSignModalParams>(
-    Routes.LEDGER_MESSAGE_SIGN_MODAL,
-  );
 
 const LedgerMessageSignModal = () => {
   const dispatch = useDispatch();

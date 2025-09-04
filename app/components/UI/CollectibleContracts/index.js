@@ -64,7 +64,6 @@ import {
   getNetworkImageSource,
 } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
-import { createNetworkManagerNavDetails } from '../NetworkManager';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
@@ -290,7 +289,9 @@ const CollectibleContracts = ({
 
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
+      navigation.navigate('RootModalFlow', {
+        screen: 'NetworkManager',
+      });
     } else {
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
     }

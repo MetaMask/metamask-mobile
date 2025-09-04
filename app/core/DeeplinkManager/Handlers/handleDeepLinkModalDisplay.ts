@@ -1,7 +1,4 @@
-import {
-  createDeepLinkModalNavDetails,
-  DeepLinkModalParams,
-} from '../../../components/UI/DeepLinkModal';
+import { DeepLinkModalParams } from '../../../components/UI/DeepLinkModal';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import { store } from '../../../store';
 import NavigationService from '../../../core/NavigationService';
@@ -15,9 +12,10 @@ const handleDeepLinkModalDisplay = (params: DeepLinkModalParams) => {
     params.onContinue();
     return;
   }
-  NavigationService.navigation.navigate(
-    ...createDeepLinkModalNavDetails(params),
-  );
+  NavigationService.navigation.navigate('RootModalFlow', {
+    screen: 'DeepLinkModal',
+    params,
+  });
 };
 
 export default handleDeepLinkModalDisplay;

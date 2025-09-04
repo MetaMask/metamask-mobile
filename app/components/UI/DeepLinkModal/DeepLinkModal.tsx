@@ -14,7 +14,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import Button, {
   ButtonVariants,
@@ -37,11 +36,9 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { pageNotFound, foxLogo } from './constant';
-import {
-  DeepLinkModalLinkType,
-  DeepLinkModalParams,
-  ModalImageProps,
-} from './types';
+import { DeepLinkModalLinkType, ModalImageProps } from './types';
+import { type StackScreenProps } from '@react-navigation/stack';
+import { type RootParamList } from '../../../util/navigation/types';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   if (linkType === DeepLinkModalLinkType.INVALID) {
@@ -58,13 +55,14 @@ const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
   );
 });
 
-const DeepLinkModal = () => {
-  const params = useParams<DeepLinkModalParams>();
-  const { linkType, onBack } = params;
+type DeepLinkModalProps = StackScreenProps<RootParamList, 'DeepLinkModal'>;
+
+const DeepLinkModal = ({ route }: DeepLinkModalProps) => {
+  const { linkType, onBack } = route.params;
 
   const pageTitle =
-    params.linkType !== DeepLinkModalLinkType.INVALID
-      ? params.pageTitle
+    route.params.linkType !== DeepLinkModalLinkType.INVALID
+      ? route.params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -157,7 +155,9 @@ const DeepLinkModal = () => {
             .build(),
         );
       }
-      params.onContinue();
+      if (route.params.linkType !== DeepLinkModalLinkType.INVALID) {
+        route.params.onContinue();
+      }
     });
   }, [
     trackEvent,
@@ -165,7 +165,7 @@ const DeepLinkModal = () => {
     linkType,
     pageTitle,
     LINK_TYPE_MAP,
-    params,
+    route.params,
   ]);
 
   const onDontRemindMeAgainPressed = useCallback(() => {

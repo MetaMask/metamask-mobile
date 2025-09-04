@@ -40,7 +40,6 @@ import {
 import { useTheme } from '../../../util/theme';
 import TabBar from '../../Base/TabBar';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
-import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -184,7 +183,9 @@ const ActivityView = () => {
 
   const showFilterControls = () => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
+      navigation.navigate('RootModalFlow', {
+        screen: 'NetworkManager',
+      });
     } else {
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
     }
