@@ -11,9 +11,10 @@ import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export function TotalRow() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+  const { id: transactionId, type } = useTransactionMetadataOrThrow();
   const { formatted: totalFiat } = useTransactionTotalFiat();
 
   const isQuotesLoading = useSelector((state: RootState) =>
@@ -22,7 +23,10 @@ export function TotalRow() {
 
   return (
     <View testID="total-row">
-      <InfoRow label={strings('confirm.label.total')}>
+      <InfoRow
+        label={strings('confirm.label.total')}
+        tooltip={getTooltip(type)}
+      >
         {isQuotesLoading ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
         ) : (
@@ -31,4 +35,13 @@ export function TotalRow() {
       </InfoRow>
     </View>
   );
+}
+
+function getTooltip(type?: TransactionType) {
+  switch (type) {
+    case TransactionType.perpsDeposit:
+      return strings('confirm.tooltip.perps_deposit.total');
+    default:
+      return undefined;
+  }
 }
