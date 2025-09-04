@@ -1,11 +1,12 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { Recipient, RecipientType } from './recipient';
 
 describe('Recipient', () => {
+  const TOOLTIP_TITLE = 'Recipient Address';
   const createMockRecipient = (
     overrides: Partial<RecipientType> = {},
   ): RecipientType => ({
@@ -95,6 +96,70 @@ describe('Recipient', () => {
     );
 
     expect(getByText('John Doe')).toBeOnTheScreen();
+  });
+
+  it('renders recipient address correctly', () => {
+    const mockRecipient = createMockRecipient();
+    const { getByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('0x12345...67890')).toBeOnTheScreen();
+  });
+
+  it('displays tooltip when address is pressed', async () => {
+    const mockRecipient = createMockRecipient();
+    const { getByText, queryByText } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    const addressPressable = getByText('0x12345...67890');
+
+    expect(queryByText(TOOLTIP_TITLE)).not.toBeOnTheScreen();
+    expect(queryByText(mockRecipient.address)).not.toBeOnTheScreen();
+
+    fireEvent.press(addressPressable);
+
+    await waitFor(() => {
+      expect(getByText(TOOLTIP_TITLE)).toBeOnTheScreen();
+      expect(getByText(mockRecipient.address)).toBeOnTheScreen();
+    });
+  });
+
+  it('hides tooltip when dismissed', async () => {
+    const mockRecipient = createMockRecipient();
+    const { getByText, queryByText, getByTestId } = renderWithProvider(
+      <Recipient
+        recipient={mockRecipient}
+        accountAvatarType={AvatarAccountType.JazzIcon}
+        onPress={mockOnPress}
+      />,
+    );
+
+    const addressPressable = getByText('0x12345...67890');
+
+    fireEvent.press(addressPressable);
+
+    await waitFor(() => {
+      expect(getByText(TOOLTIP_TITLE)).toBeOnTheScreen();
+      expect(getByText(mockRecipient.address)).toBeOnTheScreen();
+    });
+
+    const tooltipDismissButton = getByTestId('tooltip-modal-close-btn');
+    fireEvent.press(tooltipDismissButton);
+
+    await waitFor(() => {
+      expect(queryByText(TOOLTIP_TITLE)).not.toBeOnTheScreen();
+      expect(queryByText(mockRecipient.address)).not.toBeOnTheScreen();
+    });
   });
 
   it('renders contact name when account name is not provided', () => {
