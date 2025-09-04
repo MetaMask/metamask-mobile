@@ -1,5 +1,11 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -37,7 +43,7 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
-import { usePerpsLiveOrders } from '../../hooks/stream';
+import { usePerpsLiveAccount, usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
 import styleSheet from './PerpsTabView.styles';
@@ -47,13 +53,31 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import Engine from '../../../../../core/Engine';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { formatPerpsFiat } from '../../utils/formatUtils';
+import { toHumanDuration } from '../../../../Views/confirmations/utils/time';
+import { RootState } from '../../../../../reducers';
+import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
+
+  const { account: liveAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const [isExpectingDeposit, setIsExpectingDeposit] = useState(false);
+  const previousBalanceRef = useRef<string | null>(null);
+
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -75,6 +99,92 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
+  const { toastRef } = useContext(ToastContext);
+
+  // Get the internal transaction ID from the controller. Needed to get bridge quotes.
+  const lastDepositTransactionId = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PerpsController?.lastDepositTransactionId ??
+      null,
+  );
+
+  // For Perps deposits this array typically contains only one element.
+  const bridgeQuotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
+  );
+
+  const showDepositInProgressToast = useCallback(() => {
+    const processingTimeSeconds =
+      bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
+
+    let processingMessage = strings(
+      'perps.deposit.funds_available_momentarily',
+    );
+
+    if (processingTimeSeconds && processingTimeSeconds > 0) {
+      const formattedProcessingTime = toHumanDuration(processingTimeSeconds);
+      processingMessage = strings('perps.deposit.estimated_processing_time', {
+        time: formattedProcessingTime,
+      });
+    }
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.primary.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.deposit.in_progress'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: processingMessage,
+          isBold: false,
+        },
+      ],
+    });
+  }, [
+    bridgeQuotes,
+    theme.colors.icon.default,
+    theme.colors.primary.default,
+    toastRef,
+  ]);
+
+  const showDepositSuccessToast = useCallback(
+    (amount: string) => {
+      const amountFormatted = formatPerpsFiat(amount);
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.CheckBold,
+        iconColor: theme.colors.icon.default,
+        backgroundColor: theme.colors.primary.default,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.deposit.success_toast'),
+            isBold: true,
+          },
+          {
+            label: '\n',
+          },
+          {
+            label: strings('perps.deposit.success_message', {
+              amount: amountFormatted,
+            }),
+            isBold: false,
+          },
+        ],
+      });
+    },
+    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
+  );
+
   const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
@@ -84,6 +194,82 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const hasPositions = positions && positions.length > 0;
   const hasOrders = orders && orders.length > 0;
   const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
+
+  // Listen for transaction submission
+  useEffect(() => {
+    const handleTransactionSubmitted = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      if (transactionMeta.type === TransactionType.perpsDeposit) {
+        showDepositInProgressToast();
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionSubmitted',
+      handleTransactionSubmitted,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionSubmitted',
+        handleTransactionSubmitted,
+      );
+    };
+  }, [showDepositInProgressToast]);
+
+  // Listen for deposit transaction confirmations
+  useEffect(() => {
+    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+      if (transactionMeta.type === TransactionType.perpsDeposit) {
+        setIsExpectingDeposit(true);
+      }
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handleTransactionConfirmed,
+    );
+
+    return () => {
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionConfirmed',
+        handleTransactionConfirmed,
+      );
+    };
+  }, []);
+
+  // Watch live account balance for deposit credits
+  useEffect(() => {
+    // Initialize previous balance
+    if (previousBalanceRef.current === null && liveAccount?.availableBalance) {
+      previousBalanceRef.current = liveAccount.availableBalance;
+      return;
+    }
+
+    // Check for balance increase
+    if (
+      isExpectingDeposit &&
+      liveAccount?.availableBalance &&
+      previousBalanceRef.current &&
+      parseFloat(liveAccount.availableBalance) >
+        parseFloat(previousBalanceRef.current)
+    ) {
+      showDepositSuccessToast(liveAccount.availableBalance);
+      setIsExpectingDeposit(false);
+    }
+
+    // Always update the ref
+    if (liveAccount?.availableBalance) {
+      previousBalanceRef.current = liveAccount.availableBalance;
+    }
+  }, [
+    isExpectingDeposit,
+    liveAccount?.availableBalance,
+    showDepositSuccessToast,
+  ]);
 
   // Start measuring position data load time on mount
   useEffect(() => {
@@ -266,6 +452,18 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
+        />
+        <Button
+          variant={ButtonVariants.Primary}
+          onPress={showDepositInProgressToast}
+          label="Show Deposit In Progress Toast"
+        />
+        <Button
+          variant={ButtonVariants.Primary}
+          onPress={() =>
+            showDepositSuccessToast(liveAccount?.availableBalance ?? '')
+          }
+          label="Show Success Toast"
         />
         <ScrollView
           style={styles.content}
