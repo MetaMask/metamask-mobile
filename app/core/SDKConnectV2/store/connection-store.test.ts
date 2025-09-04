@@ -5,13 +5,13 @@ import StorageWrapper from '../../../store/storage-wrapper';
 
 jest.mock('@react-native-async-storage/async-storage');
 jest.mock('../../../store/storage-wrapper', () => ({
-    __esModule: true,
-    default: {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-    },
-  }));
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
 
 describe('ConnectionStore', () => {
   let store: ConnectionStore;

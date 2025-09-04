@@ -2,13 +2,13 @@ import { KVStore } from './kv-store';
 import StorageWrapper from '../../../store/storage-wrapper';
 
 jest.mock('../../../store/storage-wrapper', () => ({
-    __esModule: true,
-    default: {
-      getItem: jest.fn(),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
-    },
-  }));
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+}));
 
 describe('KVStore', () => {
   let store: KVStore;
