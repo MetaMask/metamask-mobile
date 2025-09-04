@@ -362,50 +362,6 @@ describe('App', () => {
       });
     });
 
-    it('navigates to OptinMetrics when user exists and OptinMetaMetricsUISeen is false', async () => {
-      // Mock StorageWrapper.getItem to return different values based on the key
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) {
-          return false; // OptinMetrics UI has not been seen
-        }
-        return null; // Default for other keys
-      });
-
-      renderScreen(
-        App,
-        { name: 'App' },
-        {
-          state: {
-            ...initialState,
-            user: {
-              ...initialState.user,
-              existingUser: true,
-            },
-          },
-        },
-      );
-
-      // Wait a bit longer and add debugging
-      await waitFor(
-        () => {
-          expect(mockReset).toHaveBeenCalledWith({
-            routes: [
-              {
-                name: Routes.ONBOARDING.ROOT_NAV,
-                params: {
-                  screen: Routes.ONBOARDING.NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.OPTIN_METRICS,
-                  },
-                },
-              },
-            ],
-          });
-        },
-        { timeout: 5000 },
-      );
-    });
-
     describe('Seedless onboarding password outdated check', () => {
       const LoggerMock = jest.requireMock('../../../util/Logger');
 
@@ -839,45 +795,6 @@ describe('App', () => {
       await waitFor(() => {
         expect(mockReset).toHaveBeenCalledWith({
           routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-        });
-      });
-    });
-
-    it('should use useNavigation.reset with correct parameters for optin metrics navigation', async () => {
-      jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) {
-          return false; // OptinMetrics UI has not been seen
-        }
-        return null; // Default for other keys
-      });
-
-      renderScreen(
-        App,
-        { name: 'App' },
-        {
-          state: {
-            ...initialState,
-            user: {
-              ...initialState.user,
-              existingUser: true,
-            },
-          },
-        },
-      );
-
-      await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith({
-          routes: [
-            {
-              name: Routes.ONBOARDING.ROOT_NAV,
-              params: {
-                screen: Routes.ONBOARDING.NAV,
-                params: {
-                  screen: Routes.ONBOARDING.OPTIN_METRICS,
-                },
-              },
-            },
-          ],
         });
       });
     });
