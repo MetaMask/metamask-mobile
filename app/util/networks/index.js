@@ -224,7 +224,8 @@ export const getPersistentNetworks = () => [
  * @param {string} networkType - The network type to check.
  * @returns {boolean} - True if the network is persistent, false otherwise.
  */
-export const isPersistentNetwork = (networkType) => getPersistentNetworks().includes(networkType);
+export const isPersistentNetwork = (networkType) =>
+  getPersistentNetworks().includes(networkType);
 
 /**
  * Checks if network is default mainnet.
