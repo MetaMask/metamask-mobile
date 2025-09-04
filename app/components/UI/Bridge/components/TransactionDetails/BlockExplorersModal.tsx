@@ -20,13 +20,16 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { Theme } from '../../../../../util/theme/models';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootParamList } from '../../../../../util/navigation';
+import {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../util/navigation';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -45,7 +48,13 @@ type BlockExplorersModalProps = StackScreenProps<
 >;
 
 const BlockExplorersModal = (props: BlockExplorersModalProps) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      NavigationProp<
+        NavigatableRootParamList,
+        'TransactionDetailsBlockExplorer'
+      >
+    >();
   const { styles } = useStyles(styleSheet, {});
 
   const evmTxMeta = props.route.params.evmTxMeta;
@@ -108,8 +117,8 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
               </Box>
             }
             onPress={() => {
-              navigation.navigate(Routes.BROWSER.HOME, {
-                screen: Routes.BROWSER.VIEW,
+              navigation.navigate('BrowserHome', {
+                screen: 'BrowserView',
                 params: {
                   newTabUrl: srcExplorerData.explorerTxUrl,
                   timestamp: Date.now(),

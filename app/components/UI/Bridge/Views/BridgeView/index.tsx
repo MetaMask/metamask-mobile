@@ -75,7 +75,8 @@ export type BridgeRouteParams = RootParamList['BridgeView'];
 type BridgeViewProps = StackScreenProps<RootParamList, 'BridgeView'>;
 
 const BridgeView = ({ route }: BridgeViewProps) => {
-  const navigation = useNavigation<NavigationProp<NavigatableRootParamList>>();
+  const navigation =
+    useNavigation<NavigationProp<NavigatableRootParamList, 'BridgeView'>>();
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);

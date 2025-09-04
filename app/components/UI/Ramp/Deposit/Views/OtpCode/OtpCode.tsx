@@ -6,10 +6,7 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -33,8 +30,9 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
+import { type NavigatableRootParamList } from '../../../../../../util/navigation';
+import { type StackNavigationProp } from '@react-navigation/stack';
 
 export interface OtpCodeParams {
   email: string;
@@ -67,7 +65,8 @@ const ResendButton: FC<{
 };
 
 const OtpCode = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
   const { email, stateToken, redirectToRootAfterAuth } =
@@ -200,13 +199,9 @@ const OtpCode = () => {
         });
 
         if (redirectToRootAfterAuth) {
-          navigation.navigate(Routes.DEPOSIT.ROOT);
+          navigation.navigate('DepositRoot');
         } else {
-          navigation.navigate(
-            ...createBuildQuoteNavDetails({
-              shouldRouteImmediately: true,
-            }),
-          );
+          navigation.navigate('BuildQuote', { shouldRouteImmediately: true });
         }
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {

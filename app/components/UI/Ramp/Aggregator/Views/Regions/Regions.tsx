@@ -18,8 +18,6 @@ import StyledButton from '../../../../StyledButton';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
-import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import { useRampSDK } from '../../sdk';
 import { Region } from '../../types';
@@ -33,9 +31,12 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import { type NavigatableRootParamList } from '../../../../../../util/navigation';
+import { type StackNavigationProp } from '@react-navigation/stack';
 
 const RegionsView = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const {
@@ -100,7 +101,7 @@ const RegionsView = () => {
   }, [isBuy, navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createBuildQuoteNavDetails());
+    navigation.navigate('BuildQuote');
   }, [navigation]);
 
   useEffect(() => {
@@ -115,7 +116,7 @@ const RegionsView = () => {
         index: 0,
         routes: [
           {
-            name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
+            name: 'BuildQuoteHasStarted',
             params: { showBack: false },
           },
         ],

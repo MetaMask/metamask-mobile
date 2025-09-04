@@ -53,11 +53,6 @@ import ErrorView from '../../components/ErrorView';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
@@ -87,21 +82,18 @@ import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Bu
 import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
+import { type RootParamList } from '../../../../../../util/navigation';
+import { type StackScreenProps } from '@react-navigation/stack';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-interface BuildQuoteParams {
-  showBack?: boolean;
-}
+type BuildQuoteProps = StackScreenProps<RootParamList, 'BuildQuote'>;
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
-
-const BuildQuote = () => {
+const BuildQuote = ({ route }: BuildQuoteProps) => {
+  const showBack = route.params?.showBack;
   const navigation = useNavigation();
-  const params = useParams<BuildQuoteParams>();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -365,13 +357,13 @@ const BuildQuote = () => {
           title: isBuy
             ? strings('fiat_on_ramp_aggregator.amount_to_buy')
             : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: params.showBack,
+          showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, params.showBack, isBuy]);
+  }, [navigation, colors, handleCancelPress, showBack, isBuy]);
 
   /**
    * * Keypad style, handlers and effects

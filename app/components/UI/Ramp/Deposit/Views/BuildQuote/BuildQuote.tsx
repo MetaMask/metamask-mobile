@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex, isHexString } from '@metamask/utils';
@@ -80,23 +84,20 @@ import {
   EUR_CURRENCY,
   DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { type StackScreenProps } from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 
-interface BuildQuoteParams {
-  shouldRouteImmediately?: boolean;
-}
+type BuildQuoteProps = StackScreenProps<RootParamList, 'BuildQuote'>;
 
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
+const BuildQuote = ({ route }: BuildQuoteProps) => {
+  const shouldRouteImmediately = route.params?.shouldRouteImmediately;
 
-const BuildQuote = () => {
-  const { shouldRouteImmediately } = useParams<BuildQuoteParams>();
-
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<NavigatableRootParamList, 'BuildQuote'>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
 

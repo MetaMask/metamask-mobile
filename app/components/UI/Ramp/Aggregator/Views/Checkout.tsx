@@ -4,7 +4,6 @@ import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
-import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '../../../../../styles/common';
 import { useTheme } from '../../../../../util/theme';
@@ -15,10 +14,6 @@ import {
   removeFiatCustomIdData,
 } from '../../../../../reducers/fiatOrders';
 import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import ScreenLayout from '../components/ScreenLayout';
@@ -26,20 +21,14 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import useAnalytics from '../../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';
+import { type RootParamList } from '../../../../../util/navigation/types';
+import { type StackScreenProps } from '@react-navigation/stack';
 
-interface CheckoutParams {
-  url: string;
-  customOrderId?: string;
-  provider: Provider;
-}
+type CheckoutWebViewProps = StackScreenProps<RootParamList, 'Checkout'>;
 
-export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.RAMP.CHECKOUT,
-);
-
-const CheckoutWebView = () => {
+const CheckoutWebView = ({ route }: CheckoutWebViewProps) => {
+  const params = route.params;
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
     useRampSDK();
   const dispatch = useDispatch();
@@ -49,7 +38,6 @@ const CheckoutWebView = () => {
   const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
-  const params = useParams<CheckoutParams>();
   const { colors } = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 

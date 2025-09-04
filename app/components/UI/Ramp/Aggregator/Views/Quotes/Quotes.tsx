@@ -46,16 +46,12 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
-import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
@@ -63,6 +59,8 @@ import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import { type StackNavigationProp } from '@react-navigation/stack';
+import { type NavigatableRootParamList } from '../../../../../../util/navigation/types';
 
 export interface QuotesParams {
   amount: number | string;
@@ -75,7 +73,8 @@ export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
 );
 
 function Quotes() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
 
@@ -340,13 +339,11 @@ function Quotes() {
             callbackBaseUrl,
           );
 
-          navigation.navigate(
-            ...createCheckoutNavDetails({
-              url,
-              provider,
-              customOrderId,
-            }),
-          );
+          navigation.navigate('Checkout', {
+            url,
+            provider,
+            customOrderId,
+          });
         } else if (
           buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
         ) {
@@ -456,13 +453,11 @@ function Quotes() {
           const { url, orderId: customOrderId } = await buyAction.createWidget(
             callbackBaseUrl,
           );
-          navigation.navigate(
-            ...createCheckoutNavDetails({
-              provider: quote.provider,
-              url,
-              customOrderId,
-            }),
-          );
+          navigation.navigate('Checkout', {
+            provider: quote.provider,
+            url,
+            customOrderId,
+          });
         } else {
           throw new Error('Unsupported browser type: ' + buyAction.browser);
         }
