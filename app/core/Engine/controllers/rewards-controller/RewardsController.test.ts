@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   RewardsController,
   getRewardsControllerDefaultState,
@@ -25,11 +26,17 @@ jest.mock('../../../../store');
 jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
+jest.mock('@solana/addresses', () => ({
+  isAddress: jest.fn(),
+}));
 
 // Import mocked modules
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { store } from '../../../../store';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { isHardwareAccount } from '../../../../util/address';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import Logger from '../../../../util/Logger';
 
 // Type the mocked modules
 const mockSelectRewardsEnabledFlag =
@@ -37,6 +44,13 @@ const mockSelectRewardsEnabledFlag =
     typeof selectRewardsEnabledFlag
   >;
 const mockStore = store as jest.Mocked<typeof store>;
+const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
+  typeof isHardwareAccount
+>;
+const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
+  typeof isSolanaAddress
+>;
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -1659,6 +1673,271 @@ describe('RewardsController', () => {
 
       // Assert
       expect(result).toBe(false);
+    });
+  });
+
+  describe('silent auth skipping behavior', () => {
+    let originalDateNow: () => number;
+    let subscribeCallback: any;
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      // Mock Date.now for consistent testing
+      originalDateNow = Date.now;
+      Date.now = jest.fn(() => 1000000); // Fixed timestamp
+
+      // Get the account change subscription callback
+      const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      );
+      subscribeCallback = subscribeCalls
+        ? subscribeCalls[1]
+        : async () => undefined;
+    });
+
+    afterEach(() => {
+      Date.now = originalDateNow;
+    });
+
+    it('should skip silent auth for hardware accounts', async () => {
+      // Arrange
+      mockIsHardwareAccount.mockReturnValue(true);
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Hardware Account',
+          keyring: { type: 'Ledger Hardware' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Act - trigger account change
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt to call login service for hardware accounts
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.anything(),
+      );
+    });
+
+    it('should skip silent auth for Solana addresses', async () => {
+      // Arrange
+      mockIsSolanaAddress.mockReturnValue(true);
+      const mockAccount = {
+        address: 'solana-address',
+        type: 'solana:data-account' as const,
+        id: 'test-id',
+        scopes: ['solana:mainnet' as const],
+        options: {},
+        methods: ['solana_signMessage'],
+        metadata: {
+          name: 'Solana Account',
+          keyring: { type: 'Solana Keyring' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Act - trigger account change
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt to call login service for Solana accounts
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith('solana-address');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.anything(),
+      );
+    });
+
+    it('should skip silent auth when within grace period for same account', async () => {
+      // Arrange
+      const now = 1000000;
+      const withinGracePeriod = now - 5 * 60 * 1000; // 5 minutes ago (within 10 minute grace period)
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'test',
+            lastAuthTime: withinGracePeriod,
+            perpsFeeDiscount: 0,
+            lastPerpsDiscountRateFetched: null,
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Get the new subscription callback for the recreated controller
+      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
+        .filter(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )
+        .pop()?.[1];
+
+      // Act - trigger account change
+      if (newSubscribeCallback) {
+        await newSubscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt authentication within grace period
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.anything(),
+      );
+    });
+
+    it('should perform silent auth when outside grace period', async () => {
+      // Arrange
+      const now = 1000000;
+      const outsideGracePeriod = now - 15 * 60 * 1000; // 15 minutes ago (outside grace period)
+
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastAuthTime: outsideGracePeriod,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: null,
+          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce({
+          // login
+          sessionId: 'session123',
+          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+        });
+
+      // Get the new subscription callback for the recreated controller
+      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
+        .filter(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )
+        .pop()?.[1];
+
+      // Act - trigger account change
+      if (newSubscribeCallback) {
+        await newSubscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should attempt authentication outside grace period
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({
+          from: '0x123',
+        }),
+      );
+    });
+  });
+
+  describe('authentication trigger logging', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      // Don't clear all mocks here since we need the controller's subscriptions
+    });
+
+    it('should log feature flag disabled message when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      jest.clearAllMocks();
+
+      // Create new controller to ensure fresh subscriptions
+      controller = new RewardsController({
+        messenger: mockMessenger,
+      });
+
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act - trigger account change when feature flag is disabled
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, null);
+      }
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Feature flag disabled, skipping silent auth',
+      );
     });
   });
 });
