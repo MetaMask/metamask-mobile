@@ -61,6 +61,7 @@ describe('useTransactionPayTokenAmounts', () => {
         address: tokenAddress1Mock,
         balance: '123.456',
         balanceFiat: '123.456',
+        balanceRaw: '1234560',
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'TST',
