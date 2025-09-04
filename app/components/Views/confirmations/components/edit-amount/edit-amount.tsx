@@ -132,6 +132,10 @@ export function EditAmount({
     [handleChange, tokenFiatAmount],
   );
 
+  const alertMessage = inputChanged
+    ? (alerts?.[0]?.message as string)
+    : undefined;
+
   return (
     <View style={styles.container}>
       <View style={styles.primaryContainer}>
@@ -157,6 +161,7 @@ export function EditAmount({
       </View>
       {showKeyboard && (
         <DepositKeyboard
+          alertMessage={alertMessage}
           value={amountFiat}
           hasInput={hasAmount}
           onChange={handleChange}

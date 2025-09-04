@@ -51,10 +51,10 @@
       "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
     },
     "perps_deposit_minimum": {
-      "message": "Min order value is $10"
+      "message": "Minimum $10"
     },
     "insufficient_pay_token_balance": {
-      "message": "Insufficient funds. Select different token."
+      "message": "Insufficient funds"
     },
     "insufficient_pay_token_native": {
       "message": "Insufficient native funds on payment token chain. Select different token."

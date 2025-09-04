@@ -11,6 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import Text from '../../../../../component-library/components/Texts/Text';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -32,6 +33,7 @@ const PERCENTAGE_BUTTONS = [
 ];
 
 export interface DepositKeyboardProps {
+  alertMessage?: string;
   hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
@@ -41,6 +43,7 @@ export interface DepositKeyboardProps {
 
 export const DepositKeyboard = memo(
   ({
+    alertMessage,
     hasInput,
     onChange,
     onDonePress,
@@ -75,6 +78,7 @@ export const DepositKeyboard = memo(
           gap={10}
         >
           {!hasInput &&
+            !alertMessage &&
             PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
@@ -84,7 +88,7 @@ export const DepositKeyboard = memo(
                 variant={ButtonVariants.Secondary}
               />
             ))}
-          {hasInput && (
+          {hasInput && !alertMessage && (
             <Button
               testID="deposit-keyboard-done-button"
               label={strings('confirm.deposit_edit_amount_done')}
@@ -92,6 +96,11 @@ export const DepositKeyboard = memo(
               onPress={onDonePress}
               variant={ButtonVariants.Primary}
             />
+          )}
+          {alertMessage && (
+            <Box style={styles.alertContainer}>
+              <Text style={styles.alertText}>{alertMessage}</Text>
+            </Box>
           )}
         </Box>
         <KeypadComponent
