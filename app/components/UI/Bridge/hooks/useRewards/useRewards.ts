@@ -88,10 +88,9 @@ export const useRewards = ({
 
     try {
       // Check if rewards feature is enabled
-      // const isRewardsEnabled = await Engine.controllerMessenger.call(
-      //   'RewardsController:isRewardsFeatureEnabled',
-      // );
-      const isRewardsEnabled = true; // TODO remove this
+      const isRewardsEnabled = await Engine.controllerMessenger.call(
+        'RewardsController:isRewardsFeatureEnabled',
+      );
 
       if (!isRewardsEnabled) {
         setEstimatedPoints(null);
@@ -112,11 +111,10 @@ export const useRewards = ({
       }
 
       // Check if account has opted in
-      // const hasOptedIn = await Engine.controllerMessenger.call(
-      //   'RewardsController:getHasAccountOptedIn',
-      //   caipAccount,
-      // );
-      const hasOptedIn = true; // TODO remove this once Rewards team implements the button in the UI
+      const hasOptedIn = await Engine.controllerMessenger.call(
+        'RewardsController:getHasAccountOptedIn',
+        caipAccount,
+      );
 
       if (!hasOptedIn) {
         setEstimatedPoints(null);

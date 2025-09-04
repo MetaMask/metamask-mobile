@@ -584,11 +584,21 @@ describe('QuoteDetailsCard', () => {
     });
 
     it('displays rewards row without points when estimation fails', async () => {
-      // Given rewards estimation fails or returns null
-      // This matches the actual behavior in tests where useRewards shows the row but no points
-      mockEngine.controllerMessenger.call.mockImplementation(() =>
-        // Return null or throw error to simulate failure
-        Promise.resolve(null),
+      // Given rewards estimation fails but feature is enabled and user has opted in
+      mockEngine.controllerMessenger.call.mockImplementation(
+        (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:estimatePoints') {
+            // Throw error to simulate failure
+            throw new Error('Estimation failed');
+          }
+          return Promise.resolve(null);
+        },
       );
 
       // When rendering the component
@@ -614,9 +624,7 @@ describe('QuoteDetailsCard', () => {
       expect(queryByText(/^\d+$/)).toBeNull();
     });
 
-    // Note: These tests are skipped because useRewards has hardcoded values for isRewardsEnabled and hasOptedIn
-    // They will need to be updated once the TODOs in useRewards are addressed
-    it.skip('does not display rewards row when rewards feature is disabled', async () => {
+    it('does not display rewards row when rewards feature is disabled', async () => {
       // Given rewards feature is disabled
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
@@ -644,7 +652,7 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it.skip('does not display rewards row when user has not opted in', async () => {
+    it('does not display rewards row when user has not opted in', async () => {
       // Given rewards feature is enabled but user has not opted in
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
@@ -754,9 +762,15 @@ describe('QuoteDetailsCard', () => {
     });
 
     it('displays rewards row but no points when engine returns zero', async () => {
-      // Given rewards estimation returns zero (but in practice, the hook may not display it)
+      // Given rewards estimation returns zero with feature enabled and user opted in
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
           if (method === 'RewardsController:estimatePoints') {
             return Promise.resolve({ pointsEstimate: 0 });
           }
@@ -783,7 +797,7 @@ describe('QuoteDetailsCard', () => {
         ).toBeOnTheScreen();
       });
 
-      // In current implementation, points value might not display even with zero
+      // When points are 0, we may show "0" or no value at all
       // This behavior will depend on how useRewards handles the response
     });
 
@@ -822,11 +836,16 @@ describe('QuoteDetailsCard', () => {
       });
     });
 
-    it('displays rewards row regardless of engine response', async () => {
-      // Given any engine response
-      // The current implementation shows rewards row when useRewards conditions are met
+    it('displays rewards row when all conditions are met', async () => {
+      // Given rewards feature is enabled, user has opted in, and estimation succeeds
       mockEngine.controllerMessenger.call.mockImplementation(
         (method: string) => {
+          if (method === 'RewardsController:isRewardsFeatureEnabled') {
+            return Promise.resolve(true);
+          }
+          if (method === 'RewardsController:getHasAccountOptedIn') {
+            return Promise.resolve(true);
+          }
           if (method === 'RewardsController:estimatePoints') {
             return Promise.resolve({ pointsEstimate: 500 });
           }
@@ -835,7 +854,7 @@ describe('QuoteDetailsCard', () => {
       );
 
       // When rendering the component
-      const { getByLabelText, queryByText } = renderScreen(
+      const { getByLabelText, queryByText, UNSAFE_getByProps } = renderScreen(
         QuoteDetailsCard,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
@@ -848,10 +867,10 @@ describe('QuoteDetailsCard', () => {
       // Then the rewards row should be displayed
       await waitFor(() => {
         expect(queryByText(strings('bridge.points'))).toBeOnTheScreen();
+        expect(
+          UNSAFE_getByProps({ name: 'MetamaskRewardsPoints' }),
+        ).toBeOnTheScreen();
       });
-
-      // Note: In the current test environment, points values may not display
-      // even when Engine returns them due to test setup limitations
     });
 
     it('handles rewards estimation with null estimatedPoints', async () => {

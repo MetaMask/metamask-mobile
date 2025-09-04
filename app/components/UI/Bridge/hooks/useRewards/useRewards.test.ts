@@ -191,7 +191,7 @@ describe('useRewards', () => {
   });
 
   describe('when rewards feature is disabled', () => {
-    it.skip('should return default state when rewards feature is disabled', async () => {
+    it('should return default state when rewards feature is disabled', async () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(false);
@@ -231,7 +231,7 @@ describe('useRewards', () => {
   });
 
   describe('when user has not opted in', () => {
-    it.skip('should return default state when user has not opted in', async () => {
+    it('should return default state when user has not opted in', async () => {
       mockCall.mockImplementation((method) => {
         if (method === 'RewardsController:isRewardsFeatureEnabled') {
           return Promise.resolve(true);
