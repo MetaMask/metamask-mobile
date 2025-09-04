@@ -154,6 +154,8 @@ export const PerpsAmountDisplaySelectorsIDs = {
 
 export const PerpsTabViewSelectorsIDs = {
   START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {
@@ -250,6 +252,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-market-details-geo-block-bottom-sheet-tooltip',
 };
 
 // ========================================
