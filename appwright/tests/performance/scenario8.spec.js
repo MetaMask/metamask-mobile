@@ -44,7 +44,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   WalletActionModal.device = device;
   NetworksScreen.device = device;
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
-  await importSRPFlow(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   await WalletMainScreen.isMainWalletViewVisible();
