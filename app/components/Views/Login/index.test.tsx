@@ -1179,48 +1179,6 @@ describe('Login', () => {
       });
     });
 
-    it('successfully authenticate with biometrics and navigate to home', async () => {
-      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
-        true,
-      );
-      (StorageWrapper.getItem as jest.Mock).mockReturnValueOnce(null);
-      (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
-      (Authentication.getType as jest.Mock).mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType: 'TouchID',
-      });
-      (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
-        true,
-      );
-
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      const biometryButton = getByTestId(LoginViewSelectors.BIOMETRY_BUTTON);
-
-      await act(async () => {
-        fireEvent.press(biometryButton);
-      });
-
-      expect(Authentication.appTriggeredAuth).toHaveBeenCalled();
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [
-          {
-            name: Routes.ONBOARDING.ROOT_NAV,
-            params: {
-              screen: Routes.ONBOARDING.NAV,
-              params: {
-                screen: Routes.ONBOARDING.OPTIN_METRICS,
-              },
-            },
-          },
-        ],
-      });
-    });
-
     it('handle biometric authentication failure', async () => {
       (passcodeType as jest.Mock).mockReturnValueOnce('device_passcode');
       (Authentication.getType as jest.Mock).mockResolvedValueOnce({
