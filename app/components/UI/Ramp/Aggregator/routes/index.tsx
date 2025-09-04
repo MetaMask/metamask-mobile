@@ -8,30 +8,31 @@ import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
-import Routes from '../../../../../constants/navigation/Routes';
 import { colors } from '../../../../../styles/common';
-const Stack = createStackNavigator();
+import { RootParamList } from '../../../../../util/navigation/types';
+
+const Stack = createStackNavigator<RootParamList>();
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
   <RampSDKProvider rampType={rampType}>
     <Stack.Navigator
-      initialRouteName={Routes.RAMP.GET_STARTED}
+      initialRouteName={'GetStarted'}
       screenOptions={{ headerMode: 'screen' }}
     >
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
+      <Stack.Screen name={'GetStarted'} component={GetStarted} />
       <Stack.Screen
-        name={Routes.RAMP.NETWORK_SWITCHER}
+        name={'BuyNetworkSwitcher'}
         component={NetworkSwitcher}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
+      <Stack.Screen name={'BuildQuote'} component={BuildQuote} />
       <Stack.Screen
-        name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
+        name={'BuildQuoteHasStarted'}
         component={BuildQuote}
         options={{ animationEnabled: false }}
       />
       <Stack.Screen
-        name={Routes.RAMP.QUOTES}
+        name={'Quotes'}
         component={Quotes}
         options={{
           headerShown: false,
@@ -41,10 +42,10 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
           detachPreviousScreen: false,
         }}
       />
-      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
+      <Stack.Screen name={'Checkout'} component={CheckoutWebView} />
+      <Stack.Screen name={'Region'} component={Regions} />
       <Stack.Screen
-        name={Routes.RAMP.REGION_HAS_STARTED}
+        name={'RegionHasStarted'}
         component={Regions}
         options={{ animationEnabled: false }}
       />

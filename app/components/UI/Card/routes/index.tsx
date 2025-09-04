@@ -1,18 +1,19 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import { CardSDKProvider } from '../sdk';
-const Stack = createStackNavigator();
+import { RootParamList } from '../../../../util/navigation';
+
+const Stack = createStackNavigator<RootParamList>();
 
 const CardRoutes = () => (
   <CardSDKProvider>
     <Stack.Navigator
-      initialRouteName={Routes.CARD.HOME}
+      initialRouteName={'CardHome'}
       screenOptions={{ headerMode: 'screen' }}
     >
       <Stack.Screen
-        name={Routes.CARD.HOME}
+        name={'CardHome'}
         component={CardHome}
         options={CardHome.navigationOptions}
       />

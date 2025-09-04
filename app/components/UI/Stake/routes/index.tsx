@@ -12,9 +12,9 @@ import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
 import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
+import { RootParamList } from '../../../../util/navigation/types';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -28,59 +28,53 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator screenOptions={{ headerMode: 'screen' }}>
-      <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
+      <Stack.Screen name={'Stake'} component={EarnInputView} />
+      <Stack.Screen name={'Unstake'} component={EarnWithdrawInputView} />
       <Stack.Screen
-        name={Routes.STAKING.UNSTAKE}
-        component={EarnWithdrawInputView}
-      />
-      <Stack.Screen
-        name={Routes.STAKING.STAKE_CONFIRMATION}
+        name={'StakeConfirmation'}
         component={StakeConfirmationView}
       />
       <Stack.Screen
-        name={Routes.STAKING.UNSTAKE_CONFIRMATION}
+        name={'UnstakeConfirmation'}
         component={UnstakeConfirmationView}
       />
       <Stack.Screen
-        name={Routes.STAKING.EARNINGS_HISTORY}
+        name={'EarningsHistory'}
         component={StakeEarningsHistoryView}
       />
-      <Stack.Screen
-        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-        component={Confirm}
-      />
+      <Stack.Screen name={'RedesignedConfirmations'} component={Confirm} />
     </Stack.Navigator>
   </StakeSDKProvider>
 );
 
 // Modal Stack for Modals
-const StakeModalStack = () => (
+const StakeStack = () => (
   <StakeSDKProvider>
-    <ModalStack.Navigator
+    <Stack.Navigator
       screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
     >
-      <ModalStack.Screen
-        name={Routes.STAKING.MODALS.LEARN_MORE}
+      <Stack.Screen
+        name={'LearnMore'}
         component={PoolStakingLearnMoreModal}
         options={{ headerShown: false }}
       />
-      <ModalStack.Screen
-        name={Routes.STAKING.MODALS.MAX_INPUT}
+      <Stack.Screen
+        name={'MaxInput'}
         component={MaxInputModal}
         options={{ headerShown: false }}
       />
-      <ModalStack.Screen
-        name={Routes.STAKING.MODALS.GAS_IMPACT}
+      <Stack.Screen
+        name={'GasImpact'}
         component={GasImpactModal}
         options={{ headerShown: false }}
       />
-      <ModalStack.Screen
-        name={Routes.STAKING.MODALS.EARN_TOKEN_LIST}
+      <Stack.Screen
+        name={'EarnTokenList'}
         component={EarnTokenList}
         options={{ headerShown: false }}
       />
-    </ModalStack.Navigator>
+    </Stack.Navigator>
   </StakeSDKProvider>
 );
 
-export { StakeScreenStack, StakeModalStack };
+export { StakeScreenStack, StakeStack };

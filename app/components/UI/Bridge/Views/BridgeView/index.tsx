@@ -37,17 +37,11 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
 import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
@@ -61,7 +55,6 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -71,24 +64,24 @@ import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import {
+  NavigatableRootParamList,
+  type RootParamList,
+} from '../../../../../util/navigation';
+import { StackScreenProps } from '@react-navigation/stack';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
-export interface BridgeRouteParams {
-  sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
-  sourceAmount?: string;
-}
+export type BridgeRouteParams = RootParamList['BridgeView'];
+type BridgeViewProps = StackScreenProps<RootParamList, 'BridgeView'>;
 
-const BridgeView = () => {
+const BridgeView = ({ route }: BridgeViewProps) => {
+  const navigation = useNavigation<NavigationProp<NavigatableRootParamList>>();
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
-  const navigation = useNavigation();
-  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -288,7 +281,7 @@ const BridgeView = () => {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      navigation.navigate('TransactionsView');
     }
   };
 
@@ -303,13 +296,13 @@ const BridgeView = () => {
   };
 
   const handleSourceTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+    navigation.navigate('BridgeModals', {
+      screen: 'BridgeSourceTokenSelector',
     });
 
   const handleDestTokenPress = () =>
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+    navigation.navigate('BridgeModals', {
+      screen: 'BridgeDestTokenSelector',
     });
 
   const getButtonLabel = () => {
@@ -327,8 +320,8 @@ const BridgeView = () => {
     if (isExpired && !willRefresh) {
       setIsInputFocused(false);
       // open the quote tooltip modal
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+      navigation.navigate('BridgeModals', {
+        screen: 'QuoteExpiredModal',
       });
     }
   }, [isExpired, willRefresh, navigation]);

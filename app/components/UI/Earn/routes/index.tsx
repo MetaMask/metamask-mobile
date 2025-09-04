@@ -1,13 +1,12 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
+import { RootParamList } from '../../../../util/navigation/types';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -20,31 +19,31 @@ const clearStackNavigatorOptions = {
 const EarnScreenStack = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
+      name={'EarnLendingDepositConfirmation'}
       component={EarnLendingDepositConfirmationView}
     />
     <Stack.Screen
-      name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
+      name={'EarnLendingWithdrawalConfirmation'}
       component={EarnLendingWithdrawalConfirmationView}
     />
   </Stack.Navigator>
 );
 
-const EarnModalStack = () => (
-  <ModalStack.Navigator
+const EarnStack = () => (
+  <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
-    <ModalStack.Screen
-      name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}
+    <Stack.Screen
+      name={'EarnLendingMaxWithdrawalModal'}
       component={EarnLendingMaxWithdrawalModal}
       options={{ headerShown: false }}
     />
-    <ModalStack.Screen
-      name={Routes.EARN.MODALS.LENDING_LEARN_MORE}
+    <Stack.Screen
+      name={'EarnLendingLearnMoreModal'}
       component={LendingLearnMoreModal}
       options={{ headerShown: false }}
     />
-  </ModalStack.Navigator>
+  </Stack.Navigator>
 );
 
-export { EarnScreenStack, EarnModalStack };
+export { EarnScreenStack, EarnStack };

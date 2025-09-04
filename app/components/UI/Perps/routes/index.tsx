@@ -1,7 +1,6 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
@@ -15,12 +14,12 @@ import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsBalanceModal from '../Views/PerpsBalanceModal';
+import { RootParamList } from '../../../../util/navigation/types';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 
-const PerpsModalStack = () => (
-  <ModalStack.Navigator
+const PerpsStack = () => (
+  <Stack.Navigator
     screenOptions={{
       headerShown: false,
       cardStyle: {
@@ -29,24 +28,21 @@ const PerpsModalStack = () => (
       presentation: 'modal',
     }}
   >
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
+    <Stack.Screen
+      name={'PerpsQuoteExpiredModal'}
       component={PerpsQuoteExpiredModal}
     />
-    <ModalStack.Screen
-      name={Routes.PERPS.MODALS.BALANCE_MODAL}
-      component={PerpsBalanceModal}
-    />
-  </ModalStack.Navigator>
+    <Stack.Screen name={'PerpsBalanceModal'} component={PerpsBalanceModal} />
+  </Stack.Navigator>
 );
 
 const PerpsScreenStack = () => (
   <PerpsConnectionProvider>
     <PerpsStreamProvider>
-      <Stack.Navigator initialRouteName={Routes.PERPS.TRADING_VIEW}>
+      <Stack.Navigator initialRouteName={'PerpsTradingView'}>
         {/* Main trading view with minimal functionality */}
         <Stack.Screen
-          name={Routes.PERPS.TRADING_VIEW}
+          name={'PerpsTradingView'}
           component={PerpsView}
           options={{
             title: strings('perps.perps_trading'),
@@ -55,7 +51,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.MARKETS}
+          name={'PerpsMarketListView'}
           component={PerpsMarketListView}
           options={{
             title: strings('perps.markets.title'),
@@ -65,7 +61,7 @@ const PerpsScreenStack = () => (
 
         {/* Withdrawal flow screens */}
         <Stack.Screen
-          name={Routes.PERPS.WITHDRAW}
+          name={'PerpsWithdraw'}
           component={PerpsWithdrawView}
           options={{
             title: strings('perps.withdrawal.title'),
@@ -74,7 +70,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.MARKET_DETAILS}
+          name={'PerpsMarketDetails'}
           component={PerpsMarketDetailsView}
           options={{
             title: strings('perps.market.details.title'),
@@ -82,7 +78,7 @@ const PerpsScreenStack = () => (
           }}
         />
         <Stack.Screen
-          name={Routes.PERPS.POSITIONS}
+          name={'PerpsPositions'}
           component={PerpsPositionsView}
           options={{
             title: strings('perps.position.title'),
@@ -91,7 +87,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.ORDER}
+          name={'PerpsOrder'}
           component={PerpsOrderView}
           options={{
             title: strings('perps.order.title'),
@@ -100,7 +96,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.CLOSE_POSITION}
+          name={'PerpsClosePosition'}
           component={PerpsClosePositionView}
           options={{
             title: strings('perps.close_position.title'),
@@ -109,7 +105,7 @@ const PerpsScreenStack = () => (
         />
 
         <Stack.Screen
-          name={Routes.PERPS.TUTORIAL}
+          name={'PerpsTutorial'}
           component={PerpsTutorialCarousel}
           options={{
             title: 'Tutorial',
@@ -119,8 +115,8 @@ const PerpsScreenStack = () => (
 
         {/* Modal stack for bottom sheet modals */}
         <Stack.Screen
-          name={Routes.PERPS.MODALS.ROOT}
-          component={PerpsModalStack}
+          name={'PerpsModals'}
+          component={PerpsStack}
           options={{
             headerShown: false,
             cardStyle: {
@@ -130,10 +126,7 @@ const PerpsScreenStack = () => (
           }}
         />
 
-        <Stack.Screen
-          name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-          component={Confirm}
-        />
+        <Stack.Screen name={'RedesignedConfirmations'} component={Confirm} />
       </Stack.Navigator>
     </PerpsStreamProvider>
   </PerpsConnectionProvider>
@@ -141,4 +134,4 @@ const PerpsScreenStack = () => (
 
 // Export the stack wrapped with provider
 export default PerpsScreenStack;
-export { PerpsModalStack };
+export { PerpsStack };

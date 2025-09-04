@@ -15,7 +15,6 @@ import {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import Badge, {
   BadgeVariant,
@@ -26,7 +25,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
-import { Transaction } from '@metamask/keyring-api';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../../../util/navigation';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -39,14 +39,10 @@ const styleSheet = (params: { theme: Theme }) =>
     },
   });
 
-interface BlockExplorersModalProps {
-  route: {
-    params: {
-      evmTxMeta?: TransactionMeta;
-      multiChainTx?: Transaction;
-    };
-  };
-}
+type BlockExplorersModalProps = StackScreenProps<
+  RootParamList,
+  'TransactionDetailsBlockExplorer'
+>;
 
 const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const navigation = useNavigation();

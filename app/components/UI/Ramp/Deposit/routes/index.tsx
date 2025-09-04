@@ -2,11 +2,9 @@ import React from 'react';
 import {
   createStackNavigator,
   StackNavigationOptions,
+  StackScreenProps,
 } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DepositSDKProvider } from '../sdk';
-
 import Root from '../Views/Root';
 import BuildQuote from '../Views/BuildQuote';
 import EnterEmail from '../Views/EnterEmail';
@@ -18,7 +16,6 @@ import KycProcessing from '../Views/KycProcessing';
 import OrderProcessing from '../Views/OrderProcessing';
 import BankDetails from '../Views/BankDetails';
 import AdditionalVerification from '../Views/AdditionalVerification';
-
 import TokenSelectorModal from '../Views/Modals/TokenSelectorModal';
 import RegionSelectorModal from '../Views/Modals/RegionSelectorModal';
 import PaymentMethodSelectorModal from '../Views/Modals/PaymentMethodSelectorModal';
@@ -29,17 +26,7 @@ import WebviewModal, { KycWebviewModal } from '../Views/Modals/WebviewModal';
 import IncompatibleAccountTokenModal from '../Views/Modals/IncompatibleAccountTokenModal';
 import SsnInfoModal from '../Views/Modals/SsnInfoModal';
 import ConfigurationModal from '../Views/Modals/ConfigurationModal';
-
-import Routes from '../../../../../constants/navigation/Routes';
-
-interface DepositParamList {
-  [key: string]:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-}
+import { RootParamList } from '../../../../../util/navigation/types';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -49,75 +36,83 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const RootStack = createStackNavigator();
-const Stack = createStackNavigator<DepositParamList>();
-const ModalsStack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 
 const getAnimationOptions = ({
   route,
-}: {
-  route: RouteProp<DepositParamList, string>;
-}): StackNavigationOptions => ({
+}: StackScreenProps<
+  RootParamList,
+  | 'BuildQuote'
+  | 'EnterEmail'
+  | 'OtpCode'
+  | 'VerifyIdentity'
+  | 'BasicInfo'
+  | 'EnterAddress'
+  | 'KycProcessing'
+  | 'OrderProcessing'
+  | 'BankDetails'
+  | 'AdditionalVerification'
+>): StackNavigationOptions => ({
   animationEnabled: route.params?.animationEnabled !== false,
 });
 
 const MainRoutes = () => (
   <Stack.Navigator
-    initialRouteName={Routes.DEPOSIT.ROOT}
+    initialRouteName={'DepositRoot'}
     screenOptions={{ headerMode: 'screen' }}
   >
     <Stack.Screen
-      name={Routes.DEPOSIT.ROOT}
+      name={'DepositRoot'}
       component={Root}
       options={{ animationEnabled: false }}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.BUILD_QUOTE}
+      name={'BuildQuote'}
       component={BuildQuote}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.ENTER_EMAIL}
+      name={'EnterEmail'}
       component={EnterEmail}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.OTP_CODE}
+      name={'OtpCode'}
       component={OtpCode}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.VERIFY_IDENTITY}
+      name={'VerifyIdentity'}
       component={VerifyIdentity}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.BASIC_INFO}
+      name={'BasicInfo'}
       component={BasicInfo}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.ENTER_ADDRESS}
+      name={'EnterAddress'}
       component={EnterAddress}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.KYC_PROCESSING}
+      name={'KycProcessing'}
       component={KycProcessing}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.ORDER_PROCESSING}
+      name={'OrderProcessing'}
       component={OrderProcessing}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.BANK_DETAILS}
+      name={'BankDetails'}
       component={BankDetails}
       options={getAnimationOptions}
     />
     <Stack.Screen
-      name={Routes.DEPOSIT.ADDITIONAL_VERIFICATION}
+      name={'AdditionalVerification'}
       component={AdditionalVerification}
       options={getAnimationOptions}
     />
@@ -125,72 +120,63 @@ const MainRoutes = () => (
 );
 
 const DepositModalsRoutes = () => (
-  <ModalsStack.Navigator
+  <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.TOKEN_SELECTOR}
+    <Stack.Screen
+      name={'DepositTokenSelectorModal'}
       component={TokenSelectorModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR}
+    <Stack.Screen
+      name={'DepositPaymentMethodSelectorModal'}
       component={PaymentMethodSelectorModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.REGION_SELECTOR}
+    <Stack.Screen
+      name={'DepositRegionSelectorModal'}
       component={RegionSelectorModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION}
+    <Stack.Screen
+      name={'DepositUnsupportedRegionModal'}
       component={UnsupportedRegionModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE}
+    <Stack.Screen
+      name={'DepositUnsupportedStateModal'}
       component={UnsupportedStateModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.STATE_SELECTOR}
+    <Stack.Screen
+      name={'DepositStateSelectorModal'}
       component={StateSelectorModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.WEBVIEW}
-      component={WebviewModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.KYC_WEBVIEW}
-      component={KycWebviewModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN}
+    <Stack.Screen name={'DepositWebviewModal'} component={WebviewModal} />
+    <Stack.Screen name={'DepositKycWebviewModal'} component={KycWebviewModal} />
+    <Stack.Screen
+      name={'IncompatibleAccountTokenModal'}
       component={IncompatibleAccountTokenModal}
     />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.SSN_INFO}
-      component={SsnInfoModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.DEPOSIT.MODALS.CONFIGURATION}
+    <Stack.Screen name={'SsnInfoModal'} component={SsnInfoModal} />
+    <Stack.Screen
+      name={'DepositConfigurationModal'}
       component={ConfigurationModal}
     />
-  </ModalsStack.Navigator>
+  </Stack.Navigator>
 );
 
 const DepositRoutes = () => (
   <DepositSDKProvider>
-    <RootStack.Navigator
-      initialRouteName={Routes.DEPOSIT.ROOT}
+    <Stack.Navigator
+      initialRouteName={'DepositRoot'}
       screenOptions={{ headerShown: false }}
     >
-      <RootStack.Screen name={Routes.DEPOSIT.ROOT} component={MainRoutes} />
-      <RootStack.Screen
-        name={Routes.DEPOSIT.MODALS.ID}
+      <Stack.Screen name={'DepositRoot'} component={MainRoutes} />
+      <Stack.Screen
+        name={'DepositModals'}
         component={DepositModalsRoutes}
         options={{
           ...clearStackNavigatorOptions,
           detachPreviousScreen: false,
         }}
       />
-    </RootStack.Navigator>
+    </Stack.Navigator>
   </DepositSDKProvider>
 );
 export default DepositRoutes;

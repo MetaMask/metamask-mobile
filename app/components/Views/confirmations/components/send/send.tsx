@@ -1,17 +1,15 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-
-import Routes from '../../../../../constants/navigation/Routes';
 import { SendContextProvider } from '../../context/send-context';
 import { SendMetricsContextProvider } from '../../context/send-context/send-metrics-context';
 import { Confirm } from '../confirm';
 import { useSendNavbar } from '../../hooks/send/useSendNavbar';
-
 import { Amount } from './amount';
 import { Asset } from './asset';
 import { Recipient } from './recipient';
+import { type RootParamList } from '../../../../../util/navigation/types';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 
 export const Send = () => {
   const sendNavigationOptions = useSendNavbar();
@@ -21,24 +19,21 @@ export const Send = () => {
       <SendMetricsContextProvider>
         <Stack.Navigator screenOptions={{ headerMode: 'screen' }}>
           <Stack.Screen
-            name={Routes.SEND.AMOUNT}
+            name={'Amount'}
             component={Amount}
             options={sendNavigationOptions.Amount}
           />
           <Stack.Screen
-            name={Routes.SEND.ASSET}
+            name={'Asset'}
             component={Asset}
             options={sendNavigationOptions.Asset}
           />
           <Stack.Screen
-            name={Routes.SEND.RECIPIENT}
+            name={'Recipient'}
             component={Recipient}
             options={sendNavigationOptions.Recipient}
           />
-          <Stack.Screen
-            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-            component={Confirm}
-          />
+          <Stack.Screen name={'RedesignedConfirmations'} component={Confirm} />
         </Stack.Navigator>
       </SendMetricsContextProvider>
     </SendContextProvider>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../constants/navigation/Routes';
 import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
 import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
 import SlippageModal from './components/SlippageModal';
@@ -12,6 +11,7 @@ import BlockExplorersModal from './components/TransactionDetails/BlockExplorersM
 import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import PriceImpactWarningModal from './components/PriceImpactWarningModal';
+import { type RootParamList } from '../../../util/navigation';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -21,57 +21,44 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootParamList>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
-    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
+    <Stack.Screen name="BridgeView" component={BridgeView} />
   </Stack.Navigator>
 );
 
-const ModalStack = createStackNavigator();
-export const BridgeModalStack = () => (
-  <ModalStack.Navigator
+export const BridgeStack = () => (
+  <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR}
+    <Stack.Screen
+      name={'BridgeSourceTokenSelector'}
       component={BridgeSourceTokenSelector}
     />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR}
+    <Stack.Screen
+      name={'BridgeDestTokenSelector'}
       component={BridgeDestTokenSelector}
     />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR}
+    <Stack.Screen
+      name={'BridgeSourceNetworkSelector'}
       component={BridgeSourceNetworkSelector}
     />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR}
+    <Stack.Screen
+      name={'BridgeDestNetworkSelector'}
       component={BridgeDestNetworkSelector}
     />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
-      component={SlippageModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL}
-      component={QuoteInfoModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
+    <Stack.Screen name={'SlippageModal'} component={SlippageModal} />
+    <Stack.Screen name={'QuoteInfoModal'} component={QuoteInfoModal} />
+    <Stack.Screen
+      name={'TransactionDetailsBlockExplorer'}
       component={BlockExplorersModal}
     />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
-      component={QuoteExpiredModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
-      component={BlockaidModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL}
+    <Stack.Screen name={'QuoteExpiredModal'} component={QuoteExpiredModal} />
+    <Stack.Screen name={'BlockaidModal'} component={BlockaidModal} />
+    <Stack.Screen
+      name={'PriceImpactWarningModal'}
       component={PriceImpactWarningModal}
     />
-  </ModalStack.Navigator>
+  </Stack.Navigator>
 );

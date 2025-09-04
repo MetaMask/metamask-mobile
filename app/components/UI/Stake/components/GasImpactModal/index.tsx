@@ -1,9 +1,8 @@
 import React, { useCallback, useRef } from 'react';
+import { View } from 'react-native';
 import { formatEther } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { View } from 'react-native';
-
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
@@ -24,13 +23,14 @@ import {
 } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import styleSheet from './GasImpactModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import Routes from '../../../../../constants/navigation/Routes';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+import { type NavigatableRootParamList } from '../../../../../util/navigation';
+import { type StackNavigationProp } from '@react-navigation/stack';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -43,7 +43,8 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const { navigate } = useNavigation();
+  const { navigate } =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -106,14 +107,14 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
           selectedAccount?.address as string,
         );
         navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          screen: 'RedesignedConfirmations',
         });
       } catch (error) {
         console.error(error);
       }
     } else {
       navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
+        screen: 'StakeConfirmation',
         params: {
           amountWei: amountWeiString,
           amountFiat,
