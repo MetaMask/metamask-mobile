@@ -27,9 +27,6 @@ const styleSheet = (params: { theme: Theme }) => {
     dateTimePicker: {
       backgroundColor: theme.colors.background.default,
     },
-    touchableAreaContainer: {
-      width: '100%',
-    },
     inputStyle: {
       flex: 1,
       height: '100%',
