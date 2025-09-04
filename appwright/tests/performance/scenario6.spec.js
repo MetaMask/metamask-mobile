@@ -1,7 +1,5 @@
-import { test } from 'appwright';
-
+import { test, expect } from '../../fixtures/performance-test.js';
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -22,8 +20,9 @@ import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { onboardingFlowImportSRP } from '../../utils/Flows.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
+test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -44,7 +43,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   TabBarModal.device = device;
   BridgeScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
@@ -56,13 +55,12 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
   await BridgeScreen.enterSourceTokenAmount('1');
 
   swapTimer.start();
   await BridgeScreen.isQuoteDisplayed();
   swapTimer.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(swapLoadTimer);
   performanceTracker.addTimer(swapTimer);
   await performanceTracker.attachToTest(testInfo);
