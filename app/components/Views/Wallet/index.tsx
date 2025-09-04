@@ -149,7 +149,6 @@ import {
 } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
@@ -472,7 +471,6 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const [isNetworkRampSupported] = useRampNetwork();
   const swapsIsLive = useSelector((state: RootState) =>
     selectIsSwapsLive(state, chainId),
   );
@@ -502,7 +500,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayFundButton = isNetworkRampSupported;
+  const displayFundButton = true;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
