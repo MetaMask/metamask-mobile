@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { createProjectLogger } from '@metamask/utils';
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
@@ -11,7 +11,11 @@ const log = createProjectLogger('transaction-pay');
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
-export function useTransactionPayTokenAmounts() {
+export function useTransactionPayTokenAmounts({
+  amountOverrides,
+}: {
+  amountOverrides?: Record<Hex, string>;
+} = {}) {
   const { payToken } = useTransactionPayToken();
   const { address, chainId, decimals } = payToken ?? {};
 
@@ -28,8 +32,16 @@ export function useTransactionPayTokenAmounts() {
     ];
   }, [address, chainId]);
 
+  const safeAmountOverrides = useDeepMemo(
+    () => amountOverrides,
+    [amountOverrides],
+  );
+
   const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
-  const { values } = useTransactionRequiredFiat();
+
+  const { values } = useTransactionRequiredFiat({
+    amountOverrides: safeAmountOverrides,
+  });
 
   const amounts = useDeepMemo(() => {
     if (!address || !chainId || !tokenFiatRate || !decimals) {
@@ -73,13 +85,18 @@ export function useTransactionPayTokenAmounts() {
         return true;
       })
       .map((value) => {
-        const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
-        const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+        const amountHumanValue = new BigNumber(value.totalFiat).div(
+          tokenFiatRate,
+        );
+
+        const amountHuman = amountHumanValue.toString(10);
+        const amountRaw = amountHumanValue.shiftedBy(decimals).toFixed(0);
 
         return {
           address: value.address,
-          amountHuman: amountHuman.toString(10),
+          amountHuman,
           amountRaw,
+          targetAmountHuman: value.amountHumanOriginal,
         };
       });
   }, [address, chainId, decimals, tokenFiatRate, values]);

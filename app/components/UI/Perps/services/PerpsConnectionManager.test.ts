@@ -77,6 +77,7 @@ const resetManager = (manager: unknown) => {
     unsubscribeFromStore: (() => void) | null;
     previousAddress: string | undefined;
     previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+    error: string | null;
   };
   m.isConnected = false;
   m.isConnecting = false;
@@ -86,6 +87,7 @@ const resetManager = (manager: unknown) => {
   m.unsubscribeFromStore = null;
   m.previousAddress = undefined;
   m.previousPerpsNetwork = undefined;
+  m.error = null;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -210,6 +212,7 @@ describe('PerpsConnectionManager', () => {
       expect(state.isConnected).toBe(false);
       expect(state.isInitialized).toBe(false);
       expect(state.isConnecting).toBe(false);
+      expect(state.error).toBe('Connection failed');
     });
 
     it('should detect and handle stale connections', async () => {
@@ -399,6 +402,7 @@ describe('PerpsConnectionManager', () => {
         isConnecting: false,
         isInitialized: false,
         isDisconnecting: false,
+        error: null,
       });
     });
 

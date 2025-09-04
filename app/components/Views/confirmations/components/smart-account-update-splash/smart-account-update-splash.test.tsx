@@ -36,6 +36,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(() => ({
+    onConfirm: jest.fn(),
+  })),
+}));
+
 const renderComponent = (state?: Record<string, unknown>) =>
   renderWithProvider(<SmartAccountUpdateSplash />, {
     state:

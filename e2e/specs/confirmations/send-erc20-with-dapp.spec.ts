@@ -37,6 +37,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )

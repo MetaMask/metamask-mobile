@@ -28,7 +28,9 @@ import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../reducers/legalNotices';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles } from '../../../styles/common';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
 
@@ -147,7 +149,6 @@ import {
 } from '../../../core/redux/slices/bridge';
 import { getEther } from '../../../util/transactions';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
-import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
@@ -166,11 +167,15 @@ import {
   useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import {
+  selectPerpsEnabledFlag,
+  selectPerpsGtmOnboardingModalEnabledFlag,
+} from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
+import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -416,6 +421,11 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
 
+  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsGTMModalEnabled = useSelector(
+    selectPerpsGtmOnboardingModalEnabledFlag,
+  );
+
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -461,7 +471,6 @@ const Wallet = ({
     selectNativeCurrencyByChainId(state, chainId),
   );
 
-  const [isNetworkRampSupported] = useRampNetwork();
   const swapsIsLive = useSelector((state: RootState) =>
     selectIsSwapsLive(state, chainId),
   );
@@ -491,7 +500,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayFundButton = isNetworkRampSupported;
+  const displayFundButton = true;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -605,6 +614,22 @@ const Wallet = ({
     isParticipatingInMetaMetrics,
     navigate,
   ]);
+
+  const checkAndNavigateToPerpsGTM = useCallback(async () => {
+    const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
+
+    if (hasSeenModal !== 'true') {
+      navigate(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.GTM_MODAL,
+      });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
+      checkAndNavigateToPerpsGTM();
+    }
+  }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
   useEffect(() => {
     addTraitsToUser({
@@ -824,6 +849,7 @@ const Wallet = ({
   );
 
   const isCardholder = useSelector(selectIsCardholder);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
@@ -846,6 +872,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         isCardholder,
+        isRewardsEnabled,
       ),
     );
   }, [
@@ -861,6 +888,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     isCardholder,
+    isRewardsEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
