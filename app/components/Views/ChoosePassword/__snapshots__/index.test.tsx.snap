@@ -396,11 +396,14 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "flex-start",
+                "backgroundColor": "#202123",
+                "borderRadius": 8,
                 "flexDirection": "row",
                 "gap": 8,
                 "justifyContent": "flex-start",
                 "marginBottom": 16,
                 "marginTop": 8,
+                "padding": 16,
               }
             }
           >
@@ -453,6 +456,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   "justifyContent": "flex-start",
                   "letterSpacing": 0,
                   "lineHeight": 24,
+                  "marginTop": -6,
                   "width": "90%",
                 }
               }
