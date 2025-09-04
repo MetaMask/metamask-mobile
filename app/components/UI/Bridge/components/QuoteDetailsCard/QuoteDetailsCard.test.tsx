@@ -258,7 +258,7 @@ describe('QuoteDetailsCard', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: mockQuotesGasIncluded[0],
       destTokenAmount: '24.44',
@@ -462,7 +462,7 @@ describe('QuoteDetailsCard', () => {
   it('does not show fee disclaimer when there is no fee', () => {
     // Given a quote with zero fee
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -500,7 +500,7 @@ describe('QuoteDetailsCard', () => {
   it('shows fee disclaimer when there is a fee', () => {
     // Given a quote with a non-zero fee
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
