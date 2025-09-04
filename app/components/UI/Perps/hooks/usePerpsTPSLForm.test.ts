@@ -20,8 +20,18 @@ describe('usePerpsTPSLForm', () => {
     coin: 'BTC',
     size: '1.5',
     entryPrice: '50000',
-    leverage: { value: 10 },
+    positionValue: '75000',
+    unrealizedPnl: '0',
     marginUsed: '7500',
+    leverage: { value: 10, type: 'isolated' },
+    liquidationPrice: '45000',
+    maxLeverage: 20,
+    returnOnEquity: '0',
+    cumulativeFunding: {
+      allTime: '0',
+      sinceOpen: '0',
+      sinceChange: '0',
+    },
   };
 
   const defaultParams = {
