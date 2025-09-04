@@ -82,6 +82,7 @@ describe('RewardsDataService', () => {
       subscription: {
         id: 'test-subscription-id',
         referralCode: 'test-referral-code',
+        accounts: [],
       },
     };
 
@@ -601,6 +602,7 @@ describe('RewardsDataService', () => {
     subscription: {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
+      accounts: [],
     },
   };
 

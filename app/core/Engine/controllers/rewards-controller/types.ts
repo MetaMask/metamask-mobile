@@ -1,15 +1,40 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
 }
 
-export interface SubscriptionDto {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionDto = {
   id: string;
   referralCode: string;
-  [key: string]: string;
+  accounts: {
+    address: string;
+    chainId: number;
+  }[];
+};
+
+export interface GenerateChallengeDto {
+  address: string;
+}
+
+export interface ChallengeResponseDto {
+  id: string;
+  message: string;
+  domain?: string;
+  address?: string;
+  issuedAt?: string;
+  expirationTime?: string;
+  nonce?: string;
+}
+
+export interface LoginDto {
+  challengeId: string;
+  signature: string;
+  referralCode?: string;
 }
 
 export interface EstimateAssetDto {
@@ -242,6 +267,14 @@ export interface Patch {
 }
 
 /**
+ * Action for updating state with opt-in response
+ */
+export interface RewardsControllerOptInAction {
+  type: 'RewardsController:optIn';
+  handler: (account: InternalAccount, referralCode?: string) => Promise<void>;
+}
+
+/**
  * Request for getting Perps discount
  */
 export interface GetPerpsDiscountDto {
@@ -265,6 +298,20 @@ export interface PerpsDiscountData {
    * @example 5.5
    */
   discount: number;
+}
+
+/**
+ * Geo rewards metadata containing location and support info
+ */
+export interface GeoRewardsMetadata {
+  /**
+   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
+   */
+  geoLocation: string;
+  /**
+   * Whether the location is allowed for opt-in
+   */
+  optinAllowedForGeo: boolean;
 }
 
 /**
@@ -321,6 +368,30 @@ export interface RewardsControllerGetReferralDetailsAction {
 }
 
 /**
+ * Action for logging out a user
+ */
+export interface RewardsControllerLogoutAction {
+  type: 'RewardsController:logout';
+  handler: () => Promise<void>;
+}
+
+/**
+ * Action for getting geo rewards metadata
+ */
+export interface RewardsControllerGetGeoRewardsMetadataAction {
+  type: 'RewardsController:getGeoRewardsMetadata';
+  handler: () => Promise<GeoRewardsMetadata>;
+}
+
+/**
+ * Action for validating referral codes
+ */
+export interface RewardsControllerValidateReferralCodeAction {
+  type: 'RewardsController:validateReferralCode';
+  handler: (code: string) => Promise<boolean>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -330,4 +401,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction
   | RewardsControllerGetSeasonStatusAction
-  | RewardsControllerGetReferralDetailsAction;
+  | RewardsControllerGetReferralDetailsAction
+  | RewardsControllerOptInAction
+  | RewardsControllerLogoutAction
+  | RewardsControllerGetGeoRewardsMetadataAction
+  | RewardsControllerValidateReferralCodeAction;

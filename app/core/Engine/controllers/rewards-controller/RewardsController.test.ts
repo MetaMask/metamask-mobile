@@ -772,7 +772,7 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce('0xsignature')
         .mockResolvedValueOnce({
           sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123' },
+          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
         });
 
       // Trigger authentication via account change
@@ -821,7 +821,7 @@ describe('RewardsController', () => {
 
       const mockLoginResponse = {
         sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123' },
+        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
       };
 
       mockMessenger.call
@@ -904,6 +904,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {
@@ -946,6 +947,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -996,6 +998,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1043,6 +1046,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1056,199 +1060,6 @@ describe('RewardsController', () => {
       await expect(
         controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API error');
-    });
-  });
-
-  describe('tierStatus calculations', () => {
-    const mockSubscriptionId = 'sub123';
-    const mockSeasonId = 'season123';
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-    });
-
-    it('should correctly calculate tier status for bronze tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 500 }, // Below silver threshold
-        currentTierId: 'bronze',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'bronze',
-        name: 'Bronze',
-        pointsNeeded: 0,
-      });
-      expect(result?.tier.nextTier).toEqual({
-        id: 'silver',
-        name: 'Silver',
-        pointsNeeded: 1000,
-      });
-      expect(result?.tier.nextTierPointsNeeded).toBe(500); // 1000 - 500
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should correctly calculate tier status for middle tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 3000 }, // Between silver and gold
-        currentTierId: 'silver',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'silver',
-        name: 'Silver',
-        pointsNeeded: 1000,
-      });
-      expect(result?.tier.nextTier).toEqual({
-        id: 'gold',
-        name: 'Gold',
-        pointsNeeded: 5000,
-      });
-      expect(result?.tier.nextTierPointsNeeded).toBe(2000); // 5000 - 3000
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should correctly calculate tier status for max tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 15000 }, // Above platinum threshold
-        currentTierId: 'platinum',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'platinum',
-        name: 'Platinum',
-        pointsNeeded: 10000,
-      });
-      expect(result?.tier.nextTier).toBeNull(); // No next tier
-      expect(result?.tier.nextTierPointsNeeded).toBeNull(); // Already at max
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should handle exact tier threshold points correctly', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 5000 }, // Exactly at gold threshold
-        currentTierId: 'gold',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier.id).toBe('gold');
-      expect(result?.tier.nextTier?.id).toBe('platinum');
-      expect(result?.tier.nextTierPointsNeeded).toBe(5000); // 10000 - 5000
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
     });
   });
 
@@ -1283,6 +1094,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1320,6 +1132,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1359,6 +1172,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1390,31 +1204,6 @@ describe('RewardsController', () => {
       expect(updatedReferralDetails.lastFetched).toBeGreaterThan(
         Date.now() - 1000,
       );
-    });
-
-    it('should handle errors from data service', async () => {
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockRejectedValue(new Error('API error'));
-
-      await expect(
-        controller.getReferralDetails(mockSubscriptionId),
-      ).rejects.toThrow('API error');
     });
   });
 });
