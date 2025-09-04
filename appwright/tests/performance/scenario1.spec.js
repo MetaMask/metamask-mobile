@@ -1,7 +1,6 @@
-import { test } from 'appwright';
+import { test } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -17,9 +16,11 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
+import AddNewHdAccountComponent from '../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -35,6 +36,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
+  AddNewHdAccountComponent.device = device;
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
   await importSRPFlow(device, process.env.TEST_SRP_2);
@@ -60,10 +62,11 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen2Timer.stop();
   screen3Timer.start();
   await AddAccountModal.tapCreateEthereumAccountButton();
+  await AddNewHdAccountComponent.isSrpSelectorVisible();
+  await AddNewHdAccountComponent.tapConfirm();
   await WalletMainScreen.isTokenVisible('Ethereum');
   screen3Timer.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
   performanceTracker.addTimer(screen3Timer);
