@@ -835,10 +835,12 @@ export class BackgroundBridge extends EventEmitter {
                   chainIds,
                 },
               );
-            return isAtomicBatchSupportedResult.map(
-              ({ chainId, isSupported }) => ({
+            return isAtomicBatchSupportedResult.reduce(
+              (acc, { chainId, isSupported }) => ({
+                ...acc,
                 [chainId]: isSupported,
               }),
+              {},
             );
           },
         },
