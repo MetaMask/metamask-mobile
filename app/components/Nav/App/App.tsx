@@ -75,6 +75,7 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
+import LegacyMultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { MultichainEditAccountName } from '../../Views/MultichainAccounts/sheets/MultichainEditAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
@@ -682,6 +683,12 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
+        component={LegacyMultichainEditAccountName}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
         initialParams={route?.params}
@@ -900,7 +907,10 @@ const AppFlow = () => {
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
         />
-
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+          component={MultichainAccountActions}
+        />
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}

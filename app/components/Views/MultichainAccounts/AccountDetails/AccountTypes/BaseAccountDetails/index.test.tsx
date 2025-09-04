@@ -180,9 +180,14 @@ describe('BaseAccountDetails', () => {
     const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
     fireEvent.press(accountNameLink);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.EDIT_ACCOUNT_NAME, {
-      account: mockAccount,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      {
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+        params: { account: mockAccount },
+      },
+    );
   });
 
   it('navigates to multichain edit account name when account name is pressed (state 2 enabled)', () => {

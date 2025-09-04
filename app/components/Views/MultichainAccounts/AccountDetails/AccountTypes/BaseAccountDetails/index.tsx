@@ -81,7 +81,11 @@ export const BaseAccountDetails = ({
       }
     } else {
       // Use legacy edit account name for individual accounts
-      navigation.navigate(Routes.EDIT_ACCOUNT_NAME, { account });
+      navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
+        params: { account },
+      });
     }
   }, [
     navigation,

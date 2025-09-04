@@ -25,18 +25,19 @@ import { ButtonProps } from '../../../../../component-library/components/Buttons
 import styleSheet from './EditAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
+import Logger from '../../../../../util/Logger';
 import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 
 interface RootNavigationParamList extends ParamListBase {
-  EditAccountName: {
+  MultichainEditAccountName: {
     account: InternalAccount;
   };
 }
 
 type EditAccountNameRouteProp = RouteProp<
   RootNavigationParamList,
-  'EditAccountName'
+  'MultichainEditAccountName'
 >;
 
 export const EditAccountName = () => {
@@ -45,31 +46,24 @@ export const EditAccountName = () => {
   const route = useRoute<EditAccountNameRouteProp>();
   const { account } = route.params;
   const navigation = useNavigation();
-
-  const initialName = account?.metadata.name || '';
-
-  const [accountName, setAccountName] = useState(initialName);
+  const [accountName, setAccountName] = useState(account.metadata.name);
   const [error, setError] = useState<string | null>(null);
 
   const handleAccountNameChange = useCallback(() => {
-    // Validate that account name is not empty
-    if (!accountName || accountName.trim() === '') {
-      setError(
-        strings('multichain_accounts.edit_account_name.error_empty_name'),
-      );
+    if (!accountName) {
       return;
     }
 
-    //TODO: Validate that account name is not duplicate after it's added to the AccountTreeController
-
+    const { AccountsController } = Engine.context;
     try {
-      const { AccountsController } = Engine.context;
       AccountsController.setAccountName(account.id, accountName);
       navigation.goBack();
     } catch {
-      setError(strings('multichain_accounts.edit_account_name.error'));
+      setError(
+        strings('multichain_accounts.edit_account_name.error_duplicate_name'),
+      );
     }
-  }, [accountName, account, navigation]);
+  }, [accountName, account.id, navigation]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
@@ -99,13 +93,10 @@ export const EditAccountName = () => {
           style={styles.input}
           value={accountName}
           onChangeText={(newName: string) => {
+            Logger.log('newName', newName);
             setAccountName(newName);
-            // Clear error when user starts typing
-            if (error) {
-              setError(null);
-            }
           }}
-          placeholder={initialName}
+          placeholder={account.metadata.name}
           placeholderTextColor={colors.text.muted}
           spellCheck={false}
           keyboardAppearance={themeAppearance}
