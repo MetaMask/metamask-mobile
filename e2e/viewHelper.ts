@@ -202,6 +202,9 @@ export const importWalletWithRecoveryPhrase = async ({
       await MetaMetricsOptIn.tapNoThanksButton();
     }
   }
+  // Dealing with flakiness
+  await device.disableSynchronization();
+
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -209,7 +212,6 @@ export const importWalletWithRecoveryPhrase = async ({
   await OnboardingSuccessView.tapDone();
   // Dealing with flakiness
   // Workaround for token list hanging
-  await device.disableSynchronization();
   await WalletView.pullToRefreshTokensList();
   await device.enableSynchronization();
   await closeOnboardingModals(fromResetWallet);
