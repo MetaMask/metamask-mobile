@@ -75,7 +75,7 @@ describe('usePerpsNetworkManagement', () => {
       enableNetwork: mockEnableNetwork,
     } as unknown as ReturnType<typeof useNetworkEnablement>);
     mockUseSelector.mockReturnValue(mockNetworkConfigurations);
-    mockAddNetwork.mockResolvedValue({});
+    mockAddNetwork.mockResolvedValue({} as never);
   });
 
   describe('getArbitrumChainId', () => {
@@ -111,7 +111,7 @@ describe('usePerpsNetworkManagement', () => {
 
       // Change to testnet
       mockUsePerpsNetwork.mockReturnValue('testnet');
-      rerender();
+      rerender(undefined);
 
       expect(result.current.getArbitrumChainId()).toBe(
         ARBITRUM_TESTNET_CAIP_CHAIN_ID,
@@ -291,7 +291,7 @@ describe('usePerpsNetworkManagement', () => {
           .spyOn(console, 'error')
           .mockImplementation();
         const addNetworkError = new Error('Network addition failed');
-        mockAddNetwork.mockRejectedValue(addNetworkError);
+        mockAddNetwork.mockRejectedValue(addNetworkError as never);
         mockUsePerpsNetwork.mockReturnValue('mainnet');
         mockUseSelector.mockReturnValue({});
 
@@ -316,7 +316,7 @@ describe('usePerpsNetworkManagement', () => {
 
       it('should throw the original error after logging', async () => {
         const addNetworkError = new Error('Network addition failed');
-        mockAddNetwork.mockRejectedValue(addNetworkError);
+        mockAddNetwork.mockRejectedValue(addNetworkError as never);
         mockUsePerpsNetwork.mockReturnValue('mainnet');
         mockUseSelector.mockReturnValue({});
 
@@ -361,7 +361,7 @@ describe('usePerpsNetworkManagement', () => {
       const firstCall = result.current.getArbitrumChainId;
 
       // Rerender with same network
-      rerender();
+      rerender(undefined);
 
       const secondCall = result.current.getArbitrumChainId;
 
@@ -377,7 +377,7 @@ describe('usePerpsNetworkManagement', () => {
 
       // Change network
       mockUsePerpsNetwork.mockReturnValue('testnet');
-      rerender();
+      rerender(undefined);
 
       const testnetCall = result.current.getArbitrumChainId;
 
