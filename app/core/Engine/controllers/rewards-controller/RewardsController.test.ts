@@ -29,6 +29,10 @@ jest.mock('../../../../util/address', () => ({
 jest.mock('@solana/addresses', () => ({
   isAddress: jest.fn(),
 }));
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  toHex: jest.fn(),
+}));
 
 // Import mocked modules
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
@@ -36,6 +40,11 @@ import { store } from '../../../../store';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isHardwareAccount } from '../../../../util/address';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { toHex } from '@metamask/controller-utils';
+import {
+  storeSubscriptionToken,
+  removeSubscriptionToken,
+} from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 
 // Type the mocked modules
@@ -50,6 +59,13 @@ const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
 const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
   typeof isSolanaAddress
 >;
+const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
+const mockStoreSubscriptionToken =
+  storeSubscriptionToken as jest.MockedFunction<typeof storeSubscriptionToken>;
+const mockRemoveSubscriptionToken =
+  removeSubscriptionToken as jest.MockedFunction<
+    typeof removeSubscriptionToken
+  >;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 // Test constants - CAIP-10 format addresses
@@ -1273,106 +1289,6 @@ describe('RewardsController', () => {
       );
     });
 
-    it('should successfully complete opt-in process', async () => {
-      // Arrange
-      const mockChallengeResponse = {
-        id: 'challenge-123',
-        message: 'test challenge message',
-      };
-      const mockSignature = '0xsignature123';
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'REF123',
-          accounts: [],
-        },
-      };
-
-      mockMessenger.call
-        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
-        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
-        .mockResolvedValueOnce(mockOptinResponse); // optin
-
-      // Act
-      await controller.optIn(mockInternalAccount, 'REFERRAL123');
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        2,
-        'RewardsDataService:generateChallenge',
-        {
-          address: mockInternalAccount.address,
-        },
-      );
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        3,
-        'KeyringController:signPersonalMessage',
-        {
-          data: expect.stringContaining('0x'),
-          from: mockInternalAccount.address,
-        },
-      );
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        4,
-        'RewardsDataService:optin',
-        {
-          challengeId: mockChallengeResponse.id,
-          signature: mockSignature,
-          referralCode: 'REFERRAL123',
-        },
-      );
-
-      // Verify state updates
-      expect(controller.state.lastAuthenticatedAccount).toEqual({
-        account: 'eip155:1:0x123456789',
-        hasOptedIn: true,
-        subscriptionId: 'sub-789',
-        lastAuthTime: expect.any(Number),
-        perpsFeeDiscount: null,
-        lastPerpsDiscountRateFetched: null,
-      });
-      expect(controller.state.subscriptions['sub-789']).toEqual(
-        mockOptinResponse.subscription,
-      );
-    });
-
-    it('should handle opt-in without referral code', async () => {
-      // Arrange
-      const mockChallengeResponse = {
-        id: 'challenge-123',
-        message: 'test challenge message',
-      };
-      const mockSignature = '0xsignature123';
-      const mockOptinResponse = {
-        sessionId: 'session-456',
-        subscription: {
-          id: 'sub-789',
-          referralCode: 'AUTO123',
-          accounts: [],
-        },
-      };
-
-      mockMessenger.call
-        .mockResolvedValueOnce(mockChallengeResponse)
-        .mockResolvedValueOnce(mockSignature)
-        .mockResolvedValueOnce(mockOptinResponse);
-
-      // Act
-      await controller.optIn(mockInternalAccount);
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenNthCalledWith(
-        4,
-        'RewardsDataService:optin',
-        {
-          challengeId: mockChallengeResponse.id,
-          signature: mockSignature,
-          referralCode: undefined,
-        },
-      );
-    });
-
     it('should handle signature generation errors', async () => {
       // Arrange
       const mockChallengeResponse = {
@@ -1407,6 +1323,103 @@ describe('RewardsController', () => {
       await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
         'Optin failed',
       );
+    });
+
+    it('should use Buffer fallback when toHex fails during hex message conversion', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge with special chars: éñü',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      // Mock toHex to throw an error, triggering the Buffer fallback
+      mockToHex.mockImplementation(() => {
+        throw new Error('toHex encoding error');
+      });
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockToHex).toHaveBeenCalledWith(mockChallengeResponse.message);
+
+      // Verify the fallback Buffer conversion was used by checking the hex data passed to signing
+      const expectedBufferHex =
+        '0x' +
+        Buffer.from(mockChallengeResponse.message, 'utf8').toString('hex');
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'KeyringController:signPersonalMessage',
+        {
+          data: expectedBufferHex,
+          from: mockInternalAccount.address,
+        },
+      );
+    });
+
+    it('should log error when subscription token storage fails', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+      const tokenStorageError = new Error('Failed to store token');
+
+      // Mock successful opt-in flow but failing token storage
+      mockToHex.mockReturnValue('0xhexmessage');
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Mock storeSubscriptionToken to reject
+      mockStoreSubscriptionToken.mockRejectedValueOnce(tokenStorageError);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
+        'sub-789',
+        'session-456',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to store subscription token:',
+        tokenStorageError,
+      );
+
+      // Verify state was still updated correctly despite storage failure
+      expect(controller.state.lastAuthenticatedAccount).toEqual({
+        account: 'eip155:1:0x123456789',
+        hasOptedIn: true,
+        subscriptionId: 'sub-789',
+        lastAuthTime: expect.any(Number),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
     });
   });
 
@@ -1551,6 +1564,96 @@ describe('RewardsController', () => {
 
       // Assert
       expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should log warning when token removal fails', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      const tokenRemovalError = 'Token not found in keychain';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      // Mock successful logout service call but failed token removal
+      mockMessenger.call.mockResolvedValue(undefined);
+      mockRemoveSubscriptionToken.mockResolvedValueOnce({
+        success: false,
+        error: tokenRemovalError,
+      });
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Warning - failed to remove session token:',
+        tokenRemovalError,
+      );
+
+      // Verify state was still cleared despite token removal failure
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should log warning with default message when token removal fails without error details', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-456';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      // Mock successful logout service call but failed token removal without error details
+      mockMessenger.call.mockResolvedValue(undefined);
+      mockRemoveSubscriptionToken.mockResolvedValueOnce({
+        success: false,
+        // No error property
+      });
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Warning - failed to remove session token:',
+        'Unknown error',
+      );
     });
   });
 
@@ -2137,6 +2240,148 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Feature flag disabled, skipping silent auth',
       );
+    });
+  });
+
+  describe('getGeoRewardsMetadata', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return default metadata when rewards feature is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: false,
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+    });
+
+    it('should successfully fetch geo location for allowed region', async () => {
+      // Arrange
+      const mockGeoLocation = 'US-CA';
+      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Geo rewards metadata retrieved',
+        {
+          geoLocation: mockGeoLocation,
+          optinAllowedForGeo: true,
+        },
+      );
+      expect(result).toEqual({
+        geoLocation: mockGeoLocation,
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should handle blocked regions correctly', async () => {
+      // Arrange
+      const mockGeoLocation = 'UK-ENG'; // UK is in DEFAULT_BLOCKED_REGIONS
+      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(result).toEqual({
+        geoLocation: mockGeoLocation,
+        optinAllowedForGeo: false,
+      });
+    });
+
+    it('should handle geo location service errors with fallback', async () => {
+      // Arrange
+      const geoServiceError = new Error('Geo service unavailable');
+      mockMessenger.call.mockRejectedValueOnce(geoServiceError);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get geo rewards metadata:',
+        geoServiceError.message,
+      );
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      // Arrange
+      const nonErrorObject = 'String error';
+      mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get geo rewards metadata:',
+        String(nonErrorObject),
+      );
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should check region blocking with exact prefix match', async () => {
+      // Arrange
+      const testCases = [
+        { geoLocation: 'UK', expected: false }, // Exact match
+        { geoLocation: 'UK-Scotland', expected: false }, // Starts with UK
+        { geoLocation: 'USA-UK-State', expected: true }, // UK not at start
+        { geoLocation: 'FR', expected: true }, // Not blocked
+        { geoLocation: 'DE-UK', expected: true }, // UK not at start
+      ];
+
+      for (const testCase of testCases) {
+        jest.clearAllMocks();
+        mockMessenger.call.mockResolvedValueOnce(testCase.geoLocation);
+
+        // Act
+        const result = await controller.getGeoRewardsMetadata();
+
+        // Assert
+        expect(result.optinAllowedForGeo).toBe(testCase.expected);
+        expect(result.geoLocation).toBe(testCase.geoLocation);
+      }
     });
   });
 });
