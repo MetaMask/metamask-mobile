@@ -1228,6 +1228,7 @@ export class Engine {
         allowedEvents: [],
       }),
       fetch,
+      locale: I18n.locale,
     });
 
     // Backwards compatibility for existing references
