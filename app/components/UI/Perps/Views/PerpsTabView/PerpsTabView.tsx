@@ -247,10 +247,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 key={`${position.coin}-${index}`}
                 testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
               >
-                <PerpsCard
-                  key={`${position.coin}-${index}`}
-                  position={position}
-                />
+                <PerpsCard position={position} />
               </View>
             );
           })}
