@@ -9,15 +9,13 @@ import {
   selectSelectedDestChainId,
   selectSlippage,
   selectDestAddress,
-  selectIsEvmToSolana,
-  selectIsSolanaToEvm,
 } from '../../../../../core/redux/slices/bridge';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { calcTokenValue } from '../../../../../util/transactions';
 import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 
 export const DEBOUNCE_WAIT = 700;
 
@@ -31,10 +29,8 @@ export const useBridgeQuoteRequest = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const slippage = useSelector(selectSlippage);
-  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
+  const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
-  const isEvmToSolana = useSelector(selectIsEvmToSolana);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const context = useUnifiedSwapBridgeContext();
   const shouldUseSmartTransaction = useSelector(
     selectShouldUseSmartTransaction,
@@ -69,9 +65,9 @@ export const useBridgeQuoteRequest = () => {
       srcTokenAmount: normalizedSourceAmount,
       slippage: slippage ? Number(slippage) : undefined,
       walletAddress,
-      destWalletAddress:
-        isEvmToSolana || isSolanaToEvm ? destAddress : walletAddress,
+      destWalletAddress: destAddress ?? walletAddress,
       gasIncluded: shouldUseSmartTransaction,
+      gasless7702: false, // TODO research how to handle this
     };
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
@@ -86,8 +82,6 @@ export const useBridgeQuoteRequest = () => {
     slippage,
     walletAddress,
     destAddress,
-    isEvmToSolana,
-    isSolanaToEvm,
     context,
     shouldUseSmartTransaction,
   ]);

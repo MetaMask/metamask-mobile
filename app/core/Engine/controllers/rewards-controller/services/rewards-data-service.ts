@@ -7,6 +7,8 @@ import type {
   EstimatedPointsDto,
   GetPerpsDiscountDto,
   PerpsDiscountData,
+  SeasonStatusDto,
+  SubscriptionReferralDetailsDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
@@ -32,10 +34,22 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   handler: RewardsDataService['getPerpsDiscount'];
 }
 
+export interface RewardsDataServiceGetSeasonStatusAction {
+  type: `${typeof SERVICE_NAME}:getSeasonStatus`;
+  handler: RewardsDataService['getSeasonStatus'];
+}
+
+export interface RewardsDataServiceGetReferralDetailsAction {
+  type: `${typeof SERVICE_NAME}:getReferralDetails`;
+  handler: RewardsDataService['getReferralDetails'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction;
+  | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceGetSeasonStatusAction
+  | RewardsDataServiceGetReferralDetailsAction;
 
 type AllowedActions = never;
 
@@ -61,18 +75,23 @@ export class RewardsDataService {
 
   readonly #appType: 'mobile' | 'extension';
 
+  readonly #locale: string;
+
   constructor({
     messenger,
     fetch: fetchFunction,
     appType = 'mobile',
+    locale = 'en-US',
   }: {
     messenger: RewardsDataServiceMessenger;
     fetch: typeof fetch;
     appType?: 'mobile' | 'extension';
+    locale?: string;
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
     this.#appType = appType;
+    this.#locale = locale;
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -85,6 +104,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsDiscount`,
       this.getPerpsDiscount.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSeasonStatus`,
+      this.getSeasonStatus.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getReferralDetails`,
+      this.getReferralDetails.bind(this),
     );
   }
 
@@ -126,6 +153,11 @@ export class RewardsDataService {
     } catch (error) {
       // Continue without bearer token if retrieval fails
       console.warn('Failed to retrieve bearer token:', error);
+    }
+
+    // Add locale header for internationalization
+    if (this.#locale) {
+      headers['Accept-Language'] = this.#locale;
     }
 
     const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
@@ -251,5 +283,68 @@ export class RewardsDataService {
       hasOptedIn: optInStatus === 1,
       discount,
     };
+  }
+
+  /**
+   * Get season status for a specific season.
+   * @param seasonId - The ID of the season to get status for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The season status DTO.
+   */
+  async getSeasonStatus(
+    seasonId: string,
+    subscriptionId: string,
+  ): Promise<SeasonStatusDto> {
+    const response = await this.makeRequest(
+      `/seasons/${seasonId}/status`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get season status failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Convert date strings to Date objects
+    if (data.balance?.updatedAt) {
+      data.balance.updatedAt = new Date(data.balance.updatedAt);
+    }
+    if (data.season) {
+      if (data.season.startDate) {
+        data.season.startDate = new Date(data.season.startDate);
+      }
+      if (data.season.endDate) {
+        data.season.endDate = new Date(data.season.endDate);
+      }
+    }
+
+    return data as SeasonStatusDto;
+  }
+
+  /**
+   * Get referral details for a specific subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The referral details DTO.
+   */
+  async getReferralDetails(
+    subscriptionId: string,
+  ): Promise<SubscriptionReferralDetailsDto> {
+    const response = await this.makeRequest(
+      '/subscriptions/referral-details',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get referral details failed: ${response.status}`);
+    }
+
+    return (await response.json()) as SubscriptionReferralDetailsDto;
   }
 }

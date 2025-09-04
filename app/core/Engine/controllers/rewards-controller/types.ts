@@ -1,5 +1,5 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 
 export interface LoginResponseDto {
   sessionId: string;
@@ -17,7 +17,7 @@ export interface EstimateAssetDto {
    * Asset identifier in CAIP-19 format
    * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
    */
-  id: string;
+  id: CaipAssetType;
   /**
    * Amount of the asset as a string
    * @example '25739959426'
@@ -131,10 +131,75 @@ export interface EstimatedPointsDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RewardsSubscriptionState = {
-  subscription: SubscriptionDto;
-  // season status
-  // referral details
+export type SeasonTierDto = {
+  id: string;
+  name: string;
+  pointsNeeded: number;
+  // Add other tier properties as needed
+};
+
+export interface SeasonDto {
+  id: string;
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  tiers: SeasonTierDto[];
+}
+
+export interface SeasonStatusBalanceDto {
+  total: number;
+  refereePortion: number;
+  updatedAt?: Date;
+}
+
+export interface SeasonStatusDto {
+  season: SeasonDto;
+  balance: SeasonStatusBalanceDto;
+  currentTierId: string;
+}
+
+export interface SubscriptionReferralDetailsDto {
+  referralCode: string;
+  totalReferees: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionReferralDetailsState = {
+  referralCode: string;
+  totalReferees: number;
+  lastFetched?: number;
+};
+
+// Serializable versions for state storage (Date objects converted to timestamps)
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonDtoState = {
+  id: string;
+  name: string;
+  startDate: number; // timestamp
+  endDate: number; // timestamp
+  tiers: SeasonTierDto[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonStatusBalanceDtoState = {
+  total: number;
+  refereePortion: number;
+  updatedAt?: number; // timestamp
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonTierState = {
+  currentTier: SeasonTierDto;
+  nextTier: SeasonTierDto | null;
+  nextTierPointsNeeded: number | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonStatusState = {
+  season: SeasonDtoState;
+  balance: SeasonStatusBalanceDtoState;
+  tier: SeasonTierState;
+  lastFetched?: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -151,7 +216,12 @@ export type RewardsAccountState = {
 export type RewardsControllerState = {
   lastAuthenticatedAccount: RewardsAccountState | null;
   accounts: { [account: CaipAccountId]: RewardsAccountState };
-  subscriptions: { [subscriptionId: string]: RewardsSubscriptionState };
+  subscriptions: { [subscriptionId: string]: SubscriptionDto };
+  seasons: { [seasonId: string]: SeasonDtoState };
+  subscriptionReferralDetails: {
+    [subscriptionId: string]: SubscriptionReferralDetailsState;
+  };
+  seasonStatuses: { [compositeId: string]: SeasonStatusState };
 };
 
 /**
@@ -230,6 +300,27 @@ export interface RewardsControllerIsRewardsFeatureEnabledAction {
 }
 
 /**
+ * Action for getting season status with caching
+ */
+export interface RewardsControllerGetSeasonStatusAction {
+  type: 'RewardsController:getSeasonStatus';
+  handler: (
+    seasonId: string,
+    subscriptionId: string,
+  ) => Promise<SeasonStatusState | null>;
+}
+
+/**
+ * Action for getting referral details with caching
+ */
+export interface RewardsControllerGetReferralDetailsAction {
+  type: 'RewardsController:getReferralDetails';
+  handler: (
+    subscriptionId: string,
+  ) => Promise<SubscriptionReferralDetailsState | null>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -237,4 +328,6 @@ export type RewardsControllerActions =
   | RewardsControllerGetHasAccountOptedInAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
-  | RewardsControllerIsRewardsFeatureEnabledAction;
+  | RewardsControllerIsRewardsFeatureEnabledAction
+  | RewardsControllerGetSeasonStatusAction
+  | RewardsControllerGetReferralDetailsAction;

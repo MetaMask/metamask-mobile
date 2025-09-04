@@ -55,10 +55,11 @@ export function useTransactionBridgeQuotes() {
 
     return sourceAmounts.map((sourceAmount, index) => {
       const { address: targetTokenAddress } = sourceAmounts[index] || {};
-      const { amountRaw: sourceTokenAmount } = sourceAmount;
+      const { amountRaw: sourceTokenAmount, targetAmountHuman } = sourceAmount;
 
       return {
         from: from as Hex,
+        minimumTargetAmount: targetAmountHuman,
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
@@ -95,10 +96,12 @@ export function useTransactionBridgeQuotes() {
     log(
       'Bridge quotes',
       quotes?.map((quote) => ({
+        approval: quote.approval,
         bridgeId: quote.quote?.bridgeId,
         networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
         sourceAmount: quote.sentAmount?.valueInCurrency,
         to: quote.toTokenAmount?.valueInCurrency,
+        trade: quote.trade,
       })),
     );
   }, [dispatch, quotes, transactionId]);
