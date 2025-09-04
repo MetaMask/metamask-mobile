@@ -446,7 +446,10 @@ const PerpsClosePositionView: React.FC = () => {
             {strings('perps.close_position.title')}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => setIsOrderTypeVisible(true)}>
+        <TouchableOpacity
+          onPress={() => setIsOrderTypeVisible(true)}
+          testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
+        >
           <View style={styles.marketButton}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {orderType === 'market'
