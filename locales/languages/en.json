@@ -542,7 +542,9 @@
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
-    "show_more_nfts": "Show more NFTs"
+    "show_more_nfts": "Show more NFTs",
+    "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
   },
   "deposit": {
     "title": "Deposit",
@@ -1159,8 +1161,8 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "title": "Perps is temporarily offline",
+        "description": "We're working to get it back online soon.",
         "retry": "Retry"
       },
       "networkError": {
@@ -1287,8 +1289,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1335,7 +1337,7 @@
     "mainnet": "Mainnet",
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
-      "perps_sandbox_button": "Perps Sandbox"
+      "simulate_connection_error": "Simulate Connection Error"
     },
     "transactions": {
       "title": "Perps",
@@ -3590,7 +3592,19 @@
       "lido_withdrawal_requested_title": "Withdrawal requested",
       "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted",
       "lido_withdrawal_completed_title": "Withdrawal completed",
-      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful"
+      "lido_withdrawal_completed_description": "Your Lido withdrawal was successful",
+      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
+      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
+      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
+      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
+      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
+      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
+      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
+      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
     "prompt_title": "Receive Push Notifications",
     "notifications_enabled_error_title": "Something went wrong",

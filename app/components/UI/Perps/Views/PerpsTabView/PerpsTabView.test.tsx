@@ -1,5 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -20,8 +26,14 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+// Mock the selector module first
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(),
+}));
+
 // Mock Redux
 jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
@@ -137,6 +149,18 @@ jest.mock('../../../../../../e2e/selectors/Perps/Perps.selectors', () => ({
   },
 }));
 
+jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
+  __esModule: true,
+  default: ({ onClose, testID }: { onClose: () => void; testID?: string }) => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID={testID} onPress={onClose}>
+        <Text>Geo Block Tooltip</Text>
+      </TouchableOpacity>
+    );
+  },
+}));
+
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -178,13 +202,6 @@ describe('PerpsTabView', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
 
-    // Mock useSelector for the multichain selector
-    (useSelector as jest.Mock).mockImplementation(() => () => ({
-      address: '0x1234567890123456789012345678901234567890',
-      id: 'mock-account-id',
-      type: 'eip155:eoa',
-    }));
-
     // Default hook mocks
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
@@ -213,6 +230,25 @@ describe('PerpsTabView', () => {
     });
 
     mockUsePerpsAccount.mockReturnValue(null);
+
+    // Default eligibility mock
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      // Handle the multichain selector
+      if (typeof selector === 'function') {
+        return () => ({
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+        });
+      }
+      return undefined;
+    });
   });
 
   describe('Hook Integration', () => {
@@ -369,7 +405,25 @@ describe('PerpsTabView', () => {
       expect(mockLoadPositions).toHaveBeenCalledTimes(0); // Should not be called on render
     });
 
-    it('should navigate to balance modal when manage balance is pressed', () => {
+    it('should navigate to balance modal when manage balance is pressed and user is eligible', () => {
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
@@ -384,6 +438,80 @@ describe('PerpsTabView', () => {
           screen: Routes.PERPS.MODALS.BALANCE_MODAL,
         },
       );
+    });
+
+    it('should show geo block modal when manage balance is pressed and user is not eligible', () => {
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      render(<PerpsTabView />);
+
+      const manageBalanceButton = screen.getByTestId('manage-balance-button');
+
+      act(() => {
+        fireEvent.press(manageBalanceButton);
+      });
+
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should close geo block modal when onClose is called', async () => {
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return false;
+        }
+        // Handle the multichain selector
+        if (typeof selector === 'function') {
+          return () => ({
+            address: '0x1234567890123456789012345678901234567890',
+            id: 'mock-account-id',
+            type: 'eip155:eoa',
+          });
+        }
+        return undefined;
+      });
+
+      render(<PerpsTabView />);
+
+      const manageBalanceButton = screen.getByTestId('manage-balance-button');
+
+      act(() => {
+        fireEvent.press(manageBalanceButton);
+      });
+
+      expect(screen.getByText('Geo Block Tooltip')).toBeOnTheScreen();
+
+      // The mock renders TouchableOpacity with the text "Geo Block Tooltip" inside it
+      // We can press the text element directly since TouchableOpacity propagates press events
+      const geoBlockText = screen.getByText('Geo Block Tooltip');
+
+      act(() => {
+        fireEvent.press(geoBlockText);
+      });
+
+      // Wait for the modal to be removed from the DOM
+      await waitFor(() => {
+        expect(screen.queryByText('Geo Block Tooltip')).not.toBeOnTheScreen();
+      });
     });
   });
 

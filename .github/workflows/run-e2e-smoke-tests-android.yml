@@ -106,7 +106,6 @@ jobs:
       total_splits: 2
     secrets: inherit
 
-  # removing as it's failing due to vault/password issues
   # performance-android-smoke:
   #   strategy:
   #     matrix:
