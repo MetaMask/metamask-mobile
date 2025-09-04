@@ -118,7 +118,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
-  const { enableArbitrumNetwork } = usePerpsNetworkManagement();
+  const { ensureNetworkExists } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
@@ -257,20 +257,30 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleAddFundsPress = () => {
-    // We need to enable Arbitrum for desposits to work
-    // Arbitrum One is already added for all users as a default network
-    // For devs: If you are on Testnet, you will need to first add Arbitrum Sepolia, since it's not added by default
-    enableArbitrumNetwork();
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+  const handleAddFundsPress = async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureNetworkExists();
 
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
+      // Navigate immediately to confirmations screen for instant UI response
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
+    } catch (error) {
+      console.error('Failed to ensure network exists:', error);
+      // Still proceed with the flow even if network addition fails
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+      depositWithConfirmation().catch((depositError) => {
+        console.error('Failed to initialize deposit:', depositError);
+      });
+    }
   };
 
   const handleTradingViewPress = useCallback(() => {
