@@ -1,8 +1,8 @@
 import { IKVStore } from '@metamask/mobile-wallet-protocol-core';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageWrapper from '../../../store/storage-wrapper';
 
 /**
- * An implementation of the IKVStore interface that uses AsyncStorage
+ * An implementation of the IKVStore interface that uses StorageWrapper
  * for persistent key-value storage.
  */
 export class KVStore implements IKVStore {
@@ -17,14 +17,14 @@ export class KVStore implements IKVStore {
   }
 
   async get(key: string): Promise<string | null> {
-    return AsyncStorage.getItem(this.getKey(key));
+    return StorageWrapper.getItem(this.getKey(key));
   }
 
   async set(key: string, value: string): Promise<void> {
-    await AsyncStorage.setItem(this.getKey(key), value);
+    await StorageWrapper.setItem(this.getKey(key), value);
   }
 
   async delete(key: string): Promise<void> {
-    await AsyncStorage.removeItem(this.getKey(key));
+    await StorageWrapper.removeItem(this.getKey(key));
   }
 }

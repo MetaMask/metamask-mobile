@@ -1,7 +1,14 @@
 import { KVStore } from './kv-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageWrapper from '../../../store/storage-wrapper';
 
-jest.mock('@react-native-async-storage/async-storage');
+jest.mock('../../../store/storage-wrapper', () => ({
+    __esModule: true,
+    default: {
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+    },
+  }));
 
 describe('KVStore', () => {
   let store: KVStore;
@@ -19,8 +26,8 @@ describe('KVStore', () => {
 
     await store.set(key, value);
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledTimes(1);
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+    expect(StorageWrapper.setItem).toHaveBeenCalledTimes(1);
+    expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       expectedPrefixedKey,
       value,
     );
@@ -31,17 +38,18 @@ describe('KVStore', () => {
     const expectedValue = 'retrieved-value';
     const expectedPrefixedKey = `${TEST_PREFIX}${key}`;
 
-    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce(expectedValue);
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(expectedValue);
 
     const result = await store.get(key);
 
-    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
-    expect(AsyncStorage.getItem).toHaveBeenCalledWith(expectedPrefixedKey);
+    expect(StorageWrapper.getItem).toHaveBeenCalledTimes(1);
+    expect(StorageWrapper.getItem).toHaveBeenCalledWith(expectedPrefixedKey);
     expect(result).toBe(expectedValue);
   });
 
   it('should return null if the item does not exist', async () => {
     const key = 'non-existent-key';
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValueOnce(null);
     const result = await store.get(key);
     expect(result).toBeNull();
   });
@@ -52,7 +60,7 @@ describe('KVStore', () => {
 
     await store.delete(key);
 
-    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
-    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(expectedPrefixedKey);
+    expect(StorageWrapper.removeItem).toHaveBeenCalledTimes(1);
+    expect(StorageWrapper.removeItem).toHaveBeenCalledWith(expectedPrefixedKey);
   });
 });

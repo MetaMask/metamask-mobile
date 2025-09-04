@@ -26,7 +26,7 @@ export class KeyManager implements IKeyManager {
   ): Promise<string> {
     const encryptedBuffer = Buffer.from(encryptedB64, 'base64');
     const myPrivateKeyBuffer = Buffer.from(myPrivateKey);
-    const decryptedBuffer = await decrypt(myPrivateKeyBuffer, encryptedBuffer);
+    const decryptedBuffer = decrypt(myPrivateKeyBuffer, encryptedBuffer);
     return decryptedBuffer.toString('utf8');
   }
 }
