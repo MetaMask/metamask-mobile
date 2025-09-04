@@ -826,6 +826,12 @@
     "total_balance": "Total Balance",
     "available_balance": "Available Balance",
     "margin_used": "Margin Used",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
@@ -1191,6 +1197,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "Open Positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"
@@ -1282,8 +1289,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1314,7 +1321,11 @@
       "perps_will_be_available_shortly": "Perps will be available shortly"
     },
     "chart": {
-      "no_data": "No chart data available"
+      "no_data": "No chart data available",
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
@@ -5028,7 +5039,8 @@
       "switching_to": "Switching To",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "Signature request",
