@@ -18,7 +18,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsTrading } from '../../hooks';
+import { usePerpsTrading, usePerpsNetworkManagement } from '../../hooks';
 import createStyles from './PerpsBalanceModal.styles';
 
 interface PerpsBalanceModalProps {}
@@ -27,33 +27,60 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { depositWithConfirmation } = usePerpsTrading();
-
+  const { ensureNetworkExists } = usePerpsNetworkManagement();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddFunds = useCallback(() => {
-    navigation.goBack();
+  const handleAddFunds = useCallback(async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureNetworkExists();
 
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
+      navigation.goBack();
 
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
-  }, [depositWithConfirmation, navigation]);
+      // Navigate immediately to confirmations screen for instant UI response
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
 
-  const handleWithdrawFunds = useCallback(() => {
-    navigation.goBack();
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.WITHDRAW,
-    });
-  }, [navigation]);
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
+    } catch (error) {
+      console.error('Failed to ensure network exists:', error);
+      // Still proceed with the flow even if network addition fails
+      navigation.goBack();
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+      depositWithConfirmation().catch((depositError) => {
+        console.error('Failed to initialize deposit:', depositError);
+      });
+    }
+  }, [depositWithConfirmation, navigation, ensureNetworkExists]);
+
+  const handleWithdrawFunds = useCallback(async () => {
+    try {
+      // Ensure the network exists before proceeding
+      await ensureNetworkExists();
+
+      navigation.goBack();
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.WITHDRAW,
+      });
+    } catch (error) {
+      console.error('Failed to ensure network exists:', error);
+      // Still proceed with the flow even if network addition fails
+      navigation.goBack();
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.WITHDRAW,
+      });
+    }
+  }, [navigation, ensureNetworkExists]);
 
   return (
     <BottomSheet

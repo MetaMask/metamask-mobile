@@ -34,12 +34,17 @@ import {
 import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
+import {
+  usePerpsFirstTimeUser,
+  usePerpsTrading,
+  usePerpsNetworkManagement,
+} from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useSelector } from 'react-redux';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
@@ -124,6 +129,8 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
+  const { enableArbitrumNetwork } = usePerpsNetworkManagement();
+  const { enableNetwork } = useNetworkEnablement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -190,6 +197,11 @@ const PerpsTutorialCarousel: React.FC = () => {
         [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
       });
 
+      // We need to enable Arbitrum for desposits to work
+      // Arbitrum One is already added for all users as a default network
+      // For devs: If you are on Testnet, you will need to first add Arbitrum Sepolia, since it's not added by default
+      enableArbitrumNetwork();
+
       // Mark tutorial as completed
       markTutorialCompleted();
 
@@ -234,6 +246,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     depositWithConfirmation,
     tutorialScreens.length,
+    enableArbitrumNetwork,
   ]);
 
   const handleSkip = useCallback(() => {

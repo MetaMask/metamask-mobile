@@ -52,6 +52,7 @@ import {
   usePerpsConnection,
   usePerpsPerformance,
   usePerpsTrading,
+  usePerpsNetworkManagement,
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
@@ -117,7 +118,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
-
+  const { enableArbitrumNetwork } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
@@ -257,6 +258,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleAddFundsPress = () => {
+    // We need to enable Arbitrum for desposits to work
+    // Arbitrum One is already added for all users as a default network
+    // For devs: If you are on Testnet, you will need to first add Arbitrum Sepolia, since it's not added by default
+    enableArbitrumNetwork();
     // Navigate immediately to confirmations screen for instant UI response
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
