@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -45,11 +45,15 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import PerpsCard from '../../components/PerpsCard';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -71,6 +75,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     hideTpSl: true, // Filter out TP/SL orders
     throttleMs: 1000, // Update orders every second
   });
+
+  const isEligible = useSelector(selectPerpsEligibility);
 
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
@@ -132,10 +138,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   ]);
 
   const handleManageBalancePress = useCallback(() => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, isEligible]);
 
   const handleNewTrade = useCallback(() => {
     if (isFirstTimeUser) {
@@ -226,12 +237,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             <View style={styles.startTradeContent}>
               <View style={styles.startTradeIconContainer}>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.Add}
                   color={IconColor.Default}
                   size={IconSize.Sm}
                 />
               </View>
-              <Text variant={TextVariant.BodyMD} style={styles.startTradeText}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.startTradeText}
+              >
                 {strings('perps.position.list.start_new_trade')}
               </Text>
             </View>
@@ -254,14 +268,17 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }
 
   return (
-    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
       <>
         <PerpsTabControlBar
           onManageBalancePress={handleManageBalancePress}
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
           {!isInitialLoading && hasNoPositionsOrOrders ? (
             <View style={styles.firstTimeContent}>
               <View style={styles.firstTimeContainer}>
@@ -296,12 +313,22 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               </View>
             </View>
           ) : (
-            <>
+            <View style={styles.tradeInfoContainer}>
               <View style={styles.section}>{renderPositionsSection()}</View>
               <View style={styles.section}>{renderOrdersSection()}</View>
-            </>
+            </View>
           )}
         </ScrollView>
+        {isEligibilityModalVisible && (
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        )}
       </>
     </SafeAreaView>
   );

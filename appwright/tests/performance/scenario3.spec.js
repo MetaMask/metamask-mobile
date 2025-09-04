@@ -1,7 +1,5 @@
-import { test } from 'appwright';
-
+import { test, expect } from '../../fixtures/performance-test.js';
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -17,6 +15,7 @@ import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/Import
 
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -122,7 +121,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   timer10.start();
   await WalletMainScreen.tapIdenticon();
   timer10.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
