@@ -637,7 +637,7 @@ describe('BuildQuote Component', () => {
     });
 
     it('fetches OTT token with timestamp when user becomes authenticated', async () => {
-      const mockOttToken = { token: 'test-ott-token' };
+      const mockOttToken = { ott: 'test-ott-token' };
       mockRequestOtt.mockResolvedValue(mockOttToken);
 
       const mockTimestamp = 1640995200000;
@@ -709,7 +709,7 @@ describe('BuildQuote Component', () => {
     });
 
     it('fetches OTT token when shouldRouteImmediately is false and user is authenticated', async () => {
-      const mockOttToken = { token: 'test-ott-token' };
+      const mockOttToken = { ott: 'test-ott-token' };
       mockRequestOtt.mockResolvedValue(mockOttToken);
 
       mockUseDepositSDK.mockReturnValue(

@@ -662,7 +662,7 @@ describe('useDepositRouting', () => {
         },
       };
 
-      mockRequestOtt.mockResolvedValue({ token: freshOtt });
+      mockRequestOtt.mockResolvedValue({ ott: freshOtt });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 
@@ -703,7 +703,7 @@ describe('useDepositRouting', () => {
         ott: null,
       };
 
-      mockRequestOtt.mockResolvedValue({ token: freshOtt });
+      mockRequestOtt.mockResolvedValue({ ott: freshOtt });
 
       const { result } = renderHook(() => useDepositRouting(mockParams));
 

@@ -408,7 +408,6 @@ export const useDepositRouting = ({
                 });
               } else {
                 let ottToken = ott?.token;
-                let ottResponse;
 
                 const OTT_EXPIRATION_TIME = 5 * 60 * 1000;
                 const isOttExpired =
@@ -416,19 +415,21 @@ export const useDepositRouting = ({
                   Date.now() - ott.timestamp > OTT_EXPIRATION_TIME;
 
                 if (!ottToken || isOttExpired) {
-                  ottResponse = await requestOtt();
+                  const ottResponse = await requestOtt();
 
-                  if (ottResponse) {
-                    ottToken = ottResponse.token;
+                  if (ottResponse?.ott) {
+                    ottToken = ottResponse.ott;
+                  } else {
+                    throw new Error('Failed to get OTT token');
                   }
                 }
 
-                if (!ottResponse || !ottResponse.ott) {
+                if (!ottToken) {
                   throw new Error('Failed to get OTT token');
                 }
 
                 const paymentUrl = await generatePaymentUrl(
-                  ottResponse.ott,
+                  ottToken,
                   quote,
                   selectedWalletAddress,
                   generateThemeParameters(themeAppearance, colors),

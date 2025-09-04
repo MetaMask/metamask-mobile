@@ -216,9 +216,9 @@ const BuildQuote = () => {
       if (isAuthenticated && !shouldRouteImmediately) {
         try {
           const ottResult = await requestOtt();
-          if (ottResult && isMounted) {
+          if (ottResult?.ott && isMounted) {
             setOtt({
-              token: ottResult.token,
+              token: ottResult.ott,
               timestamp: Date.now(),
             });
           }
