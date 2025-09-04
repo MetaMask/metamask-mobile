@@ -171,7 +171,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   useEffect(() => {
     if (isAccountSelector) {
       trace({
-        name: TraceName.AccountList,
+        name: TraceName.ShowAccountList,
         op: TraceOperation.AccountUi,
         tags: getTraceTags(store.getState()),
       });
@@ -182,7 +182,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const onOpen = useCallback(() => {
     if (isAccountSelector) {
       endTrace({
-        name: TraceName.AccountList,
+        name: TraceName.ShowAccountList,
       });
     }
   }, [isAccountSelector]);

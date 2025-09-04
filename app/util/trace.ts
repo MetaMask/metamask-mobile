@@ -41,7 +41,6 @@ export enum TraceName {
   SwitchBuiltInNetwork = 'Switch to Built in Network',
   SwitchCustomNetwork = 'Switch to Custom Network',
   VaultCreation = 'Login Vault Creation',
-  AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
   CreateHdAccount = 'Create HD Account',
@@ -119,8 +118,9 @@ export enum TraceName {
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
   // Accounts
-  AccountAddressList = 'Account Address List',
-  AccountPrivateKeyList = 'Account Private Key List',
+  ShowAccountList = 'Show Account List',
+  ShowAccountAddressList = 'Show Account Address List',
+  ShowAccountPrivateKeyList = 'Show Account Private Key List',
   CreateMultichainAccount = 'Create Multichain Account',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',

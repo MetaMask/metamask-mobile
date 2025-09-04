@@ -114,7 +114,7 @@ export const PrivateKeyList = () => {
   useEffect(() => {
     if (reveal) {
       trace({
-        name: TraceName.AccountPrivateKeyList,
+        name: TraceName.ShowAccountPrivateKeyList,
         op: TraceOperation.AccountUi,
       });
     }
@@ -267,7 +267,7 @@ export const PrivateKeyList = () => {
           renderItem={renderAddressItem}
           testID={PrivateKeyListIds.LIST}
           onLoad={() => {
-            endTrace({ name: TraceName.AccountPrivateKeyList });
+            endTrace({ name: TraceName.ShowAccountPrivateKeyList });
           }}
         />
       </View>

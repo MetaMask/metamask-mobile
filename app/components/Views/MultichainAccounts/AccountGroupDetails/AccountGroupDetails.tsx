@@ -93,7 +93,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
     // Start the trace before navigating to the address list so that the
     // navigation and render time are included in the trace.
     trace({
-      name: TraceName.AccountAddressList,
+      name: TraceName.ShowAccountAddressList,
       op: TraceOperation.AccountUi,
     });
 
@@ -104,7 +104,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           metadata.name
         }`,
         onLoad: () => {
-          endTrace({ name: TraceName.AccountAddressList });
+          endTrace({ name: TraceName.ShowAccountAddressList });
         },
       }),
     );
