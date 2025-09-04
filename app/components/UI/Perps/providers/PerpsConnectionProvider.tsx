@@ -16,7 +16,6 @@ import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycl
 import { isE2E } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 
-
 interface PerpsConnectionContextValue {
   isConnected: boolean;
   isConnecting: boolean;
