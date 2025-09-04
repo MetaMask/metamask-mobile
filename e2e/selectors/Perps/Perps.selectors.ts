@@ -313,14 +313,6 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
-// PERPS DEVELOPER OPTIONS SECTION SELECTORS
-// ========================================
-
-export const PerpsDeveloperOptionsSectionSelectorsIDs = {
-  PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
-};
-
-// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 

@@ -22,9 +22,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import PerpsErrorState, {
-  PerpsErrorType,
-} from '../../components/PerpsErrorState';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -62,8 +59,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     'eip155:1',
   );
   const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized, error, connect, resetError } =
-    usePerpsConnection();
+  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
@@ -164,11 +160,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       });
     }
   }, [navigation, isFirstTimeUser]);
-
-  const handleRetryConnection = useCallback(() => {
-    resetError();
-    connect();
-  }, [connect, resetError]);
 
   const renderOrdersSection = () => {
     // Only show orders section if there are active orders
@@ -276,18 +267,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       </>
     );
   };
-
-  // Check for connection errors
-  if (error && !isConnected && selectedEvmAccount) {
-    return (
-      <View style={styles.wrapper}>
-        <PerpsErrorState
-          errorType={PerpsErrorType.CONNECTION_FAILED}
-          onRetry={handleRetryConnection}
-        />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
