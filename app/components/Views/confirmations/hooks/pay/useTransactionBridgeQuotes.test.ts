@@ -12,9 +12,11 @@ import { Hex } from '@metamask/utils';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
 import {
+  ATTEMPTS_MAX_DEFAULT,
+  BUFFER_INITIAL_DEFAULT,
   BUFFER_STEP_DEFAULT,
-  INITIAL_BUFFER_DEFAULT,
-  MAX_ATTEMPTS_DEFAULT,
+  SLIPPAGE_INITIAL_DEFAULT,
+  SLIPPAGE_SUBSEQUENT_DEFAULT,
 } from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('./useTransactionPayToken');
@@ -110,10 +112,12 @@ describe('useTransactionBridgeQuotes', () => {
 
     expect(getBridgeQuotesMock).toHaveBeenCalledWith([
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
         bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        initialBuffer: INITIAL_BUFFER_DEFAULT,
-        maxAttempts: MAX_ATTEMPTS_DEFAULT,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
         sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
@@ -123,10 +127,12 @@ describe('useTransactionBridgeQuotes', () => {
         targetTokenAddress: TOKEN_ADDRESS_TARGET_1_MOCK,
       },
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
         bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        initialBuffer: INITIAL_BUFFER_DEFAULT,
-        maxAttempts: MAX_ATTEMPTS_DEFAULT,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
         sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,

@@ -22,15 +22,17 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.useFakeTimers();
 
 const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
+  attemptsMax: 1,
+  bufferInitial: 1,
   bufferStep: 1,
   from: '0x123',
-  initialBuffer: 1,
-  maxAttempts: 1,
+  slippageInitial: 0.005,
+  slippageSubsequent: 0.02,
   sourceBalanceRaw: '10000000000000000000',
   sourceChainId: '0x1',
   sourceTokenAddress: '0xabc',
   sourceTokenAmount: '1000000000000000000',
-  targetAmountMinimum: '1.23',
+  targetAmountMinimum: '123',
   targetChainId: '0x2',
   targetTokenAddress: '0xdef',
 };
@@ -41,24 +43,24 @@ const QUOTE_REQUEST_2_MOCK: BridgeQuoteRequest = {
 };
 
 const QUOTE_1_MOCK = {
+  minToTokenAmount: {
+    amount: '124',
+  },
   quote: {
     destAsset: {
       address: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
     },
   },
-  toTokenAmount: {
-    amount: '1.24',
-  },
 } as unknown as QuoteResponse;
 
 const QUOTE_2_MOCK = {
+  minToTokenAmount: {
+    amount: '124',
+  },
   quote: {
     destAsset: {
       address: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
     },
-  },
-  toTokenAmount: {
-    amount: '1.24',
   },
 } as unknown as QuoteResponse;
 
@@ -143,7 +145,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_1_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_1_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
-          slippage: 0.5,
+          slippage: QUOTE_REQUEST_1_MOCK.slippageInitial,
           insufficientBal: false,
         }),
         expect.any(Object),
@@ -158,7 +160,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_2_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_2_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
-          slippage: 0.5,
+          slippage: QUOTE_REQUEST_2_MOCK.slippageSubsequent,
           insufficientBal: false,
         }),
         expect.any(Object),
@@ -183,36 +185,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -230,36 +232,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -277,36 +279,36 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -324,8 +326,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -333,8 +335,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.24',
+          minToTokenAmount: {
+            amount: '124',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -345,7 +347,7 @@ describe('Confirmations Bridge Utils', () => {
         .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
 
       const quotes = await getBridgeQuotes([
-        { ...QUOTE_REQUEST_1_MOCK, maxAttempts: 2 },
+        { ...QUOTE_REQUEST_1_MOCK, attemptsMax: 2 },
       ]);
 
       expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0]]);
@@ -372,8 +374,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.20',
+          minToTokenAmount: {
+            amount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -381,8 +383,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.21',
+          minToTokenAmount: {
+            amount: '121',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -390,8 +392,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_3 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -403,7 +405,7 @@ describe('Confirmations Bridge Utils', () => {
         .mockResolvedValueOnce(QUOTES_ATTEMPT_3);
 
       const quotes = await getBridgeQuotes([
-        { ...QUOTE_REQUEST_1_MOCK, maxAttempts: 3 },
+        { ...QUOTE_REQUEST_1_MOCK, attemptsMax: 3 },
       ]);
 
       expect(quotes).toBeUndefined();
@@ -416,8 +418,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.20',
+          minToTokenAmount: {
+            amount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -425,8 +427,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.21',
+          minToTokenAmount: {
+            amount: '121',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -439,7 +441,7 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([
         {
           ...QUOTE_REQUEST_1_MOCK,
-          maxAttempts: 3,
+          attemptsMax: 3,
           sourceBalanceRaw: '1500000000000000000',
         },
       ]);
@@ -454,8 +456,8 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.20',
+          minToTokenAmount: {
+            amount: '120',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -463,8 +465,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.23',
+          minToTokenAmount: {
+            amount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -477,7 +479,7 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([
         {
           ...QUOTE_REQUEST_1_MOCK,
-          maxAttempts: 3,
+          attemptsMax: 3,
           sourceBalanceRaw: '1400000000000000000',
         },
       ]);
@@ -501,23 +503,22 @@ describe('Confirmations Bridge Utils', () => {
       );
     });
 
-    it('does not increase source amount if not last request', async () => {
+    it('does not increase source amount if not first request', async () => {
       const QUOTES_ATTEMPT_1 = [
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
 
       const QUOTES_ATTEMPT_2 = [
         {
-          estimatedProcessingTimeInSeconds: 40,
-          cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.23',
+          ...QUOTES_ATTEMPT_1[0],
+          minToTokenAmount: {
+            amount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -530,11 +531,11 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([
         {
           ...QUOTE_REQUEST_1_MOCK,
-          maxAttempts: 3,
+          attemptsMax: 3,
         },
         {
           ...QUOTE_REQUEST_2_MOCK,
-          maxAttempts: 3,
+          attemptsMax: 3,
         },
       ]);
 
@@ -561,13 +562,13 @@ describe('Confirmations Bridge Utils', () => {
       );
     });
 
-    it('limits increased source amount to balance minus source amount of previous requests', async () => {
+    it('limits increased source amount to balance minus source amount of subsequent requests', async () => {
       const QUOTES_ATTEMPT_1 = [
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
-          toTokenAmount: {
-            amount: '1.23',
+          minToTokenAmount: {
+            amount: '122',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -575,8 +576,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_2 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.22',
+          minToTokenAmount: {
+            amount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -584,8 +585,8 @@ describe('Confirmations Bridge Utils', () => {
       const QUOTES_ATTEMPT_3 = [
         {
           ...QUOTES_ATTEMPT_1[0],
-          toTokenAmount: {
-            amount: '1.23',
+          minToTokenAmount: {
+            amount: '123',
           },
         },
       ] as TransactionBridgeQuote[];
@@ -599,16 +600,16 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([
         {
           ...QUOTE_REQUEST_1_MOCK,
-          maxAttempts: 3,
+          attemptsMax: 3,
+          sourceBalanceRaw: '2400000000000000000',
         },
         {
           ...QUOTE_REQUEST_2_MOCK,
-          maxAttempts: 3,
-          sourceBalanceRaw: '2400000000000000000',
+          attemptsMax: 3,
         },
       ]);
 
-      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_1[0], QUOTES_ATTEMPT_3[0]]);
+      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0], QUOTES_ATTEMPT_3[0]]);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
 
@@ -616,6 +617,7 @@ describe('Confirmations Bridge Utils', () => {
         1,
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
+          destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
         }),
         expect.any(Object),
         expect.any(String),
@@ -625,6 +627,7 @@ describe('Confirmations Bridge Utils', () => {
         2,
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
+          destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
         }),
         expect.any(Object),
         expect.any(String),
@@ -634,6 +637,7 @@ describe('Confirmations Bridge Utils', () => {
         3,
         expect.objectContaining({
           srcTokenAmount: '1400000000000000000',
+          destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
         }),
         expect.any(Object),
         expect.any(String),

@@ -23,10 +23,12 @@ const log = createProjectLogger('confirmation-bridge-utils');
 let abort: AbortController;
 
 export interface BridgeQuoteRequest {
+  attemptsMax: number;
+  bufferInitial: number;
   bufferStep: number;
   from: Hex;
-  initialBuffer: number;
-  maxAttempts: number;
+  slippageInitial: number;
+  slippageSubsequent: number;
   sourceBalanceRaw: string;
   sourceChainId: Hex;
   sourceTokenAddress: Hex;
@@ -56,8 +58,8 @@ export async function getBridgeQuotes(
     const finalRequests = getFinalRequests(requests);
 
     const result = await Promise.all(
-      finalRequests.map((request) =>
-        getSufficientSingleBridgeQuote(request, gasFeeEstimates),
+      finalRequests.map((request, index) =>
+        getSufficientSingleBridgeQuote(request, gasFeeEstimates, index),
       ),
     );
 
@@ -71,22 +73,23 @@ export async function getBridgeQuotes(
 async function getSufficientSingleBridgeQuote(
   request: BridgeQuoteRequest,
   gasFeeEstimates: GasFeeEstimates,
+  index: number,
 ): Promise<TransactionBridgeQuote> {
   const {
+    attemptsMax,
+    bufferInitial,
     bufferStep,
-    initialBuffer,
-    maxAttempts,
     sourceBalanceRaw,
     sourceTokenAmount,
     targetTokenAddress,
   } = request;
 
   const sourceAmountValue = new BigNumber(sourceTokenAmount);
-  const originalSourceAmount = sourceAmountValue.div(1 + initialBuffer);
+  const originalSourceAmount = sourceAmountValue.div(1 + bufferInitial);
 
   let currentSourceAmount = sourceTokenAmount;
 
-  for (let i = 0; i < maxAttempts; i++) {
+  for (let i = 0; i < attemptsMax; i++) {
     const currentRequest = {
       ...request,
       sourceTokenAmount: currentSourceAmount,
@@ -95,16 +98,17 @@ async function getSufficientSingleBridgeQuote(
     try {
       log('Bridge quotes attempt', {
         attempt: i + 1,
+        attemptsMax,
+        bufferInitial,
         bufferStep,
         currentSourceAmount,
-        initialBuffer,
-        maxAttempts,
         target: targetTokenAddress,
       });
 
       const result = await getSingleBridgeQuote(
         currentRequest,
         gasFeeEstimates,
+        index,
       );
 
       log('Found valid quote', {
@@ -131,7 +135,7 @@ async function getSufficientSingleBridgeQuote(
     }
 
     const newSourceAmount = originalSourceAmount.multipliedBy(
-      1 + initialBuffer + bufferStep * (i + 1),
+      1 + bufferInitial + bufferStep * (i + 1),
     );
 
     currentSourceAmount = newSourceAmount.isLessThan(sourceBalanceRaw)
@@ -147,9 +151,12 @@ async function getSufficientSingleBridgeQuote(
 async function getSingleBridgeQuote(
   request: BridgeQuoteRequest,
   gasFeeEstimates: GasFeeEstimates,
+  index: number,
 ): Promise<TransactionBridgeQuote> {
   const {
     from,
+    slippageInitial,
+    slippageSubsequent,
     sourceChainId,
     sourceTokenAddress,
     sourceTokenAmount,
@@ -164,13 +171,13 @@ async function getSingleBridgeQuote(
     destTokenAddress: toChecksumAddress(targetTokenAddress),
     destWalletAddress: from,
     gasIncluded: false,
+    gasless7702: false,
     insufficientBal: false,
-    slippage: 0.5,
+    slippage: index === 0 ? slippageInitial : slippageSubsequent,
     srcChainId: sourceChainId,
     srcTokenAddress: toChecksumAddress(sourceTokenAddress),
     srcTokenAmount: sourceTokenAmount,
     walletAddress: from,
-    gasless7702: false, // TODO handle this properly
   };
 
   const quotes = await BridgeController.fetchQuotes(
@@ -246,7 +253,7 @@ function getBestQuote(
   ).slice(0, 3);
 
   const quotesOverMinimumTarget = fastestQuotes.filter((quote) =>
-    new BigNumber(quote.toTokenAmount?.amount).isGreaterThanOrEqualTo(
+    new BigNumber(quote.minToTokenAmount.amount).isGreaterThanOrEqualTo(
       request.targetAmountMinimum,
     ),
   );
@@ -262,10 +269,12 @@ function getBestQuote(
   )[0];
 }
 
-function getFinalRequests(requests: BridgeQuoteRequest[]) {
+function getFinalRequests(
+  requests: BridgeQuoteRequest[],
+): BridgeQuoteRequest[] {
   return requests.map((request, index) => {
-    const isFinalRequest = index === requests.length - 1;
-    const maxAttempts = !isFinalRequest ? 1 : request.maxAttempts;
+    const isFirstRequest = index === 0;
+    const attemptsMax = isFirstRequest ? request.attemptsMax : 1;
 
     const sourceBalanceRaw = requests
       .reduce((acc, value, j) => {
@@ -274,7 +283,7 @@ function getFinalRequests(requests: BridgeQuoteRequest[]) {
             request.sourceTokenAddress.toLowerCase() &&
           value.sourceChainId === request.sourceChainId;
 
-        if (j < index && isFinalRequest && isSameSource) {
+        if (isFirstRequest && j > index && isSameSource) {
           return acc.minus(value.sourceTokenAmount);
         }
 
@@ -284,7 +293,7 @@ function getFinalRequests(requests: BridgeQuoteRequest[]) {
 
     return {
       ...request,
-      maxAttempts,
+      attemptsMax,
       sourceBalanceRaw,
     };
   });

@@ -21,7 +21,7 @@ export function useTransactionRequiredFiat({
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
-  const { initialBuffer } = useSelector(selectMetaMaskPayFlags);
+  const { bufferInitial } = useSelector(selectMetaMaskPayFlags);
 
   const fiatRequests = useMemo(
     () =>
@@ -48,7 +48,7 @@ export function useTransactionRequiredFiat({
           targetFiatRate,
         );
 
-        const feeFiat = amountFiat.multipliedBy(initialBuffer);
+        const feeFiat = amountFiat.multipliedBy(bufferInitial);
 
         const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
           targetFiatRate,
@@ -66,7 +66,7 @@ export function useTransactionRequiredFiat({
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [amountOverrides, initialBuffer, requiredTokens, tokenFiatRates],
+    [amountOverrides, bufferInitial, requiredTokens, tokenFiatRates],
   );
 
   const totalFiat = values.reduce<number>(

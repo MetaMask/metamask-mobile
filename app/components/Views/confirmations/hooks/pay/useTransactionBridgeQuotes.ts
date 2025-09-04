@@ -27,9 +27,13 @@ export function useTransactionBridgeQuotes() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { alerts } = useAlerts();
 
-  const { bufferStep, initialBuffer, maxAttempts } = useSelector(
-    selectMetaMaskPayFlags,
-  );
+  const {
+    attemptsMax,
+    bufferInitial,
+    bufferStep,
+    slippageInitial,
+    slippageSubsequent,
+  } = useSelector(selectMetaMaskPayFlags);
 
   const hasBlockingAlert = alerts.some(
     (a) => a.isBlocking && !EXCLUDED_ALERTS.includes(a.key as AlertKeys),
@@ -70,10 +74,12 @@ export function useTransactionBridgeQuotes() {
       } = sourceAmount;
 
       return {
+        attemptsMax,
+        bufferInitial,
         bufferStep,
         from: from as Hex,
-        initialBuffer,
-        maxAttempts,
+        slippageInitial,
+        slippageSubsequent,
         sourceBalanceRaw,
         sourceChainId,
         sourceTokenAddress,
@@ -84,11 +90,13 @@ export function useTransactionBridgeQuotes() {
       };
     });
   }, [
+    attemptsMax,
+    bufferInitial,
     bufferStep,
     from,
     hasBlockingAlert,
-    initialBuffer,
-    maxAttempts,
+    slippageInitial,
+    slippageSubsequent,
     sourceAmounts,
     sourceBalanceRaw,
     sourceChainId,
