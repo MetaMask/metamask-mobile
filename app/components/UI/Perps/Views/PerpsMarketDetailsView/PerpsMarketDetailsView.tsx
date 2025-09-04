@@ -64,6 +64,9 @@ import TradingViewChart, {
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -77,9 +80,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { track } = usePerpsEventTracking();
 
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
   // Track screen load time
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const hasTrackedAssetView = useRef(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Start measuring screen load time on mount
   useEffect(() => {
@@ -225,6 +233,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleLongPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'long',
       asset: market.symbol,
@@ -232,6 +245,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleShortPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'short',
       asset: market.symbol,
@@ -432,6 +450,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         showAllPeriods
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
       />
+
+      {isEligibilityModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={() => setIsEligibilityModalVisible(false)}
+          contentKey={'geo_block'}
+          testID={
+            PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+          }
+        />
+      )}
 
       {/* Notification Tooltip - Shows after first successful order */}
       {isNotificationsEnabled &&
