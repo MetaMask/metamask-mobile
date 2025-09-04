@@ -60,7 +60,6 @@ import {
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import UpdateEIP1559Tx from '../../Views/confirmations/legacy/components/UpdateEIP1559Tx';
 import PriceChartContext, {
   PriceChartProvider,
@@ -564,15 +563,13 @@ class Transactions extends PureComponent {
       }
     };
 
-    this.props.navigation.navigate(
-      ...createLedgerTransactionModalNavDetails({
-        transactionId: transaction.id,
-        deviceId,
-        onConfirmationComplete: onConfirmation,
-        type: 'signTransaction',
-        replacementParams: transaction?.replacementParams,
-      }),
-    );
+    this.props.navigation.navigate('LedgerTransactionModal', {
+      transactionId: transaction.id,
+      deviceId,
+      onConfirmationComplete: onConfirmation,
+      type: 'signTransaction',
+      replacementParams: transaction?.replacementParams,
+    });
   };
 
   cancelUnsignedQRTransaction = async (tx) => {

@@ -27,7 +27,6 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import Logger from '../../../../../util/Logger';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../../../UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
@@ -594,18 +593,16 @@ class Approval extends PureComponent {
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
-        this.props.navigation.navigate(
-          ...createLedgerTransactionModalNavDetails({
-            transactionId: transaction.id,
-            deviceId,
-            onConfirmationComplete: (approve) =>
-              this.onLedgerConfirmation(approve, transaction.id, {
-                ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-                ...this.getTransactionMetrics(),
-              }),
-            type: 'signTransaction',
-          }),
-        );
+        this.props.navigation.navigate('LedgerTransactionModal', {
+          transactionId: transaction.id,
+          deviceId,
+          onConfirmationComplete: (approve) =>
+            this.onLedgerConfirmation(approve, transaction.id, {
+              ...this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+              ...this.getTransactionMetrics(),
+            }),
+          type: 'signTransaction',
+        });
         this.props.hideModal();
         return;
       }

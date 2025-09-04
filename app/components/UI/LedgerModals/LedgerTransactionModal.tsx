@@ -4,18 +4,9 @@ import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { createStyles } from './styles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+import { useParams } from '../../../util/navigation/navUtils';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { speedUpTransaction } from '../../../util/transaction-controller';
-
-export const createLedgerTransactionModalNavDetails =
-  createNavigationDetails<LedgerTransactionModalParams>(
-    Routes.LEDGER_TRANSACTION_MODAL,
-  );
 
 export enum LedgerReplacementTxTypes {
   SPEED_UP = 'speedUp',

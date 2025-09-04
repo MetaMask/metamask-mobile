@@ -38,7 +38,6 @@ import { KEYSTONE_TX_CANCELED } from '../../../../../../constants/error';
 import GlobalAlert from '../../../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../../../util/checkAddress';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import { createLedgerTransactionModalNavDetails } from '../../../../../UI/LedgerModals/LedgerTransactionModal';
 import {
   startGasPolling,
   stopGasPolling,
@@ -608,19 +607,17 @@ class Approve extends PureComponent {
         this.setState({ transactionHandled: true });
         this.setState({ transactionConfirmed: false });
 
-        this.props.navigation.navigate(
-          ...createLedgerTransactionModalNavDetails({
-            transactionId: transaction.id,
-            deviceId,
-            onConfirmationComplete: (approve) =>
-              this.onLedgerConfirmation(
-                approve,
-                transaction.id,
-                this.getAnalyticsParams(),
-              ),
-            type: 'signTransaction',
-          }),
-        );
+        this.props.navigation.navigate('LedgerTransactionModal', {
+          transactionId: transaction.id,
+          deviceId,
+          onConfirmationComplete: (approve) =>
+            this.onLedgerConfirmation(
+              approve,
+              transaction.id,
+              this.getAnalyticsParams(),
+            ),
+          type: 'signTransaction',
+        });
         this.props.hideModal();
         return;
       }

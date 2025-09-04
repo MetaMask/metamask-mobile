@@ -19,7 +19,6 @@ import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import { useRampSDK } from '../../sdk';
@@ -34,10 +33,6 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-
-export const createRegionsNavDetails = createNavigationDetails(
-  Routes.RAMP.REGION,
-);
 
 const RegionsView = () => {
   const navigation = useNavigation();

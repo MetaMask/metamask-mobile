@@ -99,7 +99,6 @@ import { getDeviceId } from '../../../../../../core/Ledger/Ledger';
 import { getBlockaidTransactionMetricsParams } from '../../../../../../util/blockaid';
 import ppomUtil from '../../../../../../lib/ppom/ppom-util';
 import TransactionBlockaidBanner from '../../components/TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { createLedgerTransactionModalNavDetails } from '../../../../../../components/UI/LedgerModals/LedgerTransactionModal';
 import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
@@ -1032,25 +1031,23 @@ class Confirm extends PureComponent {
         const deviceId = await getDeviceId();
         this.setState({ transactionConfirmed: false });
         // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
-        this.props.navigation.navigate(
-          ...createLedgerTransactionModalNavDetails({
-            transactionId: transactionMeta.id,
-            deviceId,
-            onConfirmationComplete: async (approve) =>
-              await this.onLedgerConfirmation(
-                approve,
-                result,
-                transactionMeta,
-                assetType,
-                {
-                  ...this.getAnalyticsParams(),
-                  ...getBlockaidTransactionMetricsParams(transaction),
-                  ...this.getTransactionMetrics(),
-                },
-              ),
-            type: 'signTransaction',
-          }),
-        );
+        this.props.navigation.navigate('LedgerTransactionModal', {
+          transactionId: transactionMeta.id,
+          deviceId,
+          onConfirmationComplete: async (approve) =>
+            await this.onLedgerConfirmation(
+              approve,
+              result,
+              transactionMeta,
+              assetType,
+              {
+                ...this.getAnalyticsParams(),
+                ...getBlockaidTransactionMetricsParams(transaction),
+                ...this.getTransactionMetrics(),
+              },
+            ),
+          type: 'signTransaction',
+        });
         return;
       }
 

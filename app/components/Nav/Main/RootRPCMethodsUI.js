@@ -60,7 +60,6 @@ import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { ConfirmRoot } from '../../../components/Views/confirmations/components/confirm';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -333,15 +332,13 @@ const RootRPCMethodsUI = (props) => {
         if (isLedgerAccount) {
           const deviceId = await getDeviceId();
 
-          props.navigation.navigate(
-            ...createLedgerTransactionModalNavDetails({
-              transactionId: transactionMeta.id,
-              deviceId,
-              // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
-              type: 'signTransaction',
-            }),
-          );
+          props.navigation.navigate('LedgerTransactionModal', {
+            transactionId: transactionMeta.id,
+            deviceId,
+            // eslint-disable-next-line no-empty-function
+            onConfirmationComplete: () => {},
+            type: 'signTransaction',
+          });
         } else {
           Engine.acceptPendingApproval(transactionMeta.id);
         }
