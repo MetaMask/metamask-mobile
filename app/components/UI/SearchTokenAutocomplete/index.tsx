@@ -41,8 +41,8 @@ import NetworkImageComponent from '../NetworkImages';
 import {
   startPerformanceTrace,
   endPerformanceTrace,
-} from 'app/core/redux/slices/performance';
-import { PerformanceEventNames } from 'app/core/redux/slices/performance/constants';
+} from '../../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../../../core/redux/slices/performance/constants';
 import { store } from '../../../store';
 
 // TODO: Replace "any" with type
