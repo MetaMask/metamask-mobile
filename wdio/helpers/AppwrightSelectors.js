@@ -26,6 +26,15 @@ export default class AppwrightSelectors {
       return await AppwrightSelectors.getElementByXpath(device, xpath);
     }
   }
+
+  static async getElementByNameiOS(device, identifier) {
+    const isIOS = AppwrightSelectors.isIOS(device);
+    if (isIOS) {
+      const xpath = `//*[contains(@name,'${identifier}')][1]`;
+      return await AppwrightSelectors.getElementByXpath(device, xpath);
+    }
+  }
+
   static isIOS(device) {
     return device.webDriverClient.capabilities.platformName === 'iOS' || device.webDriverClient.capabilities.platformName === 'ios';
   }
