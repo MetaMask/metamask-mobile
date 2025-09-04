@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../fixtures/performance-test.js';
 
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 
@@ -11,9 +11,11 @@ import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { importSRPFlow } from '../../utils/Flows.js';
+import AddNewHdAccountComponent from '../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   LoginScreen.device = device;
   WalletMainScreen.device = device;
@@ -24,6 +26,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
+  AddNewHdAccountComponent.device = device;
 
   await LoginScreen.typePassword('123123123');
   await LoginScreen.tapUnlockButton();
@@ -51,10 +54,11 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   screen2Timer.stop();
   screen3Timer.start();
   await AddAccountModal.tapCreateEthereumAccountButton();
+  await AddNewHdAccountComponent.isSrpSelectorVisible();
+  await AddNewHdAccountComponent.tapConfirm();
   await WalletMainScreen.isTokenVisible('Ethereum');
   screen3Timer.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
   performanceTracker.addTimer(screen3Timer);

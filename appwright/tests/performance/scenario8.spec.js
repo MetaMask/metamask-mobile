@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../fixtures/performance-test.js';
 
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
@@ -27,6 +27,8 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
   await LoginScreen.tapUnlockButton();
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapNetworkNavBar();
+  await NetworksScreen.selectNetwork('Ethereum Mainnet');
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
@@ -37,7 +39,7 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
   await TokenOverviewScreen.isTodaysChangeVisible();
   assetViewScreen.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(assetViewScreen);
+
   await performanceTracker.attachToTest(testInfo);
 });

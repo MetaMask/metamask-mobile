@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../fixtures/performance-test.js';
 
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 
@@ -17,6 +17,7 @@ import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   LoginScreen.device = device;
   WalletMainScreen.device = device;
@@ -46,7 +47,8 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   timer1.stop();
 
   await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
-  await BridgeScreen.enterSourceTokenAmount('0.001');
+  await BridgeScreen.enterSourceTokenAmount('1');
+
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
@@ -54,7 +56,6 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   timer2.start();
   await BridgeScreen.isQuoteDisplayed();
   timer2.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);

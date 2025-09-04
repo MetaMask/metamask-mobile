@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test, expect } from '../../fixtures/performance-test.js';
 
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 
@@ -13,8 +13,9 @@ import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { importSRPFlow } from '../../utils/Flows.js';
 
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
+test('Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   LoginScreen.device = device;
 
@@ -43,13 +44,12 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   const swapTimer = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
   );
-  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
+  await BridgeScreen.selectNetworkAndTokenTo('Ethereum', 'LINK');
   await BridgeScreen.enterSourceTokenAmount('1');
 
   swapTimer.start();
   await BridgeScreen.isQuoteDisplayed();
   swapTimer.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(swapLoadTimer);
   performanceTracker.addTimer(swapTimer);
   await performanceTracker.attachToTest(testInfo);

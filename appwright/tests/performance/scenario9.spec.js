@@ -1,4 +1,4 @@
-import { test } from 'appwright';
+import { test } from '../../fixtures/performance-test.js';
 
 import TimerHelper from '../../utils/TimersHelper.js';
 import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
@@ -20,6 +20,7 @@ import { importSRPFlow } from '../../utils/Flows.js';
 
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WalletAccountModal.device = device;
   WalletMainScreen.device = device;
@@ -64,7 +65,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await ConfirmationScreen.isAdvancedSettingsDisplayed();
   timer3.stop();
 
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
@@ -73,6 +73,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
 
 test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
@@ -92,8 +93,10 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
-  await WalletMainScreen.tapNetworkNavBar();
-  await NetworksScreen.tapOnNetwork('Solana');
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+
+  await AccountListComponent.tapOnAccountByName('Solana');
   await NetworkEducationModal.tapGotItButton();
 
   const timer1 = new TimerHelper(
@@ -113,7 +116,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();
 
   timer2.stop();
-  const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);
