@@ -4859,12 +4859,12 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.8.0.tgz#f680d0fb11c90cbfdd8c019fe21a702e76630464"
-  integrity sha512-zvS9a4mgMJFp3p8KdWHYHhFQsczieWsmJG5/l18cLeeuf5bSxI/rrPCoIb0X0au67Y+JnhpWpk8aSs9fY2ZHNQ==
+"@metamask/account-tree-controller@^0.12.1":
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.12.1.tgz#e1417749f218248d04836bc1c71aa9cdcef8651f"
+  integrity sha512-4qKZpQ47LCbItwM/Uy47nGqjSv958n5oWyy3mH60EXzR2lEUh02CsGUKofCjIMpEdTC5SJZGxlCNSTOI7p6QBg==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
     lodash "^4.17.21"
@@ -5112,15 +5112,16 @@
   resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.1.tgz#f2a1f7dd03a9be8672ec06d83767d03d354501d8"
   integrity sha512-B3NwHI+KDJIGRXmBMBOI2Eoc0miYVcq6IU2mOOmZlBkyCeVSMxavrydmDLTsXKJ68uFrbvLUBC+zN9wnux6L6g==
 
-"@metamask/earn-controller@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-5.0.0.tgz#1faf94adf869da2a386bfe5f9ae01760052089cf"
-  integrity sha512-37yZ5KTL2PHMIujji9cnOHCyvbtJZYpNWFaUPcw+zTabNUOditwifpbZq2Uxx0SNiUQZ6aXrnKnqQFTONetJ2Q==
+"@metamask/earn-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-7.0.0.tgz#100aba823d2c808951634274e5aa15b91c08b67b"
+  integrity sha512-loo9RJC6MAWT8fFCSIk1fDRmJqs44tCKhSk0GP7gKMJ0K+yLRXSXTaDslmmIlY0Y9TMBnOGC9pY6Fiw54mi01g==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.1.0"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/base-controller" "^8.2.0"
+    "@metamask/controller-utils" "^11.12.0"
+    "@metamask/keyring-api" "^20.1.0"
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
 
@@ -6235,10 +6236,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@^60.1.0":
-  version "60.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-60.1.0.tgz#75fc80cabd1c4ff53a425d6d90dd9dd9d71b26ad"
-  integrity sha512-VmOwuGoI/8OyRIRl/j5hGGKKbKWvuC4596NAvhH9ODeRTUZeuEuKx02qsSTRvUVOsjt0eNz6Ydr6djzY+dPB3g==
+"@metamask/transaction-controller@^60.2.0":
+  version "60.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-60.2.0.tgz#ba2ebb76b082019c738678a3777585d8949029c5"
+  integrity sha512-Oee4LE2tu/yRO55ecER8zZxBh1BpXcKIbNX59l8zQ2de9HxT9rYjs4zM0YEDvuu00LC4MfJ+mDg+QU1xISHFSA==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
