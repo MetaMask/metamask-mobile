@@ -130,20 +130,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
         }
         testID="onboarding-sheet"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 18,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Choose an option to continue
-        </Text>
         <View
           style={
             {
@@ -360,6 +346,68 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
             </Text>
           </TouchableOpacity>
         </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "marginTop": 40,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              }
+            }
+          >
+            By continuing, you agree to MetaMask's
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="terms-of-use-link"
+            >
+              Terms of use
+            </Text>
+             
+            and
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="privacy-notice-link"
+            >
+              Privacy notice
+            </Text>
+          </Text>
+        </View>
       </View>
     </View>
   </View>
@@ -496,20 +544,6 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
         }
         testID="onboarding-sheet"
       >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "Geist Bold",
-              "fontSize": 18,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Choose an option to continue
-        </Text>
         <View
           style={
             {
@@ -725,6 +759,68 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               Use Secret Recovery Phrase
             </Text>
           </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "marginTop": 40,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              }
+            }
+          >
+            By continuing, you agree to MetaMask's
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="terms-of-use-link"
+            >
+              Terms of use
+            </Text>
+             
+            and
+             
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              suppressHighlighting={true}
+              testID="privacy-notice-link"
+            >
+              Privacy notice
+            </Text>
+          </Text>
         </View>
       </View>
     </View>
