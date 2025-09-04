@@ -28,11 +28,13 @@ export const test = base.extend({
         body: JSON.stringify({
           sessionId,
           testTitle: testInfo.title,
+          projectName: testInfo.project.name,
           timestamp: new Date().toISOString(),
         }),
         contentType: 'application/json',
       });
 
+      console.log('testInfo.project.name', testInfo.project.name);
       await performanceTracker.storeSessionData(sessionId, testInfo.title);
       console.log(`✅ Session data stored successfully: ${sessionId}`);
     } else {

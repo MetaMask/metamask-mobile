@@ -15,8 +15,12 @@ class CustomReporter {
     console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
     console.log(`📊 Test status: ${result.status}`);
     console.log(`📊 Test duration: ${result.duration}ms`);
-
     // Look for session data in attachments (preferred method)
+    console.log(`🔍 Total attachments: ${result.attachments.length}`);
+    result.attachments.forEach((att, idx) => {
+      console.log(`  ${idx}: ${att.name} (${att.contentType})`);
+    });
+
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
     );
@@ -32,9 +36,16 @@ class CustomReporter {
         console.log(
           `✅ Captured session data for test: ${sessionData.sessionId}`,
         );
+        console.log(
+          `🔍 Project name from session data: ${sessionData.projectName}`,
+        );
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
       }
+    } else {
+      console.log(
+        `❌ No session-data attachment found in ${result.attachments.length} attachments`,
+      );
     }
 
     // Fallback: Try to capture session ID from test result annotations
@@ -113,8 +124,28 @@ class CustomReporter {
       `\n🔍 onEnd called - Processing ${this.metrics.length} metrics entries and ${this.sessions.length} sessions`,
     );
 
-    // Fetch video URLs for all sessions
+    // Determine if this is a BrowserStack run by checking session data
+    let isBrowserStackRun = false;
+
+    // Check project names from session data (most reliable)
     if (this.sessions.length > 0) {
+      const projectNames = this.sessions
+        .map((session) => session.projectName)
+        .filter(Boolean);
+
+      console.log(`🔍 Project names from sessions: ${projectNames.join(', ')}`);
+      isBrowserStackRun = projectNames.some((name) =>
+        name.includes('browserstack-'),
+      );
+    }
+
+    console.log(`🔍 isBrowserStackRun: ${isBrowserStackRun}`);
+    console.log(`🔍 Sessions count: ${this.sessions.length}`);
+
+    if (this.sessions.length > 0 && isBrowserStackRun) {
+      console.log(
+        `🎥 BrowserStack configuration detected - fetching video URLs...`,
+      );
       const tracker = new PerformanceTracker();
 
       for (const session of this.sessions) {
@@ -145,6 +176,10 @@ class CustomReporter {
           );
         }
       }
+    } else if (this.sessions.length > 0 && !isBrowserStackRun) {
+      console.log(
+        `📱 Local/emulator run detected - skipping video URL fetching (BrowserStack only feature)`,
+      );
     } else {
       console.log('❌ No session data available for video URL fetching');
     }
@@ -152,6 +187,7 @@ class CustomReporter {
     // Clean up any leftover environment variables
     delete process.env.TEMP_SESSION_ID;
     delete process.env.TEMP_TEST_TITLE;
+    delete process.env.TEMP_PROJECT_NAME;
 
     // If we have a sessionId but no metrics (failed test scenario), create a minimal entry
     if (this.sessionId && this.metrics.length === 0) {
