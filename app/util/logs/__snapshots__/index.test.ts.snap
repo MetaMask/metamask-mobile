@@ -325,6 +325,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "enabledNetworkMap": {
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
+            "bip122:000000000933ea01ad0ee984209779ba": false,
           },
           "eip155": {
             "0x1": true,
@@ -967,6 +968,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "enabledNetworkMap": {
           "bip122": {
             "bip122:000000000019d6689c085ae165831e93": true,
+            "bip122:000000000933ea01ad0ee984209779ba": false,
           },
           "eip155": {
             "0x1": true,
