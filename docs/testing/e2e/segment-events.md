@@ -271,6 +271,8 @@ Set reasonable timeouts for event capture (typically 30 seconds):
 capturedEvents = await getEventsPayloads(mockServer, events, 30000);
 ```
 
+Without this, Segment events will not be sent even if `sendMetaMetricsinE2E: true` is set in launch arguments.
+
 ## Troubleshooting
 
 ### Events Not Being Captured
