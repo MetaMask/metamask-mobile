@@ -301,7 +301,11 @@ const PerpsMarketListView = ({
   return (
     <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
-      <TouchableOpacity onPress={handleClose} style={hiddenButtonStyle} />
+      <TouchableOpacity
+        onPress={handleClose}
+        style={hiddenButtonStyle}
+        testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
+      />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>

@@ -213,16 +213,6 @@ const PerpsPositionsView: React.FC = () => {
             </Text>
           </View>
         </View>
-
-        {/* Anchor for E2E scrolls to the positions list */}
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Muted}
-          testID={PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION_TITLE}
-        >
-          {strings('perps.position.list.open_positions')}
-        </Text>
-
         {renderContent()}
       </ScrollView>
 

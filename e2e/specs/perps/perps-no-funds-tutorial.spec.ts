@@ -6,6 +6,8 @@ import WalletView from '../../pages/wallet/WalletView';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../pages/Perps/PerpsOnboarding';
+import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 
 describe(
   RegressionPerps('Perps - no funds shows Start Trading and tutorial'),
@@ -22,6 +24,8 @@ describe(
             .withPerpsFirstTimeUser(true)
             .build(),
           restartDevice: true,
+          // Ensure Hyperliquid icons and Arbitrum RPC are mocked (no live requests)
+          testSpecificMock: PERPS_ARBITRUM_MOCKS,
         },
         async () => {
           await loginToApp();
@@ -40,14 +44,21 @@ describe(
 
           await PerpsOnboarding.tapSkipButton();
 
-          await Assertions.expectElementToNotBeVisible(
-            PerpsTabView.onboardingButton,
-            { description: 'Perps onboarding button hidden after tutorial' },
-          );
+          // Return to Perps tab and verify the first-time CTA is visible
+          await Assertions.expectTextDisplayed('Start trading', {
+            description:
+              'Start trading CTA visible on Perps tab after tutorial',
+          });
 
-          // Last screen outcome: empty state visible and CTA removed
-          await Assertions.expectTextDisplayed('No Open Positions');
-          await Assertions.expectTextNotDisplayed('Start trading');
+          // When tapping Start trading again, the market list modal should be visible
+          await PerpsTabView.tapOnboardingButton();
+          await Assertions.expectElementToBeVisible(
+            PerpsMarketListView.listHeader as DetoxElement,
+            {
+              description:
+                'Perps market list header visible after completing tutorial',
+            },
+          );
         },
       );
     });

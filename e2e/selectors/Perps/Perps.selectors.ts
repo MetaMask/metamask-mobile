@@ -156,19 +156,6 @@ export const PerpsAmountDisplaySelectorsIDs = {
 };
 
 // ========================================
-// PERPS TAB VIEW SELECTORS
-// ========================================
-
-export const PerpsTabViewSelectorsIDs = {
-  ONBOARDING_BUTTON: 'perps-start-trading-button',
-  BALANCE_BUTTON: 'perps-balance-button',
-  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
-  WITHDRAW_BUTTON: 'perps-withdraw-button',
-  BALANCE_VALUE: 'perps-balance-value',
-  SCROLL_VIEW: 'perps-tab-scroll-view',
-} as const;
-
-// ========================================
 // PERPS VIEWS SELECTORS
 // ========================================
 
@@ -176,6 +163,12 @@ export const PerpsTabViewSelectorsIDs = {
   START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-tab-view-geo-block-bottom-sheet-tooltip',
+  ONBOARDING_BUTTON: 'perps-start-trading-button',
+  BALANCE_BUTTON: 'perps-balance-button',
+  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
+  WITHDRAW_BUTTON: 'perps-withdraw-button',
+  BALANCE_VALUE: 'perps-balance-value',
+  SCROLL_VIEW: 'perps-tab-scroll-view',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {
@@ -400,7 +393,6 @@ export const PerpsGTMModalSelectorsIDs = {
   PERPS_TRY_NOW_BUTTON: 'perps-try-now-button',
   PERPS_NOT_NOW_BUTTON: 'perps-not-now-button',
 };
-
 
 // ========================================
 // PERPS ORDER VIEW SELECTORS

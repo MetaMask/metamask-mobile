@@ -43,7 +43,6 @@ import {
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
-import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
 import {
   PerpsTabViewSelectorsIDs,
@@ -243,15 +242,18 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
                 ? 'short'
                 : 'unknown'
               : 'unknown';
-              return (
+            return (
               <View
                 key={`${position.coin}-${index}`}
                 testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
-              >                
-            <PerpsCard key={`${position.coin}-${index}`} position={position} />
-                  </View>
-                );
-          ))}
+              >
+                <PerpsCard
+                  key={`${position.coin}-${index}`}
+                  position={position}
+                />
+              </View>
+            );
+          })}
           <TouchableOpacity
             style={styles.startTradeCTA}
             onPress={handleNewTrade}
