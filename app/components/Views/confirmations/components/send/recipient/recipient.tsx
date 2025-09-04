@@ -27,6 +27,7 @@ import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
@@ -48,11 +49,20 @@ export const Recipient = () => {
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
+  // This submission lifecycle state prevents adding multiple transactions
+  const [isSubmittingTransaction, setIsSubmittingTransaction] = useState(false);
+  // Reset the submitting state when the user returns to the recipient page
+  useFocusEffect(
+    useCallback(() => {
+      setIsSubmittingTransaction(false);
+    }, []),
+  );
 
   const handleReview = useCallback(async () => {
     if (toAddressError) {
       return;
     }
+    setIsSubmittingTransaction(true);
 
     let resolvedEnsAddress = to;
     if (isEvmSendType) {
@@ -78,6 +88,7 @@ export const Recipient = () => {
           | typeof RecipientInputMethod.SelectContact,
       ) =>
       (recipient: RecipientType) => {
+        setIsSubmittingTransaction(true);
         const selectedAddress = recipient.address;
         setIsRecipientSelectedFromList(true);
         updateTo(selectedAddress);
@@ -115,6 +126,7 @@ export const Recipient = () => {
               onRecipientSelected={onRecipientSelected(
                 RecipientInputMethod.SelectAccount,
               )}
+              disabled={isSubmittingTransaction}
             />
             {contacts.length > 0 && (
               <RecipientList
@@ -124,6 +136,7 @@ export const Recipient = () => {
                   RecipientInputMethod.SelectContact,
                 )}
                 emptyMessage={strings('send.no_contacts_found')}
+                disabled={isSubmittingTransaction}
               />
             )}
           </ScrollView>
@@ -151,7 +164,8 @@ export const Recipient = () => {
                 onPress={handleReview}
                 twClassName="w-full"
                 isDanger={Boolean(toAddressError)}
-                disabled={Boolean(toAddressError)}
+                disabled={Boolean(toAddressError) || isSubmittingTransaction}
+                isLoading={isSubmittingTransaction}
               >
                 {isReviewButtonDisabled
                   ? toAddressError
