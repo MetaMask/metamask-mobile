@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import Keypad, {
   type KeypadContainerProps,
   type KeypadButtonProps,
@@ -79,7 +80,7 @@ describe('Keypad Components', () => {
     it('should render with custom variant', () => {
       const mockOnPress = jest.fn();
       const { toJSON } = render(
-        <Keypad.Button onPress={mockOnPress} variant="Primary">
+        <Keypad.Button onPress={mockOnPress} variant={ButtonVariant.Primary}>
           5
         </Keypad.Button>,
       );
