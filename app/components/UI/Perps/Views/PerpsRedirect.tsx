@@ -1,29 +1,16 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 import PerpsLoader from '../components/PerpsLoader';
-import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 const PerpsRedirect: React.FC = () => {
-  const {
-    isConnected,
-    isConnecting,
-    isInitialized,
-    error: connectionError,
-    connect: reconnect,
-    resetError,
-  } = usePerpsConnection();
-
-  const handleRetryConnection = useCallback(async () => {
-    resetError();
-    await reconnect();
-  }, [resetError, reconnect]);
+  const { isConnected, isConnecting, isInitialized } = usePerpsConnection();
 
   useEffect(() => {
     // Only redirect when successfully connected
-    if (isConnected && isInitialized && !connectionError) {
+    if (isConnected && isInitialized) {
       // Navigate to wallet home with perps tab selection
       // Using the same pattern as PerpsTutorialCarousel
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
@@ -40,18 +27,7 @@ const PerpsRedirect: React.FC = () => {
         });
       }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
     }
-  }, [isConnected, isInitialized, connectionError]);
-
-  // Show connection error screen if there's an error
-  if (connectionError) {
-    return (
-      <PerpsConnectionErrorView
-        error={connectionError}
-        onRetry={handleRetryConnection}
-        isRetrying={isConnecting}
-      />
-    );
-  }
+  }, [isConnected, isInitialized]);
 
   // Show loader while initializing or connecting
   if (!isInitialized || isConnecting) {

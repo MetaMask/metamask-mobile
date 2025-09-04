@@ -1159,8 +1159,8 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "title": "Perps is temporarily offline",
+        "description": "We're working to get it back online soon.",
         "retry": "Retry"
       },
       "networkError": {

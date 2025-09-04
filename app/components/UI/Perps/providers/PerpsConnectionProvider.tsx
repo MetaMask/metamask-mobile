@@ -13,6 +13,7 @@ import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
 import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
+import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -44,6 +45,7 @@ export const PerpsConnectionProvider: React.FC<
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
+  const [retryAttempts, setRetryAttempts] = useState(0);
   const pollIntervalRef = useRef<NodeJS.Timeout>();
 
   // Enable deposit status monitoring and toasts at the provider level
@@ -188,13 +190,49 @@ export const PerpsConnectionProvider: React.FC<
     ],
   );
 
+  // Environment-level error handling - show error screen if connection failed
+  // This ensures NO Perps screen can render when there's a connection error
+  if (connectionState.error) {
+    // Determine if back button should be shown based on navigation context
+    // For now, only show back button after retry failures (conservative approach)
+    // This prevents showing back button in wallet tabs while ensuring escape route exists
+    const shouldShowBackButton = retryAttempts > 0;
+
+    const handleRetry = async () => {
+      setRetryAttempts((prev) => prev + 1);
+
+      try {
+        // Clear debug errors if active (allows user to recover from forced errors)
+        if (__DEV__) {
+          PerpsConnectionManager.clearDebugError();
+        }
+        resetError(); // Clear normal errors
+        await connect(); // Attempt reconnection
+
+        // Reset retry attempts on successful connection
+        setRetryAttempts(0);
+      } catch (err) {
+        // Keep retry attempts count for showing back button after failed attempts
+        console.error('Retry connection failed:', err);
+      }
+    };
+
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        <PerpsConnectionErrorView
+          error={connectionState.error}
+          onRetry={handleRetry}
+          isRetrying={connectionState.isConnecting}
+          showBackButton={shouldShowBackButton}
+          retryAttempts={retryAttempts}
+        />
+      </PerpsConnectionContext.Provider>
+    );
+  }
+
   // Show skeleton loading UI while connection is initializing
   // This prevents components from trying to load data before the connection is ready
-  // Don't show skeleton if there's an error (let the child components handle it)
-  if (
-    (connectionState.isConnecting || !connectionState.isInitialized) &&
-    !connectionState.error
-  ) {
+  if (connectionState.isConnecting || !connectionState.isInitialized) {
     return (
       <PerpsConnectionContext.Provider value={contextValue}>
         <PerpsLoadingSkeleton />
