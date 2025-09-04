@@ -89,7 +89,6 @@ import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
-import { calculatePercentageForPrice } from '../../utils/tpslValidation';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
@@ -442,7 +441,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
-
   /**
    * Calculate TP/SL display text with RoE percentages
    * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
@@ -506,45 +504,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     availableBalance,
     marginRequired,
   });
-
-  // Display helpers for TP/SL showing percentage and price
-  const tpDisplayText = useMemo(() => {
-    if (!orderForm.takeProfitPrice) {
-      return strings('perps.order.off');
-    }
-    const percentage = calculatePercentageForPrice(
-      orderForm.takeProfitPrice,
-      true,
-      {
-        currentPrice: assetData.price,
-        direction: orderForm.direction,
-      },
-    );
-    if (!percentage) {
-      return formatPrice(orderForm.takeProfitPrice);
-    }
-    const sign = orderForm.direction === 'short' ? '-' : '+';
-    return `${sign}${percentage}% (${formatPrice(orderForm.takeProfitPrice)})`;
-  }, [orderForm.takeProfitPrice, assetData.price, orderForm.direction]);
-
-  const slDisplayText = useMemo(() => {
-    if (!orderForm.stopLossPrice) {
-      return strings('perps.order.off');
-    }
-    const percentage = calculatePercentageForPrice(
-      orderForm.stopLossPrice,
-      false,
-      {
-        currentPrice: assetData.price,
-        direction: orderForm.direction,
-      },
-    );
-    if (!percentage) {
-      return formatPrice(orderForm.stopLossPrice);
-    }
-    const sign = orderForm.direction === 'short' ? '+' : '-';
-    return `${sign}${percentage}% (${formatPrice(orderForm.stopLossPrice)})`;
-  }, [orderForm.stopLossPrice, assetData.price, orderForm.direction]);
 
   // Track dependent metrics update performance when amount or leverage changes
   const prevInputValuesRef = useRef({ amount: '', leverage: 1 });
@@ -888,28 +847,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
 
-          {/* Take profit */}
-          <View style={styles.detailItem}>
-            <TouchableOpacity
-              onPress={() => setIsTPSLVisible(true)}
-              testID={PerpsOrderViewSelectorsIDs.TAKE_PROFIT_BUTTON}
-            >
-              <ListItem>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {strings('perps.order.take_profit')}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {tpDisplayText}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
-          </View>
-
-          {/* Stop loss */}
+          {/* Combined TP/SL row */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
             <TouchableOpacity
               onPress={() => setIsTPSLVisible(true)}
@@ -918,8 +856,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
-                    <Text variant={TextVariant.BodyLGMedium}>
-                      {strings('perps.order.stop_loss')}
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('perps.order.tp_sl')}
                     </Text>
                     <TouchableOpacity
                       onPress={() => handleTooltipPress('tp_sl')}
@@ -935,8 +876,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {slDisplayText}
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={TextColor.Default}
+                  >
+                    {tpSlDisplayText}
                   </Text>
                 </ListItemColumn>
               </ListItem>

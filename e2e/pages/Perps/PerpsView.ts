@@ -79,14 +79,20 @@ class PerpsView {
   }
 
   getTakeProfitPercentageButton(percentage: number) {
+    // Support legacy tests passing index (1..4) by mapping to actual ROE%
+    // TP quick buttons: [10, 25, 50, 100]
+    const mapped = [0, 10, 25, 50, 100][percentage] || percentage;
     return Matchers.getElementByID(
-      getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(percentage),
+      getPerpsTPSLBottomSheetSelector.takeProfitPercentageButton(mapped),
     );
   }
 
   getStopLossPercentageButton(percentage: number) {
+    // Support legacy tests passing index (1..4) by mapping to actual ROE% (loss magnitudes)
+    // SL quick buttons: [5, 10, 25, 50]
+    const mapped = [0, 5, 10, 25, 50][percentage] || percentage;
     return Matchers.getElementByID(
-      getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(percentage),
+      getPerpsTPSLBottomSheetSelector.stopLossPercentageButton(mapped),
     );
   }
 

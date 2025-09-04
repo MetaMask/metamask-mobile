@@ -32,16 +32,6 @@ import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  isValidTakeProfitPrice,
-  isValidStopLossPrice,
-  validateTPSLPrices,
-  getTakeProfitErrorDirection,
-  getStopLossErrorDirection,
-  calculatePriceForPercentage,
-  calculatePercentageForPrice,
-  hasTPSLValuesChanged,
-} from '../../utils/tpslValidation';
-import {
   getPerpsTPSLBottomSheetSelector,
   PerpsTPSLBottomSheetSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -263,7 +253,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       shouldNavigateBack={false}
       onClose={handleClose}
       testID={PerpsTPSLBottomSheetSelectorsIDs.BOTTOM_SHEET}
-      style={styles.bottomSheet}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMD}>

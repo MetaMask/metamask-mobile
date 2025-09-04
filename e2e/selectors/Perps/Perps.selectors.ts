@@ -200,7 +200,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 
 export const PerpsTPSLBottomSheetSelectorsIDs = {
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
-  SET_BUTTON: 'perps-tpsl-set-button',
+  SET_BUTTON: 'bottomsheetfooter-button',
 } as const;
 
 export const getPerpsTPSLBottomSheetSelector = {
@@ -399,7 +399,7 @@ export const PerpsOrderViewSelectorsIDs = {
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
-  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
+  TAKE_PROFIT_BUTTON: 'perps-order-view-stop-loss-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   KEYPAD: 'perps-order-view-keypad',
@@ -465,7 +465,7 @@ export const PerpsMarketTabsSelectorsIDs = {
 
 export const PerpsGeneralSelectorsIDs = {
   // TPSL bottom sheet primary action button ("Set" / "Updating")
-  BOTTOM_SHEET_FOOTER_BUTTON: 'perps-tpsl-set-button',
+  BOTTOM_SHEET_FOOTER_BUTTON: 'bottomsheetfooter-button',
   // Order success toast dismiss button on PerpsOrderView
   ORDER_SUCCESS_TOAST_DISMISS_BUTTON:
     'perps-order-success-toast-dismiss-button',
