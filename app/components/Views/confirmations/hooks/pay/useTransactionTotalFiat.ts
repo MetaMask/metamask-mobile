@@ -116,7 +116,7 @@ function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
 
 function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
   return getQuoteSourceAmount(quote).minus(
-    quote.toTokenAmount?.valueInCurrency ?? 0,
+    quote.minToTokenAmount?.valueInCurrency ?? 0,
   );
 }
 
