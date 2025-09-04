@@ -16,6 +16,8 @@ jobs:
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
+      RCT_NO_LAUNCH_PACKAGER: 1
+      XCODE_BUILD_SETTINGS: "COMPILER_INDEX_STORE_ENABLE=NO"
       GITHUB_CI: "true"  # This ensures it's available during pod install
       PLATFORM: ios
       METAMASK_ENVIRONMENT: qa
@@ -53,6 +55,16 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Cache Xcode derived data
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: ${{ runner.os }}-xcode-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
