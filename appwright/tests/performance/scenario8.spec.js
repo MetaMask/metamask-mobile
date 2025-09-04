@@ -19,6 +19,7 @@ import TokenOverviewScreen from '../../../wdio/screen-objects/TokenOverviewScree
 import CommonScreen from '../../../wdio/screen-objects/CommonScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
+import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 
 test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -41,12 +42,14 @@ test('Asset View, SRP 1 + SRP 2 + SRP 3', async ({
   TokenOverviewScreen.device = device;
   CommonScreen.device = device;
   WalletActionModal.device = device;
-
+  NetworksScreen.device = device;
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
   await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapNetworkNavBar();
+  await NetworksScreen.selectNetwork('Ethereum Mainnet');
 
   const assetViewScreen = new TimerHelper(
     'Time since the user clicks on the asset view button until the user sees the token overview screen',

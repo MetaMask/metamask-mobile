@@ -59,7 +59,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, 'token-network-filter');
     }
   }
 
