@@ -1030,12 +1030,6 @@ export class RewardsController extends BaseController<
       return false;
     }
 
-    // Base32 alphabet (RFC 4648): A-Z and 2-7
-    const base32Regex = /^[A-Z2-7]{6}$/;
-    if (!base32Regex.test(code.toUpperCase())) {
-      return false;
-    }
-
     try {
       const response = await this.messagingSystem.call(
         'RewardsDataService:validateReferralCode',

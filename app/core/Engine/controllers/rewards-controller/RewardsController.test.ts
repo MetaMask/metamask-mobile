@@ -14,7 +14,11 @@ import type {
 import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
-jest.mock('./utils/multi-subscription-token-vault');
+jest.mock('./utils/multi-subscription-token-vault', () => ({
+  ...jest.requireActual('./utils/multi-subscription-token-vault'),
+  storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
+  removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
+}));
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../selectors/featureFlagController/rewards');
 jest.mock('../../../../store');
@@ -25,6 +29,7 @@ jest.mock('../../../../util/address', () => ({
 // Import mocked modules
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { store } from '../../../../store';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Type the mocked modules
 const mockSelectRewardsEnabledFlag =
@@ -108,6 +113,9 @@ describe('RewardsController', () => {
       registerInitialEventPayload: jest.fn(),
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+    // Reset feature flag to enabled by default
+    mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
     controller = new RewardsController({
       messenger: mockMessenger,
@@ -222,7 +230,10 @@ describe('RewardsController', () => {
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsDiscount',
+        expect.anything(),
+      );
     });
 
     it('should return cached hasOptedIn value when cache is fresh', async () => {
@@ -1204,6 +1215,450 @@ describe('RewardsController', () => {
       expect(updatedReferralDetails.lastFetched).toBeGreaterThan(
         Date.now() - 1000,
       );
+    });
+  });
+
+  describe('optIn', () => {
+    const mockInternalAccount = {
+      address: '0x123456789',
+      type: 'eip155:eoa' as const,
+      id: 'test-id',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should skip opt-in when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert - Should not call generateChallenge, signPersonalMessage, or optin
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:generateChallenge',
+        expect.anything(),
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.anything(),
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optin',
+        expect.anything(),
+      );
+    });
+
+    it('should successfully complete opt-in process', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Act
+      await controller.optIn(mockInternalAccount, 'REFERRAL123');
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:generateChallenge',
+        {
+          address: mockInternalAccount.address,
+        },
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'KeyringController:signPersonalMessage',
+        {
+          data: expect.stringContaining('0x'),
+          from: mockInternalAccount.address,
+        },
+      );
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        4,
+        'RewardsDataService:optin',
+        {
+          challengeId: mockChallengeResponse.id,
+          signature: mockSignature,
+          referralCode: 'REFERRAL123',
+        },
+      );
+
+      // Verify state updates
+      expect(controller.state.lastAuthenticatedAccount).toEqual({
+        account: 'eip155:1:0x123456789',
+        hasOptedIn: true,
+        subscriptionId: 'sub-789',
+        lastAuthTime: expect.any(Number),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+      expect(controller.state.subscriptions['sub-789']).toEqual(
+        mockOptinResponse.subscription,
+      );
+    });
+
+    it('should handle opt-in without referral code', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'AUTO123',
+          accounts: [],
+        },
+      };
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse)
+        .mockResolvedValueOnce(mockSignature)
+        .mockResolvedValueOnce(mockOptinResponse);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        4,
+        'RewardsDataService:optin',
+        {
+          challengeId: mockChallengeResponse.id,
+          signature: mockSignature,
+          referralCode: undefined,
+        },
+      );
+    });
+
+    it('should handle signature generation errors', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse)
+        .mockRejectedValueOnce(new Error('Signature failed'));
+
+      // Act & Assert
+      await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
+        'Signature failed',
+      );
+    });
+
+    it('should handle optin service errors', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse)
+        .mockResolvedValueOnce(mockSignature)
+        .mockRejectedValueOnce(new Error('Optin failed'));
+
+      // Act & Assert
+      await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
+        'Optin failed',
+      );
+    });
+  });
+
+  describe('logout', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should skip logout when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      await controller.logout();
+
+      // Assert - Should not call logout service
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        expect.anything(),
+      );
+    });
+
+    it('should skip logout when no authenticated account exists', async () => {
+      // Arrange
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: null,
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      // Act
+      await controller.logout();
+
+      // Assert - Should not call logout service
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        expect.anything(),
+      );
+    });
+
+    it('should successfully complete logout process', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        mockSubscriptionId,
+      );
+
+      // Verify state was cleared
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should handle logout service errors and propagate them', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const logoutError = new Error('Logout service failed');
+      mockMessenger.call.mockRejectedValue(logoutError);
+
+      // Act & Assert
+      await expect(controller.logout()).rejects.toThrow(
+        'Logout service failed',
+      );
+    });
+
+    it('should clear last authenticated account only if subscription matches', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+  });
+
+  describe('validateReferralCode', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.validateReferralCode('ABC123');
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        expect.anything(),
+      );
+    });
+
+    it('should return false for empty or whitespace-only codes', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('')).toBe(false);
+      expect(await controller.validateReferralCode('   ')).toBe(false);
+      expect(await controller.validateReferralCode('\t\n')).toBe(false);
+    });
+
+    it('should return false for codes with incorrect length', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('ABC12')).toBe(false); // Too short
+      expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
+    });
+
+    it('should return false for codes with invalid characters', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('ABC12@')).toBe(false); // Invalid character @
+      expect(await controller.validateReferralCode('ABC120')).toBe(false); // Invalid character 0
+      expect(await controller.validateReferralCode('ABC121')).toBe(false); // Invalid character 1
+      expect(await controller.validateReferralCode('ABC12I')).toBe(false); // Invalid character I
+      expect(await controller.validateReferralCode('ABC12O')).toBe(false); // Invalid character O
+    });
+
+    it('should return true for valid referral codes from service', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'ABC234',
+      );
+    });
+
+    it('should return false for invalid referral codes from service', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: false });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'XYZ567',
+      );
+    });
+
+    it('should accept valid base32 characters', async () => {
+      // Act & Assert
+      const validCodes = ['ABCDEF', 'ABC234', 'XYZ567', 'DEF237'];
+
+      for (const code of validCodes) {
+        jest.clearAllMocks();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockMessenger.call.mockImplementation((action, ..._args): any => {
+          if (action === 'RewardsDataService:validateReferralCode') {
+            return Promise.resolve({ valid: true });
+          }
+          return Promise.resolve();
+        });
+
+        const result = await controller.validateReferralCode(code);
+        expect(result).toBe(true);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:validateReferralCode',
+          code,
+        );
+      }
+    });
+
+    it('should handle service errors and return false', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      mockMessenger.call.mockRejectedValue(new Error('Service error'));
+
+      // Act
+      const result = await controller.validateReferralCode('ABC123');
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 });
