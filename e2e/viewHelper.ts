@@ -283,18 +283,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
-  await device.disableSynchronization(); // Workaround for tokens list hanging after onboarding
-  await WalletView.pullToRefreshTokensList();
-  await device.enableSynchronization();
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
 };
 
 /**
