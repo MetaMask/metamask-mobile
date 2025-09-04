@@ -48,6 +48,7 @@ import {
   selectIsEvmSolanaBridge,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
+import BigNumber from 'bignumber.js';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -63,6 +64,8 @@ interface NetworkBadgeProps {
 }
 
 const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkConfig = networkConfigurations[chainId];
   const displayName = networkConfig?.name || '';
@@ -72,6 +75,7 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       gap={2}
+      style={styles.networkBadgeContainer}
     >
       <Badge
         variant={BadgeVariant.Network}
@@ -79,7 +83,13 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
         isScaled={false}
         size={AvatarSize.Sm}
       />
-      <Text variant={TextVariant.BodyMDMedium}>{displayName}</Text>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        numberOfLines={1}
+        style={styles.networkBadgeText}
+      >
+        {displayName}
+      </Text>
     </Box>
   );
 };
@@ -175,6 +185,10 @@ const QuoteDetailsCard = () => {
       (!gasIncluded &&
         Number(rawPriceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.normal));
+
+  const hasFee = activeQuote
+    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
+    : false;
 
   return (
     <Box>
@@ -332,31 +346,33 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.price_impact'),
-                  variant: TextVariant.BodyMDMedium,
-                },
-                ...(shouldShowPriceImpactWarning && {
-                  tooltip: {
-                    title: strings('bridge.price_impact_warning_title'),
-                    content: strings('bridge.price_impact_normal_warning'),
-                    onPress: handlePriceImpactWarningPress,
-                    size: TooltipSizes.Sm,
+            {priceImpact && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.price_impact'),
+                    variant: TextVariant.BodyMDMedium,
                   },
-                }),
-              }}
-              value={{
-                label: {
-                  text: priceImpact,
-                  variant: TextVariant.BodyMD,
-                  color: shouldShowPriceImpactWarning
-                    ? TextColor.Error
-                    : undefined,
-                },
-              }}
-            />
+                  ...(shouldShowPriceImpactWarning && {
+                    tooltip: {
+                      title: strings('bridge.price_impact_warning_title'),
+                      content: strings('bridge.price_impact_normal_warning'),
+                      onPress: handlePriceImpactWarningPress,
+                      size: TooltipSizes.Sm,
+                    },
+                  }),
+                }}
+                value={{
+                  label: {
+                    text: priceImpact,
+                    variant: TextVariant.BodyMD,
+                    color: shouldShowPriceImpactWarning
+                      ? TextColor.Error
+                      : undefined,
+                  },
+                }}
+              />
+            )}
 
             <KeyValueRow
               field={{
@@ -394,13 +410,15 @@ const QuoteDetailsCard = () => {
           </Box>
         )}
       </Box>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.disclaimerText}
-      >
-        {strings('bridge.fee_disclaimer')}
-      </Text>
+      {hasFee ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.disclaimerText}
+        >
+          {strings('bridge.fee_disclaimer')}
+        </Text>
+      ) : null}
     </Box>
   );
 };

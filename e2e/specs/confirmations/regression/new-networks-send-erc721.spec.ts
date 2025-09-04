@@ -1,4 +1,4 @@
-import { Regression } from '../../../tags';
+import { RegressionConfirmations } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
@@ -7,12 +7,12 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../../framework/Assertions';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
 
-describe(Regression('ERC721 tokens'), () => {
+describe(RegressionConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   // Table-driven tests for all networks

@@ -17,16 +17,20 @@ import { CardToken } from '../types';
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private chainId: string | number;
+  private enableLogs: boolean;
 
   constructor({
     cardFeatureFlag,
     rawChainId,
+    enableLogs = false,
   }: {
     cardFeatureFlag: CardFeatureFlag;
     rawChainId: `0x${string}` | SupportedCaipChainId;
+    enableLogs?: boolean;
   }) {
     this.cardFeatureFlag = cardFeatureFlag;
     this.chainId = getDecimalChainId(rawChainId);
+    this.enableLogs = enableLogs;
   }
 
   get isCardEnabled(): boolean {
@@ -116,6 +120,15 @@ export class CardSDK {
     return accountsApi;
   }
 
+  private logDebugInfo(fnName: string, data: unknown) {
+    if (this.enableLogs) {
+      Logger.log(
+        `CardSDK Debug Log - ${fnName}`,
+        JSON.stringify(data, null, 2),
+      );
+    }
+  }
+
   /**
    * Checks if the given accounts are cardholders by querying the accounts API.
    * Supports batching for performance optimization - processes up to 3 batches of 50 accounts each.
@@ -124,13 +137,11 @@ export class CardSDK {
    * @returns Promise resolving to object containing array of cardholder accounts
    */
   isCardHolder = async (
-    accounts: `eip155:${string}:0x${string}`[],
-  ): Promise<{
-    cardholderAccounts: `eip155:${string}:0x${string}`[];
-  }> => {
+    accounts: `${string}:${string}:${string}`[],
+  ): Promise<`${string}:${string}:${string}`[]> => {
     // Early return for invalid input or disabled feature
     if (!this.isCardEnabled || !accounts?.length) {
-      return { cardholderAccounts: [] };
+      return [];
     }
 
     const BATCH_SIZE = 50;
@@ -154,7 +165,7 @@ export class CardSDK {
    */
   private async performCardholderRequest(
     accountIds: string[],
-  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
+  ): Promise<`${string}:${string}:${string}`[]> {
     try {
       const url = this.buildCardholderApiUrl(accountIds);
       const response = await fetch(url);
@@ -164,15 +175,14 @@ export class CardSDK {
       }
 
       const data = await response.json();
-      return {
-        cardholderAccounts: data.is || [],
-      };
+      this.logDebugInfo('performCardholderRequest', data);
+      return data.is || [];
     } catch (error) {
       Logger.error(
         error as Error,
         'Failed to check if address is a card holder',
       );
-      return { cardholderAccounts: [] };
+      return [];
     }
   }
 
@@ -190,10 +200,10 @@ export class CardSDK {
    * Processes multiple batches of accounts to check cardholder status
    */
   private async processBatchedCardholderRequests(
-    accounts: `eip155:${string}:0x${string}`[],
+    accounts: `${string}:${string}:${string}`[],
     batchSize: number,
     maxBatches: number,
-  ): Promise<{ cardholderAccounts: `eip155:${string}:0x${string}`[] }> {
+  ): Promise<`${string}:${string}:${string}`[]> {
     const batches = this.createAccountBatches(accounts, batchSize, maxBatches);
     const batchPromises = batches.map((batch) =>
       this.performCardholderRequest(batch),
@@ -201,21 +211,25 @@ export class CardSDK {
 
     const results = await Promise.all(batchPromises);
     const allCardholderAccounts = results.flatMap(
-      (result) => result.cardholderAccounts,
+      (result) => result as `${string}:${string}:${string}`[],
+    );
+    this.logDebugInfo(
+      'processBatchedCardholderRequests',
+      allCardholderAccounts,
     );
 
-    return { cardholderAccounts: allCardholderAccounts };
+    return allCardholderAccounts;
   }
 
   /**
    * Creates batches of accounts for API processing
    */
   private createAccountBatches(
-    accounts: `eip155:${string}:0x${string}`[],
+    accounts: `${string}:${string}:${string}`[],
     batchSize: number,
     maxBatches: number,
-  ): `eip155:${string}:0x${string}`[][] {
-    const batches: `eip155:${string}:0x${string}`[][] = [];
+  ): `${string}:${string}:${string}`[][] {
+    const batches: `${string}:${string}:${string}`[][] = [];
     let remainingAccounts = accounts;
 
     while (remainingAccounts.length > 0 && batches.length < maxBatches) {
@@ -278,6 +292,10 @@ export class CardSDK {
         supportedTokensAddresses,
         spenders,
       );
+    this.logDebugInfo(
+      'getSupportedTokensAllowances',
+      spendersAllowancesForTokens,
+    );
 
     return supportedTokensAddresses.map((tokenAddress, index) => {
       const [globalAllowanceTuple, usAllowanceTuple] =
@@ -303,14 +321,26 @@ export class CardSDK {
 
     // Handle simple cases first
     if (nonZeroBalanceTokens.length === 0) {
+      this.logDebugInfo('getPriorityToken (Simple Case 1)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.getFirstSupportedTokenOrNull();
     }
 
     if (nonZeroBalanceTokens.length === 1) {
+      this.logDebugInfo('getPriorityToken (Simple Case 2)', {
+        address,
+        nonZeroBalanceTokens,
+      });
       return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
     }
 
     // Handle complex case with multiple tokens
+    this.logDebugInfo('getPriorityToken (Complex Case)', {
+      address,
+      nonZeroBalanceTokens,
+    });
     return this.findPriorityTokenFromApprovalLogs(
       address,
       nonZeroBalanceTokens,

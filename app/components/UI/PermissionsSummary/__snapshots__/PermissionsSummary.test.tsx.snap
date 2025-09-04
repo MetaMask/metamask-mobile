@@ -240,7 +240,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           }
         >
-          app.uniswap.org has approval to:
+          https://app.uniswap.org has approval to:
         </Text>
         <Text
           accessibilityRole="text"
@@ -554,6 +554,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={
@@ -1507,7 +1508,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             }
           }
         >
-          app.uniswap.org
+          https://app.uniswap.org
         </Text>
         <Text
           accessibilityRole="text"
@@ -2229,7 +2230,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             }
           }
         >
-          app.uniswap.org has approval to:
+          https://app.uniswap.org has approval to:
         </Text>
         <Text
           accessibilityRole="text"
@@ -2259,6 +2260,7 @@ exports[`PermissionsSummary should render only the account permissions card when
       >
         <TouchableOpacity
           onPress={[Function]}
+          testID="navigate_to_edit_accounts_permissions_button"
         >
           <View
             style={
@@ -2920,7 +2922,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             }
           }
         >
-          app.uniswap.org has approval to:
+          https://app.uniswap.org has approval to:
         </Text>
         <Text
           accessibilityRole="text"
@@ -3595,7 +3597,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             }
           }
         >
-          app.uniswap.org has approval to:
+          https://app.uniswap.org has approval to:
         </Text>
         <Text
           accessibilityRole="text"
@@ -3909,6 +3911,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={
@@ -4862,7 +4865,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             }
           }
         >
-          app.uniswap.org has approval to:
+          https://app.uniswap.org has approval to:
         </Text>
         <Text
           accessibilityRole="text"
@@ -5176,6 +5179,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={

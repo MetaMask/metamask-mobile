@@ -10,42 +10,37 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      padding: 16,
       marginVertical: 6,
     },
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.alternative, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.section,
       borderRadius: 8,
-      padding: 12,
-      marginVertical: 4,
+      paddingVertical: 12,
+      marginVertical: 2, // Reduced spacing between cards
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 8,
+    },
+    headerExpanded: {
+      marginBottom: 16, // Extra spacing for expanded cards before the divider
     },
     // Icon section styles
     perpIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       marginRight: 12,
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-    },
-    tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
     },
     headerLeft: {
       flex: 1,
@@ -68,16 +63,23 @@ const styleSheet = (params: { theme: Theme }) => {
     body: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingVertical: 8,
-      marginBottom: 8,
+      paddingVertical: 16,
+      marginBottom: 16,
     },
     bodyRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    bodyRowLast: {
+      marginBottom: 0,
     },
     bodyItem: {
       flex: 1,
       alignItems: 'flex-start',
+    },
+    bodyItemLabel: {
+      marginBottom: 4,
     },
     footer: {
       flexDirection: 'row',
@@ -86,6 +88,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
+      borderColor: colors.border.default,
     },
   });
 };

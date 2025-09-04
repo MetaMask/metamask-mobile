@@ -48,6 +48,7 @@ export interface CandleStick {
 }
 
 import { CandlePeriod } from '../constants/chartConfig';
+import { OrderType } from '../controllers/types';
 
 /**
  * Represents historical candlestick data for a specific coin and interval
@@ -60,6 +61,7 @@ export interface CandleData {
 
 // Export all configuration types directly
 export * from './config';
+export * from './token';
 
 /**
  * Standard Structure for Perps LaunchDarkly Feature Flags
@@ -81,4 +83,5 @@ export interface OrderFormState {
   takeProfitPrice?: string;
   stopLossPrice?: string;
   limitPrice?: string;
+  type: OrderType;
 }

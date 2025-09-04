@@ -23,6 +23,8 @@ describe('usePerpsOrderForm', () => {
       totalBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
     });
   });
 
@@ -39,6 +41,7 @@ describe('usePerpsOrderForm', () => {
         takeProfitPrice: undefined,
         stopLossPrice: undefined,
         limitPrice: undefined,
+        type: 'market',
       });
     });
 
@@ -49,6 +52,7 @@ describe('usePerpsOrderForm', () => {
           initialDirection: 'short',
           initialAmount: '500',
           initialLeverage: 20,
+          initialType: 'limit',
         }),
       );
 
@@ -61,6 +65,7 @@ describe('usePerpsOrderForm', () => {
         takeProfitPrice: undefined,
         stopLossPrice: undefined,
         limitPrice: undefined,
+        type: 'limit',
       });
     });
 
@@ -146,6 +151,16 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.limitPrice).toBe('50000');
     });
 
+    it('should update order type', () => {
+      const { result } = renderHook(() => usePerpsOrderForm());
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
+    });
+
     it('should update multiple fields at once', () => {
       const { result } = renderHook(() => usePerpsOrderForm());
 
@@ -171,7 +186,7 @@ describe('usePerpsOrderForm', () => {
         result.current.handlePercentageAmount(0.5);
       });
 
-      expect(result.current.orderForm.amount).toBe('500'); // 50% of 1000
+      expect(result.current.orderForm.amount).toBe('1500'); // 50% of 1000 * 3x leverage
     });
 
     it('should handle max amount', () => {
@@ -181,7 +196,7 @@ describe('usePerpsOrderForm', () => {
         result.current.handleMaxAmount();
       });
 
-      expect(result.current.orderForm.amount).toBe('1000');
+      expect(result.current.orderForm.amount).toBe('3000'); // 1000 * 3x leverage
     });
 
     it('should handle min amount for mainnet', () => {
@@ -215,6 +230,8 @@ describe('usePerpsOrderForm', () => {
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '0',
       });
 
       const { result } = renderHook(() => usePerpsOrderForm());

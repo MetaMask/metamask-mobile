@@ -14,10 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     perpIcon: {
-      width: 32,
-      height: 32,
       marginRight: 16,
-      marginLeft: 16,
     },
     leftSection: {
       flexDirection: 'row',
@@ -53,9 +50,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 2,
       paddingHorizontal: 4,
       borderRadius: 2,
-    },
-    networkAvatar: {
-      marginRight: 16,
     },
   });
 };

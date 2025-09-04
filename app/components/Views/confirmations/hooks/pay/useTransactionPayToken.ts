@@ -5,56 +5,36 @@ import {
   setTransactionPayToken,
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
-import { Hex } from '@metamask/utils';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
-
-  const { chainId: transactionChainId, id: transactionId } =
-    useTransactionMetadataRequest() || {};
+  const { id: transactionId } = useTransactionMetadataRequest() || {};
 
   const selectedPayToken = useSelector((state: RootState) =>
     selectTransactionPayToken(state, transactionId as string),
   );
 
-  const chainId = selectedPayToken?.chainId || transactionChainId;
-  const tokens = useTokensWithBalance({ chainIds: [chainId] });
-
-  const token = tokens.find(
-    (t) =>
-      t.chainId === chainId &&
-      t.address.toLowerCase() === selectedPayToken?.address.toLowerCase(),
+  const payToken = useTokenWithBalance(
+    selectedPayToken?.address ?? '0x0',
+    selectedPayToken?.chainId ?? '0x0',
   );
 
-  const defaultPayToken: TransactionPayToken = {
-    address: EMPTY_ADDRESS,
-    chainId: transactionChainId as Hex,
-  };
-
-  const decimals = token?.decimals ?? 18;
-  const balanceHuman = token?.balance ?? '0';
-
   const setPayToken = useCallback(
-    (payToken: TransactionPayToken) => {
+    (newPayToken: TransactionPayToken) => {
       dispatch(
         setTransactionPayToken({
           transactionId: transactionId as string,
-          payToken,
+          payToken: newPayToken,
         }),
       );
     },
     [dispatch, transactionId],
   );
 
-  const payToken = selectedPayToken ?? defaultPayToken;
-
   return {
-    balanceHuman,
-    decimals,
     payToken,
     setPayToken,
   };

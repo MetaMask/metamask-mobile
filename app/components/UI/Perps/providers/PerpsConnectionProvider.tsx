@@ -7,9 +7,12 @@ import React, {
   useState,
   useRef,
 } from 'react';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
+import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
+import { usePerpsWithdrawStatus } from '../hooks/usePerpsWithdrawStatus';
+import { usePerpsConnectionLifecycle } from '../hooks/usePerpsConnectionLifecycle';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -26,6 +29,7 @@ const PerpsConnectionContext =
 
 interface PerpsConnectionProviderProps {
   children: React.ReactNode;
+  isVisible?: boolean;
 }
 
 /**
@@ -36,18 +40,35 @@ interface PerpsConnectionProviderProps {
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({ children }) => {
+> = ({ children, isVisible }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
   const [error, setError] = useState<string | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout>();
 
+  // Enable deposit status monitoring and toasts at the provider level
+  // This ensures it runs only once for all Perps screens
+  usePerpsDepositStatus();
+
+  // Enable withdrawal status monitoring and toasts at the provider level
+  usePerpsWithdrawStatus();
+
   // Poll connection state to sync with singleton
   useEffect(() => {
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     };
 
     // Poll every 100ms for state changes
@@ -66,7 +87,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown connection error';
@@ -79,7 +110,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown disconnection error';
@@ -92,36 +133,21 @@ export const PerpsConnectionProvider: React.FC<
     setError(null);
   }, []);
 
-  // Connect on mount, disconnect on unmount using singleton
-  useEffect(() => {
-    DevLogger.log('PerpsConnectionProvider: Component mounted', {
-      timestamp: new Date().toISOString(),
-    });
-
-    // Connect using the singleton manager
-    const initializeConnection = async () => {
-      try {
-        await PerpsConnectionManager.connect();
-        const state = PerpsConnectionManager.getConnectionState();
-        setConnectionState(state);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Unknown connection error';
-        setError(errorMessage);
-      }
-    };
-
-    initializeConnection();
-
-    // Disconnect when provider unmounts
-    return () => {
-      DevLogger.log('PerpsConnectionProvider: Component unmounting', {
-        timestamp: new Date().toISOString(),
-      });
-
-      PerpsConnectionManager.disconnect();
-    };
-  }, []);
+  // Use the connection lifecycle hook to manage visibility and app state
+  usePerpsConnectionLifecycle({
+    isVisible,
+    onConnect: async () => {
+      await PerpsConnectionManager.connect();
+      const state = PerpsConnectionManager.getConnectionState();
+      setConnectionState(state);
+    },
+    onDisconnect: async () => {
+      await PerpsConnectionManager.disconnect();
+      const state = PerpsConnectionManager.getConnectionState();
+      setConnectionState(state);
+    },
+    onError: setError,
+  });
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
@@ -144,6 +170,20 @@ export const PerpsConnectionProvider: React.FC<
       resetError,
     ],
   );
+
+  // Show skeleton loading UI while connection is initializing
+  // This prevents components from trying to load data before the connection is ready
+  // Don't show skeleton if there's an error (let the child components handle it)
+  if (
+    (connectionState.isConnecting || !connectionState.isInitialized) &&
+    !error
+  ) {
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        <PerpsLoadingSkeleton />
+      </PerpsConnectionContext.Provider>
+    );
+  }
 
   return (
     <PerpsConnectionContext.Provider value={contextValue}>

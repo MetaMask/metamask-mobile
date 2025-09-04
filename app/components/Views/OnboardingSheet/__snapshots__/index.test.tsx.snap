@@ -74,8 +74,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -440,8 +440,8 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -722,7 +722,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 }
               }
             >
-              Continue with Secret Recovery Phrase
+              Use Secret Recovery Phrase
             </Text>
           </TouchableOpacity>
         </View>

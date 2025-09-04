@@ -116,30 +116,87 @@ exports[`EnterAddress Component displays form validation errors when continue is
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -193,94 +250,87 @@ exports[`EnterAddress Component displays form validation errors when continue is
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -545,7 +595,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "justifyContent": "center",
-                                      "paddingVertical": 12,
+                                      "paddingBottom": 12,
                                       "width": "100%",
                                     }
                                   }
@@ -657,7 +707,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#686e7d",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -696,6 +746,35 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     Address line 1
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -740,7 +819,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -796,6 +875,35 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     Address line 2 (optional)
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -840,7 +948,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -892,6 +1000,35 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       City
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -935,7 +1072,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -1114,6 +1251,35 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       Postal/Zip Code
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -1158,7 +1324,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -1216,6 +1382,35 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       Country
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -1279,7 +1474,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -1582,30 +1777,87 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -1659,94 +1911,87 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -1863,7 +2108,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={19}
+              handlerTag={14}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2011,7 +2256,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "justifyContent": "center",
-                                      "paddingVertical": 12,
+                                      "paddingBottom": 12,
                                       "width": "100%",
                                     }
                                   }
@@ -2123,7 +2368,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#686e7d",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2162,6 +2407,35 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     Address line 1
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2206,7 +2480,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -2247,6 +2521,35 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     Address line 2 (optional)
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2291,7 +2594,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -2343,6 +2646,35 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       City
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2386,7 +2718,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -2527,6 +2859,35 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       Postal/Zip Code
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2571,7 +2932,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -2614,6 +2975,35 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       Country
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -2677,7 +3067,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -2980,30 +3370,87 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -3057,94 +3504,87 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -3409,7 +3849,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "justifyContent": "center",
-                                      "paddingVertical": 12,
+                                      "paddingBottom": 12,
                                       "width": "100%",
                                     }
                                   }
@@ -3521,7 +3961,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#686e7d",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3560,6 +4000,35 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     Address line 1
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -3604,7 +4073,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -3645,6 +4114,35 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     Address line 2 (optional)
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -3689,7 +4187,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -3741,6 +4239,35 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       City
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -3784,7 +4311,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -3933,6 +4460,35 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       Postal/Zip Code
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -3977,7 +4533,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -4020,6 +4576,35 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       Country
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -4083,7 +4668,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -4386,30 +4971,87 @@ exports[`EnterAddress Component shows text input for state when region is not US
                 }
               }
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
                 style={
-                  {
-                    "marginTop": 5,
-                    "paddingLeft": 18,
-                    "paddingRight": 18,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                <View
+                  accessibilityState={
                     {
-                      "height": 24,
-                      "width": 24,
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="button-icon"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -4463,94 +5105,87 @@ exports[`EnterAddress Component shows text input for state when region is not US
                 }
               }
             >
-              <TouchableOpacity
+              <View
                 style={
-                  {
-                    "paddingHorizontal": 18,
-                    "paddingVertical": 8,
-                  }
+                  [
+                    {
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
                       },
                       {
-                        "alignItems": "center",
-                        "justifyContent": "center",
+                        "marginHorizontal": 16,
                       },
                     ]
                   }
+                  testID="button-icon"
                 >
-                  <View
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": false,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
+                  <SvgMock
+                    fill="currentColor"
+                    name="Close"
                     style={
                       [
                         {
-                          "alignItems": "center",
-                          "backgroundColor": "transparent",
-                          "borderRadius": 2,
-                          "height": 40,
-                          "justifyContent": "center",
-                          "opacity": 1,
-                          "width": 40,
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
                         },
                         undefined,
                       ]
                     }
-                    testID="button-icon"
-                  >
-                    <SvgMock
-                      fill="currentColor"
-                      name="Close"
-                      style={
-                        [
-                          {
-                            "color": "#121314",
-                            "height": 24,
-                            "width": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                    />
-                  </View>
+                  />
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -4667,7 +5302,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={11}
+              handlerTag={7}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4815,7 +5450,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "justifyContent": "center",
-                                      "paddingVertical": 12,
+                                      "paddingBottom": 12,
                                       "width": "100%",
                                     }
                                   }
@@ -4927,7 +5562,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#686e7d",
                                         "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -4966,6 +5601,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     Address line 1
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -5010,7 +5674,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -5051,6 +5715,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     Address line 2 (optional)
                                   </Text>
                                   <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -5095,7 +5788,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontFamily": "Geist Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
-                                            "height": 24,
+                                            "height": 46,
                                             "letterSpacing": 0,
                                             "opacity": 1,
                                             "paddingVertical": 0,
@@ -5147,6 +5840,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       City
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5190,7 +5912,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -5233,6 +5955,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       State/Region
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5276,7 +6027,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -5329,6 +6080,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       Postal/Zip Code
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5373,7 +6153,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
@@ -5416,6 +6196,35 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       Country
                                     </Text>
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": undefined,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
                                           "alignItems": "center",
@@ -5479,7 +6288,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
-                                              "height": 24,
+                                              "height": 46,
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,

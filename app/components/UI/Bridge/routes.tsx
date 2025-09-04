@@ -24,7 +24,7 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
-    <Stack.Screen name="BridgeView" component={BridgeView} />
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
   </Stack.Navigator>
 );
 

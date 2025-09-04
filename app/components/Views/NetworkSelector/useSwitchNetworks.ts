@@ -4,6 +4,7 @@ import Engine from '../../../core/Engine';
 import {
   getDecimalChainId,
   isPerDappSelectedNetworkEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import {
@@ -18,8 +19,7 @@ import {
 } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
@@ -39,6 +39,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  NetworkType,
+  useNetworksByNamespace,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -79,6 +84,12 @@ export function useSwitchNetworks({
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
@@ -91,19 +102,19 @@ export function useSwitchNetworks({
    * Sets the token network filter based on the chain ID
    */
   const setTokenNetworkFilter = useCallback(
-    (chainId: string) => {
-      const isPopularNetwork =
-        chainId === CHAIN_IDS.MAINNET ||
-        chainId === CHAIN_IDS.LINEA_MAINNET ||
-        PopularList.some((network) => network.chainId === chainId);
+    (chainId: Hex) => {
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(chainId);
       const { PreferencesController } = Engine.context;
       if (!isAllNetwork && isPopularNetwork) {
         PreferencesController.setTokenNetworkFilter({
           [chainId]: true,
         });
       }
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        selectNetwork(chainId);
+      }
     },
-    [isAllNetwork],
+    [isAllNetwork, selectNetwork],
   );
 
   /**

@@ -8,6 +8,7 @@ import { areAddressesEqual } from '../../../../../../util/address';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
+// todo: this should go away as we use snap for name mapping
 export const shouldSkipValidation = ({
   toAddress,
   chainId,
@@ -51,17 +52,17 @@ export const validateToAddress = (
       error: strings('transaction.invalid_address'),
     };
   }
-  // todo: solana sns name validation
   return {};
 };
 
 export const useSolanaToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
 
   const validateSolanaToAddress = useCallback(
-    () => validateToAddress(internalAccounts, to, chainId),
-    [chainId, internalAccounts, to],
+    (addressInputToValidate: string) =>
+      validateToAddress(internalAccounts, addressInputToValidate, chainId),
+    [chainId, internalAccounts],
   );
 
   return { validateSolanaToAddress };

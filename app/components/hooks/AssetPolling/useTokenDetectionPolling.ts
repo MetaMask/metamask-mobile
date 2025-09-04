@@ -1,68 +1,47 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
-import {
-  selectAllPopularNetworkConfigurations,
-  selectEvmChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { usePollingNetworks } from './use-polling-networks';
 
 const useTokenDetectionPolling = ({
   chainIds,
   address,
 }: { chainIds?: Hex[]; address?: Hex } = {}) => {
-  const networkConfigurationsPopularNetworks = useSelector(
-    selectAllPopularNetworkConfigurations,
-  );
-  const currentChainId = useSelector(selectEvmChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const useTokenDetection = useSelector(selectUseTokenDetection);
-  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
-  // if all networks are selected, poll all popular networks
-  const filteredChainIds =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
-
-  // if portfolio view is enabled, poll all chain ids
-  const chainIdsToPoll =
-    useTokenDetection && isEvmSelected
+  const pollingNetworks = usePollingNetworks();
+  const pollingInput =
+    pollingNetworks.length > 0 && selectedAccount?.address
       ? [
           {
-            chainIds: filteredChainIds as Hex[],
-            address: selectedAccount?.address as Hex,
+            chainIds: pollingNetworks.map((c) => c.chainId),
+            address: selectedAccount.address as Hex,
           },
         ]
       : [];
+
+  let overridePollingInput: { chainIds: Hex[]; address: Hex }[] | undefined;
+  if (chainIds && address) {
+    // We don't want to take evmNetwork into account
+    overridePollingInput = [
+      {
+        chainIds,
+        address: address as Hex,
+      },
+    ];
+  }
 
   const { TokenDetectionController } = Engine.context;
 
-  let providedChainIdsAndAddress;
-
-  if (chainIds && address) {
-    // We don't want to take evmNetwork into account
-    providedChainIdsAndAddress = useTokenDetection
-      ? [
-          {
-            chainIds: chainIds as Hex[],
-            address: address as Hex,
-          },
-        ]
-      : [];
-  }
-
-  const input = providedChainIdsAndAddress ?? chainIdsToPoll;
+  const input = useTokenDetection
+    ? (overridePollingInput ?? pollingInput).filter(
+        (i) => i.chainIds && i.address,
+      )
+    : [];
 
   usePolling({
     startPolling: TokenDetectionController.startPolling.bind(

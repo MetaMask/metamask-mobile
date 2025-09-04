@@ -19,8 +19,11 @@
   },
   "AccountTreeController": {
     "accountTree": {
+      "selectedAccountGroup": "",
       "wallets": {}
-    }
+    },
+    "accountGroupsMetadata": {},
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -163,6 +166,18 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
+      }
+    }
+  },
+  "NetworkEnablementController": {
+    "enabledNetworkMap": {
+      "eip155": {
+        "0x1": true,
+        "0x2105": true,
+        "0xe708": true
+      },
+      "solana": {
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
       }
     }
   },
@@ -364,19 +379,29 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
+    "lastWithdrawResult": null,
+    "withdrawInProgress": false,
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "isEligible": false
+    "isEligible": false,
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    },
+    "perpsBalances": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
@@ -572,5 +597,13 @@
   "DeFiPositionsController": {
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
+  },
+  "RewardsController": {
+    "accounts": {},
+    "lastAuthenticatedAccount": null,
+    "seasonStatuses": {},
+    "seasons": {},
+    "subscriptionReferralDetails": {},
+    "subscriptions": {}
   }
 }

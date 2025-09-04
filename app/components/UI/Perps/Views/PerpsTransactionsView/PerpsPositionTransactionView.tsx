@@ -19,7 +19,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
@@ -40,7 +40,9 @@ const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedInternalAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:1');
   const { getExplorerUrl } = usePerpsBlockExplorerUrl();
 
   // Get transaction from route params
@@ -136,14 +138,15 @@ const PerpsPositionTransactionView: React.FC = () => {
     });
   }
 
-  // Points or Net P&L row - only show if values exist
-  if (transaction.fill?.points) {
-    secondaryDetailRows.push({
-      label: strings('perps.transactions.position.points'),
-      value: `+${transaction.fill?.points}`,
-      textColor: TextColor.Success,
-    });
-  }
+  // Points feature not activated yet - commented out
+  // TODO: Uncomment when points feature is enabled
+  // if (transaction.fill?.points) {
+  //   secondaryDetailRows.push({
+  //     label: strings('perps.transactions.position.points'),
+  //     value: `+${transaction.fill?.points}`,
+  //     textColor: TextColor.Success,
+  //   });
+  // }
 
   return (
     <ScreenView>

@@ -4,15 +4,17 @@ import type { OrderFormState } from '../types';
 import { calculateMarginRequired } from '../utils/orderCalculations';
 import { usePerpsAccount } from './usePerpsAccount';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { OrderType } from '../controllers/types';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
   initialLeverage?: number;
+  initialType?: OrderType;
 }
 
-interface UsePerpsOrderFormReturn {
+export interface UsePerpsOrderFormReturn {
   orderForm: OrderFormState;
   updateOrderForm: (updates: Partial<OrderFormState>) => void;
   setAmount: (amount: string) => void;
@@ -22,6 +24,7 @@ interface UsePerpsOrderFormReturn {
   setTakeProfitPrice: (price?: string) => void;
   setStopLossPrice: (price?: string) => void;
   setLimitPrice: (price?: string) => void;
+  setOrderType: (type: OrderType) => void;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
@@ -43,6 +46,7 @@ export function usePerpsOrderForm(
     initialDirection = 'long',
     initialAmount,
     initialLeverage,
+    initialType = 'market',
   } = params;
 
   const currentNetwork = usePerpsNetwork();
@@ -76,6 +80,7 @@ export function usePerpsOrderForm(
     takeProfitPrice: undefined,
     stopLossPrice: undefined,
     limitPrice: undefined,
+    type: initialType,
   });
 
   // Update entire form
@@ -112,14 +117,20 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, limitPrice: price }));
   };
 
+  const setOrderType = (type: OrderType) => {
+    setOrderForm((prev) => ({ ...prev, type }));
+  };
+
   // Handle percentage-based amount selection
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (availableBalance === 0) return;
-      const newAmount = Math.floor(availableBalance * percentage).toString();
+      const newAmount = Math.floor(
+        availableBalance * orderForm.leverage * percentage,
+      ).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [availableBalance],
+    [availableBalance, orderForm.leverage],
   );
 
   // Handle max amount selection
@@ -127,7 +138,7 @@ export function usePerpsOrderForm(
     if (availableBalance === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(availableBalance).toString(),
+      amount: Math.floor(availableBalance * prev.leverage).toString(),
     }));
   }, [availableBalance]);
 
@@ -167,6 +178,7 @@ export function usePerpsOrderForm(
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
+    setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,

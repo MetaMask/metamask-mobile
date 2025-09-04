@@ -1,4 +1,5 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NavigationService from '../NavigationService';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
@@ -7,6 +8,10 @@ import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
+import { handleSwapUrl } from './Handlers/handleSwapUrl';
+import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
+import { handlePerpsUrl, handlePerpsAssetUrl } from './Handlers/handlePerpsUrl';
+import Routes from '../../constants/navigation/Routes';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
@@ -14,26 +19,23 @@ jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./Handlers/handleRampUrl');
 jest.mock('./ParseManager/parseDeeplink');
 jest.mock('./Handlers/switchNetwork');
+jest.mock('./Handlers/handleSwapUrl');
+jest.mock('./Handlers/handleCreateAccountUrl');
+jest.mock('./Handlers/handlePerpsUrl');
 
 const mockNavigation = {
   navigate: jest.fn(),
 } as unknown as NavigationProp<ParamListBase>;
 
-const mockDispatch = jest.fn();
-
 describe('DeeplinkManager', () => {
-  let deeplinkManager = new DeeplinkManager({
-    navigation: mockNavigation,
-    dispatch: mockDispatch,
-  });
+  let deeplinkManager: DeeplinkManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    deeplinkManager = new DeeplinkManager({
-      navigation: mockNavigation,
-      dispatch: mockDispatch,
-    });
+    // Ensure navigation is available before DeeplinkManager is constructed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    NavigationService.navigation = mockNavigation as any;
+    deeplinkManager = new DeeplinkManager();
   });
 
   it('should set, get, and expire a deeplink correctly', () => {
@@ -142,6 +144,44 @@ describe('DeeplinkManager', () => {
       origin,
       browserCallBack,
       onHandled,
+    });
+  });
+
+  it('should handle open home correctly', () => {
+    deeplinkManager._handleOpenHome();
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('should handle swap correctly', () => {
+    const swapPath = '/swap/path';
+    deeplinkManager._handleSwap(swapPath);
+    expect(handleSwapUrl).toHaveBeenCalledWith({
+      swapPath,
+    });
+  });
+
+  it('should handle create account correctly', () => {
+    const createAccountPath = '/create/account/path';
+    deeplinkManager._handleCreateAccount(createAccountPath);
+    expect(handleCreateAccountUrl).toHaveBeenCalledWith({
+      path: createAccountPath,
+      navigation: mockNavigation,
+    });
+  });
+
+  it('should handle perps correctly', () => {
+    const perpsPath = '/perps/markets';
+    deeplinkManager._handlePerps(perpsPath);
+    expect(handlePerpsUrl).toHaveBeenCalledWith({
+      perpsPath,
+    });
+  });
+
+  it('should handle perps asset correctly', () => {
+    const assetPath = '/BTC';
+    deeplinkManager._handlePerpsAsset(assetPath);
+    expect(handlePerpsAssetUrl).toHaveBeenCalledWith({
+      assetPath,
     });
   });
 });

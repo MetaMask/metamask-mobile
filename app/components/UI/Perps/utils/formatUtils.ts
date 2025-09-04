@@ -2,6 +2,7 @@
  * Shared formatting utilities for Perps components
  */
 import { formatWithThreshold } from '../../../../util/assets';
+import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Formats a balance value as USD currency with appropriate decimal places
@@ -38,31 +39,32 @@ export const formatPerpsFiat = (balance: string | number): string => {
  */
 export const formatPrice = (
   price: string | number,
-  options?: { minimumDecimals?: number },
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
   const minDecimals = options?.minimumDecimals ?? 2;
+  const maxDecimals = options?.maximumDecimals ?? 4;
 
   if (isNaN(num)) {
     return minDecimals === 0 ? '$0' : '$0.00';
   }
 
-  // For prices >= 1000, use specified minimum decimal places
+  // For prices >= 1000, use specified decimal places
   if (num >= 1000) {
     return formatWithThreshold(num, 1000, 'en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: minDecimals,
-      maximumFractionDigits: Math.max(minDecimals, 2),
+      maximumFractionDigits: maxDecimals,
     });
   }
 
-  // For prices < 1000, use up to 4 decimal places
+  // For prices < 1000, use specified decimal places
   return formatWithThreshold(num, 0.0001, 'en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: minDecimals,
-    maximumFractionDigits: 4,
+    maximumFractionDigits: maxDecimals,
   });
 };
 
@@ -94,47 +96,156 @@ export const formatPnl = (pnl: string | number): string => {
 /**
  * Formats a percentage value with sign prefix
  * @param value - Raw percentage value (e.g., 5.25 for 5.25%, not 0.0525)
+ * @param decimals - Number of decimal places to show (default: 2)
  * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
  * @example formatPercentage(5.25) => "+5.25%"
  * @example formatPercentage(-2.75) => "-2.75%"
  * @example formatPercentage(0) => "+0.00%"
  */
-export const formatPercentage = (value: string | number): string => {
+export const formatPercentage = (
+  value: string | number,
+  decimals: number = 2,
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
 
   if (isNaN(num)) {
     return '0.00%';
   }
 
-  return `${num >= 0 ? '+' : ''}${num.toFixed(2)}%`;
+  return `${num >= 0 ? '+' : ''}${num.toFixed(decimals)}%`;
+};
+
+/**
+ * Formats funding rate for display
+ * @param value - Raw funding rate value (decimal, not percentage)
+ * @param options - Optional formatting options
+ * @param options.showZero - Whether to return zero display value for zero/undefined (default: true)
+ * @returns Formatted funding rate as percentage string
+ * @example formatFundingRate(0.0005) => "0.0500%"
+ * @example formatFundingRate(-0.0001) => "-0.0100%"
+ * @example formatFundingRate(undefined) => "0.0000%"
+ */
+export const formatFundingRate = (
+  value?: number | null,
+  options?: { showZero?: boolean },
+): string => {
+  const showZero = options?.showZero ?? true;
+
+  if (value === undefined || value === null) {
+    return showZero ? FUNDING_RATE_CONFIG.ZERO_DISPLAY : '';
+  }
+
+  const percentage = value * FUNDING_RATE_CONFIG.PERCENTAGE_MULTIPLIER;
+  const formatted = percentage.toFixed(FUNDING_RATE_CONFIG.DECIMALS);
+
+  // Check if the result is effectively zero
+  if (showZero && parseFloat(formatted) === 0) {
+    return FUNDING_RATE_CONFIG.ZERO_DISPLAY;
+  }
+
+  return `${formatted}%`;
 };
 
 /**
  * Formats large numbers with magnitude suffixes
  * @param value - Raw numeric value
- * @returns Format: "X.XB" / "X.XM" / "X.XK" / "X.XX" (1 decimal for suffixed, 2 for raw)
- * @example formatLargeNumber(1500000) => "1.5M"
- * @example formatLargeNumber(1234) => "1.2K"
+ * @param options - Optional formatting options
+ * @param options.decimals - Number of decimal places for suffixed values (default: 0)
+ * @param options.rawDecimals - Number of decimal places for non-suffixed values (default: 2)
+ * @returns Format: "X.XXB" / "X.XXM" / "X.XXK" / "X.XX" (configurable decimals)
+ * @example formatLargeNumber(1500000) => "2M"
+ * @example formatLargeNumber(1500000, { decimals: 1 }) => "1.5M"
+ * @example formatLargeNumber(1234, { decimals: 2 }) => "1.23K"
  * @example formatLargeNumber(999) => "999.00"
  */
-export const formatLargeNumber = (value: string | number): string => {
+export const formatLargeNumber = (
+  value: string | number,
+  options?: { decimals?: number; rawDecimals?: number },
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  const decimals = options?.decimals ?? 0;
+  const rawDecimals = options?.rawDecimals ?? 2;
 
   if (isNaN(num)) {
     return '0';
   }
 
-  if (num >= 1000000000) {
-    return `${(num / 1000000000).toFixed(1)}B`;
+  const absNum = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+
+  if (absNum >= 1000000000000) {
+    const trillions = absNum / 1000000000000;
+    return `${sign}${trillions.toFixed(decimals)}T`;
   }
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
+  if (absNum >= 1000000000) {
+    const billions = absNum / 1000000000;
+    return `${sign}${billions.toFixed(decimals)}B`;
   }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
+  if (absNum >= 1000000) {
+    const millions = absNum / 1000000;
+    return `${sign}${millions.toFixed(decimals)}M`;
+  }
+  if (absNum >= 1000) {
+    const thousands = absNum / 1000;
+    return `${sign}${thousands.toFixed(decimals)}K`;
   }
 
-  return num.toFixed(2);
+  return num.toFixed(rawDecimals);
+};
+
+/**
+ * Formats volume with appropriate magnitude suffixes
+ * @param volume - Raw volume value
+ * @param decimals - Number of decimal places to show (optional, auto-determined by default)
+ * @returns Format: "$XB" / "$X.XXM" / "$XK" / "$X.XX"
+ * @example formatVolume(1234567890) => "$1.23B"
+ * @example formatVolume(12345678) => "$12.35M"
+ * @example formatVolume(123456) => "$123K"
+ */
+export const formatVolume = (
+  volume: string | number,
+  decimals?: number,
+): string => {
+  const num = typeof volume === 'string' ? parseFloat(volume) : volume;
+
+  // Handle invalid inputs - return fallback display for NaN/Infinity
+  if (isNaN(num) || !isFinite(num)) {
+    return '$---';
+  }
+
+  const absNum = Math.abs(num);
+
+  // Auto-determine decimals based on magnitude if not specified
+  let autoDecimals = decimals;
+  if (decimals === undefined) {
+    if (absNum >= 1000000000) {
+      // Billions: 2 decimals
+      autoDecimals = 2;
+    } else if (absNum >= 1000000) {
+      // Millions: 2 decimals
+      autoDecimals = 2;
+    } else if (absNum >= 1000) {
+      // Thousands: 0 decimals
+      autoDecimals = 0;
+    } else {
+      // Under 1000: 2 decimals
+      autoDecimals = 2;
+    }
+  } else {
+    autoDecimals = decimals;
+  }
+
+  const formatted = formatLargeNumber(volume, {
+    decimals: autoDecimals,
+    rawDecimals: autoDecimals,
+  });
+
+  // Handle negative values - ensure dollar sign comes after negative sign
+  if (formatted.startsWith('-')) {
+    return `-$${formatted.slice(1)}`;
+  }
+
+  return `$${formatted}`;
 };
 
 /**
@@ -245,17 +356,25 @@ export const parsePercentageString = (formattedValue: string): number => {
 };
 
 /**
- * Formats a timestamp for transaction detail views
+ * Formats a timestamp for transaction detail views with time
  * @param timestamp - Unix timestamp in milliseconds
- * @returns Formatted date string (e.g., "July 24, 2025")
- * @example formatTransactionDate(1642492800000) => "January 18, 2022"
+ * @returns Formatted date string with time (e.g., "July 24, 2025 at 2:30 PM")
+ * @example formatTransactionDate(1642492800000) => "January 18, 2022 at 12:00 AM"
  */
-export const formatTransactionDate = (timestamp: number): string =>
-  new Intl.DateTimeFormat('en-US', {
+export const formatTransactionDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const dateStr = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  }).format(new Date(timestamp));
+  }).format(date);
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+  return `${dateStr} at ${timeStr}`;
+};
 
 /**
  * Formats a timestamp for transaction section headers

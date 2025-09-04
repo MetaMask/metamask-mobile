@@ -10,6 +10,7 @@ import {
   TypeTextOptions,
 } from './types';
 import { createLogger } from './logger';
+import { sleep } from '@walletconnect/utils';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -313,6 +314,7 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       sensitive = false,
+      delay = BASE_DEFAULTS.actionDelay,
       elemDescription,
     } = options;
 
@@ -325,9 +327,7 @@ export default class Gestures {
           checkEnabled,
         })) as Detox.IndexableNativeElement;
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         if (clearFirst) {
           await el.replaceText('');
@@ -335,6 +335,7 @@ export default class Gestures {
 
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
 
         logger.debug(
           `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
@@ -381,6 +382,7 @@ export default class Gestures {
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
         );
         await el.replaceText(text);
+        await sleep(500); // To help reduce flakiness as sometimes the app is not registering all text input
       },
       {
         timeout,
@@ -446,10 +448,14 @@ export default class Gestures {
       direction = 'down',
       scrollAmount = 350,
       elemDescription,
+      delay = 0,
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
+        // Add delay before scrolling
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         const target = (await targetElement) as Detox.IndexableNativeElement;
         const scrollable = await scrollableContainer;
 

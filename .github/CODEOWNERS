@@ -51,6 +51,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Card Team
 app/components/UI/Card/              @MetaMask/card
+app/core/redux/slices/card/          @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -133,6 +134,14 @@ app/selectors/earnController         @MetaMask/metamask-earn
 **/Earn/**                           @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
 
+# Rewards Team
+app/core/Engine/controllers/rewards-controller @MetaMask/rewards
+app/core/Engine/messengers/rewards-controller-messenger @MetaMask/rewards
+app/selectors/rewardscontroller.ts   @MetaMask/rewards
+app/selectors/featureFlagController/rewards @MetaMask/rewards
+**/Rewards/**                        @MetaMask/rewards
+**/rewards/**                        @MetaMask/rewards
+
 # Perps Team
 app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
@@ -146,6 +155,7 @@ app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
+app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
 app/components/UI/Collectibles @MetaMask/metamask-assets
 app/components/UI/CollectibleContractElement @MetaMask/metamask-assets
@@ -172,6 +182,7 @@ app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
+app/selectors/assets @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux

@@ -44,6 +44,12 @@ pipelines:
       - bump_version_stage: {}
       - create_build_beta: {}
       - deploy_build_release: {}
+  #Releases MetaMask RC apps for release buil profiling
+  release_rc_builds_to_store_pipeline:
+    stages:
+      - bump_version_stage: {}
+      - create_build_rc: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -112,7 +118,7 @@ pipelines:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_performance_ios_android_stage: {}
+      # - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -208,6 +214,10 @@ stages:
       - build_ios_main_prod: {}
       - build_ios_main_beta: {}
       - build_ios_main_rc: {}
+  create_build_rc:
+    workflows:
+      - build_android_main_rc: {}
+      - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
@@ -294,8 +304,9 @@ stages:
     workflows:
       - build_ios_main_e2e:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - build_android_main_e2e:
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+      # Disabling in CI to allow GHA runs
+      # - build_android_main_e2e:
+      #     run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -323,6 +334,8 @@ stages:
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -331,27 +344,30 @@ stages:
     workflows:
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
-      - run_trade_swimlane_android_smoke: {}
+      # - run_trade_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
-      - run_network_abstraction_swimlane_android_smoke: {}
+      # - run_network_abstraction_swimlane_android_smoke: {}
       - run_network_expansion_swimlane_ios_smoke: {}
-      - run_network_expansion_swimlane_android_smoke: {}
+      # - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
-      - run_wallet_platform_swimlane_android_smoke: {}
+      # - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_identity_ios: {}
-      - run_tag_smoke_identity_android: {}
+      # - run_tag_smoke_identity_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_performance_ios: {}
-      - run_tag_smoke_performance_android: {}
-  run_smoke_e2e_performance_ios_android_stage:
-    workflows:
-      - run_tag_smoke_performance_ios: {}
-      - run_tag_smoke_performance_android: {}
+      # - run_tag_smoke_accounts_android: {}
+      # - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_android: {}
+      - run_tag_smoke_card_ios: {}
+      # - run_tag_smoke_card_android: {}
+  # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
+  # run_smoke_e2e_performance_ios_android_stage:
+    # workflows:
+      # - run_tag_smoke_performance_ios: {}
+      #- run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
     abort_on_fail: true
@@ -362,12 +378,46 @@ stages:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
+      - ios_run_regression_confirmations_tests: {}
+      - ios_run_regression_wallet_platform_tests: {}
+      - ios_run_regression_trade_tests: {}
+      - ios_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_expansion_tests: {}
+      - ios_run_regression_identity_tests: {}
+      - ios_run_regression_accounts_tests: {}
+      - ios_run_regression_ux_tests: {}
+      - ios_run_regression_assets_tests: {}
+      - android_run_regression_confirmations_tests: {}
+      - android_run_regression_wallet_platform_tests: {}
+      - android_run_regression_trade_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_expansion_tests: {}
+      - android_run_regression_performance_tests: {}
+      - android_run_regression_assets_tests: {}
+      - android_run_regression_identity_tests: {}
+      - android_run_regression_accounts_tests: {}
+      - android_run_regression_ux_tests: {}
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
@@ -385,6 +435,8 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
 
   report_results_stage:
     workflows:
@@ -787,9 +839,54 @@ workflows:
   ios_build_regression_tests:
     after_run:
       - ios_e2e_build
-  ios_run_regression_tests:
+  ios_run_regression_confirmations_tests:
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_wallet_platform_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_trade_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_expansion_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_performance_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_identity_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_accounts_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_assets_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_ux_tests:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
     after_run:
       - ios_e2e_test
   android_build_regression_tests:
@@ -799,13 +896,94 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
-  android_run_regression_tests:
+  android_run_regression_confirmations_tests:
+    meta:
+        bitrise.io:
+          stack: linux-docker-android-22.04
+          machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionConfirmations'
+    after_run:
+      - android_e2e_test
+  android_run_regression_wallet_platform_tests:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: 'Regression'
+      - TEST_SUITE_TAG: 'RegressionWalletPlatform'
+    after_run:
+      - android_e2e_test
+  android_run_regression_trade_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionTrade'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_abstraction_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - android_e2e_test
+  android_run_regression_network_expansion_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkExpansion'
+    after_run:
+      - android_e2e_test
+  android_run_regression_performance_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionPerformance'
+    after_run:
+      - android_e2e_test
+  android_run_regression_identity_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionIdentity'
+    after_run:
+      - android_e2e_test
+  android_run_regression_accounts_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAccounts'
+    after_run:
+      - android_e2e_test
+  android_run_regression_ux_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionWalletUX'
+    after_run:
+      - android_e2e_test
+  android_run_regression_assets_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'RegressionAssets'
     after_run:
       - android_e2e_test
   download_production_qa_apk:
@@ -1096,6 +1274,20 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeAccounts'
     after_run:
       - android_e2e_test
+  run_tag_smoke_card_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_card_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     envs:
       - KEYSTORE_URL: $BITRISEIO_ANDROID_KEYSTORE_URL
@@ -1172,7 +1364,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
-          # run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1301,6 +1493,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1461,7 +1654,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1762,7 +1955,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1913,6 +2106,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -2186,6 +2380,52 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - script@1:
+          title: Prepare Android build outputs for caching
+          run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo "=== Preparing Android cache ==="
+                echo "Current working directory: $(pwd)"
+                
+                # Create a clean cache directory structure
+                mkdir -p /tmp/android-cache/build/outputs
+                
+                if [ -d "android/app/build/outputs" ]; then
+                    echo "Copying Android build outputs to cache staging area..."
+                    cp -r android/app/build/outputs/* /tmp/android-cache/build/outputs/
+                    echo "Cache staging completed"
+                    
+                    echo "Cache contents:"
+                    find /tmp/android-cache -type f | head -10
+                    echo "Total cache size: $(du -sh /tmp/android-cache 2>/dev/null || echo 'Unknown')"
+                else
+                    echo "Warning: android/app/build/outputs not found!"
+                fi
+      - save-cache@1:
+          title: Save Android PR Build Cache
+          run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                /tmp/android-cache
+      - script@1:
+          title: Save last successful build commit (Android)
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker (Android)
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
 
   # Template for E2E Android builds
 
@@ -2401,8 +2641,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2416,8 +2656,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2967,6 +3207,30 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+      - save-cache@1:
+          title: Save iOS PR Build Cache
+          run_if: '{{and (getenv "IOS_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+            - paths: |-
+                ios/build/Build/Products/Release-iphonesimulator
+                ../Library/Detox/ios
+      - script@1:
+          title: Save last successful build commit
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Create a marker file with the current commit
+                mkdir -p /tmp/last-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
+                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+      - save-cache@1:
+          title: Save last successful build commit marker
+          run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
+          inputs:
+            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-build-commit
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:
@@ -3372,6 +3636,12 @@ app:
       MM_UNIFIED_SWAPS_ENABLED: true
     - opts:
         is_expand: false
+      MM_PERPS_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_PERPS_BLOCKED_REGIONS: "US,CA-ON"
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -3402,16 +3672,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.54.0
+      VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2203
+      VERSION_NUMBER: 2296
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.54.0
+      FLASK_VERSION_NAME: 7.56.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2203
+      FLASK_VERSION_NUMBER: 2296
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

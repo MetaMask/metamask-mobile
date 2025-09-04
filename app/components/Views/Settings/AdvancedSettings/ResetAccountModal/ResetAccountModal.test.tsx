@@ -7,6 +7,7 @@ import { ResetAccountModal } from './ResetAccountModal';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
+import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
 
 jest.mock('../../../../../selectors/accountsController', () => {
@@ -33,6 +34,10 @@ jest.mock('../../../../../selectors/networkController', () => {
 
 jest.mock('../../../../../util/transaction-controller', () => ({
   wipeTransactions: jest.fn(),
+}));
+
+jest.mock('../../../../../util/smart-transactions', () => ({
+  wipeSmartTransactions: jest.fn(),
 }));
 
 jest.mock('../../../../UI/Bridge/utils', () => ({
@@ -73,7 +78,7 @@ describe('ResetAccountModal', () => {
     (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
   });
 
-  it('calls wipeBridgeStatus and wipeTransactions when reset button is pressed', () => {
+  it('calls wipeBridgeStatus, wipeTransactions, and wipeSmartTransactions when reset button is pressed', () => {
     const { getByText } = renderWithProvider(
       <ResetAccountModal {...defaultProps} />,
       { state: initialState },
@@ -89,6 +94,9 @@ describe('ResetAccountModal', () => {
       '0x1',
     );
     expect(wipeTransactions).toHaveBeenCalledWith();
+    expect(wipeSmartTransactions).toHaveBeenCalledWith(
+      '0x123456789abcdef123456789abcdef123456789a',
+    );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 
@@ -109,6 +117,7 @@ describe('ResetAccountModal', () => {
 
     expect(wipeBridgeStatus).not.toHaveBeenCalled();
     expect(wipeTransactions).toHaveBeenCalledWith();
+    expect(wipeSmartTransactions).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 });

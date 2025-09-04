@@ -1,19 +1,46 @@
+import BN from 'bnjs4';
 import { useMemo } from 'react';
 
-import { useEvmAmountValidation } from './evm/useEvmAmountValidation';
-import { useNonEvmAmountValidation } from './non-evm/useNonEvmAmountValidation';
-import { useSendType } from './useSendType';
+import { strings } from '../../../../../../locales/i18n';
+import { isDecimal, toTokenMinimalUnit } from '../../../../../util/number';
+import { Nft } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
+import { useBalance } from './useBalance';
 
-// todo: if designs do not display error message, return type can be converted to boolean
+export const validateERC1155Balance = (asset: Nft, value?: string) => {
+  if (asset?.balance && value) {
+    if (parseInt(value) > parseInt(asset.balance)) {
+      return strings('send.insufficient_funds');
+    }
+  }
+  return undefined;
+};
+
+export const validateTokenBalance = (
+  amount: string,
+  decimals: number,
+  rawBalanceBN: BN,
+) => {
+  const amountInputBN = toTokenMinimalUnit(amount, decimals ?? 0);
+  if (rawBalanceBN.cmp(amountInputBN) === -1) {
+    return strings('send.insufficient_funds');
+  }
+  return undefined;
+};
+
 export const useAmountValidation = () => {
-  const { isEvmSendType } = useSendType();
-  const { validateEvmAmount } = useEvmAmountValidation();
-  const { validateNonEvmAmount } = useNonEvmAmountValidation();
+  const { value } = useSendContext();
+  const { decimals, rawBalanceBN } = useBalance();
 
-  const { invalidAmount, insufficientBalance } = useMemo(
-    () => (isEvmSendType ? validateEvmAmount() : validateNonEvmAmount()),
-    [isEvmSendType, validateEvmAmount, validateNonEvmAmount],
-  );
+  const amountError = useMemo(() => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    if (!isDecimal(value) || Number(value) < 0) {
+      return strings('send.invalid_value');
+    }
+    return validateTokenBalance(value, decimals, rawBalanceBN);
+  }, [decimals, rawBalanceBN, value]);
 
-  return { invalidAmount, insufficientBalance };
+  return { amountError };
 };

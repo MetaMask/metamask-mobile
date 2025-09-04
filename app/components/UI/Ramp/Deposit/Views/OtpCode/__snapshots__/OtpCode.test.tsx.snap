@@ -359,7 +359,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -772,7 +772,6 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -1191,7 +1190,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1624,7 +1623,6 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2043,7 +2041,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2456,7 +2454,6 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={
@@ -2875,7 +2872,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -3752,7 +3749,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -4165,7 +4162,6 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               activeOpacity={1}
                               disabled={true}
                               loading={false}
-                              onPress={[Function]}
                               onPressIn={[Function]}
                               onPressOut={[Function]}
                               style={

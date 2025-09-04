@@ -442,6 +442,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   {
                                     "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
+                                    "gap": 16,
                                     "padding": 16,
                                   },
                                   false,
@@ -452,20 +453,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               <View
                                 style={
                                   {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
-                              <View
-                                style={
-                                  {
                                     "alignItems": "center",
                                     "flex": 1,
-                                    "marginHorizontal": 16,
                                   }
                                 }
                               >
@@ -536,17 +525,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     </TouchableOpacity>
                                   </View>
                                 </View>
-                              </View>
-                              <View
-                                style={
-                                  {
-                                    "width": undefined,
-                                  }
-                                }
-                              >
-                                <View
-                                  onLayout={[Function]}
-                                />
                               </View>
                             </View>
                           </View>
@@ -696,6 +674,35 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </RCTScrollView>
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": undefined,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 {
                                   "alignItems": "center",
@@ -756,7 +763,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       "fontFamily": "Geist Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 24,
+                                      "height": 38,
                                       "letterSpacing": 0,
                                       "opacity": 1,
                                       "paddingVertical": 0,

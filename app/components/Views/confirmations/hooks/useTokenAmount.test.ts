@@ -274,6 +274,7 @@ describe('ERC20 token transactions', () => {
 
     expect(updateEditableParamsMock).toHaveBeenCalledWith(expect.any(String), {
       data: '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa9604500000000000000000000000000000000000000000000000002c68af0bb140000',
+      updateType: false,
     });
   });
 
@@ -427,6 +428,16 @@ describe('Edge cases', () => {
 
     await waitFor(() => {
       expect(result.current.amountUnformatted).toBe('0.0001');
+    });
+  });
+
+  it('returns unformatted fiat amount', async () => {
+    const { result } = renderHookWithProvider(() => useTokenAmount(), {
+      state: transferConfirmationState,
+    });
+
+    await waitFor(() => {
+      expect(result.current.fiatUnformatted).toBe('0.359625');
     });
   });
 });

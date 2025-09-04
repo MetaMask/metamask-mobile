@@ -7,8 +7,8 @@ import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { Regression } from '../../../tags';
-import { buildPermissions } from '../../../fixtures/utils';
+import { RegressionConfirmations } from '../../../tags';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 
@@ -47,7 +47,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe(Regression('Signature Requests'), () => {
+describe(RegressionConfirmations('Signature Requests'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
