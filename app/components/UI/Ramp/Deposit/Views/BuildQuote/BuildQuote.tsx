@@ -200,27 +200,6 @@ const BuildQuote = () => {
   ]);
 
   useEffect(() => {
-    if (
-      cryptoCurrency.assetId &&
-      cryptoCurrency.chainId &&
-      supportedTokens.length > 0
-    ) {
-      const isTokenSupported = supportedTokens.some(
-        (token) => token.assetId === cryptoCurrency.assetId,
-      );
-
-      if (!isTokenSupported) {
-        setCryptoCurrency(supportedTokens[0]);
-      }
-    }
-  }, [
-    cryptoCurrency.assetId,
-    cryptoCurrency.chainId,
-    supportedTokens,
-    setCryptoCurrency,
-  ]);
-
-  useEffect(() => {
     if (supportedTokens.length > 0) {
       let caipChainId;
       if (isHexString(chainId)) {
@@ -240,7 +219,6 @@ const BuildQuote = () => {
       }
 
       if (
-        supportedTokens.length > 0 &&
         !supportedTokens.some(
           (token) => token.assetId === cryptoCurrency.assetId,
         )
