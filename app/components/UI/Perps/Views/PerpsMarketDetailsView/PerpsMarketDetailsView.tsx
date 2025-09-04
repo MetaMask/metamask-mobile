@@ -15,10 +15,11 @@ import { ScrollView, View, RefreshControl, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
-  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
+import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -64,6 +65,12 @@ import TradingViewChart, {
 import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
+import { useSelector } from 'react-redux';
+import ButtonSemantic, {
+  ButtonSemanticSeverity,
+} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
@@ -77,9 +84,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { track } = usePerpsEventTracking();
 
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
+
   // Track screen load time
   const { startMeasure, endMeasure } = usePerpsPerformance();
   const hasTrackedAssetView = useRef(false);
+
+  const isEligible = useSelector(selectPerpsEligibility);
 
   // Start measuring screen load time on mount
   useEffect(() => {
@@ -225,6 +237,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleLongPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'long',
       asset: market.symbol,
@@ -232,6 +249,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleShortPress = () => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.ORDER, {
       direction: 'short',
       asset: market.symbol,
@@ -399,24 +421,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
           {hasLongShortButtons && (
             <View style={styles.actionsContainer}>
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.market.long')}
-                onPress={handleLongPress}
-                style={[styles.actionButton, styles.longButton]}
-                testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-              />
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.market.short')}
-                onPress={handleShortPress}
-                style={[styles.actionButton, styles.shortButton]}
-                testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-              />
+              <View style={styles.actionButtonWrapper}>
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
+              </View>
+
+              <View style={styles.actionButtonWrapper}>
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  isFullWidth
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              </View>
             </View>
           )}
         </View>
@@ -432,6 +459,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         showAllPeriods
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
       />
+
+      {isEligibilityModalVisible && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={() => setIsEligibilityModalVisible(false)}
+          contentKey={'geo_block'}
+          testID={
+            PerpsMarketDetailsViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+          }
+        />
+      )}
 
       {/* Notification Tooltip - Shows after first successful order */}
       {isNotificationsEnabled &&
