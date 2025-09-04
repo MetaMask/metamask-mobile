@@ -281,14 +281,6 @@ export const PerpsTestnetToggleSelectorsIDs = {
 };
 
 // ========================================
-// PERPS DEVELOPER OPTIONS SECTION SELECTORS
-// ========================================
-
-export const PerpsDeveloperOptionsSectionSelectorsIDs = {
-  // No selectors currently needed
-};
-
-// ========================================
 // PERPS TRANSACTION SELECTORS
 // ========================================
 
