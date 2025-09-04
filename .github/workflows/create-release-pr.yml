@@ -35,7 +35,7 @@ on:
       PR_TOKEN:
         required: false
       GCP_RLS_SHEET_ACCOUNT_BASE64:
-         required: false
+        required: false
 
 jobs:
   generate-build-version:
@@ -45,22 +45,14 @@ jobs:
 
   create-release-pr:
     needs: generate-build-version
-<<<<<<< HEAD
-    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@dde6d530bebae07d1e50180894ab2cac64170a2c
-=======
     uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@ddac3ee395896ff15df6fc561ff710efbb0dd3fa
->>>>>>> 74c52d070d (INFRA-2849:Added auto-create-release-pr workflow to automatically create release cp-7.55.0 (#19090))
     with:
       platform: mobile
       base-branch: ${{ inputs.base-branch }}
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       mobile-build-version: ${{ needs.generate-build-version.outputs.build-version }}
-<<<<<<< HEAD
-      github-tools-version: dde6d530bebae07d1e50180894ab2cac64170a2c
-=======
       github-tools-version: ddac3ee395896ff15df6fc561ff710efbb0dd3fa
->>>>>>> 74c52d070d (INFRA-2849:Added auto-create-release-pr workflow to automatically create release cp-7.55.0 (#19090))
 
     secrets:
       # This token needs write permissions to metamask-extension & read permissions to metamask-planning
