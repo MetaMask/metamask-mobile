@@ -190,17 +190,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
             >
               {strings('perps.position.account.unrealized_pnl')}
             </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-              style={styles.infoIcon}
-            />
           </View>
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
               <Text
-                style={styles.valueText}
+                style={styles.pnlValueText}
                 variant={TextVariant.HeadingSM}
                 color={pnlColor}
               >
