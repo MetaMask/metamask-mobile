@@ -146,6 +146,15 @@ class PerpsConnectionManagerClass {
     this.clearError();
   }
 
+  /**
+   * Force an error state for development/testing purposes only
+   */
+  forceError(error: string): void {
+    if (__DEV__) {
+      this.setError(error);
+    }
+  }
+
   async connect(): Promise<void> {
     // Wait if we're still disconnecting
     if (this.isDisconnecting && this.disconnectPromise) {
