@@ -17,7 +17,6 @@ jobs:
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       RCT_NO_LAUNCH_PACKAGER: 1
-      SKIP_BUNDLING: 1
       XCODE_BUILD_SETTINGS: "COMPILER_INDEX_STORE_ENABLE=NO"
       GITHUB_CI: "true"  # This ensures it's available during pod install
       PLATFORM: ios
@@ -67,7 +66,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
 
-                
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
