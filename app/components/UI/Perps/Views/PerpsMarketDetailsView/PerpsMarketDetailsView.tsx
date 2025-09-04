@@ -118,7 +118,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureNetworkExists } = usePerpsNetworkManagement();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   // Get real-time open orders via WebSocket
   const ordersData = usePerpsLiveOrders({ hideTpSl: true }); // Instant updates with TP/SL filtered
 
@@ -241,7 +241,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Ensure the network exists before proceeding
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       navigation.navigate(Routes.PERPS.ORDER, {
         direction: 'long',
@@ -265,7 +265,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     try {
       // Ensure the network exists before proceeding
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       navigation.navigate(Routes.PERPS.ORDER, {
         direction: 'short',
@@ -284,7 +284,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleAddFundsPress = async () => {
     try {
       // Ensure the network exists before proceeding
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       // Navigate immediately to confirmations screen for instant UI response
       navigation.navigate(Routes.PERPS.ROOT, {

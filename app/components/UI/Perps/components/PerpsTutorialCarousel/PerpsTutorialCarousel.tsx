@@ -128,7 +128,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureNetworkExists } = usePerpsNetworkManagement();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -198,7 +198,7 @@ const PerpsTutorialCarousel: React.FC = () => {
       // We need to enable Arbitrum for desposits to work
       // Arbitrum One is already added for all users as a default network
       // For devs on testnet, Arbitrum Sepolia will be added/enabled
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       // Mark tutorial as completed
       markTutorialCompleted();
@@ -244,7 +244,7 @@ const PerpsTutorialCarousel: React.FC = () => {
     navigation,
     depositWithConfirmation,
     tutorialScreens.length,
-    ensureNetworkExists,
+    ensureArbitrumNetworkExists,
   ]);
 
   const handleSkip = useCallback(() => {

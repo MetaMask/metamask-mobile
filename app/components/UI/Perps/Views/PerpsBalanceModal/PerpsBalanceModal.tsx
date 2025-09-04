@@ -27,7 +27,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureNetworkExists } = usePerpsNetworkManagement();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const handleClose = useCallback(() => {
@@ -37,7 +37,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
   const handleAddFunds = useCallback(async () => {
     try {
       // Ensure the network exists before proceeding
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       navigation.goBack();
 
@@ -61,12 +61,12 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
         console.error('Failed to initialize deposit:', depositError);
       });
     }
-  }, [depositWithConfirmation, navigation, ensureNetworkExists]);
+  }, [depositWithConfirmation, navigation, ensureArbitrumNetworkExists]);
 
   const handleWithdrawFunds = useCallback(async () => {
     try {
       // Ensure the network exists before proceeding
-      await ensureNetworkExists();
+      await ensureArbitrumNetworkExists();
 
       navigation.goBack();
       navigation.navigate(Routes.PERPS.ROOT, {
@@ -80,7 +80,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
         screen: Routes.PERPS.WITHDRAW,
       });
     }
-  }, [navigation, ensureNetworkExists]);
+  }, [navigation, ensureArbitrumNetworkExists]);
 
   return (
     <BottomSheet

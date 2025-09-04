@@ -41,7 +41,7 @@ export const usePerpsNetworkManagement = () => {
    * Ensures the Arbitrum network exists and is enabled
    * @returns Promise that resolves when network is ready
    */
-  const ensureNetworkExists = useCallback(async () => {
+  const ensureArbitrumNetworkExists = useCallback(async () => {
     const arbitrumCaipChainId = getArbitrumChainId();
     const chainId = toHex(parseInt(arbitrumCaipChainId.split(':')[1], 10));
 
@@ -109,7 +109,7 @@ export const usePerpsNetworkManagement = () => {
   }, [enableNetwork, getArbitrumChainId]);
 
   return {
-    ensureNetworkExists,
+    ensureArbitrumNetworkExists,
     enableArbitrumNetwork,
     getArbitrumChainId,
     currentNetwork,
