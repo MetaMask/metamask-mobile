@@ -118,7 +118,6 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
             value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
             error={error}
             ref={ref || fieldRef}
-            editable={false}
             readOnly
             inputElement={
               <TouchableOpacity
@@ -137,7 +136,6 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                 />
               </TouchableOpacity>
             }
-            {...textFieldProps}
           />
         </View>
 
