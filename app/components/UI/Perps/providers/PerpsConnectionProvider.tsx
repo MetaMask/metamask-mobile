@@ -202,10 +202,6 @@ export const PerpsConnectionProvider: React.FC<
       setRetryAttempts((prev) => prev + 1);
 
       try {
-        // Clear debug errors if active (allows user to recover from forced errors)
-        if (__DEV__) {
-          PerpsConnectionManager.clearDebugError();
-        }
         resetError(); // Clear normal errors
         await connect(); // Attempt reconnection
 

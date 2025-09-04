@@ -22,7 +22,6 @@ class PerpsConnectionManagerClass {
   private isInitialized = false;
   private isDisconnecting = false;
   private error: string | null = null;
-  private debugErrorActive = false;
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private disconnectPromise: Promise<void> | null = null;
@@ -134,7 +133,7 @@ class PerpsConnectionManagerClass {
    * Clear error state
    */
   private clearError(): void {
-    if (this.error && !this.debugErrorActive) {
+    if (this.error) {
       DevLogger.log('PerpsConnectionManager: Error cleared');
       this.error = null;
     }
@@ -550,33 +549,6 @@ class PerpsConnectionManagerClass {
       !this.isDisconnecting &&
       this.connectionRefCount === 0
     );
-  }
-
-  /**
-   * TEMPORARY DEBUG METHOD - Remove after testing
-   * Force an error state for testing error handling
-   */
-  public forceError(errorMessage: string = 'Test connection error'): void {
-    if (__DEV__) {
-      this.debugErrorActive = true;
-      this.setError(errorMessage);
-      DevLogger.log(
-        'PerpsConnectionManager: Debug error forced:',
-        errorMessage,
-      );
-    }
-  }
-
-  /**
-   * TEMPORARY DEBUG METHOD - Remove after testing
-   * Clear debug error state
-   */
-  public clearDebugError(): void {
-    if (__DEV__) {
-      this.debugErrorActive = false;
-      this.error = null;
-      DevLogger.log('PerpsConnectionManager: Debug error cleared');
-    }
   }
 }
 

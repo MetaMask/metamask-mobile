@@ -9,7 +9,7 @@ import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 
 export const PerpsConnectionErrorButton = () => {
   const handleSimulateError = () => {
-    PerpsConnectionManager.forceError('Simulated connection failure');
+    PerpsConnectionManager.setError('Simulated connection failure');
   };
 
   // Only show in development builds
