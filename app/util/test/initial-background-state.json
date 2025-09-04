@@ -173,7 +173,7 @@
     "enabledNetworkMap": {
       "bip122": {
         "bip122:000000000019d6689c085ae165831e93": true,
-        "bip122:000000000933ea01ad0ee984209779ba": false
+        "bip122:000000000933ea01ad0ee984209779ba": true
       },
       "eip155": {
         "0x1": true,
