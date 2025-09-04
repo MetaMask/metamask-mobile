@@ -49,6 +49,7 @@ describe('RewardsDataService', () => {
       messenger: mockMessenger,
       fetch: mockFetch,
       appType: 'mobile',
+      locale: 'en-US',
     });
   });
 
@@ -305,6 +306,7 @@ describe('RewardsDataService', () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
+            'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-client-id': 'mobile-7.50.1',
             // Should not include rewards-api-key header
@@ -378,6 +380,7 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
           method: 'GET',
           headers: {
+            'Accept-Language': 'en-US',
             'Content-Type': 'application/json',
             'rewards-api-key': 'test-bearer-token',
             'rewards-client-id': 'mobile-7.50.1',
@@ -622,6 +625,100 @@ describe('RewardsDataService', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
             'rewards-client-id': 'mobile-7.50.1',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('Accept-Language Header', () => {
+    it('should include Accept-Language header with default locale', async () => {
+      // Arrange - service already initialized with default locale 'en-US'
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+          }),
+        }),
+      );
+    });
+
+    it('should include Accept-Language header with custom locale', async () => {
+      // Arrange - create service with custom locale
+      const customLocaleService = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: 'es-ES',
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await customLocaleService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'Accept-Language': 'es-ES',
+          }),
+        }),
+      );
+    });
+
+    it('should not include Accept-Language header when locale is empty', async () => {
+      // Arrange - create service with empty locale
+      const emptyLocaleService = new RewardsDataService({
+        messenger: mockMessenger,
+        fetch: mockFetch,
+        appType: 'mobile',
+        locale: '',
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await emptyLocaleService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xsignature',
+      });
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.rewards.test/auth/mobile-login',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'Accept-Language': expect.any(String),
           }),
         }),
       );
