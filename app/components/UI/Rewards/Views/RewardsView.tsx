@@ -28,6 +28,7 @@ import {
   selectSubscriptionId,
 } from '../../../../reducers/rewards/selectors';
 import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
+import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 
 const RewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -124,17 +125,8 @@ const RewardsView: React.FC = () => {
             </Box>
           </Box>
 
-          {/* TODO: Add general season summary in follow-up PR */}
-          <Box
-            twClassName="flex items-center justify-center border-dashed border-default border-2 rounded-md h-[115px]"
-            testID={REWARDS_VIEW_SELECTORS.SEASON_SUMMARY_PLACEHOLDER}
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
-              {strings('rewards.not_implemented_season_summary')}
-            </Text>
-          </Box>
+          <SeasonStatus />
 
-          {/* Segmented Control */}
           <SegmentedControl
             options={tabOptions}
             selectedValue={activeTab || 'overview'}
