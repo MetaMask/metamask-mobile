@@ -25,11 +25,16 @@ export const selectSourceWalletAddress = createSelector(
     selectMultichainAccountsState2Enabled,
     selectSelectedInternalAccountAddress,
   ],
-  (state, sourceToken, isMultichainAccountsState2Enabled) => {
+  (
+    state,
+    sourceToken,
+    isMultichainAccountsState2Enabled,
+    selectedInternalAccountAddress,
+  ) => {
     if (!sourceToken) return undefined;
 
     if (!isMultichainAccountsState2Enabled) {
-      return selectSelectedInternalAccountAddress(state);
+      return selectedInternalAccountAddress;
     }
 
     const chainId = formatChainIdToCaip(sourceToken.chainId);
