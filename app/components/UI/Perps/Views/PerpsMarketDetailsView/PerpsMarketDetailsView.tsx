@@ -233,28 +233,52 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
-  const handleLongPress = () => {
+  const handleLongPress = async () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
 
-    navigation.navigate(Routes.PERPS.ORDER, {
-      direction: 'long',
-      asset: market.symbol,
-    });
+    try {
+      // Ensure the network exists before proceeding
+      await ensureNetworkExists();
+
+      navigation.navigate(Routes.PERPS.ORDER, {
+        direction: 'long',
+        asset: market.symbol,
+      });
+    } catch (error) {
+      console.error('Failed to ensure network exists:', error);
+      // Still proceed with the flow even if network addition fails
+      navigation.navigate(Routes.PERPS.ORDER, {
+        direction: 'long',
+        asset: market.symbol,
+      });
+    }
   };
 
-  const handleShortPress = () => {
+  const handleShortPress = async () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
     }
 
-    navigation.navigate(Routes.PERPS.ORDER, {
-      direction: 'short',
-      asset: market.symbol,
-    });
+    try {
+      // Ensure the network exists before proceeding
+      await ensureNetworkExists();
+
+      navigation.navigate(Routes.PERPS.ORDER, {
+        direction: 'short',
+        asset: market.symbol,
+      });
+    } catch (error) {
+      console.error('Failed to ensure network exists:', error);
+      // Still proceed with the flow even if network addition fails
+      navigation.navigate(Routes.PERPS.ORDER, {
+        direction: 'short',
+        asset: market.symbol,
+      });
+    }
   };
 
   const handleAddFundsPress = async () => {
