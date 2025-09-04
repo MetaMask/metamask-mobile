@@ -13,6 +13,7 @@ import {
   Button,
   TextInput,
   TextInputProps,
+  TouchableOpacity,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DepositTextField from '../DepositTextField';
@@ -107,24 +108,38 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     return (
       <>
-        <TouchableWithoutFeedback onPress={handleOpenPicker}>
-          <View style={styles.touchableArea}>
-            <DepositTextField
-              startAccessory={
-                <Icon name={IconName.Calendar} size={IconSize.Md} />
-              }
-              label={label}
-              placeholder={formatDateForDisplay(DEFAULT_DATE)}
-              value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
-              error={error}
-              containerStyle={containerStyle}
-              ref={ref || fieldRef}
-              pointerEvents="none"
-              readOnly
-              {...textFieldProps}
-            />
-          </View>
-        </TouchableWithoutFeedback>
+        <View style={[styles.touchableAreaContainer, containerStyle]}>
+          <DepositTextField
+            startAccessory={
+              <Icon name={IconName.Calendar} size={IconSize.Md} />
+            }
+            label={label}
+            placeholder={formatDateForDisplay(DEFAULT_DATE)}
+            value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
+            error={error}
+            ref={ref || fieldRef}
+            editable={false}
+            readOnly
+            inputElement={
+              <TouchableOpacity
+                style={styles.inputStyle}
+                onPress={handleOpenPicker}
+                activeOpacity={0.7}
+              >
+                <TextInput
+                  style={styles.textInputStyle}
+                  value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
+                  placeholder={formatDateForDisplay(DEFAULT_DATE)}
+                  placeholderTextColor={theme.colors.text.muted}
+                  editable={false}
+                  pointerEvents="none"
+                  {...textFieldProps}
+                />
+              </TouchableOpacity>
+            }
+            {...textFieldProps}
+          />
+        </View>
 
         {Platform.OS === 'android' && showDatePicker && (
           <DateTimePicker

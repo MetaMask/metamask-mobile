@@ -27,6 +27,20 @@ const styleSheet = (params: { theme: Theme }) => {
     dateTimePicker: {
       backgroundColor: theme.colors.background.default,
     },
+    touchableAreaContainer: {
+      width: '100%',
+    },
+    inputStyle: {
+      flex: 1,
+      height: '100%',
+    },
+    textInputStyle: {
+      flex: 1,
+      height: '100%',
+      textAlign: 'left',
+      fontSize: 16,
+      color: theme.colors.text.default,
+    },
   });
 };
 
