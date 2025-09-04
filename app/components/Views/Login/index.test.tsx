@@ -51,13 +51,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockSocialLoginUIChangesEnabled = jest.fn();
-jest.mock('../../../util/onboarding', () => ({
-  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
-    return mockSocialLoginUIChangesEnabled();
-  },
-}));
-
 // Metrics mocks
 const mockTrackEvent = jest.fn();
 
@@ -1141,7 +1134,6 @@ describe('Login', () => {
     });
 
     afterEach(() => {
-      mockSocialLoginUIChangesEnabled.mockReset();
       jest.clearAllMocks();
     });
 
@@ -1187,8 +1179,7 @@ describe('Login', () => {
       });
     });
 
-    it('successfully authenticate with biometrics When mockSocialLoginUIChanges flag is enabled and navigate to home', async () => {
-      mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+    it('successfully authenticate with biometrics and navigate to home', async () => {
       (Authentication.appTriggeredAuth as jest.Mock).mockResolvedValueOnce(
         true,
       );

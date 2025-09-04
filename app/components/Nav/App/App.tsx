@@ -26,7 +26,6 @@ import { useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   LAST_APP_VERSION,
-  OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
@@ -151,9 +150,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
-import { useMetrics } from '../../hooks/useMetrics';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
-import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -203,75 +200,64 @@ const OnboardingSuccessFlow = () => (
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
-const OnboardingNav = () => {
-  // If true: Start with Onboarding page (shows Create Wallet and Import Wallet buttons)
-  // If false: Start with OnboardingCarousel
-  const initialRouteName = SOCIAL_LOGIN_UI_CHANGES_ENABLED
-    ? 'Onboarding'
-    : 'OnboardingCarousel';
-
-  return (
-    <Stack.Navigator initialRouteName={initialRouteName}>
-      <Stack.Screen name="Onboarding" component={Onboarding} />
-      <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
-      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-      <Stack.Screen
-        name="AccountBackupStep1"
-        component={AccountBackupStep1}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccountBackupStep1B"
-        component={AccountBackupStep1B}
-      />
-      <Stack.Screen
-        name={Routes.ONBOARDING.SUCCESS_FLOW}
-        component={OnboardingSuccessFlow}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess} // Used in SRP flow
-      />
-      <Stack.Screen
-        name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
-        component={DefaultSettings}
-      />
-      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-      <Stack.Screen
-        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
-      />
-      <Stack.Screen
-        name="OptinMetrics"
-        component={OptinMetrics}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccountStatus"
-        component={AccountStatus}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccountAlreadyExists"
-        component={AccountAlreadyExists}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="AccountNotFound"
-        component={AccountNotFound}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Rehydrate"
-        component={Login}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  );
-};
+const OnboardingNav = () => (
+  <Stack.Navigator initialRouteName="OnboardingCarousel">
+    <Stack.Screen name="Onboarding" component={Onboarding} />
+    <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
+    <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+    <Stack.Screen
+      name="AccountBackupStep1"
+      component={AccountBackupStep1}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS_FLOW}
+      component={OnboardingSuccessFlow}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS}
+      component={OnboardingSuccess} // Used in SRP flow
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+      component={DefaultSettings}
+    />
+    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+      component={ImportFromSecretRecoveryPhrase}
+    />
+    <Stack.Screen
+      name="OptinMetrics"
+      component={OptinMetrics}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AccountStatus"
+      component={AccountStatus}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AccountAlreadyExists"
+      component={AccountAlreadyExists}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="AccountNotFound"
+      component={AccountNotFound}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="Rehydrate"
+      component={Login}
+      options={{ headerShown: false }}
+    />
+  </Stack.Navigator>
+);
 
 /**
  * Parent Stack navigator that allows the
@@ -1006,8 +992,6 @@ const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);
 
-  const { isEnabled: checkMetricsEnabled } = useMetrics();
-
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -1069,30 +1053,9 @@ const App: React.FC = () => {
             },
           );
 
-          const isOptinMetaMetricsUISeen = await StorageWrapper.getItem(
-            OPTIN_META_METRICS_UI_SEEN,
-          );
-
-          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
-            const resetParams = {
-              routes: [
-                {
-                  name: Routes.ONBOARDING.ROOT_NAV,
-                  params: {
-                    screen: Routes.ONBOARDING.NAV,
-                    params: {
-                      screen: Routes.ONBOARDING.OPTIN_METRICS,
-                    },
-                  },
-                },
-              ],
-            };
-            navigation.reset(resetParams);
-          } else {
-            navigation.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
-          }
+          navigation.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
         } else {
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }

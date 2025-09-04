@@ -51,13 +51,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const mockSocialLoginUIChangesEnabled = jest.fn();
-jest.mock('../../../util/onboarding', () => ({
-  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
-    return mockSocialLoginUIChangesEnabled();
-  },
-}));
-
 jest.mock('lottie-react-native', () => 'LottieView');
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -189,10 +182,6 @@ describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
-  });
-
-  afterEach(() => {
-    mockSocialLoginUIChangesEnabled.mockReset();
   });
 
   it('render matches snapshot', async () => {
@@ -334,7 +323,6 @@ describe('ChoosePassword', () => {
   });
 
   it('set biometryType and biometryChoice when currentAuthType is PASSCODE', async () => {
-    mockSocialLoginUIChangesEnabled.mockReturnValue(false);
     // Mock Authentication.getType to return PASSCODE
     const mockGetType = jest.spyOn(Authentication, 'getType');
     mockGetType.mockResolvedValueOnce({
@@ -374,16 +362,12 @@ describe('ChoosePassword', () => {
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
     );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
-    );
 
     // Component should render without errors
     expect(component).toBeTruthy();
   });
 
   it('set biometryType and biometryChoice when availableBiometryType exists', async () => {
-    mockSocialLoginUIChangesEnabled.mockReturnValue(false);
     // Mock Authentication.getType to return availableBiometryType
     const mockGetType = jest.spyOn(Authentication, 'getType');
     mockGetType.mockResolvedValueOnce({
@@ -425,9 +409,6 @@ describe('ChoosePassword', () => {
     );
     expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
       '@MetaMask:passcodeDisabled',
-    );
-    expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-      '@MetaMask:UserTermsAcceptedv1.0',
     );
   });
 
@@ -832,69 +813,7 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
-  it('should navigate to OptinMetrics when oauth2Login is true and metrics disabled', async () => {
-    mockSocialLoginUIChangesEnabled.mockReturnValue(false);
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain.mockResolvedValue(undefined);
-    mockMetricsIsEnabled.mockReturnValueOnce(false);
-
-    const props: ChoosePasswordProps = {
-      ...defaultProps,
-      route: {
-        ...defaultProps.route,
-        params: {
-          ...defaultProps.route.params,
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
-        },
-      },
-      navigation: mockNavigation,
-    };
-    const component = renderWithProviders(<ChoosePassword {...props} />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent(confirmPasswordInput, 'submitEditing');
-    });
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    });
-
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('OptinMetrics', {
-      onContinue: expect.any(Function),
-    });
-
-    mockNewWalletAndKeychain.mockRestore();
-  });
-
-  it('should navigate to success screen when oauth2Login is true and mockSocialLoginUIChangesEnabled is true', async () => {
-    mockSocialLoginUIChangesEnabled.mockReturnValue(true);
+  it('should navigate to success screen when oauth2Login is true', async () => {
     const mockNewWalletAndKeychain = jest.spyOn(
       Authentication,
       'newWalletAndKeychain',
@@ -961,7 +880,6 @@ describe('ChoosePassword', () => {
   });
 
   it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
-    mockSocialLoginUIChangesEnabled.mockReturnValue(false);
     const props: ChoosePasswordProps = {
       ...defaultProps,
       route: {
@@ -969,7 +887,7 @@ describe('ChoosePassword', () => {
         params: {
           ...defaultProps.route.params,
           [PREVIOUS_SCREEN]: ONBOARDING,
-          oauthLoginSuccess: true,
+          oauthLoginSuccess: false,
         },
       },
       navigation: mockNavigation,
@@ -990,17 +908,13 @@ describe('ChoosePassword', () => {
     expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
         title: 'support.metamask.io',
       },
     });
   });
 
   describe('ErrorBoundary Tests', () => {
-    beforeEach(() => {
-      mockSocialLoginUIChangesEnabled.mockReset();
-    });
-
     it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
       mockMetricsIsEnabled.mockReturnValueOnce(true);
       const mockNewWalletAndKeychain = jest.spyOn(

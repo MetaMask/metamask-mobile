@@ -38,19 +38,6 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
   NativeRampsSdk: jest.fn(),
 }));
 
-const mockSocialLoginUIChangesEnabled = jest.fn();
-jest.mock('../../../util/onboarding', () => ({
-  get SOCIAL_LOGIN_UI_CHANGES_ENABLED() {
-    return mockSocialLoginUIChangesEnabled();
-  },
-}));
-
-const mockNavigateTermsOfUse = jest.fn();
-jest.mock('../../../util/termsOfUse/termsOfUse', () => ({
-  __esModule: true,
-  default: mockNavigateTermsOfUse,
-}));
-
 const mockStore = configureMockStore();
 const mockInitialState = {
   user: {
@@ -256,18 +243,6 @@ describe('Main', () => {
         .mock.calls[0][1](txMeta as never);
 
       expect(result.current.transactionMetaIdsForListening).toEqual([]);
-    });
-  });
-
-  describe('SOCIAL_LOGIN_UI_CHANGES_ENABLED functionality', () => {
-    it('should not call termsOfUse when SOCIAL_LOGIN_UI_CHANGES_ENABLED is true', async () => {
-      mockSocialLoginUIChangesEnabled.mockReturnValue(true);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-
-      expect(mockNavigateTermsOfUse).not.toHaveBeenCalled();
     });
   });
 });

@@ -62,6 +62,3 @@ export const shouldShowWhatsNewModal = async () => {
   }
   return false;
 };
-
-export const SOCIAL_LOGIN_UI_CHANGES_ENABLED =
-  process.env.SOCIAL_LOGIN_UI_CHANGES_ENABLED === 'true';

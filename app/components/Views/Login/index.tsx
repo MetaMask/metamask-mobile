@@ -110,7 +110,6 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
-import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -554,7 +553,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingExistingSocialLogin });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      if (SOCIAL_LOGIN_UI_CHANGES_ENABLED && oauthLoginSuccess) {
+      if (oauthLoginSuccess) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();
@@ -586,7 +585,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
 
-      if (SOCIAL_LOGIN_UI_CHANGES_ENABLED && oauthLoginSuccess) {
+      if (oauthLoginSuccess) {
         await navigateToHome();
       } else {
         await checkMetricsUISeen();

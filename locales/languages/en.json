@@ -170,10 +170,7 @@
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase",
-    "import_using_srp_social_login": "I have an existing wallet",
-    "by_continuing": "By continuing, you agree to MetaMask's",
-    "terms_of_use": "Terms of Use",
-    "privacy_notice": "Privacy notice"
+    "import_using_srp_social_login": "I have an existing wallet"
   },
   "onboarding_success": {
     "title": "Keep your Secret Recovery Phrase safe!",

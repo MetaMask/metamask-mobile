@@ -53,7 +53,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -106,7 +105,6 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleShowNetworkActiveToast } from './utils';
 import { CardVerification } from '../../UI/Card/sdk';
-import { SOCIAL_LOGIN_UI_CHANGES_ENABLED } from '../../../util/onboarding';
 
 const Stack = createStackNavigator();
 
@@ -457,18 +455,6 @@ const Main = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionChangeHandler]);
-
-  const termsOfUse = useCallback(async () => {
-    if (props.navigation) {
-      await navigateTermsOfUse(props.navigation.navigate);
-    }
-  }, [props.navigation]);
-
-  useEffect(() => {
-    if (!SOCIAL_LOGIN_UI_CHANGES_ENABLED) {
-      termsOfUse();
-    }
-  }, [termsOfUse]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
