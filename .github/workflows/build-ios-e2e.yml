@@ -57,7 +57,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Cache Xcode derived data (biggest performance improvement)
       - name: Cache Xcode derived data
         uses: actions/cache@v4
         with:
@@ -68,6 +67,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-xcode-
 
+                
       # Install Node.js, Xcode tools, and other iOS development dependencies
       - name: Installing iOS Environment Setup
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
