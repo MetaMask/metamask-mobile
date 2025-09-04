@@ -1,6 +1,8 @@
 import React, { useCallback, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import BottomSheet, { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
