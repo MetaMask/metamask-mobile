@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { StyleSheet } from 'react-native';
 import Keypad, {
   type KeypadButtonProps,
   type KeypadContainerProps,
@@ -7,13 +6,6 @@ import Keypad, {
 } from './components';
 import { Keys } from './constants';
 import useCurrency from './useCurrency';
-import { colors } from '../../../styles/common';
-
-const styles = StyleSheet.create({
-  periodButton: {
-    backgroundColor: colors.transparent,
-  },
-});
 
 interface KeypadChangeData {
   value: string;
@@ -149,7 +141,9 @@ function KeypadComponent({
       <Keypad.Row>
         <Keypad.Button
           onPress={handleKeypadPressPeriod}
-          style={styles.periodButton}
+          twClassName={(pressed: boolean) =>
+            pressed ? 'bg-pressed' : 'bg-transparent'
+          }
           {...periodButtonProps}
         >
           {decimalSeparator}
