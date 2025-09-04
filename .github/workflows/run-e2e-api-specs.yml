@@ -11,7 +11,7 @@ on:
 
 jobs:
   api-specs-ios:
-    name: "api-specs-ios"
+    name: 'api-specs-ios'
     if: false
     runs-on: macos-latest-xlarge
     continue-on-error: true
@@ -42,11 +42,11 @@ jobs:
         with:
           node-version: '20.18.0'
           cache: 'yarn'
-          
+
       - name: Enable Corepack and setup Yarn
         run: |
           corepack enable
-          corepack prepare yarn@1.22.22 --activate
+          corepack prepare yarn@3.8.7 --activate
 
       - name: Install JavaScript dependencies
         run: yarn install --frozen-lockfile
@@ -68,13 +68,13 @@ jobs:
       - name: Build Detox framework cache for API specs
         run: |
           echo "🔧 Building Detox framework cache specifically for API specs..."
-          
+
           # Clean any existing cache first
           yarn detox clean-framework-cache
-          
+
           # Build fresh framework cache
           yarn detox build-framework-cache
-          
+
           # Verify the framework was built successfully
           if [[ -d ~/Library/Detox/ios/framework ]]; then
             echo "✅ Detox framework cache built successfully"
@@ -129,26 +129,26 @@ jobs:
       - name: Clean environment before API specs
         run: |
           echo "🧹 Cleaning environment before API specs tests..."
-          
+
           # Clean up any lock files
           find . -name "*.lock" -type f -delete 2>/dev/null || true
-          
+
           # Reset Detox lock file
           yarn detox reset-lock-file
-          
+
           # Clean any hanging processes
           pkill -f "Metro\|node\|npm" 2>/dev/null || true
-          
+
           echo "✅ Environment cleaned and ready for API specs"
 
       - name: Run API Specs tests
         run: |
           echo "🚀 Running API specs tests..."
           echo "Using Detox configuration: ios.sim.apiSpecs"
-          
+
           # Run API specs with retries
           yarn test:api-specs --retries 1
-          
+
           echo "✅ API specs tests completed"
 
       - name: Upload API specs test results
@@ -158,11 +158,11 @@ jobs:
           name: api-specs-test-results
           path: e2e/reports/
           retention-days: 7
-      
+
       - name: Upload API specs screenshots
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: api-specs-screenshots
           path: artifacts/
-          retention-days: 7 
+          retention-days: 7

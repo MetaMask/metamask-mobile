@@ -3702,7 +3702,7 @@ app:
       NODE_VERSION: 20.18.0
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.22
+      YARN_VERSION: 3.8.7
     - opts:
         is_expand: false
       COREPACK_VERSION: 0.28.0

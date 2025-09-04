@@ -51,6 +51,15 @@ yarn-error.log
 .yalc
 yalc.lock
 
+# Yarn v2+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # buck
 buck-out/
 \.buckd/

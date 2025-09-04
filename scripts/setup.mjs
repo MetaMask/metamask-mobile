@@ -403,7 +403,7 @@ const prepareDependenciesTask = {
 const concurrentTasks = {
   title: 'Concurrent tasks',
   task: (_, task) =>
-    task.newListr([setupIosTask, buildPpomTask, generateTermsOfUseTask], {
+    task.newListr([setupIosTask, /* buildPpomTask, */ generateTermsOfUseTask], {
       concurrent: true,
       exitOnError: true,
       rendererOptions,
