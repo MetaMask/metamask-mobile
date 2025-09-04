@@ -140,6 +140,8 @@ export function* basicFunctionalityToggle() {
 
 export function* initializeSDKServices() {
   try {
+    // Start DeeplinkManager and process branch deeplinks
+    DeeplinkManager.start();
     // Initialize WalletConnect
     yield call(() => WC2Manager.init({}));
     // Initialize SDKConnect
@@ -211,9 +213,6 @@ export function* startAppServices() {
 
   // Start Engine service
   yield call(EngineService.start);
-
-  // Start DeeplinkManager and process branch deeplinks
-  DeeplinkManager.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
