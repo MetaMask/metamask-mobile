@@ -8,6 +8,11 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 
+jest.mock(
+  '../../../../../images/metamask-rewards-points.svg',
+  () => 'MetamaskRewardsPointsSvg',
+);
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
