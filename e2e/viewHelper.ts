@@ -379,6 +379,7 @@ export const switchToSepoliaNetwork = async () => {
  * @throws {Error} Throws an error if the login view container or password input is not visible.
  */
 export const loginToApp = async (password?: string) => {
+  await device.disableSynchronization(); // Workaround for tokens list hanging after login
   const PASSWORD = password ?? '123123123';
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login View container should be visible',
@@ -387,6 +388,20 @@ export const loginToApp = async (password?: string) => {
     description: 'Login View password input should be visible',
   });
   await LoginView.enterPassword(PASSWORD);
+
+  // Wait for wallet to load and perform pull-to-refresh to ensure token list is updated
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet container should be visible after login',
+  });
+  try {
+    await WalletView.pullToRefreshTokensList();
+    logger.debug('Pull-to-refresh completed after login');
+    await device.enableSynchronization();
+  } catch (error) {
+    logger.warn('Pull-to-refresh failed after login:', error);
+    // Continue even if pull-to-refresh fails
+    await device.enableSynchronization();
+  }
 };
 
 /**
