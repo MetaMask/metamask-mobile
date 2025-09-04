@@ -64,7 +64,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   await AddAccountModal.tapCreateEthereumAccountButton();
   await AddNewHdAccountComponent.isSrpSelectorVisible();
   await AddNewHdAccountComponent.tapConfirm();
-  await WalletMainScreen.isTokenVisible('Ethereum');
+  await AccountListComponent.isComponentDisplayed();
   screen3Timer.stop();
 
   performanceTracker.addTimer(screen1Timer);
