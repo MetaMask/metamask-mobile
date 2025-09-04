@@ -55,10 +55,11 @@ export function useTransactionBridgeQuotes() {
 
     return sourceAmounts.map((sourceAmount, index) => {
       const { address: targetTokenAddress } = sourceAmounts[index] || {};
-      const { amountRaw: sourceTokenAmount } = sourceAmount;
+      const { amountRaw: sourceTokenAmount, targetAmountHuman } = sourceAmount;
 
       return {
         from: from as Hex,
+        minimumTargetAmount: targetAmountHuman,
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,

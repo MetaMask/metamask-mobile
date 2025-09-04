@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -22,9 +22,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import PerpsErrorState, {
-  PerpsErrorType,
-} from '../../components/PerpsErrorState';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -43,19 +40,23 @@ import {
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import PerpsCard from '../../components/PerpsCard';
+import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import styleSheet from './PerpsTabView.styles';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
+  const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
+    useState(false);
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
   );
   const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized, error, connect, resetError } =
-    usePerpsConnection();
+  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
@@ -71,9 +72,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
+  const isEligible = useSelector(selectPerpsEligibility);
+
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
   const firstTimeUserIconSize = 48 as unknown as IconSize;
+
+  const hasPositions = positions && positions.length > 0;
+  const hasOrders = orders && orders.length > 0;
+  const hasNoPositionsOrOrders = !hasPositions && !hasOrders;
 
   // Start measuring position data load time on mount
   useEffect(() => {
@@ -127,22 +134,29 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   ]);
 
   const handleManageBalancePress = useCallback(() => {
+    if (!isEligible) {
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+
     navigation.navigate(Routes.PERPS.MODALS.ROOT, {
       screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, isEligible]);
 
-  const handleStartTrading = useCallback(() => {
-    // Navigate to tutorial carousel for first-time users
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.TUTORIAL,
-    });
-  }, [navigation]);
-
-  const handleRetryConnection = useCallback(() => {
-    resetError();
-    connect();
-  }, [connect, resetError]);
+  const handleNewTrade = useCallback(() => {
+    if (isFirstTimeUser) {
+      // Navigate to tutorial for first-time users
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
+    } else {
+      // Navigate to trading view for returning users
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
+    }
+  }, [navigation, isFirstTimeUser]);
 
   const renderOrdersSection = () => {
     // Only show orders section if there are active orders
@@ -177,41 +191,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       );
     }
 
-    if (isFirstTimeUser) {
-      return (
-        <View style={styles.firstTimeContainer}>
-          <Icon
-            name={IconName.Details}
-            color={IconColor.Muted}
-            size={firstTimeUserIconSize}
-            style={styles.firstTimeIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.firstTimeTitle}
-          >
-            {strings('perps.position.list.first_time_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
-            style={styles.firstTimeDescription}
-          >
-            {strings('perps.position.list.first_time_description')}
-          </Text>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            label={strings('perps.position.list.start_trading')}
-            onPress={handleStartTrading}
-            style={styles.startTradingButton}
-            width={ButtonWidthTypes.Full}
-          />
-        </View>
-      );
-    }
-
     if (positions.length === 0) {
       // Regular empty state for returning users
       return (
@@ -241,38 +220,95 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {positions.map((position, index) => (
             <PerpsCard key={`${position.coin}-${index}`} position={position} />
           ))}
+          <TouchableOpacity
+            style={styles.startTradeCTA}
+            onPress={handleNewTrade}
+            testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+          >
+            <View style={styles.startTradeContent}>
+              <View style={styles.startTradeIconContainer}>
+                <Icon
+                  name={IconName.Add}
+                  color={IconColor.Default}
+                  size={IconSize.Sm}
+                />
+              </View>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                style={styles.startTradeText}
+              >
+                {strings('perps.position.list.start_new_trade')}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </>
     );
   };
 
-  // Check for connection errors
-  if (error && !isConnected && selectedEvmAccount) {
-    return (
-      <View style={styles.wrapper}>
-        <PerpsErrorState
-          errorType={PerpsErrorType.CONNECTION_FAILED}
-          onRetry={handleRetryConnection}
-        />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
-      {isFirstTimeUser ? (
-        <View style={[styles.content, styles.firstTimeContent]}>
-          <View style={styles.section}>{renderPositionsSection()}</View>
-        </View>
-      ) : (
-        <>
-          <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-          <ScrollView style={styles.content}>
-            <View style={styles.section}>{renderPositionsSection()}</View>
-            <View style={styles.section}>{renderOrdersSection()}</View>
-          </ScrollView>
-        </>
-      )}
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
+      <>
+        <PerpsTabControlBar
+          onManageBalancePress={handleManageBalancePress}
+          hasPositions={hasPositions}
+          hasOrders={hasOrders}
+        />
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+        >
+          {!isInitialLoading && hasNoPositionsOrOrders ? (
+            <View style={styles.firstTimeContent}>
+              <View style={styles.firstTimeContainer}>
+                <Icon
+                  name={IconName.Details}
+                  color={IconColor.Muted}
+                  size={firstTimeUserIconSize}
+                  style={styles.firstTimeIcon}
+                />
+                <Text
+                  variant={TextVariant.HeadingMD}
+                  color={TextColor.Default}
+                  style={styles.firstTimeTitle}
+                >
+                  {strings('perps.position.list.first_time_title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Muted}
+                  style={styles.firstTimeDescription}
+                >
+                  {strings('perps.position.list.first_time_description')}
+                </Text>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  label={strings('perps.position.list.start_trading')}
+                  onPress={handleNewTrade}
+                  style={styles.startTradingButton}
+                  width={ButtonWidthTypes.Full}
+                />
+              </View>
+            </View>
+          ) : (
+            <View style={styles.tradeInfoContainer}>
+              <View style={styles.section}>{renderPositionsSection()}</View>
+              <View style={styles.section}>{renderOrdersSection()}</View>
+            </View>
+          )}
+        </ScrollView>
+        {isEligibilityModalVisible && (
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsEligibilityModalVisible(false)}
+              contentKey={'geo_block'}
+              testID={PerpsTabViewSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP}
+            />
+          </Modal>
+        )}
+      </>
     </SafeAreaView>
   );
 };
