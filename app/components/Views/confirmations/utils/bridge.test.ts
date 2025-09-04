@@ -22,11 +22,15 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.useFakeTimers();
 
 const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
+  bufferStep: 1,
   from: '0x123',
-  minimumTargetAmount: '1.23',
+  initialBuffer: 1,
+  maxAttempts: 1,
+  sourceBalanceRaw: '10000000000000000000',
   sourceChainId: '0x1',
   sourceTokenAddress: '0xabc',
   sourceTokenAmount: '1000000000000000000',
+  targetAmountMinimum: '1.23',
   targetChainId: '0x2',
   targetTokenAddress: '0xdef',
 };
@@ -313,6 +317,327 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
       expect(quotes).toBeUndefined();
+    });
+
+    it('increases source amount until target amount minimum reached', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        { ...QUOTE_REQUEST_1_MOCK, maxAttempts: 2 },
+      ]);
+
+      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0]]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1500000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+    });
+
+    it('returns undefined if target amount minimum not reached after max attempts', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.20',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.21',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_3 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_3);
+
+      const quotes = await getBridgeQuotes([
+        { ...QUOTE_REQUEST_1_MOCK, maxAttempts: 3 },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
+    });
+
+    it('returns undefined if target amount minimum not reached and at balance limit', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.20',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.21',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          maxAttempts: 3,
+          sourceBalanceRaw: '1500000000000000000',
+        },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+    });
+
+    it('uses balance as source token amount if next amount greater than balance', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.20',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.23',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          maxAttempts: 3,
+          sourceBalanceRaw: '1400000000000000000',
+        },
+      ]);
+
+      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0]]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcTokenAmount: '1400000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+    });
+
+    it('does not increase source amount if not last request', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.23',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          maxAttempts: 3,
+        },
+        {
+          ...QUOTE_REQUEST_2_MOCK,
+          maxAttempts: 3,
+        },
+      ]);
+
+      expect(quotes).toBeUndefined();
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+    });
+
+    it('limits increased source amount to balance minus source amount of previous requests', async () => {
+      const QUOTES_ATTEMPT_1 = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.23',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_2 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      const QUOTES_ATTEMPT_3 = [
+        {
+          ...QUOTES_ATTEMPT_1[0],
+          toTokenAmount: {
+            amount: '1.23',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_1)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_2)
+        .mockResolvedValueOnce(QUOTES_ATTEMPT_3);
+
+      const quotes = await getBridgeQuotes([
+        {
+          ...QUOTE_REQUEST_1_MOCK,
+          maxAttempts: 3,
+        },
+        {
+          ...QUOTE_REQUEST_2_MOCK,
+          maxAttempts: 3,
+          sourceBalanceRaw: '2400000000000000000',
+        },
+      ]);
+
+      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_1[0], QUOTES_ATTEMPT_3[0]]);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          srcTokenAmount: '1000000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          srcTokenAmount: '1400000000000000000',
+        }),
+        expect.any(Object),
+        expect.any(String),
+      );
     });
   });
 });

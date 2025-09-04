@@ -3,7 +3,7 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
 import { useEffect } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   setTransactionBridgeQuotes,
   setTransactionBridgeQuotesLoading,
@@ -13,6 +13,7 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
@@ -26,6 +27,10 @@ export function useTransactionBridgeQuotes() {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { alerts } = useAlerts();
 
+  const { bufferStep, initialBuffer, maxAttempts } = useSelector(
+    selectMetaMaskPayFlags,
+  );
+
   const hasBlockingAlert = alerts.some(
     (a) => a.isBlocking && !EXCLUDED_ALERTS.includes(a.key as AlertKeys),
   );
@@ -37,11 +42,15 @@ export function useTransactionBridgeQuotes() {
   } = transactionMeta;
 
   const { payToken } = useTransactionPayToken() ?? {};
-
-  const { address: sourceTokenAddress, chainId: sourceChainId } =
-    payToken ?? {};
-
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
+
+  const {
+    address: sourceTokenAddress,
+    balanceRaw,
+    chainId: sourceChainId,
+  } = payToken ?? {};
+
+  const sourceBalanceRaw = balanceRaw ?? '0';
 
   const requests: BridgeQuoteRequest[] = useDeepMemo(() => {
     if (
@@ -53,24 +62,35 @@ export function useTransactionBridgeQuotes() {
       return [];
     }
 
-    return sourceAmounts.map((sourceAmount, index) => {
-      const { address: targetTokenAddress } = sourceAmounts[index] || {};
-      const { amountRaw: sourceTokenAmount, targetAmountHuman } = sourceAmount;
+    return sourceAmounts.map((sourceAmount) => {
+      const {
+        address: targetTokenAddress,
+        amountRaw: sourceTokenAmount,
+        targetAmountHuman,
+      } = sourceAmount;
 
       return {
+        bufferStep,
         from: from as Hex,
-        minimumTargetAmount: targetAmountHuman,
+        initialBuffer,
+        maxAttempts,
+        sourceBalanceRaw,
         sourceChainId,
         sourceTokenAddress,
         sourceTokenAmount,
+        targetAmountMinimum: targetAmountHuman,
         targetChainId,
         targetTokenAddress,
       };
     });
   }, [
+    bufferStep,
     from,
     hasBlockingAlert,
+    initialBuffer,
+    maxAttempts,
     sourceAmounts,
+    sourceBalanceRaw,
     sourceChainId,
     sourceTokenAddress,
     targetChainId,

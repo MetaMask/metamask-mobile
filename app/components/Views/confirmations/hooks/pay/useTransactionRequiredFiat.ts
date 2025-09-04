@@ -4,11 +4,10 @@ import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMet
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { Hex, createProjectLogger } from '@metamask/utils';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { useSelector } from 'react-redux';
 
 const log = createProjectLogger('transaction-pay');
-
-export const PAY_BRIDGE_SLIPPAGE = 0.02;
-export const PAY_BRIDGE_FEE = 0.005;
 
 /**
  * Calculate the fiat value of any tokens required by the transaction.
@@ -22,6 +21,7 @@ export function useTransactionRequiredFiat({
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
+  const { initialBuffer } = useSelector(selectMetaMaskPayFlags);
 
   const fiatRequests = useMemo(
     () =>
@@ -48,9 +48,7 @@ export function useTransactionRequiredFiat({
           targetFiatRate,
         );
 
-        const feeFiat = amountFiat.multipliedBy(
-          PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE,
-        );
+        const feeFiat = amountFiat.multipliedBy(initialBuffer);
 
         const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
           targetFiatRate,
@@ -68,7 +66,7 @@ export function useTransactionRequiredFiat({
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [amountOverrides, requiredTokens, tokenFiatRates],
+    [amountOverrides, initialBuffer, requiredTokens, tokenFiatRates],
   );
 
   const totalFiat = values.reduce<number>(
