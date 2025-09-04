@@ -4859,14 +4859,15 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@^0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.12.1.tgz#e1417749f218248d04836bc1c71aa9cdcef8651f"
-  integrity sha512-4qKZpQ47LCbItwM/Uy47nGqjSv958n5oWyy3mH60EXzR2lEUh02CsGUKofCjIMpEdTC5SJZGxlCNSTOI7p6QBg==
+"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@0.12.1-preview-236bab4a":
+  version "0.12.1-preview-236bab4a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/account-tree-controller/-/account-tree-controller-0.12.1-preview-236bab4a.tgz#bfe2b2888d748edc200f84dcaa976ea2467c928c"
+  integrity sha512-LVZUy6K/BvOOOIcV6C3PEk6f1G3B2I+525CpU7ot4FGQLRtzHvcMsdRbDTQmMTwYgq53JKe0Pky6VzKKc0TH4A==
   dependencies:
     "@metamask/base-controller" "^8.2.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
+    "@metamask/superstruct" "^3.1.0"
     lodash "^4.17.21"
 
 "@metamask/accounts-controller@^32.0.1":
@@ -5822,16 +5823,16 @@
   dependencies:
     "@metamask/snaps-sdk" "^9.3.0"
 
-"@metamask/profile-sync-controller@^23.0.0":
-  version "23.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-23.0.0.tgz#fb40435f3635c36650445dba15521186853d9f13"
-  integrity sha512-4NQ9UmyJxwznRDpnnEdqisJ612ZxETxVLit4CjZbbw2d2UyZ9nVq2tszhcTRIfI2mp8RMUmTT/1V1ZgqnRxVyg==
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@24.0.0-preview-236bab4a":
+  version "24.0.0-preview-236bab4a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/profile-sync-controller/-/profile-sync-controller-24.0.0-preview-236bab4a.tgz#ad87c4201f74cf3e5ff0aed48ca715c02755a9da"
+  integrity sha512-bF+8S4q78VlfH1gtGAAJDQmXGDYBvP4OioFg9iOyeGldsFj4/FyQLYBX4lIGdQ0IAPI8PkHrWTsE5yFNoguGYQ==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/hashes" "^1.4.0"
+    "@noble/ciphers" "^1.3.0"
+    "@noble/hashes" "^1.8.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
     siwe "^2.3.2"
@@ -6384,11 +6385,6 @@
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-1.3.0.tgz#f64b8ff886c240e644e5573c097f86e5b43676dc"
   integrity sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==
-
-"@noble/ciphers@^0.5.2":
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
-  integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
 
 "@noble/curves@1.4.2", "@noble/curves@~1.4.0":
   version "1.4.2"

@@ -7,6 +7,12 @@ export class AccountTreeInitService {
     await AccountsController.updateAccounts();
     AccountTreeController.init();
   };
+
+  clearPersistedMetadataAndSyncingState = async (): Promise<void> => {
+    const { AccountTreeController } = Engine.context;
+
+    AccountTreeController.clearPersistedMetadataAndSyncingState();
+  };
 }
 
 export default new AccountTreeInitService();

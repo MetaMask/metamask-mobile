@@ -81,7 +81,16 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private async dispatchLogin(): Promise<void> {
+  private async dispatchLogin(
+    options: {
+      clearAccountTreePersistedMetadataAndSyncingState: boolean;
+    } = {
+      clearAccountTreePersistedMetadataAndSyncingState: false,
+    },
+  ): Promise<void> {
+    if (options.clearAccountTreePersistedMetadataAndSyncingState) {
+      AccountTreeInitService.clearPersistedMetadataAndSyncingState();
+    }
     await AccountTreeInitService.initializeAccountTree();
     const { MultichainAccountService } = Engine.context;
     await MultichainAccountService.init();
@@ -451,7 +460,9 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreePersistedMetadataAndSyncingState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,7 +495,9 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      await this.dispatchLogin();
+      await this.dispatchLogin({
+        clearAccountTreePersistedMetadataAndSyncingState: true,
+      });
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
