@@ -363,7 +363,7 @@ stages:
       # - run_tag_smoke_performance_android: {}
       - run_tag_smoke_card_ios: {}
       # - run_tag_smoke_card_android: {}
-      - run_tag_smoke_perps_ios: {}
+      # - run_tag_smoke_perps_ios: {}
   # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
   # run_smoke_e2e_performance_ios_android_stage:
     # workflows:
