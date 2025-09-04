@@ -689,7 +689,7 @@ jobs:
           
           echo "Test summary generated"
       
-      - name: Send Slack Notification
+      # - name: Send Slack Notification
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
