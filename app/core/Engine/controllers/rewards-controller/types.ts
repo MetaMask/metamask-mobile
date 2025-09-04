@@ -1,5 +1,5 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
-import { CaipAccountId } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType } from '@metamask/utils';
 
 export interface LoginResponseDto {
   sessionId: string;
@@ -17,7 +17,7 @@ export interface EstimateAssetDto {
    * Asset identifier in CAIP-19 format
    * @example 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
    */
-  id: string;
+  id: CaipAssetType;
   /**
    * Amount of the asset as a string
    * @example '25739959426'
