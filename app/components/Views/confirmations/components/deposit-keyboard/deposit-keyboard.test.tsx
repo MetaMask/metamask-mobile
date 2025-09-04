@@ -67,4 +67,14 @@ describe('DepositKeyboard', () => {
 
     expect(onPercentagePressMock).toHaveBeenCalled();
   });
+
+  it('renders alert and no percentage or done button', () => {
+    const { getByText, queryByTestId, queryByText } = render({
+      alertMessage: 'Test Alert',
+    });
+
+    expect(getByText('Test Alert')).toBeDefined();
+    expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
+    expect(queryByText('50%')).toBeNull();
+  });
 });
