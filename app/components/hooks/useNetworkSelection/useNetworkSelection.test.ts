@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
@@ -8,20 +8,25 @@ import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespa
 import { useNetworkSelection } from './useNetworkSelection';
 
 jest.mock('@metamask/keyring-utils', () => ({}));
-jest.mock('@metamask/keyring-api', () => ({}));
+jest.mock('@metamask/keyring-api', () => ({
+  SolScope: {
+    Mainnet: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  },
+}));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
+
 jest.mock('@metamask/controller-utils', () => ({
   hasProperty: jest.fn(),
   toHex: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
+jest.mock('@metamask/utils', () => ({
+  parseCaipChainId: jest.fn(),
 }));
 
-jest.mock('@metamask/controller-utils', () => ({
-  toHex: jest.fn(),
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
@@ -38,6 +43,24 @@ jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectPopularNetworkConfigurationsByCaipChainId: jest.fn(),
+}));
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(),
+  }),
+);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -58,6 +81,9 @@ describe('useNetworkSelection', () => {
   const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
   const mockFormatChainIdToCaip = formatChainIdToCaip as jest.MockedFunction<
     typeof formatChainIdToCaip
+  >;
+  const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
+    typeof parseCaipChainId
   >;
 
   const mockEnableNetwork = jest.fn();
@@ -129,10 +155,12 @@ describe('useNetworkSelection', () => {
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
       enableAllPopularNetworks: mockEnableAllPopularNetworks,
-      tryEnableEvmNetwork: jest.fn,
+      tryEnableEvmNetwork: jest.fn(),
     });
 
-    mockUseSelector.mockReturnValue(mockPopularNetworkConfigurations);
+    mockUseSelector
+      .mockReturnValueOnce(mockPopularNetworkConfigurations) // selectPopularNetworkConfigurationsByCaipChainId
+      .mockReturnValueOnce(false); // selectMultichainAccountsState2Enabled
 
     mockToHex.mockImplementation((value) => {
       if (typeof value === 'string') {
@@ -153,6 +181,13 @@ describe('useNetworkSelection', () => {
       }
       return `eip155:${value}` as CaipChainId;
     });
+
+    mockParseCaipChainId.mockImplementation((caipChainId: string) => ({
+      namespace: caipChainId.split(':')[0],
+      reference: caipChainId.split(':')[1],
+    }));
+
+    jest.clearAllMocks();
   });
 
   describe('basic functionality', () => {

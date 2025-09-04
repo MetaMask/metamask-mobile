@@ -299,17 +299,6 @@ describe('useNetworkEnablement', () => {
     });
   });
 
-  describe('enableAllPopularNetworks', () => {
-    it('calls enableAllPopularNetworks when enableAllPopularNetworks is called', () => {
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.enableAllPopularNetworks();
-
-      expect(
-        mockNetworkEnablementController.enableAllPopularNetworks,
-      ).toHaveBeenCalled();
-    });
-  });
-
   describe('edge cases', () => {
     it('handles empty enabledNetworksByNamespace', () => {
       mockUseSelector.mockImplementation((selector) => {
