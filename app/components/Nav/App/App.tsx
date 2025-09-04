@@ -1097,6 +1097,13 @@ const App: React.FC = () => {
           errorMessage,
           `Unlock attempts: 1`,
         );
+        if (locked) {
+          Logger.error(
+            new Error(errorMessage),
+            'Nav/App: Error in appTriggeredAuth:',
+          );
+        }
+        // We are not logging when it's a keychain error
       }
     };
     appTriggeredAuth().catch((error) => {
