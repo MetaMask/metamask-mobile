@@ -18,12 +18,11 @@ import { useConfirmationContext } from '../context/confirmation-context';
 // when the user is in max amount mode only for the transaction type simpleSend
 // It subtracts the native fee from the balance and updates the value of the transaction
 export function useMaxValueRefresher() {
-  const { maxValueMode } = useSelector(selectTransactionState);
-  const {
-    params: { maxValueMode: paramsMaxValueMode },
-  } = useParams<{
+  const { maxValueMode } = useSelector(selectTransactionState) || {};
+  const params = useParams<{
     params: { maxValueMode: boolean };
   }>();
+  const paramsMaxValueMode = params?.params?.maxValueMode;
   const maxModeEnabled = maxValueMode || paramsMaxValueMode;
   const [valueJustUpdated, setValueJustUpdated] = useState(false);
   const { setIsTransactionValueUpdating } = useConfirmationContext();
