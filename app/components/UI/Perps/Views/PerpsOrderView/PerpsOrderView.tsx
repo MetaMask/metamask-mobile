@@ -91,6 +91,7 @@ import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePercentageForPrice } from '../../utils/tpslValidation';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -441,7 +442,61 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
 
-  //
+
+  /**
+   * Calculate TP/SL display text with RoE percentages
+   * Converts take profit and stop loss prices to RoE (Return on Equity) percentages
+   *
+   * @returns Formatted string like "TP 10%, SL 5%" or "TP off, SL off"
+   *
+   * For TP: Shows the RoE percentage gain at the take profit price
+   * For SL: Shows the RoE percentage loss at the stop loss price
+   */
+  const tpSlDisplayText = useMemo(() => {
+    const price = parseFloat(currentPrice?.price || '0');
+    let tpDisplay = strings('perps.order.off');
+    let slDisplay = strings('perps.order.off');
+
+    // Calculate proper entry price based on order type
+    const entryPrice =
+      orderForm.type === 'limit' && orderForm.limitPrice
+        ? parseFloat(orderForm.limitPrice)
+        : price; // fallback to current price for market orders or when no limit price set
+
+    if (orderForm.takeProfitPrice && price > 0 && orderForm.leverage) {
+      const tpRoE = calculateRoEForPrice(orderForm.takeProfitPrice, true, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(tpRoE || '0'));
+      tpDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+    }
+
+    if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
+      const slRoE = calculateRoEForPrice(orderForm.stopLossPrice, false, {
+        currentPrice: price,
+        direction: orderForm.direction,
+        leverage: orderForm.leverage,
+        entryPrice,
+      });
+      const absRoE = Math.abs(parseFloat(slRoE || '0'));
+      slDisplay =
+        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+    }
+
+    return `TP ${tpDisplay}, SL ${slDisplay}`;
+  }, [
+    currentPrice?.price,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    orderForm.leverage,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.limitPrice,
+  ]);
 
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
@@ -1057,6 +1112,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
         asset={orderForm.asset}
         currentPrice={assetData.price}
         direction={orderForm.direction}
+        leverage={orderForm.leverage}
+        marginRequired={marginRequired}
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
