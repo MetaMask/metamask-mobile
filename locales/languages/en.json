@@ -1092,6 +1092,7 @@
     },
     "tpsl": {
       "title": "Take profit and stop loss",
+      "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
       "set": "Set",
       "updating": "Updating...",
       "off": "Off",

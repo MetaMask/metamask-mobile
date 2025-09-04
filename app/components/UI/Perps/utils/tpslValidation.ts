@@ -10,6 +10,8 @@
  * - Stop Loss must be above current price (loss when price goes up)
  */
 
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+
 interface ValidationParams {
   currentPrice: number;
   direction?: 'long' | 'short';
@@ -206,9 +208,25 @@ export const calculatePriceForRoE = (
 ): string => {
   // Use entry price if available (for existing positions), otherwise use current price
   const basePrice = entryPrice || currentPrice;
-  if (!basePrice) return '';
+  if (!basePrice) {
+    DevLogger.log(
+      '[TPSL Debug] No basePrice available in calculatePriceForRoE',
+    );
+    return '';
+  }
 
   const isLong = direction === 'long';
+
+  DevLogger.log('[TPSL Debug] calculatePriceForRoE inputs:', {
+    roePercentage,
+    isProfit,
+    basePrice,
+    currentPrice,
+    entryPrice,
+    direction,
+    leverage,
+    isLong,
+  });
 
   // RoE% = (PnL / marginUsed) * 100
   // PnL = RoE% * marginUsed / 100
@@ -240,7 +258,38 @@ export const calculatePriceForRoE = (
     calculatedPrice = basePrice * (1 + Math.abs(priceChangeRatio));
   }
 
-  return calculatedPrice.toFixed(2);
+  // Determine appropriate precision based on the price magnitude
+  // For very small prices (like PEPE), use more decimal places
+  let precision = 2;
+  if (calculatedPrice < 0.01) {
+    precision = 8; // For prices less than $0.01, use 8 decimal places
+  } else if (calculatedPrice < 1) {
+    precision = 6; // For prices less than $1, use 6 decimal places
+  } else if (calculatedPrice < 100) {
+    precision = 4; // For prices less than $100, use 4 decimal places
+  }
+
+  let finalResult = calculatedPrice.toFixed(precision);
+
+  // Apply clean formatting - remove unnecessary trailing zeros and decimal point
+  const numValue = parseFloat(finalResult);
+  if (numValue % 1 === 0) {
+    // If it's a whole number, show without decimals
+    finalResult = numValue.toString();
+  } else {
+    // Otherwise, use the formatted result but remove trailing zeros
+    finalResult = parseFloat(finalResult).toString();
+  }
+
+  DevLogger.log('[TPSL Debug] calculatePriceForRoE result:', {
+    priceChangeRatio,
+    calculatedPrice,
+    precision,
+    beforeCleanup: calculatedPrice.toFixed(precision),
+    finalResult,
+  });
+
+  return finalResult;
 };
 
 /**
@@ -300,5 +349,37 @@ export const safeParseRoEPercentage = (roePercent: string): string => {
     return ''; // Return empty string for NaN
   }
 
-  return Math.abs(parsed).toFixed(2);
+  const absValue = Math.abs(parsed);
+  // Show clean integers when possible (10% instead of 10.00%)
+  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
+};
+
+/**
+ * Format RoE percentage for display based on focus state
+ * @param value - The raw percentage value as string
+ * @param isFocused - Whether the input is currently focused
+ * @returns Formatted percentage string for display
+ */
+export const formatRoEPercentageDisplay = (
+  value: string,
+  isFocused: boolean,
+): string => {
+  if (!value || value.trim() === '') {
+    return '';
+  }
+
+  const parsed = parseFloat(value);
+  if (isNaN(parsed)) {
+    return '';
+  }
+
+  const absValue = Math.abs(parsed);
+
+  if (isFocused) {
+    // When focused, preserve user input precision
+    return absValue.toString();
+  }
+
+  // When not focused, show clean display format
+  return absValue % 1 === 0 ? absValue.toFixed(0) : absValue.toFixed(2);
 };
