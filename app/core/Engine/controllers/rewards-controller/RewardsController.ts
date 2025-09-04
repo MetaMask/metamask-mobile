@@ -1,4 +1,5 @@
 import { BaseController } from '@metamask/base-controller';
+import { toHex } from '@metamask/controller-utils';
 import type {
   RewardsControllerState,
   RewardsAccountState,
@@ -6,15 +7,19 @@ import type {
   PerpsDiscountData,
   EstimatePointsDto,
   EstimatedPointsDto,
-  SeasonStatusDto,
   SeasonDtoState,
   SeasonStatusState,
   SeasonTierState,
   SeasonTierDto,
   SubscriptionReferralDetailsState,
+  GeoRewardsMetadata,
+  SeasonStatusDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
+import {
+  storeSubscriptionToken,
+  removeSubscriptionToken,
+} from './utils/multi-subscription-token-vault';
 import Logger from '../../../../util/Logger';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
@@ -29,6 +34,8 @@ import {
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
+
+export const DEFAULT_BLOCKED_REGIONS = ['UK'];
 
 const controllerName = 'RewardsController';
 
@@ -83,7 +90,7 @@ export class RewardsController extends BaseController<
   /**
    * Calculate tier status and next tier information
    */
-  #calculateTierStatus(
+  calculateTierStatus(
     seasonTiers: SeasonTierDto[],
     currentTierId: string,
     currentPoints: number,
@@ -141,7 +148,7 @@ export class RewardsController extends BaseController<
   #convertSeasonStatusToSubscriptionState(
     seasonStatus: SeasonStatusDto,
   ): SeasonStatusState {
-    const tierState = this.#calculateTierStatus(
+    const tierState = this.calculateTierStatus(
       seasonStatus.season.tiers,
       seasonStatus.currentTierId,
       seasonStatus.balance.total,
@@ -207,6 +214,22 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getReferralDetails',
       this.getReferralDetails.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:optIn',
+      this.optIn.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:logout',
+      this.logout.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getGeoRewardsMetadata',
+      this.getGeoRewardsMetadata.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:validateReferralCode',
+      this.validateReferralCode.bind(this),
     );
   }
 
@@ -362,26 +385,31 @@ export class RewardsController extends BaseController<
     return false;
   }
 
-  /**
-   * Perform silent authentication for the given address
-   */
-  async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
-    let account: CaipAccountId | undefined;
-
+  convertInternalAccountToCaipAccountId(
+    account: InternalAccount,
+  ): CaipAccountId | null {
     try {
-      const [scope] = internalAccount.scopes;
+      const [scope] = account.scopes;
       const { namespace, reference } = parseCaipChainId(scope);
-      account = toCaipAccountId(namespace, reference, internalAccount.address);
+      return toCaipAccountId(namespace, reference, account.address);
     } catch (error) {
       Logger.log(
         'RewardsController: Failed to convert address to CAIP-10 format:',
         error,
       );
+      return null;
     }
+  }
 
-    const address = internalAccount.address;
+  /**
+   * Perform silent authentication for the given address
+   */
+  async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
+    const account: CaipAccountId | null =
+      this.convertInternalAccountToCaipAccountId(internalAccount);
+
     const shouldSkip = account
-      ? this.#shouldSkipSilentAuth(account, address)
+      ? this.#shouldSkipSilentAuth(account, internalAccount.address)
       : false;
     Logger.log('RewardsController: Should skip auth?', shouldSkip);
 
@@ -424,9 +452,16 @@ export class RewardsController extends BaseController<
       }
 
       // Use data service through messenger
-      const requestBody = { account: address, timestamp, signature };
+      const requestBody = {
+        account: internalAccount.address,
+        timestamp,
+        signature,
+      };
 
-      Logger.log('RewardsController: Performing silent auth for', address);
+      Logger.log(
+        'RewardsController: Performing silent auth for',
+        internalAccount.address,
+      );
 
       const loginResponse: LoginResponseDto = await this.messagingSystem.call(
         'RewardsDataService:login',
@@ -767,6 +802,246 @@ export class RewardsController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
       throw error;
+    }
+  }
+
+  /**
+   * Perform the complete opt-in process for rewards
+   * @param account - The account to opt in
+   * @param referralCode - Optional referral code
+   */
+  async optIn(account: InternalAccount, referralCode?: string): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log('Rewards: Rewards feature is disabled, skipping optin', {
+        account: account.address,
+      });
+      return;
+    }
+
+    Logger.log('Rewards: Starting optin process', {
+      account: account.address,
+    });
+
+    const challengeResponse = await this.messagingSystem.call(
+      'RewardsDataService:generateChallenge',
+      {
+        address: account.address,
+      },
+    );
+
+    // Try different encoding approaches to handle potential character issues
+    let hexMessage;
+    try {
+      // First try: direct toHex conversion
+      hexMessage = toHex(challengeResponse.message);
+    } catch (error) {
+      // Fallback: use Buffer to convert to hex if toHex fails
+      hexMessage =
+        '0x' + Buffer.from(challengeResponse.message, 'utf8').toString('hex');
+    }
+
+    // Use KeyringController for silent signature
+    const signature = await this.messagingSystem.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: hexMessage,
+        from: account.address,
+      },
+    );
+
+    Logger.log('Rewards: Submitting optin with signature...');
+    const optinResponse = await this.messagingSystem.call(
+      'RewardsDataService:optin',
+      {
+        challengeId: challengeResponse.id,
+        signature,
+        referralCode,
+      },
+    );
+
+    Logger.log('Rewards: Optin successful, updating controller state...');
+
+    // Update state with opt-in response data
+    this.update((state) => {
+      const caipAccount: CaipAccountId | null =
+        this.convertInternalAccountToCaipAccountId(account);
+      if (!caipAccount) {
+        return;
+      }
+      state.lastAuthenticatedAccount = {
+        account: caipAccount,
+        hasOptedIn: true,
+        subscriptionId: optinResponse.subscription.id,
+        lastAuthTime: Date.now(),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+      state.accounts[caipAccount] = state.lastAuthenticatedAccount;
+      state.subscriptions[optinResponse.subscription.id] =
+        optinResponse.subscription;
+    });
+
+    // Store the subscription token for authenticated requests
+    if (optinResponse.subscription?.id && optinResponse.sessionId) {
+      await storeSubscriptionToken(
+        optinResponse.subscription.id,
+        optinResponse.sessionId,
+      ).catch((error) => {
+        Logger.log(
+          'RewardsController: Failed to store subscription token:',
+          error,
+        );
+      });
+    }
+  }
+
+  /**
+   * Logout user from rewards and clear associated data
+   * @param subscriptionId - Optional subscription ID to logout from
+   */
+  async logout(): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Rewards feature is disabled, skipping logout',
+      );
+      return;
+    }
+
+    if (!this.state.lastAuthenticatedAccount?.subscriptionId) {
+      Logger.log('RewardsController: No authenticated account found');
+      return;
+    }
+
+    const subscriptionId = this.state.lastAuthenticatedAccount.subscriptionId;
+    Logger.log(
+      'RewardsController: Starting logout process for account tied to subscriptionId',
+      {
+        subscriptionId,
+      },
+    );
+
+    try {
+      // Call the data service logout if subscriptionId is provided
+      await this.messagingSystem.call(
+        'RewardsDataService:logout',
+        subscriptionId,
+      );
+      Logger.log(
+        'RewardsController: Successfully logged out from data service',
+      );
+
+      // Remove the session token from storage
+      const tokenRemovalResult = await removeSubscriptionToken(subscriptionId);
+      if (!tokenRemovalResult.success) {
+        Logger.log(
+          'RewardsController: Warning - failed to remove session token:',
+          tokenRemovalResult?.error || 'Unknown error',
+        );
+      } else {
+        Logger.log('RewardsController: Successfully removed session token');
+      }
+
+      // Update controller state to reflect logout
+      this.update((state) => {
+        // Clear last authenticated account if it matches this subscription
+        if (state.lastAuthenticatedAccount?.subscriptionId === subscriptionId) {
+          state.lastAuthenticatedAccount = null;
+          Logger.log('RewardsController: Cleared last authenticated account');
+        }
+      });
+
+      Logger.log('RewardsController: Logout completed successfully');
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Logout failed to complete',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Get geo rewards metadata including location and support status
+   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
+   */
+  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return {
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: false,
+      };
+    }
+
+    try {
+      Logger.log(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+
+      // Get geo location from data service
+      const geoLocation = await this.messagingSystem.call(
+        'RewardsDataService:fetchGeoLocation',
+      );
+
+      // Check if the location is supported (not in blocked regions)
+      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
+        (blockedRegion) => geoLocation.startsWith(blockedRegion),
+      );
+
+      const result: GeoRewardsMetadata = {
+        geoLocation,
+        optinAllowedForGeo,
+      };
+
+      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
+      return result;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get geo rewards metadata:',
+        error instanceof Error ? error.message : String(error),
+      );
+
+      // Return fallback metadata on error
+      return {
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      };
+    }
+  }
+
+  /**
+   * Validate a referral code
+   * @param code - The referral code to validate
+   * @returns Promise<boolean> - True if the code is valid, false otherwise
+   */
+  async validateReferralCode(code: string): Promise<boolean> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled) {
+      return false;
+    }
+
+    if (!code.trim()) {
+      return false;
+    }
+
+    if (code.length !== 6) {
+      return false;
+    }
+
+    try {
+      const response = await this.messagingSystem.call(
+        'RewardsDataService:validateReferralCode',
+        code,
+      );
+      return response.valid;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to validate referral code:',
+        error instanceof Error ? error.message : String(error),
+      );
+      return false;
     }
   }
 }
