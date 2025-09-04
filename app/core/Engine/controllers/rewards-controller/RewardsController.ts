@@ -90,7 +90,7 @@ export class RewardsController extends BaseController<
   /**
    * Calculate tier status and next tier information
    */
-  #calculateTierStatus(
+  calculateTierStatus(
     seasonTiers: SeasonTierDto[],
     currentTierId: string,
     currentPoints: number,
@@ -148,7 +148,7 @@ export class RewardsController extends BaseController<
   #convertSeasonStatusToSubscriptionState(
     seasonStatus: SeasonStatusDto,
   ): SeasonStatusState {
-    const tierState = this.#calculateTierStatus(
+    const tierState = this.calculateTierStatus(
       seasonStatus.season.tiers,
       seasonStatus.currentTierId,
       seasonStatus.balance.total,
@@ -385,7 +385,7 @@ export class RewardsController extends BaseController<
     return false;
   }
 
-  #convertInternalAccountToCaipAccountId(
+  convertInternalAccountToCaipAccountId(
     account: InternalAccount,
   ): CaipAccountId | null {
     try {
@@ -406,7 +406,7 @@ export class RewardsController extends BaseController<
    */
   async #performSilentAuth(internalAccount: InternalAccount): Promise<void> {
     const account: CaipAccountId | null =
-      this.#convertInternalAccountToCaipAccountId(internalAccount);
+      this.convertInternalAccountToCaipAccountId(internalAccount);
 
     const shouldSkip = account
       ? this.#shouldSkipSilentAuth(account, internalAccount.address)
@@ -865,7 +865,7 @@ export class RewardsController extends BaseController<
     // Update state with opt-in response data
     this.update((state) => {
       const caipAccount: CaipAccountId | null =
-        this.#convertInternalAccountToCaipAccountId(account);
+        this.convertInternalAccountToCaipAccountId(account);
       if (!caipAccount) {
         return;
       }

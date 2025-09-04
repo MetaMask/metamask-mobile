@@ -1676,6 +1676,205 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('calculateTierStatus', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should throw error when current tier ID is not found in season tiers', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const invalidCurrentTierId = 'invalid-tier';
+      const currentPoints = 1500;
+
+      // Act & Assert
+      expect(() => {
+        controller.calculateTierStatus(
+          tiers,
+          invalidCurrentTierId,
+          currentPoints,
+        );
+      }).toThrow(
+        `Current tier ${invalidCurrentTierId} not found in season tiers`,
+      );
+    });
+
+    it('should return null for next tier when current tier is the last tier', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const lastTierCurrentTierId = 'platinum'; // Last tier in createTestTiers
+      const currentPoints = 15000; // More than platinum tier
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        lastTierCurrentTierId,
+        currentPoints,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe(lastTierCurrentTierId);
+      expect(result.nextTier).toBeNull();
+      expect(result.nextTierPointsNeeded).toBeNull();
+    });
+
+    it('should calculate nextTierPointsNeeded correctly with Math.max', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const currentTierId = 'silver'; // Silver requires 1000 points, Gold requires 5000
+
+      // Test case where user has more points than needed for next tier
+      const currentPointsAboveNext = 6000; // More than Gold's 5000 requirement
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        currentTierId,
+        currentPointsAboveNext,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe('silver');
+      expect(result.nextTier?.id).toBe('gold');
+      expect(result.nextTierPointsNeeded).toBe(0); // Math.max(0, 5000 - 6000) = 0
+    });
+
+    it('should calculate nextTierPointsNeeded correctly when points needed is positive', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const currentTierId = 'bronze'; // Bronze requires 0 points, Silver requires 1000
+      const currentPoints = 250; // Less than Silver's 1000 requirement
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        currentTierId,
+        currentPoints,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe('bronze');
+      expect(result.nextTier?.id).toBe('silver');
+      expect(result.nextTierPointsNeeded).toBe(750); // Math.max(0, 1000 - 250) = 750
+    });
+
+    it('should sort tiers by points needed before processing', () => {
+      // Arrange - Create tiers in random order
+      const unsortedTiers: SeasonTierDto[] = [
+        { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
+        { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
+        { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
+        { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
+      ];
+      const currentTierId = 'silver';
+      const currentPoints = 1500;
+
+      // Act
+      const result = controller.calculateTierStatus(
+        unsortedTiers,
+        currentTierId,
+        currentPoints,
+      );
+
+      // Assert - Should correctly identify next tier as Gold despite unsorted input
+      expect(result.currentTier.id).toBe('silver');
+      expect(result.nextTier?.id).toBe('gold');
+      expect(result.nextTierPointsNeeded).toBe(3500); // 5000 - 1500
+    });
+  });
+
+  describe('convertInternalAccountToCaipAccountId', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should log error when conversion fails due to invalid internal account', () => {
+      // Arrange
+      const invalidInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['invalid-scope' as `${string}:${string}`], // Invalid scope format
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result = controller.convertInternalAccountToCaipAccountId(
+        invalidInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.any(Error),
+      );
+    });
+
+    it('should return null and log error when account scopes is empty', () => {
+      // Arrange
+      const accountWithNoScopes = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: [] as `${string}:${string}`[], // Empty scopes array
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result =
+        controller.convertInternalAccountToCaipAccountId(accountWithNoScopes);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.any(Error),
+      );
+    });
+
+    it('should successfully convert valid internal account to CAIP account ID', () => {
+      // Arrange
+      const validInternalAccount = {
+        address: '0x123456789',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result =
+        controller.convertInternalAccountToCaipAccountId(validInternalAccount);
+
+      // Assert
+      expect(result).toBe('eip155:1:0x123456789');
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.anything(),
+      );
+    });
+  });
+
   describe('silent auth skipping behavior', () => {
     let originalDateNow: () => number;
     let subscribeCallback: any;
