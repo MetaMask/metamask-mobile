@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -48,6 +48,7 @@ export const MultichainEditAccountName = () => {
   const route = useRoute<MultichainEditAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
     initialAccountGroup
@@ -86,9 +87,14 @@ export const MultichainEditAccountName = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleOnClose = useCallback(() => {
+    // Close the entire modal stack by going back to the parent
+    navigation.dangerouslyGetParent()?.goBack();
+  }, [navigation]);
+
   const saveButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
-    label: strings('multichain_accounts.edit_account_name.save_button'),
+    label: strings('multichain_accounts.edit_account_name.confirm_button'),
     size: ButtonSize.Lg,
     onPress: handleAccountNameChange,
     style: styles.saveButton,
@@ -96,15 +102,17 @@ export const MultichainEditAccountName = () => {
   };
 
   return (
-    <BottomSheet>
-      <BottomSheetHeader onBack={handleOnBack}>
-        {strings('multichain_accounts.edit_account_name.title')}
+    <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onBack={handleOnBack} onClose={handleOnClose}>
+        {accountGroup?.metadata?.name || 'Account Group'}
       </BottomSheetHeader>
       <Box
         style={styles.container}
         testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
       >
-        <Text>{strings('multichain_accounts.edit_account_name.name')}</Text>
+        <Text>
+          {strings('multichain_accounts.edit_account_name.account_name')}
+        </Text>
         <TextInput
           testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
           style={styles.input}

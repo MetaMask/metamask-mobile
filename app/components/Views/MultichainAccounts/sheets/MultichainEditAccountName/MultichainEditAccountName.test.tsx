@@ -19,6 +19,38 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// Mock BottomSheetHeader
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      onBack,
+      onClose,
+    }: {
+      children: React.ReactNode;
+      onBack?: () => void;
+      onClose?: () => void;
+    }) => (
+      <View testID="header">
+        {onBack && (
+          <TouchableOpacity testID="header-back-button" onPress={onBack}>
+            <Text>Back</Text>
+          </TouchableOpacity>
+        )}
+        <Text>{children}</Text>
+        {onClose && (
+          <TouchableOpacity testID="header-close-button" onPress={onClose}>
+            <Text>Close</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  },
+);
+
 const mockGoBack = jest.fn();
 const mockAccountGroup = {
   id: 'entropy:wallet1/0',
@@ -35,6 +67,9 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: () => mockGoBack(),
+    dangerouslyGetParent: () => ({
+      goBack: () => mockGoBack(),
+    }),
   }),
   useRoute: () => mockUseRoute(),
 }));
@@ -68,14 +103,16 @@ describe('MultichainEditAccountName', () => {
     it('renders correctly with account group information', () => {
       const { getByText, getByTestId } = render();
 
+      expect(getByText('Test Account Group')).toBeTruthy();
       expect(
-        getByText(strings('multichain_accounts.edit_account_name.title')),
+        getByText(
+          strings('multichain_accounts.edit_account_name.account_name'),
+        ),
       ).toBeTruthy();
       expect(
-        getByText(strings('multichain_accounts.edit_account_name.name')),
-      ).toBeTruthy();
-      expect(
-        getByText(strings('multichain_accounts.edit_account_name.save_button')),
+        getByText(
+          strings('multichain_accounts.edit_account_name.confirm_button'),
+        ),
       ).toBeTruthy();
       expect(
         getByTestId(EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER),
@@ -102,10 +139,19 @@ describe('MultichainEditAccountName', () => {
     });
 
     it('navigates back when back button is pressed', () => {
-      const { getByRole } = render();
+      const { getByTestId } = render();
 
-      const backButton = getByRole('button');
+      const backButton = getByTestId('header-back-button');
       fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes modal when close button is pressed', () => {
+      const { getByTestId } = render();
+
+      const closeButton = getByTestId('header-close-button');
+      fireEvent.press(closeButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });

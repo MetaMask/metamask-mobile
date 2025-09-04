@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      marginBottom: 36,
+      marginBottom: 16,
       paddingLeft: 24,
       paddingRight: 24,
     },
