@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.54.0",
+  "version": "7.54.1",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -277,7 +277,7 @@
     "@metamask/snaps-rpc-methods": "^13.5.0",
     "@metamask/snaps-sdk": "^9.3.0",
     "@metamask/snaps-utils": "^11.4.0",
-    "@metamask/solana-wallet-snap": "^2.3.2",
+    "@metamask/solana-wallet-snap": "^2.3.6",
     "@metamask/solana-wallet-standard": "^0.5.1",
     "@metamask/stake-sdk": "^3.2.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
