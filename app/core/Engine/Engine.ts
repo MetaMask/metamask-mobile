@@ -1220,6 +1220,7 @@ export class Engine {
         allowedEvents: [],
       }),
       fetch,
+      locale: I18n.locale,
     });
 
     // Backwards compatibility for existing references
@@ -1344,13 +1345,13 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'EarnController',
         allowedEvents: [
-          'AccountsController:selectedAccountChange',
+          'AccountTreeController:selectedAccountGroupChange',
           'TransactionController:transactionConfirmed',
           'NetworkController:networkDidChange',
         ],
         allowedActions: [
-          'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
