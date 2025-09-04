@@ -23,6 +23,7 @@ jest.useFakeTimers();
 
 const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
   from: '0x123',
+  minimumTargetAmount: '1.23',
   sourceChainId: '0x1',
   sourceTokenAddress: '0xabc',
   sourceTokenAmount: '1000000000000000000',
@@ -41,6 +42,9 @@ const QUOTE_1_MOCK = {
       address: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
     },
   },
+  toTokenAmount: {
+    amount: '1.24',
+  },
 } as unknown as QuoteResponse;
 
 const QUOTE_2_MOCK = {
@@ -48,6 +52,9 @@ const QUOTE_2_MOCK = {
     destAsset: {
       address: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
     },
+  },
+  toTokenAmount: {
+    amount: '1.24',
   },
 } as unknown as QuoteResponse;
 
@@ -132,6 +139,8 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_1_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_1_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
+          slippage: 0.5,
+          insufficientBal: false,
         }),
         expect.any(Object),
         FeatureId.PERPS,
@@ -145,6 +154,8 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_2_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_2_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
+          slippage: 0.5,
+          insufficientBal: false,
         }),
         expect.any(Object),
         FeatureId.PERPS,
@@ -168,22 +179,37 @@ describe('Confirmations Bridge Utils', () => {
         {
           estimatedProcessingTimeInSeconds: 40,
           cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
         },
         {
           estimatedProcessingTimeInSeconds: 10,
           cost: { valueInCurrency: '1.5' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
         },
         {
           estimatedProcessingTimeInSeconds: 20,
           cost: { valueInCurrency: '1' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
         },
         {
           estimatedProcessingTimeInSeconds: 30,
           cost: { valueInCurrency: '2' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
         },
         {
           estimatedProcessingTimeInSeconds: 50,
           cost: { valueInCurrency: '0.9' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
         },
       ] as TransactionBridgeQuote[];
 
@@ -193,6 +219,100 @@ describe('Confirmations Bridge Utils', () => {
       const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
       expect(quotes).toStrictEqual([QUOTES[2]]);
+    });
+
+    it('ignores quote if token amount if less than minimum', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
+
+      const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(quotes).toStrictEqual([QUOTES[1]]);
+    });
+
+    it('returns undefined if all fastest quotes have token amount less than minimum', async () => {
+      const QUOTES = [
+        {
+          estimatedProcessingTimeInSeconds: 40,
+          cost: { valueInCurrency: '0.5' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 10,
+          cost: { valueInCurrency: '1.5' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 20,
+          cost: { valueInCurrency: '1' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 30,
+          cost: { valueInCurrency: '2' },
+          toTokenAmount: {
+            amount: '1.22',
+          },
+        },
+        {
+          estimatedProcessingTimeInSeconds: 50,
+          cost: { valueInCurrency: '0.9' },
+          toTokenAmount: {
+            amount: '1.24',
+          },
+        },
+      ] as TransactionBridgeQuote[];
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue(QUOTES);
+
+      const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
+
+      expect(quotes).toBeUndefined();
     });
   });
 });
