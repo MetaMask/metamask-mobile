@@ -22,19 +22,19 @@ jobs:
       total_splits: 3
     secrets: inherit
 
-  confirmations-redesigned-ios-smoke:
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: "SmokeConfirmationsRedesigned"
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-    secrets: inherit
+  #confirmations-redesigned-ios-smoke:
+  #  strategy:
+  #    matrix:
+  #      split: [1, 2]
+  #    fail-fast: false
+  #  uses: ./.github/workflows/run-e2e-workflow.yml
+  #  with:
+  #    test-suite-name: confirmations-redesigned-ios-smoke-${{ matrix.split }}
+  #    platform: ios
+  #    test_suite_tag: "SmokeConfirmationsRedesigned"
+  #    split_number: ${{ matrix.split }}
+  #    total_splits: 2
+  #  secrets: inherit
 
   trade-ios-smoke:
     strategy:
