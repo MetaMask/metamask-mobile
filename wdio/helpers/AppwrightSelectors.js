@@ -77,7 +77,7 @@ export default class AppwrightSelectors {
         // For iOS, use mobile: scroll command
         await driver.executeScript("mobile: scroll", [
           {
-            direction: "up",
+            direction: "down",
             percent: 0.75
           }
         ]);
