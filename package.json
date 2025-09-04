@@ -299,7 +299,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.3.0",
     "@metamask/token-search-discovery-controller": "^3.1.0",
-    "@metamask/transaction-controller": "^60.1.0",
+    "@metamask/transaction-controller": "^60.2.0",
     "@metamask/utils": "^11.4.2",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
