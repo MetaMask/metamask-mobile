@@ -284,7 +284,7 @@
     "@metamask/sdk-analytics": "0.0.5",
     "@metamask/sdk-communication-layer": "0.33.0",
     "@metamask/seedless-onboarding-controller": "2.6.0",
-    "@metamask/selected-network-controller": "^22.1.0",
+    "@metamask/selected-network-controller": "npm:@metamask-previews/selected-network-controller@23.0.0-preview-a421f85b",
     "@metamask/signature-controller": "^32.0.0",
     "@metamask/slip44": "^4.2.0",
     "@metamask/smart-transactions-controller": "^18.1.0",

@@ -74,11 +74,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  getDecimalChainId,
-  isTestNet,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -962,11 +958,7 @@ export class Engine {
         ],
       }),
       state: initialState.SelectedNetworkController || { domains: {} },
-      useRequestQueuePreference: isPerDappSelectedNetworkEnabled(),
-      // TODO we need to modify core PreferencesController for better cross client support
-      onPreferencesStateChange: (
-        listener: ({ useRequestQueue }: { useRequestQueue: boolean }) => void,
-      ) => listener({ useRequestQueue: isPerDappSelectedNetworkEnabled() }),
+
       domainProxyMap: new DomainProxyMap(),
     });
 
@@ -2103,11 +2095,13 @@ export class Engine {
       const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
+      // eslint-disable-next-line no-labels
       tokenLoop: for (const chains of Object.values(tokenBalances)) {
         for (const tokens of Object.values(chains)) {
           for (const balance of Object.values(tokens)) {
             if (!isZero(balance)) {
               tokenFound = true;
+              // eslint-disable-next-line no-labels
               break tokenLoop;
             }
           }

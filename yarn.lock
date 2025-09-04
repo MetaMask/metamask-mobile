@@ -5972,15 +5972,15 @@
     "@noble/hashes" "^1.8.0"
     async-mutex "^0.5.0"
 
-"@metamask/selected-network-controller@^22.1.0":
-  version "22.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-22.1.0.tgz#dfeba14bafbdba071e02857e2ef90f30e5ed1258"
-  integrity sha512-KKPjJPO8ewEJOT5GMiee9o0fJNoHOgRHdUvLff2Iu4xJyUpMpwbxi62sAGf/mNFC/75d0P5dGgOeaLFpLkrd3g==
+"@metamask/selected-network-controller@npm:@metamask-previews/selected-network-controller@23.0.0-preview-a421f85b":
+  version "23.0.0-preview-a421f85b"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/selected-network-controller/-/selected-network-controller-23.0.0-preview-a421f85b.tgz#e46e68a3e66b2a7e56d693bc3ee37af578dae1f9"
+  integrity sha512-Yxq4KL1rtZ3Sc+cG4Z2S030zXgiR7pWmjz4eD+GA5R5QkZZluZB1Yxl7zmyolUBXIg4d+PT57YZUuup8fXVytQ==
   dependencies:
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/swappable-obj-proxy" "^2.3.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.2"
 
 "@metamask/signature-controller@^32.0.0":
   version "32.0.0"
