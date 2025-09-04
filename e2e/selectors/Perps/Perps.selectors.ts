@@ -285,7 +285,7 @@ export const PerpsTestnetToggleSelectorsIDs = {
 // ========================================
 
 export const PerpsDeveloperOptionsSectionSelectorsIDs = {
-  PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
+  // No selectors currently needed
 };
 
 // ========================================
