@@ -64,12 +64,6 @@ export const selectIsFeatureAnnouncementsEnabled = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isFeatureAnnouncementsEnabled,
 );
-export const selectIsPerpsNotificationsEnabled = createSelector(
-  selectNotificationServicesControllerState,
-  (notificationServicesControllerState: NotificationServicesState) =>
-    // @ts-expect-error - isPerpsNotificationsEnabled not yet implemented
-    notificationServicesControllerState.isPerpsNotificationsEnabled,
-);
 export const selectIsUpdatingMetamaskNotificationsAccount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
