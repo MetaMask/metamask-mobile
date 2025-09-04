@@ -57,7 +57,6 @@ import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
@@ -463,14 +462,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNotificationsEnabled &&
-        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
-        isNavigationFromOrderSuccess && (
-          <PerpsNotificationTooltip
-            orderSuccess={isNavigationFromOrderSuccess}
-            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
-          />
-        )}
+      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
+        <PerpsNotificationTooltip
+          orderSuccess={isNavigationFromOrderSuccess}
+          testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+        />
+      )}
     </SafeAreaView>
   );
 };
