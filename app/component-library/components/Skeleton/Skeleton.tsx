@@ -30,10 +30,6 @@ const Skeleton: React.FC<SkeletonProps> = ({
   });
 
   const startAnimation = () => {
-    // On E2E, we don't want to animate the skeleton otherwise recurring timers will be ON.
-    if (isE2E) {
-      return;
-    }
     Animated.sequence([
       Animated.timing(opacityAnim, {
         toValue: 0.1,
@@ -55,7 +51,10 @@ const Skeleton: React.FC<SkeletonProps> = ({
   };
 
   useEffect(() => {
-    startAnimation();
+    // Only start animation if no children are present or if children should be hidden
+    if (!isE2E && (!children || hideChildren)) {
+      startAnimation();
+    }
 
     return () => {
       // Cleanup animation when component unmounts

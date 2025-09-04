@@ -38,7 +38,7 @@ export class E2EControllerOverrides {
 
   // Mock order placement
   async placeOrder(params: OrderParams): Promise<OrderResult> {
-    console.log('🎭 E2E Mock: Intercepted placeOrder:', params.coin);
+    console.log('E2E Mock: Intercepted placeOrder:', params.coin);
     const result = await this.mockService.mockPlaceOrder(params);
 
     // Update Redux state to reflect the new position/balance
@@ -59,7 +59,7 @@ export class E2EControllerOverrides {
 
   // Mock account state with Redux update
   async getAccountState(): Promise<AccountState> {
-    console.log('🎭 E2E Mock: Intercepted getAccountState');
+    console.log('E2E Mock: Intercepted getAccountState');
     const mockAccount = this.mockService.getMockAccountState();
 
     // Update Redux state just like the real controller does
@@ -76,7 +76,7 @@ export class E2EControllerOverrides {
 
   // Mock positions with Redux update
   async getPositions(): Promise<Position[]> {
-    console.log('🎭 E2E Mock: Intercepted getPositions');
+    console.log('E2E Mock: Intercepted getPositions');
     const mockPositions = this.mockService.getMockPositions();
 
     // Update Redux state
@@ -93,7 +93,7 @@ export class E2EControllerOverrides {
 
   // Mock close position
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
-    console.log('🎭 E2E Mock: Intercepted closePosition:', {
+    console.log('E2E Mock: Intercepted closePosition:', {
       coin: params.coin,
       size: params.size,
       orderType: params.orderType,
@@ -124,7 +124,7 @@ export class E2EControllerOverrides {
   subscribeToAccount(params: {
     callback: (data: AccountState) => void;
   }): () => void {
-    console.log('🎭 E2E Mock: Intercepted subscribeToAccount');
+    console.log('E2E Mock: Intercepted subscribeToAccount');
     const mockAccount = this.mockService.getMockAccountState();
 
     // Register for live updates
@@ -139,7 +139,7 @@ export class E2EControllerOverrides {
   subscribeToPositions(params: {
     callback: (data: Position[]) => void;
   }): () => void {
-    console.log('🎭 E2E Mock: Intercepted subscribeToPositions');
+    console.log('E2E Mock: Intercepted subscribeToPositions');
     const mockPositions = this.mockService.getMockPositions();
 
     // Register for live updates
@@ -152,7 +152,7 @@ export class E2EControllerOverrides {
 
   // Mock orders subscription
   subscribeToOrders(params: { callback: (data: Order[]) => void }): () => void {
-    console.log('🎭 E2E Mock: Intercepted subscribeToOrders');
+    console.log('E2E Mock: Intercepted subscribeToOrders');
     const mockOrders = this.mockService.getMockOrders();
     setTimeout(() => params.callback(mockOrders), 0);
     return () => undefined;
@@ -162,7 +162,7 @@ export class E2EControllerOverrides {
   subscribeToOrderFills(params: {
     callback: (data: OrderFill[]) => void;
   }): () => void {
-    console.log('🎭 E2E Mock: Intercepted subscribeToOrderFills');
+    console.log('E2E Mock: Intercepted subscribeToOrderFills');
     const mockFills = this.mockService.getMockOrderFills();
     setTimeout(() => params.callback(mockFills), 0);
     return () => undefined;
@@ -173,7 +173,7 @@ export class E2EControllerOverrides {
     symbols: string[];
     callback: (data: PriceUpdate[]) => void;
   }): () => void {
-    console.log('🎭 E2E Mock: Intercepted subscribeToPrices:', params.symbols);
+    console.log('E2E Mock: Intercepted subscribeToPrices:', params.symbols);
     const allPrices = this.mockService.getMockPrices();
 
     const filteredPrices: PriceUpdate[] = params.symbols
@@ -190,7 +190,7 @@ export class E2EControllerOverrides {
  * This function should be called during E2E test initialization
  */
 export function applyE2EPerpsControllerMocks(controller: unknown): void {
-  console.log('🎭 Applying E2E mocks to PerpsController...');
+  console.log('Applying E2E mocks to PerpsController...');
 
   const overrides = new E2EControllerOverrides(controller);
 
@@ -222,7 +222,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
           ...args: unknown[]
         ) => unknown
       ).bind(overrides);
-      console.log(`🎭 Mocked ${method} method`);
+      console.log(`Mocked ${method} method`);
     }
   });
 
@@ -235,7 +235,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       ?.state;
     if (maybeState?.mockProfile) {
       console.log(
-        '🎭 E2E Mock: Applying profile from fixture:',
+        'E2E Mock: Applying profile from fixture:',
         maybeState.mockProfile,
       );
       PerpsE2EMockService.setProfile(maybeState.mockProfile);
@@ -247,7 +247,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   const mockAccount = mockService.getMockAccountState();
   const mockPositions = mockService.getMockPositions();
 
-  console.log('🎭 Initializing Redux state with mock data:', {
+  console.log('Initializing Redux state with mock data:', {
     availableBalance: mockAccount.availableBalance,
     totalBalance: mockAccount.totalBalance,
     positionsCount: mockPositions.length,
@@ -269,7 +269,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
  * Create E2E mock stream manager for PerpsStreamProvider
  */
 export function createE2EMockStreamManager(): unknown {
-  console.log('🎭 Creating E2E mock stream manager');
+  console.log('Creating E2E mock stream manager');
 
   // Use centralized E2E mock service for consistent state
   const mockService = PerpsE2EMockService.getInstance();
@@ -299,19 +299,19 @@ export function createE2EMockStreamManager(): unknown {
     },
     marketData: {
       subscribe: (params: { callback: (data: unknown[]) => void }) => {
-        console.log('🎭 E2E Mock: marketData.subscribe called');
+        console.log('E2E Mock: marketData.subscribe called');
         console.log(
-          '🎭 E2E Mock: Providing markets:',
+          'E2E Mock: Providing markets:',
           mockMarkets.length,
           'markets',
         );
         console.log(
-          '🎭 E2E Mock: Market symbols:',
+          'E2E Mock: Market symbols:',
           mockMarkets.map((m) => m.symbol),
         );
         setTimeout(() => {
           console.log(
-            '🎭 E2E Mock: Calling market data callback with',
+            'E2E Mock: Calling market data callback with',
             mockMarkets.length,
             'markets',
           );

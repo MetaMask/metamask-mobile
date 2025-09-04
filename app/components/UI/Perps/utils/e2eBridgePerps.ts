@@ -54,14 +54,14 @@ function autoConfigureE2EBridge(): void {
       applyControllerMocks: applyE2EPerpsControllerMocks,
     };
 
-    DevLogger.log('🎭 E2E Bridge auto-configured successfully');
-    DevLogger.log('🎭 Mock state:', {
+    DevLogger.log('E2E Bridge auto-configured successfully');
+    DevLogger.log('Mock state:', {
       accountBalance: mockService.getMockAccountState().availableBalance,
       positionsCount: mockService.getMockPositions().length,
       marketsCount: mockService.getMockMarkets().length,
     });
     DevLogger.log(
-      '🎭 Mock markets:',
+      'Mock markets:',
       mockService
         .getMockMarkets()
         .map(
@@ -72,7 +72,7 @@ function autoConfigureE2EBridge(): void {
     // This is expected in production builds where E2E files don't exist
     // or when running in environments that don't have the e2e directory
     DevLogger.log(
-      '🎭 E2E files not found (expected in production) - skipping mock setup',
+      'E2E files not found (expected in production) - skipping mock setup',
     );
   }
 }
@@ -83,7 +83,7 @@ function autoConfigureE2EBridge(): void {
 export function setE2EBridge(bridge: E2EBridgePerpsStreaming): void {
   if (isE2E) {
     e2eBridgePerps = bridge;
-    DevLogger.log('🎭 E2E Bridge manually configured:', Object.keys(bridge));
+    DevLogger.log('E2E Bridge manually configured:', Object.keys(bridge));
   }
 }
 
@@ -94,7 +94,7 @@ export function getE2EMockStreamManager(): unknown {
   if (isE2E) {
     autoConfigureE2EBridge();
     DevLogger.log(
-      '🎭 E2E Bridge: Returning mock stream manager:',
+      'E2E Bridge: Returning mock stream manager:',
       !!e2eBridgePerps.mockStreamManager,
     );
     return e2eBridgePerps.mockStreamManager;
