@@ -66,6 +66,7 @@ export const PerpsConnectionProvider: React.FC<
         isConnecting: false,
         isInitialized: true,
         isDisconnecting: false,
+        error: null,
       });
       return;
     }
