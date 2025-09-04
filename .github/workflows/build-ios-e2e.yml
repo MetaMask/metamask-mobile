@@ -87,25 +87,6 @@ jobs:
             xcrun simctl list | grep Booted || echo "No booted simulators found"
         shell: bash
 
-      - name: Debug available iOS simulators
-        run: |
-            echo "🔍 Debugging available iOS simulators on Cirrus runner..."
-            echo ""
-            echo "Available device types:"
-            xcrun simctl list devicetypes | grep iPhone || echo "No iPhone device types found"
-            echo ""
-            echo "Available runtimes:"
-            xcrun simctl list runtimes | grep iOS || echo "No iOS runtimes found"
-            echo ""
-            echo "Available simulators from applesimutils:"
-            applesimutils --list || echo "applesimutils not available"
-            echo ""
-            echo "All available simulators:"
-            xcrun simctl list devices available | grep iPhone || echo "No iPhone simulators available"
-            echo ""
-            echo "✅ Simulator debug complete"
-        shell: bash
-
       # Clean iOS plist files to prevent extended attribute issues
       - name: Clean iOS plist files
         run: find ios -name "*.plist" -exec xattr -c {} \;
