@@ -5017,7 +5017,7 @@
 
 "@metamask/bridge-status-controller@^41.0.0":
   version "41.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/bridge-status-controller/-/bridge-status-controller-41.0.0.tgz#cdca9fd30e2e98746ab256c32a7b5e8faed2fdd8"
+  resolved "https://registry.yarnpkg.org/@metamask/bridge-status-controller/-/bridge-status-controller-41.0.0.tgz#cdca9fd30e2e98746ab256c32a7b5e8faed2fdd8"
   integrity sha512-coONJs55mxvIqT3KhatVwLfczveJjT2vDI0Abt/eGbDZawPn/GDuJO+AkVSbtS4Xe+BPZkjXlwV9c6DaZLCTyA==
   dependencies:
     "@metamask/base-controller" "^8.2.0"
