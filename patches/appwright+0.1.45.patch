@@ -12,7 +12,7 @@ index a51913b..8c0335c 100644
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..1b9f5bb 100644
+index 638c5df..ca12ee5 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
 @@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
@@ -28,15 +28,17 @@ index 638c5df..1b9f5bb 100644
          const sessionData = await getSessionDetails(sessionId);
          const sessionDetails = sessionData?.automation_session;
          const videoURL = sessionDetails?.video_url;
-@@ -241,6 +247,7 @@ class BrowserStackDeviceProvider {
+@@ -241,7 +247,9 @@ class BrowserStackDeviceProvider {
              capabilities: {
                  "bstack:options": {
                      debug: true,
 +                    networkProfile : '4g-lte-advanced-good',
                      interactiveDebugging: true,
++                    appProfiling: true,
                      networkLogs: true,
                      appiumVersion: "2.6.0",
-@@ -250,10 +257,10 @@ class BrowserStackDeviceProvider {
+                     enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
+@@ -250,10 +258,10 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,
