@@ -5,11 +5,11 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsDevUtils } from '../../utils/PerpsDevUtils';
+import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 
 export const PerpsConnectionErrorButton = () => {
   const handleSimulateError = () => {
-    PerpsDevUtils.simulateConnectionError();
+    PerpsConnectionManager.disconnect();
   };
 
   // Only show in development builds
