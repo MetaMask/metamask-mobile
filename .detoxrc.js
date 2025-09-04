@@ -75,8 +75,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 16 Pro',
-        os: 'iOS 18.6',
+        type: 'iPhone 15 Pro',
       },
     },
     'ios.github_ci.simulator': {

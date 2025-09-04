@@ -207,10 +207,11 @@ export const importWalletWithRecoveryPhrase = async ({
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // dealing with flakiness on bitrise.
+  // Dealing with flakiness
+  // Workaround for token list hanging
+  await device.disableSynchronization();
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -281,6 +282,10 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   } else {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
+
+  await device.disableSynchronization(); // Workaround for tokens list hanging after onboarding
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
