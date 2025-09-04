@@ -8,6 +8,9 @@ import {
   TransactionParams,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import { toHex } from '@metamask/controller-utils';
+import { isCaipChainId, toCaipChainId } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -56,9 +59,9 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../../util/address';
 import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { toHex } from '@metamask/controller-utils';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+
 import { RAMPS_SEND } from '../../constants';
-import { selectNetworkClientId } from '../../../../../../selectors/networkController';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -71,8 +74,10 @@ function SendTransaction() {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
-  const networkClientId = useSelector(selectNetworkClientId);
   const trackEvent = useAnalytics();
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
 
   const [isConfirming, setIsConfirming] = useState(false);
 
@@ -82,6 +87,21 @@ function SendTransaction() {
   } = useStyles(styleSheet, {});
 
   const orderData = order?.data as SellOrder;
+
+  const networkClientId = useMemo(() => {
+    const chainId = orderData?.cryptoCurrency?.network?.chainId;
+    if (!chainId) return null;
+    const caipChainId = isCaipChainId(chainId)
+      ? chainId
+      : toCaipChainId('eip155', chainId);
+    const networkConfig = networkConfigurations?.[
+      caipChainId
+    ] as NetworkConfiguration;
+    if (!networkConfig) return null;
+
+    const { rpcEndpoints, defaultRpcEndpointIndex } = networkConfig;
+    return rpcEndpoints?.[defaultRpcEndpointIndex]?.networkClientId;
+  }, [networkConfigurations, orderData]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -128,6 +148,10 @@ function SendTransaction() {
     try {
       chainIdAsHex = toHex(orderData.cryptoCurrency.network.chainId);
     } catch {
+      return;
+    }
+
+    if (!networkClientId) {
       return;
     }
 
@@ -332,7 +356,7 @@ function SendTransaction() {
               onPress={handleSend}
               accessibilityRole="button"
               accessible
-              isDisabled={isConfirming}
+              isDisabled={isConfirming || !networkClientId}
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}
