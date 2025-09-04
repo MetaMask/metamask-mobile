@@ -647,8 +647,7 @@ export class RewardsController extends BaseController<
   async estimatePoints(
     request: EstimatePointsDto,
   ): Promise<EstimatedPointsDto> {
-    // const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    const rewardsEnabled = true; // TODO remove this
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
     if (!rewardsEnabled) return { pointsEstimate: 0, bonusBips: 0 };
     try {
       const estimatedPoints = await this.messagingSystem.call(
