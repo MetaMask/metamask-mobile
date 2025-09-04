@@ -22,13 +22,18 @@ import {
   formatPercentage,
 } from '../../utils/formatUtils';
 import { PerpsTabViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { BigNumber } from 'bignumber.js';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
+  hasPositions?: boolean;
+  hasOrders?: boolean;
 }
 
 export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
+  hasPositions = false,
+  hasOrders = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   // Use live account data with 1 second throttle for balance display
@@ -132,72 +137,84 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const pnlNum = parseFloat(perpsAccount?.unrealizedPnl || '0');
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
+  const isBalanceEmpty = BigNumber(availableBalance).isZero();
+  const shouldShowPnl = hasPositions || hasOrders;
+  const shouldShowBalance = !isBalanceEmpty || shouldShowPnl;
+  const balancePillContainerStyle =
+    shouldShowBalance && !shouldShowPnl
+      ? styles.pillContainer
+      : styles.pillContainerTop;
+  const pnlPillContainerStyle = styles.pillContainerBottom;
 
   return (
     <View style={styles.wrapper}>
       {/* Available Balance Pill */}
-      <TouchableOpacity
-        style={styles.pillContainerTop}
-        onPress={handlePress}
-        testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
-      >
-        <View style={styles.leftSection}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.titleText}
-          >
-            {strings('perps.available_balance')}
-          </Text>
-        </View>
-        <View style={styles.rightSection}>
-          <Animated.View style={[getBalanceAnimatedStyle]}>
+      {shouldShowBalance && (
+        <TouchableOpacity
+          style={balancePillContainerStyle}
+          onPress={handlePress}
+          testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
+        >
+          <View style={styles.leftSection}>
             <Text
-              style={styles.valueText}
-              variant={TextVariant.HeadingSM}
-              color={TextColor.Default}
-              testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
-            >
-              {formatPerpsFiat(availableBalance)}
-            </Text>
-          </Animated.View>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        </View>
-      </TouchableOpacity>
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.titleText}
 
-      {/* Unrealized P&L Pill */}
-      <View style={styles.pillContainerBottom}>
-        <View style={styles.leftSection}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.titleText}
-          >
-            {strings('perps.position.account.unrealized_pnl')}
-          </Text>
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-            style={styles.infoIcon}
-          />
-        </View>
-        <View style={styles.rightSection}>
-          <Animated.View style={[getPnlAnimatedStyle]}>
-            <Text
-              style={styles.valueText}
-              variant={TextVariant.HeadingSM}
-              color={pnlColor}
             >
-              {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
+              {strings('perps.available_balance')}
             </Text>
-          </Animated.View>
+          </View>
+          <View style={styles.rightSection}>
+            <Animated.View style={[getBalanceAnimatedStyle]}>
+              <Text
+                style={styles.valueText}
+                variant={TextVariant.HeadingSM}
+                color={TextColor.Default}
+                testID={PerpsTabViewSelectorsIDs.BALANCE_VALUE}
+              >
+                {formatPerpsFiat(availableBalance)}
+              </Text>
+            </Animated.View>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+            />
+          </View>
+        </TouchableOpacity>
+      )}
+      {/* Unrealized P&L Pill */}
+      {shouldShowPnl && (
+        <View style={pnlPillContainerStyle}>
+          <View style={styles.leftSection}>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.titleText}
+            >
+              {strings('perps.position.account.unrealized_pnl')}
+            </Text>
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.Alternative}
+              style={styles.infoIcon}
+            />
+          </View>
+          <View style={styles.rightSection}>
+            <Animated.View style={[getPnlAnimatedStyle]}>
+              <Text
+                style={styles.valueText}
+                variant={TextVariant.HeadingSM}
+                color={pnlColor}
+              >
+                {formatPnl(pnlNum)} ({formatPercentage(roe, 1)})
+              </Text>
+            </Animated.View>
+          </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };

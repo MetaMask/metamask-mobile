@@ -10,7 +10,7 @@ import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e
  * Initialize the PerpsController.
  *
  * @param request - The request object.
- * @returns The PerpsController..
+ * @returns The PerpsController.
  */
 export const perpsControllerInit: ControllerInitFunction<
   PerpsController,
@@ -24,6 +24,9 @@ export const perpsControllerInit: ControllerInitFunction<
   const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
+    clientConfig: {
+      fallbackBlockedRegions: process.env.MM_PERPS_BLOCKED_REGIONS?.split(','),
+    },
   });
 
   // Apply E2E mocks if configured via bridge

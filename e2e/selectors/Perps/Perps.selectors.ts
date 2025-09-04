@@ -172,6 +172,12 @@ export const PerpsTabViewSelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+};
+
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
   BACK_BUTTON: 'button-icon-arrow-left',
@@ -243,6 +249,13 @@ export const getPerpsCandlePeriodBottomSheetSelector = {
     `${baseTestID}-period-${period}`,
 };
 
+// Helper functions for PerpsCandlePeriodSelector dynamic selectors
+export const getPerpsCandlePeriodSelector = {
+  periodButton: (baseTestID: string, period: string) =>
+    `${baseTestID}-period-${period}`,
+  moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
+};
+
 // ========================================
 // PERPS WITHDRAW VIEW SELECTORS
 // ========================================
@@ -278,6 +291,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-market-details-geo-block-bottom-sheet-tooltip',
 };
 
 // ========================================
