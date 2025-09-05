@@ -12,13 +12,6 @@ on:
   
   # Allow manual trigger for testing from ANY branch
   workflow_dispatch:
-  
-  # Also run when pushing to specific branches (for testing/development)
-  push:
-    branches:
-      - 'feature/sync-*'        # Run on any branch starting with feature/sync-
-      - 'chore/temp-nightly'    # Run when the temp branch itself is updated
-      # - 'your-dev-branch'     # Add your specific branch here
 
 jobs:
   sync-temp-nightly-branch:
