@@ -399,14 +399,6 @@ stages:
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
-  build_regression_e2e_ios_gns_disabled_stage:
-    abort_on_fail: true
-    workflows:
-      - build_ios_main_e2e_gns_disabled:
-          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-  run_regression_e2e_ios_gns_disabled_stage:
-    workflows:
-      - ios_run_regression_network_abstraction_tests_gns_disabled: {}
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
@@ -447,6 +439,14 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_card_ios: {}
       - run_tag_smoke_card_android: {}
+  build_regression_e2e_ios_gns_disabled_stage:
+    abort_on_fail: true
+    workflows:
+      - build_ios_main_e2e_gns_disabled:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+  run_regression_e2e_ios_gns_disabled_stage:
+    workflows:
+      - ios_run_regression_network_abstraction_tests_gns_disabled: {}
 
   report_results_stage:
     workflows:
@@ -867,6 +867,7 @@ workflows:
   ios_run_regression_network_abstraction_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
     after_run:
       - ios_e2e_test
   ios_run_regression_network_abstraction_tests_gns_disabled:
