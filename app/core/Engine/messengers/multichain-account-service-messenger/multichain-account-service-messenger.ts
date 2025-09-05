@@ -59,7 +59,6 @@ export function getMultichainAccountServiceMessenger(
       'SnapController:handleRequest',
       'KeyringController:getState',
       'KeyringController:withKeyring',
-      'KeyringController:withKeyring',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
     ],
