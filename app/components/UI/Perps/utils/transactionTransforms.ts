@@ -111,6 +111,8 @@ export function transformFillsToTransactions(
             ? direction?.toLowerCase() || ''
             : part2?.toLowerCase() || ''
         }`,
+        // this is the amount that is displayed in the transaction view for what has been spent/gained
+        // it may be the fee spent or the pnl depending on the case
         amount: displayAmount,
         amountNumber: parseFloat(amountBN.toFixed(2)),
         isPositive,
