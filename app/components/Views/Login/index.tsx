@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   View,
@@ -25,10 +25,9 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
-  setCompletedOnboarding,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -111,11 +110,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
-import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
-import { useDeleteWallet } from '../../hooks/DeleteWallet';
-import { clearHistory } from '../../../actions/browser';
-import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
-import { RootState } from '../../../reducers';
+import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -164,6 +159,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
+
+  const { isDeletingInProgress, promptSeedlessRelogin } =
+    usePromptSeedlessRelogin();
+
+  const finalLoading = useMemo(
+    () => loading || isDeletingInProgress,
+    [loading, isDeletingInProgress],
+  );
 
   const track = (
     event: IMetaMetricsEvent,
@@ -522,7 +525,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (locked) {
         throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
       }
-      if (loading || locked) return;
+      if (finalLoading || locked) return;
 
       setLoading(true);
 
@@ -659,65 +662,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
-  const [resetWalletState, deleteUser] = useDeleteWallet();
-  const dispatch = useDispatch();
-  const { signOut } = useSignOut();
-  const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
-  );
-  const navigateOnboardingRoot = (): void => {
-    navigation.reset({
-      routes: [
-        {
-          name: Routes.ONBOARDING.ROOT_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.ONBOARDING.NAV,
-                params: {
-                  screen: Routes.ONBOARDING.ONBOARDING,
-                  params: { delete: true },
-                },
-              },
-            ],
-          },
-        },
-      ],
-    });
-  };
-  const gotoSeedlessControllerErrorPrompt = () => {
-    const errorSheetParams: SuccessErrorSheetParams = {
-      type: 'error',
-      title: strings('login.seedless_controller_error_prompt_title'),
-      description: strings(
-        'login.seedless_controller_error_prompt_description',
-      ),
-      primaryButtonLabel: strings(
-        'login.seedless_controller_error_prompt_primary_button_label',
-      ),
-      onPrimaryButtonPress: async () => {
-        // reset wallet
-        // redirect to login
-        setLoading(true);
-        dispatch(
-          clearHistory(isMetricsEnabled(), isDataCollectionForMarketingEnabled),
-        );
-        signOut();
-        await resetWalletState();
-        await deleteUser();
-        await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-        dispatch(setCompletedOnboarding(false));
-        navigateOnboardingRoot();
-        setLoading(false);
-      },
-      closeOnPrimaryButtonPress: true,
-    };
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: errorSheetParams,
-    });
-  };
-
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -814,9 +758,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 size={ButtonSize.Lg}
                 onPress={onLogin}
                 label={strings('login.unlock_button')}
-                isDisabled={password.length === 0 || disabledInput || loading}
+                isDisabled={
+                  password.length === 0 || disabledInput || finalLoading
+                }
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                loading={loading}
+                loading={finalLoading}
               />
 
               {!oauthLoginSuccess && (
@@ -826,7 +772,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
-                  isDisabled={loading}
+                  isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
               )}
@@ -840,15 +786,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                   onPress={handleUseOtherMethod}
                   testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
                   label={strings('login.other_methods')}
-                  loading={loading}
-                  isDisabled={loading}
+                  loading={finalLoading}
+                  isDisabled={finalLoading}
                   size={ButtonSize.Lg}
                 />
               </View>
             )}
             <Button
               variant={ButtonVariants.Primary}
-              onPress={gotoSeedlessControllerErrorPrompt}
+              onPress={promptSeedlessRelogin}
               label={'error prompt'}
             />
           </View>
