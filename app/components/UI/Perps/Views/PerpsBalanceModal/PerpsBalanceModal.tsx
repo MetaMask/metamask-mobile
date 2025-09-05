@@ -51,15 +51,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
         console.error('Failed to initialize deposit:', error);
       });
     } catch (error) {
-      console.error('Failed to ensure network exists:', error);
-      // Still proceed with the flow even if network addition fails
-      navigation.goBack();
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
-      depositWithConfirmation().catch((depositError) => {
-        console.error('Failed to initialize deposit:', depositError);
-      });
+      console.error('Failed to proceed with deposit:', error);
     }
   }, [depositWithConfirmation, navigation, ensureArbitrumNetworkExists]);
 
@@ -73,12 +65,7 @@ const PerpsBalanceModal: React.FC<PerpsBalanceModalProps> = () => {
         screen: Routes.PERPS.WITHDRAW,
       });
     } catch (error) {
-      console.error('Failed to ensure network exists:', error);
-      // Still proceed with the flow even if network addition fails
-      navigation.goBack();
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.WITHDRAW,
-      });
+      console.error('Failed to proceed with withdraw:', error);
     }
   }, [navigation, ensureArbitrumNetworkExists]);
 
