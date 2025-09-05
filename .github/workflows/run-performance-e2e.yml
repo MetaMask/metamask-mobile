@@ -558,13 +558,55 @@ jobs:
           }
           
           function aggregateReports() {
-            console.log('🔍 Looking for performance JSON reports...');
+            try {
+              console.log('🔍 Looking for performance JSON reports...');
             
             const jsonFiles = findJsonFiles('appwright/test-reports');
             console.log(`📊 Found ${jsonFiles.length} JSON report files:`);
             
             if (jsonFiles.length === 0) {
-              console.log('❌ No performance JSON files found');
+              console.log('❌ No performance JSON files found - creating empty report structure');
+              
+              // Create empty report structure when no files are found
+              const emptyReport = {
+                metadata: {
+                  commitId: process.env.GITHUB_SHA || 'unknown',
+                  branch: process.env.GITHUB_REF_NAME || 'unknown',
+                  generatedAt: new Date().toISOString(),
+                  workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+                  totalReports: 0,
+                  platforms: {
+                    android: 0,
+                    ios: 0
+                  },
+                  warning: 'No performance reports found - possibly all tests failed'
+                },
+                Android: {},
+                iOS: {}
+              };
+              
+              const outputPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
+              fs.writeFileSync(outputPath, JSON.stringify(emptyReport, null, 2));
+              
+              // Create empty summary
+              const emptySummary = {
+                totalTests: 0,
+                platforms: { android: 0, ios: 0 },
+                testsByPlatform: { android: 0, ios: 0 },
+                devices: [],
+                platformDevices: { Android: [], iOS: [] },
+                metadata: emptyReport.metadata,
+                generatedAt: emptyReport.metadata.generatedAt,
+                branch: emptyReport.metadata.branch,
+                commit: emptyReport.metadata.commitId,
+                warning: 'No test results found'
+              };
+              
+              fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(emptySummary, null, 2));
+              
+              console.log('✅ Empty report structure created successfully');
+              console.log(`📄 Empty report saved to: ${outputPath}`);
+              console.log('📋 Empty summary saved to: appwright/aggregated-reports/summary.json');
               return;
             }
             
@@ -663,7 +705,10 @@ jobs:
                 }
               } catch (error) {
                 console.error(`❌ Error processing ${filePath}:`, error.message);
-              }
+                console.log(`⚠️ Skipping file ${filePath} and continuing with other files...`);
+                
+                // Continue processing other files even if this one fails
+                return;
             });
             
             // Create final report with metadata section and grouped results
@@ -737,17 +782,54 @@ jobs:
             
             fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify(summary, null, 2));
             console.log('📋 Summary report saved to: appwright/aggregated-reports/summary.json');
+            
+            } catch (error) {
+              console.error('❌ Error during aggregation:', error.message);
+              console.log('🔄 Creating fallback empty report due to aggregation error...');
+              
+              // Create fallback empty report structure
+              const fallbackReport = {
+                metadata: {
+                  commitId: process.env.GITHUB_SHA || 'unknown',
+                  branch: process.env.GITHUB_REF_NAME || 'unknown',
+                  generatedAt: new Date().toISOString(),
+                  workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
+                  totalReports: 0,
+                  platforms: { android: 0, ios: 0 },
+                  error: 'Aggregation failed: ' + error.message,
+                  warning: 'This is a fallback report generated due to aggregation errors'
+                },
+                Android: {},
+                iOS: {}
+              };
+              
+              try {
+                fs.writeFileSync('appwright/aggregated-reports/aggregated-performance-report.json', JSON.stringify(fallbackReport, null, 2));
+                fs.writeFileSync('appwright/aggregated-reports/summary.json', JSON.stringify({
+                  totalTests: 0,
+                  platforms: { android: 0, ios: 0 },
+                  error: error.message,
+                  generatedAt: fallbackReport.metadata.generatedAt
+                }, null, 2));
+                console.log('✅ Fallback reports created successfully');
+              } catch (writeError) {
+                console.error('❌ Failed to create fallback reports:', writeError.message);
+              }
+            }
           }
           
           aggregateReports();
           EOF
           
-          # Run the aggregation script
-          node aggregate_reports.js
+          # Run the aggregation script (ensure it doesn't fail the step)
+          node aggregate_reports.js || echo "⚠️ Aggregation script completed with warnings/errors but continuing..."
+          
+          # Ensure output directory exists even if script failed
+          mkdir -p appwright/aggregated-reports
           
           # List generated files
           echo "📁 Generated files:"
-          ls -la appwright/aggregated-reports/
+          ls -la appwright/aggregated-reports/ || echo "📁 No aggregated reports directory found"
       
       - name: Upload Combined Reports
         if: always()
