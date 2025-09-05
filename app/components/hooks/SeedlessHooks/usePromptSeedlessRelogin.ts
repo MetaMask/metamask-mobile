@@ -86,11 +86,15 @@ const usePromptSeedlessRelogin = () => {
         'login.seedless_controller_error_prompt_primary_button_label',
       ),
       onPrimaryButtonPress: () => {
-        deleteWallet().catch((error) => {
-          Logger.error(error, 'Error during wallet deletion');
-          setDeleteWalletError(error as Error);
-          // prompt bottom sheet?
-        });
+        deleteWallet()
+          .catch((error) => {
+            Logger.error(error, 'Error during wallet deletion');
+            setDeleteWalletError(error as Error);
+            // prompt bottom sheet?
+          })
+          .finally(() => {
+            setIsDeletingInProgress(false);
+          });
       },
       closeOnPrimaryButtonPress: true,
     };

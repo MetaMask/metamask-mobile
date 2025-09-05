@@ -118,6 +118,7 @@ describe('usePromptSeedlessRelogin', () => {
       // Assert
       expect(result.current).toEqual({
         isDeletingInProgress: false,
+        deleteWalletError: null,
         promptSeedlessRelogin: expect.any(Function),
       });
     });
@@ -327,9 +328,11 @@ describe('usePromptSeedlessRelogin', () => {
       );
 
       // Make resetWalletState async to test loading state
-      mockResetWalletState.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 100)),
-      );
+      let resolveResetWallet: () => void;
+      const resetWalletPromise = new Promise<void>((resolve) => {
+        resolveResetWallet = resolve;
+      });
+      mockResetWalletState.mockReturnValue(resetWalletPromise);
 
       act(() => {
         result.current.promptSeedlessRelogin();
@@ -338,16 +341,24 @@ describe('usePromptSeedlessRelogin', () => {
       const callArgs = mockNavigate.mock.calls[0][1];
       const onPrimaryButtonPress = callArgs.params.onPrimaryButtonPress;
 
-      // Act
-      const deletePromise = act(async () => {
-        await onPrimaryButtonPress();
+      // Act - start deletion process but don't await
+      let deletePromise: Promise<void>;
+      act(() => {
+        deletePromise = onPrimaryButtonPress() || Promise.resolve();
       });
 
       // Assert - check loading state is true during deletion
       expect(result.current.isDeletingInProgress).toBe(true);
 
+      // Complete the reset wallet operation
+      act(() => {
+        resolveResetWallet();
+      });
+
       // Wait for completion
-      await deletePromise;
+      await act(async () => {
+        await deletePromise;
+      });
 
       // Assert - check loading state is false after completion
       expect(result.current.isDeletingInProgress).toBe(false);
@@ -377,7 +388,7 @@ describe('usePromptSeedlessRelogin', () => {
   });
 
   describe('error handling', () => {
-    it('does not reset loading state when deletion flow fails', async () => {
+    it('resets loading state when deletion flow fails', async () => {
       // Arrange
       const { result } = renderHookWithProvider(() =>
         usePromptSeedlessRelogin(),
@@ -391,13 +402,19 @@ describe('usePromptSeedlessRelogin', () => {
       const callArgs = mockNavigate.mock.calls[0][1];
       const onPrimaryButtonPress = callArgs.params.onPrimaryButtonPress;
 
-      // Act & Assert
+      // Act - call the function which catches errors internally
       await act(async () => {
-        await expect(onPrimaryButtonPress()).rejects.toThrow('Reset failed');
+        onPrimaryButtonPress();
+        // Wait a bit for the async error handling to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      // Assert loading state remains true after error (bug in original code)
-      expect(result.current.isDeletingInProgress).toBe(true);
+      // Assert - loading state is reset to false after error
+      expect(result.current.isDeletingInProgress).toBe(false);
+      // Assert - error state is set
+      expect(result.current.deleteWalletError).toEqual(
+        new Error('Reset failed'),
+      );
     });
 
     it('handles storage removal failure gracefully', async () => {
@@ -416,11 +433,17 @@ describe('usePromptSeedlessRelogin', () => {
       const callArgs = mockNavigate.mock.calls[0][1];
       const onPrimaryButtonPress = callArgs.params.onPrimaryButtonPress;
 
-      // Act & Assert
+      // Act - call the function which catches errors internally
       await act(async () => {
-        await expect(onPrimaryButtonPress()).rejects.toThrow('Storage error');
+        onPrimaryButtonPress();
+        // Wait a bit for the async error handling to complete
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
+      // Assert - error state is set
+      expect(result.current.deleteWalletError).toEqual(
+        new Error('Storage error'),
+      );
       // Assert other operations were still attempted
       expect(mockSignOut).toHaveBeenCalledTimes(1);
       expect(mockResetWalletState).toHaveBeenCalledTimes(1);
