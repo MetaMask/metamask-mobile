@@ -19,7 +19,7 @@ describe('AccountBase', () => {
         accountBalanceLabel={''}
         accountAddress={TEST_ACCOUNT_ADDRESS}
         badgeProps={BADGE_PROPS}
-        avatarStyle={AvatarAccountType.Maskicon}
+        avatarAccountType={AvatarAccountType.Maskicon}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(

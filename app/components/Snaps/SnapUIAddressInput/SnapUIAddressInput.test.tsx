@@ -9,7 +9,7 @@ import { SNAP_UI_AVATAR_TEST_ID } from '../SnapUIAvatar/SnapUIAvatar';
 
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 

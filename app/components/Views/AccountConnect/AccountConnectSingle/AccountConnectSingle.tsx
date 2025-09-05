@@ -33,7 +33,7 @@ import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { selectAvatarStyle } from '../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -48,7 +48,7 @@ const AccountConnectSingle = ({
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const renderSheetAction = useCallback(
     () => (

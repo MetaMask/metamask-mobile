@@ -209,7 +209,7 @@ describe('DestinationAccountSelector', () => {
         destAddress: '0x1234567890123456789012345678901234567890',
       },
       settings: {
-        avatarStyle: AvatarAccountType.Maskicon,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       ...storeState,
     });
@@ -248,7 +248,7 @@ describe('DestinationAccountSelector', () => {
   it('uses blockie icon when blockie setting is enabled', () => {
     const { getByTestId } = renderComponent({
       settings: {
-        avatarStyle: AvatarAccountType.Blockies,
+        avatarAccountType: AvatarAccountType.Blockies,
       },
     });
     const avatar = getByTestId('cellbase-avatar');

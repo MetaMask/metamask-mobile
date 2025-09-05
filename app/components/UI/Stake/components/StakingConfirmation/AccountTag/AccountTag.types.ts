@@ -3,5 +3,5 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 export interface AccountTagProps {
   accountAddress: string;
   accountName?: string;
-  avatarStyle?: AvatarAccountType;
+  avatarAccountType?: AvatarAccountType;
 }

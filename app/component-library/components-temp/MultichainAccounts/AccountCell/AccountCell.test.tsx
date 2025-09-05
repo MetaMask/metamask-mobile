@@ -57,7 +57,7 @@ const renderAccountCell = (
   return renderWithProvider(<AccountCell {...defaultProps} />, {
     state: {
       settings: {
-        avatarStyle: AvatarAccountType.Maskicon,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     },
   });

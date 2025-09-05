@@ -42,5 +42,5 @@ export interface AccountBaseProps {
   /**
    * Account identicon
    */
-  avatarStyle: AvatarAccountType;
+  avatarAccountType: AvatarAccountType;
 }

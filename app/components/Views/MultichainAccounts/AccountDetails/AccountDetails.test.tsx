@@ -96,7 +96,7 @@ const renderWithAccount = (account: InternalAccount | undefined) => {
           },
         },
         settings: {
-          avatarStyle: AvatarAccountType.Maskicon,
+          avatarAccountType: AvatarAccountType.Maskicon,
         },
       },
     },
@@ -156,7 +156,7 @@ describe('AccountDetails', () => {
             },
           },
           settings: {
-            avatarStyle: AvatarAccountType.Maskicon,
+            avatarAccountType: AvatarAccountType.Maskicon,
           },
         },
       },

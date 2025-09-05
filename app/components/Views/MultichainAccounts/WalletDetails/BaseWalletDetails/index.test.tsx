@@ -192,7 +192,7 @@ const mockWallet = createMockWallet('1', 'Test Wallet', [
 
 const mockInitialState: Partial<RootState> = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

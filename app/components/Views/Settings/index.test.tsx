@@ -25,7 +25,7 @@ const initialState = {
   settings: {
     lockTime: 1000,
     searchEngine: 'Google',
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,

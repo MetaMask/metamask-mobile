@@ -28,7 +28,7 @@ import AccountNetworkIndicator from '../../UI/AccountNetworkIndicator';
 import { useStyles } from '../../hooks/useStyles';
 import { stylesheet } from './SnapUIAccountSelector.styles';
 import { strings } from '../../../../locales/i18n';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 export interface SnapUIAccountSelectorElementProps {
   account: Account;
@@ -141,7 +141,7 @@ export const SnapUIAccountSelector: FunctionComponent<
   const { snapId } = useSnapInterfaceContext();
   const { accounts: internalAccounts, ensByAccountAddress } = useAccounts();
 
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
   const privacyMode = useSelector(selectPrivacyMode);
 
   const accounts = useMemo(() => {
@@ -180,7 +180,7 @@ export const SnapUIAccountSelector: FunctionComponent<
       account={account}
       ensName={ensByAccountAddress[account.address]}
       privacyMode={privacyMode}
-      avatarType={avatarStyle}
+      avatarType={avatarAccountType}
     />
   ));
 

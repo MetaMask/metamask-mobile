@@ -6,7 +6,7 @@ import { useTheme } from '../../../util/theme';
 import { useSelector } from 'react-redux';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface IdenticonProps {
   /**
@@ -45,7 +45,7 @@ const Identicon: React.FC<IdenticonProps> = ({
   imageUri,
 }) => {
   const { colors } = useTheme();
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   if (!address && !imageUri) return null;
 
@@ -74,7 +74,7 @@ const Identicon: React.FC<IdenticonProps> = ({
 
   const avatar = (
     <AvatarAccount
-      type={avatarStyle}
+      type={avatarAccountType}
       accountAddress={address}
       size={AvatarSize.Md}
     />

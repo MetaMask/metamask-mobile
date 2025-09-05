@@ -29,7 +29,7 @@ import {
   selectSelectedAccountGroup,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
-import { selectAvatarStyle } from '../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -94,7 +94,7 @@ const DestinationAccountSelector = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);

@@ -37,9 +37,9 @@ export const selectDeepLinkModalDisabled = createSelector(
     Boolean(settingsState.deepLinkModalDisabled),
 );
 
-export const selectAvatarStyle = createSelector(
+export const selectAvatarAccountType = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
-    (settingsState.avatarStyle as AvatarAccountType) ??
+    (settingsState.avatarAccountType as AvatarAccountType) ??
     AvatarAccountType.Maskicon,
 );

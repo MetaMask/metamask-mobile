@@ -52,7 +52,7 @@ const mockThirdPartySnapAccount = createMockInternalAccount(
 const mockKeyringId = 'keyring-1';
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

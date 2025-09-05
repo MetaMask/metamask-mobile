@@ -45,7 +45,7 @@ import AddAccountItem from './components/AddAccountItem';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import WalletAddAccountActions from './components/WalletAddAccountActions';
-import { selectAvatarStyle } from '../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -95,7 +95,7 @@ export const BaseWalletDetails = ({
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(wallet.id);
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {

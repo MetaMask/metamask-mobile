@@ -21,7 +21,7 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
   setPrimaryCurrency,
-  setAvatarStyle,
+  setAvatarAccountType,
   setHideZeroBalanceTokens,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
@@ -184,11 +184,11 @@ class Settings extends PureComponent {
     /**
      * Selected avatar style (Maskicon | Blockies | JazzIcon)
      */
-    avatarStyle: PropTypes.string,
+    avatarAccountType: PropTypes.string,
     /**
      * Called to set avatar style
      */
-    setAvatarStyle: PropTypes.func,
+    setAvatarAccountType: PropTypes.func,
     /**
      * A string that represents the selected address
      */
@@ -319,8 +319,8 @@ class Settings extends PureComponent {
     const {
       currentCurrency,
       primaryCurrency,
-      avatarStyle,
-      setAvatarStyle,
+      avatarAccountType,
+      setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
@@ -470,7 +470,9 @@ class Settings extends PureComponent {
             <View style={styles.accessory}>
               <View style={styles.identicon_container}>
                 <TouchableOpacity
-                  onPress={() => setAvatarStyle(AvatarAccountType.Maskicon)}
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.Maskicon)
+                  }
                   style={styles.identicon_row}
                 >
                   <AvatarAccount
@@ -478,7 +480,7 @@ class Settings extends PureComponent {
                     accountAddress={selectedAddress}
                     size={diameter}
                     style={
-                      avatarStyle === AvatarAccountType.Maskicon
+                      avatarAccountType === AvatarAccountType.Maskicon
                         ? styles.selectedAvatar
                         : undefined
                     }
@@ -486,7 +488,9 @@ class Settings extends PureComponent {
                   <Text style={styles.identiconText}>Mask Icons</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setAvatarStyle(AvatarAccountType.JazzIcon)}
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.JazzIcon)
+                  }
                   style={styles.identicon_row}
                 >
                   <AvatarAccount
@@ -494,7 +498,7 @@ class Settings extends PureComponent {
                     accountAddress={selectedAddress}
                     size={diameter}
                     style={
-                      avatarStyle === AvatarAccountType.JazzIcon
+                      avatarAccountType === AvatarAccountType.JazzIcon
                         ? styles.selectedAvatar
                         : undefined
                     }
@@ -504,7 +508,9 @@ class Settings extends PureComponent {
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setAvatarStyle(AvatarAccountType.Blockies)}
+                  onPress={() =>
+                    setAvatarAccountType(AvatarAccountType.Blockies)
+                  }
                   style={styles.identicon_row}
                 >
                   <AvatarAccount
@@ -512,7 +518,7 @@ class Settings extends PureComponent {
                     accountAddress={selectedAddress}
                     size={diameter}
                     style={
-                      avatarStyle === AvatarAccountType.Blockies
+                      avatarAccountType === AvatarAccountType.Blockies
                         ? styles.selectedAvatar
                         : undefined
                     }
@@ -537,7 +543,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
-  avatarStyle: state.settings.avatarStyle,
+  avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
@@ -547,7 +553,8 @@ const mapDispatchToProps = (dispatch) => ({
   setSearchEngine: (searchEngine) => dispatch(setSearchEngine(searchEngine)),
   setPrimaryCurrency: (primaryCurrency) =>
     dispatch(setPrimaryCurrency(primaryCurrency)),
-  setAvatarStyle: (avatarStyle) => dispatch(setAvatarStyle(avatarStyle)),
+  setAvatarAccountType: (avatarAccountType) =>
+    dispatch(setAvatarAccountType(avatarAccountType)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });

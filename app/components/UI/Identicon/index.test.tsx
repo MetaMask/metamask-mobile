@@ -10,7 +10,7 @@ describe('Identicon', () => {
   it('renders Blockie from address', () => {
     const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
       state: {
-        settings: { avatarStyle: AvatarAccountType.Blockies },
+        settings: { avatarAccountType: AvatarAccountType.Blockies },
       },
     });
 
@@ -20,7 +20,7 @@ describe('Identicon', () => {
   it('renders Jazzicon', () => {
     const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
       state: {
-        settings: { avatarStyle: AvatarAccountType.JazzIcon },
+        settings: { avatarAccountType: AvatarAccountType.JazzIcon },
       },
     });
 
@@ -30,7 +30,7 @@ describe('Identicon', () => {
   it('renders Maskicon', () => {
     const wrapper = renderWithProvider(<Identicon address={ADDRESS_MOCK} />, {
       state: {
-        settings: { avatarStyle: AvatarAccountType.Maskicon },
+        settings: { avatarAccountType: AvatarAccountType.Maskicon },
       },
     });
 

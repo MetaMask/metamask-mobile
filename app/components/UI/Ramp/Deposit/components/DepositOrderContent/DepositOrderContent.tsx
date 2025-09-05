@@ -36,7 +36,7 @@ import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
-import { selectAvatarStyle } from '../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -49,7 +49,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getCryptoToken = () => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {

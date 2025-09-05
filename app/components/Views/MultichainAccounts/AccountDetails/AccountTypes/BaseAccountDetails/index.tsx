@@ -35,7 +35,7 @@ import {
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
-import { selectAvatarStyle } from '../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 export const createEditAccountNameNavigationDetails = createNavigationDetails<{
   accountGroup: AccountGroupObject;
@@ -53,7 +53,7 @@ export const BaseAccountDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
 

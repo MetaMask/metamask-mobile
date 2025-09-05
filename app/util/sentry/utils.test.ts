@@ -433,7 +433,7 @@ describe('captureSentryFeedback', () => {
         lockTime: 30000,
         primaryCurrency: 'ETH',
         searchEngine: 'Google',
-        avatarStyle: AvatarAccountType.Maskicon,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       alert: {
         autodismiss: null,

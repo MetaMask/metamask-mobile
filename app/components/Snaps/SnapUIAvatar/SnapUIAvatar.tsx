@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
@@ -28,11 +28,11 @@ export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
     () => parseCaipAccountId(address as CaipAccountId),
     [address],
   );
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   return (
     <AvatarAccount
-      type={avatarStyle}
+      type={avatarAccountType}
       accountAddress={parsed.address}
       size={size}
       testID={SNAP_UI_AVATAR_TEST_ID}

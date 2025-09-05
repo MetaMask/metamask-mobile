@@ -129,7 +129,7 @@ const DEFAULT_PROPS = {
 const mockStore = configureStore([]);
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 

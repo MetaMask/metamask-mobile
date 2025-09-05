@@ -18,7 +18,7 @@ import useCopyClipboard, {
   CopyClipboardAlertMessage,
 } from '../hooks/useCopyClipboard';
 import useStyles from '../useStyles';
-import { selectAvatarStyle } from '../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 type AddressFieldProps = ModalFieldAddress;
 
@@ -27,7 +27,7 @@ function AddressField(props: AddressFieldProps) {
   const { styles } = useStyles();
   const copyToClipboard = useCopyClipboard();
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   return (
     <View style={styles.row}>

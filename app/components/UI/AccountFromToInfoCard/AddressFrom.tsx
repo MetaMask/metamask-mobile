@@ -22,7 +22,7 @@ import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface Asset {
   isETH?: boolean;
@@ -69,7 +69,7 @@ const AddressFrom = ({
   const networkImage = useSelector(selectEvmNetworkImageSource);
   const perDappNetworkInfo = useNetworkInfo(chainId);
 
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEffect(() => {
     const accountNameVal = activeAddress
@@ -111,7 +111,7 @@ const AddressFrom = ({
           name: displayNetworkName,
           imageSource: displayNetworkImage,
         }}
-        avatarStyle={avatarStyle}
+        avatarAccountType={avatarAccountType}
       />
     </View>
   );

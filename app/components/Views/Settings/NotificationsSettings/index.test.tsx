@@ -12,7 +12,7 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   notificationsSettings: {
     isEnabled: true,

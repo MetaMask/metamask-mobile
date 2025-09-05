@@ -104,7 +104,7 @@ describe('AccountGroupDetails', () => {
 
   const mockState = {
     settings: {
-      avatarStyle: AvatarAccountType.Maskicon,
+      avatarAccountType: AvatarAccountType.Maskicon,
     },
     user: {
       seedphraseBackedUp: false,

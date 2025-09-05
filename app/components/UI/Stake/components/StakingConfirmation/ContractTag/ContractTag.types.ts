@@ -3,5 +3,5 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 export interface ContractTagProps {
   contractName: string;
   contractAddress: string;
-  avatarStyle?: AvatarAccountType;
+  avatarAccountType?: AvatarAccountType;
 }

@@ -5,11 +5,11 @@ import { Address } from '@metamask/snaps-sdk/jsx';
 jest.mock('../../../../core/Engine/Engine');
 
 const withBlockies = {
-  avatarStyle: AvatarAccountType.Blockies,
+  avatarAccountType: AvatarAccountType.Blockies,
 };
 
 const withoutBlockies = {
-  avatarStyle: AvatarAccountType.Maskicon,
+  avatarAccountType: AvatarAccountType.Maskicon,
 };
 
 describe('SnapUIAddress', () => {

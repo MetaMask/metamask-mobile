@@ -25,7 +25,7 @@ import Avatar, {
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const SRPListItem = ({
   name,
@@ -44,7 +44,7 @@ const SRPListItem = ({
       ),
     [keyring],
   );
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const handleSRPSelection = () => {
     trackEvent(
