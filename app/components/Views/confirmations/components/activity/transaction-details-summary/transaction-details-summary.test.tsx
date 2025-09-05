@@ -12,6 +12,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { StatusTypes } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 
@@ -82,6 +83,9 @@ describe('TransactionDetailsSummary', () => {
           destAsset: {
             symbol: SYMBOL_2_MOCK,
           },
+        },
+        status: {
+          status: StatusTypes.COMPLETE,
         },
       },
     } as unknown as ReturnType<typeof useBridgeTxHistoryData>);
