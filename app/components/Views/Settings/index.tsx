@@ -11,9 +11,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
-///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
@@ -144,7 +141,7 @@ const Settings = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   const onPressSnaps = () => {
-    navigation.navigate(...createSnapsSettingsListNavDetails());
+    navigation.navigate('SnapsSettingsList');
   };
   ///: END:ONLY_INCLUDE_IF
 

@@ -21,7 +21,6 @@ import TextField, {
 } from '../../../../../../component-library/components/Form/TextField';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
 import Button, {
@@ -91,13 +90,11 @@ const EnterEmail = ({ route }: EnterEmailProps) => {
         trackEvent('RAMPS_EMAIL_SUBMITTED', {
           ramp_type: 'DEPOSIT',
         });
-        navigation.navigate(
-          ...createOtpCodeNavDetails({
-            email,
-            stateToken: otpResponse.stateToken,
-            redirectToRootAfterAuth,
-          }),
-        );
+        navigation.navigate('OtpCode', {
+          email,
+          stateToken: otpResponse.stateToken,
+          redirectToRootAfterAuth,
+        });
       } else {
         setValidationError(true);
       }
