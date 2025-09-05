@@ -1,8 +1,8 @@
 import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { default as Name } from './Name';
-import { render } from '@testing-library/react-native';
 import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
@@ -30,6 +30,10 @@ describe('Name', () => {
     settings: { useBlockieIcon: true },
   };
   const store = mockStore(initialState);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   const mockUseDisplayName = (
     useDisplayName as jest.MockedFunction<typeof useDisplayName>
@@ -95,6 +99,73 @@ describe('Name', () => {
         </Provider>,
       );
       expect(wrapper).toMatchSnapshot();
+    });
+  });
+
+  it('displays the TooltipModal when the component is pressed', async () => {
+    const wrapper = render(
+      <Provider store={store}>
+        <Name
+          type={NameType.EthereumAddress}
+          value={KNOWN_ADDRESS_CHECKSUMMED}
+          variation={CHAIN_IDS.MAINNET}
+        />
+      </Provider>,
+    );
+
+    const pressable = wrapper.getByTestId(`name-${KNOWN_ADDRESS_CHECKSUMMED}`);
+
+    expect(wrapper.queryByText(KNOWN_ADDRESS_CHECKSUMMED)).toBeNull();
+
+    fireEvent.press(pressable);
+
+    await waitFor(() => {
+      expect(wrapper.getByText(KNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
+    });
+  });
+
+  it('displays the full Ethereum address in the TooltipModal', async () => {
+    const wrapper = render(
+      <Provider store={store}>
+        <Name
+          type={NameType.EthereumAddress}
+          value={KNOWN_ADDRESS_CHECKSUMMED}
+          variation={CHAIN_IDS.MAINNET}
+        />
+      </Provider>,
+    );
+
+    const pressable = wrapper.getByTestId(`name-${KNOWN_ADDRESS_CHECKSUMMED}`);
+    fireEvent.press(pressable);
+
+    await waitFor(() => {
+      expect(wrapper.getByText(KNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
+    });
+  });
+
+  it('hides the TooltipModal when dismissed', async () => {
+    const wrapper = render(
+      <Provider store={store}>
+        <Name
+          type={NameType.EthereumAddress}
+          value={KNOWN_ADDRESS_CHECKSUMMED}
+          variation={CHAIN_IDS.MAINNET}
+        />
+      </Provider>,
+    );
+
+    const pressable = wrapper.getByTestId(`name-${KNOWN_ADDRESS_CHECKSUMMED}`);
+    fireEvent.press(pressable);
+
+    await waitFor(() => {
+      expect(wrapper.getByText(KNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
+    });
+
+    const dismissButton = wrapper.getByTestId('tooltip-modal-close-btn');
+    fireEvent.press(dismissButton);
+
+    await waitFor(() => {
+      expect(wrapper.queryByText(KNOWN_ADDRESS_CHECKSUMMED)).toBeNull();
     });
   });
 });
