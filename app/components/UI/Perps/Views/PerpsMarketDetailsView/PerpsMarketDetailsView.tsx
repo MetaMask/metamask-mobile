@@ -239,22 +239,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    try {
-      // Ensure the network exists before proceeding
-      await ensureArbitrumNetworkExists();
-
-      navigation.navigate(Routes.PERPS.ORDER, {
-        direction: 'long',
-        asset: market.symbol,
-      });
-    } catch (error) {
-      console.error('Failed to ensure network exists:', error);
-      // Still proceed with the flow even if network addition fails
-      navigation.navigate(Routes.PERPS.ORDER, {
-        direction: 'long',
-        asset: market.symbol,
-      });
-    }
+    navigation.navigate(Routes.PERPS.ORDER, {
+      direction: 'long',
+      asset: market.symbol,
+    });
   };
 
   const handleShortPress = async () => {
@@ -263,22 +251,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    try {
-      // Ensure the network exists before proceeding
-      await ensureArbitrumNetworkExists();
-
-      navigation.navigate(Routes.PERPS.ORDER, {
-        direction: 'short',
-        asset: market.symbol,
-      });
-    } catch (error) {
-      console.error('Failed to ensure network exists:', error);
-      // Still proceed with the flow even if network addition fails
-      navigation.navigate(Routes.PERPS.ORDER, {
-        direction: 'short',
-        asset: market.symbol,
-      });
-    }
+    navigation.navigate(Routes.PERPS.ORDER, {
+      direction: 'short',
+      asset: market.symbol,
+    });
   };
 
   const handleAddFundsPress = async () => {
@@ -296,14 +272,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         console.error('Failed to initialize deposit:', error);
       });
     } catch (error) {
-      console.error('Failed to ensure network exists:', error);
-      // Still proceed with the flow even if network addition fails
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
-      depositWithConfirmation().catch((depositError) => {
-        console.error('Failed to initialize deposit:', depositError);
-      });
+      console.error('Failed to navigate to deposit:', error);
     }
   };
 
