@@ -188,16 +188,17 @@ export const createTradingViewChartTemplate = (
                 let touchStartTime = 0;
                 let touchMoveTimeout = null;
                 
-                // Debounced touch move handler
+                // Debounced touch move handler with requestAnimationFrame
                 const debouncedTouchMove = (e) => {
                     if (touchMoveTimeout) {
                         clearTimeout(touchMoveTimeout);
                     }
                     
-                    touchMoveTimeout = setTimeout(() => {
+                    // Use requestAnimationFrame for smoother updates
+                    touchMoveTimeout = requestAnimationFrame(() => {
                         // Minimal processing during touch move
                         // Let TradingView handle the actual panning
-                    }, 16); // ~60fps throttling
+                    });
                 };
                 
                 // Add passive event listeners for better performance
@@ -209,16 +210,16 @@ export const createTradingViewChartTemplate = (
                 
                 container.addEventListener('touchend', (e) => {
                     const touchDuration = performance.now() - touchStartTime;
-                    // Clear any pending touch move timeouts
+                    // Clear any pending touch move animations
                     if (touchMoveTimeout) {
-                        clearTimeout(touchMoveTimeout);
+                        cancelAnimationFrame(touchMoveTimeout);
                         touchMoveTimeout = null;
                     }
                 }, { passive: true });
                 
                 container.addEventListener('touchcancel', (e) => {
                     if (touchMoveTimeout) {
-                        clearTimeout(touchMoveTimeout);
+                        cancelAnimationFrame(touchMoveTimeout);
                         touchMoveTimeout = null;
                     }
                 }, { passive: true });
