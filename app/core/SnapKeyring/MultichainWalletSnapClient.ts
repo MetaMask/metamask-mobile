@@ -196,6 +196,116 @@ export abstract class MultichainWalletSnapClient {
         ),
     );
   }
+
+  /**
+   * Discovers accounts for the specified scopes using the provided entropy source.
+   *
+   * @param scopes - Array of CAIP-2 chain IDs to discover accounts for
+   * @param entropySource - The source of entropy to use for account discovery
+   * @param groupIndex - The index of the account group to discover
+   * @returns A Promise that resolves with the discovered accounts
+   * @throws Error if account discovery fails
+   */
+  async discoverAccounts(
+    scopes: CaipChainId[],
+    entropySource: EntropySourceId,
+    groupIndex: number,
+  ) {
+    const keyringApiClient = new KeyringClient(this.getSnapSender());
+    const accounts = await keyringApiClient.discoverAccounts(
+      scopes,
+      entropySource,
+      groupIndex,
+    );
+
+    return accounts;
+  }
+  /**
+   * Adds discovered accounts to the SnapKeyring.
+   * This method discovers accounts for the configured scopes and adds them to the keyring.
+   *
+   * @param entropySource - The source of entropy to use for account discovery
+   * @returns A Promise that resolves when all accounts have been added
+   * @throws Error if account discovery or addition fails
+   */
+  /**
+   * Adds discovered accounts to the SnapKeyring.
+   * This method discovers accounts for the configured scopes and adds them to the keyring.
+   *
+   * @param entropySource - The source of entropy to use for account discovery
+   * @param scope - The CAIP-2 chain ID to discover accounts for
+   * @returns A Promise that resolves when all accounts have been added
+   * @throws Error if account discovery or addition fails
+   */
+  async addDiscoveredAccounts(
+    entropySource: EntropySourceId,
+    scope: CaipChainId,
+  ) {
+    this.startTrace(
+      TraceName.SnapDiscoverAccounts,
+      TraceOperation.DiscoverAccounts,
+    );
+
+    let totalDiscoveredAccounts = 0;
+
+    for (let index = 0; ; index++) {
+      const discoveredAccounts = await this.discoverAccounts(
+        [scope],
+        entropySource,
+        index,
+      );
+
+      // No accounts discovered
+      if (discoveredAccounts.length === 0) {
+        // For the first index, create a default account
+        if (index === 0) {
+          try {
+            await this.createAccount(
+              {
+                scope,
+                entropySource,
+                synchronize: false,
+              },
+              {
+                displayConfirmation: false,
+                displayAccountNameSuggestion: false,
+                setSelectedAccount: false,
+              },
+            );
+          } catch (error) {
+            captureException(new Error(`Failed to create account ${error}`));
+          }
+        }
+        // Stop discovering accounts when none are found
+        break;
+      }
+
+      // Process discovered accounts sequentially
+      for (const account of discoveredAccounts) {
+        try {
+          await this.createAccount(
+            {
+              scope,
+              derivationPath: account.derivationPath,
+              entropySource,
+            },
+            {
+              displayConfirmation: false,
+              displayAccountNameSuggestion: false,
+              setSelectedAccount: false,
+            },
+          );
+          totalDiscoveredAccounts += 1;
+        } catch (error) {
+          captureException(new Error(`Failed to create account ${error}`));
+        }
+      }
+    }
+
+    this.endTrace(TraceName.SnapDiscoverAccounts);
+
+    return totalDiscoveredAccounts;
+  }
 }
 
 export class BitcoinWalletSnapClient extends MultichainWalletSnapClient {
