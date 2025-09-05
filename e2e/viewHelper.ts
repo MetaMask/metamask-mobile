@@ -156,16 +156,8 @@ export const importWalletWithRecoveryPhrase = async ({
 }) => {
   // tap on import seed phrase button
 
-  if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(
-      OnboardingCarouselView.container,
-      {
-        description: 'Onboarding Carousel should be visible',
-      },
-    );
-    await OnboardingCarouselView.tapOnGetStartedButton();
-    await acceptTermOfUse();
-  }
+  // OnboardingCarousel has been removed from the navigation flow
+  // The app now starts directly with the Onboarding page
 
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
