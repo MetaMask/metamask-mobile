@@ -7,13 +7,12 @@ import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { getCurrencySymbol } from '../../../../../util/number';
 import { useTokenFiatRate } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
 import { Alert } from '../../types/alerts';
+import { PERPS_CURRENCY } from '../../constants/perps';
 
 const MAX_LENGTH = 28;
 
@@ -36,7 +35,7 @@ export function EditAmount({
   onKeyboardHide,
   onKeyboardDone,
 }: EditAmountProps) {
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+  const fiatCurrency = PERPS_CURRENCY;
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
@@ -47,7 +46,7 @@ export function EditAmount({
 
   const tokenAddress = transactionMeta?.txParams?.to as Hex;
   const chainId = transactionMeta?.chainId as Hex;
-  const fiatRate = useTokenFiatRate(tokenAddress, chainId);
+  const fiatRate = useTokenFiatRate(tokenAddress, chainId, fiatCurrency);
 
   const inputRef = createRef<TextInput>();
   const hasAlert = Boolean(alerts?.length) && inputChanged;
