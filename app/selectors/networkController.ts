@@ -1,5 +1,6 @@
 import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { createSelector, weakMapMemoize } from 'reselect';
+import { BtcScope } from '@metamask/keyring-api';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
   BuiltInNetworkClientId,
@@ -269,8 +270,17 @@ export const selectCustomNetworkConfigurationsByCaipChainId = createSelector(
   (networkConfigurationsByChainId) =>
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
-        !POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
-        !networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+        (!POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) &&
+          !networkConfiguration.caipChainId.includes(
+            KnownCaipNamespace.Solana,
+          ) &&
+          !networkConfiguration.caipChainId.includes(
+            KnownCaipNamespace.Bip122,
+          )) ||
+        ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+        (networkConfiguration.caipChainId.includes(KnownCaipNamespace.Bip122) &&
+          networkConfiguration.caipChainId !== BtcScope.Mainnet),
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ),
 );
 
@@ -280,7 +290,10 @@ export const selectPopularNetworkConfigurationsByCaipChainId = createSelector(
     Object.values(networkConfigurationsByChainId).filter(
       (networkConfiguration) =>
         POPULAR_NETWORK_CHAIN_IDS.has(networkConfiguration.chainId as Hex) ||
-        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana),
+        networkConfiguration.caipChainId.includes(KnownCaipNamespace.Solana) ||
+        ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+        networkConfiguration.caipChainId === BtcScope.Mainnet,
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
     ),
 );
 

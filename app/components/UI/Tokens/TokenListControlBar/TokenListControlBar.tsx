@@ -1,6 +1,9 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import ButtonIcon, {
@@ -19,6 +22,11 @@ export const TokenListControlBar = ({
 }: TokenListControlBarProps) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedChainId = useSelector(selectChainId);
+  const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
+  const isSolanaSelected = selectedChainIdCaip.includes(
+    KnownCaipNamespace.Solana,
+  );
 
   const additionalButtons = (
     <ButtonIcon
@@ -36,7 +44,7 @@ export const TokenListControlBar = ({
     <BaseControlBar
       networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
       additionalButtons={additionalButtons}
-      useEvmSelectionLogic
+      useEvmSelectionLogic={!!isSolanaSelected}
       customWrapper="outer"
     />
   );

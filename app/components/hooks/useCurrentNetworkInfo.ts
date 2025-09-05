@@ -1,7 +1,11 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
+import {
+  selectNetworkConfigurationsByCaipChainId,
+  selectChainId,
+} from '../../selectors/networkController';
 import { selectIsEvmNetworkSelected } from '../../selectors/multichainNetworkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
 
@@ -27,6 +31,9 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     selectNetworkConfigurationsByCaipChainId,
   );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedChainId = useSelector(selectChainId);
+  const isSolanaSelected =
+    selectedChainId?.includes(KnownCaipNamespace.Solana) ?? false;
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
@@ -66,7 +73,13 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
     [enabledNetworks, networksByCaipChainId],
   );
 
-  const isDisabled = !isEvmSelected;
+  let isDisabled: boolean = Boolean(!isEvmSelected);
+
+  // We don't have Solana testnet networks, so we disable the network selector if Solana is selected
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  isDisabled = Boolean(isSolanaSelected);
+  ///: END:ONLY_INCLUDE_IF(bitcoin)
+
   const hasEnabledNetworks = enabledNetworks.length > 0;
 
   return {

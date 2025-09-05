@@ -26,6 +26,7 @@ import {
   CaipAssetId,
   CaipAssetType,
   parseCaipAssetType,
+  KnownCaipNamespace,
 } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -39,6 +40,7 @@ import {
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { createSelector } from 'reselect';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
@@ -206,6 +208,7 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainAssetsRates,
   selectSelectedNonEvmNetworkChainId,
   (_: RootState, accountId: string | undefined) => accountId,
+  selectEnabledNetworksByNamespace,
   (
     multichainBalances,
     assets,
@@ -213,6 +216,7 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
     assetsRates,
     nonEvmNetworkChainId,
     accountId,
+    enabledNetworksByNamespace,
   ) => {
     if (!accountId) {
       return [];
@@ -266,8 +270,19 @@ export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
         ticker: metadata.symbol,
       });
     }
+    const solanaEnabledNetworks =
+      enabledNetworksByNamespace[KnownCaipNamespace.Solana];
+    const bip122EnabledNetworks =
+      enabledNetworksByNamespace[KnownCaipNamespace.Bip122];
 
-    return tokens;
+    const filteredTokens = tokens.filter((token) => {
+      if (token.chainId.includes(KnownCaipNamespace.Solana)) {
+        return solanaEnabledNetworks[token.chainId];
+      }
+      return bip122EnabledNetworks[token.chainId];
+    });
+
+    return filteredTokens;
   },
 );
 export interface MultichainNetworkAggregatedBalance {
