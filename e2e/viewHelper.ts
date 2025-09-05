@@ -5,7 +5,6 @@ import NetworkEducationModal from './pages/Network/NetworkEducationModal';
 import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
-import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -233,10 +232,6 @@ export const importWalletWithRecoveryPhrase = async ({
  */
 export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   //'should create new wallet'
-
-  // tap on import seed phrase button
-  await OnboardingCarouselView.tapOnGetStartedButton();
-  await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
