@@ -396,7 +396,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "flex-start",
-                "backgroundColor": "#202123",
+                "backgroundColor": "#f3f5f9",
                 "borderRadius": 8,
                 "flexDirection": "row",
                 "gap": 8,

@@ -161,7 +161,7 @@ const createStyles = (colors) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
-      backgroundColor: commonColors.backgroundDark,
+      backgroundColor: colors.background.section,
       borderRadius: 8,
       padding: 16,
     },
