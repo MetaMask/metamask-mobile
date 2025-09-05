@@ -118,6 +118,7 @@ describe('rewardsReducer', () => {
       const mockSubscription: SubscriptionDto = {
         id: 'sub-123',
         referralCode: 'REF123',
+        accounts: [],
       };
       const action = setSubscriptionId(mockSubscription.id);
 
