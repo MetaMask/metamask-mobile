@@ -87,7 +87,10 @@ export function useTransactionConfirm() {
     );
 
     if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTION_DETAILS,
+        params: { transactionId },
+      });
     } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
@@ -112,6 +115,7 @@ export function useTransactionConfirm() {
     onRequestConfirm,
     payToken,
     totalFiat,
+    transactionId,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,
