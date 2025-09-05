@@ -74,7 +74,7 @@ const createStyles = (colors: Colors) =>
       columnGap: 8,
     },
     termsText: {
-      marginTop: 40,
+      marginTop: 24,
       alignItems: 'center',
     },
     text: {
@@ -243,12 +243,13 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         </View>
         <View style={styles.termsText}>
           <Text
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyXSMedium}
             color={TextColor.Default}
             style={styles.centeredText}
           >
             {strings('onboarding.by_continuing')}{' '}
             <Text
+              variant={TextVariant.BodyXSMedium}
               style={styles.link}
               onPress={onPressTermsOfUse}
               suppressHighlighting
@@ -258,6 +259,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             </Text>{' '}
             and{' '}
             <Text
+              variant={TextVariant.BodyXSMedium}
               style={styles.link}
               onPress={onPressPrivacyNotice}
               suppressHighlighting
