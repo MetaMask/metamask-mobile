@@ -21,6 +21,5 @@ export const getNetworkEnablementControllerMessenger = (
       'NetworkController:networkRemoved',
       'NetworkController:stateChange',
       'TransactionController:transactionSubmitted',
-      'AccountsController:selectedAccountChange',
     ],
   });

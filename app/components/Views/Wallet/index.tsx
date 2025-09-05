@@ -838,8 +838,15 @@ const Wallet = ({
   }, [chainId, selectNetwork, enabledEVMNetworks, tokenNetworkFilter]);
 
   useEffect(() => {
-    handleNetworkFilter();
-  }, [chainId, handleNetworkFilter, enabledEVMNetworks]);
+    if (!isMultichainAccountsState2Enabled) {
+      handleNetworkFilter();
+    }
+  }, [
+    chainId,
+    handleNetworkFilter,
+    enabledEVMNetworks,
+    isMultichainAccountsState2Enabled,
+  ]);
 
   /**
    * Check to see if notifications are enabled
