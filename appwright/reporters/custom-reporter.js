@@ -24,8 +24,6 @@ class CustomReporter {
     }
     this.processedTests.add(testId);
 
-    console.log('Result is:', result);
-    console.log('Test is:', test);
     console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
     console.log(`📊 Test status: ${result.status}`);
     console.log(`📊 Test duration: ${result.duration}ms`);
