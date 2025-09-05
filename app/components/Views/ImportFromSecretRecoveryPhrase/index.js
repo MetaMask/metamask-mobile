@@ -163,10 +163,13 @@ const ImportFromSecretRecoveryPhrase = ({
     onTransactionComplete: false,
   });
 
-  const isSRPContinueButtonDisabled = useMemo(
-    () => !SRP_LENGTHS.includes(seedPhrase.length),
-    [seedPhrase],
-  );
+  const isSRPContinueButtonDisabled = useMemo(() => {
+    const updatedSeedPhrase = [...seedPhrase];
+    const updatedSeedPhraseLength = updatedSeedPhrase.filter(
+      (word) => word !== '',
+    ).length;
+    return !SRP_LENGTHS.includes(updatedSeedPhraseLength);
+  }, [seedPhrase]);
 
   const { isEnabled: isMetricsEnabled } = useMetrics();
 
@@ -217,6 +220,17 @@ const ImportFromSecretRecoveryPhrase = ({
             ...splitArray,
             ...seedPhrase.slice(index + 1),
           ];
+
+          if (
+            (SRP_LENGTHS.includes(newSeedPhrase.length) &&
+              isValidMnemonic(newSeedPhrase.join(' '))) ||
+            newSeedPhrase.length === Math.max(...SRP_LENGTHS)
+          ) {
+            Keyboard.dismiss();
+            setSeedPhraseInputFocusedIndex(null);
+            setNextSeedPhraseInputFocusedIndex(null);
+            return;
+          }
 
           // If the last character is a space, add an empty string for the next input
           if (isEndWithSpace && index === seedPhrase.length - 1) {
@@ -864,10 +878,6 @@ const ImportFromSecretRecoveryPhrase = ({
                             setNextSeedPhraseInputFocusedIndex(index);
                           }}
                           onChangeText={(text) => {
-                            // Don't process masked text input
-                            if (!isFirstInput && text.includes('•')) {
-                              return;
-                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index);
