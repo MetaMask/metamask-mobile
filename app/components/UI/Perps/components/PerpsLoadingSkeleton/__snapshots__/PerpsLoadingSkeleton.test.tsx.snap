@@ -8,7 +8,7 @@ exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
   twClassName="flex-1 bg-default"
 >
   <ActivityIndicator
-    color="#b7bbc8"
+    color="#686e7d"
     size="large"
     style={
       {
@@ -20,13 +20,7 @@ exports[`PerpsLoadingSkeleton should match snapshot 1`] = `
     twClassName="text-default mb-2"
     variant="HeadingMd"
   >
-    Connecting to Perps...
-  </Text>
-  <Text
-    twClassName="text-alternative"
-    variant="BodyMd"
-  >
-    Perps will be available shortly
+    Connecting to Perps
   </Text>
 </View>
 `;
