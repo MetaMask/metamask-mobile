@@ -9,6 +9,15 @@ import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 // Mock dependencies
 jest.mock('../services/PerpsConnectionManager');
+
+// Mock navigation
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({
+    goBack: jest.fn(),
+    canGoBack: jest.fn(() => true),
+    reset: jest.fn(),
+  })),
+}));
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
@@ -22,6 +31,26 @@ jest.mock('../components/PerpsLoadingSkeleton', () => ({
   default: () => {
     const { View } = jest.requireActual('react-native');
     return <View testID="perps-loading-skeleton" />;
+  },
+}));
+jest.mock('../components/PerpsConnectionErrorView', () => ({
+  __esModule: true,
+  default: ({
+    error,
+    onRetry,
+  }: {
+    error: string | Error;
+    onRetry: () => void;
+  }) => {
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-connection-error">
+        <Text>{error instanceof Error ? error.message : error}</Text>
+        <TouchableOpacity onPress={onRetry} testID="retry-button">
+          <Text>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
   },
 }));
 jest.mock('../hooks/usePerpsDepositStatus', () => ({
@@ -84,6 +113,7 @@ describe('PerpsConnectionProvider', () => {
       isConnected: false,
       isConnecting: false,
       isInitialized: true,
+      error: null,
     });
     mockConnect = jest.fn().mockResolvedValue(undefined);
     mockDisconnect = jest.fn().mockResolvedValue(undefined);
@@ -251,6 +281,14 @@ describe('PerpsConnectionProvider', () => {
     const error = new Error('Connection failed');
     mockConnect.mockRejectedValue(error);
 
+    // Mock the connection state to return error state persistently
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      error: 'Connection failed',
+    });
+
     // Mock lifecycle hook to trigger error
     const mockLifecycleHook = jest.requireMock(
       '../hooks/usePerpsConnectionLifecycle',
@@ -275,20 +313,16 @@ describe('PerpsConnectionProvider', () => {
       },
     );
 
-    const onRender = jest.fn();
-
-    render(
+    const { getByTestId, getByText } = render(
       <PerpsConnectionProvider isVisible>
-        <TestComponent onRender={onRender} />
+        <TestComponent />
       </PerpsConnectionProvider>,
     );
 
+    // Should show error view instead of children
     await waitFor(() => {
-      expect(onRender).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Connection failed',
-        }),
-      );
+      expect(getByTestId('perps-connection-error')).toBeTruthy();
+      expect(getByText('Connection failed')).toBeTruthy();
     });
   });
 
@@ -385,6 +419,14 @@ describe('PerpsConnectionProvider', () => {
     // Non-Error object thrown
     mockConnect.mockRejectedValue('String error');
 
+    // Mock the connection state to return error state persistently
+    mockGetConnectionState.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      error: 'Unknown connection error',
+    });
+
     // Mock lifecycle hook to trigger error with non-Error object
     const mockLifecycleHook = jest.requireMock(
       '../hooks/usePerpsConnectionLifecycle',
@@ -412,24 +454,20 @@ describe('PerpsConnectionProvider', () => {
       },
     );
 
-    const onRender = jest.fn();
-
-    render(
+    const { getByTestId, getByText } = render(
       <PerpsConnectionProvider isVisible>
-        <TestComponent onRender={onRender} />
+        <TestComponent />
       </PerpsConnectionProvider>,
     );
 
+    // Should show error view instead of children
     await waitFor(() => {
-      expect(onRender).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Unknown connection error',
-        }),
-      );
+      expect(getByTestId('perps-connection-error')).toBeTruthy();
+      expect(getByText('Unknown connection error')).toBeTruthy();
     });
   });
 
-  it('should handle errors in disconnect', async () => {
+  it('should handle errors in disconnect gracefully', async () => {
     const error = new Error('Disconnect failed');
     mockDisconnect.mockRejectedValueOnce(error);
 
@@ -437,7 +475,9 @@ describe('PerpsConnectionProvider', () => {
       const { disconnect, error: contextError } = usePerpsConnection();
 
       React.useEffect(() => {
-        disconnect();
+        disconnect().catch(() => {
+          // Disconnect errors are handled gracefully
+        });
       }, [disconnect]);
 
       return <Text>{contextError || 'No error'}</Text>;
@@ -449,8 +489,9 @@ describe('PerpsConnectionProvider', () => {
       </PerpsConnectionProvider>,
     );
 
+    // Disconnect errors should not propagate to the UI context
     await waitFor(() => {
-      expect(getByText('Disconnect failed')).toBeDefined();
+      expect(getByText('No error')).toBeDefined();
     });
 
     // Reset mock for next tests
@@ -580,11 +621,13 @@ describe('PerpsConnectionProvider', () => {
           isConnected: true,
           isConnecting: false,
           isInitialized: true,
+          error: null,
         })
         .mockReturnValue({
           isConnected: false,
           isConnecting: false,
           isInitialized: false,
+          error: null,
         });
 
       const TestComponentDisconnect = () => {
@@ -636,9 +679,16 @@ describe('PerpsConnectionProvider', () => {
 
       expect(getByText('No error')).toBeDefined();
 
-      // Call the onError callback
+      // Call the onError callback and update mock state
       act(() => {
         if (capturedOnError) {
+          // Update the connection state to include the error
+          mockGetConnectionState.mockReturnValue({
+            isConnected: false,
+            isConnecting: false,
+            isInitialized: false,
+            error: 'Test error message',
+          });
           capturedOnError('Test error message');
         }
       });
