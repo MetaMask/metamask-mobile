@@ -765,4 +765,8 @@ declare global {
   namespace ReactNavigation {
     interface RootParamList extends NavigatableRootParamList {}
   }
+
+  // Global type alias so NavigationContainerRef defaults to NavigatableRootParamList everywhere
+  type TypedNavigationContainerRef =
+    import('@react-navigation/native').NavigationContainerRef<NavigatableRootParamList>;
 }

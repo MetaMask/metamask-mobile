@@ -4,7 +4,6 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
 import addDappConnection from './AndroidSDK/addDappConnection';
@@ -34,7 +33,6 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
-import NavigationService from '../NavigationService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -55,7 +53,7 @@ export interface approveHostProps {
 }
 
 export interface SDKConnectState {
-  navigation?: NavigationContainerRef;
+  navigation?: TypedNavigationContainerRef;
   reconnected: boolean;
 
   // Track init status to ensure connection recovery priority and prevent double initialization.

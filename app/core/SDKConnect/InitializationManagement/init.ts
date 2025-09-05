@@ -1,4 +1,3 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import AndroidService from '../AndroidSDK/AndroidService';
 import SDKConnect from '../SDKConnect';
@@ -11,7 +10,7 @@ async function init({
   context,
   instance,
 }: {
-  navigation: NavigationContainerRef;
+  navigation: TypedNavigationContainerRef;
   context?: string;
   instance: SDKConnect;
 }) {

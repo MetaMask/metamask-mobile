@@ -1,12 +1,10 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import Logger from '../../util/Logger';
-import { NavigatableRootParamList } from '../../util/navigation/types';
 
 /**
  * Navigation service that manages the navigation object
  */
 class NavigationService {
-  static #navigation: NavigationContainerRef<NavigatableRootParamList>;
+  static #navigation: TypedNavigationContainerRef;
 
   /**
    * Checks that the navigation object exists
@@ -23,9 +21,7 @@ class NavigationService {
   /**
    * Checks that the navigation object is valid
    */
-  static #assertNavigationRefType(
-    navRef: NavigationContainerRef<NavigatableRootParamList>,
-  ) {
+  static #assertNavigationRefType(navRef: TypedNavigationContainerRef) {
     if (typeof navRef?.navigate !== 'function') {
       const error = new Error('Navigation reference is not valid!');
       Logger.error(error);
@@ -38,9 +34,7 @@ class NavigationService {
    * Set the navigation object
    * @param navRef
    */
-  static set navigation(
-    navRef: NavigationContainerRef<NavigatableRootParamList>,
-  ) {
+  static set navigation(navRef: TypedNavigationContainerRef) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = navRef;
   }

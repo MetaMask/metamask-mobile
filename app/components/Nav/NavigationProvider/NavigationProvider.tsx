@@ -1,9 +1,5 @@
 import React, { useRef } from 'react';
-import {
-  NavigationContainer,
-  NavigationContainerRef,
-  Theme,
-} from '@react-navigation/native';
+import { NavigationContainer, Theme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from '../../../util/theme';
 import { onNavigationReady } from '../../../actions/navigation';
@@ -17,7 +13,6 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { NavigationProviderProps } from './types';
-import { RootParamList } from '../../../util/navigation';
 
 const Stack = createStackNavigator();
 
@@ -54,7 +49,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Sets the navigation ref on the NavigationService
    */
-  const setNavigationRef = (ref: NavigationContainerRef<RootParamList>) => {
+  const setNavigationRef = (ref: TypedNavigationContainerRef) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
     if (!ref) {
       return;

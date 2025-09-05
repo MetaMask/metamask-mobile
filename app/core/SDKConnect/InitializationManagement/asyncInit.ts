@@ -1,4 +1,3 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import {
   disconnectAll,
   resetApprovedHosts,
@@ -17,7 +16,7 @@ const asyncInit = async ({
   instance,
   context,
 }: {
-  navigation: NavigationContainerRef;
+  navigation: TypedNavigationContainerRef;
   instance: SDKConnect;
   context?: string;
 }) => {

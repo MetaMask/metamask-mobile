@@ -4,7 +4,6 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
@@ -41,7 +40,7 @@ export interface ConnectionProps {
   // Only userful in case of reconnection
   trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
-  navigation?: NavigationContainerRef;
+  navigation?: TypedNavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   connected?: boolean;
   validUntil?: number;
@@ -57,7 +56,7 @@ export class Connection extends EventEmitter2 {
   remote: RemoteCommunication;
   origin: string;
   host: string;
-  navigation?: NavigationContainerRef;
+  navigation?: TypedNavigationContainerRef;
   protocolVersion: number;
   originatorInfo?: OriginatorInfo;
   isReady = false;
