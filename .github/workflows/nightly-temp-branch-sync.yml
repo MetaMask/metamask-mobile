@@ -1,0 +1,54 @@
+name: Nightly Temp Branch Sync
+
+# Required permissions for the action to work
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # Run at 11 PM UTC daily (adjust timezone as needed)
+    # NOTE: Scheduled workflows ALWAYS run from the default branch (main)
+    - cron: '0 23 * * *'
+  
+  # Allow manual trigger for testing from ANY branch
+  workflow_dispatch:
+  
+  # Also run when pushing to specific branches (for testing/development)
+  push:
+    branches:
+      - 'feature/sync-*'        # Run on any branch starting with feature/sync-
+      - 'chore/temp-nightly'    # Run when the temp branch itself is updated
+      # - 'your-dev-branch'     # Add your specific branch here
+
+jobs:
+  sync-temp-nightly-branch:
+    name: Sync chore/temp-nightly with main
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so we can work with branches
+          fetch-depth: 0
+          # Use the default GITHUB_TOKEN which has write permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Make sync script executable
+        run: chmod +x scripts/create-temp-nightly-branch.sh
+
+      - name: Run temp-nightly branch sync
+        run: ./scripts/create-temp-nightly-branch.sh
+
+      - name: Report sync status
+        run: |
+          echo "✅ Successfully synced chore/temp-nightly branch with main"
+          echo "🌿 Workflow triggered from branch: ${{ github.ref_name }}"
+          echo "📍 Current branch after sync: $(git branch --show-current)"
+          echo "📄 Latest commit: $(git log --oneline -1)"
+          echo "🔄 Trigger event: ${{ github.event_name }}"
