@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types';
@@ -69,7 +70,7 @@ const TradingViewChart = React.forwardRef<
         domStorageEnabled: true,
         originWhitelist: ['*'],
         mixedContentMode: 'compatibility' as const,
-        startInLoadingState: true,
+        startInLoadingState: false, // Disable built-in loader to use our skeleton
         scrollEnabled: false,
         showsHorizontalScrollIndicator: false,
         showsVerticalScrollIndicator: false,
@@ -82,7 +83,7 @@ const TradingViewChart = React.forwardRef<
           ...baseProps,
           cacheEnabled: true, // Enable caching for better performance
           incognito: false,
-          androidLayerType: 'hardware',
+          androidLayerType: 'hardware' as const,
           allowsInlineMediaPlayback: false,
         };
       }
@@ -301,6 +302,17 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
+          {/* Show skeleton while chart is loading */}
+          {!isChartReady && (
+            <Skeleton
+              height={height}
+              width="100%"
+              style={{ position: 'absolute', zIndex: 10 }}
+              testID={`${
+                testID || TradingViewChartSelectorsIDs.CONTAINER
+              }-skeleton`}
+            />
+          )}
           <WebView
             ref={webViewRef}
             source={{ html: htmlContent }}
