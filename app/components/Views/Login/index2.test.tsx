@@ -114,6 +114,13 @@ jest.mock('../../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(false);
+
+jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
+  isMultichainAccountsState2Enabled: () =>
+    mockIsMultichainAccountsState2Enabled(),
+}));
+
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
