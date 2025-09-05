@@ -4,6 +4,8 @@ export const PerformanceEventNames = {
   AddSnapAccount: 'ADD_SNAP_ACCOUNT',
   // When adding a HD account.
   AddHdAccount: 'ADD_HD_ACCOUNT',
+   // When adding a token.
+   AddToken: 'ADD_TOKEN',
   // When Redux store rehydrates from redux-persist
   RehydrateStore: 'REHYDRATE_STORE',
 };
