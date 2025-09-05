@@ -12,7 +12,10 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerStateChangeEvent,
 } from '@metamask/keyring-controller';
-import { NetworkControllerFindNetworkClientIdByChainIdAction, NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
+import {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
 
 type Actions =
   | AccountsControllerListMultichainAccountsAction
