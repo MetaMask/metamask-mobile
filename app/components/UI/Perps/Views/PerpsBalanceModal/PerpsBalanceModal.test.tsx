@@ -14,6 +14,7 @@ jest.mock('@react-navigation/native', () => ({
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
+  usePerpsNetworkManagement: jest.fn(),
 }));
 
 describe('PerpsBalanceModal', () => {
@@ -23,6 +24,8 @@ describe('PerpsBalanceModal', () => {
   };
 
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
+  const mockUsePerpsNetworkManagement =
+    jest.requireMock('../../hooks').usePerpsNetworkManagement;
 
   // Helper function to render component with required providers
   const renderWithProviders = (component: React.ReactElement) =>
@@ -45,6 +48,10 @@ describe('PerpsBalanceModal', () => {
       depositWithConfirmation: jest.fn().mockResolvedValue({
         result: Promise.resolve(),
       }),
+    });
+
+    mockUsePerpsNetworkManagement.mockReturnValue({
+      ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
     });
   });
 
@@ -84,12 +91,12 @@ describe('PerpsBalanceModal', () => {
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
-    it('redirects to withdraw view when withdraw button is pressed', () => {
+    it('redirects to withdraw view when withdraw button is pressed', async () => {
       renderWithProviders(<PerpsBalanceModal />);
 
       const withdrawButton = screen.getByText(strings('perps.withdraw'));
 
-      act(() => {
+      await act(async () => {
         fireEvent.press(withdrawButton);
       });
 
