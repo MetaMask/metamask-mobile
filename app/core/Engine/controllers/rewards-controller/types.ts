@@ -1,5 +1,9 @@
 import { ControllerGetStateAction } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import {
+  CaipAccountAddress,
+  CaipAccountId,
+  CaipAssetType,
+} from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export interface LoginResponseDto {
@@ -121,6 +125,84 @@ export interface EstimatePointsContextDto {
  * @example 'SWAP'
  */
 export type PointsEventEarnType = 'SWAP' | 'PERPS';
+
+export interface GetPointsEventsDto {
+  seasonId: string;
+  subscriptionId: string;
+  cursor: string | null;
+}
+
+/**
+ * Paginated list of points events
+ */
+export interface PaginatedPointsEventsDto {
+  has_more: boolean;
+  cursor: string | null;
+  total_results: number;
+  results: PointsEventDto[];
+}
+
+/**
+ * Points event
+ */
+export interface PointsEventDto {
+  /**
+   * ID of the point earning activity
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  id: string;
+
+  /**
+   * Type of point earning activity
+   * @example 'SWAP'
+   */
+  type: PointsEventEarnType;
+
+  /**
+   * Timestamp of the point earning activity
+   * @example '2021-01-01T00:00:00.000Z'
+   */
+  timestamp: Date;
+
+  /**
+   * Payload of the point earning activity
+   * @example 'string'
+   */
+  payload: object | null;
+
+  /**
+   * Value of the point earning activity
+   * @example 100
+   */
+  value: number;
+
+  /**
+   * Bonus of the point earning activity
+   * @example {}
+   */
+  bonus: {
+    bips: number | null;
+    bonuses: string[] | null;
+  } | null;
+
+  /**
+   * Account address performing the activity in CAIP-10 format
+   * @example '0x1234567890123456789012345678901234567890'
+   */
+  accountAddress: CaipAccountAddress;
+
+  /**
+   * Account ID of the account performing the activity
+   * @example 1234567890
+   */
+  accountId: number;
+
+  /**
+   * Subscription ID of the account performing the activity
+   * @example '01974010-377f-7553-a365-0c33c8130980'
+   */
+  subscriptionId: string;
+}
 
 export interface EstimatePointsDto {
   /**
@@ -324,6 +406,14 @@ export interface RewardsControllerGetHasAccountOptedInAction {
 }
 
 /**
+ * Action for getting points events for a given season
+ */
+export interface RewardsControllerGetPointsEventsAction {
+  type: 'RewardsController:getPointsEvents';
+  handler: (params: GetPointsEventsDto) => Promise<PaginatedPointsEventsDto>;
+}
+
+/**
  * Action for estimating points for a given activity
  */
 export interface RewardsControllerEstimatePointsAction {
@@ -398,6 +488,7 @@ export interface RewardsControllerValidateReferralCodeAction {
 export type RewardsControllerActions =
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>
   | RewardsControllerGetHasAccountOptedInAction
+  | RewardsControllerGetPointsEventsAction
   | RewardsControllerEstimatePointsAction
   | RewardsControllerGetPerpsDiscountAction
   | RewardsControllerIsRewardsFeatureEnabledAction

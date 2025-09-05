@@ -15,6 +15,8 @@ import type {
   GeoRewardsMetadata,
   SeasonStatusDto,
   SubscriptionDto,
+  PaginatedPointsEventsDto,
+  GetPointsEventsDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -195,6 +197,10 @@ export class RewardsController extends BaseController<
     this.messagingSystem.registerActionHandler(
       'RewardsController:getHasAccountOptedIn',
       this.getHasAccountOptedIn.bind(this),
+    );
+    this.messagingSystem.registerActionHandler(
+      'RewardsController:getPointsEvents',
+      this.getPointsEvents.bind(this),
     );
     this.messagingSystem.registerActionHandler(
       'RewardsController:estimatePoints',
@@ -633,6 +639,33 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) return 0;
     const perpsDiscountData = await this.#getPerpsFeeDiscountData(account);
     return perpsDiscountData?.discount || 0;
+  }
+
+  /**
+   * Get points events for a given season
+   * @param params - The request parameters
+   * @returns Promise<PaginatedPointsEventsDto> - The points events data
+   */
+  async getPointsEvents(
+    params: GetPointsEventsDto,
+  ): Promise<PaginatedPointsEventsDto> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+    if (!rewardsEnabled)
+      return { has_more: false, cursor: null, total_results: 0, results: [] };
+
+    try {
+      const pointsEvents = await this.messagingSystem.call(
+        'RewardsDataService:getPointsEvents',
+        params,
+      );
+      return pointsEvents;
+    } catch (error) {
+      Logger.log(
+        'RewardsController: Failed to get points events:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
   }
 
   /**

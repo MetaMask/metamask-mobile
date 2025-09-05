@@ -27,6 +27,7 @@ import { selectActiveTab } from '../../../../reducers/rewards/selectors';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { useSeasonStatus } from '../hooks/useSeasonStatus';
+import { ActivityTab } from '../components/ActivityTab/ActivityTab';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -81,11 +82,18 @@ const RewardsDashboard: React.FC = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'activity':
+        return <ActivityTab />;
       default:
         return (
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.not_implemented')}
-          </Text>
+          <Box
+            twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md"
+            testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
+          >
+            <Text variant={TextVariant.BodyMd}>
+              {strings('rewards.not_implemented')}
+            </Text>
+          </Box>
         );
     }
   };
@@ -93,7 +101,7 @@ const RewardsDashboard: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 px-4 py-4 bg-default gap-8 relative">
+        <Box twClassName="flex-1 px-4 bg-default gap-8 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -137,13 +145,8 @@ const RewardsDashboard: React.FC = () => {
           />
 
           {/* Tab Content */}
-          <Box
-            twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md"
-            testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
-              {renderTabContent()}
-            </Text>
+          <Box twClassName="flex-1" testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}>
+            {renderTabContent()}
           </Box>
         </Box>
 
