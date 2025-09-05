@@ -29,6 +29,7 @@ import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatForm
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -138,10 +139,14 @@ export const useBridgeQuoteData = ({
       priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
     }
 
+    const quoteRateFormatter = getIntlNumberFormatter(locale, {
+      ...(quoteRate && quoteRate > 1
+        ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
+    });
+    const formattedQuoteRate = quoteRateFormatter.format(quoteRate ?? 0);
     const rate = quoteRate
-      ? `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
-          destToken?.symbol
-        }`
+      ? `1 ${sourceToken?.symbol} = ${formattedQuoteRate} ${destToken?.symbol}`
       : '--';
 
     return {
@@ -158,6 +163,7 @@ export const useBridgeQuoteData = ({
     destToken?.symbol,
     getNetworkFee,
     slippage,
+    locale,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
