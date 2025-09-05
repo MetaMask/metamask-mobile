@@ -1,5 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -96,6 +102,9 @@ jest.mock('../../hooks', () => ({
   }),
   usePerpsTrading: () => ({
     depositWithConfirmation: mockDepositWithConfirmation,
+  }),
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 
@@ -483,21 +492,23 @@ describe('PerpsTutorialCarousel', () => {
         const continueButton = screen.getByText(
           strings('perps.tutorial.continue'),
         );
-        fireEvent.press(continueButton);
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
       }
 
       // Press Add funds button
-      fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
+      await act(async () => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
+      });
 
-      // The depositWithConfirmation is called asynchronously
-      // We need to wait for the next tick for the promise to reject
-      await Promise.resolve();
-
-      // Should log error
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to initialize deposit:',
-        expect.any(Error),
-      );
+      // Wait for the async operation to complete and error to be logged
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          'Failed to initialize deposit:',
+          expect.any(Error),
+        );
+      });
 
       consoleErrorSpy.mockRestore();
     });
