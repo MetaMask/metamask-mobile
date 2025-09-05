@@ -24,7 +24,6 @@ import additionalVerificationImage from '../../assets/additional-verification.pn
 import { strings } from '../../../../../../../locales/i18n';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text/Text.types';
 import { useDepositRouting } from '../../hooks/useDepositRouting.ts';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 
 type AdditionalVerificationProps = StackScreenProps<
   RootParamList,
