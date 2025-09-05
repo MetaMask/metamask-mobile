@@ -37,6 +37,7 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 export interface BaseControlBarProps {
   /**
@@ -184,6 +185,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   const sortButton = (
     <ButtonIcon
+      testID={WalletViewSelectorsIDs.SORT_BUTTON}
       size={ButtonIconSizes.Lg}
       onPress={handleSortControls}
       iconName={IconName.Filter}
