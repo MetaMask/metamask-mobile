@@ -1068,7 +1068,11 @@
         "backToPerps": "Back to Perps"
       },
       "submitted": "Order Submitted",
-      "confirmed": "Order Confirmed"
+      "confirmed": "Order Confirmed",
+      "cancelling_order": "Cancelling order",
+      "cancelling_order_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "order_cancelled": "Order cancelled",
+      "funds_are_available_to_trade": "Funds are available to trade"
     },
     "close_position": {
       "title": "Close position",
