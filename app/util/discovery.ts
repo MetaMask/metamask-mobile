@@ -3,7 +3,7 @@ import { EntropySourceId, KeyringAccount } from '@metamask/keyring-api';
 import { MultichainAccountWallet } from '@metamask/multichain-account-service';
 import Engine from '../core/Engine';
 
-export async function discoverAndCreateAccountsFor(
+export async function discoverAndCreateAccounts(
   entropySources: EntropySourceId[],
 ): Promise<void> {
   // HACK: Force Snap keyring instantiation.

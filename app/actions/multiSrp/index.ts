@@ -22,7 +22,7 @@ import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
-import { discoverAndCreateAccountsFor } from '../../util/discovery';
+import { discoverAndCreateAccounts } from '../../util/discovery';
 
 interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
@@ -131,7 +131,7 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  await discoverAndCreateAccountsFor([newKeyring.id]);
+  await discoverAndCreateAccounts([newKeyring.id]);
   // We need to check how to get this information back from the discovery.
   const discoveredAccountsCount = 0;
 
