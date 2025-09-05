@@ -118,6 +118,12 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
     },
+
+    RemoteFeatureFlagController: {
+      state: {
+        remoteFeatureFlags: {}, // We don't enable multichain accounts state 2 for now.
+      },
+    },
   },
 }));
 
