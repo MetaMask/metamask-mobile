@@ -21,6 +21,12 @@ import { usePredictBuy } from '../../hooks/usePredictBuy';
 import { usePredictOrder } from '../../hooks/usePredictOrder';
 import { Market } from '../../types';
 import { formatVolume } from '../../utils/format';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import styleSheet from './PredictMarket.styles';
 
 interface PredictMarketProps {
@@ -165,10 +171,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
       </View>
       <View style={styles.marketFooter}>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {outcomeLabels.length} outcomes
+          {outcomeLabels.length} {strings('predict.outcomes')}
         </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          ${getVolumeDisplay()} Vol.
+          ${getVolumeDisplay()} {strings('predict.volume_abbreviated')}
         </Text>
       </View>
     </View>

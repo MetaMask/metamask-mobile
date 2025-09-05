@@ -23,7 +23,11 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../../locales/i18n';
 interface PredictMarketMultipleProps {
   event: PredictEvent;
 }
@@ -80,6 +84,43 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
 
   const totalVolumeDisplay = formatVolume(totalVolume);
 
+  const formatRecurrence = (recurrence: string): string => {
+    if (!recurrence) return '';
+
+    // Capitalize first letter and handle common recurrence types
+    const formatted = recurrence.charAt(0).toUpperCase() + recurrence.slice(1);
+
+    // Handle special cases
+    switch (recurrence.toLowerCase()) {
+      case 'monthly':
+        return strings('predict.recurrence.monthly');
+      case 'weekly':
+        return strings('predict.recurrence.weekly');
+      case 'daily':
+        return strings('predict.recurrence.daily');
+      case 'yearly':
+      case 'annually':
+        return strings('predict.recurrence.yearly');
+      case 'quarterly':
+        return strings('predict.recurrence.quarterly');
+      default:
+        return formatted;
+    }
+  };
+
+  const getRecurrenceDisplay = (): string => {
+    if (!event.series || event.series.length === 0) {
+      return '';
+    }
+
+    const recurrence = event.series[0]?.recurrence;
+    if (!recurrence) {
+      return '';
+    }
+
+    return formatRecurrence(recurrence);
+  };
+
   return (
     <View style={styles.marketContainer}>
       <Box key={event.id}>
@@ -106,7 +147,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           </Box>
         </Box>
 
-        {event.markets.map((market) => {
+        {event.markets.slice(0, 3).map((market) => {
           const outcomeLabels = getOutcomeLabels(market.outcomes);
 
           return (
@@ -127,7 +168,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
                 >
-                  {getFirstOutcomePrice(market.outcomePrices)}%
+                  {getFirstOutcomePrice(market.outcomePrices) || '0'}%
                 </Text>
               </Box>
 
@@ -175,11 +216,42 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           twClassName="mt-4"
         >
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {event.markets.length * 2} outcomes
+            {event.markets.length > 3
+              ? `+${event.markets.length - 3} ${
+                  event.markets.length - 3 === 1
+                    ? strings('predict.outcomes_singular')
+                    : strings('predict.outcomes_plural')
+                }`
+              : ''}
           </Text>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            ${totalVolumeDisplay} Vol.
-          </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              ${totalVolumeDisplay} {strings('predict.volume_abbreviated')}
+            </Text>
+            {getRecurrenceDisplay() && (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <Icon
+                  name={IconName.Refresh}
+                  size={IconSize.Sm}
+                  color={TextColor.Alternative}
+                  style={tw.style('mr-1')}
+                />
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {getRecurrenceDisplay()}
+                </Text>
+              </Box>
+            )}
+          </Box>
         </Box>
       </Box>
     </View>

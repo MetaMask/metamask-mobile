@@ -31,6 +31,7 @@ const mockEvent: PredictEvent = {
       status: 'open',
     },
   ],
+  series: [],
 };
 
 const initialState = {

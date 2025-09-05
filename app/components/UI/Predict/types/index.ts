@@ -52,6 +52,9 @@ export type PredictEvent = {
   id: string;
   title: string;
   markets: Market[];
+  series: {
+    recurrence: string;
+  }[];
 };
 
 export type MarketOutcome = {

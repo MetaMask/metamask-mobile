@@ -137,18 +137,23 @@ export class PolymarketProvider implements IPredictProvider {
 
   async getEvents(params?: {
     category?: MarketCategory;
+    limit?: number;
+    offset?: number;
   }): Promise<PredictEvent[]> {
     try {
       const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
-      const { category = 'trending' } = params || {};
+      const { category = 'trending', limit = 20, offset = 0 } = params || {};
       DevLogger.log(
         'Getting markets via Polymarket API for category:',
         category,
+        'limit:',
+        limit,
+        'offset:',
+        offset,
       );
 
-      let queryParams =
-        'limit=20&active=true&archived=false&closed=false&ascending=false&offset=0';
+      let queryParams = `limit=${limit}&active=true&archived=false&closed=false&ascending=false&offset=${offset}`;
 
       const categoryTagMap: Record<MarketCategory, string> = {
         trending: '&exclude_tag_id=100639&order=volume24hr',

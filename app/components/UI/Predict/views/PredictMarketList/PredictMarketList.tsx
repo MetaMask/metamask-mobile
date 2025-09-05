@@ -72,19 +72,23 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
         >
           <View
             key="trending"
-            {...{ tabLabel: 'Trending' }}
+            {...{ tabLabel: strings('predict.category.trending') }}
             style={styles.tabContent}
           >
             <MarketListContent category="trending" />
           </View>
 
-          <View key="new" {...{ tabLabel: 'New' }} style={styles.tabContent}>
+          <View
+            key="new"
+            {...{ tabLabel: strings('predict.category.new') }}
+            style={styles.tabContent}
+          >
             <MarketListContent category="new" />
           </View>
 
           <View
             key="sports"
-            {...{ tabLabel: 'Sports' }}
+            {...{ tabLabel: strings('predict.category.sports') }}
             style={styles.tabContent}
           >
             <MarketListContent category="sports" />
@@ -92,7 +96,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
 
           <View
             key="crypto"
-            {...{ tabLabel: 'Crypto' }}
+            {...{ tabLabel: strings('predict.category.crypto') }}
             style={styles.tabContent}
           >
             <MarketListContent category="crypto" />
@@ -100,7 +104,7 @@ const PredictMarketList: React.FC<PredictMarketListProps> = () => {
 
           <View
             key="politics"
-            {...{ tabLabel: 'Politics' }}
+            {...{ tabLabel: strings('predict.category.politics') }}
             style={styles.tabContent}
           >
             <MarketListContent category="politics" />

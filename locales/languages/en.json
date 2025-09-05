@@ -1514,13 +1514,32 @@
   },
   "predict": {
     "title": "MetaMask Predict",
+    "prediction_markets": "Prediction Markets",
     "market_list": "Market List",
     "market_details": "Market Details",
     "view_available_markets": "View available markets",
     "sell_position": "Sell Position",
     "cash_out": "Cash Out",
     "buy_yes": "Buy Yes",
-    "buy_no": "Buy No"
+    "buy_no": "Buy No",
+    "outcomes": "outcomes",
+    "volume_abbreviated": "Vol.",
+    "recurrence": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "quarterly": "Quarterly"
+    },
+    "outcomes_singular": "more outcome",
+    "outcomes_plural": "more outcomes",
+    "category": {
+        "trending": "Trending",
+        "new": "New",
+        "sports": "Sports",
+        "crypto": "Crypto",
+        "politics": "Politics"
+    }
   },
   "receive": {
     "title": "Receive"

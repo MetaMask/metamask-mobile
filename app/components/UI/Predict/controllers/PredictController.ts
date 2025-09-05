@@ -457,6 +457,8 @@ export class PredictController extends BaseController<
    */
   async getEvents(params?: {
     category?: MarketCategory;
+    limit?: number;
+    offset?: number;
   }): Promise<PredictEvent[]> {
     try {
       const provider = this.getActiveProvider();
