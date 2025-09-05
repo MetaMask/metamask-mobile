@@ -1,1 +1,0 @@
-export { MultichainEditAccountName } from './MultichainEditAccountName';
