@@ -10,6 +10,11 @@ import {
   RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
+  RewardsDataServiceGenerateChallengeAction,
+  RewardsDataServiceOptinAction,
+  RewardsDataServiceLogoutAction,
+  RewardsDataServiceFetchGeoLocationAction,
+  RewardsDataServiceValidateReferralCodeAction,
 } from '../../controllers/rewards-controller/services';
 import {
   RewardsControllerActions,
@@ -30,7 +35,12 @@ type AllowedActions =
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
-  | RewardsDataServiceGetReferralDetailsAction;
+  | RewardsDataServiceGetReferralDetailsAction
+  | RewardsDataServiceGenerateChallengeAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceFetchGeoLocationAction
+  | RewardsDataServiceValidateReferralCodeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -61,6 +71,11 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
+      'RewardsDataService:generateChallenge',
+      'RewardsDataService:optin',
+      'RewardsDataService:logout',
+      'RewardsDataService:fetchGeoLocation',
+      'RewardsDataService:validateReferralCode',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',

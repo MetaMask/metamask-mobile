@@ -1,18 +1,18 @@
-import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import { LocalNodeType } from '../../framework/types.js';
-import SoftAssert from '../../utils/SoftAssert.js';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import Assertions from '../../framework/Assertions.js';
-import WalletView from '../../pages/wallet/WalletView.js';
-import { SmokeTrade } from '../../tags.js';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors.js';
-import { EventPayload, getEventsPayloads } from '../analytics/helpers.js';
-import { submitSwapUnifiedUI } from '../swaps/helpers/swap-unified-ui';
-import { loginToApp } from '../../viewHelper.js';
-import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
-import { logger } from '../../framework/logger.js';
-import { testSpecificMock } from '../swaps/helpers/swap-mocks';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNodeType } from '../../framework/types';
+import SoftAssert from '../../utils/SoftAssert';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../pages/wallet/WalletView';
+import { SmokeTrade } from '../../tags';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { EventPayload, getEventsPayloads } from '../analytics/helpers';
+import { submitSwapUnifiedUI } from './helpers/swap-unified-ui';
+import { loginToApp } from '../../viewHelper';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { logger } from '../../framework/logger';
+import { testSpecificMock } from './helpers/swap-mocks';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
