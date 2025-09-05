@@ -128,6 +128,8 @@ pipelines:
       - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
+      - build_regression_e2e_ios_android_gns_disabled_stage: {}
+      - run_regression_e2e_ios_android_gns_disabled_stage: {}
       - notify: {}
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
@@ -397,6 +399,17 @@ stages:
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
+  build_regression_e2e_ios_android_gns_disabled_stage:
+    abort_on_fail: true
+    workflows:
+      - build_ios_main_e2e_gns_disabled:
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - build_android_main_e2e_gns_disabled:
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+  run_regression_e2e_ios_android_gns_disabled_stage:
+    workflows:
+      - ios_run_regression_network_abstraction_tests: {}
+      - android_run_regression_network_abstraction_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
@@ -2696,6 +2709,22 @@ workflows:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
+  build_android_main_e2e_gns_disabled:
+    envs:
+      - YARN_COMMAND: 'build:android:main:e2e'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+      - SHARE_WITH_DETOX: 'true'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   build_android_main_exp:
     envs:
@@ -3297,6 +3326,19 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:e2e'
     after_run:
       - _ios_build_template
+  build_ios_main_e2e_gns_disabled:
+    envs:
+      - CONFIGURATION: 'Release'
+      - IS_SIM_BUILD: 'true'
+      - SHARE_WITH_DETOX: 'true'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+      - YARN_COMMAND: 'build:ios:main:e2e'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
+    after_run:
+      - _ios_build_template
   build_ios_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -3707,7 +3749,7 @@ app:
       SEEDLESS_ONBOARDING_ENABLED: true
     - opts:
         is_expand: false
-      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: true
+      MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'true'
 meta:
   bitrise.io:
     stack: osx-xcode-16.2.x
