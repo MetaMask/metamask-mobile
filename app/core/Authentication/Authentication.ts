@@ -159,7 +159,7 @@ class AuthenticationService {
           const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
           try {
-            await this.attemptMultichainAccountWalletDiscovery(clientType);
+            await this.attemptAccountDiscovery(clientType);
           } catch (error) {
             console.warn(
               'Account discovery failed during wallet creation:',
