@@ -1123,160 +1123,134 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   </View>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>
@@ -2727,160 +2701,134 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                   </View>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>
@@ -4331,160 +4279,134 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   </View>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>
@@ -5980,160 +5902,134 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   </Text>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>
@@ -7629,160 +7525,134 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   </View>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>
@@ -9293,160 +9163,134 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   </Text>
                                 </View>
                                 <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": undefined,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  focusable={true}
-                                  onClick={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
                                   style={
-                                    {
-                                      "width": "100%",
-                                    }
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                        "marginBottom": 16,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
-                                      [
-                                        {
-                                          "flexDirection": "column",
-                                          "marginBottom": 16,
-                                        },
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 16,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 6,
+                                      }
                                     }
+                                    testID="label"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#121314",
-                                          "fontFamily": "Geist Regular",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                          "marginBottom": 6,
-                                        }
+                                    Date of birth
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
-                                      testID="label"
-                                    >
-                                      Date of birth
-                                    </Text>
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#b7bbc8",
+                                        "borderRadius": 8,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "opacity": 1,
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                    testID="textfield"
+                                  >
                                     <View
-                                      accessibilityState={
-                                        {
-                                          "busy": undefined,
-                                          "checked": undefined,
-                                          "disabled": undefined,
-                                          "expanded": undefined,
-                                          "selected": undefined,
-                                        }
-                                      }
-                                      accessibilityValue={
-                                        {
-                                          "max": undefined,
-                                          "min": undefined,
-                                          "now": undefined,
-                                          "text": undefined,
-                                        }
-                                      }
-                                      accessible={true}
-                                      collapsable={false}
-                                      focusable={true}
-                                      onBlur={[Function]}
-                                      onClick={[Function]}
-                                      onFocus={[Function]}
-                                      onResponderGrant={[Function]}
-                                      onResponderMove={[Function]}
-                                      onResponderRelease={[Function]}
-                                      onResponderTerminate={[Function]}
-                                      onResponderTerminationRequest={[Function]}
-                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#b7bbc8",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "opacity": 1,
-                                          "paddingHorizontal": 16,
+                                          "marginRight": 8,
                                         }
                                       }
-                                      testID="textfield"
+                                      testID="textfield-startacccessory"
                                     >
-                                      <View
+                                      <SvgMock
+                                        color="#121314"
+                                        fill="currentColor"
+                                        height={20}
+                                        name="Calendar"
                                         style={
                                           {
-                                            "marginRight": 8,
+                                            "height": 20,
+                                            "width": 20,
                                           }
                                         }
-                                        testID="textfield-startacccessory"
-                                      >
-                                        <SvgMock
-                                          color="#121314"
-                                          fill="currentColor"
-                                          height={20}
-                                          name="Calendar"
-                                          style={
-                                            {
-                                              "height": 20,
-                                              "width": 20,
-                                            }
-                                          }
-                                          width={20}
-                                        />
-                                      </View>
-                                      <View
+                                        width={20}
+                                      />
+                                    </View>
+                                    <View
+                                      style={
+                                        {
+                                          "flex": 1,
+                                        }
+                                      }
+                                    >
+                                      <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={[Function]}
                                         style={
                                           {
                                             "flex": 1,
+                                            "height": "100%",
                                           }
                                         }
                                       >
                                         <TextInput
-                                          autoFocus={false}
-                                          editable={true}
-                                          keyboardAppearance="light"
-                                          onBlur={[Function]}
-                                          onFocus={[Function]}
+                                          editable={false}
                                           placeholder="01/01/2000"
                                           placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
-                                          readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "inherit",
-                                              "borderColor": "transparent",
-                                              "borderWidth": 1,
                                               "color": "#121314",
-                                              "fontFamily": "Geist Regular",
+                                              "flex": 1,
                                               "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "height": 46,
-                                              "letterSpacing": 0,
-                                              "opacity": 1,
-                                              "paddingVertical": 0,
+                                              "height": "100%",
+                                              "textAlign": "left",
                                             }
                                           }
                                           testID="date-of-birth-input"
                                           value="01/01/2024"
                                         />
-                                      </View>
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                 </View>

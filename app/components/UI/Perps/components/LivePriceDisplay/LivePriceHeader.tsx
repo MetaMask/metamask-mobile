@@ -28,12 +28,6 @@ const styleSheet = () =>
       alignItems: 'baseline',
       gap: 6,
     },
-    positionValue: {
-      fontWeight: '700',
-    },
-    priceChange24h: {
-      fontSize: 12,
-    },
   });
 
 /**
@@ -73,17 +67,15 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.HeadingSM}
+        variant={TextVariant.BodyMD}
         color={TextColor.Default}
-        style={styles.positionValue}
         testID={testIDPrice}
       >
         {formatPrice(displayPrice)}
       </Text>
       <Text
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodyMD}
         color={changeColor}
-        style={styles.priceChange24h}
         testID={testIDChange}
       >
         {formatPnl(changeAmount)} ({formatPercentage(displayChange.toString())})
