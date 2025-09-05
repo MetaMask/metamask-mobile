@@ -41,7 +41,7 @@ describe('useInsufficientPayTokenNativeAlert', () => {
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      quoteNetworkFee: `${BALANCE_FIAT + 0.01}`,
+      totalNetworkFeeMax: `${BALANCE_FIAT + 0.01}`,
     } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
@@ -69,8 +69,8 @@ describe('useInsufficientPayTokenNativeAlert', () => {
     } as unknown as ReturnType<typeof useTokenWithBalance>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      quoteNetworkFee: `${BALANCE_FIAT}`,
-      value: `${BALANCE_FIAT + 0.01}`,
+      totalNetworkFeeMax: `${BALANCE_FIAT}`,
+      total: `${BALANCE_FIAT + 0.01}`,
     } as unknown as ReturnType<typeof useTransactionTotalFiat>);
 
     const { result } = runHook();
