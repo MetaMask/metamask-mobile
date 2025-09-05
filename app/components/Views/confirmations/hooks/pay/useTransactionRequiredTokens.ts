@@ -36,7 +36,7 @@ export function useTransactionRequiredTokens() {
   const tokenTransferToken = useTokenTransferToken(chainId);
 
   const result = useMemo(
-    () => [gasToken, tokenTransferToken].filter(Boolean) as TransactionToken[],
+    () => [tokenTransferToken, gasToken].filter(Boolean) as TransactionToken[],
     [gasToken, tokenTransferToken],
   );
 

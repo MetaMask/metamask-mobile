@@ -76,12 +76,13 @@ export const createStyles = (colors: Theme['colors']) =>
     percentageButton: {
       flex: 1,
       paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingHorizontal: 8,
       backgroundColor: colors.background.pressed,
       borderRadius: 8,
       alignItems: 'center',
       borderWidth: 1,
       borderColor: colors.border.muted,
+      minWidth: 50,
     },
     percentageButtonOff: {
       backgroundColor: colors.background.pressed,
@@ -126,5 +127,44 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     loadingText: {
       marginTop: 12,
+    },
+    content: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    description: {
+      marginBottom: 16,
+    },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: colors.overlay.default,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    positionHeader: {
+      marginTop: 16,
+      marginBottom: 24,
+      alignItems: 'center',
+    },
+    percentageButtonsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+      gap: 8,
+    },
+    inputError: {
+      borderColor: colors.error.default,
+    },
+    infoContainer: {
+      marginTop: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
     },
   });
