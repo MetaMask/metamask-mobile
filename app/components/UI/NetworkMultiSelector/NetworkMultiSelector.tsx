@@ -5,7 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useStyles } from '../../../component-library/hooks/useStyles';
 import { Box } from '@metamask/design-system-react-native';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { PopularList } from '../../../util/networks/customNetworks';
@@ -21,6 +21,7 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
 // internal dependencies
+import stylesheet from './NetworkMultiSelector.styles';
 import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
 import Cell, {
@@ -64,7 +65,7 @@ const NetworkMultiSelector = ({
   openModal,
   dismissModal,
 }: NetworkMultiSelectorProps) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
@@ -214,13 +215,18 @@ const NetworkMultiSelector = ({
       namespace === KnownCaipNamespace.Eip155 ||
       isMultichainAccountsState2Enabled ? (
         <Box
-          twClassName="px-4"
+          style={styles.customNetworkContainer}
           testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER}
         >
           <CustomNetwork {...customNetworkProps} />
         </Box>
       ) : null,
-    [namespace, customNetworkProps, isMultichainAccountsState2Enabled],
+    [
+      namespace,
+      customNetworkProps,
+      isMultichainAccountsState2Enabled,
+      styles.customNetworkContainer,
+    ],
   );
 
   const onSelectAllPopularNetworks = useCallback(async () => {
@@ -253,8 +259,8 @@ const NetworkMultiSelector = ({
 
   return (
     <ScrollView
-      style={tw.style('flex-1')}
-      contentContainerStyle={tw.style('pb-24')}
+      style={styles.bodyContainer}
+      contentContainerStyle={styles.scrollContentContainer}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER}
     >
       <NetworkMultiSelectorList
