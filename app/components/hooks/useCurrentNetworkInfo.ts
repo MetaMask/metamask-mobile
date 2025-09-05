@@ -23,7 +23,7 @@ export interface CurrentNetworkInfo {
  * Hook that provides current network information for the active namespace
  */
 export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
-  const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
+  const { enabledNetworksByNamespace } = useNetworkEnablement();
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -34,11 +34,17 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
-    const networksForNamespace = enabledNetworksByNamespace[namespace] || {};
+    const networksForNamespace = {
+      ...Object.values(enabledNetworksByNamespace).reduce(
+        (acc, obj) => ({ ...acc, ...obj }),
+        {},
+      ),
+    };
+
     return Object.entries(networksForNamespace)
       .filter(([_key, value]) => value)
       .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-  }, [enabledNetworksByNamespace, namespace]);
+  }, [enabledNetworksByNamespace]);
 
   // Generic function to get network info by index
   const getNetworkInfo = useCallback(
