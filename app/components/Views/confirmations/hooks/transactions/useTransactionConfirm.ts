@@ -33,9 +33,9 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   const {
-    bridgeFeeFormatted: bridgeFeeFiat,
-    formatted: totalFiat,
-    totalGasFormatted: networkFeeFiat,
+    totalBridgeFeeFormatted: bridgeFeeFiat,
+    totalFormatted: totalFiat,
+    totalNativeEstimatedFormatted: networkFeeFiat,
   } = useTransactionTotalFiat();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();

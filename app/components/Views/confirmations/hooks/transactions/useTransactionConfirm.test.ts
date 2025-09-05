@@ -138,12 +138,10 @@ describe('useTransactionConfirm', () => {
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      bridgeFeeFormatted: BRIDGE_FEE_MOCK,
-      formatted: TOTAL_FIAT_MOCK,
-      quoteNetworkFee: '0.0',
-      totalGasFormatted: NETWORK_FEE_MOCK,
-      value: '',
-    });
+      totalBridgeFeeFormatted: BRIDGE_FEE_MOCK,
+      totalFormatted: TOTAL_FIAT_MOCK,
+      totalNativeEstimatedFormatted: NETWORK_FEE_MOCK,
+    } as ReturnType<typeof useTransactionTotalFiat>);
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
 

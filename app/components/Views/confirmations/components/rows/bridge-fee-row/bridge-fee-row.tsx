@@ -17,7 +17,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 export function BridgeFeeRow() {
   const { id: transactionId, type } = useTransactionMetadataOrThrow();
-  const { bridgeFeeFormatted } = useTransactionTotalFiat();
+  const { totalBridgeFeeFormatted } = useTransactionTotalFiat();
 
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
@@ -41,7 +41,7 @@ export function BridgeFeeRow() {
       {isQuotesLoading ? (
         <AnimatedSpinner size={SpinnerSize.SM} />
       ) : (
-        <Text>{bridgeFeeFormatted}</Text>
+        <Text>{totalBridgeFeeFormatted}</Text>
       )}
     </InfoRow>
   );

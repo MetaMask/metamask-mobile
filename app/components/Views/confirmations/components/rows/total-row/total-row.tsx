@@ -15,7 +15,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 export function TotalRow() {
   const { id: transactionId, type } = useTransactionMetadataOrThrow();
-  const { formatted: totalFiat } = useTransactionTotalFiat();
+  const { totalFormatted: totalFiat } = useTransactionTotalFiat();
 
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),

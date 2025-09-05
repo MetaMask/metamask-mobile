@@ -55,7 +55,7 @@ describe('BridgeFeeRow', () => {
     jest.resetAllMocks();
 
     useTransactionTotalFiatMock.mockReturnValue({
-      bridgeFeeFormatted: BRIDGE_FEE_MOCK,
+      totalBridgeFeeFormatted: BRIDGE_FEE_MOCK,
     } as ReturnType<typeof useTransactionTotalFiat>);
   });
 
