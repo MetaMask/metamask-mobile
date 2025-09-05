@@ -37,7 +37,11 @@ export const useTokenAsset = () => {
       chainId: chainId as Hex,
     }),
   );
-  if (transactionType === 'simpleSend' && !nativeEvmAsset && chainId) {
+  if (
+    transactionType === TransactionType.simpleSend &&
+    !nativeEvmAsset &&
+    chainId
+  ) {
     nativeEvmAsset = getNativeAssetForChainId(chainId) as unknown as TokenI;
   }
 
