@@ -44,7 +44,7 @@ export const usePerpsClosePosition = (
       if (direction && amount && assetSymbol) {
         subtext = strings('perps.close_position.closing_position_subtitle', {
           direction,
-          amount,
+          amount: Math.abs(parseFloat(amount)),
           assetSymbol,
         });
       }

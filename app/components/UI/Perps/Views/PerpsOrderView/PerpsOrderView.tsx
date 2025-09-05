@@ -45,7 +45,7 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../util/theme';
+import { useAppThemeFromContext, useTheme } from '../../../../../util/theme';
 import {
   endTrace,
   trace,
@@ -95,6 +95,7 @@ import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
+import { capitalize } from '../../../../../util/general';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -174,85 +175,37 @@ const PerpsOrderViewContentBase: React.FC = () => {
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
 
+  const theme = useAppThemeFromContext();
+
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
     () => markets.find((market) => market.symbol === orderForm.asset),
     [markets, orderForm.asset],
   );
 
-  // Order execution using new hook
-  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
-    usePerpsOrderExecution({
-      onSuccess: (position) => {
-        // Track successful position open
-        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
-          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
-          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
-          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
-        });
-
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.order.confirmed'),
-              isBold: true,
-            },
-            { label: ' - ', isBold: false },
-            {
-              label: `${orderForm.direction.toUpperCase()} ${orderForm.asset}`,
-              isBold: true,
-            },
-          ],
-          iconName: IconName.CheckBold,
-          iconColor: IconColor.Success,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.dismiss'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => toastRef?.current?.closeToast(),
-            testID: PerpsGeneralSelectorsIDs.ORDER_SUCCESS_TOAST_DISMISS_BUTTON,
-          },
-        });
-
-        // Add haptic feedback for order confirmed
-        notificationAsync(NotificationFeedbackType.Success);
-      },
-      onError: (error) => {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('perps.order.error.placement_failed'),
-              isBold: true,
-            },
-            { label: ': ', isBold: false },
-            {
-              label: error,
-              isBold: false,
-            },
-          ],
-          iconName: IconName.Error,
-          iconColor: IconColor.Error,
-          hasNoTimeout: true,
-          closeButtonOptions: {
-            label: strings('perps.order.error.dismiss'),
-            variant: ButtonVariants.Secondary,
-            onPress: () => toastRef?.current?.closeToast(),
-          },
-        });
-
-        // Add haptic feedback for order failed
-        notificationAsync(NotificationFeedbackType.Error);
-      },
+  const showOrderFailedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Warning,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.error.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.order.order_failed'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.order.your_funds_have_been_returned_to_you'),
+          isBold: false,
+        },
+      ],
     });
+  }, [toastRef, theme.colors.icon.default, theme.colors.error.default]);
+
   // Update ref when orderType changes
   useEffect(() => {
     orderTypeRef.current = orderForm.type;
@@ -432,6 +385,106 @@ const PerpsOrderViewContentBase: React.FC = () => {
       }),
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
+
+  const showOrderFilledToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      iconColor: theme.colors.primary.default,
+      backgroundColor: theme.colors.background.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.order.order_filled'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.order.order_placement_subtitle', {
+            direction: capitalize(orderForm.direction),
+            amount: positionSize,
+            assetSymbol: orderForm.asset,
+          }),
+          isBold: false,
+        },
+      ],
+    });
+  }, [
+    toastRef,
+    theme.colors.primary.default,
+    theme.colors.background.default,
+    orderForm.direction,
+    orderForm.asset,
+    positionSize,
+  ]);
+
+  // Order execution using new hook
+  const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
+    usePerpsOrderExecution({
+      onSuccess: (position) => {
+        // Track successful position open
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+          [PerpsEventProperties.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
+          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
+          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
+          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
+        });
+
+        // TODO: Add Order submitted toast
+        showOrderFilledToast();
+      },
+      onError: (_error) => {
+        showOrderFailedToast();
+      },
+    });
+
+  const showOrderSubmittedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Check,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.primary.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.order.order_submitted'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.order.order_placement_subtitle', {
+            direction: capitalize(orderForm.direction),
+            amount: positionSize,
+            assetSymbol: orderForm.asset,
+          }),
+          isBold: false,
+        },
+      ],
+    });
+  }, [
+    orderForm.asset,
+    orderForm.direction,
+    positionSize,
+    theme.colors.icon.default,
+    theme.colors.primary.default,
+    toastRef,
+  ]);
+
+  useEffect(() => {
+    if (isPlacingOrder) {
+      showOrderSubmittedToast();
+    }
+  }, [isPlacingOrder, showOrderSubmittedToast]);
 
   // Get margin required from form calculations
   const marginRequired = calculations.marginRequired;
