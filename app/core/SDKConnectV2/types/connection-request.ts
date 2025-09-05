@@ -31,6 +31,7 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const obj = data as any;
 
   // Validate sessionRequest
