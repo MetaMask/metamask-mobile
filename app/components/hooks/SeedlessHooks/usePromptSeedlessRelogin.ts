@@ -12,6 +12,7 @@ import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
 import { setCompletedOnboarding } from '../../../actions/onboarding';
 import { useDeleteWallet } from '../DeleteWallet';
+import Logger from '../../../util/Logger';
 
 const usePromptSeedlessRelogin = () => {
   const metrics = useMetrics();
@@ -86,7 +87,7 @@ const usePromptSeedlessRelogin = () => {
       ),
       onPrimaryButtonPress: () => {
         deleteWallet().catch((error) => {
-          console.error('Error during wallet deletion:', error);
+          Logger.error(error, 'Error during wallet deletion');
           setDeleteWalletError(error as Error);
           // prompt bottom sheet?
         });
