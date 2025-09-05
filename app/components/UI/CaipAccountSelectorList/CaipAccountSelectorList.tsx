@@ -46,7 +46,7 @@ import {
   parseCaipAccountId,
   CaipChainId,
 } from '@metamask/utils';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const CaipAccountSelectorList = ({
   onSelectAccount,
@@ -71,7 +71,7 @@ const CaipAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(selectAvatarStyle, shallowEqual);
+  const accountAvatarType = useSelector(selectAvatarAccountType, shallowEqual);
   const getKeyExtractor = ({ caipAccountId }: Account) => caipAccountId;
 
   const renderAccountBalances = useCallback(

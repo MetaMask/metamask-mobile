@@ -47,10 +47,10 @@ export function setPrimaryCurrency(primaryCurrency) {
   };
 }
 
-export function setAvatarStyle(avatarStyle) {
+export function setAvatarAccountType(avatarAccountType) {
   return {
-    type: 'SET_AVATAR_STYLE',
-    avatarStyle,
+    type: 'SET_AVATAR_ACCOUNT_TYPE',
+    avatarAccountType,
   };
 }
 

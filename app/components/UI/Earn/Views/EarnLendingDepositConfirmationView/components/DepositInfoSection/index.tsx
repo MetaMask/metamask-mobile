@@ -15,7 +15,7 @@ import ContractTag from '../../../../../Stake/components/StakingConfirmation/Con
 import { TokenI } from '../../../../../Tokens/types';
 import useEarnToken from '../../../../hooks/useEarnToken';
 import styleSheet from './DepositInfoSection.styles';
-import { selectAvatarStyle } from '../../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -36,7 +36,7 @@ const DepositInfoSection = ({
 }: DepositInfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const { earnToken, getEstimatedAnnualRewardsForAmount } = useEarnToken(token);
 
@@ -155,7 +155,7 @@ const DepositInfoSection = ({
               <ContractTag
                 contractAddress={lendingContractAddress}
                 contractName={lendingProtocol}
-                avatarStyle={avatarStyle}
+                avatarAccountType={avatarAccountType}
               />
             ),
           }}

@@ -31,7 +31,7 @@ jest.mock('../../../../confirmations/hooks/7702/useEIP7702Networks', () => ({
 
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 

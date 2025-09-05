@@ -20,7 +20,7 @@ import {
   setActiveTab,
   updateTab,
 } from '../../../actions/browser';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
   ToastContext,
   ToastVariants,
@@ -87,7 +87,7 @@ export const Browser = (props) => {
   const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,

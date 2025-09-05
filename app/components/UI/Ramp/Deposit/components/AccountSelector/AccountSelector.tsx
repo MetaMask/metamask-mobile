@@ -19,7 +19,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
-import { selectAvatarStyle } from '../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -35,7 +35,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const accountName = useAccountName();
   const { styles, theme } = useStyles(stylesheet, {});
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const selectedFormattedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,

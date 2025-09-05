@@ -81,7 +81,7 @@ describe('SnapUIAccountSelector', () => {
   };
 
   const mockSettings = {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   };
 
   it('renders an account selector', () => {

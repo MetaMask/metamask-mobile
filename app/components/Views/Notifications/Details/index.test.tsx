@@ -20,7 +20,7 @@ jest.mock('../../../../util/notifications/constants/config', () => ({
 
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,

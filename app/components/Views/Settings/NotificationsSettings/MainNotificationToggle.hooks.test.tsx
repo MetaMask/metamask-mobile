@@ -119,7 +119,7 @@ describe('useAccountProps', () => {
           },
         },
       },
-      settings: { avatarStyle: AvatarAccountType.Maskicon },
+      settings: { avatarAccountType: AvatarAccountType.Maskicon },
     });
 
     return {

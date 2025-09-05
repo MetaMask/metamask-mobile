@@ -185,7 +185,7 @@ describe('useAccountProps', () => {
   const arrangeMocks = () => {
     const mockStore = jest.fn().mockReturnValue({
       settings: {
-        avatarStyle: AvatarAccountType.Maskicon,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     });
 

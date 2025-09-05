@@ -39,7 +39,7 @@ import {
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
-import { selectAvatarStyle } from '../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const AccountsConnectedList = ({
   selectedAddresses,
@@ -64,7 +64,7 @@ const AccountsConnectedList = ({
       : MAX_VISIBLE_ITEMS;
 
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
-  const accountAvatarType = useSelector(selectAvatarStyle, shallowEqual);
+  const accountAvatarType = useSelector(selectAvatarAccountType, shallowEqual);
 
   const getFilteredNetworkAvatars = useCallback(
     (accountScopes: CaipChainId[] = []) => {

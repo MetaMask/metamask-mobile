@@ -7,7 +7,7 @@ import {
   areAddressesEqual,
   toFormattedAddress,
 } from '../../../../util/address';
-import { selectAvatarStyle } from '../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
@@ -42,7 +42,7 @@ export function useNotificationAccountListProps(addresses: string[]) {
 export function useAccountProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const { accounts: allAccounts } = useAccounts();
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const accounts = useMemo(
     () =>

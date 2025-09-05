@@ -48,7 +48,7 @@ import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
-  selectAvatarStyle,
+  selectAvatarAccountType,
 } from '../../../../selectors/settings';
 import {
   selectSwapsTransactions,
@@ -174,7 +174,7 @@ class TransactionDetails extends PureComponent {
     /**
      * Avatar style to render for account icons
      */
-    avatarStyle: PropTypes.string,
+    avatarAccountType: PropTypes.string,
   };
 
   state = {
@@ -446,7 +446,9 @@ class TransactionDetails extends PureComponent {
                 <View style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
-                    type={this.props.avatarStyle || AvatarAccountType.Maskicon}
+                    type={
+                      this.props.avatarAccountType || AvatarAccountType.Maskicon
+                    }
                     accountAddress={updatedTransactionDetails.renderFrom}
                     size={AvatarSize.Md}
                     style={styles.accountAvatar}
@@ -474,7 +476,9 @@ class TransactionDetails extends PureComponent {
                 <View style={styles.accountNameAvatar}>
                   <Avatar
                     variant={AvatarVariant.Account}
-                    type={this.props.avatarStyle || AvatarAccountType.Maskicon}
+                    type={
+                      this.props.avatarAccountType || AvatarAccountType.Maskicon
+                    }
                     accountAddress={updatedTransactionDetails.renderTo}
                     size={AvatarSize.Md}
                     style={styles.accountAvatar}
@@ -578,7 +582,7 @@ const mapStateToProps = (state, ownProps) => ({
     state,
     ownProps.transactionObject.chainId,
   ),
-  avatarStyle: selectAvatarStyle(state),
+  avatarAccountType: selectAvatarAccountType(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

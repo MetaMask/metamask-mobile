@@ -26,7 +26,7 @@ import { RootState } from '../../../../../../reducers';
 import { INTERNAL_ORIGINS } from '../../../../../../constants/transaction';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
-import { selectAvatarStyle } from '../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 const ApproveTransactionHeader = ({
   chainId,
@@ -63,7 +63,7 @@ const ApproveTransactionHeader = ({
 
   const networkName = networkConfiguration?.name;
 
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEffect(() => {
     const accountNameVal = activeAddress
@@ -104,7 +104,7 @@ const ApproveTransactionHeader = ({
           name: networkName,
           imageSource: networkImage,
         }}
-        avatarStyle={avatarStyle}
+        avatarAccountType={avatarAccountType}
       />
     </View>
   );

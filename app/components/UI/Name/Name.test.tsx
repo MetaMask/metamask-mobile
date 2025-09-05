@@ -28,7 +28,7 @@ const KNOWN_NAME_MOCK = 'Known name';
 describe('Name', () => {
   const mockStore = configureMockStore();
   const initialState = {
-    settings: { avatarStyle: AvatarAccountType.Maskicon },
+    settings: { avatarAccountType: AvatarAccountType.Maskicon },
   };
   const store = mockStore(initialState);
 

@@ -5,7 +5,7 @@ const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default,
-  avatarStyle: AvatarAccountType.Maskicon,
+  avatarAccountType: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
@@ -38,10 +38,10 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         hideZeroBalanceTokens: action.hideZeroBalanceTokens,
       };
-    case 'SET_AVATAR_STYLE':
+    case 'SET_AVATAR_ACCOUNT_TYPE':
       return {
         ...state,
-        avatarStyle: action.avatarStyle,
+        avatarAccountType: action.avatarAccountType,
       };
     case 'SET_PRIMARY_CURRENCY':
       return {

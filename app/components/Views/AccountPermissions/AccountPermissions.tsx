@@ -91,7 +91,7 @@ import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -105,7 +105,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     initialScreen = AccountPermissionsScreens.Connected,
     isNonDappNetworkSwitch = false,
   } = props.route.params;
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);

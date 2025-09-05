@@ -19,7 +19,7 @@ import { AccountCardProps } from './AccountCard.types';
 import ContractTag from '../ContractTag/ContractTag';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
 import { EVM_SCOPE } from '../../../../Earn/constants/networks';
-import { selectAvatarStyle } from '../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 const AccountCard = ({
   contractName,
@@ -35,7 +35,7 @@ const AccountCard = ({
 
   const networkName = useSelector(selectNetworkName);
 
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const { vaultMetadata } = useVaultMetadata(chainId);
 
@@ -50,7 +50,7 @@ const AccountCard = ({
                 <AccountTag
                   accountAddress={selectedAccount?.address}
                   accountName={selectedAccount.metadata.name}
-                  avatarStyle={avatarStyle}
+                  avatarAccountType={avatarAccountType}
                 />
               ),
             }}
@@ -65,7 +65,7 @@ const AccountCard = ({
               <ContractTag
                 contractAddress={vaultMetadata?.vaultAddress ?? contractName}
                 contractName={contractName}
-                avatarStyle={avatarStyle}
+                avatarAccountType={avatarAccountType}
               />
             ),
           }}

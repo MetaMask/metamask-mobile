@@ -585,7 +585,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          avatarStyle: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
+          avatarAccountType: 'Maskicon', // Must match the enum in AvatarAccountType form app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types.ts
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },

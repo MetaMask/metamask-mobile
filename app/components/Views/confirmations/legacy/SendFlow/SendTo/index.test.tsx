@@ -48,7 +48,7 @@ describe('SendTo Component', () => {
       transaction: {
         selectedAsset: {},
       },
-      settings: { avatarStyle: AvatarAccountType.Maskicon },
+      settings: { avatarAccountType: AvatarAccountType.Maskicon },
     });
 
     mockValidateAddressOrENS.mockResolvedValue(

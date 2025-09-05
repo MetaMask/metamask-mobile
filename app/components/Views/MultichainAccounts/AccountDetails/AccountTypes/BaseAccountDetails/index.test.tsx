@@ -51,7 +51,7 @@ const mockAccount = createMockInternalAccount(
 
 const mockInitialState = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {
@@ -104,10 +104,10 @@ describe('BaseAccountDetails', () => {
     expect(getByText(shortAddress)).toBeTruthy();
   });
 
-  it('shows JazzIcon avatar when avatarStyle is JazzIcon', () => {
+  it('shows JazzIcon avatar when avatarAccountType is JazzIcon', () => {
     const stateWithJazzIcon = {
       settings: {
-        avatarStyle: AvatarAccountType.JazzIcon,
+        avatarAccountType: AvatarAccountType.JazzIcon,
       },
     };
 
@@ -121,10 +121,10 @@ describe('BaseAccountDetails', () => {
     ).toBeTruthy();
   });
 
-  it('shows Blockies avatar when avatarStyle is Blockies', () => {
+  it('shows Blockies avatar when avatarAccountType is Blockies', () => {
     const stateWithBlockies = {
       settings: {
-        avatarStyle: AvatarAccountType.Blockies,
+        avatarAccountType: AvatarAccountType.Blockies,
       },
     };
 

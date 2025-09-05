@@ -46,7 +46,7 @@ import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
-import { selectAvatarStyle } from '../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -92,7 +92,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
@@ -499,7 +499,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     <AccountTag
                       accountAddress={selectedAccount?.address}
                       accountName={selectedAccount.metadata.name}
-                      avatarStyle={avatarStyle}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}
@@ -521,7 +521,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                     <ContractTag
                       contractAddress={lendingContractAddress}
                       contractName={capitalize(lendingProtocol)}
-                      avatarStyle={avatarStyle}
+                      avatarAccountType={avatarAccountType}
                     />
                   ),
                 }}

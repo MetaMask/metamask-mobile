@@ -27,7 +27,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
-import { selectAvatarStyle } from '../../../../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
@@ -35,7 +35,7 @@ import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
 
 const AccountNetworkInfoCollapsed = () => {
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const mockAvatarAccountType = useSelector(selectAvatarAccountType);
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
 
   const { accountName } = useAccountInfo(fromAddress as string, chainId as Hex);
@@ -63,7 +63,7 @@ const AccountNetworkInfoCollapsed = () => {
           >
             <Avatar
               variant={AvatarVariant.Account}
-              type={avatarStyle}
+              type={mockAvatarAccountType}
               accountAddress={fromAddress as string}
             />
           </BadgeWrapper>

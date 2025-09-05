@@ -37,7 +37,7 @@ jest.mock('../../../core/Engine', () => {
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
-    avatarStyle: AvatarAccountType.Maskicon,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

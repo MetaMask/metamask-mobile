@@ -16,7 +16,7 @@ const AccountBalance = ({
   accountBalanceLabel,
   accountAddress,
   badgeProps,
-  avatarStyle,
+  avatarAccountType,
 }: AccountBalanceProps) => (
   <Card style={styles.container} testID={ACCOUNT_BALANCE_TEST_ID}>
     <AccountBase
@@ -29,7 +29,7 @@ const AccountBalance = ({
       accountBalanceLabel={accountBalanceLabel}
       accountAddress={accountAddress}
       badgeProps={badgeProps}
-      avatarStyle={avatarStyle}
+      avatarAccountType={avatarAccountType}
     />
   </Card>
 );

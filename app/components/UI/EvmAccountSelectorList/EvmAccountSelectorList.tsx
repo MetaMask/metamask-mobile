@@ -40,7 +40,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 import {
   AccountSection,
@@ -93,7 +93,7 @@ const EvmAccountSelectorList = ({
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const isMultichainAccountsState1Enabled = useSelector(
     selectMultichainAccountsState1Enabled,

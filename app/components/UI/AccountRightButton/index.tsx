@@ -30,7 +30,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
-import { selectAvatarStyle } from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -64,7 +64,7 @@ const AccountRightButton = ({
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const avatarStyle = useSelector(selectAvatarStyle);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
   /**
    * Current network
    */
@@ -157,7 +157,7 @@ const AccountRightButton = ({
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const renderAvatarAccount = () => (
-    <AvatarAccount type={avatarStyle} accountAddress={selectedAddress} />
+    <AvatarAccount type={avatarAccountType} accountAddress={selectedAddress} />
   );
 
   return (

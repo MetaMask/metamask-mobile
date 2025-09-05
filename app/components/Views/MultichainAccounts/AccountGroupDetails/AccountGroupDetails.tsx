@@ -49,7 +49,7 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
-import { selectAvatarStyle } from '../../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const createEditAccountNameNavigationDetails = (
   accountGroup: AccountGroupObject,
@@ -82,7 +82,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(selectAvatarStyle);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);

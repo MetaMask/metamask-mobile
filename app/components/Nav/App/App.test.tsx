@@ -547,7 +547,7 @@ describe('App', () => {
         userLoggedIn: true,
       },
       settings: {
-        avatarStyle: AvatarAccountType.Maskicon,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
       engine: {
         ...initialState.engine,
