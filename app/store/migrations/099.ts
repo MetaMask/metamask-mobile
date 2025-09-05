@@ -40,7 +40,7 @@ const migration = async (state: unknown): Promise<unknown> => {
       const isSolanaTx = isSolanaChainId(srcChainId);
       const newId = historyItem.status?.srcChain?.txHash;
       // If solana tx, use the src chain tx hash as the key and txMetaId
-      if (isSolanaTx && newId) {
+      if (isSolanaTx && newId && newId !== key) {
         txHistory[newId] = {
           ...historyItem,
           txMetaId: newId,
