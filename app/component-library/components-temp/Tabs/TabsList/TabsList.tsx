@@ -91,6 +91,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
         const firstEnabledIndex = tabs.findIndex((tab) => !tab.isDisabled);
         setActiveIndex(firstEnabledIndex >= 0 ? firstEnabledIndex : -1);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialActiveIndex, tabs]);
 
     const handleTabPress = useCallback(

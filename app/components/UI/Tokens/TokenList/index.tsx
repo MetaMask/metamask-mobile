@@ -96,9 +96,8 @@ const TokenListComponent = ({
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
-      removeClippedSubviews
+      removeClippedSubviews={false}
       viewabilityConfig={{
-        waitForInteraction: true,
         itemVisiblePercentThreshold: 50,
         minimumViewTime: 1000,
       }}
