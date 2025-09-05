@@ -6,7 +6,7 @@ import {
   UIManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -44,6 +44,7 @@ import {
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import BigNumber from 'bignumber.js';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -60,6 +61,11 @@ const QuoteDetailsCard = () => {
   const styles = createStyles(theme);
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
+
+  const locale = I18n.locale;
+  const intlNumberFormatter = getIntlNumberFormatter(locale, {
+    maximumFractionDigits: 3,
+  });
 
   const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
@@ -134,6 +140,10 @@ const QuoteDetailsCard = () => {
   const hasFee = activeQuote
     ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
     : false;
+
+  const formattedMinToTokenAmount = intlNumberFormatter.format(
+    parseFloat(activeQuote?.minToTokenAmount.amount || '0'),
+  );
 
   return (
     <Box>
@@ -352,7 +362,7 @@ const QuoteDetailsCard = () => {
                 }}
                 value={{
                   label: {
-                    text: `${activeQuote.minToTokenAmount.amount} ${destToken?.symbol}`,
+                    text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                     variant: TextVariant.BodyMD,
                   },
                 }}
