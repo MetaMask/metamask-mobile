@@ -128,6 +128,18 @@ jest.mock('../../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock useNetInfo hook
+jest.mock('@react-native-community/netinfo', () => ({
+  useNetInfo: jest.fn(() => ({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+    details: {
+      isConnectionExpensive: false,
+    },
+  })),
+}));
+
 describe('Login test suite 2', () => {
   describe('handleVaultCorruption', () => {
     beforeEach(() => {
@@ -356,7 +368,7 @@ describe('Login test suite 2', () => {
       );
     });
 
-    it('should handle countdown behavior and disable input during tooManyAttemptsError', async () => {
+    it('handle countdown behavior and disable input during tooManyAttemptsError', async () => {
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
         { remainingTime: 3, numberOfAttempts: 1 },
@@ -409,7 +421,7 @@ describe('Login test suite 2', () => {
       expect(passwordInput.props.editable).not.toBe(false);
     });
 
-    it('should clean up timeout on component unmount during countdown', async () => {
+    it('clean up timeout on component unmount during countdown', async () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
       const seedlessError = new SeedlessOnboardingControllerRecoveryError(
         SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts,
@@ -684,7 +696,7 @@ describe('Login test suite 2', () => {
       expect(spyResetOauthState).toHaveBeenCalled();
     });
 
-    it('should handle OAuth login success when metrics UI is seen', async () => {
+    it('handle OAuth login success when metrics UI is seen', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -741,7 +753,7 @@ describe('Login test suite 2', () => {
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
-    it('should handle OAuth login success when metrics UI is not seen', async () => {
+    it('handle OAuth login success when metrics UI is not seen', async () => {
       mockIsEnabled.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
@@ -811,7 +823,7 @@ describe('Login test suite 2', () => {
       mockIsEnabled.mockReturnValue(true);
     });
 
-    it('should replace navigation when non-OAuth login ', async () => {
+    it('replace navigation when non-OAuth login ', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -852,7 +864,7 @@ describe('Login test suite 2', () => {
     });
   });
 
-  describe('usePromptSeedlessRelogin hook integration', () => {
+  describe('usePromptSeedlessRelogin hook integration - non rehydrate flow', () => {
     beforeEach(() => {
       jest.clearAllMocks();
       mockPromptSeedlessRelogin.mockClear();
@@ -860,12 +872,12 @@ describe('Login test suite 2', () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
-          oauthLoginSuccess: true,
+          oauthLoginSuccess: false,
         },
       });
     });
 
-    it('should display loading state when isDeletingInProgress is true', async () => {
+    it('display loading state when isDeletingInProgress is true', async () => {
       mockIsDeletingInProgress.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -875,7 +887,7 @@ describe('Login test suite 2', () => {
       expect(loginButton.props.disabled).toBe(true);
     });
 
-    it('should call promptSeedlessRelogin when OAuth login fails with generic error', async () => {
+    it('call promptSeedlessRelogin when OAuth login fails with generic error', async () => {
       mockIsDeletingInProgress.mockReturnValue(false);
       mockIsEnabled.mockReturnValue(true);
 
@@ -899,7 +911,7 @@ describe('Login test suite 2', () => {
       expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
     });
 
-    it('should disable login button when isDeletingInProgress is true', async () => {
+    it('disable login button when isDeletingInProgress is true', async () => {
       mockIsDeletingInProgress.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<Login />);
@@ -914,18 +926,7 @@ describe('Login test suite 2', () => {
       expect(loginButton.props.disabled).toBe(true);
     });
 
-    it('should show loading state on other methods button when isDeletingInProgress is true', async () => {
-      mockIsDeletingInProgress.mockReturnValue(true);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const otherMethodsButton = getByTestId(
-        LoginViewSelectors.OTHER_METHODS_BUTTON,
-      );
-
-      expect(otherMethodsButton.props.disabled).toBe(true);
-    });
-
-    it('should handle SeedlessOnboardingControllerError PasswordRecentlyUpdated', async () => {
+    it('handle SeedlessOnboardingControllerError PasswordRecentlyUpdated', async () => {
       mockIsDeletingInProgress.mockReturnValue(false);
 
       const seedlessError = new SeedlessOnboardingControllerError(
@@ -953,12 +954,12 @@ describe('Login test suite 2', () => {
       );
     });
 
-    it('should not call promptSeedlessRelogin for non-OAuth login errors', async () => {
+    it('not call promptSeedlessRelogin for rehydrate flow', async () => {
       mockIsDeletingInProgress.mockReturnValue(false);
       mockRoute.mockReturnValue({
         params: {
           locked: false,
-          oauthLoginSuccess: false, // Non-OAuth login
+          oauthLoginSuccess: true, // rehydrate flow
         },
       });
 
@@ -985,7 +986,7 @@ describe('Login test suite 2', () => {
       expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
     });
 
-    it('should capture exception when metrics enabled and OAuth login fails', async () => {
+    it('capture exception when metrics enabled and OAuth login fails', async () => {
       mockIsDeletingInProgress.mockReturnValue(false);
       mockIsEnabled.mockReturnValue(true);
 
@@ -1009,7 +1010,7 @@ describe('Login test suite 2', () => {
       expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle finalLoading state correctly', async () => {
+    it('handle finalLoading state correctly', async () => {
       // Test when both loading and isDeletingInProgress are false
       mockIsDeletingInProgress.mockReturnValue(false);
 

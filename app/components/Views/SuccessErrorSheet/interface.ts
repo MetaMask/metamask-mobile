@@ -1,4 +1,7 @@
-import { IconName , IconColor } from '../../../component-library/components/Icons/Icon';
+import {
+  IconName,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
