@@ -119,8 +119,8 @@ export const createTradingViewChartTemplate = (
                         priceFormatter: (price) => {
                             // Format price with comma separators
                             return new Intl.NumberFormat('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
+                                minimumFractionDigits: 6,
+                                maximumFractionDigits: 6
                             }).format(price);
                         }
                     },
@@ -167,9 +167,25 @@ export const createTradingViewChartTemplate = (
                     },
                     rightPriceScale: {
                         borderColor: 'transparent',
+                        visible: true,
+                        autoScale: true,
+                        scaleMargins: {
+                            top: 0.1,
+                            bottom: 0.1,
+                        },
+                        alignLabels: true,
+                        textColor: '${theme.colors.text.muted}',
+                        // Force more granular display for small values
+                        entireTextOnly: false,
+                        mode: 0, // Normal mode
+                        invertScale: false,
+                        ticksVisible: true,
+                        // Ensure edge tick marks are visible for granular display
+                        ensureEdgeTickMarksVisible: true,
                     },
                     leftPriceScale: {
                         borderColor: 'transparent',
+                        visible: false, // Disable left scale to avoid conflicts
                     }
                 });
 
@@ -253,11 +269,11 @@ export const createTradingViewChartTemplate = (
                 priceLineWidth: 1,
                 lastValueVisible: true,
                 title: 'Current',
-                // Performance optimizations for smooth panning
+                // Configure price format for granular display
                 priceFormat: {
                     type: 'price',
-                    precision: 2,
-                    minMove: 0.01,
+                    precision: 6, // Allow up to 6 decimal places
+                    minMove: 0.000001, // Very small minimum move for precision
                 },
                 // Reduce visual updates during panning for better performance
                 crosshairMarkerVisible: true,
@@ -266,6 +282,72 @@ export const createTradingViewChartTemplate = (
                 crosshairMarkerBackgroundColor: '#FF7584',
             });
             return window.candlestickSeries;
+        };
+
+        // Function to adjust price scale granularity for small values
+        window.adjustPriceScaleGranularity = function() {
+            if (!window.chart || !window.candlestickSeries) return;
+            
+            try {
+                const data = window.candlestickSeries.data();
+                if (!data || data.length === 0) return;
+                
+                // Calculate price range
+                const prices = data.map(candle => [candle.value.open, candle.value.high, candle.value.low, candle.value.close]).flat();
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                const priceRange = maxPrice - minPrice;
+                
+                console.log('📊 TradingView: Price range analysis:', {
+                    min: minPrice,
+                    max: maxPrice,
+                    range: priceRange,
+                    isSmallRange: priceRange < 0.01
+                });
+                
+                const rightPriceScale = window.chart.priceScale('right');
+                if (rightPriceScale) {
+                    if (priceRange < 0.01) {
+                        // For very small ranges, use tighter margins and force granular display
+                        rightPriceScale.applyOptions({
+                            visible: true,
+                            autoScale: true,
+                            scaleMargins: {
+                                top: 0.05, // Smaller margins for tighter ranges
+                                bottom: 0.05,
+                            },
+                            alignLabels: true,
+                            textColor: '${theme.colors.text.muted}',
+                            entireTextOnly: false,
+                            mode: 0,
+                            invertScale: false,
+                            ticksVisible: true,
+                            ensureEdgeTickMarksVisible: true,
+                        });
+                        
+                        console.log('📊 TradingView: Applied granular price scale for small range');
+                    } else {
+                        // For normal ranges, use standard settings
+                        rightPriceScale.applyOptions({
+                            visible: true,
+                            autoScale: true,
+                            scaleMargins: {
+                                top: 0.1,
+                                bottom: 0.1,
+                            },
+                            alignLabels: true,
+                            textColor: '${theme.colors.text.muted}',
+                            entireTextOnly: false,
+                            mode: 0,
+                            invertScale: false,
+                            ticksVisible: true,
+                            ensureEdgeTickMarksVisible: true,
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('TradingView: Error adjusting price scale granularity:', error);
+            }
         };
         // Optimized resize handler with throttling
         let resizeTimeout;
@@ -489,6 +571,16 @@ export const createTradingViewChartTemplate = (
                                     window.applyZoom(window.visibleCandleCount, true);
                                     console.log('📊 TradingView: Applied initial zoom to', window.visibleCandleCount, 'candles');
                                 }
+                                
+                                // Adjust price scale granularity for small values
+                                setTimeout(() => {
+                                    window.adjustPriceScaleGranularity();
+                                }, 100);
+
+                                // Additional adjustment after chart settles
+                                setTimeout(() => {
+                                    window.adjustPriceScaleGranularity();
+                                }, 500);
                                 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
