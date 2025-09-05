@@ -689,12 +689,6 @@ const MultichainAccountDetailsActions = () => {
         options={commonScreenOptions}
       />
       <Stack.Screen
-        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
-        component={LegacyMultichainEditAccountName}
-        initialParams={route?.params}
-        options={commonScreenOptions}
-      />
-      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS}
         component={ShareAddress}
         initialParams={route?.params}
