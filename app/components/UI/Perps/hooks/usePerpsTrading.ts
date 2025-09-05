@@ -2,12 +2,9 @@ import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import type {
   AccountState,
-  AssetRoute,
   CancelOrderParams,
   CancelOrderResult,
   ClosePositionParams,
-  DepositParams,
-  DepositResult,
   FeeCalculationParams,
   FeeCalculationResult,
   GetAccountStateParams,
@@ -105,22 +102,16 @@ export function usePerpsTrading() {
     [],
   );
 
-  const deposit = useCallback(
-    async (params: DepositParams): Promise<DepositResult> => {
-      const controller = Engine.context.PerpsController;
-      return controller.deposit(params);
-    },
-    [],
-  );
-
-  const getDepositRoutes = useCallback((): AssetRoute[] => {
+  const depositWithConfirmation = useCallback(async (): Promise<{
+    result: Promise<string>;
+  }> => {
     const controller = Engine.context.PerpsController;
-    return controller.getDepositRoutes();
+    return controller.depositWithConfirmation();
   }, []);
 
-  const resetDepositState = useCallback((): void => {
+  const clearDepositResult = useCallback((): void => {
     const controller = Engine.context.PerpsController;
-    controller.resetDepositState();
+    controller.clearDepositResult();
   }, []);
 
   const withdraw = useCallback(
@@ -232,9 +223,8 @@ export function usePerpsTrading() {
     subscribeToPrices,
     subscribeToPositions,
     subscribeToOrderFills,
-    deposit,
-    getDepositRoutes,
-    resetDepositState,
+    depositWithConfirmation,
+    clearDepositResult,
     withdraw,
     calculateLiquidationPrice,
     calculateMaintenanceMargin,

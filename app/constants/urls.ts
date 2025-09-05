@@ -80,6 +80,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
+// WalletConnect
+export const MM_WALLETCONNECT_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/wc?`;
+
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
@@ -102,6 +105,3 @@ export const ETHEREUM_LOGO =
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
   'https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings';
-
-export const SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE =
-  'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts';

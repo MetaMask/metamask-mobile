@@ -334,7 +334,6 @@ exports[`AddAsset component renders collectible view correctly 1`] = `
               activeOpacity={1}
               disabled={true}
               loading={false}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
@@ -445,7 +444,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                     }
                   }
                 >
-                  Ethereum Main Network
+                  Ethereum Mainnet
                 </Text>
               </TouchableOpacity>
               <View
@@ -474,7 +473,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source="ethereum"
                     style={
                       {
                         "height": 24,
@@ -668,7 +667,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
           accessible={true}
           activeOpacity={1}
           disabled={true}
-          onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
           style={
@@ -933,7 +931,6 @@ exports[`AddAsset component renders token view correctly 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={true}
-        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

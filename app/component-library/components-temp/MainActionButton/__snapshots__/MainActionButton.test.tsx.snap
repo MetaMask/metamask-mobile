@@ -51,7 +51,7 @@ exports[`MainActionButton should render correctly 1`] = `
           "borderRadius": 12,
           "justifyContent": "center",
           "opacity": 1,
-          "paddingHorizontal": 8,
+          "paddingHorizontal": 4,
           "paddingVertical": 16,
         },
         false,
@@ -82,6 +82,7 @@ exports[`MainActionButton should render correctly 1`] = `
       />
       <Text
         accessibilityRole="text"
+        numberOfLines={1}
         style={
           {
             "color": "#121314",

@@ -15,6 +15,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'AssetsContractController',
   'ExecutionService',
   'NftDetectionController',
+  'RewardsDataService',
   'TokenDetectionController',
   'WebSocketService',
   'MultichainAccountService',
@@ -73,8 +74,10 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'PerpsController:stateChange',
+  'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
   'SeedlessOnboardingController:stateChange',
+  'NetworkEnablementController:stateChange',
 ] as const;
 
 export const swapsSupportedChainIds = [

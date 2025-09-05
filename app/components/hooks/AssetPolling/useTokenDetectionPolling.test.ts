@@ -53,20 +53,48 @@ describe('useTokenDetectionPolling', () => {
                   networkClientId: 'selectedNetworkClientId',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x5': {
+              chainId: '0x5',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
             },
           },
         },
         MultichainNetworkController: {
           isEvmSelected: true,
           selectedMultichainNetworkChainId: SolScope.Mainnet,
-
           multichainNetworkConfigurationsByChainId: {},
+        },
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: {
+              '0x1': true,
+              '0x89': true,
+            },
+          },
         },
       },
     },
   } as unknown as RootState;
 
   it('Should poll by current chain ids/address, and stop polling on dismount', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     const { unmount } = renderHookWithProvider(
       () => useTokenDetectionPolling(),
       { state },
@@ -94,6 +122,8 @@ describe('useTokenDetectionPolling', () => {
   });
 
   it('Should not poll when token detection is disabled', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     renderHookWithProvider(
       () => useTokenDetectionPolling({ chainIds: ['0x1'] }),
       {
@@ -125,6 +155,8 @@ describe('useTokenDetectionPolling', () => {
   });
 
   it('Should not poll when evm is not selected', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     renderHookWithProvider(() => useTokenDetectionPolling(), {
       state: {
         ...state,
@@ -172,6 +204,14 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
+                  },
+                },
+              },
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  eip155: {
+                    '0x5': true,
                   },
                 },
               },
@@ -222,6 +262,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                   '0x89': {
                     chainId: '0x89',
@@ -230,6 +271,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'otherNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -258,6 +300,8 @@ describe('useTokenDetectionPolling', () => {
   });
 
   it('Should handle missing account address gracefully', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     const { unmount } = renderHookWithProvider(
       () => useTokenDetectionPolling(),
       {
@@ -287,21 +331,17 @@ describe('useTokenDetectionPolling', () => {
       Engine.context.TokenDetectionController,
     );
 
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
-      1,
-    );
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
-      chainIds: [selectedChainId],
-      address: undefined,
-    });
+    expect(mockedTokenDetectionController.startPolling).not.toHaveBeenCalled();
 
     unmount();
     expect(
       mockedTokenDetectionController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
+    ).not.toHaveBeenCalled();
   });
 
   it('should poll only for current network if selected one is not popular', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     const { unmount } = renderHookWithProvider(
       () => useTokenDetectionPolling(),
       {
@@ -316,7 +356,7 @@ describe('useTokenDetectionPolling', () => {
                   selectedAccount: '1',
                   accounts: {
                     '1': {
-                      address: undefined,
+                      address: '0xAcconut1',
                     },
                   },
                 },
@@ -331,6 +371,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -349,7 +390,7 @@ describe('useTokenDetectionPolling', () => {
     );
     expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
       chainIds: ['0x82750'],
-      address: undefined,
+      address: '0xAcconut1',
     });
 
     unmount();
@@ -359,6 +400,8 @@ describe('useTokenDetectionPolling', () => {
   });
 
   it('polls with provided chain ids and address', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
     const providedAddress = '0x1234567890abcdef';
     renderHookWithProvider(
       () =>
@@ -382,5 +425,192 @@ describe('useTokenDetectionPolling', () => {
         address: providedAddress,
       },
     );
+  });
+
+  describe('Feature flag scenarios', () => {
+    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const { unmount } = renderHookWithProvider(
+        () => useTokenDetectionPolling(),
+        {
+          state,
+        },
+      );
+
+      const mockedTokenDetectionController = jest.mocked(
+        Engine.context.TokenDetectionController,
+      );
+
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+        1,
+      );
+      // we will poll all popular evm networks, custom evm networks are not group polled
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+        chainIds: ['0x1', '0x89'],
+        address: selectedAddress,
+      });
+
+      unmount();
+      expect(
+        mockedTokenDetectionController.stopPollingByPollingToken,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('should poll current chain when portfolio view is disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
+      const { unmount } = renderHookWithProvider(
+        () => useTokenDetectionPolling(),
+        {
+          state,
+        },
+      );
+
+      const mockedTokenDetectionController = jest.mocked(
+        Engine.context.TokenDetectionController,
+      );
+
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+        chainIds: [selectedChainId],
+        address: selectedAddress,
+      });
+
+      unmount();
+      expect(
+        mockedTokenDetectionController.stopPollingByPollingToken,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('should poll popular networks when all networks selected and global selector enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(false);
+
+      // Use chain IDs that are actually in PopularList: Ethereum Mainnet (0x1), Polygon (0x89), Optimism (0xa)
+      const popularNetworks = ['0x1', '0x89', '0xa'];
+      const stateWithPopularNetworks = {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            NetworkController: {
+              ...state.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1' as const,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'selectedNetworkClientId',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                },
+                '0x89': {
+                  chainId: '0x89' as const,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'selectedNetworkClientId',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                },
+                '0xa': {
+                  chainId: '0xa' as const,
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'selectedNetworkClientId',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                },
+              },
+            },
+            PreferencesController: {
+              ...state.engine.backgroundState.PreferencesController,
+              tokenNetworkFilter: {
+                '0x1': 'true',
+                '0x89': 'true',
+                '0xa': 'true',
+              },
+            },
+          },
+        },
+      };
+
+      const { unmount } = renderHookWithProvider(
+        () => useTokenDetectionPolling(),
+        {
+          state: stateWithPopularNetworks,
+        },
+      );
+
+      const mockedTokenDetectionController = jest.mocked(
+        Engine.context.TokenDetectionController,
+      );
+
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+        chainIds: popularNetworks,
+        address: selectedAddress,
+      });
+
+      unmount();
+      expect(
+        mockedTokenDetectionController.stopPollingByPollingToken,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle empty enabled networks gracefully', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const stateWithEmptyNetworks = {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {},
+              },
+            },
+          },
+        },
+      };
+
+      const { unmount } = renderHookWithProvider(
+        () => useTokenDetectionPolling(),
+        {
+          state: stateWithEmptyNetworks,
+        },
+      );
+
+      const mockedTokenDetectionController = jest.mocked(
+        Engine.context.TokenDetectionController,
+      );
+
+      expect(
+        mockedTokenDetectionController.startPolling,
+      ).not.toHaveBeenCalled();
+
+      unmount();
+      expect(
+        mockedTokenDetectionController.stopPollingByPollingToken,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

@@ -7,30 +7,22 @@ import { loginToApp } from '../../viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
-  mockNotificationServices,
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { Mockttp } from 'mockttp';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
-  let mockServer: Mockttp;
-
   beforeAll(async () => {
     jest.setTimeout(170000);
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer([], mockServerPort);
-    await mockNotificationServices(mockServer);
   });
 
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
+    // Notification mocks are now enabled by default inside the fixture helper
+    // since they're turned on by default
     await withFixtures(
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
         permissions: {
           notifications: 'YES',
         },
@@ -45,6 +37,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           NotificationMenuView.selectNotificationItem(
             getMockFeatureAnnouncementItemId(),
           ),
+          {
+            description: 'Feature Announcement Item',
+          },
         );
 
         // Feature Annonucement Details
@@ -53,6 +48,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,
+          {
+            description: 'Feature Announcement Details',
+          },
         );
         await NotificationDetailsView.tapOnBackButton();
 
@@ -67,6 +65,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           );
           await Assertions.expectElementToBeVisible(
             NotificationDetailsView.title,
+            {
+              description: 'Wallet Announcement Details',
+            },
           );
           await NotificationDetailsView.tapOnBackButton();
         }

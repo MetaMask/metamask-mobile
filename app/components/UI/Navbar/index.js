@@ -4,6 +4,7 @@ import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import {
+  Alert,
   Image,
   Platform,
   StyleSheet,
@@ -17,7 +18,10 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
+import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import Device from '../../../util/device';
@@ -43,7 +47,10 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -66,6 +73,7 @@ import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import CardButton from '../Card/components/CardButton';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -549,6 +557,9 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
+  disableNetwork = true,
+  showSelectedNetwork = false,
+  globalChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -586,7 +597,20 @@ export function getSendFlowTitle(
   const titleToRender = title;
 
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? showSelectedNetwork
+            : undefined
+        }
+        networkName={
+          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
+        }
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -940,6 +964,8 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholder = false,
+  isRewardsEnabled = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -982,6 +1008,61 @@ export function getWalletNavbarOptions(
     },
   });
 
+  const onScanSuccess = (data, content) => {
+    if (data.private_key) {
+      Alert.alert(
+        strings('wallet.private_key_detected'),
+        strings('wallet.do_you_want_to_import_this_account'),
+        [
+          {
+            text: strings('wallet.cancel'),
+            onPress: () => false,
+            style: 'cancel',
+          },
+          {
+            text: strings('wallet.yes'),
+            onPress: async () => {
+              try {
+                await importAccountFromPrivateKey(data.private_key);
+                navigation.navigate('ImportPrivateKeyView', {
+                  screen: 'ImportPrivateKeySuccess',
+                });
+              } catch (e) {
+                Alert.alert(
+                  strings('import_private_key.error_title'),
+                  strings('import_private_key.error_message'),
+                );
+              }
+            },
+          },
+        ],
+        { cancelable: false },
+      );
+    } else if (data.seed) {
+      Alert.alert(
+        strings('wallet.error'),
+        strings('wallet.logout_to_import_seed'),
+      );
+    } else {
+      setTimeout(() => {
+        DeeplinkManager.parse(content, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+        });
+      }, 500);
+    }
+  };
+
+  function openQRScanner() {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess,
+    });
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_QR_SCANNER,
+      ).build(),
+    );
+  }
+
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -1012,84 +1093,128 @@ export function getWalletNavbarOptions(
 
   const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
-  // Action buttons for right side
-  const actionButtons = (
-    <View style={innerStyles.actionButtonsContainer}>
-      <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-        <AddressCopy
-          account={selectedInternalAccount}
-          hitSlop={innerStyles.touchAreaSlop}
-        />
-      </View>
-      {isNotificationsFeatureEnabled() && (
-        <BadgeWrapper
-          position={BadgeWrapperPosition.TopRight}
-          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-          badge={
-            isNotificationEnabled && unreadNotificationCount > 0 ? (
-              <BadgeStatus status={BadgeStatusStatus.Active} />
-            ) : null
-          }
-        >
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.Default }}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={ButtonIconSize.Lg}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        </BadgeWrapper>
-      )}
-    </View>
-  );
+  const handleHamburgerPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+      ).build(),
+    );
+    navigation.navigate(Routes.SETTINGS_VIEW);
+  };
 
-  // Account picker component
-  const accountPicker = (
-    <PickerAccount
-      ref={accountActionsRef}
-      accountName={accountName}
-      onPress={() => {
-        trace({
-          name: TraceName.AccountList,
-          tags: getTraceTags(store.getState()),
-          op: TraceOperation.AccountList,
-        });
-        navigation.navigate(...createAccountSelectorNavDetails({}));
-      }}
-      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-      hitSlop={innerStyles.touchAreaSlop}
-    />
-  );
-
-  // Network picker component
-  const networkPicker = (
-    <PickerNetwork
-      onPress={onPressTitle}
-      label={networkName}
-      imageSource={networkImageSource}
-      testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-      hideNetworkName
-      hitSlop={innerStyles.touchAreaSlop}
-      style={innerStyles.networkPickerStyle}
-    />
-  );
+  const handleCardPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  };
 
   return {
     header: () => (
       <HeaderBase
         includesTopInset
+        variant={
+          isFeatureFlagEnabled
+            ? HeaderBaseVariant.Display
+            : HeaderBaseVariant.Compact
+        }
         style={innerStyles.headerContainer}
         startAccessory={
-          <View style={innerStyles.startAccessoryContainer}>
-            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
-          </View>
+          !isFeatureFlagEnabled && (
+            <View style={innerStyles.startAccessoryContainer}>
+              <PickerNetwork
+                onPress={onPressTitle}
+                label={networkName}
+                imageSource={networkImageSource}
+                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                hideNetworkName
+                hitSlop={innerStyles.touchAreaSlop}
+                style={innerStyles.networkPickerStyle}
+              />
+            </View>
+          )
         }
         endAccessory={
-          <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
+          <View style={innerStyles.endAccessoryContainer}>
+            {
+              <View style={innerStyles.actionButtonsContainer}>
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                </View>
+                {isCardholder ? (
+                  <CardButton
+                    onPress={handleCardPress}
+                    touchAreaSlop={innerStyles.touchAreaSlop}
+                  />
+                ) : null}
+                <ButtonIcon
+                  iconProps={{ color: MMDSIconColor.Default }}
+                  onPress={openQRScanner}
+                  iconName={IconName.QrCode}
+                  size={ButtonIconSize.Lg}
+                  testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                  hitSlop={innerStyles.touchAreaSlop}
+                />
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={ButtonIconSize.Lg}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                )}
+                {isRewardsEnabled && (
+                  <ButtonIcon
+                    iconProps={{ color: MMDSIconColor.Default }}
+                    onPress={handleHamburgerPress}
+                    iconName={IconName.Menu}
+                    size={ButtonIconSize.Lg}
+                    testID="navbar-hamburger-menu-button"
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                )}
+              </View>
+            }
+          </View>
         }
       >
-        {!isFeatureFlagEnabled ? accountPicker : null}
+        <PickerAccount
+          ref={accountActionsRef}
+          accountName={accountName}
+          onPress={() => {
+            trace({
+              name: TraceName.AccountList,
+              tags: getTraceTags(store.getState()),
+              op: TraceOperation.AccountList,
+            });
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
       </HeaderBase>
     ),
   };
@@ -1614,7 +1739,12 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? 'Swap';
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork
+        translate={false}
+        showSelectedNetwork={!isRemoveGlobalNetworkSelectorEnabled()}
+      />
     ),
     headerLeft: () => <View />,
     headerRight: () => (
@@ -1812,16 +1942,20 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
 
 export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   const innerStyles = StyleSheet.create({
-    perpsTransactionsBackButton: {
-      marginTop: 0,
-    },
     perpsTransactionsTitle: {
       fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
+    },
+    rightSpacer: {
+      width: 48, // Same width as the back button to balance the header
     },
   });
-  const leftAction = () => navigation.pop();
+  // Go back to transaction history view
+  const leftAction = () => navigation.goBack();
 
   return {
+    headerTitleAlign: 'center',
     headerTitle: () => (
       <NavbarTitle
         style={innerStyles.perpsTransactionsTitle}
@@ -1833,12 +1967,44 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       />
     ),
     headerLeft: () => (
-      <TouchableOpacity
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
-      >
-        <Icon name={IconName.Arrow2Left} />
-      </TouchableOpacity>
+        size={ButtonIconSize.Lg}
+      />
+    ),
+    headerRight: () => <View style={innerStyles.rightSpacer} />,
+  };
+}
+
+export function getPerpsMarketDetailsNavbar(navigation, title) {
+  const innerStyles = StyleSheet.create({
+    perpsMarketDetailsTitle: {
+      fontWeight: '700',
+      textAlign: 'center',
+      flex: 1,
+    },
+  });
+  // Always navigate back to markets page for consistent navigation
+  const leftAction = () => navigation.navigate(Routes.PERPS.MARKETS);
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        style={innerStyles.perpsMarketDetailsTitle}
+        variant={TextVariant.HeadingMD}
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <ButtonIcon
+        iconName={IconName.Arrow2Left}
+        onPress={leftAction}
+        size={ButtonIconSize.Lg}
+      />
     ),
   };
 }
@@ -1924,7 +2090,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = 'Buy', showBack = true, showCancel = true } = {},
+  { title, showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1953,9 +2119,17 @@ export function getFiatOnRampAggNavbar(
 
   const navigationCancelText = strings('navigation.cancel');
 
+  const disableNetwork = !showNetwork;
+  const showSelectedNetwork = showNetwork;
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+        translate={false}
+      />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;
@@ -2046,7 +2220,14 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
   });
   return {
     headerLeft: null,
-    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
+    headerTitle: () => (
+      <MorphText
+        variant={TextVariant.HeadingMD}
+        testID={SettingsViewSelectorsIDs.SETTINGS_HEADER}
+      >
+        {title}
+      </MorphText>
+    ),
     ...innerStyles,
   };
 };

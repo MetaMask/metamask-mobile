@@ -62,6 +62,10 @@ class WalletView {
     );
   }
 
+  get navbarCardButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -193,6 +197,12 @@ class WalletView {
     await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
+  async tapNavbarCardButton(): Promise<void> {
+    await Gestures.waitAndTap(this.navbarCardButton, {
+      elemDescription: 'Card Button on Navbar',
+    });
+  }
+
   async tapNftTab(): Promise<void> {
     await Gestures.waitAndTap(this.nftTab);
   }
@@ -219,6 +229,15 @@ class WalletView {
     await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
       speed: 'fast',
       percentage: 0.7,
+    });
+  }
+
+  async pullToRefreshTokensList(): Promise<void> {
+    const tokensContainer = await this.getTokensInWallet();
+    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
+      speed: 'slow',
+      percentage: 0.8,
+      elemDescription: 'pull to refresh tokens list',
     });
   }
 
@@ -486,8 +505,8 @@ class WalletView {
   }
 
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  get walletFundButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_FUND_BUTTON);
   }
 
   get walletSwapButton(): DetoxElement {
@@ -508,9 +527,9 @@ class WalletView {
     );
   }
 
-  async tapWalletBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBuyButton, {
-      elemDescription: 'Wallet Buy Button',
+  async tapWalletFundButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletFundButton, {
+      elemDescription: 'Wallet Fund Button',
     });
   }
 

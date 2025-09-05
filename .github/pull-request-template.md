@@ -35,8 +35,10 @@ Fixes:
 
 ```gherkin
 Feature: my feature name
+
   Scenario: user [verb for user action]
-    Given [describe expected initial app state] 
+    Given [describe expected initial app state]
+
     When user [verb for user action]
     Then [describe expected outcome]
 ```

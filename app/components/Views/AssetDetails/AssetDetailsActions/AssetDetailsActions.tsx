@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
@@ -8,19 +9,26 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
+import Routes from '../../../../constants/navigation/Routes';
+import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 
 export interface AssetDetailsActionsProps {
-  displayBuyButton: boolean | undefined;
+  displayFundButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
-  onBuy: () => void;
+  onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
+  // Asset context for fund flow
+  asset?: {
+    address?: string;
+    chainId?: string;
+  };
   // Optional custom action IDs to avoid test ID conflicts
-  buyButtonActionID?: string;
+  fundButtonActionID?: string;
   swapButtonActionID?: string;
   bridgeButtonActionID?: string;
   sendButtonActionID?: string;
@@ -28,7 +36,7 @@ export interface AssetDetailsActionsProps {
 }
 
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
-  displayBuyButton,
+  displayFundButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -37,7 +45,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   goToBridge,
   onSend,
   onReceive,
-  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
+  asset,
+  fundButtonActionID = TokenOverviewSelectorsIDs.FUND_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
@@ -45,17 +54,38 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { navigate } = useNavigation();
+
+  // Check if FundActionMenu would be empty
+  const { isDepositEnabled } = useDepositEnabled();
+  const isFundMenuAvailable = isDepositEnabled || true;
+
+  // Button should be enabled if we have standard funding options OR a custom onBuy function
+  const isFundingAvailable = isFundMenuAvailable || !!onBuy;
+
+  const handleFundPress = () => {
+    // Navigate to FundActionMenu with both custom onBuy and asset context
+    // The menu will prioritize custom onBuy over standard funding options
+    // This allows custom funding flows even when deposit/ramp are unavailable
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+      params: {
+        onBuy, // Custom buy function (takes priority if provided)
+        asset, // Asset context for standard funding flows
+      },
+    });
+  };
 
   return (
     <View style={styles.activitiesButton}>
-      {displayBuyButton && (
+      {displayFundButton && (
         <View style={styles.buttonContainer}>
           <MainActionButton
-            iconName={IconName.Add}
-            label={strings('asset_overview.buy_button')}
-            onPress={onBuy}
-            isDisabled={!canSignTransactions}
-            testID={buyButtonActionID}
+            iconName={IconName.Money}
+            label={strings('asset_overview.fund_button')}
+            onPress={handleFundPress}
+            isDisabled={!isFundingAvailable}
+            testID={fundButtonActionID}
           />
         </View>
       )}

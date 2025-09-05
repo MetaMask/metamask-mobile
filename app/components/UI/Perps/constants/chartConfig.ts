@@ -5,6 +5,7 @@ import { Colors } from '../../../../util/theme/models';
  * Provides type safety and prevents typos when referencing candle periods
  */
 export enum CandlePeriod {
+  ONE_MINUTE = '1m',
   THREE_MINUTES = '3m',
   FIVE_MINUTES = '5m',
   FIFTEEN_MINUTES = '15m',
@@ -61,11 +62,20 @@ export const PERPS_CHART_CONFIG = {
     MINOR: 0.6,
   },
   INTERVAL_SELECTOR_OPACITY: 0.7,
-  GRID_LINE_COUNT: 6,
+  GRID_LINE_COUNT: 4, // Reduced for better distinctiveness with smaller datasets
   PADDING: {
     HORIZONTAL: 24, // Account for horizontal padding
     VERTICAL: 120, // Account for labels and padding
   },
+  // Chart zoom configuration
+  CANDLE_COUNT: {
+    MIN: 10, // Minimum candles to display (zoomed in)
+    DEFAULT: 45, // Default candles to display
+    MAX: 250, // Maximum candles to display (zoomed out)
+    TOTAL: 2000, // Total candles to load in memory
+  },
+  // Default candle period settings
+  DEFAULT_CANDLE_PERIOD: CandlePeriod.THREE_MINUTES,
 } as const;
 
 /**
@@ -102,11 +112,12 @@ export const TIME_DURATIONS = [
 export const DURATION_CANDLE_PERIODS = {
   [TimeDuration.ONE_HOUR]: {
     periods: [
+      { label: '1min', value: CandlePeriod.ONE_MINUTE }, // 60 candles
       { label: '3min', value: CandlePeriod.THREE_MINUTES }, // 20 candles
       { label: '5min', value: CandlePeriod.FIVE_MINUTES }, // 12 candles
       { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 4 candles
     ],
-    default: CandlePeriod.THREE_MINUTES, // Good detail for 1 hour view
+    default: CandlePeriod.ONE_MINUTE, // 1-minute candles for development/testing
   },
   [TimeDuration.ONE_DAY]: {
     periods: [
@@ -151,32 +162,34 @@ export const DURATION_CANDLE_PERIODS = {
   },
 } as const;
 
-/**
- * Legacy: All available candle periods (for backward compatibility)
- * @deprecated Use DURATION_CANDLE_PERIODS instead
- * Only includes API-supported intervals
- */
 export const CANDLE_PERIODS = [
-  { label: '3min', value: CandlePeriod.THREE_MINUTES },
-  { label: '5min', value: CandlePeriod.FIVE_MINUTES },
-  { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
-  { label: '30min', value: CandlePeriod.THIRTY_MINUTES },
+  { label: '1m', value: CandlePeriod.ONE_MINUTE },
+  { label: '3m', value: CandlePeriod.THREE_MINUTES },
+  { label: '5m', value: CandlePeriod.FIVE_MINUTES },
+  { label: '15m', value: CandlePeriod.FIFTEEN_MINUTES },
+  { label: '30m', value: CandlePeriod.THIRTY_MINUTES },
   { label: '1h', value: CandlePeriod.ONE_HOUR },
   { label: '2h', value: CandlePeriod.TWO_HOURS },
   { label: '4h', value: CandlePeriod.FOUR_HOURS },
   { label: '8h', value: CandlePeriod.EIGHT_HOURS },
   { label: '12h', value: CandlePeriod.TWELVE_HOURS },
-  { label: '1D', value: CandlePeriod.ONE_DAY },
-  { label: '3D', value: CandlePeriod.THREE_DAYS },
-  { label: '1W', value: CandlePeriod.ONE_WEEK },
-  { label: '1M', value: CandlePeriod.ONE_MONTH },
+  { label: '1d', value: CandlePeriod.ONE_DAY },
+  { label: '2d', value: CandlePeriod.THREE_DAYS },
+  { label: '7d', value: CandlePeriod.ONE_WEEK },
+  { label: '30d', value: CandlePeriod.ONE_MONTH },
 ] as const;
 
 /**
  * Get available candle periods for a specific duration
  */
-export const getCandlePeriodsForDuration = (duration: TimeDuration | string) =>
-  DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+export const getCandlePeriodsForDuration = (
+  duration: TimeDuration | string,
+) => {
+  const periods =
+    DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+
+  return periods;
+};
 
 /**
  * Get the default candle period for a specific duration
@@ -206,6 +219,8 @@ export const calculateCandleCount = (
   // Convert candle period to minutes
   const periodInMinutes = (() => {
     switch (candlePeriod) {
+      case CandlePeriod.ONE_MINUTE:
+        return 1;
       case CandlePeriod.THREE_MINUTES:
         return 3;
       case CandlePeriod.FIVE_MINUTES:
@@ -260,7 +275,10 @@ export const calculateCandleCount = (
   // Calculate number of candles needed
   const candleCount = Math.ceil(durationInMinutes / periodInMinutes);
 
-  // Cap at mobile-friendly limits for better UX and performance
-  // Target: 10-100 candles for optimal mobile chart readability
-  return Math.min(Math.max(candleCount, 10), 100);
+  // Cap at 2000 candles max for memory management
+  // Allow minimum of 10 candles for basic functionality
+  return Math.min(
+    Math.max(candleCount, 10),
+    PERPS_CHART_CONFIG.CANDLE_COUNT.TOTAL,
+  );
 };

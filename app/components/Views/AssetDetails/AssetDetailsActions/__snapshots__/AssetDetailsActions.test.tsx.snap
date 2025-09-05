@@ -36,7 +36,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           {
             "busy": undefined,
             "checked": undefined,
-            "disabled": true,
+            "disabled": false,
             "expanded": undefined,
             "selected": undefined,
           }
@@ -68,14 +68,14 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "opacity": 0.5,
-              "paddingHorizontal": 8,
+              "opacity": 1,
+              "paddingHorizontal": 4,
               "paddingVertical": 16,
             },
             false,
           ]
         }
-        testID="token-buy-button"
+        testID="token-fund-button"
       >
         <View
           style={
@@ -89,7 +89,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             color="#686e7d"
             fill="currentColor"
             height={20}
-            name="Add"
+            name="Money"
             style={
               {
                 "height": 20,
@@ -100,6 +100,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#121314",
@@ -112,7 +113,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               }
             }
           >
-            Buy
+            Fund
           </Text>
         </View>
       </View>
@@ -175,7 +176,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "borderRadius": 12,
               "justifyContent": "center",
               "opacity": 0.5,
-              "paddingHorizontal": 8,
+              "paddingHorizontal": 4,
               "paddingVertical": 16,
             },
             false,
@@ -206,6 +207,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#121314",
@@ -281,7 +283,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "borderRadius": 12,
               "justifyContent": "center",
               "opacity": 0.5,
-              "paddingHorizontal": 8,
+              "paddingHorizontal": 4,
               "paddingVertical": 16,
             },
             false,
@@ -312,6 +314,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#121314",
@@ -387,7 +390,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "borderRadius": 12,
               "justifyContent": "center",
               "opacity": 0.5,
-              "paddingHorizontal": 8,
+              "paddingHorizontal": 4,
               "paddingVertical": 16,
             },
             false,
@@ -418,6 +421,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#121314",
@@ -493,7 +497,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "borderRadius": 12,
               "justifyContent": "center",
               "opacity": 1,
-              "paddingHorizontal": 8,
+              "paddingHorizontal": 4,
               "paddingVertical": 16,
             },
             false,
@@ -524,6 +528,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
           />
           <Text
             accessibilityRole="text"
+            numberOfLines={1}
             style={
               {
                 "color": "#121314",

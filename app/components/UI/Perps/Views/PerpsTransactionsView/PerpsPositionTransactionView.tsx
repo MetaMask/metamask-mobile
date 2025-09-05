@@ -19,7 +19,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
@@ -31,7 +31,6 @@ import {
 } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
-  formatPnl,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
@@ -40,7 +39,9 @@ const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedInternalAccount = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:1');
   const { getExplorerUrl } = usePerpsBlockExplorerUrl();
 
   // Get transaction from route params
@@ -87,11 +88,17 @@ const PerpsPositionTransactionView: React.FC = () => {
     },
     transaction.fill?.amount && {
       label: strings('perps.transactions.position.size'),
-      value: `${formatPerpsFiat(Math.abs(transaction.fill?.amountNumber))}`,
+      value: `${formatPerpsFiat(
+        Math.abs(
+          BigNumber(transaction.fill?.size || '0')
+            .times(transaction.fill?.entryPrice || '0')
+            .toNumber(),
+        ),
+      )}`,
     },
     transaction.fill?.entryPrice && {
       label: strings('perps.transactions.position.entry_price'),
-      value: `${formatPerpsFiat(transaction.fill?.entryPrice)}`,
+      value: `${formatPerpsFiat(transaction.fill?.entryPrice || '0')}`,
     },
   ].filter(Boolean);
 
@@ -101,49 +108,33 @@ const PerpsPositionTransactionView: React.FC = () => {
       label: strings('perps.transactions.position.fees'),
       value: `${
         BigNumber(transaction.fill?.fee).isGreaterThan(0.01)
-          ? formatPerpsFiat(transaction.fill?.fee)
-          : `$${transaction.fill?.fee}`
+          ? formatPerpsFiat(transaction.fill?.fee || '0')
+          : `$${transaction.fill?.fee || '0'}`
       }`,
       textColor: TextColor.Default,
     },
   ].filter(Boolean);
 
   if (transaction.fill?.pnl && transaction.fill?.action === 'Closed') {
-    const pnlValue = BigNumber(transaction.fill?.pnl);
+    const pnlValue = BigNumber(transaction.fill?.amountNumber || 0);
     const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
-    const absValue = Math.abs(parseFloat(transaction.fill?.pnl));
-
-    // Determine the formatted value based on amount and sign
-    let formattedValue: string;
-
-    if (isPositive) {
-      // Positive PnL
-      if (pnlValue.isGreaterThan(0.01)) {
-        formattedValue = formatPnl(transaction.fill?.pnl);
-      } else {
-        formattedValue = `+$${transaction.fill?.pnl}`;
-      }
-    } else if (pnlValue.isLessThan(-0.01)) {
-      formattedValue = formatPnl(transaction.fill?.pnl);
-    } else {
-      formattedValue = `-$${absValue}`;
-    }
 
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: formattedValue,
+      value: transaction.fill?.amount || '0',
       textColor: isPositive ? TextColor.Success : TextColor.Error,
     });
   }
 
-  // Points or Net P&L row - only show if values exist
-  if (transaction.fill?.points) {
-    secondaryDetailRows.push({
-      label: strings('perps.transactions.position.points'),
-      value: `+${transaction.fill?.points}`,
-      textColor: TextColor.Success,
-    });
-  }
+  // Points feature not activated yet - commented out
+  // TODO: Uncomment when points feature is enabled
+  // if (transaction.fill?.points) {
+  //   secondaryDetailRows.push({
+  //     label: strings('perps.transactions.position.points'),
+  //     value: `+${transaction.fill?.points}`,
+  //     textColor: TextColor.Success,
+  //   });
+  // }
 
   return (
     <ScreenView>

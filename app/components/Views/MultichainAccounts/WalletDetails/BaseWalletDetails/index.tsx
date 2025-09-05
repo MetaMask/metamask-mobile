@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -22,19 +22,31 @@ import {
 } from '../../../../UI/Box/box.types';
 import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  AccountWalletObject,
+  AccountGroupObject,
+} from '@metamask/account-tree-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+
+// Type for combined account data that includes the add account item
+type AccountListItem = InternalAccount | { type: 'add-account' };
+type AccountGroupListItem = AccountGroupObject | { type: 'add-account' };
 import { useWalletBalances } from '../hooks/useWalletBalances';
-import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
-import WalletAddAccountActions from './components/WalletAddAccountActions';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
+import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
+import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountItem from './components/AccountItem';
 import AddAccountItem from './components/AddAccountItem';
-import { FlashList } from '@shopify/flash-list';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+import { RootState } from '../../../../../reducers';
+import Logger from '../../../../../util/Logger';
+import Engine from '../../../../../core/Engine';
+import WalletAddAccountActions from './components/WalletAddAccountActions';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -48,28 +60,47 @@ export const BaseWalletDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
+  const [isLoading, setIsLoading] = useState(false);
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const accountGroupsFlashListRef =
+    useRef<FlashListRef<AccountGroupListItem> | null>(null);
+  const accountsFlashListRef = useRef<FlashListRef<AccountListItem> | null>(
+    null,
+  );
+
+  const { accounts, keyringId, isSRPBackedUp } = useWalletInfo(wallet);
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const accountGroups = useMemo(
+    () =>
+      accountGroupsByWallet.find((section) => section.wallet.id === wallet.id)
+        ?.data ?? [],
+    [accountGroupsByWallet, wallet.id],
+  );
+
+  // Combined data arrays that include the add account item as the last element
+  const accountGroupsWithAddItem = useMemo(() => {
+    const addAccountItem = { type: 'add-account' as const };
+    return keyringId ? [...accountGroups, addAccountItem] : accountGroups;
+  }, [accountGroups, keyringId]);
+
+  const accountsWithAddItem = useMemo(() => {
+    const addAccountItem = { type: 'add-account' as const };
+    return keyringId ? [...accounts, addAccountItem] : accounts;
+  }, [accounts, keyringId]);
+
+  const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
+    useWalletBalances(wallet.id);
 
   const accountAvatarType = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   )
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
-
-  const { accounts, keyringId, srpIndex, isSRPBackedUp } =
-    useWalletInfo(wallet);
-
-  const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
-    useWalletBalances(accounts);
-
-  const handleGoToAccountDetails = useCallback(
-    (account: InternalAccount) => {
-      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
-        account,
-      });
-    },
-    [navigation],
-  );
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
@@ -87,34 +118,124 @@ export const BaseWalletDetails = ({
     });
   }, [navigation]);
 
-  const handleAddAccount = useCallback(() => {
-    if (keyringId) {
+  const handleGoToAccountDetails = useCallback(
+    (account: InternalAccount) => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+        account,
+      });
+    },
+    [navigation],
+  );
+
+  const handleCreateAccount = useCallback(async () => {
+    try {
+      const { MultichainAccountService } = Engine.context;
+
+      await MultichainAccountService.createNextMultichainAccountGroup({
+        entropySource: keyringId as string,
+      });
+
+      setIsLoading(false);
+
+      // Scroll to the bottom to show the newly created account
+      const currentRef = isMultichainAccountsState2Enabled
+        ? accountGroupsFlashListRef.current
+        : accountsFlashListRef.current;
+
+      if (currentRef) {
+        // Use a small delay to ensure the new account is rendered
+        setTimeout(() => {
+          currentRef?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'error while trying to add a new multichain account',
+      );
+      setIsLoading(false);
+    }
+  }, [keyringId, isMultichainAccountsState2Enabled]);
+
+  const handlePress = useCallback(() => {
+    if (isMultichainAccountsState2Enabled) {
+      // Force immediate state update
+      setIsLoading(true);
+
+      // Create account immediately without delay
+      handleCreateAccount();
+    } else {
+      // Show the legacy add account modal for state 1
       setShowAddAccountModal(true);
     }
-  }, [keyringId]);
+  }, [handleCreateAccount, isMultichainAccountsState2Enabled]);
 
   const handleCloseAddAccountModal = useCallback(() => {
     setShowAddAccountModal(false);
   }, []);
 
+  // Render account group item for multichain accounts state 2
+  const renderAccountGroupItem = ({
+    item: accountGroup,
+    index,
+  }: {
+    item: AccountGroupListItem;
+    index: number;
+  }) => {
+    // Handle add account item
+    if ('type' in accountGroup && accountGroup.type === 'add-account') {
+      return (
+        <AddAccountItem
+          index={index}
+          totalItemsCount={accountGroupsWithAddItem.length}
+          isLoading={isLoading}
+          onPress={handlePress}
+        />
+      );
+    }
+
+    const isFirst = index === 0;
+
+    const accountBoxStyle = [
+      styles.accountGroupBox,
+      ...(isFirst ? [styles.firstAccountBox] : []),
+    ];
+
+    return (
+      <View style={accountBoxStyle}>
+        <AccountCell accountGroup={accountGroup} isSelected={false} hideMenu />
+      </View>
+    );
+  };
+
+  // Render individual account item for legacy view
   const renderAccountItem = ({
     item: account,
     index,
   }: {
-    item: InternalAccount;
+    item: AccountListItem;
     index: number;
   }) => {
-    const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
-    const balanceData = multichainBalancesForAllAccounts[account.id];
-    const isAccountBalanceLoading =
-      !balanceData || balanceData.isLoadingAccount;
-    const accountBalance = balanceData?.displayBalance;
+    // Handle add account item
+    if ('type' in account && account.type === 'add-account') {
+      return (
+        <AddAccountItem
+          index={index}
+          totalItemsCount={accountsWithAddItem.length}
+          isLoading={isLoading}
+          onPress={handlePress}
+        />
+      );
+    }
+
+    const accountBalance = multichainBalancesForAllAccounts[account.id];
+    const isAccountBalanceLoading = !accountBalance;
 
     return (
       <AccountItem
         account={account}
         index={index}
-        totalItemsCount={totalItemsCount}
+        totalItemsCount={accountsWithAddItem.length}
         accountBalance={accountBalance}
         isAccountBalanceLoading={isAccountBalanceLoading}
         accountAvatarType={accountAvatarType}
@@ -123,13 +244,31 @@ export const BaseWalletDetails = ({
     );
   };
 
-  const renderAddAccountItem = () => {
-    const totalItemsCount = accounts.length + 1;
-
+  const renderAccountsList = () => {
+    if (isMultichainAccountsState2Enabled) {
+      return (
+        <FlashList
+          data={accountGroupsWithAddItem}
+          keyExtractor={(item, index) =>
+            'type' in item && item.type === 'add-account'
+              ? `add-account-${index}`
+              : item.id
+          }
+          renderItem={renderAccountGroupItem}
+          ref={accountGroupsFlashListRef}
+        />
+      );
+    }
     return (
-      <AddAccountItem
-        totalItemsCount={totalItemsCount}
-        onPress={handleAddAccount}
+      <FlashList
+        data={accountsWithAddItem}
+        keyExtractor={(item, index) =>
+          'type' in item && item.type === 'add-account'
+            ? `add-account-${index}`
+            : item.id
+        }
+        renderItem={renderAccountItem}
+        ref={accountsFlashListRef}
       />
     );
   };
@@ -190,34 +329,22 @@ export const BaseWalletDetails = ({
           <TouchableOpacity
             testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
             onPress={handleRevealSRP}
-            style={styles.srpRevealSection}
+            style={styles.srpSection}
           >
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('accounts.secret_recovery_phrase')}
+            </Text>
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
-              style={styles.srpRevealContent}
             >
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
                 gap={8}
               >
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings(
-                    'multichain_accounts.wallet_details.reveal_recovery_phrase_with_index',
-                    {
-                      index: srpIndex,
-                    },
-                  )}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                {isSRPBackedUp === false ? (
+                {isSRPBackedUp === false && (
                   <TouchableOpacity onPress={handleBackupPressed}>
                     <Text
                       variant={TextVariant.BodyMDMedium}
@@ -226,7 +353,7 @@ export const BaseWalletDetails = ({
                       {strings('multichain_accounts.wallet_details.back_up')}
                     </Text>
                   </TouchableOpacity>
-                ) : null}
+                )}
                 <Icon
                   name={IconName.ArrowRight}
                   size={IconSize.Md}
@@ -240,19 +367,11 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          <View style={styles.listContainer}>
-            <FlashList
-              data={accounts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderAccountItem}
-            />
-          </View>
-          {keyringId && renderAddAccountItem()}
+          <View style={styles.listContainer}>{renderAccountsList()}</View>
         </View>
 
         {children}
       </View>
-
       {keyringId && (
         <Modal
           isVisible={showAddAccountModal}
@@ -265,12 +384,7 @@ export const BaseWalletDetails = ({
           onSwipeComplete={handleCloseAddAccountModal}
           backdropOpacity={0.5}
         >
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: colors.background.default },
-            ]}
-          >
+          <View style={styles.modalContent}>
             <WalletAddAccountActions
               keyringId={keyringId}
               onBack={handleCloseAddAccountModal}

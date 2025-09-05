@@ -1,32 +1,53 @@
+import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
-import { SnapId } from '@metamask/snaps-sdk';
-import { TransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { addHexPrefix } from 'ethereumjs-util';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
-import { toTokenMinimalUnit, toWei } from '../../../../util/number';
-import { AssetType } from '../types/token';
+import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 
-export const isSendRedesignEnabled = () =>
-  process.env.MM_SEND_REDESIGN_ENABLED === 'true';
+const captureSendStartedEvent = (location: string) => {
+  const { trackEvent } = MetaMetrics.getInstance();
+  trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
+      .addProperties({ location })
+      .build(),
+  );
+};
 
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
     screenName: RouteName,
     params?: object,
   ) => void,
+  location: string,
+  isSendRedesignEnabled: boolean,
   asset?: AssetType | Nft,
 ) => {
-  if (isSendRedesignEnabled()) {
-    const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
+  if (isSendRedesignEnabled) {
+    captureSendStartedEvent(location);
+    let screen = Routes.SEND.ASSET;
+    if (asset) {
+      if (asset.standard === TokenStandard.ERC721) {
+        screen = Routes.SEND.RECIPIENT;
+      } else {
+        screen = Routes.SEND.AMOUNT;
+      }
+    }
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
@@ -50,11 +71,17 @@ export const prepareEVMTransaction = (
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
   } else if (asset.tokenId) {
     // NFT token
-    trxnParams.data = generateTransferData('transferFrom', {
-      fromAddress: from,
-      toAddress: to,
-      tokenId: toHex(asset.tokenId),
-    });
+    trxnParams.data = generateTransferData(
+      asset.standard === TokenStandard.ERC721
+        ? 'transferFrom'
+        : 'safeTransferFrom',
+      {
+        fromAddress: from,
+        toAddress: to,
+        tokenId: toHex(asset.tokenId),
+        amount: toHex(value ?? 1),
+      },
+    );
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
@@ -87,36 +114,109 @@ export const submitEvmTransaction = async ({
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
+
+  let transactionType;
+  if (asset.isNative) {
+    transactionType = TransactionType.simpleSend;
+  } else if (asset.standard === TokenStandard.ERC20) {
+    transactionType = TransactionType.tokenMethodTransfer;
+  } else if (asset.standard === TokenStandard.ERC721) {
+    transactionType = TransactionType.tokenMethodTransferFrom;
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    transactionType = TransactionType.tokenMethodSafeTransferFrom;
+  }
+
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
     networkClientId,
-  });
-};
-
-// todo: we need to figure out passing toAddress, amount also to the snap
-export const submitNonEvmTransaction = async ({
-  asset,
-  fromAccount,
-}: {
-  asset: AssetType;
-  fromAccount: InternalAccount;
-}) => {
-  await sendMultichainTransaction(fromAccount.metadata?.snap?.id as SnapId, {
-    account: fromAccount.id,
-    scope: asset.chainId as CaipChainId,
-    assetId: asset.address as CaipAssetType,
+    type: transactionType,
   });
 };
 
 export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
-  const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
-  const val = parseFloat(value);
-  if (val) {
-    const minVal = 1 / Math.pow(10, decimals);
-    if (val < minVal) {
-      return `< ${minVal}`;
+  if (value) {
+    const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
+    const result = String(value).replace(/^-/, '').split('.');
+    const intPart = result[0];
+    let fracPart = result[1] ?? '';
+
+    if (new BN(`${intPart}${fracPart}`).isZero()) {
+      return '0';
     }
-    return val.toFixed(decimals);
+
+    if (fracPart.length > decimals) {
+      fracPart = fracPart.slice(0, decimals);
+    } else {
+      fracPart = fracPart.padEnd(decimals, '0');
+    }
+
+    if (new BN(`${intPart}${fracPart}`).lt(new BN(1))) {
+      return `< ${1 / Math.pow(10, decimals)}`;
+    }
+
+    return `${intPart}.${fracPart}`
+      .replace(/\.?[0]+$/, '')
+      .replace(/\.?[.]+$/, '');
   }
   return '0';
 }
+
+export const toBNWithDecimals = (input: string, decimals: number) => {
+  const result = String(input).replace(/^-/, '').split('.');
+  const intPart = result[0];
+  let fracPart = result[1] ?? '';
+
+  if (fracPart.length > decimals) {
+    fracPart = fracPart.slice(0, decimals);
+  }
+
+  fracPart = fracPart.padEnd(decimals, '0');
+
+  return new BN(intPart || '0')
+    .mul(new BN(10).pow(new BN(decimals)))
+    .add(new BN(fracPart || '0'));
+};
+
+export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
+  const base = new BN(10).pow(new BN(decimals));
+  const intPart = bnValue.div(base).toString();
+  const fracPart = bnValue.mod(base).toString().padStart(decimals, '0');
+  const trimmedFrac = fracPart.replace(/0+$/, '');
+  return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart;
+};
+
+export const fromHexWithDecimals = (value: Hex, decimals: number) => {
+  const bnValue = hexToBN(value);
+  return fromBNWithDecimals(bnValue, decimals);
+};
+
+export const fromTokenMinUnits = (
+  value: string,
+  decimals?: number | string,
+) => {
+  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
+  const multiplier = new BN(10).pow(new BN(decimalValue));
+  return addHexPrefix(new BN(value).mul(multiplier).toString(16));
+};
+
+export const getLayer1GasFeeForSend = async ({
+  asset,
+  chainId,
+  from,
+  value,
+}: {
+  asset: AssetType;
+  chainId: Hex;
+  from: Hex;
+  value: string;
+}): Promise<Hex | undefined> => {
+  const txParams = {
+    chainId,
+    from,
+    value: fromTokenMinUnits(value, asset.decimals),
+  };
+  return (await fetchEstimatedMultiLayerL1Fee(undefined, {
+    txParams,
+    chainId,
+  })) as Hex | undefined;
+};

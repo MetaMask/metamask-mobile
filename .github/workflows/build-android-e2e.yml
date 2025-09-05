@@ -16,10 +16,6 @@ on:
         description: 'Whether the sourcemap was successfully uploaded'
         value: ${{ jobs.build-android-apks.outputs.sourcemap-uploaded }}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
@@ -76,6 +72,12 @@ jobs:
           MM_BRIDGE_ENABLED: "true"
           BRIDGE_USE_DEV_APIS: "true"
           RAMP_INTERNAL_BUILD: "true"
+          SEEDLESS_ONBOARDING_ENABLED: "true"
+          MM_NOTIFICATIONS_UI_ENABLED: "true"
+          MM_SECURITY_ALERTS_API_ENABLED: "true"
+          MM_REMOVE_GLOBAL_NETWORK_SELECTOR: "true"
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}

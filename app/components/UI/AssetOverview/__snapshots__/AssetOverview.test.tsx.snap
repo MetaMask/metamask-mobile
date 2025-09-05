@@ -430,13 +430,13 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -450,7 +450,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,
@@ -461,6 +461,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -473,7 +474,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   }
                 }
               >
-                Buy
+                Fund
               </Text>
             </View>
           </View>
@@ -536,7 +537,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -567,6 +568,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -642,7 +644,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -673,6 +675,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -748,7 +751,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -779,6 +782,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -854,7 +858,7 @@ exports[`AssetOverview should render correctly 1`] = `
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -885,6 +889,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1085,20 +1090,22 @@ exports[`AssetOverview should render correctly 1`] = `
           >
             Ethereum
           </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
-            />
-          </View>
+            }
+            testID="token-amount-balance-test-id"
+          >
+            0 ETH
+          </Text>
         </View>
         <View
           style={
@@ -1122,23 +1129,6 @@ exports[`AssetOverview should render correctly 1`] = `
             testID="balance-test-id"
           >
             1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
-              }
-            }
-            testID="secondary-balance-test-id"
-          >
-            0 ETH
           </Text>
         </View>
       </TouchableOpacity>
@@ -1594,13 +1584,13 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -1614,7 +1604,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,
@@ -1625,6 +1615,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1637,7 +1628,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   }
                 }
               >
-                Buy
+                Fund
               </Text>
             </View>
           </View>
@@ -1700,7 +1691,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1731,6 +1722,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1806,7 +1798,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1837,6 +1829,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1912,7 +1905,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -1943,6 +1936,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2018,7 +2012,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -2049,6 +2043,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2285,20 +2280,22 @@ exports[`AssetOverview should render native balances even if there are no accoun
           >
             Ethereum
           </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
-            />
-          </View>
+            }
+            testID="token-amount-balance-test-id"
+          >
+            0 ETH
+          </Text>
         </View>
         <View
           style={
@@ -2322,23 +2319,6 @@ exports[`AssetOverview should render native balances even if there are no accoun
             testID="balance-test-id"
           >
             1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
-              }
-            }
-            testID="secondary-balance-test-id"
-          >
-            0 ETH
           </Text>
         </View>
       </TouchableOpacity>
@@ -2794,13 +2774,13 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -2814,7 +2794,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,
@@ -2825,6 +2805,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2837,7 +2818,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   }
                 }
               >
-                Buy
+                Fund
               </Text>
             </View>
           </View>
@@ -2900,7 +2881,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -2931,6 +2912,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3006,7 +2988,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3037,6 +3019,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3112,7 +3095,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3143,6 +3126,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3218,7 +3202,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
-                  "paddingHorizontal": 8,
+                  "paddingHorizontal": 4,
                   "paddingVertical": 16,
                 },
                 false,
@@ -3249,6 +3233,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3483,20 +3468,22 @@ exports[`AssetOverview should render native balances when non evm network is sel
           >
             Ethereum
           </Text>
-          <View>
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ca3542",
-                  "fontFamily": "Geist Medium",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
-            />
-          </View>
+            }
+            testID="token-amount-balance-test-id"
+          >
+            400 ETH
+          </Text>
         </View>
         <View
           style={
@@ -3520,23 +3507,6 @@ exports[`AssetOverview should render native balances when non evm network is sel
             testID="balance-test-id"
           >
             1500
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
-              }
-            }
-            testID="secondary-balance-test-id"
-          >
-            400 ETH
           </Text>
         </View>
       </TouchableOpacity>

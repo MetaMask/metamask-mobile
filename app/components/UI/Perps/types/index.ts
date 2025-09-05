@@ -1,9 +1,4 @@
 /**
- * Perps view component props
- */
-export interface PerpsViewProps {}
-
-/**
  * Test result states for SDK validation
  */
 export type TestResultStatus =
@@ -61,6 +56,7 @@ export interface CandleData {
 
 // Export all configuration types directly
 export * from './config';
+export * from './token';
 
 /**
  * Standard Structure for Perps LaunchDarkly Feature Flags

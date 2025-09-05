@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 // Third party dependencies.
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
 import { TextVariant } from '../../Texts/Text';
@@ -25,7 +26,16 @@ export const TEXTFIELD_ENDACCESSORY_TEST_ID = 'textfield-endacccessory';
 // Sample consts
 export const SAMPLE_TEXTFIELD_PROPS: TextFieldProps = {
   startAccessory: <Icon {...SAMPLE_ICON_PROPS} />,
-  endAccessory: <HelpText>SAMPLE</HelpText>,
+  endAccessory: (
+    <TouchableOpacity
+      onPress={() => {
+        // eslint-disable-next-line no-console
+        console.log('pressed');
+      }}
+    >
+      <HelpText>SAMPLE</HelpText>
+    </TouchableOpacity>
+  ),
   size: DEFAULT_TEXTFIELD_SIZE,
   isError: false,
   isDisabled: false,

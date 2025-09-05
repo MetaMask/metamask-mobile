@@ -408,21 +408,6 @@ exports[`DepositOrderDetails Component renders error state correctly 1`] = `
                  
                 USDC
               </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "textAlign": "center",
-                  }
-                }
-              >
-                We were unable to complete your deposit
-              </Text>
             </View>
             <View
               style={
@@ -1028,21 +1013,6 @@ exports[`DepositOrderDetails Component renders processing state correctly 1`] = 
                  
                 USDC
               </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "textAlign": "center",
-                  }
-                }
-              >
-                Card purchases typically take a few minutes
-              </Text>
             </View>
             <View
               style={
@@ -1574,21 +1544,6 @@ exports[`DepositOrderDetails Component renders success state correctly 1`] = `
                 0.05
                  
                 USDC
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#686e7d",
-                    "fontFamily": "Geist Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                    "textAlign": "center",
-                  }
-                }
-              >
-                Your deposit of 100 USD was successful!
               </Text>
             </View>
             <View

@@ -261,7 +261,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -643,6 +643,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -1573,7 +1574,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1955,6 +1956,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -2885,7 +2887,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -3267,6 +3269,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={
@@ -4197,7 +4200,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   }
                 }
               >
-                mockorigin
+                https://mockorigin
               </Text>
               <Text
                 accessibilityRole="text"
@@ -4579,6 +4582,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
               >
                 <TouchableOpacity
                   onPress={[Function]}
+                  testID="navigate_to_edit_accounts_permissions_button"
                 >
                   <View
                     style={

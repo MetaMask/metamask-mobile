@@ -16,7 +16,9 @@ const useVaultApys = (chainId: number) => {
     setError(null);
 
     try {
-      await Engine.context.EarnController.refreshPooledStakingVaultDailyApys();
+      await Engine.context.EarnController.refreshPooledStakingVaultDailyApys({
+        chainId,
+      });
     } catch (err) {
       setError('Failed to fetch pooled staking vault APYs');
     } finally {

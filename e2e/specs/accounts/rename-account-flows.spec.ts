@@ -7,7 +7,9 @@ import Assertions from '../../framework/Assertions';
 import { SmokeAccounts } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetails } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeAccounts('Account Rename UI Flows'), () => {
   const ORIGINAL_ACCOUNT_NAME = 'Account 1';
@@ -26,10 +28,11 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetails(false),
+          );
         },
       },
       async () => {
@@ -83,10 +86,11 @@ describe(SmokeAccounts('Account Rename UI Flows'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(true),
-          ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetails(true),
+          );
         },
       },
       async () => {

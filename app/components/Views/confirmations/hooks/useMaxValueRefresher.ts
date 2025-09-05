@@ -11,32 +11,38 @@ import { useFeeCalculations } from './gas/useFeeCalculations';
 import { useAccountNativeBalance } from './useAccountNativeBalance';
 import { selectTransactionState } from '../../../../reducers/transaction';
 import { updateEditableParams } from '../../../../util/transaction-controller';
+import { useParams } from '../../../../util/navigation/navUtils';
 import { useConfirmationContext } from '../context/confirmation-context';
 
 // This hook is used to refresh the max value of the transaction
 // when the user is in max amount mode only for the transaction type simpleSend
 // It subtracts the native fee from the balance and updates the value of the transaction
 export function useMaxValueRefresher() {
-  const { maxValueMode } = useSelector(selectTransactionState);
+  const { maxValueMode } = useSelector(selectTransactionState) || {};
+  const params = useParams<{
+    params: { maxValueMode: boolean };
+  }>();
+  const paramsMaxValueMode = params?.params?.maxValueMode;
+  const maxModeEnabled = maxValueMode || paramsMaxValueMode;
   const [valueJustUpdated, setValueJustUpdated] = useState(false);
   const { setIsTransactionValueUpdating } = useConfirmationContext();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, id, txParams, type } =
     transactionMetadata as TransactionMeta;
-  const { preciseNativeFeeInHex } = useFeeCalculations(
+  const { maxFeeNativeHex } = useFeeCalculations(
     transactionMetadata as TransactionMeta,
   );
   const { balanceWeiInHex } = useAccountNativeBalance(chainId, txParams.from);
 
   useEffect(() => {
-    if (!maxValueMode || type !== TransactionType.simpleSend) {
+    if (!maxModeEnabled || type !== TransactionType.simpleSend) {
       // Not compatible with transaction value refresh logic
       return;
     }
 
     const balance = new BigNumber(balanceWeiInHex);
-    const fee = new BigNumber(preciseNativeFeeInHex as Hex);
-    const maxValue = balance.minus(fee);
+    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex);
+    const maxValue = balance.minus(maxPossibleFee);
     const maxValueHex = add0x(maxValue.toString(16));
     const shouldUpdate = maxValueHex !== txParams.value;
 
@@ -50,8 +56,8 @@ export function useMaxValueRefresher() {
   }, [
     balanceWeiInHex,
     id,
-    maxValueMode,
-    preciseNativeFeeInHex,
+    maxModeEnabled,
+    maxFeeNativeHex,
     setIsTransactionValueUpdating,
     txParams,
     type,

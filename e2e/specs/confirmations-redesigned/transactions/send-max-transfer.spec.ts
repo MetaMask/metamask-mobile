@@ -7,23 +7,53 @@ import {
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../framework/Assertions';
-import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationsRedesignedFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
-  const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationsRedesignedFeatureFlags),
+    );
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
+      mockServer,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields: ignoreFields || [],
+      },
+    );
   };
 
   beforeAll(async () => {
@@ -35,6 +65,9 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
       {
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
           .withPermissionControllerConnectedToTestDapp(
             buildPermissions(['0x539']),
           )
@@ -45,8 +78,7 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
 
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();

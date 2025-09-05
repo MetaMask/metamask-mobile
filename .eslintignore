@@ -13,3 +13,4 @@ wdio
 /app/lib/ppom/ppom.html.js
 /app/lib/ppom/blockaid-version.js
 /ppom
+junitProperties.js

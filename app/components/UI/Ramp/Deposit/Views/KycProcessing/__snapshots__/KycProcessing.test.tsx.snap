@@ -564,7 +564,7 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1304,7 +1304,7 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2102,7 +2102,7 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2886,7 +2886,7 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -3626,7 +3626,7 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -4410,7 +4410,7 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }

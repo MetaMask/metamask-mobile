@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
@@ -31,6 +32,10 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
+import {
+  selectEnabledNetworksByNamespace,
+  selectEVMEnabledNetworks,
+} from '../../../selectors/networkEnablementController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
@@ -39,6 +44,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 
@@ -64,6 +70,9 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const enabledNetworksByNamespace = useSelector(
+    selectEnabledNetworksByNamespace,
+  );
 
   useCurrencyRatePolling();
   useTokenRatesPolling();
@@ -93,43 +102,59 @@ const TransactionsView = ({
           tx,
           tokens,
           selectedAddress,
-          networkId,
-          chainId,
           tokenNetworkFilter,
         );
 
         if (!filter) return false;
 
-        tx.insertImportTime = addAccountTimeFlagFilter(
+        const insertImportTime = addAccountTimeFlagFilter(
           tx,
           addedAccountTime,
           accountAddedTimeInsertPointFound,
         );
-        if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
+        // Create a new transaction object with the insertImportTime property
+        const updatedTx = {
+          ...tx,
+          insertImportTime,
+        };
+
+        if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
         switch (tx.status) {
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
           case TX_PENDING:
-            submittedTxs.push(tx);
+            submittedTxs.push(updatedTx);
             return false;
           case TX_CONFIRMED:
-            confirmedTxs.push(tx);
+            confirmedTxs.push(updatedTx);
             break;
         }
 
         return filter;
       });
 
-      const allTransactionsFiltered = isPopularNetwork
-        ? allTransactions.filter(
-            (tx) =>
-              tx.chainId === CHAIN_IDS.MAINNET ||
-              tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-              PopularList.some((network) => network.chainId === tx.chainId),
-          )
-        : allTransactions.filter((tx) => tx.chainId === chainId);
+      let allTransactionsFiltered;
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        // TODO: Make sure to come back and check on how Solana transactions are handled
+        allTransactionsFiltered = allTransactions.filter((tx) => {
+          const chainId = tx.chainId;
+          return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
+            chainId
+          ];
+        });
+      } else {
+        allTransactionsFiltered = isPopularNetwork
+          ? allTransactions.filter(
+              (tx) =>
+                tx.chainId === CHAIN_IDS.MAINNET ||
+                tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+                PopularList.some((network) => network.chainId === tx.chainId),
+            )
+          : allTransactions.filter((tx) => tx.chainId === chainId);
+      }
 
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
@@ -155,9 +180,11 @@ const TransactionsView = ({
         allTransactionsFiltered &&
         allTransactionsFiltered.length
       ) {
-        allTransactionsFiltered[
-          allTransactionsFiltered.length - 1
-        ].insertImportTime = true;
+        const lastIndex = allTransactionsFiltered.length - 1;
+        allTransactionsFiltered[lastIndex] = {
+          ...allTransactionsFiltered[lastIndex],
+          insertImportTime: true,
+        };
       }
 
       setAllTransactions(allTransactionsFiltered);
@@ -173,6 +200,7 @@ const TransactionsView = ({
       chainId,
       tokenNetworkFilter,
       isPopularNetwork,
+      enabledNetworksByNamespace,
     ],
   );
 
@@ -268,7 +296,12 @@ const mapStateToProps = (state) => {
     transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
-    tokenNetworkFilter: selectTokenNetworkFilter(state),
+    tokenNetworkFilter: isRemoveGlobalNetworkSelectorEnabled()
+      ? selectEVMEnabledNetworks(state).reduce(
+          (acc, network) => ({ ...acc, [network]: true }),
+          {},
+        )
+      : selectTokenNetworkFilter(state),
   };
 };
 

@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionAssets } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
@@ -10,7 +10,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 const ETHEREUM = 'Ethereum Main Network';
 
-describe(Regression('Connect to a Test Network'), () => {
+describe(RegressionAssets('Connect to a Test Network'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });

@@ -30,6 +30,16 @@ Storybook uses the same entry point as our main app (`index.js`), so you'll need
 
 5. **View Storybook** - The app will now launch with the Storybook UI instead of the regular app
 
+##### Updating Storybook requires
+
+Whenever you add, remove, or move `*.stories.*` files, regenerate Storybook's requires list:
+
+```bash
+yarn storybook-generate
+```
+
+This ensures Storybook picks up all stories correctly in the app.
+
 ##### Reverting Back to Normal App
 
 When you're done with Storybook:

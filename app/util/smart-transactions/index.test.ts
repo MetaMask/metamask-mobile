@@ -8,11 +8,20 @@ import {
   getGasIncludedTransactionFees,
   type GasIncludedQuote,
   getIsAllowedRpcUrlForSmartTransactions,
+  wipeSmartTransactions,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 // eslint-disable-next-line import/no-namespace
 import * as environment from '../environment';
-import type { BaseControllerMessenger } from '../../core/Engine';
+import Engine, { type BaseControllerMessenger } from '../../core/Engine';
+
+jest.mock('../../core/Engine', () => ({
+  context: {
+    SmartTransactionsController: {
+      wipeSmartTransactions: jest.fn(),
+    },
+  },
+}));
 
 describe('Smart Transactions utils', () => {
   describe('getTransactionType', () => {
@@ -708,6 +717,26 @@ describe('Smart Transactions utils', () => {
       isProductionMock.mockReturnValue(false);
       const result = getIsAllowedRpcUrlForSmartTransactions(undefined);
       expect(result).toBe(true);
+    });
+  });
+
+  describe('wipeSmartTransactions', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should call SmartTransactionsController.wipeSmartTransactions with address and ignoreNetwork flag', () => {
+      const mockWipeSmartTransactions = Engine.context
+        .SmartTransactionsController.wipeSmartTransactions as jest.Mock;
+      const testAddress = '0x123456789abcdef123456789abcdef123456789a';
+
+      wipeSmartTransactions(testAddress);
+
+      expect(mockWipeSmartTransactions).toHaveBeenCalledTimes(1);
+      expect(mockWipeSmartTransactions).toHaveBeenCalledWith({
+        address: testAddress,
+        ignoreNetwork: true,
+      });
     });
   });
 });

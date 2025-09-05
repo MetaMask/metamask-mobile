@@ -1,17 +1,19 @@
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-import { SmokeTrade } from '../../tags';
+import { RegressionTrade } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
 import { LocalNodeType } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 // Anvil configuration for local blockchain node
 const anvilLocalNodeOptions = {
@@ -21,8 +23,7 @@ const anvilLocalNodeOptions = {
   chainId: 1,
 };
 
-// Get ramps API mocks from the dedicated mock file
-const rampsApiMocks = getRampsApiMocks();
+const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
 
 const setupRampsAccountSwitchTest = async (
   testFunction: () => Promise<void>,
@@ -31,7 +32,7 @@ const setupRampsAccountSwitchTest = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+        .withRampsSelectedRegion(selectedRegion)
         .build(),
       restartDevice: true,
       localNodeOptions: [
@@ -40,7 +41,9 @@ const setupRampsAccountSwitchTest = async (
           options: anvilLocalNodeOptions,
         },
       ],
-      testSpecificMock: rampsApiMocks,
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+      },
     },
     async () => {
       await loginToApp();
@@ -49,15 +52,15 @@ const setupRampsAccountSwitchTest = async (
   );
 };
 
-describe(SmokeTrade('Ramps with Account Switching'), () => {
+describe(RegressionTrade('Ramps with Account Switching'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
 
   it('should navigate to buy page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -73,8 +76,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to sell page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -90,16 +93,16 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should maintain account selection across ramp flows', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {
         description:

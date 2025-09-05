@@ -2,6 +2,7 @@ import {
   TransactionParams,
   TransactionController,
   TransactionMeta,
+  TransactionType,
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController, {
@@ -180,7 +181,9 @@ class SmartTransactionHook {
     if (
       !this.#shouldUseSmartTransaction ||
       this.#transactionMeta.origin === RAMPS_SEND ||
-      isLegacyTransaction(this.#transactionMeta)
+      isLegacyTransaction(this.#transactionMeta) ||
+      this.#transactionMeta.type === TransactionType.bridge ||
+      this.#transactionMeta.type === TransactionType.bridgeApproval
     ) {
       return useRegularTransactionSubmit;
     }

@@ -1,52 +1,163 @@
-import React from 'react';
-import { useNavigation } from '@react-navigation/native';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { Box, Text } from '@metamask/design-system-react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  Box,
+  Button,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native';
 
-import { useTheme } from '../../../../../../util/theme';
-import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
+import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
-import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useSendActions } from '../../../hooks/send/useSendActions';
-import { useSendAssetNavbar } from '../../UI/navbar/navbar';
 import { TokenList } from '../../token-list';
+import { NftList } from '../../nft-list';
+
+import { AssetType } from '../../../types/token';
+import { NetworkFilter } from '../../network-filter';
+import { useEVMNfts } from '../../../hooks/send/useNfts';
+import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 
 export const Asset = () => {
-  const theme = useTheme();
-  const navigation = useNavigation();
-  const { handleCancelPress } = useSendActions();
-  const tokens = useSelectedEVMAccountTokens();
-  const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
-    useTokenSearch(tokens);
+  const tokens = useAccountTokens();
+  const nfts = useEVMNfts();
+  const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
+    useState<AssetType[]>(tokens);
+  const [selectedNetworkFilter, setSelectedNetworkFilter] =
+    useState<string>('all');
 
-  navigation.setOptions({
-    ...useSendAssetNavbar({ theme, onClose: handleCancelPress }),
-  });
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredTokens,
+    filteredNfts,
+    clearSearch,
+  } = useTokenSearch(filteredTokensByNetwork, nfts, selectedNetworkFilter);
+  const {
+    setAssetListSize,
+    setNoneAssetFilterMethod,
+    setSearchAssetFilterMethod,
+  } = useAssetSelectionMetrics();
+
+  const [hasActiveNetworkFilter, setHasActiveNetworkFilter] = useState(false);
+  const [clearNetworkFilters, setClearNetworkFilters] = useState<
+    (() => void) | null
+  >(null);
+
+  const handleFilteredTokensChange = useCallback(
+    (newFilteredTokens: AssetType[]) => {
+      setFilteredTokensByNetwork(newFilteredTokens);
+    },
+    [],
+  );
+
+  const handleNetworkFilterStateChange = useCallback(
+    (hasActiveFilter: boolean) => {
+      setHasActiveNetworkFilter(hasActiveFilter);
+    },
+    [],
+  );
+
+  const handleNetworkFilterChange = useCallback((networkFilter: string) => {
+    setSelectedNetworkFilter(networkFilter);
+  }, []);
+
+  const handleExposeFilterControls = useCallback((clearFilters: () => void) => {
+    setClearNetworkFilters(() => clearFilters);
+  }, []);
+
+  const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
+  const hasNoResults = filteredTokens.length === 0 && filteredNfts.length === 0;
+
+  const handleClearAllFilters = useCallback(() => {
+    clearSearch();
+    clearNetworkFilters?.();
+  }, [clearSearch, clearNetworkFilters]);
+
+  useEffect(() => {
+    setAssetListSize(
+      filteredTokens?.length ? filteredTokens?.length.toString() : '',
+    );
+  }, [filteredTokens, setAssetListSize]);
+
+  useEffect(() => {
+    if (searchQuery.length) {
+      setSearchAssetFilterMethod();
+    } else {
+      setNoneAssetFilterMethod();
+    }
+  }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1 px-4">
-      <Box twClassName="w-full py-2">
+    <Box twClassName="flex-1">
+      <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search"
-          size={TextFieldSize.Md}
+          placeholder={strings('send.search_tokens_and_nfts')}
+          size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
         />
       </Box>
-      <ScrollableTabView renderTabBar={() => <TabBar />}>
-        <Box key="token-tab" {...{ tabLabel: 'Tokens' }} twClassName="flex-1">
-          <TokenList tokens={filteredTokens} />
-        </Box>
-        <Box key="nft-tab" {...{ tabLabel: 'NFTs' }} twClassName="flex-1">
-          <Text>
-            NFTs - will be implemented in separate PR - Intentional empty
-          </Text>
-        </Box>
-      </ScrollableTabView>
+      <NetworkFilter
+        tokens={tokens}
+        onFilteredTokensChange={handleFilteredTokensChange}
+        onNetworkFilterStateChange={handleNetworkFilterStateChange}
+        onExposeFilterControls={handleExposeFilterControls}
+        onNetworkFilterChange={handleNetworkFilterChange}
+      />
+      <ScrollView>
+        {hasNoResults && hasActiveFilters ? (
+          <Box twClassName="items-center py-8 px-4">
+            <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">
+              {strings('send.no_tokens_match_filters')}
+            </Text>
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={handleClearAllFilters}
+            >
+              {strings('send.clear_filters')}
+            </Button>
+          </Box>
+        ) : hasNoResults && !hasActiveFilters ? (
+          <Box twClassName="items-center py-8 px-4">
+            <Text variant={TextVariant.BodyMd} twClassName="text-center">
+              {strings('send.no_assets_available')}
+            </Text>
+          </Box>
+        ) : (
+          <>
+            {filteredTokens.length > 0 && (
+              <Text
+                twClassName="m-4 mt-2 mb-2"
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('send.tokens')}
+              </Text>
+            )}
+            <TokenList tokens={filteredTokens} />
+            {filteredNfts.length > 0 && (
+              <Text
+                twClassName="m-4 mt-4 mb-4"
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('send.nfts')}
+              </Text>
+            )}
+            <NftList nfts={filteredNfts} />
+          </>
+        )}
+      </ScrollView>
     </Box>
   );
 };

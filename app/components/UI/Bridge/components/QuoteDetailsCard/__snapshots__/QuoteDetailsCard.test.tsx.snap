@@ -381,7 +381,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "flexDirection": "row",
                                     "gap": 2,
                                   },
-                                  undefined,
+                                  {
+                                    "flex": 1,
+                                  },
                                 ]
                               }
                             >
@@ -428,9 +430,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               </View>
                               <Text
                                 accessibilityRole="text"
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -465,7 +469,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "flexDirection": "row",
                                     "gap": 2,
                                   },
-                                  undefined,
+                                  {
+                                    "flex": 1,
+                                  },
                                 ]
                               }
                             >
@@ -514,9 +520,11 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               </View>
                               <Text
                                 accessibilityRole="text"
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -891,6 +899,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -900,7 +911,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>
@@ -1576,7 +1586,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "flexDirection": "row",
                                     "gap": 2,
                                   },
-                                  undefined,
+                                  {
+                                    "flex": 1,
+                                  },
                                 ]
                               }
                             >
@@ -1623,9 +1635,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               </View>
                               <Text
                                 accessibilityRole="text"
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1660,7 +1674,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "flexDirection": "row",
                                     "gap": 2,
                                   },
-                                  undefined,
+                                  {
+                                    "flex": 1,
+                                  },
                                 ]
                               }
                             >
@@ -1709,9 +1725,11 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               </View>
                               <Text
                                 accessibilityRole="text"
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#121314",
+                                    "flex": 1,
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2086,6 +2104,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -2095,7 +2116,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>

@@ -12,6 +12,11 @@ import {
   DEFAULT_MOCKSERVER_PORT,
   DEFAULT_DAPP_SERVER_PORT,
 } from '../Constants';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureUtils',
+});
 
 /**
  * Determines if tests are running on BrowserStack with local tunnel enabled.
@@ -73,24 +78,6 @@ function getServerPort(defaultPort: number) {
 }
 
 /**
- * Kills a service based on its PID.
- * @param {number} pid - The process ID of the service to kill.
- * @returns {boolean} True if the process was killed successfully, false otherwise.
- */
-export async function killServiceByPid(pid: number): Promise<boolean> {
-  try {
-    process.kill(pid, 'SIGKILL');
-
-    // Explicitly adding a timeout in case the process is not killed immediately
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return true;
-  } catch (error) {
-    // Process may not exist or permission denied
-    return false;
-  }
-}
-
-/**
  * Gets the URL for the second test dapp.
  * This function is used instead of a constant to ensure device.getPlatform() is called
  * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
@@ -144,6 +131,7 @@ interface Caip25Permission {
 }
 
 export function buildPermissions(chainIds: string[]): Caip25Permission {
+  logger.debug('Building permissions for chainIds:', chainIds);
   // default mainnet
   const optionalScopes: InternalScopesObject = {
     'eip155:1': { accounts: [] },

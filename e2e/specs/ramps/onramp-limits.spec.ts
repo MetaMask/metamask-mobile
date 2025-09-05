@@ -4,25 +4,31 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeTrade('On-Ramp Limits'), () => {
+  const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
   it('should check order min and maxlimits', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+          .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+        },
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapBuyButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapBuyButton();
         await BuyGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('1');
         await Assertions.expectElementToBeVisible(

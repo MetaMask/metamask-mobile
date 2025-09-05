@@ -247,6 +247,7 @@ export class HyperLiquidClientService {
    */
   private getIntervalMilliseconds(interval: CandlePeriod): number {
     const intervalMap: Record<CandlePeriod, number> = {
+      [CandlePeriod.ONE_MINUTE]: 1 * 60 * 1000,
       [CandlePeriod.THREE_MINUTES]: 3 * 60 * 1000,
       [CandlePeriod.FIVE_MINUTES]: 5 * 60 * 1000,
       [CandlePeriod.FIFTEEN_MINUTES]: 15 * 60 * 1000,

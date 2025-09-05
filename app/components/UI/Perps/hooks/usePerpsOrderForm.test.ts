@@ -23,6 +23,8 @@ describe('usePerpsOrderForm', () => {
       totalBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
+      returnOnEquity: '0',
+      totalValue: '1000',
     });
   });
 
@@ -184,7 +186,7 @@ describe('usePerpsOrderForm', () => {
         result.current.handlePercentageAmount(0.5);
       });
 
-      expect(result.current.orderForm.amount).toBe('500'); // 50% of 1000
+      expect(result.current.orderForm.amount).toBe('1500'); // 50% of 1000 * 3x leverage
     });
 
     it('should handle max amount', () => {
@@ -194,7 +196,7 @@ describe('usePerpsOrderForm', () => {
         result.current.handleMaxAmount();
       });
 
-      expect(result.current.orderForm.amount).toBe('1000');
+      expect(result.current.orderForm.amount).toBe('3000'); // 1000 * 3x leverage
     });
 
     it('should handle min amount for mainnet', () => {
@@ -228,6 +230,8 @@ describe('usePerpsOrderForm', () => {
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '0',
+        totalValue: '0',
       });
 
       const { result } = renderHook(() => usePerpsOrderForm());

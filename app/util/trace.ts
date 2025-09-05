@@ -56,6 +56,8 @@ export enum TraceName {
   RampQuoteLoading = 'Ramp Quote Loading',
   LoadRampExperience = 'Load Ramp Experience',
   LoadDepositExperience = 'Load Deposit Experience',
+  DepositContinueFlow = 'Deposit Continue Flow',
+  DepositInputOtp = 'Deposit Input OTP',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -97,6 +99,7 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
   EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
@@ -115,6 +118,21 @@ export enum TraceName {
   EarnTokenList = 'Earn Token List',
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
+  // Perps
+  PerpsOpenPosition = 'Perps Open Position',
+  PerpsClosePosition = 'Perps Close Position',
+  PerpsDeposit = 'Perps Deposit',
+  PerpsWithdraw = 'Perps Withdraw',
+  PerpsOrderExecution = 'Perps Order Execution',
+  PerpsCancelOrder = 'Perps Cancel Order',
+  PerpsMarketDataUpdate = 'Perps Market Data Update',
+  PerpsAccountStateUpdate = 'Perps Account State Update',
+  PerpsOrderView = 'Perps Order View',
+  PerpsPositionsView = 'Perps Positions View',
+  PerpsMarketListView = 'Perps Market List View',
+  PerpsPositionDetailsView = 'Perps Position Details View',
+  PerpsWebSocketConnected = 'Perps WebSocket Connected',
+  PerpsWebSocketDisconnected = 'Perps WebSocket Disconnected',
 }
 
 export enum TraceOperation {
@@ -137,9 +155,17 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
+  CardGetPriorityToken = 'card.get.priority.token',
+  CardIdentifyCardholder = 'card.identify.cardholder',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  // Perps
+  PerpsOperation = 'perps.operation',
+  PerpsMarketData = 'perps.market_data',
+  PerpsOrderSubmission = 'perps.order_submission',
+  PerpsPositionManagement = 'perps.position_management',
 }
 
 const ID_DEFAULT = 'default';

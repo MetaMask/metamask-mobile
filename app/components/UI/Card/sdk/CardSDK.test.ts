@@ -3,7 +3,7 @@ import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
   SupportedToken,
-} from '../../../../selectors/featureFlagController/card';
+} from '../../../../selectors/featureFlagController/card/index';
 import { CardToken } from '../types';
 import Logger from '../../../../util/Logger';
 

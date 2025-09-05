@@ -12,6 +12,8 @@ const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
 // eslint-disable-next-line import/no-nodejs-modules
 const { parseArgs } = require('node:util');
+// eslint-disable-next-line import/no-nodejs-modules
+const os = require('node:os');
 
 const parsedArgs = parseArgs({
   options: {
@@ -42,14 +44,22 @@ module.exports = function (baseConfig) {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
 
+  // For less powerful machines, leave room to do other tasks. For instance,
+  // if you have 10 cores but only 16GB, only 3 workers would get used.
+  const maxWorkers = Math.ceil(
+    os.availableParallelism() *
+      Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024)),
+  );
+
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        assetExts: assetExts.filter((ext) => ext !== 'svg'),
+        assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
+          'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),
           _stream_transform: require.resolve('readable-stream/transform'),
@@ -98,6 +108,7 @@ module.exports = function (baseConfig) {
         },
       ),
       resetCache: true,
+      maxWorkers,
     }),
   );
 };

@@ -29,6 +29,9 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/confirmations',
+    ),
     selectConfirmationRedesignFlags: () => ({
       signatures: true,
       staking_confirmations: true,
@@ -141,6 +144,15 @@ jest.mock('react-native-gzip', () => ({
 
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [] as ReturnType<typeof useTokensWithBalance>,
+}));
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectEnabledSourceChains: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('../../hooks/alerts/useInsufficientPayTokenNativeAlert', () => ({
+  useInsufficientPayTokenNativeAlert: jest.fn().mockReturnValue([]),
 }));
 
 describe('Confirm', () => {

@@ -83,6 +83,9 @@ class AuthenticationService {
 
   private async dispatchLogin(): Promise<void> {
     await AccountTreeInitService.initializeAccountTree();
+    const { MultichainAccountService } = Engine.context;
+    await MultichainAccountService.init();
+
     ReduxService.store.dispatch(logIn());
   }
 
@@ -106,6 +109,7 @@ class AuthenticationService {
     // Restore vault with user entered password
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     await KeyringController.submitPassword(password);
+
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
       SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
@@ -619,7 +623,11 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+  lockApp = async ({
+    reset = true,
+    locked = false,
+    navigateToLogin = true,
+  } = {}): Promise<void> => {
     const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
@@ -635,9 +643,11 @@ class AuthenticationService {
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
-    });
+    if (navigateToLogin) {
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+      });
+    }
   };
 
   getType = async (): Promise<AuthData> =>
@@ -986,7 +996,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
-      this.lockApp({ reset: false });
+      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.error(error as Error);
       throw error;
     }

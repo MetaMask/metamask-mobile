@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -8,6 +8,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import { TokenStandard } from '../../../../types/token';
+import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
@@ -19,6 +21,7 @@ import { styleSheet } from './amount-keyboard.styles';
 const ADDITIONAL_KAYBOARD_BUTTONS = [
   { value: 25, label: '25%' },
   { value: 50, label: '50%' },
+  { value: 75, label: '75%' },
 ];
 
 const ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX = [
@@ -38,12 +41,15 @@ export const AmountKeyboard = ({
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { invalidAmount, insufficientBalance } = useAmountValidation();
-  const { updateValue } = useSendContext();
+  const { amountError } = useAmountValidation();
+  const { asset, updateValue } = useSendContext();
+  const isNFT = asset?.standard === TokenStandard.ERC1155;
   const { styles } = useStyles(styleSheet, {
-    continueDisabled: Boolean(invalidAmount || insufficientBalance),
+    amountError: Boolean(amountError),
+    submitDisabled: isNFT && !amount,
   });
-  const [showAdditionalKeyboard, setShowAdditionalKeyboard] = useState(true);
+  const { captureAmountSelected, setAmountInputMethodPressedMax } =
+    useAmountSelectionMetrics();
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -51,9 +57,19 @@ export const AmountKeyboard = ({
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
-      updateValue(percentageAmount);
+      updateValue(percentageAmount, percentage === 100);
+      if (percentage === 100) {
+        setAmountInputMethodPressedMax();
+      }
     },
-    [fiatMode, getFiatValue, getPercentageAmount, updateAmount, updateValue],
+    [
+      fiatMode,
+      getFiatValue,
+      getPercentageAmount,
+      setAmountInputMethodPressedMax,
+      updateAmount,
+      updateValue,
+    ],
   );
 
   const updateToNewAmount = useCallback(
@@ -65,12 +81,9 @@ export const AmountKeyboard = ({
   );
 
   const goToNextPage = useCallback(() => {
+    captureAmountSelected();
     gotToSendScreen(Routes.SEND.RECIPIENT);
-  }, [gotToSendScreen]);
-
-  const onDonePress = useCallback(() => {
-    setShowAdditionalKeyboard(false);
-  }, [setShowAdditionalKeyboard]);
+  }, [captureAmountSelected, gotToSendScreen]);
 
   return (
     <EditAmountKeyboard
@@ -80,13 +93,12 @@ export const AmountKeyboard = ({
           : ADDITIONAL_KAYBOARD_BUTTONS
       }
       additionalRow={
-        showAdditionalKeyboard ? undefined : (
+        amount.length > 0 || isNFT ? (
           <Button
-            disabled={invalidAmount || insufficientBalance}
+            disabled={Boolean(amountError) || !amount}
             label={
-              insufficientBalance
-                ? strings('send.amount_insufficient')
-                : strings('send.continue')
+              amountError ??
+              (isNFT ? strings('send.next') : strings('send.continue'))
             }
             onPress={goToNextPage}
             size={ButtonSize.Lg}
@@ -94,12 +106,12 @@ export const AmountKeyboard = ({
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
           />
-        )
+        ) : undefined
       }
+      hideDoneButton
       onChange={updateToNewAmount}
-      onDonePress={onDonePress}
       onPercentagePress={updateToPercentageAmount}
-      showAdditionalKeyboard={showAdditionalKeyboard}
+      showAdditionalKeyboard={amount.length < 1 && !isNFT}
       value={amount}
     />
   );

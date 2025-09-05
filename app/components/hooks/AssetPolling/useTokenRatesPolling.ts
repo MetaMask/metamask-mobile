@@ -1,52 +1,23 @@
-import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
-import {
-  selectAllPopularNetworkConfigurations,
-  selectEvmChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { usePollingNetworks } from './use-polling-networks';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-  // Selectors to determine polling input
-  const networkConfigurationsPopularNetworks = useSelector(
-    selectAllPopularNetworkConfigurations,
-  );
-  const currentChainId = useSelector(selectEvmChainId);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const pollingNetworks = usePollingNetworks();
+  const pollingInput =
+    pollingNetworks.length > 0
+      ? [{ chainIds: pollingNetworks.map((c) => c.chainId) }]
+      : [];
 
-  // if all networks are selected, poll all popular networks
-  const filteredChainIds =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
-
-  const chainIdsToPoll = isEvmSelected
-    ? [
-        {
-          chainIds: filteredChainIds as Hex[],
-        },
-      ]
-    : [];
+  let overridePollingInput: [{ chainIds: Hex[] }] | undefined;
+  if (chainIds) {
+    overridePollingInput = [{ chainIds }];
+  }
 
   const { TokenRatesController } = Engine.context;
 
-  let providedChainIds;
-  if (chainIds) {
-    providedChainIds = chainIds.map((chainId) => ({
-      chainIds: [chainId],
-    }));
-  }
-
-  const input = providedChainIds ?? chainIdsToPoll;
+  const input = overridePollingInput ?? pollingInput;
 
   usePolling({
     startPolling: TokenRatesController.startPolling.bind(TokenRatesController),

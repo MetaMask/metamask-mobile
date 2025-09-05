@@ -1,10 +1,6 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
-import {
-  TransactionToken,
-  useTransactionRequiredTokens,
-} from './useTransactionRequiredTokens';
 import { useTransactionBridgeQuotes } from './useTransactionBridgeQuotes';
 import { TransactionBridgeQuote, getBridgeQuotes } from '../../utils/bridge';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -12,22 +8,35 @@ import { act } from '@testing-library/react-native';
 // eslint-disable-next-line import/no-namespace
 import * as confirmationReducer from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { Hex } from '@metamask/utils';
+import { useAlerts } from '../../context/alert-system-context';
+import { AlertKeys } from '../../constants/alerts';
+import {
+  ATTEMPTS_MAX_DEFAULT,
+  BUFFER_INITIAL_DEFAULT,
+  BUFFER_STEP_DEFAULT,
+  SLIPPAGE_INITIAL_DEFAULT,
+  SLIPPAGE_SUBSEQUENT_DEFAULT,
+} from '../../../../../selectors/featureFlagController/confirmations';
 
-jest.mock('./useTransactionRequiredTokens');
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../utils/bridge');
+jest.mock('../../context/alert-system-context');
 
 const TRANSACTION_ID_MOCK = '1234-5678';
 const CHAIN_ID_SOURCE_MOCK = '0x1';
 const CHAIN_ID_TARGET_MOCK = '0x2';
 const TOKEN_ADDRESS_SOURCE_MOCK = '0x123';
-const TOKEN_ADDRESS_TARGET_1_MOCK = '0x456';
-const TOKEN_ADDRESS_TARGET_2_MOCK = '0x789';
+const TOKEN_ADDRESS_TARGET_1_MOCK = '0x456' as Hex;
+const TOKEN_ADDRESS_TARGET_2_MOCK = '0x789' as Hex;
 const ACCOUNT_ADDRESS_MOCK = '0xabc';
 const SOURCE_AMOUNT_1_MOCK = '1234';
 const SOURCE_AMOUNT_2_MOCK = '5678';
+const MINIMUM_TOKEN_AMOUNT_1_MOCK = '123';
+const MINIMUM_TOKEN_AMOUNT_2_MOCK = '234';
+const SOURCE_BALANCE_RAW_MOCK = '1234560';
 
 const QUOTE_MOCK = {
   quote: {},
@@ -41,10 +50,7 @@ function runHook() {
 describe('useTransactionBridgeQuotes', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const getBridgeQuotesMock = jest.mocked(getBridgeQuotes);
-
-  const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
-  );
+  const useAlertsMock = jest.mocked(useAlerts);
 
   const useTransactionPayTokenAmountsMock = jest.mocked(
     useTransactionPayTokenAmounts,
@@ -66,33 +72,39 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '123.456',
-      balanceHuman: '123.456',
-      decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
+        balance: '123.456',
+        balanceFiat: '123.456',
+        balanceRaw: SOURCE_BALANCE_RAW_MOCK,
         chainId: CHAIN_ID_SOURCE_MOCK,
+        decimals: 4,
+        symbol: 'TST',
+        tokenFiatAmount: 123.456,
       },
       setPayToken: jest.fn(),
     });
 
-    useTransactionRequiredTokensMock.mockReturnValue([
-      {
-        address: TOKEN_ADDRESS_TARGET_1_MOCK,
-      },
-      {
-        address: TOKEN_ADDRESS_TARGET_2_MOCK,
-      },
-    ] as unknown as TransactionToken[]);
-
     useTransactionPayTokenAmountsMock.mockReturnValue({
       amounts: [
-        { amountRaw: SOURCE_AMOUNT_1_MOCK },
-        { amountRaw: SOURCE_AMOUNT_2_MOCK },
+        {
+          address: TOKEN_ADDRESS_TARGET_1_MOCK,
+          amountRaw: SOURCE_AMOUNT_1_MOCK,
+          targetAmountRaw: MINIMUM_TOKEN_AMOUNT_1_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_TARGET_2_MOCK,
+          amountRaw: SOURCE_AMOUNT_2_MOCK,
+          targetAmountRaw: MINIMUM_TOKEN_AMOUNT_2_MOCK,
+        },
       ],
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     getBridgeQuotesMock.mockResolvedValue([QUOTE_MOCK, QUOTE_MOCK]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+    } as unknown as ReturnType<typeof useAlerts>);
   });
 
   it('requests bridge quotes', () => {
@@ -100,18 +112,32 @@ describe('useTransactionBridgeQuotes', () => {
 
     expect(getBridgeQuotesMock).toHaveBeenCalledWith([
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
+        bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_1_MOCK,
+        targetAmountMinimum: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         targetChainId: CHAIN_ID_TARGET_MOCK,
         targetTokenAddress: TOKEN_ADDRESS_TARGET_1_MOCK,
       },
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
+        bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_2_MOCK,
+        targetAmountMinimum: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         targetChainId: CHAIN_ID_TARGET_MOCK,
         targetTokenAddress: TOKEN_ADDRESS_TARGET_2_MOCK,
       },
@@ -145,4 +171,59 @@ describe('useTransactionBridgeQuotes', () => {
       quotes: [QUOTE_MOCK, QUOTE_MOCK],
     });
   });
+
+  it('returns empty list if no selected pay token', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    const result = runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    expect(result.current.quotes).toStrictEqual([]);
+  });
+
+  it('returns empty list if blocking alert', async () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: 'alert-key',
+          isBlocking: true,
+        },
+      ],
+    } as unknown as ReturnType<typeof useAlerts>);
+
+    const result = runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    expect(result.current.quotes).toStrictEqual([]);
+  });
+
+  it.each([AlertKeys.NoPayTokenQuotes, AlertKeys.InsufficientPayTokenNative])(
+    'returns empty list if blocking alert unless %s alert',
+    async (alertKey) => {
+      useAlertsMock.mockReturnValue({
+        alerts: [
+          {
+            key: alertKey,
+            isBlocking: true,
+          },
+        ],
+      } as unknown as ReturnType<typeof useAlerts>);
+
+      const result = runHook();
+
+      await act(async () => {
+        // Intentionally empty
+      });
+
+      expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
+    },
+  );
 });

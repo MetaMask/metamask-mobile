@@ -74,6 +74,35 @@ exports[`SnapUIForm will render 1`] = `
                 }
               >
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -116,7 +145,7 @@ exports[`SnapUIForm will render 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
                           "paddingVertical": 0,
@@ -262,6 +291,35 @@ exports[`SnapUIForm will render with fields 1`] = `
                   My Input
                 </Text>
                 <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": undefined,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     {
                       "alignItems": "center",
@@ -304,7 +362,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "fontFamily": "Geist Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
-                          "height": 24,
+                          "height": 46,
                           "letterSpacing": 0,
                           "opacity": 1,
                           "paddingVertical": 0,
@@ -357,6 +415,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "opacity": 1,
                     }
                   }
+                  testID="snap-ui-renderer__checkbox"
                 >
                   <View
                     accessibilityRole="checkbox"
@@ -364,7 +423,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#4459ff",
-                        "borderColor": "border-muted",
+                        "borderColor": "#4459ff",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -385,7 +444,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "width": 20,
                         }
                       }
-                      testID="checkbox-icon-component"
+                      testID="snap-ui-renderer__checkbox"
                       width={20}
                     />
                   </View>
@@ -412,6 +471,839 @@ exports[`SnapUIForm will render with fields 1`] = `
                     </Text>
                   </View>
                 </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  [
+                    {},
+                    undefined,
+                  ]
+                }
+                testID="snap-ui-renderer__radio"
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="label"
+                >
+                  My Radio Group
+                </Text>
+                <TouchableOpacity
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "height": 24,
+                      "opacity": 1,
+                    }
+                  }
+                  testID="snap-ui-renderer__radio-button"
+                >
+                  <View
+                    accessibilityRole="radio"
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 99,
+                        "borderWidth": 2,
+                        "height": 20,
+                        "justifyContent": "center",
+                        "width": 20,
+                      }
+                    }
+                  />
+                  <View
+                    style={
+                      {
+                        "marginLeft": 12,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Radio 1
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "height": 24,
+                      "opacity": 1,
+                    }
+                  }
+                  testID="snap-ui-renderer__radio-button"
+                >
+                  <View
+                    accessibilityRole="radio"
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#4459ff",
+                        "borderRadius": 99,
+                        "borderWidth": 2,
+                        "height": 20,
+                        "justifyContent": "center",
+                        "width": 20,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "backgroundColor": "#4459ff",
+                          "borderRadius": 99,
+                          "height": 12,
+                          "width": 12,
+                        }
+                      }
+                      testID="RadioButton-icon-component"
+                    />
+                  </View>
+                  <View
+                    style={
+                      {
+                        "marginLeft": 12,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "Geist Regular",
+                          "fontSize": 16,
+                          "letterSpacing": 0,
+                          "lineHeight": 24,
+                        }
+                      }
+                    >
+                      Radio 2
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View
+                flexDirection="column"
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist Medium",
+                      "fontSize": 16,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="label"
+                >
+                  My Dropdown
+                </Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "stretch",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#b7bbc866",
+                      "borderRadius": 8,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": "auto",
+                      "justifyContent": "center",
+                      "maxHeight": 58,
+                      "minHeight": 48,
+                      "overflow": "hidden",
+                      "paddingBottom": 8,
+                      "paddingHorizontal": 16,
+                      "paddingLeft": 16,
+                      "paddingRight": 16,
+                      "paddingTop": 8,
+                    }
+                  }
+                  testID="snap-ui-renderer__dropdown"
+                >
+                  <View
+                    alignItems="center"
+                    flexDirection="row"
+                    gap={8}
+                    justifyContent="space-between"
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 8,
+                          "justifyContent": "space-between",
+                        },
+                        {
+                          "flex": 1,
+                        },
+                      ]
+                    }
+                    testID="snaps-ui-card"
+                  >
+                    <View
+                      alignItems="center"
+                      flexDirection="row"
+                      gap={16}
+                      style={
+                        [
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "gap": 16,
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      <View
+                        flexDirection="column"
+                        style={
+                          [
+                            {
+                              "flexDirection": "column",
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        <Text
+                          accessibilityRole="text"
+                          ellipsizeMode="tail"
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "Geist Medium",
+                              "fontSize": 16,
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                            }
+                          }
+                        >
+                          Dropdown 2
+                        </Text>
+                      </View>
+                    </View>
+                    <View
+                      flexDirection="column"
+                      style={
+                        [
+                          {
+                            "flexDirection": "column",
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "Geist Medium",
+                            "fontSize": 16,
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "textAlign": "right",
+                          }
+                        }
+                      />
+                    </View>
+                  </View>
+                  <SvgMock
+                    color="#121314"
+                    fill="currentColor"
+                    height={16}
+                    name="ArrowDown"
+                    style={
+                      {
+                        "height": 16,
+                        "marginLeft": 8,
+                        "width": 16,
+                      }
+                    }
+                    width={16}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View>
+                <Modal
+                  animationType="none"
+                  deviceHeight={null}
+                  deviceWidth={null}
+                  hardwareAccelerated={false}
+                  hideModalContentWhileAnimating={false}
+                  onBackdropPress={[Function]}
+                  onModalHide={[Function]}
+                  onModalWillHide={[Function]}
+                  onModalWillShow={[Function]}
+                  onRequestClose={[Function]}
+                  onSwipeComplete={[Function]}
+                  panResponderThreshold={4}
+                  scrollHorizontal={false}
+                  scrollOffset={0}
+                  scrollOffsetMax={0}
+                  scrollTo={null}
+                  statusBarTranslucent={false}
+                  supportedOrientations={
+                    [
+                      "portrait",
+                      "landscape",
+                    ]
+                  }
+                  swipeDirection="down"
+                  swipeThreshold={100}
+                  transparent={true}
+                  visible={true}
+                >
+                  <View
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    style={
+                      {
+                        "backgroundColor": "#3f434a66",
+                        "bottom": 0,
+                        "height": 1334,
+                        "left": 0,
+                        "opacity": 0,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                        "width": 750,
+                      }
+                    }
+                  />
+                  <View
+                    onLayout={[Function]}
+                    pointerEvents="box-none"
+                    style={
+                      [
+                        [
+                          {
+                            "margin": 37.5,
+                            "transform": [
+                              {
+                                "translateY": 0,
+                              },
+                            ],
+                          },
+                          {
+                            "flex": 1,
+                            "justifyContent": "center",
+                          },
+                          {
+                            "justifyContent": "flex-end",
+                            "margin": 0,
+                          },
+                          {
+                            "margin": 0,
+                          },
+                        ],
+                        {
+                          "paddingBottom": 0,
+                        },
+                      ]
+                    }
+                  >
+                    <View
+                      collapsable={false}
+                      deviceHeight={null}
+                      deviceWidth={null}
+                      hideModalContentWhileAnimating={false}
+                      onBackdropPress={[Function]}
+                      onModalHide={[Function]}
+                      onModalWillHide={[Function]}
+                      onModalWillShow={[Function]}
+                      onMoveShouldSetResponder={[Function]}
+                      onMoveShouldSetResponderCapture={[Function]}
+                      onResponderEnd={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderReject={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderStart={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      onStartShouldSetResponderCapture={[Function]}
+                      onSwipeComplete={[Function]}
+                      panResponderThreshold={4}
+                      pointerEvents="box-none"
+                      scrollHorizontal={false}
+                      scrollOffset={0}
+                      scrollOffsetMax={0}
+                      scrollTo={null}
+                      statusBarTranslucent={false}
+                      style={
+                        {
+                          "flex": 1,
+                          "justifyContent": "flex-end",
+                          "margin": 0,
+                          "transform": [
+                            {
+                              "translateY": 1334,
+                            },
+                          ],
+                        }
+                      }
+                      supportedOrientations={
+                        [
+                          "portrait",
+                          "landscape",
+                        ]
+                      }
+                      swipeDirection="down"
+                      swipeThreshold={100}
+                    >
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderTopLeftRadius": 24,
+                            "borderTopRightRadius": 24,
+                            "maxHeight": "80%",
+                            "minHeight": 300,
+                            "overflow": "hidden",
+                            "paddingBottom": 20,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "padding": 16,
+                              },
+                              false,
+                            ]
+                          }
+                          testID="header"
+                        >
+                          <View
+                            style={
+                              {
+                                "width": undefined,
+                              }
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <TouchableOpacity
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "borderRadius": 8,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 24,
+                                  }
+                                }
+                              >
+                                <SvgMock
+                                  color="#121314"
+                                  fill="currentColor"
+                                  height={16}
+                                  name="ArrowLeft"
+                                  style={
+                                    {
+                                      "height": 16,
+                                      "width": 16,
+                                    }
+                                  }
+                                  width={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "Geist Bold",
+                                  "fontSize": 16,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "textAlign": "center",
+                                }
+                              }
+                              testID="header-title"
+                            >
+                              Select an option
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "width": undefined,
+                              }
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                            />
+                          </View>
+                        </View>
+                        <RCTScrollView>
+                          <View>
+                            <View
+                              flexDirection="column"
+                              gap={8}
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "column",
+                                    "gap": 8,
+                                  },
+                                  {
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                  },
+                                ]
+                              }
+                            >
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "flexDirection": "row",
+                                    "height": "auto",
+                                    "justifyContent": "center",
+                                    "maxHeight": 58,
+                                    "minHeight": 48,
+                                    "overflow": "hidden",
+                                    "paddingBottom": 8,
+                                    "paddingHorizontal": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 8,
+                                  }
+                                }
+                                testID="snap-ui-renderer__selector-item"
+                              >
+                                <View
+                                  alignItems="center"
+                                  flexDirection="row"
+                                  gap={8}
+                                  justifyContent="space-between"
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "gap": 8,
+                                        "justifyContent": "space-between",
+                                      },
+                                      {
+                                        "flex": 1,
+                                      },
+                                    ]
+                                  }
+                                  testID="snaps-ui-card"
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={16}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 16,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <View
+                                      flexDirection="column"
+                                      style={
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Dropdown 1
+                                      </Text>
+                                    </View>
+                                  </View>
+                                  <View
+                                    flexDirection="column"
+                                    style={
+                                      [
+                                        {
+                                          "flexDirection": "column",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      ellipsizeMode="tail"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "right",
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#4459ff1a",
+                                    "borderRadius": 8,
+                                    "flexDirection": "row",
+                                    "height": "auto",
+                                    "justifyContent": "center",
+                                    "maxHeight": 58,
+                                    "minHeight": 48,
+                                    "overflow": "hidden",
+                                    "paddingBottom": 8,
+                                    "paddingHorizontal": 16,
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "paddingTop": 8,
+                                  }
+                                }
+                                testID="snap-ui-renderer__selector-item"
+                              >
+                                <View
+                                  alignItems="center"
+                                  flexDirection="row"
+                                  gap={8}
+                                  justifyContent="space-between"
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "gap": 8,
+                                        "justifyContent": "space-between",
+                                      },
+                                      {
+                                        "flex": 1,
+                                      },
+                                    ]
+                                  }
+                                  testID="snaps-ui-card"
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    gap={16}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 16,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <View
+                                      flexDirection="column"
+                                      style={
+                                        [
+                                          {
+                                            "flexDirection": "column",
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="tail"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Medium",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Dropdown 2
+                                      </Text>
+                                    </View>
+                                  </View>
+                                  <View
+                                    flexDirection="column"
+                                    style={
+                                      [
+                                        {
+                                          "flexDirection": "column",
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      ellipsizeMode="tail"
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontFamily": "Geist Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "right",
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    [
+                                      {},
+                                      {
+                                        "backgroundColor": "#4459ff",
+                                        "borderRadius": 9999,
+                                        "bottom": 4,
+                                        "height": "auto",
+                                        "left": 4,
+                                        "marginRight": 12,
+                                        "position": "absolute",
+                                        "top": 4,
+                                        "width": 4,
+                                      },
+                                    ]
+                                  }
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </RCTScrollView>
+                      </View>
+                    </View>
+                  </View>
+                </Modal>
               </View>
               <View
                 flexDirection="column"
@@ -775,6 +1667,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
+                                "gap": 16,
                                 "padding": 16,
                               },
                               false,
@@ -831,7 +1724,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                               {
                                 "alignItems": "center",
                                 "flex": 1,
-                                "marginHorizontal": 16,
                               }
                             }
                           >

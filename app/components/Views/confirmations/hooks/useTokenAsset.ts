@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 
 import { strings } from '../../../../../locales/i18n';
 import { TokenI } from '../../../UI/Tokens/types';
@@ -18,6 +19,7 @@ export const useTokenAsset = () => {
     type: transactionType,
     txParams,
   } = useTransactionMetadataRequest() ?? {};
+
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
   const tokenAddress =
     safeToChecksumAddress(txParams?.to)?.toLowerCase() || nativeTokenAddress;
@@ -29,12 +31,19 @@ export const useTokenAsset = () => {
     }),
   );
 
-  const nativeEvmAsset = useSelector((state: RootState) =>
+  let nativeEvmAsset = useSelector((state: RootState) =>
     selectEvmAsset(state, {
       address: nativeTokenAddress,
       chainId: chainId as Hex,
     }),
   );
+  if (
+    transactionType === TransactionType.simpleSend &&
+    !nativeEvmAsset &&
+    chainId
+  ) {
+    nativeEvmAsset = getNativeAssetForChainId(chainId) as unknown as TokenI;
+  }
 
   let asset = {} as TokenI;
 

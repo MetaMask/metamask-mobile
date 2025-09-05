@@ -3,10 +3,7 @@ import {
   BridgeTokenSelectorBase,
   SkeletonItem,
 } from '../../../../../UI/Bridge/components/BridgeTokenSelectorBase';
-import {
-  BridgeSourceNetworksBar,
-  MAX_NETWORK_ICONS,
-} from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
+import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
@@ -24,6 +21,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
+import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
+import { useTransactionRequiredTokens } from '../../../hooks/pay/useTransactionRequiredTokens';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export function PayWithModal() {
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
@@ -33,18 +33,67 @@ export function PayWithModal() {
   const navigation = useNavigation();
   const { payToken, setPayToken } = useTransactionPayToken();
   const { minimumFiatBalance } = useParams<{ minimumFiatBalance?: number }>();
+  const { chainId: transactionChainId } = useTransactionMetadataRequest() ?? {};
+  const requiredTokens = useTransactionRequiredTokens();
+
+  const targetTokens = useMemo(
+    () => requiredTokens.filter((t) => !t.skipIfBalance),
+    [requiredTokens],
+  );
 
   const { tokens: tokensList, pending } = useTokens({
     balanceChainIds: selectedSourceChainIds,
     tokensToExclude: [],
   });
 
+  const isTokenSupported = useCallback(
+    (token: BridgeToken) => {
+      const isSelected =
+        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+        payToken?.chainId === token.chainId;
+
+      if (isSelected) {
+        return true;
+      }
+
+      const isRequiredToken = targetTokens.some(
+        (t) =>
+          t.address.toLowerCase() === token.address.toLowerCase() &&
+          transactionChainId === token.chainId,
+      );
+
+      if (isRequiredToken) {
+        return true;
+      }
+
+      const isTokenBalanceSufficient =
+        (token?.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0);
+
+      if (!isTokenBalanceSufficient) {
+        return false;
+      }
+
+      const nativeToken = tokensList.find(
+        (t) =>
+          t.address === NATIVE_TOKEN_ADDRESS && t.chainId === token.chainId,
+      );
+
+      const hasNativeBalance = (nativeToken?.tokenFiatAmount ?? 0) > 0;
+
+      return hasNativeBalance;
+    },
+    [
+      minimumFiatBalance,
+      payToken,
+      targetTokens,
+      tokensList,
+      transactionChainId,
+    ],
+  );
+
   const filteredTokensList = useMemo(
-    () =>
-      tokensList.filter(
-        (token) => (token.tokenFiatAmount ?? 0) >= (minimumFiatBalance ?? 0),
-      ),
-    [tokensList, minimumFiatBalance],
+    () => tokensList.filter(isTokenSupported),
+    [isTokenSupported, tokensList],
   );
 
   const handleTokenSelect = useCallback(
@@ -69,8 +118,8 @@ export function PayWithModal() {
       const networkName = allNetworkConfigurations[chainId]?.name;
 
       const isSelected =
-        payToken.chainId === chainId &&
-        payToken.address.toLowerCase() === item.address.toLowerCase();
+        payToken?.chainId === chainId &&
+        payToken?.address.toLowerCase() === item.address.toLowerCase();
 
       const networkImageSource = getNetworkImageSource({
         chainId,
@@ -95,9 +144,9 @@ export function PayWithModal() {
 
   const networksToShow = useMemo(
     () =>
-      sortedSourceNetworks
-        .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
-        .filter((_, i) => i < MAX_NETWORK_ICONS),
+      sortedSourceNetworks.filter(({ chainId }) =>
+        selectedSourceChainIds.includes(chainId),
+      ),
     [selectedSourceChainIds, sortedSourceNetworks],
   );
 

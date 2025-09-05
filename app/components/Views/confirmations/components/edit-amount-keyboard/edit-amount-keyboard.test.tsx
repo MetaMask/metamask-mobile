@@ -43,6 +43,19 @@ describe('EditAmountKeyboard', () => {
     expect(onDonePressMock).toHaveBeenCalled();
   });
 
+  it('done button is visible only if hideDoneButton is false and onDonePress is defined', () => {
+    const { queryByText } = render(
+      <EditAmountKeyboard
+        onChange={noop}
+        onPercentagePress={noop}
+        value={'0'}
+        hideDoneButton
+      />,
+    );
+
+    expect(queryByText('Done')).toBeNull();
+  });
+
   it('calls onPercentagePress when percentage button pressed', () => {
     const onPercentagePressMock = jest.fn();
 

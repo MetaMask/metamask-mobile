@@ -5,7 +5,6 @@ import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
-
 class AccountActionsBottomSheet {
   get editAccount(): DetoxElement {
     return Matchers.getElementByID(

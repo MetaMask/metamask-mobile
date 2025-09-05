@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsFundingTransactionView from './PerpsFundingTransactionView';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -23,7 +24,6 @@ const mockTransaction = {
 // Mock all dependencies properly
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
-const mockUseSelector = jest.fn();
 const mockUsePerpsNetwork = jest.fn();
 const mockUsePerpsBlockExplorerUrl = jest.fn();
 const mockGetHyperliquidExplorerUrl = jest.fn();
@@ -37,7 +37,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: () => mockUseSelector(),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -69,9 +75,10 @@ describe('PerpsFundingTransactionView', () => {
         ),
       baseExplorerUrl: 'https://app.hyperliquid.xyz/explorer',
     });
-    mockUseSelector.mockReturnValue({
+    // Mock useSelector to return a function that returns the account
+    (useSelector as jest.Mock).mockImplementation(() => () => ({
       address: '0x1234567890abcdef1234567890abcdef12345678',
-    });
+    }));
     mockUseRoute.mockReturnValue({
       params: { transaction: mockTransaction },
     });
@@ -263,7 +270,8 @@ describe('PerpsFundingTransactionView', () => {
       setOptions: jest.fn(),
     });
 
-    mockUseSelector.mockReturnValue(null);
+    // Mock useSelector to return null for no account
+    (useSelector as jest.Mock).mockImplementationOnce(() => () => null);
 
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 

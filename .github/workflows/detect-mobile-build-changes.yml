@@ -1,0 +1,119 @@
+# This workflow is used to detect changes in the Android and iOS projects.
+# It can be used to determine if the build should be triggered for the Android and iOS projects.
+# Outputs:
+# - android_changed: Whether Android-impacting files changed
+# - ios_changed: Whether iOS-impacting files changed
+# - any_changed: Whether either platform requires a build
+
+name: Detect Mobile Build Changes
+
+on:
+  workflow_call:
+    outputs:
+      android_changed:
+        description: 'Whether Android-impacting files changed'
+        value: ${{ jobs.detect.outputs.android }}
+      ios_changed:
+        description: 'Whether iOS-impacting files changed'
+        value: ${{ jobs.detect.outputs.ios }}
+      any_changed:
+        description: 'Whether either platform requires a build'
+        value: ${{ jobs.detect.outputs.any }}
+
+jobs:
+  detect:
+    name: Detect platform changes (Android/iOS)
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.set-outputs.outputs.android_final }}
+      ios: ${{ steps.set-outputs.outputs.ios_final }}
+      any: ${{ steps.set-outputs.outputs.any_changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Paths filter (Android/iOS impact)
+        id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        with:
+          filters: |
+            android:
+              - 'android/**'                       # All Android project files
+              - 'android/app/build.gradle'         # Gradle build files
+              - 'android/gradlew'                  # Gradle wrapper
+              - 'android/settings.gradle'          # Gradle settings
+              - 'app/**/android/**'                # Android-specific app code
+              - 'core/**/android/**'               # Android-specific core modules
+              - 'app/configs/android/**'           # Android configs
+              - 'app/constants/android/**'         # Android constants
+              - 'app/components/**/android/**'     # Android UI components
+              - 'app/util/**/android/**'           # Android utilities
+              - 'package.json'                     # If native deps change
+              
+ 
+            ios:
+              - 'ios/**'                           # All iOS project files
+              - 'Podfile'                          # CocoaPods dependencies
+              - 'Podfile.lock'                     # Pod lockfile
+              - '**/*.xcodeproj/**'                # Xcode project files
+              - '**/*.xcworkspace/**'              # Xcode workspace
+              - 'app/**/ios/**'                    # iOS-specific app code
+              - 'core/**/ios/**'                   # iOS-specific core modules
+              - 'app/configs/ios/**'               # iOS configs
+              - 'app/constants/ios/**'             # iOS constants
+              - 'app/components/**/ios/**'         # iOS UI components
+              - 'app/util/**/ios/**'               # iOS utilities
+              - 'package.json'                     # If native deps change
+              
+              
+            shared:
+              - 'metro.config.js'                  # Metro bundler
+              - 'tsconfig.json'                    # TypeScript config
+              - 'babel.config.js'                  # Transpilation changes
+              - 'yarn.lock'                        # Dependency changes
+              - 'app/**'                           # App files
+
+
+            exclude:
+                - '!**/*.md'                          # Docs don't trigger builds
+                - '!docs/**'                          # Documentation
+                - '!**/*.yml'                         # Configs (exclude if not build-related)
+                - '!.github/**'                       # Workflow changes (unless affecting builds)
+
+      - name: Set final outputs
+        id: set-outputs
+        run: |
+          # Get filter results
+          android_direct="${{ steps.filter.outputs.android }}"
+          ios_direct="${{ steps.filter.outputs.ios }}"
+          shared_changed="${{ steps.filter.outputs.shared }}"
+          
+          # Apply shared logic: if shared files changed, both platforms should build
+          if [[ "$shared_changed" == 'true' ]]; then
+            android_final="true"
+            ios_final="true"
+          else
+            android_final="$android_direct"
+            ios_final="$ios_direct"
+          fi
+          
+          # Set outputs
+          echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
+          echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
+          
+          # Set any_changed
+          if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
+            echo "any_changed=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "any_changed=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Summary
+        run: |
+          {
+            echo "Android changed: ${{ steps.set-outputs.outputs.android_final }}"
+            echo "iOS changed: ${{ steps.set-outputs.outputs.ios_final }}"
+            echo "Any changed (iOS and Android): ${{ steps.set-outputs.outputs.any_changed }}"
+          } >> "${GITHUB_STEP_SUMMARY}"

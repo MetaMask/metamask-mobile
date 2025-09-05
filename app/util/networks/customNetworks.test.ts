@@ -14,11 +14,10 @@ describe('popularNetwork', () => {
       'BNB Smart Chain Mainnet': toHex('56'),
       Base: toHex('8453'),
       'OP Mainnet': toHex('10'),
-      Hyperliquid: toHex('999'),
       Palm: toHex('11297108109'),
       'Polygon Mainnet': toHex('137'),
       'zkSync Mainnet': toHex('324'),
-      'Sei Network': toHex('1329'),
+      'Sei Mainnet': toHex('1329'),
     };
 
     PopularList.forEach((rpc) => {
