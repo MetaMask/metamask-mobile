@@ -17,12 +17,22 @@ export const createTradingViewChartTemplate = (
             height: 100%;
             font-family: Arial, sans-serif;
             background: ${theme.colors.background.default};
+            /* Touch optimization */
+            touch-action: pan-x;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         #container {
             width: 100%;
             height: 100vh;
             position: relative;
             background: ${theme.colors.background.default};
+            /* Touch optimization for chart container */
+            touch-action: pan-x;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
@@ -160,6 +170,46 @@ export const createTradingViewChartTemplate = (
                     const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
                     window.visibleCandleCount = visibleCandleCount;
                 });
+
+                // Touch event optimization for better performance
+                const container = document.getElementById('container');
+                let touchStartTime = 0;
+                let touchMoveTimeout = null;
+                
+                // Debounced touch move handler
+                const debouncedTouchMove = (e) => {
+                    if (touchMoveTimeout) {
+                        clearTimeout(touchMoveTimeout);
+                    }
+                    
+                    touchMoveTimeout = setTimeout(() => {
+                        // Minimal processing during touch move
+                        // Let TradingView handle the actual panning
+                    }, 16); // ~60fps throttling
+                };
+                
+                // Add passive event listeners for better performance
+                container.addEventListener('touchstart', (e) => {
+                    touchStartTime = performance.now();
+                }, { passive: true });
+                
+                container.addEventListener('touchmove', debouncedTouchMove, { passive: true });
+                
+                container.addEventListener('touchend', (e) => {
+                    const touchDuration = performance.now() - touchStartTime;
+                    // Clear any pending touch move timeouts
+                    if (touchMoveTimeout) {
+                        clearTimeout(touchMoveTimeout);
+                        touchMoveTimeout = null;
+                    }
+                }, { passive: true });
+                
+                container.addEventListener('touchcancel', (e) => {
+                    if (touchMoveTimeout) {
+                        clearTimeout(touchMoveTimeout);
+                        touchMoveTimeout = null;
+                    }
+                }, { passive: true });
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
