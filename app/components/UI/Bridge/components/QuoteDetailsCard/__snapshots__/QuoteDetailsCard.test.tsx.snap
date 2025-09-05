@@ -899,6 +899,9 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -908,7 +911,6 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>
@@ -2102,6 +2104,9 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    adjustsFontSizeToFit={true}
+                                    minimumFontScale={0.5}
+                                    numberOfLines={1}
                                     style={
                                       {
                                         "color": "#121314",
@@ -2111,7 +2116,6 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                         "lineHeight": 24,
                                       }
                                     }
-                                    testID="label"
                                   >
                                     1 ETH = 24.4 USDC
                                   </Text>

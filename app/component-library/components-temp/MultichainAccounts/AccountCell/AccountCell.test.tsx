@@ -103,8 +103,14 @@ describe('AccountCell', () => {
     const { getByTestId } = renderAccountCell();
     const menuButton = getByTestId('multichain-account-cell-menu');
     fireEvent.press(menuButton);
-    expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountActions', {
-      accountGroup: mockAccountGroup,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'MultichainAccountActions',
+        params: {
+          accountGroup: mockAccountGroup,
+        },
+      },
+    );
   });
 });

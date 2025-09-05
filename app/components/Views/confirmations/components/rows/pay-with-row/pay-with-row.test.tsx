@@ -60,6 +60,7 @@ describe('PayWithRow', () => {
         address: ADDRESS_MOCK,
         balance: '0',
         balanceFiat: '$0',
+        balanceRaw: '0',
         chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'test',

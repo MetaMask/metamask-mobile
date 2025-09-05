@@ -1,8 +1,15 @@
+import { cloneDeep } from 'lodash';
 import {
   ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
   SendRedesignFlags,
   selectSendRedesignFlags,
+  selectMetaMaskPayFlags,
+  BUFFER_STEP_DEFAULT,
+  BUFFER_INITIAL_DEFAULT,
+  ATTEMPTS_MAX_DEFAULT,
+  SLIPPAGE_INITIAL_DEFAULT,
+  SLIPPAGE_SUBSEQUENT_DEFAULT,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -267,5 +274,102 @@ describe('Send Redesign Feature Flags', () => {
       selectSendRedesignFlags(stateWithUndefinedEnabled),
       sendRedesignFlagsDefaultValues,
     );
+  });
+});
+
+describe('MetaMask Pay Feature Flags', () => {
+  it('returns default buffer step if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferStep).toEqual(
+      BUFFER_STEP_DEFAULT,
+    );
+  });
+
+  it('returns default buffer initial if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).bufferInitial).toEqual(
+      BUFFER_INITIAL_DEFAULT,
+    );
+  });
+
+  it('returns default attempts max if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).attemptsMax).toEqual(
+      ATTEMPTS_MAX_DEFAULT,
+    );
+  });
+
+  it('returns default initial slippage if not in feature flags', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).slippageInitial,
+    ).toEqual(SLIPPAGE_INITIAL_DEFAULT);
+  });
+
+  it('returns default subsequent slippage if not in feature flags', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).slippageSubsequent,
+    ).toEqual(SLIPPAGE_SUBSEQUENT_DEFAULT);
+  });
+
+  it('returns buffer step from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferStep: 1.234,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferStep).toEqual(1.234);
+  });
+
+  it('returns initial buffer from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          bufferInitial: 2.345,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).bufferInitial).toEqual(2.345);
+  });
+
+  it('returns max attempts from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          attemptsMax: 3,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).attemptsMax).toEqual(3);
+  });
+
+  it('returns initial slippage from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          slippageInitial: 0.123,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).slippageInitial).toEqual(0.123);
+  });
+
+  it('returns subsequent slippage from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmation_pay: {
+          slippageSubsequent: 0.234,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).slippageSubsequent).toEqual(0.234);
   });
 });

@@ -315,4 +315,21 @@ describe('AccountGroupDetails', () => {
       account: expect.any(Object),
     });
   });
+
+  it('navigates to edit account name when account name is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AccountGroupDetails {...defaultProps} />,
+      { state: mockState },
+    );
+    const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
+    fireEvent.press(accountNameLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MultichainAccountDetailActions',
+      {
+        screen: 'EditMultichainAccountName',
+        params: { accountGroup: mockAccountGroup },
+      },
+    );
+  });
 });

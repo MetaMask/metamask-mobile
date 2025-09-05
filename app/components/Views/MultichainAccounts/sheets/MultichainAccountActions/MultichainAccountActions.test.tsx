@@ -8,6 +8,7 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
+  MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 
@@ -92,7 +93,7 @@ describe('MultichainAccountActions', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
     expect(getByText('Account Details')).toBeTruthy();
-    // expect(getByText('Rename account')).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
+    expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
   });
 
@@ -102,7 +103,7 @@ describe('MultichainAccountActions', () => {
     expect(
       getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS),
     ).toBeTruthy();
-    // expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME)).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
+    expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME)).toBeTruthy();
     expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES)).toBeTruthy();
   });
 
@@ -114,6 +115,7 @@ describe('MultichainAccountActions', () => {
     );
     accountDetailsButton.props.onPress();
 
+    expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
       {
@@ -128,11 +130,28 @@ describe('MultichainAccountActions', () => {
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
     addressesButton.props.onPress();
 
+    expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
       {
         groupId: mockAccountGroup.id,
         title: `Addresses / ${mockAccountGroup.metadata.name}`,
+      },
+    );
+  });
+
+  it('navigates to edit account name when rename account button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const renameAccountButton = getByTestId(
+      MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
+    );
+    renameAccountButton.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      {
+        accountGroup: mockAccountGroup,
       },
     );
   });

@@ -1,8 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useCallback, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../../../core/Engine';
 import {
   ParamListBase,
@@ -22,56 +24,79 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../../../component-library/components/Buttons/Button/Button.types';
-import styleSheet from './EditAccountName.styles';
+import styleSheet from './EditMultichainAccountName.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
-import Logger from '../../../../../util/Logger';
 import { TextInput } from 'react-native';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { RootState } from '../../../../../reducers';
+import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
-    account: InternalAccount;
+    accountGroup: AccountGroupObject;
   };
 }
 
-type EditAccountNameRouteProp = RouteProp<
+type EditMultichainAccountNameRouteProp = RouteProp<
   RootNavigationParamList,
   'EditMultichainAccountName'
 >;
 
-export const EditAccountName = () => {
+export const EditMultichainAccountName = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors, themeAppearance } = useTheme();
-  const route = useRoute<EditAccountNameRouteProp>();
-  const { account } = route.params;
+  const route = useRoute<EditMultichainAccountNameRouteProp>();
+  const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
-  const [accountName, setAccountName] = useState(account.metadata.name);
+  const sheetRef = useRef<BottomSheetRef>(null);
+
+  const accountGroupFromSelector = useSelector((state: RootState) =>
+    initialAccountGroup
+      ? selectAccountGroupById(state, initialAccountGroup.id)
+      : undefined,
+  );
+
+  const accountGroup = accountGroupFromSelector || initialAccountGroup;
+
+  const initialName = accountGroup?.metadata?.name || '';
+
+  const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
 
   const handleAccountNameChange = useCallback(() => {
-    if (!accountName) {
+    // Validate that account name is not empty
+    if (!accountName || accountName.trim() === '') {
+      setError(
+        strings('multichain_accounts.edit_account_name.error_empty_name'),
+      );
       return;
     }
 
-    const { AccountsController } = Engine.context;
+    //TODO: Validate that account name is not duplicate after it's added to the AccountTreeController
+
     try {
-      AccountsController.setAccountName(account.id, accountName);
+      const { AccountTreeController } = Engine.context;
+      AccountTreeController.setAccountGroupName(accountGroup.id, accountName);
       navigation.goBack();
     } catch {
-      setError(
-        strings('multichain_accounts.edit_account_name.error_duplicate_name'),
-      );
+      setError(strings('multichain_accounts.edit_account_name.error'));
     }
-  }, [accountName, account.id, navigation]);
+  }, [accountName, accountGroup, navigation]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleOnClose = useCallback(() => {
+    // Close the entire modal stack by going back to the parent
+    navigation.dangerouslyGetParent()?.goBack();
+  }, [navigation]);
+
   const saveButtonProps: ButtonProps = {
     variant: ButtonVariants.Primary,
-    label: strings('multichain_accounts.edit_account_name.save_button'),
+    label: strings('multichain_accounts.edit_account_name.confirm_button'),
     size: ButtonSize.Lg,
     onPress: handleAccountNameChange,
     style: styles.saveButton,
@@ -79,24 +104,29 @@ export const EditAccountName = () => {
   };
 
   return (
-    <BottomSheet>
-      <BottomSheetHeader onBack={handleOnBack}>
-        {strings('multichain_accounts.edit_account_name.title')}
+    <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader onBack={handleOnBack} onClose={handleOnClose}>
+        {accountGroup?.metadata?.name || 'Account Group'}
       </BottomSheetHeader>
       <Box
         style={styles.container}
         testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
       >
-        <Text>{strings('multichain_accounts.edit_account_name.name')}</Text>
+        <Text>
+          {strings('multichain_accounts.edit_account_name.account_name')}
+        </Text>
         <TextInput
           testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
           style={styles.input}
           value={accountName}
           onChangeText={(newName: string) => {
-            Logger.log('newName', newName);
             setAccountName(newName);
+            // Clear error when user starts typing
+            if (error) {
+              setError(null);
+            }
           }}
-          placeholder={account.metadata.name}
+          placeholder={initialName}
           placeholderTextColor={colors.text.muted}
           spellCheck={false}
           keyboardAppearance={themeAppearance}

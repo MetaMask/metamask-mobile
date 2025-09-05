@@ -76,7 +76,10 @@ describe('useTransactionPayToken', () => {
       payToken: PAY_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toStrictEqual(BRIDGE_TOKEN_MOCK);
+    expect(result.current.payToken).toStrictEqual({
+      ...BRIDGE_TOKEN_MOCK,
+      balanceRaw: '1234560',
+    });
   });
 
   it('sets token in state', () => {

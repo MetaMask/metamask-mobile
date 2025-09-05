@@ -716,7 +716,7 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Edit Account Name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeTruthy();
       });
     });
 

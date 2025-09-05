@@ -29,6 +29,9 @@ jest.mock('../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/confirmations',
+    ),
     selectConfirmationRedesignFlags: () => ({
       signatures: true,
       staking_confirmations: true,

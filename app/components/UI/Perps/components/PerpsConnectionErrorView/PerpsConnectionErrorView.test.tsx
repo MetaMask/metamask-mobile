@@ -216,7 +216,7 @@ describe('PerpsConnectionErrorView', () => {
       />,
     );
 
-    const backButton = getByText('navigation.go_back');
+    const backButton = getByText('perps.errors.connectionFailed.go_back');
     expect(backButton).toBeTruthy();
   });
 
@@ -229,7 +229,7 @@ describe('PerpsConnectionErrorView', () => {
       />,
     );
 
-    const backButton = queryByText('navigation.go_back');
+    const backButton = queryByText('perps.errors.connectionFailed.go_back');
     expect(backButton).toBeNull();
   });
 });
