@@ -5421,6 +5421,8 @@
     },
     "edit_account_name": {
       "title": "Edit Account Name",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "Name",
       "save_button": "Save",
       "error": "Failed to edit account name",

@@ -161,8 +161,8 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
-      EDIT_ACCOUNT_NAME: 'MultichainEditAccountName',
-      LEGACY_EDIT_ACCOUNT_NAME: 'LegacyMultichainEditAccountName',
+      EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
+      LEGACY_EDIT_ACCOUNT_NAME: 'LegacyEditMultichainAccountName',
       EDIT_WALLET_NAME: 'EditWalletName',
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',

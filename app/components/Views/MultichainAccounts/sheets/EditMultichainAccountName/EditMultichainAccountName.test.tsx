@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { MultichainEditAccountName } from './MultichainEditAccountName';
+import { EditMultichainAccountName } from './EditMultichainAccountName';
 import { strings } from '../../../../../../locales/i18n';
 import { EditAccountNameIds } from '../../../../../../e2e/selectors/MultichainAccounts/EditAccountName.selectors';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -50,11 +50,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-describe('MultichainEditAccountName', () => {
+describe('EditMultichainAccountName', () => {
   const render = () =>
     renderWithProvider(
       <SafeAreaProvider>
-        <MultichainEditAccountName />
+        <EditMultichainAccountName />
       </SafeAreaProvider>,
     );
 
@@ -68,14 +68,16 @@ describe('MultichainEditAccountName', () => {
     it('renders correctly with account group information', () => {
       const { getByText, getByTestId } = render();
 
+      expect(getByText('Test Account Group')).toBeTruthy();
       expect(
-        getByText(strings('multichain_accounts.edit_account_name.title')),
+        getByText(
+          strings('multichain_accounts.edit_account_name.account_name'),
+        ),
       ).toBeTruthy();
       expect(
-        getByText(strings('multichain_accounts.edit_account_name.name')),
-      ).toBeTruthy();
-      expect(
-        getByText(strings('multichain_accounts.edit_account_name.save_button')),
+        getByText(
+          strings('multichain_accounts.edit_account_name.confirm_button'),
+        ),
       ).toBeTruthy();
       expect(
         getByTestId(EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER),
