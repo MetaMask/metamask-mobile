@@ -178,7 +178,6 @@ pipelines:
         - build_ios_main_exp
   nightly_rc_builds_pipeline:
     workflows:
-      create_temp_nightly_branch: {}
       bump_version_code: {}
       build_android_main_rc:
         depends_on:
@@ -186,9 +185,9 @@ pipelines:
       build_ios_main_rc:
         depends_on:
         - bump_version_code
-      # deploy_ios_to_store:
-      #   depends_on:
-      #   - build_ios_main_rc    
+      deploy_ios_to_store:
+        depends_on:
+        - build_ios_main_rc    
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
   bump_version_stage:
@@ -812,26 +811,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-  create_temp_nightly_branch:
-    before_run:
-      - _get_workflow_info
-    steps:
-      - script@1:
-          is_always_run: true
-          title: Trigger Update Build Version Action
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                git fetch
-                git pull
-                git checkout -b temp-nightly
-                git push origin temp-nightly
-                
-                echo "✅ Temporary nightly branch created: temp-nightly"
-                echo "💡 To delete this branch later, run: ./temp-branch.sh delete temp-nightly"
-                echo "🧹 Cleanup will happen automatically..."
-
-                exit 0
   bump_version_code:
     before_run:
       - _get_workflow_info
