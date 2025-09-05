@@ -12,6 +12,8 @@ class CustomReporter {
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
 
   onTestEnd(test, result) {
+    console.log('Result is:', result);
+    console.log('Test is:', test);
     console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
     console.log(`📊 Test status: ${result.status}`);
     console.log(`📊 Test duration: ${result.duration}ms`);
@@ -83,11 +85,28 @@ class CustomReporter {
         console.log('\n📊 Performance Metrics for:', test.title);
         console.log('─'.repeat(50));
 
-        Object.entries(metrics).forEach(([key, value]) => {
-          if (key !== 'total' && key !== 'device') {
-            console.log(`${key.padEnd(30)}: ${value} ms`);
-          }
-        });
+        // Display steps if they exist
+        if (metrics.steps && Array.isArray(metrics.steps)) {
+          console.log('📋 Test Steps:');
+          metrics.steps.forEach((stepObject) => {
+            // Each stepObject has a single key-value pair
+            const [stepName, duration] = Object.entries(stepObject)[0];
+            console.log(`  ${stepName.padEnd(28)}: ${duration} ms`);
+          });
+        } else if (metrics.steps && typeof metrics.steps === 'object') {
+          // Backward compatibility for old object format
+          console.log('📋 Test Steps:');
+          Object.entries(metrics.steps).forEach(([stepName, duration]) => {
+            console.log(`  ${stepName.padEnd(28)}: ${duration} ms`);
+          });
+        } else {
+          // Fallback to old format for backward compatibility
+          Object.entries(metrics).forEach(([key, value]) => {
+            if (key !== 'total' && key !== 'device') {
+              console.log(`${key.padEnd(30)}: ${value} ms`);
+            }
+          });
+        }
 
         console.log('─'.repeat(50));
         console.log(`TOTAL TIME: ${metrics.total.toFixed(2)} seconds`);
@@ -224,6 +243,7 @@ class CustomReporter {
       }
 
       if (this.metrics.length > 0) {
+        console.log('Metrics are:', this.metrics);
         // Add video URLs to metrics by matching test names with sessions
         const metricsWithVideo = this.metrics.map((metric) => {
           const matchingSession = this.sessions.find(
@@ -273,34 +293,60 @@ class CustomReporter {
                   <th>Steps</th>
                   <th>Time (ms)</th>
                 </tr>
-                ${Object.entries(test)
-                  .filter(
-                    ([key]) =>
-                      key !== 'testName' &&
-                      key !== 'device' &&
-                      key !== 'videoURL' &&
-                      key !== 'sessionId' &&
-                      key !== 'testFailed' &&
-                      key !== 'failureReason' &&
-                      key !== 'note',
-                  )
-                  .map(([key, value]) => {
-                    if (key === 'total') {
-                      return `
-                        <tr class="total">
-                          <td>TOTAL TIME</td>
-                          <td>${value} s</td>
+                ${
+                  test.steps && Array.isArray(test.steps)
+                    ? // New array structure with steps
+                      test.steps
+                        .map((stepObject) => {
+                          const [stepName, duration] =
+                            Object.entries(stepObject)[0];
+                          return `
+                        <tr>
+                          <td>${stepName}</td>
+                          <td>${duration} ms</td>
                         </tr>
                       `;
-                    }
-                    return `
-                      <tr>
-                        <td>${key}</td>
-                        <td>${value} ms</td>
-                      </tr>
-                    `;
-                  })
-                  .join('')}
+                        })
+                        .join('')
+                    : test.steps && typeof test.steps === 'object'
+                    ? // Backward compatibility for old object structure
+                      Object.entries(test.steps)
+                        .map(
+                          ([stepName, duration]) => `
+                        <tr>
+                          <td>${stepName}</td>
+                          <td>${duration} ms</td>
+                        </tr>
+                      `,
+                        )
+                        .join('')
+                    : // Fallback to old structure
+                      Object.entries(test)
+                        .filter(
+                          ([key]) =>
+                            key !== 'testName' &&
+                            key !== 'device' &&
+                            key !== 'videoURL' &&
+                            key !== 'sessionId' &&
+                            key !== 'testFailed' &&
+                            key !== 'failureReason' &&
+                            key !== 'note' &&
+                            key !== 'total',
+                        )
+                        .map(
+                          ([key, value]) => `
+                        <tr>
+                          <td>${key}</td>
+                          <td>${value} ms</td>
+                        </tr>
+                      `,
+                        )
+                        .join('')
+                }
+                <tr class="total">
+                  <td>TOTAL TIME</td>
+                  <td>${test.total} s</td>
+                </tr>
                 ${
                   test.testFailed
                     ? `
@@ -395,27 +441,39 @@ class CustomReporter {
         // Add column headers
         csvRows.push('Step,Time (ms)');
 
-        // Add each step (excluding testName, device, videoURL, sessionId, testFailed, failureReason, and note)
-        Object.entries(test).forEach(([key, value]) => {
-          if (
-            key !== 'testName' &&
-            key !== 'device' &&
-            key !== 'videoURL' &&
-            key !== 'sessionId' &&
-            key !== 'testFailed' &&
-            key !== 'failureReason' &&
-            key !== 'note'
-          ) {
-            if (key === 'total') {
-              // Add a separator line before total
-              csvRows.push('---,---');
-              csvRows.push(`TOTAL TIME (s),${value}`);
-            } else {
-              // Regular step with time in ms
+        // Add each step based on structure (new array format, old object format, or legacy format)
+        if (test.steps && Array.isArray(test.steps)) {
+          // New array structure with steps
+          test.steps.forEach((stepObject) => {
+            const [stepName, duration] = Object.entries(stepObject)[0];
+            csvRows.push(`"${stepName}","${duration}"`);
+          });
+        } else if (test.steps && typeof test.steps === 'object') {
+          // Backward compatibility for old object structure
+          Object.entries(test.steps).forEach(([stepName, duration]) => {
+            csvRows.push(`"${stepName}","${duration}"`);
+          });
+        } else {
+          // Fallback to old format (excluding specific keys)
+          Object.entries(test).forEach(([key, value]) => {
+            if (
+              key !== 'testName' &&
+              key !== 'device' &&
+              key !== 'videoURL' &&
+              key !== 'sessionId' &&
+              key !== 'testFailed' &&
+              key !== 'failureReason' &&
+              key !== 'note' &&
+              key !== 'total'
+            ) {
               csvRows.push(`"${key}","${value}"`);
             }
-          }
-        });
+          });
+        }
+
+        // Add total time regardless of structure
+        csvRows.push('---,---');
+        csvRows.push(`TOTAL TIME (s),${test.total}`);
 
         // Add failure information if this was a failed test
         if (test.testFailed) {
