@@ -97,8 +97,12 @@ export const Confirm = ({ route }: ConfirmProps) => {
       navigation.setOptions({
         headerShown: true,
       });
+
+      return () => {
+        onReject(undefined, true);
+      };
     }
-  }, [isFullScreenConfirmation, navigation]);
+  }, [onReject, isFullScreenConfirmation, navigation]);
 
   if (!isRedesignedEnabled) {
     return (
