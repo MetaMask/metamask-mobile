@@ -68,13 +68,22 @@ MAINTENANCE:
             height: 100%;
             font-family: Arial, sans-serif;
             background: ${theme.colors.background.default};
+            /* Touch optimization */
+            touch-action: pan-x;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        
         #container {
             width: 100%;
             height: 100vh;
             position: relative;
             background: ${theme.colors.background.default};
+            /* Touch optimization for chart container */
+            touch-action: pan-x;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
     </style>
 </head>
@@ -139,10 +148,26 @@ MAINTENANCE:
                     autoSize: false, // Disable auto-resize for better performance
                     handleScroll: true,
                     handleScale: true,
-                    // Disable smooth scrolling conflicts
+                    // Enhanced kinetic scrolling with momentum tuning for mobile
+                    // Fine-tuning options: increase friction for more momentum, increase min velocity for more sensitivity
                     kinetic: {
                         mouse: true,
                         touch: true,
+                        // Momentum and friction tuning for smoother panning
+                        momentum: {
+                            friction: 0.95, // Adjust momentum decay (0.9-0.98 range)
+                            minVelocity: 0.1, // Minimum velocity threshold
+                        },
+                        // Additional kinetic settings for mobile optimization
+                        touch: {
+                            enabled: true,
+                            // Fine-tune touch sensitivity
+                            sensitivity: 1.0, // Default sensitivity
+                        }
+                    },
+                    // Disable crosshair for better performance on low-end devices
+                    crosshair: {
+                        mode: 2, // Hidden mode - no crosshair at all
                     },
                     localization: {
                         priceFormatter: (price) => {
@@ -161,32 +186,33 @@ MAINTENANCE:
                         timeVisible: true,
                         secondsVisible: false,
                         borderColor: 'transparent',
-                        // Optimized scroll and zoom handling for smooth panning
+                        // Mobile-optimized scroll and zoom handling
                         handleScale: {
                             axisPressedMouseMove: {
-                                time: true, // Enable time scale dragging for smooth panning
-                                price: true, // Allow price scale dragging
+                                time: true, // Enable time scale dragging
+                                price: false, // Disable price scale dragging to prevent conflicts
                             },
-                            mouseWheel: true, // Enable mouse wheel zoom
+                            mouseWheel: false, // Disable mouse wheel zoom (mobile app)
                             pinch: true, // Enable pinch zoom on mobile
                         },
                         handleScroll: {
-                            mouseWheel: true, // Enable mouse wheel scroll
-                            pressedMouseMove: true, // Enable drag scroll (important for smooth panning)
+                            mouseWheel: false, // Disable mouse wheel scroll (mobile app)
+                            pressedMouseMove: false, // Disable drag scroll (mobile app)
                             horzTouchDrag: true, // Enable horizontal touch drag
                             vertTouchDrag: false, // Disable vertical touch drag
                         },
-                        // Aggressive panning optimizations
+                        // Simplified panning configuration
                         shiftVisibleRangeOnNewBar: false, // Prevent automatic shifting
                         allowShiftVisibleRangeOnWhitespaceReplacement: false, // Prevent unexpected jumps
                         fixLeftEdge: false, // Allow free scrolling
                         fixRightEdge: false, // Allow free scrolling  
-                        lockVisibleTimeRangeOnResize: true, // Maintain position on resize
+                        lockVisibleTimeRangeOnResize: false, // Don't lock on resize
                         rightBarStaysOnScroll: false, // Don't auto-follow latest data during scroll
                         uniformDistribution: false, // Allow natural time distribution
+                        // Simplified tick formatting for better performance
                         tickMarkFormatter: (time) => {
-                            // Ultra-lightweight tick formatting
-                            return new Date(time * 1000).toLocaleTimeString('en-US', { 
+                            const date = new Date(time * 1000);
+                            return date.toLocaleTimeString('en-US', { 
                                 hour12: false, 
                                 hour: '2-digit', 
                                 minute: '2-digit' 
@@ -201,130 +227,56 @@ MAINTENANCE:
                     }
                 });
 
-                // Add interaction event listeners for smooth panning detection
-                const container = document.getElementById('container');
-                
-                // Mouse-based panning detection
-                container.addEventListener('mousedown', () => {
-                    window.isUserPanning = true;
-                    window.panStartTime = performance.now();
-                    clearTimeout(window.panEndTimeout);
-                }, { passive: true });
-                
-                container.addEventListener('mouseup', () => {
-                    window.isUserPanning = false;
-                    window.panEndTimeout = setTimeout(() => {
-                        // Apply zoom restrictions after momentum scrolling settles
-                        if (!window.isUserPanning) {
-                            window.applyZoomRestrictionsIfNeeded();
-                        }
-                    }, window.panningDisableTime);
-                }, { passive: true });
-                
-                // Touch-based panning detection
-                container.addEventListener('touchstart', () => {
-                    window.isUserPanning = true;
-                    window.panStartTime = performance.now();
-                    clearTimeout(window.panEndTimeout);
-                }, { passive: true });
-                
-                container.addEventListener('touchend', () => {
-                    window.isUserPanning = false;
-                    window.panEndTimeout = setTimeout(() => {
-                        // Apply zoom restrictions after momentum scrolling settles
-                        if (!window.isUserPanning) {
-                            window.applyZoomRestrictionsIfNeeded();
-                        }
-                    }, window.panningDisableTime);
-                }, { passive: true });
-                
-                // Wheel-based interaction detection
-                container.addEventListener('wheel', (e) => {
-                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                        // Horizontal wheel scroll = panning
-                        window.isUserPanning = true;
-                        window.panStartTime = performance.now();
-                        clearTimeout(window.panEndTimeout);
-                        
-                        window.panEndTimeout = setTimeout(() => {
-                            window.isUserPanning = false;
-                            window.applyZoomRestrictionsIfNeeded();
-                        }, window.panningDisableTime);
-                    }
-                }, { passive: true });
-
-                // Zoom restriction function
-                window.applyZoomRestrictionsIfNeeded = function() {
-                    if (window.isUserPanning) return;
-                    
-                    const logicalRange = window.chart.timeScale().getVisibleLogicalRange();
-                    if (!logicalRange || !window.allCandleData || window.allCandleData.length === 0) {
-                        return;
-                    }
-                    
-                    const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
-                    
-                    // Apply strict zoom limits when user is not actively panning
-                    if (visibleCandleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
-                        const maxRange = window.ZOOM_LIMITS.MAX_CANDLES;
-                        const centerPoint = (logicalRange.from + logicalRange.to) / 2;
-                        const halfRange = maxRange / 2;
-                        
-                        window.chart.timeScale().setVisibleLogicalRange({
-                            from: centerPoint - halfRange,
-                            to: centerPoint + halfRange,
-                        });
-                    } else if (visibleCandleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
-                        const minRange = window.ZOOM_LIMITS.MIN_CANDLES;
-                        const centerPoint = (logicalRange.from + logicalRange.to) / 2;
-                        const halfRange = minRange / 2;
-                        
-                        window.chart.timeScale().setVisibleLogicalRange({
-                            from: centerPoint - halfRange,
-                            to: centerPoint + halfRange,
-                        });
-                    }
-                    
-                    // Update stored visible candle count
-                    window.visibleCandleCount = visibleCandleCount;
-                };
-
-                // Lightweight zoom tracking - NO interference during panning
+                // Simple range tracking without complex panning detection
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
                     if (!logicalRange) return;
                     
-                    // Simply track the current range - apply restrictions only when NOT panning
+                    // Simply track the current range without restrictions
                     window.lastLogicalRange = logicalRange;
-                    
-                    // If user is actively panning, do NOTHING - let the chart scroll smoothly
-                    if (window.isUserPanning) {
-                        return;
-                    }
-                    
-                    // Very minimal processing during non-panning - only track visible count
                     const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
                     window.visibleCandleCount = visibleCandleCount;
-                    
-                    // Only apply restrictions on intentional zoom (significant changes when not panning)
-                    const now = performance.now();
-                    const timeSinceLastPan = now - window.panStartTime;
-                    
-                    // If it's been a while since panning and this looks like a zoom operation
-                    if (timeSinceLastPan > window.panningDisableTime) {
-                        const prevCount = window.visibleCandleCount || window.ZOOM_LIMITS.DEFAULT_CANDLES;
-                        const countChange = Math.abs(visibleCandleCount - prevCount);
-                        
-                        // Only restrict on significant zoom changes (not minor adjustments)
-                        if (countChange > 10) {
-                            // Use debounced restriction application
-                            setTimeout(() => {
-                                if (!window.isUserPanning) {
-                                    window.applyZoomRestrictionsIfNeeded();
-                                }
-                            }, 50);
-                        }
-                    }
                 });
+
+                // Touch event optimization with requestAnimationFrame
+                const container = document.getElementById('container');
+                let touchStartTime = 0;
+                let touchMoveTimeout = null;
+                
+                // Debounced touch move handler with requestAnimationFrame
+                const debouncedTouchMove = (e) => {
+                    if (touchMoveTimeout) {
+                        clearTimeout(touchMoveTimeout);
+                    }
+                    
+                    // Use requestAnimationFrame for smoother updates
+                    touchMoveTimeout = requestAnimationFrame(() => {
+                        // Minimal processing during touch move
+                        // Let TradingView handle the actual panning
+                    });
+                };
+                
+                // Add passive event listeners for better performance
+                container.addEventListener('touchstart', (e) => {
+                    touchStartTime = performance.now();
+                }, { passive: true });
+                
+                container.addEventListener('touchmove', debouncedTouchMove, { passive: true });
+                
+                container.addEventListener('touchend', (e) => {
+                    const touchDuration = performance.now() - touchStartTime;
+                    // Clear any pending touch move animations
+                    if (touchMoveTimeout) {
+                        cancelAnimationFrame(touchMoveTimeout);
+                        touchMoveTimeout = null;
+                    }
+                }, { passive: true });
+                
+                container.addEventListener('touchcancel', (e) => {
+                    if (touchMoveTimeout) {
+                        cancelAnimationFrame(touchMoveTimeout);
+                        touchMoveTimeout = null;
+                    }
+                }, { passive: true });
                 
                 // Track user interaction to prevent unwanted resets
                 const originalSetVisibleRange = window.chart.timeScale().setVisibleRange;
