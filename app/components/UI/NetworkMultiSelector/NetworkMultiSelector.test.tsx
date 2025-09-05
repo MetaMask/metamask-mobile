@@ -237,6 +237,7 @@ describe('NetworkMultiSelector', () => {
       areAllNetworksSelected: false,
       areAnyNetworksSelected: true,
       networkCount: 2,
+      totalEnabledNetworksCount: 2,
     });
 
     mockUseNetworkSelection.mockReturnValue({
@@ -472,6 +473,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: true,
           areAnyNetworksSelected: true,
           networkCount: 1,
+          totalEnabledNetworksCount: 1,
         })
         .mockReturnValueOnce({
           networks: [],
@@ -480,6 +482,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: false,
           areAnyNetworksSelected: false,
           networkCount: 0,
+          totalEnabledNetworksCount: 0,
         });
 
       mockUseSelector
@@ -550,6 +553,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: true,
           areAnyNetworksSelected: true,
           networkCount: 2,
+          totalEnabledNetworksCount: 2,
         })
         .mockReturnValueOnce({
           networks: mockNetworks,
@@ -558,6 +562,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: true,
           areAnyNetworksSelected: true,
           networkCount: 2,
+          totalEnabledNetworksCount: 2,
         });
 
       mockUseSelector
@@ -582,6 +587,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: true,
           areAnyNetworksSelected: true,
           networkCount: 2,
+          totalEnabledNetworksCount: 2,
         })
         .mockReturnValueOnce({
           networks: mockNetworks,
@@ -590,6 +596,7 @@ describe('NetworkMultiSelector', () => {
           areAllNetworksSelected: false,
           areAnyNetworksSelected: false,
           networkCount: 2,
+          totalEnabledNetworksCount: 2,
         });
 
       mockUseSelector

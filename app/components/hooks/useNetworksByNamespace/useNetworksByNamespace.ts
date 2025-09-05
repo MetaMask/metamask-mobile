@@ -41,28 +41,22 @@ interface UseNetworksByCustomNamespaceOptions {
   namespace: KnownCaipNamespace;
 }
 
-interface UseProcessedNetworksByNamespaceOptions {
-  /** Filter by popular or custom networks */
-  networkType: NetworkType;
-  /** The namespace to filter networks by */
-  namespace: KnownCaipNamespace;
-  /** Enabled networks for the specified namespace */
-  enabledNetworksForNamespace: Record<string, boolean>;
-}
-
 /**
- * Internal hook that contains the shared logic for processing networks by namespace.
- * This hook extracts the common functionality between useNetworksByNamespace and useNetworksByCustomNamespace.
+ * Filters and processes networks based on the current namespace (EVM, Bitcoin, etc).
+ * Enriches network data with selection state and UI-ready properties.
  * @param options.networkType - Filter by popular or custom networks
- * @param options.namespace - The namespace to filter networks by
- * @param options.enabledNetworksForNamespace - Enabled networks for the specified namespace
  * @returns Processed networks with selection state and aggregated statistics
+ * @example
+ * const { networks, areAllNetworksSelected } = useNetworksByNamespace({
+ *   networkType: NetworkType.Popular
+ * });
  */
-const useProcessedNetworksByNamespace = ({
+export const useNetworksByNamespace = ({
   networkType,
-  namespace,
-  enabledNetworksForNamespace,
-}: UseProcessedNetworksByNamespaceOptions) => {
+}: UseNetworksByNamespaceOptions) => {
+  const { namespace, enabledNetworksForCurrentNamespace } =
+    useNetworkEnablement();
+
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
   );
@@ -70,6 +64,166 @@ const useProcessedNetworksByNamespace = ({
   const customNetworkConfigurations = useSelector(
     selectCustomNetworkConfigurationsByCaipChainId,
   );
+
+  const networkConfigurations = useMemo(
+    () =>
+      networkType === NetworkType.Popular
+        ? popularNetworkConfigurations
+        : customNetworkConfigurations,
+    [networkType, popularNetworkConfigurations, customNetworkConfigurations],
+  );
+
+  const filteredNetworkConfigurations = useMemo(() => {
+    if (networkType === NetworkType.Popular) {
+      return Object.entries(networkConfigurations).filter(([, network]) => {
+        const networkNamespace = parseCaipChainId(
+          network.caipChainId,
+        ).namespace;
+        return networkNamespace === namespace;
+      });
+    }
+    return networkConfigurations.filter((network) => {
+      const networkNamespace = parseCaipChainId(network.caipChainId).namespace;
+      return networkNamespace === namespace;
+    });
+  }, [networkConfigurations, namespace, networkType]);
+
+  const processedNetworks: ProcessedNetwork[] = useMemo(() => {
+    if (networkType === NetworkType.Popular) {
+      return (
+        filteredNetworkConfigurations as [
+          string,
+          EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+        ][]
+      ).map(([, network]) => {
+        const rpcUrl =
+          'rpcEndpoints' in network
+            ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
+            : undefined;
+
+        const isSelected = Boolean(
+          enabledNetworksForCurrentNamespace[network.chainId],
+        );
+
+        return {
+          id: network.caipChainId,
+          name: network.name,
+          caipChainId: network.caipChainId,
+          isSelected,
+          imageSource: getNetworkImageSource({
+            chainId: network.caipChainId,
+          }),
+          networkTypeOrRpcUrl: rpcUrl,
+        };
+      });
+    }
+    return (
+      filteredNetworkConfigurations as EvmAndMultichainNetworkConfigurationsWithCaipChainId[]
+    ).map((network) => {
+      const rpcUrl =
+        'rpcEndpoints' in network
+          ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
+          : undefined;
+
+      const isSelected = Boolean(
+        enabledNetworksForCurrentNamespace[network.chainId],
+      );
+
+      return {
+        id: network.caipChainId,
+        name: network.name,
+        caipChainId: network.caipChainId,
+        isSelected,
+        imageSource: getNetworkImageSource({ chainId: network.caipChainId }),
+        networkTypeOrRpcUrl: rpcUrl,
+      };
+    });
+  }, [
+    filteredNetworkConfigurations,
+    enabledNetworksForCurrentNamespace,
+    networkType,
+  ]);
+
+  const selectedNetworks = useMemo(
+    () => processedNetworks.filter((network) => network.isSelected),
+    [processedNetworks],
+  );
+
+  const areAllNetworksSelected = useMemo(
+    () =>
+      processedNetworks.length > 0 &&
+      processedNetworks.every((network) => network.isSelected),
+    [processedNetworks],
+  );
+
+  const areAnyNetworksSelected = useMemo(
+    () => selectedNetworks.length > 0,
+    [selectedNetworks],
+  );
+
+  return {
+    networks: processedNetworks,
+    selectedNetworks,
+    areAllNetworksSelected,
+    areAnyNetworksSelected,
+    networkCount: processedNetworks.length,
+    selectedCount: selectedNetworks.length,
+  };
+};
+
+/**
+ * Filters and processes networks based on a specified namespace (EVM, Bitcoin, etc).
+ * Enriches network data with selection state and UI-ready properties.
+ * @param options.networkType - Filter by popular or custom networks
+ * @param options.namespace - The specific namespace to filter networks by
+ * @returns Processed networks with selection state and aggregated statistics, including total enabled networks across all namespaces
+ * @example
+ * const { networks, areAllNetworksSelected, totalEnabledNetworksCount } = useNetworksByCustomNamespace({
+ *   networkType: NetworkType.Popular,
+ *   namespace: KnownCaipNamespace.Eip155
+ * });
+ *
+ * // totalEnabledNetworksCount gives you the count of all networks with true values across all namespaces
+ * // For example: {"eip155": {"0x1": true, "0x38": true}, "solana": {"solana:xyz": true}} = 3 total
+ */
+export const useNetworksByCustomNamespace = ({
+  networkType,
+  namespace,
+}: UseNetworksByCustomNamespaceOptions) => {
+  const enabledNetworksByNamespace = useSelector(
+    selectEnabledNetworksByNamespace,
+  );
+
+  const popularNetworkConfigurations = useSelector(
+    selectPopularNetworkConfigurationsByCaipChainId,
+  );
+
+  const customNetworkConfigurations = useSelector(
+    selectCustomNetworkConfigurationsByCaipChainId,
+  );
+
+  const enabledNetworksForNamespace = useMemo(
+    () => enabledNetworksByNamespace?.[namespace] || {},
+    [enabledNetworksByNamespace, namespace],
+  );
+
+  const totalEnabledNetworksCount = useMemo(() => {
+    if (!enabledNetworksByNamespace) return 0;
+
+    return Object.values(enabledNetworksByNamespace).reduce(
+      (total, namespaceNetworks) => {
+        if (!namespaceNetworks || typeof namespaceNetworks !== 'object')
+          return total;
+
+        const enabledCount = Object.values(namespaceNetworks).filter(
+          (isEnabled) => isEnabled === true,
+        ).length;
+
+        return total + enabledCount;
+      },
+      0,
+    );
+  }, [enabledNetworksByNamespace]);
 
   const networkConfigurations = useMemo(
     () =>
@@ -168,60 +322,6 @@ const useProcessedNetworksByNamespace = ({
     areAnyNetworksSelected,
     networkCount: processedNetworks.length,
     selectedCount: selectedNetworks.length,
+    totalEnabledNetworksCount,
   };
-};
-
-/**
- * Filters and processes networks based on the current namespace (EVM, Bitcoin, etc).
- * Enriches network data with selection state and UI-ready properties.
- * @param options.networkType - Filter by popular or custom networks
- * @returns Processed networks with selection state and aggregated statistics
- * @example
- * const { networks, areAllNetworksSelected } = useNetworksByNamespace({
- *   networkType: NetworkType.Popular
- * });
- */
-export const useNetworksByNamespace = ({
-  networkType,
-}: UseNetworksByNamespaceOptions) => {
-  const { namespace, enabledNetworksForCurrentNamespace } =
-    useNetworkEnablement();
-
-  return useProcessedNetworksByNamespace({
-    networkType,
-    namespace: namespace as KnownCaipNamespace,
-    enabledNetworksForNamespace: enabledNetworksForCurrentNamespace,
-  });
-};
-
-/**
- * Filters and processes networks based on a specified namespace (EVM, Bitcoin, etc).
- * Enriches network data with selection state and UI-ready properties.
- * @param options.networkType - Filter by popular or custom networks
- * @param options.namespace - The specific namespace to filter networks by
- * @returns Processed networks with selection state and aggregated statistics
- * @example
- * const { networks, areAllNetworksSelected } = useNetworksByCustomNamespace({
- *   networkType: NetworkType.Popular,
- *   namespace: KnownCaipNamespace.Eip155
- * });
- */
-export const useNetworksByCustomNamespace = ({
-  networkType,
-  namespace,
-}: UseNetworksByCustomNamespaceOptions) => {
-  const enabledNetworksByNamespace = useSelector(
-    selectEnabledNetworksByNamespace,
-  );
-
-  const enabledNetworksForNamespace = useMemo(
-    () => enabledNetworksByNamespace?.[namespace] || {},
-    [enabledNetworksByNamespace, namespace],
-  );
-
-  return useProcessedNetworksByNamespace({
-    networkType,
-    namespace,
-    enabledNetworksForNamespace,
-  });
 };

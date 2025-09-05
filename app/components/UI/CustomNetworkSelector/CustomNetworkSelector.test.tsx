@@ -242,6 +242,7 @@ describe('CustomNetworkSelector', () => {
       areAllNetworksSelected: false,
       areAnyNetworksSelected: true,
       networkCount: 2,
+      totalEnabledNetworksCount: 2,
     });
 
     mockUseSelector.mockReturnValue(true); // Mock isMultichainAccountsState2Enabled
