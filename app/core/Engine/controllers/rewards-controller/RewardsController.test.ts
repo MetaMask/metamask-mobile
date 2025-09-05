@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   RewardsController,
   getRewardsControllerDefaultState,
@@ -14,17 +15,37 @@ import type {
 import type { CaipAccountId } from '@metamask/utils';
 
 // Mock dependencies
-jest.mock('./utils/multi-subscription-token-vault');
+jest.mock('./utils/multi-subscription-token-vault', () => ({
+  ...jest.requireActual('./utils/multi-subscription-token-vault'),
+  storeSubscriptionToken: jest.fn().mockResolvedValue(undefined),
+  removeSubscriptionToken: jest.fn().mockResolvedValue({ success: true }),
+}));
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../selectors/featureFlagController/rewards');
 jest.mock('../../../../store');
 jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
+jest.mock('@solana/addresses', () => ({
+  isAddress: jest.fn(),
+}));
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  toHex: jest.fn(),
+}));
 
 // Import mocked modules
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { store } from '../../../../store';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { isHardwareAccount } from '../../../../util/address';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { toHex } from '@metamask/controller-utils';
+import {
+  storeSubscriptionToken,
+  removeSubscriptionToken,
+} from './utils/multi-subscription-token-vault';
+import Logger from '../../../../util/Logger';
 
 // Type the mocked modules
 const mockSelectRewardsEnabledFlag =
@@ -32,6 +53,20 @@ const mockSelectRewardsEnabledFlag =
     typeof selectRewardsEnabledFlag
   >;
 const mockStore = store as jest.Mocked<typeof store>;
+const mockIsHardwareAccount = isHardwareAccount as jest.MockedFunction<
+  typeof isHardwareAccount
+>;
+const mockIsSolanaAddress = isSolanaAddress as jest.MockedFunction<
+  typeof isSolanaAddress
+>;
+const mockToHex = toHex as jest.MockedFunction<typeof toHex>;
+const mockStoreSubscriptionToken =
+  storeSubscriptionToken as jest.MockedFunction<typeof storeSubscriptionToken>;
+const mockRemoveSubscriptionToken =
+  removeSubscriptionToken as jest.MockedFunction<
+    typeof removeSubscriptionToken
+  >;
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 // Test constants - CAIP-10 format addresses
 const CAIP_ACCOUNT_1: CaipAccountId = 'eip155:1:0x123' as CaipAccountId;
@@ -108,6 +143,9 @@ describe('RewardsController', () => {
       registerInitialEventPayload: jest.fn(),
       unsubscribe: jest.fn(),
     } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+    // Reset feature flag to enabled by default
+    mockSelectRewardsEnabledFlag.mockReturnValue(true);
 
     controller = new RewardsController({
       messenger: mockMessenger,
@@ -222,7 +260,10 @@ describe('RewardsController', () => {
       const result = await controller.getHasAccountOptedIn(CAIP_ACCOUNT_1);
 
       expect(result).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getPerpsDiscount',
+        expect.anything(),
+      );
     });
 
     it('should return cached hasOptedIn value when cache is fresh', async () => {
@@ -772,7 +813,7 @@ describe('RewardsController', () => {
         .mockResolvedValueOnce('0xsignature')
         .mockResolvedValueOnce({
           sessionId: 'session123',
-          subscription: { id: 'sub123', referralCode: 'REF123' },
+          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
         });
 
       // Trigger authentication via account change
@@ -821,7 +862,7 @@ describe('RewardsController', () => {
 
       const mockLoginResponse = {
         sessionId: 'session123',
-        subscription: { id: 'sub123', referralCode: 'REF123' },
+        subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
       };
 
       mockMessenger.call
@@ -881,6 +922,7 @@ describe('RewardsController', () => {
       };
 
       const mockSeasonStatus: SeasonStatusState = {
+        season: mockSeasonData,
         balance: {
           total: 1500,
           refereePortion: 300,
@@ -903,6 +945,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {
@@ -921,6 +964,7 @@ describe('RewardsController', () => {
       );
 
       expect(result).toEqual(mockSeasonStatus);
+      expect(result?.season.id).toBe(mockSeasonId);
       expect(result?.balance.total).toBe(1500);
       expect(result?.tier.currentTier.id).toBe('silver');
       expect(result?.tier.nextTier?.id).toBe('gold');
@@ -944,6 +988,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -994,6 +1039,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1041,6 +1087,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1054,199 +1101,6 @@ describe('RewardsController', () => {
       await expect(
         controller.getSeasonStatus(mockSubscriptionId, mockSeasonId),
       ).rejects.toThrow('API error');
-    });
-  });
-
-  describe('tierStatus calculations', () => {
-    const mockSubscriptionId = 'sub123';
-    const mockSeasonId = 'season123';
-
-    beforeEach(() => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
-    });
-
-    it('should correctly calculate tier status for bronze tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 500 }, // Below silver threshold
-        currentTierId: 'bronze',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'bronze',
-        name: 'Bronze',
-        pointsNeeded: 0,
-      });
-      expect(result?.tier.nextTier).toEqual({
-        id: 'silver',
-        name: 'Silver',
-        pointsNeeded: 1000,
-      });
-      expect(result?.tier.nextTierPointsNeeded).toBe(500); // 1000 - 500
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should correctly calculate tier status for middle tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 3000 }, // Between silver and gold
-        currentTierId: 'silver',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'silver',
-        name: 'Silver',
-        pointsNeeded: 1000,
-      });
-      expect(result?.tier.nextTier).toEqual({
-        id: 'gold',
-        name: 'Gold',
-        pointsNeeded: 5000,
-      });
-      expect(result?.tier.nextTierPointsNeeded).toBe(2000); // 5000 - 3000
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should correctly calculate tier status for max tier user', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 15000 }, // Above platinum threshold
-        currentTierId: 'platinum',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier).toEqual({
-        id: 'platinum',
-        name: 'Platinum',
-        pointsNeeded: 10000,
-      });
-      expect(result?.tier.nextTier).toBeNull(); // No next tier
-      expect(result?.tier.nextTierPointsNeeded).toBeNull(); // Already at max
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
-    });
-
-    it('should handle exact tier threshold points correctly', async () => {
-      const mockApiResponse = createTestSeasonStatus({
-        balance: { total: 5000 }, // Exactly at gold threshold
-        currentTierId: 'gold',
-      });
-
-      controller = new RewardsController({
-        messenger: mockMessenger,
-        state: {
-          lastAuthenticatedAccount: null,
-          accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
-          seasons: {},
-          subscriptionReferralDetails: {},
-          seasonStatuses: {},
-        },
-      });
-
-      mockMessenger.call.mockResolvedValue(mockApiResponse);
-
-      const result = await controller.getSeasonStatus(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
-
-      // Check that the result has the correct tier calculations
-      expect(result?.tier.currentTier.id).toBe('gold');
-      expect(result?.tier.nextTier?.id).toBe('platinum');
-      expect(result?.tier.nextTierPointsNeeded).toBe(5000); // 10000 - 5000
-
-      // Check that the state was updated correctly
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const seasonStatus = controller.state.seasonStatuses[compositeKey];
-      expect(seasonStatus).toEqual(result);
     });
   });
 
@@ -1281,6 +1135,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1318,6 +1173,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1357,6 +1213,7 @@ describe('RewardsController', () => {
             [mockSubscriptionId]: {
               id: mockSubscriptionId,
               referralCode: 'REF123',
+              accounts: [],
             },
           },
           seasons: {},
@@ -1389,30 +1246,1142 @@ describe('RewardsController', () => {
         Date.now() - 1000,
       );
     });
+  });
 
-    it('should handle errors from data service', async () => {
+  describe('optIn', () => {
+    const mockInternalAccount = {
+      address: '0x123456789',
+      type: 'eip155:eoa' as const,
+      id: 'test-id',
+      scopes: ['eip155:1' as const],
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    } as InternalAccount;
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should skip opt-in when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert - Should not call generateChallenge, signPersonalMessage, or optin
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:generateChallenge',
+        expect.anything(),
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.anything(),
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optin',
+        expect.anything(),
+      );
+    });
+
+    it('should handle signature generation errors', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse)
+        .mockRejectedValueOnce(new Error('Signature failed'));
+
+      // Act & Assert
+      await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
+        'Signature failed',
+      );
+    });
+
+    it('should handle optin service errors', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse)
+        .mockResolvedValueOnce(mockSignature)
+        .mockRejectedValueOnce(new Error('Optin failed'));
+
+      // Act & Assert
+      await expect(controller.optIn(mockInternalAccount)).rejects.toThrow(
+        'Optin failed',
+      );
+    });
+
+    it('should use Buffer fallback when toHex fails during hex message conversion', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge with special chars: éñü',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+
+      // Mock toHex to throw an error, triggering the Buffer fallback
+      mockToHex.mockImplementation(() => {
+        throw new Error('toHex encoding error');
+      });
+
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockToHex).toHaveBeenCalledWith(mockChallengeResponse.message);
+
+      // Verify the fallback Buffer conversion was used by checking the hex data passed to signing
+      const expectedBufferHex =
+        '0x' +
+        Buffer.from(mockChallengeResponse.message, 'utf8').toString('hex');
+      expect(mockMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'KeyringController:signPersonalMessage',
+        {
+          data: expectedBufferHex,
+          from: mockInternalAccount.address,
+        },
+      );
+    });
+
+    it('should log error when subscription token storage fails', async () => {
+      // Arrange
+      const mockChallengeResponse = {
+        id: 'challenge-123',
+        message: 'test challenge message',
+      };
+      const mockSignature = '0xsignature123';
+      const mockOptinResponse = {
+        sessionId: 'session-456',
+        subscription: {
+          id: 'sub-789',
+          referralCode: 'REF123',
+          accounts: [],
+        },
+      };
+      const tokenStorageError = new Error('Failed to store token');
+
+      // Mock successful opt-in flow but failing token storage
+      mockToHex.mockReturnValue('0xhexmessage');
+      mockMessenger.call
+        .mockResolvedValueOnce(mockChallengeResponse) // generateChallenge
+        .mockResolvedValueOnce(mockSignature) // signPersonalMessage
+        .mockResolvedValueOnce(mockOptinResponse); // optin
+
+      // Mock storeSubscriptionToken to reject
+      mockStoreSubscriptionToken.mockRejectedValueOnce(tokenStorageError);
+
+      // Act
+      await controller.optIn(mockInternalAccount);
+
+      // Assert
+      expect(mockStoreSubscriptionToken).toHaveBeenCalledWith(
+        'sub-789',
+        'session-456',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to store subscription token:',
+        tokenStorageError,
+      );
+
+      // Verify state was still updated correctly despite storage failure
+      expect(controller.state.lastAuthenticatedAccount).toEqual({
+        account: 'eip155:1:0x123456789',
+        hasOptedIn: true,
+        subscriptionId: 'sub-789',
+        lastAuthTime: expect.any(Number),
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      });
+    });
+  });
+
+  describe('logout', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should skip logout when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      await controller.logout();
+
+      // Assert - Should not call logout service
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        expect.anything(),
+      );
+    });
+
+    it('should skip logout when no authenticated account exists', async () => {
+      // Arrange
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           lastAuthenticatedAccount: null,
           accounts: {},
-          subscriptions: {
-            [mockSubscriptionId]: {
-              id: mockSubscriptionId,
-              referralCode: 'REF123',
-            },
-          },
+          subscriptions: {},
           seasons: {},
           subscriptionReferralDetails: {},
           seasonStatuses: {},
         },
       });
 
-      mockMessenger.call.mockRejectedValue(new Error('API error'));
+      // Act
+      await controller.logout();
 
-      await expect(
-        controller.getReferralDetails(mockSubscriptionId),
-      ).rejects.toThrow('API error');
+      // Assert - Should not call logout service
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        expect.anything(),
+      );
+    });
+
+    it('should successfully complete logout process', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:logout',
+        mockSubscriptionId,
+      );
+
+      // Verify state was cleared
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should handle logout service errors and propagate them', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const logoutError = new Error('Logout service failed');
+      mockMessenger.call.mockRejectedValue(logoutError);
+
+      // Act & Assert
+      await expect(controller.logout()).rejects.toThrow(
+        'Logout service failed',
+      );
+    });
+
+    it('should clear last authenticated account only if subscription matches', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(undefined);
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should log warning when token removal fails', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-123';
+      const tokenRemovalError = 'Token not found in keychain';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      // Mock successful logout service call but failed token removal
+      mockMessenger.call.mockResolvedValue(undefined);
+      mockRemoveSubscriptionToken.mockResolvedValueOnce({
+        success: false,
+        error: tokenRemovalError,
+      });
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Warning - failed to remove session token:',
+        tokenRemovalError,
+      );
+
+      // Verify state was still cleared despite token removal failure
+      expect(controller.state.lastAuthenticatedAccount).toBeNull();
+    });
+
+    it('should log warning with default message when token removal fails without error details', async () => {
+      // Arrange
+      const mockSubscriptionId = 'sub-456';
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: mockSubscriptionId,
+            lastAuthTime: Date.now(),
+            perpsFeeDiscount: 5.0,
+            lastPerpsDiscountRateFetched: Date.now(),
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      // Mock successful logout service call but failed token removal without error details
+      mockMessenger.call.mockResolvedValue(undefined);
+      mockRemoveSubscriptionToken.mockResolvedValueOnce({
+        success: false,
+        // No error property
+      });
+
+      // Act
+      await controller.logout();
+
+      // Assert
+      expect(mockRemoveSubscriptionToken).toHaveBeenCalledWith(
+        mockSubscriptionId,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Warning - failed to remove session token:',
+        'Unknown error',
+      );
+    });
+  });
+
+  describe('validateReferralCode', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return false when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.validateReferralCode('ABC123');
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        expect.anything(),
+      );
+    });
+
+    it('should return false for empty or whitespace-only codes', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('')).toBe(false);
+      expect(await controller.validateReferralCode('   ')).toBe(false);
+      expect(await controller.validateReferralCode('\t\n')).toBe(false);
+    });
+
+    it('should return false for codes with incorrect length', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('ABC12')).toBe(false); // Too short
+      expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
+    });
+
+    it('should return false for codes with invalid characters', async () => {
+      // Act & Assert
+      expect(await controller.validateReferralCode('ABC12@')).toBe(false); // Invalid character @
+      expect(await controller.validateReferralCode('ABC120')).toBe(false); // Invalid character 0
+      expect(await controller.validateReferralCode('ABC121')).toBe(false); // Invalid character 1
+      expect(await controller.validateReferralCode('ABC12I')).toBe(false); // Invalid character I
+      expect(await controller.validateReferralCode('ABC12O')).toBe(false); // Invalid character O
+    });
+
+    it('should return true for valid referral codes from service', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'ABC234',
+      );
+    });
+
+    it('should return false for invalid referral codes from service', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: false });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'XYZ567',
+      );
+    });
+
+    it('should accept valid base32 characters', async () => {
+      // Act & Assert
+      const validCodes = ['ABCDEF', 'ABC234', 'XYZ567', 'DEF237'];
+
+      for (const code of validCodes) {
+        jest.clearAllMocks();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockMessenger.call.mockImplementation((action, ..._args): any => {
+          if (action === 'RewardsDataService:validateReferralCode') {
+            return Promise.resolve({ valid: true });
+          }
+          return Promise.resolve();
+        });
+
+        const result = await controller.validateReferralCode(code);
+        expect(result).toBe(true);
+        expect(mockMessenger.call).toHaveBeenCalledWith(
+          'RewardsDataService:validateReferralCode',
+          code,
+        );
+      }
+    });
+
+    it('should handle service errors and return false', async () => {
+      // Arrange
+      jest.clearAllMocks();
+      mockMessenger.call.mockRejectedValue(new Error('Service error'));
+
+      // Act
+      const result = await controller.validateReferralCode('ABC123');
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('calculateTierStatus', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should throw error when current tier ID is not found in season tiers', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const invalidCurrentTierId = 'invalid-tier';
+      const currentPoints = 1500;
+
+      // Act & Assert
+      expect(() => {
+        controller.calculateTierStatus(
+          tiers,
+          invalidCurrentTierId,
+          currentPoints,
+        );
+      }).toThrow(
+        `Current tier ${invalidCurrentTierId} not found in season tiers`,
+      );
+    });
+
+    it('should return null for next tier when current tier is the last tier', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const lastTierCurrentTierId = 'platinum'; // Last tier in createTestTiers
+      const currentPoints = 15000; // More than platinum tier
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        lastTierCurrentTierId,
+        currentPoints,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe(lastTierCurrentTierId);
+      expect(result.nextTier).toBeNull();
+      expect(result.nextTierPointsNeeded).toBeNull();
+    });
+
+    it('should calculate nextTierPointsNeeded correctly with Math.max', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const currentTierId = 'silver'; // Silver requires 1000 points, Gold requires 5000
+
+      // Test case where user has more points than needed for next tier
+      const currentPointsAboveNext = 6000; // More than Gold's 5000 requirement
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        currentTierId,
+        currentPointsAboveNext,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe('silver');
+      expect(result.nextTier?.id).toBe('gold');
+      expect(result.nextTierPointsNeeded).toBe(0); // Math.max(0, 5000 - 6000) = 0
+    });
+
+    it('should calculate nextTierPointsNeeded correctly when points needed is positive', () => {
+      // Arrange
+      const tiers = createTestTiers();
+      const currentTierId = 'bronze'; // Bronze requires 0 points, Silver requires 1000
+      const currentPoints = 250; // Less than Silver's 1000 requirement
+
+      // Act
+      const result = controller.calculateTierStatus(
+        tiers,
+        currentTierId,
+        currentPoints,
+      );
+
+      // Assert
+      expect(result.currentTier.id).toBe('bronze');
+      expect(result.nextTier?.id).toBe('silver');
+      expect(result.nextTierPointsNeeded).toBe(750); // Math.max(0, 1000 - 250) = 750
+    });
+
+    it('should sort tiers by points needed before processing', () => {
+      // Arrange - Create tiers in random order
+      const unsortedTiers: SeasonTierDto[] = [
+        { id: 'platinum', name: 'Platinum', pointsNeeded: 10000 },
+        { id: 'bronze', name: 'Bronze', pointsNeeded: 0 },
+        { id: 'gold', name: 'Gold', pointsNeeded: 5000 },
+        { id: 'silver', name: 'Silver', pointsNeeded: 1000 },
+      ];
+      const currentTierId = 'silver';
+      const currentPoints = 1500;
+
+      // Act
+      const result = controller.calculateTierStatus(
+        unsortedTiers,
+        currentTierId,
+        currentPoints,
+      );
+
+      // Assert - Should correctly identify next tier as Gold despite unsorted input
+      expect(result.currentTier.id).toBe('silver');
+      expect(result.nextTier?.id).toBe('gold');
+      expect(result.nextTierPointsNeeded).toBe(3500); // 5000 - 1500
+    });
+  });
+
+  describe('convertInternalAccountToCaipAccountId', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      jest.clearAllMocks();
+    });
+
+    it('should log error when conversion fails due to invalid internal account', () => {
+      // Arrange
+      const invalidInternalAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['invalid-scope' as `${string}:${string}`], // Invalid scope format
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result = controller.convertInternalAccountToCaipAccountId(
+        invalidInternalAccount,
+      );
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.any(Error),
+      );
+    });
+
+    it('should return null and log error when account scopes is empty', () => {
+      // Arrange
+      const accountWithNoScopes = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: [] as `${string}:${string}`[], // Empty scopes array
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result =
+        controller.convertInternalAccountToCaipAccountId(accountWithNoScopes);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.any(Error),
+      );
+    });
+
+    it('should successfully convert valid internal account to CAIP account ID', () => {
+      // Arrange
+      const validInternalAccount = {
+        address: '0x123456789',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act
+      const result =
+        controller.convertInternalAccountToCaipAccountId(validInternalAccount);
+
+      // Assert
+      expect(result).toBe('eip155:1:0x123456789');
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Failed to convert address to CAIP-10 format:',
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('silent auth skipping behavior', () => {
+    let originalDateNow: () => number;
+    let subscribeCallback: any;
+
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      mockIsHardwareAccount.mockReturnValue(false);
+      mockIsSolanaAddress.mockReturnValue(false);
+
+      // Mock Date.now for consistent testing
+      originalDateNow = Date.now;
+      Date.now = jest.fn(() => 1000000); // Fixed timestamp
+
+      // Get the account change subscription callback
+      const subscribeCalls = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      );
+      subscribeCallback = subscribeCalls
+        ? subscribeCalls[1]
+        : async () => undefined;
+    });
+
+    afterEach(() => {
+      Date.now = originalDateNow;
+    });
+
+    it('should skip silent auth for hardware accounts', async () => {
+      // Arrange
+      mockIsHardwareAccount.mockReturnValue(true);
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Hardware Account',
+          keyring: { type: 'Ledger Hardware' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Act - trigger account change
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt to call login service for hardware accounts
+      expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.anything(),
+      );
+    });
+
+    it('should skip silent auth for Solana addresses', async () => {
+      // Arrange
+      mockIsSolanaAddress.mockReturnValue(true);
+      const mockAccount = {
+        address: 'solana-address',
+        type: 'solana:data-account' as const,
+        id: 'test-id',
+        scopes: ['solana:mainnet' as const],
+        options: {},
+        methods: ['solana_signMessage'],
+        metadata: {
+          name: 'Solana Account',
+          keyring: { type: 'Solana Keyring' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Act - trigger account change
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt to call login service for Solana accounts
+      expect(mockIsSolanaAddress).toHaveBeenCalledWith('solana-address');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.anything(),
+      );
+    });
+
+    it('should skip silent auth when within grace period for same account', async () => {
+      // Arrange
+      const now = 1000000;
+      const withinGracePeriod = now - 5 * 60 * 1000; // 5 minutes ago (within 10 minute grace period)
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: {
+            account: CAIP_ACCOUNT_1,
+            hasOptedIn: true,
+            subscriptionId: 'test',
+            lastAuthTime: withinGracePeriod,
+            perpsFeeDiscount: 0,
+            lastPerpsDiscountRateFetched: null,
+          },
+          accounts: {},
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call.mockReturnValue(mockAccount);
+
+      // Get the new subscription callback for the recreated controller
+      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
+        .filter(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )
+        .pop()?.[1];
+
+      // Act - trigger account change
+      if (newSubscribeCallback) {
+        await newSubscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should not attempt authentication within grace period
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.anything(),
+      );
+    });
+
+    it('should perform silent auth when outside grace period', async () => {
+      // Arrange
+      const now = 1000000;
+      const outsideGracePeriod = now - 15 * 60 * 1000; // 15 minutes ago (outside grace period)
+
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: false,
+        subscriptionId: null,
+        lastAuthTime: outsideGracePeriod,
+        perpsFeeDiscount: 0,
+        lastPerpsDiscountRateFetched: null,
+      };
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          lastAuthenticatedAccount: null,
+          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
+          subscriptions: {},
+          seasons: {},
+          subscriptionReferralDetails: {},
+          seasonStatuses: {},
+        },
+      });
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      mockMessenger.call
+        .mockReturnValueOnce(mockAccount) // getSelectedMultichainAccount
+        .mockResolvedValueOnce('0xsignature') // signPersonalMessage
+        .mockResolvedValueOnce({
+          // login
+          sessionId: 'session123',
+          subscription: { id: 'sub123', referralCode: 'REF123', accounts: [] },
+        });
+
+      // Get the new subscription callback for the recreated controller
+      const newSubscribeCallback = mockMessenger.subscribe.mock.calls
+        .filter(
+          (call) => call[0] === 'AccountsController:selectedAccountChange',
+        )
+        .pop()?.[1];
+
+      // Act - trigger account change
+      if (newSubscribeCallback) {
+        await newSubscribeCallback(mockAccount, mockAccount);
+      }
+
+      // Assert - should attempt authentication outside grace period
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({
+          from: '0x123',
+        }),
+      );
+    });
+  });
+
+  describe('authentication trigger logging', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+      // Don't clear all mocks here since we need the controller's subscriptions
+    });
+
+    it('should log feature flag disabled message when feature flag is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+      jest.clearAllMocks();
+
+      // Create new controller to ensure fresh subscriptions
+      controller = new RewardsController({
+        messenger: mockMessenger,
+      });
+
+      const subscribeCallback = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      const mockAccount = {
+        address: '0x123',
+        type: 'eip155:eoa' as const,
+        id: 'test-id',
+        scopes: ['eip155:1' as const],
+        options: {},
+        methods: ['personal_sign'],
+        metadata: {
+          name: 'Test Account',
+          keyring: { type: 'HD Key Tree' },
+          importTime: Date.now(),
+        },
+      };
+
+      // Act - trigger account change when feature flag is disabled
+      if (subscribeCallback) {
+        await subscribeCallback(mockAccount, null);
+      }
+
+      // Assert
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Feature flag disabled, skipping silent auth',
+      );
+    });
+  });
+
+  describe('getGeoRewardsMetadata', () => {
+    beforeEach(() => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    });
+
+    it('should return default metadata when rewards feature is disabled', async () => {
+      // Arrange
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: false,
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).not.toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+    });
+
+    it('should successfully fetch geo location for allowed region', async () => {
+      // Arrange
+      const mockGeoLocation = 'US-CA';
+      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Geo rewards metadata retrieved',
+        {
+          geoLocation: mockGeoLocation,
+          optinAllowedForGeo: true,
+        },
+      );
+      expect(result).toEqual({
+        geoLocation: mockGeoLocation,
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should handle blocked regions correctly', async () => {
+      // Arrange
+      const mockGeoLocation = 'UK-ENG'; // UK is in DEFAULT_BLOCKED_REGIONS
+      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(result).toEqual({
+        geoLocation: mockGeoLocation,
+        optinAllowedForGeo: false,
+      });
+    });
+
+    it('should handle geo location service errors with fallback', async () => {
+      // Arrange
+      const geoServiceError = new Error('Geo service unavailable');
+      mockMessenger.call.mockRejectedValueOnce(geoServiceError);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching geo location for rewards metadata',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get geo rewards metadata:',
+        geoServiceError.message,
+      );
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should handle non-Error objects in catch block', async () => {
+      // Arrange
+      const nonErrorObject = 'String error';
+      mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
+
+      // Act
+      const result = await controller.getGeoRewardsMetadata();
+
+      // Assert
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:fetchGeoLocation',
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get geo rewards metadata:',
+        String(nonErrorObject),
+      );
+      expect(result).toEqual({
+        geoLocation: 'UNKNOWN',
+        optinAllowedForGeo: true,
+      });
+    });
+
+    it('should check region blocking with exact prefix match', async () => {
+      // Arrange
+      const testCases = [
+        { geoLocation: 'UK', expected: false }, // Exact match
+        { geoLocation: 'UK-Scotland', expected: false }, // Starts with UK
+        { geoLocation: 'USA-UK-State', expected: true }, // UK not at start
+        { geoLocation: 'FR', expected: true }, // Not blocked
+        { geoLocation: 'DE-UK', expected: true }, // UK not at start
+      ];
+
+      for (const testCase of testCases) {
+        jest.clearAllMocks();
+        mockMessenger.call.mockResolvedValueOnce(testCase.geoLocation);
+
+        // Act
+        const result = await controller.getGeoRewardsMetadata();
+
+        // Assert
+        expect(result.optinAllowedForGeo).toBe(testCase.expected);
+        expect(result.geoLocation).toBe(testCase.geoLocation);
+      }
     });
   });
 });

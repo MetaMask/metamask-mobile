@@ -800,6 +800,82 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
+                            <View>
+                              <TouchableOpacity
+                                onLongPress={[Function]}
+                                onPress={[Function]}
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "flexDirection": "row",
+                                      "paddingVertical": 12,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 10,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "marginRight": 16,
+                                        "marginTop": 2,
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                      }
+                                    }
+                                    variant="Network"
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={1}
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="network-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Polygon Mainnet
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
                           <Text
                             style={
                               {
