@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Position, OrderResult } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -13,6 +13,12 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -26,6 +32,69 @@ export const usePerpsClosePosition = (
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { track } = usePerpsEventTracking();
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
+
+  const showPositionCloseInProgressToast = useCallback(
+    (direction: 'long' | 'short', amount: string, assetSymbol: string) => {
+      let subtext = strings(
+        'perps.close_position.your_funds_will_be_available_momentarily',
+      );
+
+      if (direction && amount && assetSymbol) {
+        subtext = strings('perps.close_position.closing_position_subtitle', {
+          direction,
+          amount,
+          assetSymbol,
+        });
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Coin,
+        iconColor: theme.colors.icon.default,
+        backgroundColor: theme.colors.primary.default,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.close_position.closing_position'),
+            isBold: true,
+          },
+          {
+            label: '\n',
+          },
+          {
+            label: subtext,
+            isBold: false,
+          },
+        ],
+      });
+    },
+    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
+  );
+
+  const showPositionClosedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.primary.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.close_position.position_closed'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.close_position.funds_are_available_to_trade'),
+          isBold: false,
+        },
+      ],
+    });
+  }, [theme.colors.icon.default, theme.colors.primary.default, toastRef]);
 
   const handleClosePosition = useCallback(
     async (
@@ -47,6 +116,18 @@ export const usePerpsClosePosition = (
 
         const closeStartTime = performance.now();
 
+        const isLong = parseFloat(position.size) >= 0;
+        const direction = isLong
+          ? strings('perps.market.long')
+          : strings('perps.market.short');
+
+        showPositionCloseInProgressToast(
+          direction,
+          size || position.size,
+          position.coin,
+        );
+
+        // Close position
         const result = await closePosition({
           coin: position.coin,
           size, // If undefined, will close full position
@@ -111,6 +192,8 @@ export const usePerpsClosePosition = (
               performance.now() - closeStartTime,
           });
 
+          showPositionClosedToast();
+
           // Call success callback
           options?.onSuccess?.(result);
         } else {
@@ -154,7 +237,13 @@ export const usePerpsClosePosition = (
         setIsClosing(false);
       }
     },
-    [closePosition, options, track],
+    [
+      closePosition,
+      options,
+      showPositionCloseInProgressToast,
+      showPositionClosedToast,
+      track,
+    ],
   );
 
   return {
