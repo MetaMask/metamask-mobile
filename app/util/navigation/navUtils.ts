@@ -7,11 +7,6 @@ type NavigationParams = object | undefined;
 export type NavigationDetails<T extends NavigationParams = NavigationParams> =
   readonly [string, T];
 
-export const createNavigationDetails =
-  <T extends NavigationParams>(name: string, screen?: string) =>
-  (params?: T) =>
-    [name, screen ? { screen, params } : params] as const;
-
 type RouteParams<T extends object> = RouteProp<{ route: T }, 'route'>;
 export const useParams = <
   T extends object | undefined,
