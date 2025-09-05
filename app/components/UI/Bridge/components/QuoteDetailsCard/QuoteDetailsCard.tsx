@@ -308,10 +308,16 @@ const QuoteDetailsCard = () => {
               },
             }}
             value={{
-              label: {
-                text: rate,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.5}
+                >
+                  {rate}
+                </Text>
+              ),
             }}
           />
           {!isExpanded && (
