@@ -39,6 +39,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 export interface BaseControlBarProps {
   /**
@@ -197,6 +198,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   const sortButton = (
     <ButtonIcon
+      testID={WalletViewSelectorsIDs.SORT_BUTTON}
       size={ButtonIconSizes.Lg}
       onPress={handleSortControls}
       iconName={IconName.Filter}
