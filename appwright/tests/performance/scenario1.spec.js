@@ -15,7 +15,11 @@ import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/Create
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import { importSRPFlow, onboardingFlowImportSRP , dismissSystemDialogs } from '../../utils/Flows.js';
+import {
+  importSRPFlow,
+  onboardingFlowImportSRP,
+  dismissSystemDialogs,
+} from '../../utils/Flows.js';
 import AddNewHdAccountComponent from '../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
