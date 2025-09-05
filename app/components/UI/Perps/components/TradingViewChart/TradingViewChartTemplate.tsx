@@ -184,13 +184,14 @@ export const createTradingViewChartTemplate = (
                         lockVisibleTimeRangeOnResize: false, // Don't lock on resize
                         rightBarStaysOnScroll: false, // Don't auto-follow latest data during scroll
                         uniformDistribution: false, // Allow natural time distribution
-                        // Simplified tick formatting for better performance
+                        // Format time in user's local timezone
                         tickMarkFormatter: (time) => {
                             const date = new Date(time * 1000);
                             return date.toLocaleTimeString('en-US', { 
                                 hour12: false, 
                                 hour: '2-digit', 
-                                minute: '2-digit' 
+                                minute: '2-digit',
+                                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use user's local timezone
                             });
                         },
                     },
