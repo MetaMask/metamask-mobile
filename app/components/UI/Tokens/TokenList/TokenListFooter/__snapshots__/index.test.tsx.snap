@@ -26,7 +26,7 @@ exports[`TokenListFooter renders correctly 1`] = `
       }
     }
   >
-    [missing "en.wallet.fund_your_wallet_to_get_started" translation]
+    Fund your wallet to get started in web3
   </Text>
   <TouchableOpacity
     accessibilityRole="button"
@@ -62,7 +62,7 @@ exports[`TokenListFooter renders correctly 1`] = `
         }
       }
     >
-      [missing "en.wallet.add_funds" translation]
+      Add funds
     </Text>
   </TouchableOpacity>
 </View>
