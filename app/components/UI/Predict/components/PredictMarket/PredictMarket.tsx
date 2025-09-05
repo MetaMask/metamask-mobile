@@ -1,9 +1,3 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useMemo } from 'react';
 import { Alert, Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,8 +17,8 @@ import { Market } from '../../types';
 import { formatVolume } from '../../utils/format';
 import {
   Box,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import styleSheet from './PredictMarket.styles';
