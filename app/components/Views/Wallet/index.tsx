@@ -180,6 +180,7 @@ import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagControll
 import { SolScope } from '@metamask/keyring-api';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
+import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -458,16 +459,37 @@ const Wallet = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+
+  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
+  // const allEnabledNetworks = useCurrent;
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   const enabledNetworksHasTestNet = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      if (allEnabledNetworks.length === 1) {
+        return allEnabledNetworks.some(
+          (network) =>
+            isTestNet(network.chainId) || network.chainId === SolScope.Mainnet,
+        );
+      }
+      return false;
+    }
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       return enabledNetworks.some((network) => isTestNet(network));
     }
     return Object.keys(tokenNetworkFilter).some((network) =>
       isTestNet(network),
     );
-  }, [enabledNetworks, tokenNetworkFilter]);
+  }, [
+    enabledNetworks,
+    tokenNetworkFilter,
+    isMultichainAccountsState2Enabled,
+    allEnabledNetworks,
+  ]);
 
   const prevChainId = usePrevious(chainId);
 
@@ -582,6 +604,18 @@ const Wallet = ({
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
+  const collectiblesEnabled = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      if (allEnabledNetworks.length === 1) {
+        return allEnabledNetworks.some(
+          (network) => network.chainId !== SolScope.Mainnet,
+        );
+      }
+      return true;
+    }
+    return isEvmSelected;
+  }, [isMultichainAccountsState2Enabled, isEvmSelected, allEnabledNetworks]);
+
   const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
@@ -609,10 +643,6 @@ const Wallet = ({
     networkType: NetworkType.Popular,
     namespace: KnownCaipNamespace.Solana,
   });
-
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -1128,7 +1158,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    isEvmSelected &&
+    (isEvmSelected || isMultichainAccountsState2Enabled) &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
@@ -1184,7 +1214,7 @@ const Wallet = ({
             navigation={navigation}
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
-            collectiblesEnabled={isEvmSelected}
+            collectiblesEnabled={collectiblesEnabled}
             navigationParams={route.params}
           />
         </>
@@ -1196,7 +1226,6 @@ const Wallet = ({
       styles.wrapper,
       basicFunctionalityEnabled,
       defiEnabled,
-      isEvmSelected,
       isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
@@ -1211,6 +1240,7 @@ const Wallet = ({
       onSend,
       route.params,
       isCarouselBannersEnabled,
+      collectiblesEnabled,
     ],
   );
   const renderLoader = useCallback(
