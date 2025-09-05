@@ -335,7 +335,13 @@ export type RootParamList = {
 
   // Ledger Modals
   LedgerTransactionModal: undefined;
-  LedgerMessageSignModal: undefined;
+  LedgerMessageSignModal: {
+    messageParams: any;
+    onConfirmationComplete: (confirmed: boolean, rawSignature?: any) => void;
+    version: any;
+    type: any;
+    deviceId: string;
+  };
 
   // Bridge Routes
   Bridge: undefined;
