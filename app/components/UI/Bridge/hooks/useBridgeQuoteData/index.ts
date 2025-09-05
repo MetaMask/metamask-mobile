@@ -139,6 +139,9 @@ export const useBridgeQuoteData = ({
       priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
     }
 
+    // Formats quote rate to show an appropriate number of decimal places
+    // For numbers greater than 1, we show 2 decimal places. Example: 1.23456 -> 1.23
+    // For numbers less than 1, we show 3 significant digits. Example: 0.00012345 -> 0.000123
     const quoteRateFormatter = getIntlNumberFormatter(locale, {
       ...(quoteRate && quoteRate > 1
         ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
