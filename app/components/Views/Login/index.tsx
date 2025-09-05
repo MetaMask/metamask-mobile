@@ -48,7 +48,6 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -143,8 +142,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorToThrow, setErrorToThrow] = useState<Error | null>(null);
-  const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
-    useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
@@ -216,7 +213,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
-        setBiometryPreviouslyDisabled(!!passcodePreviouslyDisabled);
       } else if (authData.currentAuthType === AUTHENTICATION_TYPE.REMEMBER_ME) {
         setHasBiometricCredentials(false);
         setRememberMe(true);
@@ -227,7 +223,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         setHasBiometricCredentials(
           authData.currentAuthType === AUTHENTICATION_TYPE.BIOMETRIC,
         );
-        setBiometryPreviouslyDisabled(!!previouslyDisabled);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
       }
     };
@@ -607,24 +602,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     });
   };
 
-  const shouldRenderBiometricLogin =
-    biometryType && !biometryPreviouslyDisabled ? biometryType : null;
-
-  const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
-      setRememberMe(rememberMeChoice);
-    };
-
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={shouldRenderBiometricLogin}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
-
   const handleDownloadStateLogs = () => {
     const fullState = ReduxService.store.getState();
 
@@ -741,8 +718,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </View>
 
             <View style={styles.ctaWrapper}>
-              {renderSwitch()}
-
               <Button
                 variant={ButtonVariants.Primary}
                 width={ButtonWidthTypes.Full}

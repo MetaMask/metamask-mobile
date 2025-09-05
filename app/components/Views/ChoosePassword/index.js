@@ -53,8 +53,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
-import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -245,9 +243,7 @@ class ChoosePassword extends PureComponent {
     password: '',
     confirmPassword: '',
     secureTextEntry: true,
-    biometryType: null,
     biometryChoice: false,
-    rememberMe: false,
     loading: false,
     error: null,
     errorToThrow: null,
@@ -451,8 +447,8 @@ class ChoosePassword extends PureComponent {
       const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
       const authType = await Authentication.componentAuthenticationType(
-        this.state.biometryChoice,
-        this.state.rememberMe,
+        true,
+        true,
       );
 
       authType.oauth2Login = this.getOauth2LoginSuccess();
@@ -687,26 +683,6 @@ class ChoosePassword extends PureComponent {
   jumpToConfirmPassword = () => {
     const { current } = this.confirmPasswordInput;
     current && current.focus();
-  };
-
-  updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    this.setState({ biometryChoice });
-  };
-
-  renderSwitch = () => {
-    const { biometryType, biometryChoice } = this.state;
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={biometryType}
-        biometryChoiceState={biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
   };
 
   onPasswordChange = (val) => {
@@ -1001,7 +977,6 @@ class ChoosePassword extends PureComponent {
                 </View>
 
                 <View style={styles.ctaWrapper}>
-                  {this.renderSwitch()}
                   <Button
                     variant={ButtonVariants.Primary}
                     onPress={this.onPressCreate}
