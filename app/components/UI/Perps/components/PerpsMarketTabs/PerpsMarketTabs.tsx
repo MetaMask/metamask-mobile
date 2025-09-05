@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useRef,
+  useContext,
+} from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -25,6 +31,12 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { useAppThemeFromContext } from '../../../../../util/theme';
+import { getOrderDirection } from '../../utils/orderUtils';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -39,6 +51,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
+  const { toastRef } = useContext(ToastContext);
+  const theme = useAppThemeFromContext();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -163,19 +177,91 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const handleOrderCancel = useCallback(async (orderToCancel: Order) => {
-    try {
-      DevLogger.log('Canceling order:', orderToCancel.orderId);
-      const controller = Engine.context.PerpsController;
-      await controller.cancelOrder({
-        orderId: orderToCancel.orderId,
-        coin: orderToCancel.symbol,
+  const showOrderCancelInProgressToast = useCallback(
+    (direction: 'long' | 'short', amount: string, assetSymbol: string) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Coin,
+        iconColor: theme.colors.icon.default,
+        backgroundColor: theme.colors.primary.default,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: strings('perps.order.cancelling_order'),
+            isBold: true,
+          },
+          {
+            label: '\n',
+          },
+          {
+            label: strings('perps.order.cancelling_order_subtitle', {
+              direction,
+              amount,
+              assetSymbol,
+            }),
+            isBold: false,
+          },
+        ],
       });
-      DevLogger.log('Order cancellation request sent');
-    } catch (error) {
-      DevLogger.log('Failed to cancel order:', error);
-    }
-  }, []);
+    },
+    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
+  );
+
+  const showOrderCancelledToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.CheckBold,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.primary.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.order.order_cancelled'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.order.funds_are_available_to_trade'),
+          isBold: false,
+        },
+      ],
+    });
+  }, [theme.colors.icon.default, theme.colors.primary.default, toastRef]);
+
+  const handleOrderCancel = useCallback(
+    async (orderToCancel: Order) => {
+      try {
+        DevLogger.log('Canceling order:', orderToCancel.orderId);
+        const controller = Engine.context.PerpsController;
+
+        const orderDirection = getOrderDirection(
+          orderToCancel.side,
+          position?.size,
+        );
+
+        showOrderCancelInProgressToast(
+          orderDirection,
+          orderToCancel.remainingSize,
+          orderToCancel.symbol,
+        );
+
+        await controller.cancelOrder({
+          orderId: orderToCancel.orderId,
+          coin: orderToCancel.symbol,
+        });
+
+        // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
+        setTimeout(() => {
+          showOrderCancelledToast();
+        }, 2000);
+      } catch (error) {
+        DevLogger.log('Failed to cancel order:', error);
+      }
+    },
+    [position?.size, showOrderCancelInProgressToast, showOrderCancelledToast],
+  );
 
   const renderTooltipModal = useCallback(() => {
     if (!selectedTooltip) return null;
