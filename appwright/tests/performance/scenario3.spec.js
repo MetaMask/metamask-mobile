@@ -117,6 +117,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   timer9.start();
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
+  await device.waitForTimeout(3000);
 
   timer10.start();
   await WalletMainScreen.tapIdenticon();

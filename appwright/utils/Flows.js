@@ -53,6 +53,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.tapDone();
 
   await WalletMainScreen.isMainWalletViewVisible();
+  await device.waitForTimeout(3000);
 }
 
 export async function importSRPFlow(device, srp) {
