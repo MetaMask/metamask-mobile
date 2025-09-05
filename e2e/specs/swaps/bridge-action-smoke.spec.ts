@@ -9,8 +9,8 @@ import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
-import { testSpecificMock } from '../swaps/helpers/bridge-mocks';
+import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
+import { testSpecificMock } from './helpers/bridge-mocks';
 import SoftAssert from '../../utils/SoftAssert';
 
 enum eventsToCheck {

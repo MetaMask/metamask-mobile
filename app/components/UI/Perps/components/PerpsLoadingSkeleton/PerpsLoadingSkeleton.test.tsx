@@ -31,9 +31,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'perps.connection.connecting_to_perps': 'Connecting to Perps...',
-      'perps.connection.perps_will_be_available_shortly':
-        'Perps will be available shortly',
+      'perps.connection.connecting_to_perps': 'Connecting to Perps',
     };
     return translations[key] || key;
   },
@@ -99,15 +97,8 @@ describe('PerpsLoadingSkeleton', () => {
   it('should render connecting text', () => {
     const { getByText } = render(<PerpsLoadingSkeleton />);
 
-    const connectingText = getByText('Connecting to Perps...');
+    const connectingText = getByText('Connecting to Perps');
     expect(connectingText).toBeDefined();
-  });
-
-  it('should render availability text', () => {
-    const { getByText } = render(<PerpsLoadingSkeleton />);
-
-    const availabilityText = getByText('Perps will be available shortly');
-    expect(availabilityText).toBeDefined();
   });
 
   it('should match snapshot', () => {

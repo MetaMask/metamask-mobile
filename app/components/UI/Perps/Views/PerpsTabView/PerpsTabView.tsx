@@ -22,9 +22,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
-import PerpsErrorState, {
-  PerpsErrorType,
-} from '../../components/PerpsErrorState';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -59,8 +56,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     'eip155:1',
   );
   const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized, error, connect, resetError } =
-    usePerpsConnection();
+  const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
@@ -162,10 +158,26 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [navigation, isFirstTimeUser]);
 
-  const handleRetryConnection = useCallback(() => {
-    resetError();
-    connect();
-  }, [connect, resetError]);
+  const renderStartTradeCTA = () => (
+    <TouchableOpacity
+      style={styles.startTradeCTA}
+      onPress={handleNewTrade}
+      testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
+    >
+      <View style={styles.startTradeContent}>
+        <View style={styles.startTradeIconContainer}>
+          <Icon
+            name={IconName.Add}
+            color={IconColor.Default}
+            size={IconSize.Sm}
+          />
+        </View>
+        <Text variant={TextVariant.BodyMDMedium} style={styles.startTradeText}>
+          {strings('perps.position.list.start_new_trade')}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   const renderOrdersSection = () => {
     // Only show orders section if there are active orders
@@ -184,6 +196,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {orders.map((order) => (
             <PerpsCard key={order.orderId} order={order} />
           ))}
+          {(!positions || positions.length === 0) && renderStartTradeCTA()}
         </View>
       </>
     );
@@ -201,21 +214,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
 
     if (positions.length === 0) {
-      // Regular empty state for returning users
-      return (
-        <View style={styles.emptyContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('perps.position.list.empty_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Muted}
-            style={styles.emptyText}
-          >
-            {strings('perps.position.list.empty_description')}
-          </Text>
-        </View>
-      );
+      return null;
     }
 
     return (
@@ -229,43 +228,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {positions.map((position, index) => (
             <PerpsCard key={`${position.coin}-${index}`} position={position} />
           ))}
-          <TouchableOpacity
-            style={styles.startTradeCTA}
-            onPress={handleNewTrade}
-            testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
-          >
-            <View style={styles.startTradeContent}>
-              <View style={styles.startTradeIconContainer}>
-                <Icon
-                  name={IconName.Add}
-                  color={IconColor.Default}
-                  size={IconSize.Sm}
-                />
-              </View>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                style={styles.startTradeText}
-              >
-                {strings('perps.position.list.start_new_trade')}
-              </Text>
-            </View>
-          </TouchableOpacity>
+          {renderStartTradeCTA()}
         </View>
       </>
     );
   };
-
-  // Check for connection errors
-  if (error && !isConnected && selectedEvmAccount) {
-    return (
-      <View style={styles.wrapper}>
-        <PerpsErrorState
-          errorType={PerpsErrorType.CONNECTION_FAILED}
-          onRetry={handleRetryConnection}
-        />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.wrapper} edges={['left', 'right']}>
