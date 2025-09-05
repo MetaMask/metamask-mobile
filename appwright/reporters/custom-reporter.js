@@ -24,14 +24,7 @@ class CustomReporter {
     }
     this.processedTests.add(testId);
 
-    console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
-    console.log(`📊 Test status: ${result.status}`);
-    console.log(`📊 Test duration: ${result.duration}ms`);
-    // Look for session data in attachments (preferred method)
-    console.log(`🔍 Total attachments: ${result.attachments.length}`);
-    result.attachments.forEach((att, idx) => {
-      console.log(`  ${idx}: ${att.name} (${att.contentType})`);
-    });
+    console.log(`\n🔍 Processing test: ${test.title} (${result.status})`);
 
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -45,19 +38,9 @@ class CustomReporter {
           testStatus: result.status,
           testDuration: result.duration,
         });
-        console.log(
-          `✅ Captured session data for test: ${sessionData.sessionId}`,
-        );
-        console.log(
-          `🔍 Project name from session data: ${sessionData.projectName}`,
-        );
       } catch (error) {
         console.log(`❌ Error parsing session data: ${error.message}`);
       }
-    } else {
-      console.log(
-        `❌ No session-data attachment found in ${result.attachments.length} attachments`,
-      );
     }
 
     // Fallback: Try to capture session ID from test result annotations
@@ -67,7 +50,6 @@ class CustomReporter {
       );
       if (sessionIdAnnotation) {
         const sessionId = sessionIdAnnotation.description;
-        console.log(`✅ Captured session ID from annotations: ${sessionId}`);
 
         // Only add if we didn't already capture it from attachments
         if (!this.sessions.find((s) => s.sessionId === sessionId)) {
@@ -82,109 +64,110 @@ class CustomReporter {
       }
     }
 
-    // Look for metrics in the attachments
+    // Look for metrics in the attachments (including fallback metrics)
     const metricsAttachment = result.attachments.find(
       (att) => att.name && att.name.includes('performance-metrics'),
     );
-
-    console.log(`🔍 DEBUG: Looking for performance-metrics attachment...`);
-    console.log(
-      `🔍 DEBUG: Found ${result.attachments.length} attachments total`,
-    );
-    console.log(
-      `🔍 DEBUG: metricsAttachment found:`,
-      metricsAttachment ? 'YES' : 'NO',
-    );
-    if (metricsAttachment) {
-      console.log(`🔍 DEBUG: Attachment name: ${metricsAttachment.name}`);
-      console.log(
-        `🔍 DEBUG: Has body: ${metricsAttachment.body ? 'YES' : 'NO'}`,
-      );
-    }
 
     if (metricsAttachment && metricsAttachment.body) {
       try {
         const metrics = JSON.parse(metricsAttachment.body.toString());
 
-        // Add a separator to make the metrics stand out in the logs
-        console.log('\n📊 Performance Metrics for:', test.title);
-        console.log('─'.repeat(50));
-
-        // Display steps if they exist
-        if (metrics.steps && Array.isArray(metrics.steps)) {
-          console.log('📋 Test Steps:');
-          metrics.steps.forEach((stepObject) => {
-            // Each stepObject has a single key-value pair
-            const [stepName, duration] = Object.entries(stepObject)[0];
-            console.log(`  ${stepName.padEnd(28)}: ${duration} ms`);
-          });
-        } else if (metrics.steps && typeof metrics.steps === 'object') {
-          // Backward compatibility for old object format
-          console.log('📋 Test Steps:');
-          Object.entries(metrics.steps).forEach(([stepName, duration]) => {
-            console.log(`  ${stepName.padEnd(28)}: ${duration} ms`);
-          });
-        } else {
-          // Fallback to old format for backward compatibility
-          Object.entries(metrics).forEach(([key, value]) => {
-            if (key !== 'total' && key !== 'device') {
-              console.log(`${key.padEnd(30)}: ${value} ms`);
-            }
-          });
-        }
-
-        console.log('─'.repeat(50));
-        console.log(`TOTAL TIME: ${metrics.total.toFixed(2)} seconds`);
-        console.log('─'.repeat(50));
+        // Check if this is a fallback metrics entry
+        const isFallbackMetrics =
+          metricsAttachment.name.includes('fallback') ||
+          metrics.message ===
+            'Performance metrics could not be properly attached';
 
         console.log(
-          `✅ Adding metrics entry for test: ${test.title} (with performance data)`,
+          `📊 Processing metrics for: ${test.title} ${
+            isFallbackMetrics ? '(fallback)' : ''
+          }`,
         );
 
-        // If test failed but we have metrics, include failure info
+        // Create metrics entry with proper handling for both regular and fallback metrics
         const metricsEntry = {
           testName: test.title,
           ...metrics,
         };
 
+        // Always mark failed tests appropriately
         if (result.status !== 'passed') {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
-          console.log(
-            `⚠️ Test failed but has performance metrics - including failure info`,
-          );
+        }
+
+        // For fallback metrics, ensure we have proper structure for reporting
+        if (isFallbackMetrics) {
+          // Convert test duration to seconds if not already
+          if (!metricsEntry.total && metricsEntry.testDuration) {
+            metricsEntry.total = metricsEntry.testDuration / 1000;
+          }
+
+          // Ensure we have steps array for consistency
+          if (!metricsEntry.steps) {
+            metricsEntry.steps = [];
+          }
+
+          // Ensure device info exists
+          if (!metricsEntry.device) {
+            metricsEntry.device = { name: 'Unknown', osVersion: 'Unknown' };
+          }
         }
 
         this.metrics.push(metricsEntry);
       } catch (error) {
         console.error('Error processing metrics:', error);
       }
-    } else {
-      console.log('❌ No performance metrics found in attachments');
+    } else if (result.status !== 'passed') {
+      // For failed tests without metrics, create a basic entry
+      console.log(`⚠️ Test failed without metrics, creating basic entry`);
 
-      // For failed tests, still try to create a basic entry so we can capture video
-      if (result.status !== 'passed') {
-        console.log(
-          `⚠️  Test failed (${result.status}), creating basic metrics entry`,
-        );
-        console.log(
-          `✅ Adding metrics entry for test: ${test.title} (failed test fallback)`,
-        );
-        this.metrics.push({
-          testName: test.title,
-          total: result.duration / 1000, // Convert to seconds
-          device: { name: 'Unknown', osVersion: 'Unknown' },
-          testFailed: true,
-          failureReason: result.status,
-        });
+      // Try to get device info from test project configuration
+      let deviceInfo = { name: 'Unknown', osVersion: 'Unknown' };
+
+      if (test?.parent?.project?.use?.device) {
+        deviceInfo = test.parent.project.use.device;
+      } else if (
+        process.env.BROWSERSTACK_DEVICE &&
+        process.env.BROWSERSTACK_OS_VERSION
+      ) {
+        deviceInfo = {
+          name: process.env.BROWSERSTACK_DEVICE,
+          osVersion: process.env.BROWSERSTACK_OS_VERSION,
+          provider: 'browserstack',
+        };
       }
+
+      const basicEntry = {
+        testName: test.title,
+        total: result.duration / 1000,
+        device: deviceInfo,
+        steps: [],
+        testFailed: true,
+        failureReason: result.status,
+        note: 'Test failed - no performance metrics collected',
+      };
+
+      this.metrics.push(basicEntry);
     }
   }
 
   async onEnd() {
-    console.log(
-      `\n🔍 onEnd called - Processing ${this.metrics.length} metrics entries and ${this.sessions.length} sessions`,
-    );
+    console.log(`\n📊 Generating reports for ${this.metrics.length} tests`);
+
+    // Analyze the test results for better reporting
+    const passedTests = this.metrics.filter((m) => !m.testFailed).length;
+    const failedTests = this.metrics.filter((m) => m.testFailed).length;
+    const testsWithSteps = this.metrics.filter(
+      (m) => m.steps && m.steps.length > 0,
+    ).length;
+    const testsWithFallbackData = this.metrics.filter(
+      (m) =>
+        m.note &&
+        (m.note.includes('failed') ||
+          m.note.includes('no performance metrics')),
+    ).length;
 
     // Determine if this is a BrowserStack run by checking session data
     let isBrowserStackRun = false;
@@ -195,26 +178,18 @@ class CustomReporter {
         .map((session) => session.projectName)
         .filter(Boolean);
 
-      console.log(`🔍 Project names from sessions: ${projectNames.join(', ')}`);
       isBrowserStackRun = projectNames.some((name) =>
         name.includes('browserstack-'),
       );
     }
 
-    console.log(`🔍 isBrowserStackRun: ${isBrowserStackRun}`);
-    console.log(`🔍 Sessions count: ${this.sessions.length}`);
-
     if (this.sessions.length > 0 && isBrowserStackRun) {
       console.log(
-        `🎥 BrowserStack configuration detected - fetching video URLs...`,
+        `🎥 Fetching video URLs for ${this.sessions.length} sessions`,
       );
       const tracker = new PerformanceTracker();
 
       for (const session of this.sessions) {
-        console.log(
-          `🎬 Fetching video URL for session: ${session.sessionId} (${session.testTitle})`,
-        );
-
         try {
           const videoURL = await tracker.getVideoURL(
             session.sessionId,
@@ -223,27 +198,11 @@ class CustomReporter {
           );
           if (videoURL) {
             session.videoURL = videoURL;
-            console.log(
-              `✅ Video URL fetched for ${session.testTitle}: ${videoURL}`,
-            );
-          } else {
-            console.log(
-              `❌ Video URL could not be fetched for ${session.testTitle}`,
-            );
           }
         } catch (error) {
-          console.error(
-            `❌ Error fetching video URL for ${session.testTitle}:`,
-            error.message,
-          );
+          console.error(`❌ Error fetching video URL for ${session.testTitle}`);
         }
       }
-    } else if (this.sessions.length > 0 && !isBrowserStackRun) {
-      console.log(
-        `📱 Local/emulator run detected - skipping video URL fetching (BrowserStack only feature)`,
-      );
-    } else {
-      console.log('❌ No session data available for video URL fetching');
     }
 
     // Clean up any leftover environment variables
@@ -327,6 +286,19 @@ class CustomReporter {
             <h1>Performance Report - ${
               this.metrics[0].device.name
             } - OS version: ${this.metrics[0].device.osVersion}</h1>
+            <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+              <h3>📊 Test Suite Summary</h3>
+              <p><strong>Total Tests:</strong> ${this.metrics.length}</p>
+              <p><strong>Passed:</strong> ${passedTests} | <strong>Failed:</strong> ${failedTests}</p>
+              <p><strong>With Performance Data:</strong> ${testsWithSteps} | <strong>Fallback Data:</strong> ${testsWithFallbackData}</p>
+              <p style="font-style: italic; color: #555;">
+                ${
+                  failedTests > 0
+                    ? 'Failed tests are included in this report with available performance data collected until failure.'
+                    : 'All tests completed successfully with full performance metrics.'
+                }
+              </p>
+            </div>
             ${this.metrics
               .map(
                 (test) => `

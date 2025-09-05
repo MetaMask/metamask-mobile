@@ -567,20 +567,8 @@ jobs:
             if (jsonFiles.length === 0) {
               console.log('❌ No performance JSON files found - creating empty report structure');
               
-              // Create empty report structure when no files are found
+              // Create empty report structure when no files are found (in requested format)
               const emptyReport = {
-                metadata: {
-                  commitId: process.env.GITHUB_SHA || 'unknown',
-                  branch: process.env.GITHUB_REF_NAME || 'unknown',
-                  generatedAt: new Date().toISOString(),
-                  workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
-                  totalReports: 0,
-                  platforms: {
-                    android: 0,
-                    ios: 0
-                  },
-                  warning: 'No performance reports found - possibly all tests failed'
-                },
                 Android: {},
                 iOS: {}
               };
@@ -595,10 +583,9 @@ jobs:
                 testsByPlatform: { android: 0, ios: 0 },
                 devices: [],
                 platformDevices: { Android: [], iOS: [] },
-                metadata: emptyReport.metadata,
-                generatedAt: emptyReport.metadata.generatedAt,
-                branch: emptyReport.metadata.branch,
-                commit: emptyReport.metadata.commitId,
+                generatedAt: new Date().toISOString(),
+                branch: process.env.GITHUB_REF_NAME || 'unknown',
+                commit: process.env.GITHUB_SHA || 'unknown',
                 warning: 'No test results found'
               };
               
@@ -629,8 +616,6 @@ jobs:
             };
             
             jsonFiles.forEach(filePath => {
-              console.log(`📄 Processing: ${filePath}`);
-              
               try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 const reportData = JSON.parse(content);
@@ -669,6 +654,15 @@ jobs:
                       deviceKey = deviceInfo;
                     }
                   }
+                } else {
+                  // Fallback: try to extract from full path or use device info from report data
+                  if (Array.isArray(reportData) && reportData.length > 0 && reportData[0].device) {
+                    const device = reportData[0].device;
+                    deviceKey = `${device.name}+${device.osVersion}`;
+                  } else if (reportData.device) {
+                    const device = reportData.device;
+                    deviceKey = `${device.name}+${device.osVersion}`;
+                  }
                 }
                 
                 // Initialize platform and device arrays if they don't exist
@@ -688,7 +682,7 @@ jobs:
                     videoURL: testReport.videoURL || null
                   };
                   
-                  // Add failure info if test failed
+                  // Add failure info if test failed (optional - include if you want failure info in final output)
                   if (testReport.testFailed) {
                     cleanedReport.testFailed = true;
                     cleanedReport.failureReason = testReport.failureReason;
@@ -704,35 +698,23 @@ jobs:
                   processTestReport(reportData);
                 }
               } catch (error) {
-                console.error(`❌ Error processing ${filePath}:`, error.message);
-                console.log(`⚠️ Skipping file ${filePath} and continuing with other files...`);
-                
-                // Continue processing other files even if this one fails
+                console.error(`❌ Error processing ${filePath}: ${error.message}`);
                 return;
             });
             
-            // Create final report with metadata section and grouped results
+            // Create final report in the exact format requested (just Android and iOS at root level)
             const finalReport = {
-              metadata: {
-                commitId: metadata.commit,
-                branch: metadata.branch,
-                generatedAt: metadata.generatedAt,
-                workflowRun: metadata.workflowRun,
-                totalReports: metadata.totalReports,
-                platforms: metadata.platforms
-              },
-              ...groupedResults
+              Android: groupedResults.Android || {},
+              iOS: groupedResults.iOS || {}
             };
             
-            // Write the new grouped report structure
+            // Write the aggregated report in the requested format
             const outputPath = 'appwright/aggregated-reports/aggregated-performance-report.json';
             fs.writeFileSync(outputPath, JSON.stringify(finalReport, null, 2));
             
-            console.log(`✅ Aggregated report saved to: ${outputPath}`);
-            console.log(`📝 Commit ID: ${metadata.commit}`);
-            console.log(`🌿 Branch: ${metadata.branch}`);
-            console.log(`🤖 Android reports: ${metadata.platforms.android}`);
-            console.log(`🍎 iOS reports: ${metadata.platforms.ios}`);
+            // Also create a pretty-formatted version for easier viewing
+            const prettyOutputPath = 'appwright/aggregated-reports/performance-results.json';
+            fs.writeFileSync(prettyOutputPath, JSON.stringify(finalReport, null, 4));
             
             // Count total tests across all platforms and devices
             let totalTests = 0;
@@ -745,8 +727,7 @@ jobs:
               });
             });
             
-            console.log(`📊 Total tests: ${totalTests}`);
-            console.log(`📱 Devices tested: ${devices.join(', ')}`);
+            console.log(`✅ Aggregated report saved: ${totalTests} tests across ${devices.length} device configurations`);
             
             // Create summary file with metadata
             const summary = {
@@ -787,18 +768,8 @@ jobs:
               console.error('❌ Error during aggregation:', error.message);
               console.log('🔄 Creating fallback empty report due to aggregation error...');
               
-              // Create fallback empty report structure
+              // Create fallback empty report structure (in requested format)
               const fallbackReport = {
-                metadata: {
-                  commitId: process.env.GITHUB_SHA || 'unknown',
-                  branch: process.env.GITHUB_REF_NAME || 'unknown',
-                  generatedAt: new Date().toISOString(),
-                  workflowRun: process.env.GITHUB_RUN_ID || 'unknown',
-                  totalReports: 0,
-                  platforms: { android: 0, ios: 0 },
-                  error: 'Aggregation failed: ' + error.message,
-                  warning: 'This is a fallback report generated due to aggregation errors'
-                },
                 Android: {},
                 iOS: {}
               };
@@ -809,7 +780,7 @@ jobs:
                   totalTests: 0,
                   platforms: { android: 0, ios: 0 },
                   error: error.message,
-                  generatedAt: fallbackReport.metadata.generatedAt
+                  generatedAt: new Date().toISOString()
                 }, null, 2));
                 console.log('✅ Fallback reports created successfully');
               } catch (writeError) {
@@ -827,9 +798,18 @@ jobs:
           # Ensure output directory exists even if script failed
           mkdir -p appwright/aggregated-reports
           
-          # List generated files
+          # List generated files and show structure
           echo "📁 Generated files:"
           ls -la appwright/aggregated-reports/ || echo "📁 No aggregated reports directory found"
+          
+          # Show a sample of the aggregated report structure if it exists
+          if [ -f "appwright/aggregated-reports/aggregated-performance-report.json" ]; then
+            echo ""
+            echo "📋 Sample of aggregated report structure:"
+            echo "========================================="
+            head -50 appwright/aggregated-reports/aggregated-performance-report.json || echo "Could not display file contents"
+            echo "========================================="
+          fi
       
       - name: Upload Combined Reports
         if: always()

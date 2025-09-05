@@ -7,10 +7,9 @@ export class PerformanceTracker {
 
   addTimer(timer) {
     if (this.timers.find((existingTimer) => existingTimer.id === timer.id)) {
-      // eslint-disable-next-line no-console
-      console.log('Timer already exists', timer.id);
       return;
     }
+
     this.timers.push(timer);
   }
 
@@ -18,8 +17,6 @@ export class PerformanceTracker {
     // Store in process environment
     process.env.TEMP_SESSION_ID = sessionId;
     process.env.TEMP_TEST_TITLE = testTitle;
-
-    console.log(`✅ Session data stored: ${sessionId}`);
   }
 
   async getVideoURL(sessionId, maxRetries = 60, delayMs = 3000) {
@@ -124,21 +121,40 @@ export class PerformanceTracker {
       const duration = timer.getDuration();
       const durationInSeconds = timer.getDurationInSeconds();
 
-      // Create a step object with the timer id as key and duration as value
-      const stepObject = {};
-      stepObject[timer.id] = duration;
-      metrics.steps.push(stepObject);
+      if (duration !== null && !isNaN(duration) && duration > 0) {
+        // Create a step object with the timer id as key and duration as value
+        const stepObject = {};
+        stepObject[timer.id] = duration;
+        metrics.steps.push(stepObject);
 
-      totalSeconds += durationInSeconds;
+        totalSeconds += durationInSeconds;
+      }
     }
 
     metrics.total = totalSeconds;
-    metrics.device = testInfo.project.use.device;
 
-    await testInfo.attach(`performance-metrics-${testInfo.title}`, {
-      body: JSON.stringify(metrics),
-      contentType: 'application/json',
-    });
+    // Safely get device info with fallbacks
+    const deviceInfo = testInfo?.project?.use?.device;
+    if (deviceInfo) {
+      metrics.device = deviceInfo;
+    } else {
+      metrics.device = {
+        name: 'Unknown',
+        osVersion: 'Unknown',
+        provider: 'unknown',
+      };
+    }
+
+    try {
+      await testInfo.attach(`performance-metrics-${testInfo.title}`, {
+        body: JSON.stringify(metrics),
+        contentType: 'application/json',
+      });
+    } catch (error) {
+      console.error(`❌ Failed to attach performance metrics:`, error.message);
+      throw error;
+    }
+
     return metrics;
   }
 }
