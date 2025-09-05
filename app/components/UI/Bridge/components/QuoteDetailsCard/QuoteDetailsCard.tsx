@@ -137,7 +137,7 @@ const QuoteDetailsCard = () => {
           bridgeFeatureFlags.priceImpactThreshold.normal));
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
-    parseFloat(activeQuote?.minToTokenAmount.amount || '0'),
+    parseFloat(activeQuote?.minToTokenAmount?.amount || '0'),
   );
 
   return (
