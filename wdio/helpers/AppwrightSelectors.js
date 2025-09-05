@@ -74,8 +74,13 @@ export default class AppwrightSelectors {
           }
         ]);
       } else {
-        // For iOS
-        await driver.scroll();
+        // For iOS, use mobile: scroll command
+        await driver.executeScript("mobile: scroll", [
+          {
+            direction: "down",
+            percent: 0.75
+          }
+        ]);
       }
       
       // Wait a bit for the scroll to complete

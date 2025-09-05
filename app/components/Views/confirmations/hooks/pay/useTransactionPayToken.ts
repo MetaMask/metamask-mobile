@@ -5,9 +5,10 @@ import {
   setTransactionPayToken,
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { BigNumber } from 'bignumber.js';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -17,7 +18,7 @@ export function useTransactionPayToken() {
     selectTransactionPayToken(state, transactionId as string),
   );
 
-  const payToken = useTokenWithBalance(
+  const payTokenRaw = useTokenWithBalance(
     selectedPayToken?.address ?? '0x0',
     selectedPayToken?.chainId ?? '0x0',
   );
@@ -33,6 +34,19 @@ export function useTransactionPayToken() {
     },
     [dispatch, transactionId],
   );
+
+  const payToken = useMemo(() => {
+    if (!payTokenRaw) return undefined;
+
+    const balanceRaw = new BigNumber(payTokenRaw.balance)
+      .shiftedBy(payTokenRaw.decimals)
+      .toFixed(0);
+
+    return {
+      ...payTokenRaw,
+      balanceRaw,
+    };
+  }, [payTokenRaw]);
 
   return {
     payToken,

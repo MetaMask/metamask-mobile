@@ -38,9 +38,13 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
   default: ({
     error,
     onRetry,
+    showBackButton,
+    retryAttempts,
   }: {
     error: string | Error;
     onRetry: () => void;
+    showBackButton?: boolean;
+    retryAttempts?: number;
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
@@ -49,6 +53,12 @@ jest.mock('../components/PerpsConnectionErrorView', () => ({
         <TouchableOpacity onPress={onRetry} testID="retry-button">
           <Text>Retry</Text>
         </TouchableOpacity>
+        {showBackButton && (
+          <Text testID="back-button-indicator">Back button shown</Text>
+        )}
+        {retryAttempts !== undefined && (
+          <Text testID="retry-attempts">{retryAttempts}</Text>
+        )}
       </View>
     );
   },
@@ -496,6 +506,293 @@ describe('PerpsConnectionProvider', () => {
 
     // Reset mock for next tests
     mockDisconnect.mockResolvedValue(undefined);
+  });
+
+  describe('isFullScreen prop behavior', () => {
+    it('should show back button immediately when isFullScreen is true', async () => {
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId } = render(
+        <PerpsConnectionProvider isFullScreen>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Back button should be shown immediately when isFullScreen is true
+      await waitFor(() => {
+        expect(getByTestId('perps-connection-error')).toBeDefined();
+        expect(getByTestId('back-button-indicator')).toBeDefined();
+      });
+    });
+
+    it('should not show back button initially when isFullScreen is false', async () => {
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PerpsConnectionProvider isFullScreen={false}>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Back button should NOT be shown initially when isFullScreen is false
+      await waitFor(() => {
+        expect(getByTestId('perps-connection-error')).toBeDefined();
+        expect(queryByTestId('back-button-indicator')).toBeNull();
+      });
+    });
+
+    it('should show back button after retry when isFullScreen is false', async () => {
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PerpsConnectionProvider isFullScreen={false}>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Initially no back button
+      expect(queryByTestId('back-button-indicator')).toBeNull();
+
+      // Mock connection failure on retry
+      mockConnect.mockRejectedValueOnce(new Error('Retry failed'));
+
+      // Click retry button
+      const retryButton = getByTestId('retry-button');
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      // After retry attempt, back button should be shown
+      await waitFor(() => {
+        expect(getByTestId('back-button-indicator')).toBeDefined();
+        expect(getByTestId('retry-attempts')).toHaveTextContent('1');
+      });
+    });
+  });
+
+  describe('retry logic behavior', () => {
+    it('should call PerpsConnectionManager.connect directly on retry', async () => {
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId } = render(
+        <PerpsConnectionProvider>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Clear previous mock calls
+      mockConnect.mockClear();
+
+      // Click retry button
+      const retryButton = getByTestId('retry-button');
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        // Should call PerpsConnectionManager.connect directly
+        expect(mockConnect).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('should update state after retry attempt', async () => {
+      // Mock initial error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId, queryByTestId, getByText } = render(
+        <PerpsConnectionProvider>
+          <Text>Child Component</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Should show error view
+      expect(getByTestId('perps-connection-error')).toBeDefined();
+
+      // Mock successful connection on retry
+      mockConnect.mockResolvedValueOnce(undefined);
+
+      // Update mock to return connected state after retry
+      mockGetConnectionState.mockReturnValue({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        error: null,
+      });
+
+      // Click retry button
+      const retryButton = getByTestId('retry-button');
+      await act(async () => {
+        retryButton.props.onPress();
+      });
+
+      // Should now show children instead of error view
+      await waitFor(() => {
+        expect(queryByTestId('perps-connection-error')).toBeNull();
+        expect(getByText('Child Component')).toBeDefined();
+      });
+    });
+
+    it('should increment retry attempts on each retry', async () => {
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId } = render(
+        <PerpsConnectionProvider>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Mock connection failures
+      mockConnect.mockRejectedValue(new Error('Connection failed'));
+
+      // First retry
+      const retryButton = getByTestId('retry-button');
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('retry-attempts')).toHaveTextContent('1');
+      });
+
+      // Second retry
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('retry-attempts')).toHaveTextContent('2');
+      });
+
+      // Third retry
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('retry-attempts')).toHaveTextContent('3');
+      });
+    });
+
+    it('should reset retry attempts on successful connection', async () => {
+      // Mock initial error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <PerpsConnectionProvider>
+          <Text>Child Component</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Mock connection failure then success
+      mockConnect
+        .mockRejectedValueOnce(new Error('First retry failed'))
+        .mockResolvedValueOnce(undefined);
+
+      // First retry (fails)
+      const retryButton = getByTestId('retry-button');
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('retry-attempts')).toHaveTextContent('1');
+      });
+
+      // Update mock to return connected state for second retry
+      mockGetConnectionState.mockReturnValue({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+        error: null,
+      });
+
+      // Second retry (succeeds)
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      // Should clear retry attempts and show children
+      await waitFor(() => {
+        expect(queryByTestId('perps-connection-error')).toBeNull();
+        expect(queryByTestId('retry-attempts')).toBeNull();
+      });
+    });
+
+    it('should not call resetError during retry', async () => {
+      // Mock resetError
+      const mockResetError = jest.fn();
+      (PerpsConnectionManager.resetError as jest.Mock) = mockResetError;
+
+      // Mock error state
+      mockGetConnectionState.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'Connection failed',
+      });
+
+      const { getByTestId } = render(
+        <PerpsConnectionProvider>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Clear previous mock calls
+      mockResetError.mockClear();
+
+      // Click retry button
+      const retryButton = getByTestId('retry-button');
+      act(() => {
+        retryButton.props.onPress();
+      });
+
+      await waitFor(() => {
+        // resetError should NOT be called during retry
+        expect(mockResetError).not.toHaveBeenCalled();
+        // But connect should be called
+        expect(mockConnect).toHaveBeenCalled();
+      });
+    });
   });
 
   it('should clean up polling interval on unmount', () => {
