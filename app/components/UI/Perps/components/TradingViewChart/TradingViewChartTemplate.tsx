@@ -94,10 +94,22 @@ export const createTradingViewChartTemplate = (
                     autoSize: false, // Disable auto-resize for better performance
                     handleScroll: true,
                     handleScale: true,
-                    // Enhanced kinetic scrolling for better touch response
+                    // Enhanced kinetic scrolling with momentum tuning for mobile
+                    // Fine-tuing options: increate friction for more momentum, increase min velocity for more sensitivity
                     kinetic: {
                         mouse: true,
                         touch: true,
+                        // Momentum and friction tuning for smoother panning
+                        momentum: {
+                            friction: 0.95, // Adjust momentum decay (0.9-0.98 range)
+                            minVelocity: 0.1, // Minimum velocity threshold
+                        },
+                        // Additional kinetic settings for mobile optimization
+                        touch: {
+                            enabled: true,
+                            // Fine-tune touch sensitivity
+                            sensitivity: 1.0, // Default sensitivity
+                        }
                     },
                     // Disable crosshair for better performance on low-end devices
                     crosshair: {
