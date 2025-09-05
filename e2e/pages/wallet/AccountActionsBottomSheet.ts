@@ -4,7 +4,7 @@ import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
-import EditMultichainAccountName from '../MultichainAccounts/EditAccountName';
+import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
 class AccountActionsBottomSheet {
   get editAccount(): DetoxElement {
     return Matchers.getElementByID(
@@ -103,8 +103,8 @@ class AccountActionsBottomSheet {
       5000,
     );
     await MultichainAccountDetails.tapEditAccountName();
-    await EditMultichainAccountName.updateAccountName(newName);
-    await EditMultichainAccountName.tapSave();
+    await MultichainEditAccountName.updateAccountName(newName);
+    await MultichainEditAccountName.tapSave();
     await MultichainAccountDetails.tapBackButton();
   }
 
