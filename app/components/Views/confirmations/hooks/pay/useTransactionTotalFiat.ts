@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TransactionBridgeQuote } from '../../utils/bridge';
 import { useFeeCalculations } from '../gas/useFeeCalculations';
+import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -23,99 +24,131 @@ export function useTransactionTotalFiat() {
     selectTransactionBridgeQuotesById(state, transactionId),
   );
 
-  const balancesToUse = requiredFiat.filter(
-    (token) =>
-      !quotes?.some(
-        (quote) =>
-          quote.quote.destAsset.address.toLowerCase() ===
-          token.address.toLowerCase(),
-      ),
-  );
+  const result = {
+    ...getBridgeFeeTotal(quotes, fiatFormatter),
+    ...getEstimatedNetworkFeeTotal(quotes, fiatFormatter),
+    ...getMaxNetworkFeeTotal(quotes, fiatFormatter),
+    ...getEstimatedNativeTotal(quotes, estimatedFeeFiatPrecise, fiatFormatter),
+    ...getTotal(quotes, requiredFiat, estimatedFeeFiatPrecise, fiatFormatter),
+  };
 
-  const balanceCost = balancesToUse.reduce(
-    (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
-    new BigNumber(0),
-  );
+  const resultStable = useDeepMemo(() => result, [result]);
+
+  useEffect(() => {
+    log('Total fiat', resultStable);
+  }, [resultStable]);
+
+  return resultStable;
+}
+
+function getTotal(
+  quotes: TransactionBridgeQuote[] | undefined,
+  requiredFiat: { address: Hex; amountFiat: number }[],
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const balanceTotal = requiredFiat
+    .filter(
+      (token) =>
+        !quotes?.some(
+          (quote) =>
+            quote.quote.destAsset.address.toLowerCase() ===
+            token.address.toLowerCase(),
+        ),
+    )
+    .reduce(
+      (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
+      new BigNumber(0),
+    );
 
   const quoteTotal = (quotes ?? []).reduce(
-    (acc, quote) => acc.plus(getQuoteTotal(quote)),
+    (acc, quote) =>
+      acc.plus(
+        new BigNumber(quote.sentAmount?.valueInCurrency ?? 0).minus(
+          getQuoteDust(quote, requiredFiat),
+        ),
+      ),
     new BigNumber(0),
   );
 
-  const quoteNetworkFeeTotal =
-    quotes?.reduce(
-      (acc, quote) => acc.plus(getQuoteGasAndRelayFee(quote)),
-      new BigNumber(0),
-    ) ?? new BigNumber(0);
+  const total = quoteTotal
+    .plus(balanceTotal)
+    .plus(
+      getEstimatedNativeTotal(quotes, estimatedGasFeeFiat, format)
+        .totalNativeEstimated ?? 0,
+    );
 
-  const quoteFeeTotal =
+  return {
+    total: total.toString(10),
+    totalFormatted: format(total),
+  };
+}
+
+function getBridgeFeeTotal(
+  quotes: TransactionBridgeQuote[] | undefined,
+  format: (value: BigNumber) => string,
+) {
+  const total =
     quotes?.reduce(
       (acc, quote) => acc.plus(getQuoteSourceFee(quote)),
       new BigNumber(0),
     ) ?? new BigNumber(0);
 
-  const totalNetworkFee = quoteNetworkFeeTotal.plus(
-    new BigNumber(estimatedFeeFiatPrecise ?? 0),
-  );
-
-  const dustTotal =
-    quotes?.reduce(
-      (acc, quote) => acc.plus(getQuoteDust(quote, requiredFiat)),
-      new BigNumber(0),
-    ) ?? new BigNumber(0);
-
-  const total = quoteTotal.plus(balanceCost).minus(dustTotal);
-  const value = total.toString(10);
-  const formatted = fiatFormatter(total);
-
-  const totalNetworkFeeFormatted = fiatFormatter(totalNetworkFee);
-  const bridgeFeeFormatted = fiatFormatter(quoteFeeTotal);
-  const balanceCostString = balanceCost.toString(10);
-  const quoteTotalString = quoteTotal.toString(10);
-  const dustTotalString = dustTotal.toString(10);
-
-  useEffect(() => {
-    log('Total fiat', {
-      balances: balanceCostString,
-      bridgeFees: bridgeFeeFormatted,
-      dust: dustTotalString,
-      networkFees: totalNetworkFeeFormatted,
-      quotes: quoteTotalString,
-      total: formatted,
-    });
-  }, [
-    balanceCostString,
-    bridgeFeeFormatted,
-    dustTotalString,
-    formatted,
-    quoteTotalString,
-    totalNetworkFeeFormatted,
-    value,
-  ]);
-
   return {
-    bridgeFeeFormatted,
-    formatted,
-    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
-    totalGasFormatted: totalNetworkFeeFormatted,
-    value,
+    totalBridgeFee: total.toString(10),
+    totalBridgeFeeFormatted: format(total),
   };
 }
 
-function getQuoteTotal(quote: TransactionBridgeQuote): BigNumber {
-  return getQuoteSourceAmount(quote).plus(getQuoteGasAndRelayFee(quote));
+function getEstimatedNativeTotal(
+  quotes: TransactionBridgeQuote[] | undefined,
+  estimatedGasFeeFiat: string | null,
+  format: (value: BigNumber) => string,
+) {
+  const total = new BigNumber(
+    getEstimatedNetworkFeeTotal(quotes, format).totalNetworkFeeEstimated,
+  ).plus(estimatedGasFeeFiat ?? '0');
+
+  return {
+    totalNativeEstimated: total.toString(10),
+    totalNativeEstimatedFormatted: format(total),
+  };
 }
 
-function getQuoteSourceAmount(quote: TransactionBridgeQuote): BigNumber {
-  return new BigNumber(quote.sentAmount?.valueInCurrency ?? 0);
+function getEstimatedNetworkFeeTotal(
+  quotes: TransactionBridgeQuote[] | undefined,
+  format: (value: BigNumber) => string,
+) {
+  const total =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(quote.totalNetworkFee?.valueInCurrency ?? 0),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
+  return {
+    totalNetworkFeeEstimated: total.toString(10),
+    totalNetworkFeeEstimatedFormatted: format(total),
+  };
 }
 
-function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
-  return new BigNumber(quote.totalMaxNetworkFee?.valueInCurrency ?? 0);
+function getMaxNetworkFeeTotal(
+  quotes: TransactionBridgeQuote[] | undefined,
+  format: (value: BigNumber) => string,
+) {
+  const total =
+    quotes?.reduce(
+      (acc, quote) => acc.plus(quote.totalMaxNetworkFee?.valueInCurrency ?? 0),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
+  return {
+    totalNetworkFeeMax: total.toString(10),
+    totalNetworkFeeMaxFormatted: format(total),
+  };
 }
 
 function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
-  return getQuoteSourceAmount(quote).minus(
+  return new BigNumber(quote.sentAmount?.valueInCurrency ?? 0).minus(
     quote.minToTokenAmount?.valueInCurrency ?? 0,
   );
 }

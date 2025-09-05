@@ -10,7 +10,7 @@ import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
-  const { quoteNetworkFee, value } = useTransactionTotalFiat();
+  const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
 
@@ -21,7 +21,7 @@ export function useInsufficientPayTokenNativeAlert(): Alert[] {
 
   const { tokenFiatAmount } = nativeToken ?? {};
   const isPayTokenNative = payToken?.address === NATIVE_TOKEN_ADDRESS;
-  const requiredAmount = isPayTokenNative ? value : quoteNetworkFee;
+  const requiredAmount = isPayTokenNative ? total : totalNetworkFeeMax;
 
   const isInsufficient =
     payToken &&
