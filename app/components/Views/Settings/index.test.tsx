@@ -168,12 +168,12 @@ describe('Settings', () => {
 
   it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
     // Test the Authentication.lockApp function directly with the expected parameters
-    await Authentication.lockApp({ reset: false, locked: true });
+    await Authentication.lockApp({ reset: false, locked: false });
 
     // Verify that Authentication.lockApp was called with the correct parameters
     expect(Authentication.lockApp).toHaveBeenCalledWith({
       reset: false,
-      locked: true,
+      locked: false,
     });
     expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
