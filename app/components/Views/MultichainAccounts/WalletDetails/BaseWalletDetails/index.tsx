@@ -190,7 +190,6 @@ export const BaseWalletDetails = ({
           totalItemsCount={accountGroupsWithAddItem.length}
           isLoading={isLoading}
           onPress={handlePress}
-          isState2Enabled={isMultichainAccountsState2Enabled}
         />
       );
     }

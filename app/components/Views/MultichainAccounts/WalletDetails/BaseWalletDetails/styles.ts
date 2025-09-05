@@ -85,11 +85,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingLeft: 16,
       paddingRight: 16,
     },
-    addAccountBox: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      padding: 16,
-    },
     firstAccountBox: {
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
