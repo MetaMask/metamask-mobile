@@ -176,12 +176,15 @@ export const useNetworksByNamespace = ({
  * Enriches network data with selection state and UI-ready properties.
  * @param options.networkType - Filter by popular or custom networks
  * @param options.namespace - The specific namespace to filter networks by
- * @returns Processed networks with selection state and aggregated statistics
+ * @returns Processed networks with selection state and aggregated statistics, including total enabled networks across all namespaces
  * @example
- * const { networks, areAllNetworksSelected } = useNetworksByCustomNamespace({
+ * const { networks, areAllNetworksSelected, totalEnabledNetworksCount } = useNetworksByCustomNamespace({
  *   networkType: NetworkType.Popular,
  *   namespace: KnownCaipNamespace.Eip155
  * });
+ *
+ * // totalEnabledNetworksCount gives you the count of all networks with true values across all namespaces
+ * // For example: {"eip155": {"0x1": true, "0x38": true}, "solana": {"solana:xyz": true}} = 3 total
  */
 export const useNetworksByCustomNamespace = ({
   networkType,
@@ -203,6 +206,24 @@ export const useNetworksByCustomNamespace = ({
     () => enabledNetworksByNamespace?.[namespace] || {},
     [enabledNetworksByNamespace, namespace],
   );
+
+  const totalEnabledNetworksCount = useMemo(() => {
+    if (!enabledNetworksByNamespace) return 0;
+
+    return Object.values(enabledNetworksByNamespace).reduce(
+      (total, namespaceNetworks) => {
+        if (!namespaceNetworks || typeof namespaceNetworks !== 'object')
+          return total;
+
+        const enabledCount = Object.values(namespaceNetworks).filter(
+          (isEnabled) => isEnabled === true,
+        ).length;
+
+        return total + enabledCount;
+      },
+      0,
+    );
+  }, [enabledNetworksByNamespace]);
 
   const networkConfigurations = useMemo(
     () =>
@@ -301,5 +322,6 @@ export const useNetworksByCustomNamespace = ({
     areAnyNetworksSelected,
     networkCount: processedNetworks.length,
     selectedCount: selectedNetworks.length,
+    totalEnabledNetworksCount,
   };
 };
