@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 // ESLint override: BaseController requires 'type' for Json compatibility, not 'interface'
-import type { TransactionParams } from '@metamask/transaction-controller';
+import type {
+  TransactionMeta,
+  TransactionParams,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+import { OrderResponse } from './polymarket';
+import { PredictControllerState } from '../controllers/PredictController';
 
 export type ToggleTestnetResult = {
   success: boolean;
@@ -14,14 +20,11 @@ export type SwitchProviderResult = {
   error?: string;
 };
 
-export type Side = 'buy' | 'sell';
-
 export type OrderParams = {
-  providerId: string;
   marketId: string;
-  outcodeId: string;
+  outcomeId: string;
   side: Side;
-  size: number;
+  amount: number;
 };
 
 export type OrderStatus =
@@ -65,6 +68,16 @@ export type MarketCategory =
   | 'crypto'
   | 'politics';
 
+export enum Side {
+  BUY = 'BUY',
+  SELL = 'SELL',
+}
+
+export interface OrderSummary {
+  price: string;
+  size: string;
+}
+
 export type Market = {
   id: string;
   question: string;
@@ -78,6 +91,10 @@ export type Market = {
   status?: MarketStatus;
   image_url?: string;
   icon?: string;
+  neg_risk?: boolean;
+  conditionId: string;
+  clobTokenIds: string;
+  tokenIds: string[];
 };
 
 export type Position = {
@@ -100,12 +117,32 @@ export type Position = {
   endDate: string;
 };
 
+export type PlaceOrderResult = {
+  success: boolean;
+  error?: string;
+  providerId: string;
+  txMeta?: TransactionMeta;
+};
+
+export type ProcessOrderResult = {
+  providerId: string;
+  status: OrderStatus;
+  response?: OrderResponse;
+};
+
+export type BuyOrderParams = {
+  marketId: string;
+  outcomeId: string;
+  amount: number;
+};
+
+export type prepareBuyParams = {
+  address: string;
+  orderParams: BuyOrderParams;
+};
+
 export interface IPredictProvider {
   readonly providerId: string;
-
-  // Connection management
-  connect(): Promise<void>;
-  disconnect(): Promise<void>;
 
   // Market data
   getMarkets(params?: { category?: MarketCategory }): Promise<Market[]>;
@@ -124,9 +161,21 @@ export interface IPredictProvider {
     offset?: number;
   }): Promise<Position[]>;
 
-  // Order management
-  prepareOrder(params: OrderParams): Promise<Order>;
-  submitOrderTrade?(params: Order): Promise<OrderResult>;
+  prepareBuyTransaction({ address, orderParams }: prepareBuyParams): Promise<{
+    callData: Hex;
+    toAddress: string;
+    chainId: number;
+  }>;
+
+  processOrder?({
+    orderParams,
+    address,
+    state,
+  }: {
+    address: string;
+    orderParams: OrderParams;
+    state: PredictControllerState;
+  }): Promise<ProcessOrderResult>;
 
   // ...extend as needed
 }

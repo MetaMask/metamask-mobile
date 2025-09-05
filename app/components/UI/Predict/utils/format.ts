@@ -6,7 +6,7 @@ import { formatWithThreshold } from '../../../../util/assets';
  * @returns Format: "+X.XX%" or "-X.XX%" (always shows sign, 2 decimals)
  * @example formatPercentage(5.25) => "+5.25%"
  * @example formatPercentage(-2.75) => "-2.75%"
- * @example formatPercentage(0) => "+0.00%"
+ * @example formatPercentage(0) => "0%"
  * @example formatPercentage(100) => "+100%"
  */
 export const formatPercentage = (value: string | number): string => {
@@ -21,7 +21,10 @@ export const formatPercentage = (value: string | number): string => {
 
   // If the number is a whole number (no decimal places), don't show .00
   if (absoluteValue === Math.floor(absoluteValue)) {
-    return `${sign}${absoluteValue}%`;
+    if (num === 0) {
+      return '0%';
+    }
+    return `${sign}${num}%`;
   }
 
   return `${sign}${num.toFixed(2)}%`;

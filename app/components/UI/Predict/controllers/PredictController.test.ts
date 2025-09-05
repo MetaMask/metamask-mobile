@@ -10,9 +10,17 @@ import {
   DEFAULT_GEO_BLOCKED_REGIONS,
 } from './PredictController';
 import { PolymarketProvider } from '../providers/PolymarketProvider';
+import { Side } from '../types';
+import { addTransaction } from '../../../../util/transaction-controller';
+import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
 
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/PolymarketProvider');
+
+// Mock transaction controller addTransaction
+jest.mock('../../../../util/transaction-controller', () => ({
+  addTransaction: jest.fn(),
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -20,7 +28,30 @@ jest.mock('../../../../core/Engine', () => ({
     KeyringController: {
       signTypedMessage: jest.fn(),
     },
+    AccountsController: {
+      getSelectedAccount: jest.fn().mockReturnValue({
+        id: 'mock-account-id',
+        address: '0x1234567890123456789012345678901234567890',
+        metadata: { name: 'Test Account' },
+      }),
+    },
+    NetworkController: {
+      getState: jest.fn().mockReturnValue({
+        selectedNetworkClientId: 'mainnet',
+      }),
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('mainnet'),
+    },
   },
+}));
+
+// Prevent Contentful call side-effects during constructor
+jest.mock('../utils/contentful', () => ({
+  fetchGeoBlockedRegionsFromContentful: jest
+    .fn()
+    // Default: keep pending to avoid background eligibility updates racing tests
+    .mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 1e9)),
+    ),
 }));
 
 // Mock DevLogger (default export)
@@ -54,7 +85,9 @@ describe('PredictController', () => {
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
-      disconnect: jest.fn(),
+      prepareBuyTransactionOrder: jest.fn(),
+      providerId: 'polymarket',
+      placeOrder: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     // Mock the PolymarketProvider constructor
@@ -296,31 +329,102 @@ describe('PredictController', () => {
       });
     });
   });
-
-  describe('trading operations', () => {
-    it('placeOrder returns not implemented error', async () => {
-      await withController(async ({ controller }) => {
-        const result = await controller.placeOrder({} as any);
-        expect(result.status).toBe('error');
-      });
-    });
-  });
-
-  describe('disconnect', () => {
-    it('should disconnect provider and reset initialization state', async () => {
+  describe('placeOrder', () => {
+    it('should place order via provider, connect if needed, and track active order (polymarket approving)', async () => {
+      const mockTxMeta = { id: 'tx-1' } as any;
       await withController(async ({ controller }) => {
         await controller.initializeProviders();
-        await controller.disconnect();
 
-        expect(mockPolymarketProvider.disconnect).toHaveBeenCalled();
+        // Prepare provider transaction data
+        mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue({
+          callData: '0xdeadbeef',
+          toAddress: '0x000000000000000000000000000000000000dead',
+          chainId: 1,
+        } as any);
 
-        // After disconnect, controller should no longer be initialized
-        // @ts-ignore - Accessing private property for testing
-        expect(controller.isInitialized).toBe(false);
+        // Mock addTransaction to return our txMeta
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
 
-        expect(() => controller.getActiveProvider()).toThrow(
-          'CLIENT_NOT_INITIALIZED',
+        const result = await controller.buy({
+          marketId: 'm1',
+          outcomeId: 'o1',
+          amount: 1,
+        });
+
+        expect(mockPolymarketProvider.getApiKey).toHaveBeenCalled();
+        expect(
+          mockPolymarketProvider.prepareBuyTransaction,
+        ).toHaveBeenCalledWith({
+          address: '0x1234567890123456789012345678901234567890',
+          orderParams: {
+            marketId: 'm1',
+            outcomeId: 'o1',
+            amount: 1,
+          },
+        });
+
+        expect(result).toEqual({
+          success: true,
+          txMeta: mockTxMeta,
+          providerId: 'polymarket',
+        });
+
+        expect(controller.state.activeOrders['tx-1']).toBeDefined();
+        expect(controller.state.activeOrders['tx-1'].params).toEqual({
+          marketId: 'm1',
+          outcomeId: 'o1',
+          side: Side.BUY,
+          amount: 1,
+        });
+        expect(controller.state.activeOrders['tx-1'].txMeta).toBe(mockTxMeta);
+        expect(controller.state.activeOrders['tx-1'].status).toBe('approving');
+      });
+    });
+
+    it('should set status to approving for buy order', async () => {
+      const mockTxMeta = { id: 'tx-2' } as any;
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue({
+          callData: '0xdeadbeef',
+          toAddress: '0x000000000000000000000000000000000000dead',
+          chainId: 1,
+        } as any);
+
+        (addTransaction as jest.Mock).mockResolvedValue({
+          transactionMeta: mockTxMeta,
+        });
+
+        await controller.buy({
+          marketId: 'm2',
+          outcomeId: 'o2',
+          amount: 2,
+        });
+
+        expect(controller.state.activeOrders['tx-2']).toBeDefined();
+        expect(controller.state.activeOrders['tx-2'].status).toBe('approving');
+      });
+    });
+
+    it('should throw PLACE_ORDER_FAILED if provider returns no result', async () => {
+      await withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        mockPolymarketProvider.prepareBuyTransaction.mockResolvedValue(
+          undefined as any,
         );
+
+        const result = await controller.buy({
+          marketId: 'm3',
+          outcomeId: 'o3',
+          amount: 3,
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
       });
     });
   });
@@ -519,6 +623,10 @@ describe('PredictController', () => {
         text: jest.fn().mockResolvedValue('DE'),
       };
       mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
+      // Allow constructor background refresh to run for this test only
+      (fetchGeoBlockedRegionsFromContentful as jest.Mock).mockResolvedValue(
+        null,
+      );
 
       await withController(async ({ controller }) => {
         // Wait for initialization to complete including eligibility refresh

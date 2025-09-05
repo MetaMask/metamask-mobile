@@ -1,36 +1,48 @@
-import React from 'react';
-import { View, Image } from 'react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useEffect, useMemo } from 'react';
+import { Alert, Image, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PredictMarket.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
+import { usePredictBuy } from '../../hooks/usePredictBuy';
+import { usePredictOrder } from '../../hooks/usePredictOrder';
 import { Market } from '../../types';
 import { formatVolume } from '../../utils/format';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import styleSheet from './PredictMarket.styles';
 
 interface PredictMarketProps {
   market: Market;
 }
 
 const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
-  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
+  const { placeBuyOrder, isPlacing, currentOrder, lastResult, reset } =
+    usePredictBuy();
+  const { status } = usePredictOrder(lastResult?.txMeta?.id);
+
+  // TODO: Remove this once we have a new Market model that abstracts away the clobTokenIds
+  const tokenIds = useMemo(() => JSON.parse(market.clobTokenIds), [market]);
+
+  useEffect(() => {
+    if (status === 'success') {
+      Alert.alert('Order confirmed');
+      reset();
+    }
+  }, [status, reset]);
 
   const getOutcomeLabels = (): string[] => {
     try {
@@ -66,12 +78,29 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
 
   const getTitle = (): string => market.question || 'Unknown Market';
 
-  const getImageUrl = (): string => market.image || market.icon || market.image_url || '';
+  const getImageUrl = (): string =>
+    market.image || market.icon || market.image_url || '';
 
   const getVolumeDisplay = (): string => formatVolume(market.volume || 0);
 
   const outcomeLabels = getOutcomeLabels();
   const yesPercentage = getYesPercentage();
+
+  const handleYes = () => {
+    placeBuyOrder({
+      marketId: market.conditionId,
+      outcomeId: tokenIds[0],
+      amount: 1,
+    });
+  };
+
+  const handleNo = () => {
+    placeBuyOrder({
+      marketId: market.conditionId,
+      outcomeId: tokenIds[1],
+      amount: 1,
+    });
+  };
 
   return (
     <View style={styles.marketContainer}>
@@ -114,8 +143,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
               {strings('predict.buy_yes')}
             </Text>
           }
-          onPress={() => navigation.navigate(Routes.PREDICT.MARKET_DETAILS)}
+          onPress={handleYes}
           style={styles.buttonYes}
+          disabled={isPlacing}
+          loading={currentOrder?.outcomeId === tokenIds[0] && isPlacing}
         />
         <Button
           variant={ButtonVariants.Secondary}
@@ -126,8 +157,10 @@ const PredictMarket: React.FC<PredictMarketProps> = ({ market }) => {
               {strings('predict.buy_no')}
             </Text>
           }
-          onPress={() => navigation.navigate(Routes.PREDICT.MARKET_DETAILS)}
+          onPress={handleNo}
           style={styles.buttonNo}
+          disabled={isPlacing}
+          loading={currentOrder?.outcomeId === tokenIds[1] && isPlacing}
         />
       </View>
       <View style={styles.marketFooter}>

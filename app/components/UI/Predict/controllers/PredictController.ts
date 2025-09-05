@@ -1,30 +1,37 @@
+import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
+  TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
-import { successfulFetch } from '@metamask/controller-utils';
+import { numberToHex } from '@metamask/utils';
+import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type {
+import { addTransaction } from '../../../../util/transaction-controller';
+import { PolymarketProvider } from '../providers/PolymarketProvider';
+import {
   IPredictProvider,
   Market,
+  MarketCategory,
   Order,
   OrderParams,
-  OrderResult,
+  OrderStatus,
+  PlaceOrderResult,
   Position,
+  PredictEvent,
+  Side,
   SwitchProviderResult,
   ToggleTestnetResult,
-  MarketCategory,
-  PredictEvent,
 } from '../types';
-import { PolymarketProvider } from '../providers/PolymarketProvider';
-import Engine from '../../../../core/Engine';
+import { OrderResponse } from '../types/polymarket';
 import { fetchGeoBlockedRegionsFromContentful } from '../utils/contentful';
 
 /**
@@ -45,6 +52,7 @@ export const PREDICT_ERROR_CODES = {
   POSITIONS_FAILED: 'POSITIONS_FAILED',
   PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  PLACE_BUY_ORDER_FAILED: 'PLACE_BUY_ORDER_FAILED',
 } as const;
 
 export type PredictErrorCode =
@@ -98,6 +106,17 @@ export type PredictControllerState = {
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
+  activeOrders: Record<
+    string,
+    {
+      params: OrderParams;
+      response?: OrderResponse;
+      txMeta: TransactionMeta;
+      status: OrderStatus;
+      providerId: string;
+    }
+  >;
+  lastSuccessfulTransaction: string | null;
 };
 
 /**
@@ -113,6 +132,8 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   isEligible: false,
   lastError: null,
   lastUpdateTimestamp: 0,
+  activeOrders: {},
+  lastSuccessfulTransaction: null,
 });
 
 /**
@@ -129,6 +150,8 @@ const metadata = {
   isEligible: { persist: false, anonymous: false },
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
+  activeOrders: { persist: false, anonymous: false },
+  lastSuccessfulTransaction: { persist: false, anonymous: false },
 };
 
 /**
@@ -148,8 +171,8 @@ export type PredictControllerActions =
       handler: () => PredictControllerState;
     }
   | {
-      type: 'PredictController:placeOrder';
-      handler: PredictController['placeOrder'];
+      type: 'PredictController:buy';
+      handler: PredictController['buy'];
     }
   | {
       type: 'PredictController:refreshEligibility';
@@ -272,10 +295,32 @@ export class PredictController extends BaseController<
   /**
    * Handle transaction confirmed event
    */
-  private handleTransactionConfirmed(
+  private async handleTransactionConfirmed(
     _txMeta: TransactionControllerTransactionConfirmedEvent['payload'][0],
-  ): void {
-    // TODO: Implement transaction confirmation tracking
+  ): Promise<void> {
+    const hasActiveOrder = this.state.activeOrders[_txMeta.id];
+
+    if (hasActiveOrder) {
+      const provider = this.getActiveProvider();
+
+      if (provider.processOrder) {
+        const { params, txMeta } = this.state.activeOrders[_txMeta.id];
+        const { status, response } = await provider.processOrder({
+          address: txMeta.txParams.from,
+          orderParams: params,
+          state: this.state,
+        });
+
+        this.update((state) => {
+          state.activeOrders[_txMeta.id].status = status;
+          state.activeOrders[_txMeta.id].response = response;
+        });
+      } else {
+        this.update((state) => {
+          state.activeOrders[_txMeta.id].status = 'success';
+        });
+      }
+    }
   }
 
   /**
@@ -285,6 +330,11 @@ export class PredictController extends BaseController<
     _event: TransactionControllerTransactionFailedEvent['payload'][0],
   ): void {
     // TODO: Implement transaction failure tracking
+    this.update((state) => {
+      if (state.activeOrders[_event.transactionMeta.id]) {
+        state.activeOrders[_event.transactionMeta.id].status = 'error';
+      }
+    });
   }
 
   /**
@@ -322,9 +372,6 @@ export class PredictController extends BaseController<
         count: existingProviders.length,
         timestamp: new Date().toISOString(),
       });
-      await Promise.all(
-        existingProviders.map((provider) => provider.disconnect()),
-      );
     }
     // note: temporarily removing as causing "Engine does not exist"
     // const { KeyringController } = Engine.context;
@@ -446,6 +493,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.getActiveProvider();
 
+      // TODO: Change to AccountTreeController when available
       const { AccountsController } = Engine.context;
 
       const selectedAddress = AccountsController.getSelectedAccount().address;
@@ -479,18 +527,79 @@ export class PredictController extends BaseController<
     }
   }
 
-  /**
-   * Place a new order
-   */
-  async placeOrder(_params: OrderParams): Promise<OrderResult> {
-    // TODO: Implement place order
-    // 1. Prepare order via provider
-    // 2. Submit on-chain transactions
-    // 3. Submit off-chain trade (if applicable)
-    return {
-      status: 'error',
-      message: 'Place order not implemented',
-    };
+  async buy({
+    marketId,
+    outcomeId,
+    amount,
+  }: {
+    marketId: string;
+    outcomeId: string;
+    amount: number;
+  }): Promise<PlaceOrderResult> {
+    try {
+      const provider = this.getActiveProvider();
+
+      // TODO: Change to AccountTreeController when available
+      const { AccountsController, NetworkController } = Engine.context;
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      const { callData, toAddress, chainId } =
+        await provider.prepareBuyTransaction({
+          address: selectedAddress,
+          orderParams: {
+            marketId,
+            outcomeId,
+            amount,
+          },
+        });
+
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        numberToHex(chainId),
+      );
+
+      const { transactionMeta } = await addTransaction(
+        {
+          from: selectedAddress,
+          to: toAddress,
+          data: callData,
+          value: '0x0',
+        },
+        {
+          networkClientId,
+          type: TransactionType.contractInteraction,
+          requireApproval: true,
+        },
+      );
+
+      this.update((state) => {
+        state.activeOrders[transactionMeta.id] = {
+          status: 'approving',
+          txMeta: transactionMeta,
+          providerId: provider.providerId,
+          params: {
+            marketId,
+            outcomeId,
+            side: Side.BUY,
+            amount,
+          },
+        };
+      });
+
+      return {
+        success: true,
+        txMeta: transactionMeta,
+        providerId: provider.providerId,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        providerId: this.state.activeProvider,
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.PLACE_BUY_ORDER_FAILED,
+      };
+    }
   }
 
   /**
@@ -555,26 +664,6 @@ export class PredictController extends BaseController<
     });
 
     return { success: true, providerId };
-  }
-
-  /**
-   * Disconnect provider and cleanup subscriptions
-   * Call this when navigating away from Predict screens to prevent battery drain
-   */
-  async disconnect(): Promise<void> {
-    DevLogger.log(
-      'PredictController: Disconnecting provider to cleanup subscriptions',
-      {
-        timestamp: new Date().toISOString(),
-      },
-    );
-
-    const provider = this.getActiveProvider();
-    await provider.disconnect();
-
-    // Reset initialization state to ensure proper reconnection
-    this.isInitialized = false;
-    this.initializationPromise = null;
   }
 
   /**

@@ -16,6 +16,26 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       width: '100%',
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+      padding: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100%',
+      padding: 16,
+    },
     titleText: {
       marginBottom: 16,
     },

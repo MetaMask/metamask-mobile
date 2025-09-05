@@ -6,6 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';

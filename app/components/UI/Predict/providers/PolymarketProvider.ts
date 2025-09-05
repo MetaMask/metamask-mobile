@@ -1,20 +1,43 @@
-import type {
+import {
   SignTypedDataVersion,
-  TypedMessageParams,
+  type TypedMessageParams,
 } from '@metamask/keyring-controller';
+import { Hex } from '@metamask/utils';
+import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { ROUNDING_CONFIG } from '../constants/polymarket';
 import {
   IPredictProvider,
-  PredictEvent,
   Market,
   MarketCategory,
   MarketStatus,
-  Order,
   OrderParams,
-  OrderResult,
   Position,
+  PredictEvent,
+  ProcessOrderResult,
+  Side,
 } from '../types';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { getPolymarketEndpoints } from '../utils/polymarket';
+import {
+  ApiKeyCreds,
+  OrderData,
+  OrderType,
+  SignatureType,
+  TickSize,
+} from '../types/polymarket';
+import {
+  buildMarketOrderCreationArgs,
+  calculateMarketPrice,
+  createApiKey,
+  encodeApprove,
+  getContractConfig,
+  getMarket,
+  getOrderTypedData,
+  getPolymarketEndpoints,
+  getTickSize,
+  POLYGON_MAINNET_CHAIN_ID,
+  priceValid,
+  submitClobOrder,
+} from '../utils/polymarket';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -25,18 +48,91 @@ export class PolymarketProvider implements IPredictProvider {
   readonly providerId = 'polymarket';
 
   #isTestnet: boolean;
+  #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
 
   constructor(options: { isTestnet?: boolean }) {
     this.#isTestnet = options.isTestnet || false;
   }
 
-  async connect(): Promise<void> {
-    // TODO: Implement polymarket connection
-    // - Authenticate and get API key
+  /**
+   * Builds the order artifacts for the Polymarket provider
+   * This is a private method that is used to build the order artifacts for the Polymarket provider
+   * @param address - The address of the signer
+   * @param orderParams - The order parameters
+   * @returns The order artifacts
+   */
+  private async buildOrderArtifacts({
+    address,
+    orderParams: { marketId, outcomeId, side, amount },
+  }: {
+    address: string;
+    orderParams: OrderParams;
+  }): Promise<{
+    chainId: number;
+    price: number;
+    tickSize: TickSize;
+    order: OrderData & { salt: string };
+    contractConfig: ReturnType<typeof getContractConfig>;
+    exchangeContract: string;
+    verifyingContract: string;
+  }> {
+    const chainId = POLYGON_MAINNET_CHAIN_ID;
+    const conditionId = marketId;
+    const tokenId = outcomeId;
+
+    const marketData = await getMarket({ conditionId });
+
+    const [tickSizeResponse, price] = await Promise.all([
+      getTickSize({ tokenId }),
+      calculateMarketPrice(tokenId, side, amount, OrderType.FOK),
+    ]);
+
+    const tickSize = tickSizeResponse.minimum_tick_size;
+
+    const order = await buildMarketOrderCreationArgs({
+      signer: address,
+      maker: address,
+      signatureType: SignatureType.EOA,
+      userMarketOrder: {
+        tokenID: tokenId,
+        price,
+        amount,
+        side,
+        orderType: OrderType.FOK,
+      },
+      roundConfig: ROUNDING_CONFIG[tickSize],
+    });
+
+    const negRisk = !!marketData.neg_risk;
+
+    const contractConfig = getContractConfig(chainId);
+
+    const exchangeContract = negRisk
+      ? contractConfig.negRiskExchange
+      : contractConfig.exchange;
+
+    const verifyingContract = exchangeContract;
+
+    return {
+      chainId,
+      price,
+      tickSize,
+      order,
+      contractConfig,
+      exchangeContract,
+      verifyingContract,
+    };
   }
 
-  async disconnect(): Promise<void> {
-    // TODO: Implement polymarket disconnection
+  async getApiKey({ address }: { address: string }): Promise<ApiKeyCreds> {
+    const cachedApiKey = this.#apiKeysByAddress.get(address);
+    if (cachedApiKey) {
+      return cachedApiKey;
+    }
+
+    const apiKeyCreds = await createApiKey({ address });
+    this.#apiKeysByAddress.set(address, apiKeyCreds);
+    return apiKeyCreds;
   }
 
   async getEvents(params?: {
@@ -133,6 +229,9 @@ export class PolymarketProvider implements IPredictProvider {
             : 'open') as MarketStatus,
           image_url: market.image,
           icon: market.icon,
+          conditionId: market.conditionId,
+          clobTokenIds: market.clobTokenIds,
+          tokenIds: JSON.parse(market.clobTokenIds),
         })),
       );
 
@@ -172,25 +271,87 @@ export class PolymarketProvider implements IPredictProvider {
     return positionsData;
   }
 
-  async prepareOrder(params: OrderParams): Promise<Order> {
-    // TODO: Implement polymarket prepareOrder
-    return {
-      id: '',
-      params,
-      result: {
-        status: 'error',
-        message: 'Not implemented',
+  async processOrder({
+    address,
+    orderParams: { marketId, outcomeId, side, amount },
+  }: {
+    address: string;
+    orderParams: OrderParams;
+  }): Promise<ProcessOrderResult> {
+    const { chainId, order, verifyingContract } =
+      await this.buildOrderArtifacts({
+        address,
+        orderParams: { marketId, outcomeId, side, amount },
+      });
+
+    const typedData = getOrderTypedData({
+      order,
+      chainId,
+      verifyingContract,
+    });
+
+    const signature = await Engine.context.KeyringController.signTypedMessage(
+      { data: typedData, from: address },
+      SignTypedDataVersion.V4,
+    );
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+
+    // Ensure API key is available in memory; connect if needed
+    const signerApiKey = await this.getApiKey({ address });
+
+    const responseData = await submitClobOrder({
+      apiKey: signerApiKey,
+      clobOrder: {
+        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt, 10) },
+        owner: signerApiKey.apiKey,
+        orderType: OrderType.FOK,
       },
-      transactions: [],
-      isOffchainTrade: false,
+    });
+
+    return {
+      status: responseData.success ? 'success' : 'error',
+      response: responseData,
+      providerId: this.providerId,
     };
   }
 
-  async submitOrderTrade(_order: Order): Promise<OrderResult> {
-    // TODO: Implement polymarket submitOrderTrade
-    return {
-      status: 'error',
-      message: 'Not implemented',
-    };
+  async prepareBuyTransaction({
+    address,
+    orderParams: { marketId, outcomeId, amount },
+  }: {
+    address: string;
+    orderParams: OrderParams;
+  }): Promise<{ callData: Hex; toAddress: string; chainId: number }> {
+    const side = Side.BUY;
+    const {
+      chainId,
+      price,
+      tickSize,
+      order,
+      contractConfig,
+      exchangeContract,
+    } = await this.buildOrderArtifacts({
+      address,
+      orderParams: { marketId, outcomeId, side, amount },
+    });
+
+    if (!priceValid(price, tickSize)) {
+      throw new Error(
+        `invalid price (${price}), min: ${parseFloat(tickSize)} - max: ${
+          1 - parseFloat(tickSize)
+        }`,
+      );
+    }
+
+    const callData = encodeApprove({
+      spender: exchangeContract,
+      amount: BigInt(order.makerAmount),
+    });
+
+    return { callData, toAddress: contractConfig.collateral, chainId };
   }
 }
