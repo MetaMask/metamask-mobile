@@ -66,6 +66,8 @@ export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 
 export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 
+export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
+
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;

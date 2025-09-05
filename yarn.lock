@@ -6423,6 +6423,11 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
+"@metamask/tron-wallet-snap@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/tron-wallet-snap/-/tron-wallet-snap-1.0.3.tgz#f0e7945fd31c460b194d2a51ce044b06939c8d98"
+  integrity sha512-PGwKrbyEkAtMBRZP9Yqu6x+6mH44fMLxlLGdycrCuy+HyA5A/aIoUDkB4OMIphUKwMXIS+RLj5Jbsvy3JtaMLg==
+
 "@metamask/utils@11.7.0":
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-11.7.0.tgz#d6b7dad510eef5d19e756fa8d3e43c1a95cf1c5e"
