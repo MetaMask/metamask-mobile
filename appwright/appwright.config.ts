@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
-  testMatch: '**/tests/performance/scenario*.spec.js', // Run all .spec.js files
+  testMatch: '**/tests/performance/*.spec.js',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   expect: {
     timeout: 30 * 1000, //30 seconds
@@ -48,10 +48,10 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL,
+        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
       },
     },
     {
@@ -63,31 +63,7 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
-      },
-    },
-    {
-      name: 'android-onboarding',
-      use: {
-        platform: Platform.ANDROID,
-        device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
-        },
-        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
-      },
-    },
-    {
-      name: 'ios-onboarding',
-      use: {
-        platform: Platform.IOS,
-        device: {
-          provider: 'browserstack',
-          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
-          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
-        },
-        buildPath: process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL, // Path to Browserstack url
       },
     },
   ],
