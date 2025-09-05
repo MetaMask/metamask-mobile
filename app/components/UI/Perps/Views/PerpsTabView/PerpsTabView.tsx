@@ -453,18 +453,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           hasPositions={hasPositions}
           hasOrders={hasOrders}
         />
-        <Button
-          variant={ButtonVariants.Primary}
-          onPress={showDepositInProgressToast}
-          label="Show Deposit In Progress Toast"
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          onPress={() =>
-            showDepositSuccessToast(liveAccount?.availableBalance ?? '')
-          }
-          label="Show Success Toast"
-        />
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
