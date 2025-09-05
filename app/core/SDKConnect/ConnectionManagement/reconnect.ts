@@ -25,7 +25,7 @@ async function reconnect({
     const existingConnection: Connection | undefined =
       instance.state.connected[channelId];
     // Check if already connected
-    if (existingConnection?.remote.isReady()) {
+    if (existingConnection?.remote.isReady() && trigger !== 'deeplink') {
       DevLogger.log(
         `SDKConnect::reconnect[${context}] - already ready - ignore`,
       );
@@ -108,7 +108,7 @@ async function reconnect({
         instance.updateSDKLoadingState({ channelId, loading: false });
       }
 
-      if (ready) {
+      if (ready && connected) {
         DevLogger.log(
           `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
         );
