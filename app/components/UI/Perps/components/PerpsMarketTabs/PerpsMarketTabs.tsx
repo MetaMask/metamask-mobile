@@ -230,6 +230,29 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     });
   }, [theme.colors.icon.default, theme.colors.primary.default, toastRef]);
 
+  const showOrderCancelFailedToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Warning,
+      iconColor: theme.colors.icon.default,
+      backgroundColor: theme.colors.error.default,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('perps.order.failed_to_cancel_order'),
+          isBold: true,
+        },
+        {
+          label: '\n',
+        },
+        {
+          label: strings('perps.order.funds_have_been_returned_to_you'),
+          isBold: false,
+        },
+      ],
+    });
+  }, [theme.colors.error.default, theme.colors.icon.default, toastRef]);
+
   const handleOrderCancel = useCallback(
     async (orderToCancel: Order) => {
       try {
@@ -247,20 +270,41 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           orderToCancel.symbol,
         );
 
-        await controller.cancelOrder({
+        const result = await controller.cancelOrder({
           orderId: orderToCancel.orderId,
           coin: orderToCancel.symbol,
         });
 
-        // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
-        setTimeout(() => {
-          showOrderCancelledToast();
-        }, 2000);
+        let timeout: NodeJS.Timeout | null = null;
+
+        if (result.success) {
+          // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
+          timeout = setTimeout(() => {
+            showOrderCancelledToast();
+          }, 1500);
+
+          return;
+        }
+
+        timeout = setTimeout(() => {
+          showOrderCancelFailedToast();
+        }, 1500);
+
+        return () => {
+          if (timeout) {
+            clearTimeout(timeout);
+          }
+        };
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
       }
     },
-    [position?.size, showOrderCancelInProgressToast, showOrderCancelledToast],
+    [
+      position?.size,
+      showOrderCancelFailedToast,
+      showOrderCancelInProgressToast,
+      showOrderCancelledToast,
+    ],
   );
 
   const renderTooltipModal = useCallback(() => {

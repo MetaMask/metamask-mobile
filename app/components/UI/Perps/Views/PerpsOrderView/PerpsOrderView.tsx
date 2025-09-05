@@ -386,39 +386,47 @@ const PerpsOrderViewContentBase: React.FC = () => {
     [orderForm.amount, assetData.price, marketData?.szDecimals],
   );
 
-  const showOrderFilledToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Check,
-      iconColor: theme.colors.primary.default,
-      backgroundColor: theme.colors.background.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.order.order_filled'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: strings('perps.order.order_placement_subtitle', {
-            direction: capitalize(orderForm.direction),
-            amount: positionSize,
-            assetSymbol: orderForm.asset,
-          }),
-          isBold: false,
-        },
-      ],
-    });
-  }, [
-    toastRef,
-    theme.colors.primary.default,
-    theme.colors.background.default,
-    orderForm.direction,
-    orderForm.asset,
-    positionSize,
-  ]);
+  const showOrderFilledToast = useCallback(
+    (orderType: OrderType) => {
+      const title =
+        orderType === 'market'
+          ? strings('perps.order.order_filled')
+          : strings('perps.order.order_placed');
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Check,
+        iconColor: theme.colors.primary.default,
+        backgroundColor: theme.colors.background.default,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: title,
+            isBold: true,
+          },
+          {
+            label: '\n',
+          },
+          {
+            label: strings('perps.order.order_placement_subtitle', {
+              direction: capitalize(orderForm.direction),
+              amount: positionSize,
+              assetSymbol: orderForm.asset,
+            }),
+            isBold: false,
+          },
+        ],
+      });
+    },
+    [
+      toastRef,
+      theme.colors.primary.default,
+      theme.colors.background.default,
+      orderForm.direction,
+      orderForm.asset,
+      positionSize,
+    ],
+  );
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -438,8 +446,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
         });
 
-        // TODO: Add Order submitted toast
-        showOrderFilledToast();
+        showOrderFilledToast(orderForm.type);
       },
       onError: (_error) => {
         showOrderFailedToast();
