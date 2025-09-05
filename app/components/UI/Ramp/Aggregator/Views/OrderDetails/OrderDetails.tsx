@@ -20,10 +20,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../../util/theme';
 import Logger from '../../../../../../util/Logger';
 import { RootState } from '../../../../../../reducers';
@@ -40,9 +37,6 @@ interface OrderDetailsParams {
   orderId?: string;
   redirectToSendTransaction?: boolean;
 }
-
-export const createOrderDetailsNavDetails =
-  createNavigationDetails<OrderDetailsParams>(Routes.RAMP.ORDER_DETAILS);
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();

@@ -6,8 +6,8 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { useParams } from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -34,15 +34,7 @@ import { trace, TraceName } from '../../../../../../util/trace';
 import { type NavigatableRootParamList } from '../../../../../../util/navigation';
 import { type StackNavigationProp } from '@react-navigation/stack';
 
-export interface OtpCodeParams {
-  email: string;
-  stateToken: string;
-  redirectToRootAfterAuth?: boolean;
-}
-
-export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
-  Routes.DEPOSIT.OTP_CODE,
-);
+type OtpCodeProps = StackScreenProps<RootParamList, 'OtpCode'>;
 
 const CELL_COUNT = 6;
 const COOLDOWN_TIME = 30;
@@ -64,13 +56,12 @@ const ResendButton: FC<{
   );
 };
 
-const OtpCode = () => {
+const OtpCode = ({ route }: OtpCodeProps) => {
   const navigation =
     useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { email, stateToken, redirectToRootAfterAuth } =
-    useParams<OtpCodeParams>();
+  const { email, stateToken, redirectToRootAfterAuth } = route.params;
   const trackEvent = useAnalytics();
   const { selectedRegion } = useDepositSDK();
   const [currentStateToken, setCurrentStateToken] = useState(stateToken);

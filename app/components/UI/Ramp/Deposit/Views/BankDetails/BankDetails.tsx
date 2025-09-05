@@ -4,16 +4,19 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import type { AxiosError } from 'axios';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
-import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -52,16 +55,13 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { isString } from 'lodash';
 import Logger from '../../../../../../util/Logger';
 
-export interface BankDetailsParams {
-  orderId: string;
-  shouldUpdate?: boolean;
-}
+type BankDetailsProps = StackScreenProps<RootParamList, 'BankDetails'>;
 
-export const createBankDetailsNavDetails =
-  createNavigationDetails<BankDetailsParams>(Routes.DEPOSIT.BANK_DETAILS);
-
-const BankDetails = () => {
-  const navigation = useNavigation();
+const BankDetails = ({ route }: BankDetailsProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'BankDetails'>
+    >();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -69,7 +69,7 @@ const BankDetails = () => {
   const { sdk, selectedRegion, logoutFromProvider } = useDepositSDK();
   const trackEvent = useAnalytics();
 
-  const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
+  const { orderId, shouldUpdate = true } = route.params;
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
 
   const [showBankInfo, setShowBankInfo] = useState(false);
@@ -112,7 +112,7 @@ const BankDetails = () => {
         index: 0,
         routes: [
           {
-            name: Routes.DEPOSIT.ROOT,
+            name: 'DepositRoot',
           },
         ],
       });
@@ -156,7 +156,7 @@ const BankDetails = () => {
         index: 0,
         routes: [
           {
-            name: Routes.DEPOSIT.BUILD_QUOTE,
+            name: 'BuildQuote',
           },
         ],
       });
@@ -166,11 +166,9 @@ const BankDetails = () => {
       order.state === FIAT_ORDER_STATES.FAILED
     ) {
       navigation.dispatch(
-        StackActions.replace(
-          ...createOrderProcessingNavDetails({
-            orderId: order.id,
-          }),
-        ),
+        StackActions.replace('OrderProcessing', {
+          orderId: order.id,
+        }),
       );
     }
   }, [order?.state, navigation, order?.id]);

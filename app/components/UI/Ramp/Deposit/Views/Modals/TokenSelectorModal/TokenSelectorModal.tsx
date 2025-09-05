@@ -32,33 +32,23 @@ import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '../../../constants';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
-interface TokenSelectorModalNavigationDetails {
-  selectedAssetId?: string;
-  handleSelectAssetId?: (assetId: string) => void;
-}
+type TokenSelectorModalProps = StackScreenProps<
+  RootParamList,
+  'DepositTokenSelectorModal'
+>;
 
-export const createTokenSelectorModalNavigationDetails =
-  createNavigationDetails(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.TOKEN_SELECTOR,
-  );
-
-function TokenSelectorModal() {
+function TokenSelectorModal({ route }: TokenSelectorModalProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
 
-  const { selectedAssetId, handleSelectAssetId } =
-    useParams<TokenSelectorModalNavigationDetails>();
+  const { selectedAssetId, handleSelectAssetId } = route.params;
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,

@@ -4,8 +4,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-
-import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 import OrderListItem from '../../components/OrderListItem';
 import Row from '../../components/Row';
 import createStyles from './OrdersList.styles';
@@ -27,8 +27,6 @@ import {
 import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
-import Routes from '../../../../../../constants/navigation/Routes';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -51,7 +49,10 @@ function FilterButton({ selected = false, ...props }: FilterButtonProps) {
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'TransactionsView'>
+    >();
   const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
   const orders = allOrders.filter((order) => {
@@ -69,11 +70,9 @@ function OrdersList() {
 
   const handleNavigateToAggregatorTxDetails = useCallback(
     (orderId: string) => {
-      navigation.navigate(
-        ...createOrderDetailsNavDetails({
-          orderId,
-        }),
-      );
+      navigation.navigate('OrderDetails', {
+        orderId,
+      });
     },
     [navigation],
   );
@@ -83,15 +82,11 @@ function OrdersList() {
       const order = orders.find((o) => o.id === orderId);
 
       if (order?.state === FIAT_ORDER_STATES.CREATED) {
-        navigation.navigate(Routes.DEPOSIT.ID, {
-          screen: Routes.DEPOSIT.ROOT,
+        navigation.navigate('Deposit', {
+          screen: 'DepositRoot',
         });
       } else {
-        navigation.navigate(
-          ...createDepositOrderDetailsNavDetails({
-            orderId,
-          }),
-        );
+        navigation.navigate('DepositOrderDetails', { orderId });
       }
     },
     [navigation, orders],

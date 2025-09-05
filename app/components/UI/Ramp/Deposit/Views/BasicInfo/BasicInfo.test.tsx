@@ -4,8 +4,6 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
-import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { endTrace } from '../../../../../../util/trace';
@@ -196,11 +194,9 @@ describe('BasicInfo Component', () => {
       fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createEnterAddressNavDetails({
-        quote: mockQuote,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('EnterAddress', {
+      quote: mockQuote,
+    });
   });
 
   it('navigates to SSN info modal when SSN info button is pressed', () => {
@@ -208,9 +204,9 @@ describe('BasicInfo Component', () => {
 
     fireEvent.press(screen.getByTestId('ssn-info-button'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createSsnInfoModalNavigationDetails(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'SsnInfoModal',
+    });
   });
 
   it('calls setOptions with correct title when the component mounts', () => {

@@ -4,11 +4,12 @@ import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import useUserDetailsPolling from '../../hooks/useUserDetailsPolling';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type {
+  RootParamList,
+  NavigatableRootParamList,
+} from '../../../../../../util/navigation/types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
@@ -21,7 +22,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import Button, {
   ButtonSize,
@@ -35,18 +35,15 @@ import { KycStatus } from '../../constants';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
-export interface KycProcessingParams {
-  quote: BuyQuote;
-  kycUrl?: string;
-}
+type KycProcessingProps = StackScreenProps<RootParamList, 'KycProcessing'>;
 
-export const createKycProcessingNavDetails =
-  createNavigationDetails<KycProcessingParams>(Routes.DEPOSIT.KYC_PROCESSING);
-
-const KycProcessing = () => {
-  const navigation = useNavigation();
+const KycProcessing = ({ route }: KycProcessingProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'KycProcessing'>
+    >();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote } = useParams<KycProcessingParams>();
+  const { quote } = route.params;
   const trackEvent = useAnalytics();
 
   const cryptoCurrency = getCryptoCurrencyFromTransakId(

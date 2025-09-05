@@ -2,6 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -12,11 +20,6 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
-import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../../util/theme';
 import Logger from '../../../../../../util/Logger';
 import { RootState } from '../../../../../../reducers';
@@ -27,27 +30,24 @@ import AppConstants from '../../../../../../core/AppConstants';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { processFiatOrder } from '../../../index';
 
-interface DepositOrderDetailsParams {
-  orderId: string;
-}
+type DepositOrderDetailsProps = StackScreenProps<
+  RootParamList,
+  'DepositOrderDetails'
+>;
 
-export const createDepositOrderDetailsNavDetails =
-  createNavigationDetails<DepositOrderDetailsParams>(
-    Routes.DEPOSIT.ORDER_DETAILS,
-  );
-
-const DepositOrderDetails = () => {
-  const params = useParams<DepositOrderDetailsParams>();
-  const order = useSelector((state: RootState) =>
-    getOrderById(state, params.orderId),
-  );
+const DepositOrderDetails = ({ route }: DepositOrderDetailsProps) => {
+  const { orderId } = route.params;
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'DepositOrderDetails'>
+    >();
+  const order = useSelector((state: RootState) => getOrderById(state, orderId));
   const [isLoading, setIsLoading] = useState(
     order?.state === FIAT_ORDER_STATES.CREATED,
   );
   const [error, setError] = useState<string | null>(null);
   const { colors } = useTheme();
   const theme = useTheme();
-  const navigation = useNavigation();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
 

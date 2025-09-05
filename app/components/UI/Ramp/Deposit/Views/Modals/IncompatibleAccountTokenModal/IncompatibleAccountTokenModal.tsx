@@ -22,16 +22,8 @@ import Button, {
 
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { selectChainId } from '../../../../../../../selectors/networkController';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../../locales/i18n';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
-
-export const createIncompatibleAccountTokenModalNavigationDetails =
-  createNavigationDetails(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.INCOMPATIBLE_ACCOUNT_TOKEN,
-  );
 
 function IncompatibleAccountTokenModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

@@ -13,6 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';
@@ -54,7 +56,6 @@ import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import { formatAmount } from '../../utils';
-import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectTicker } from '../../../../../../selectors/networkController';
@@ -93,7 +94,10 @@ type BuildQuoteProps = StackScreenProps<RootParamList, 'BuildQuote'>;
 
 const BuildQuote = ({ route }: BuildQuoteProps) => {
   const showBack = route.params?.showBack;
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'BuildQuote'>
+    >();
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -553,13 +557,11 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
    */
   const handleGetQuotePress = useCallback(() => {
     if (selectedAsset && currentFiatCurrency) {
-      navigation.navigate(
-        ...createQuotesNavDetails({
-          amount: isBuy ? amountNumber : amount,
-          asset: selectedAsset,
-          fiatCurrency: currentFiatCurrency,
-        }),
-      );
+      navigation.navigate('Quotes', {
+        amount: isBuy ? amountNumber : amount,
+        asset: selectedAsset,
+        fiatCurrency: currentFiatCurrency,
+      });
 
       const analyticsPayload = {
         payment_method_id: selectedPaymentMethodId as string,

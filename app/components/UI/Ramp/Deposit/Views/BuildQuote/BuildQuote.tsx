@@ -52,13 +52,6 @@ import useSupportedTokens from '../../hooks/useSupportedTokens';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useAccountTokenCompatible from '../../hooks/useAccountTokenCompatible';
 
-import { createTokenSelectorModalNavigationDetails } from '../Modals/TokenSelectorModal/TokenSelectorModal';
-import { createPaymentMethodSelectorModalNavigationDetails } from '../Modals/PaymentMethodSelectorModal/PaymentMethodSelectorModal';
-import { createRegionSelectorModalNavigationDetails } from '../Modals/RegionSelectorModal';
-import { createUnsupportedRegionModalNavigationDetails } from '../Modals/UnsupportedRegionModal';
-import { createIncompatibleAccountTokenModalNavigationDetails } from '../Modals/IncompatibleAccountTokenModal';
-import { createConfigurationModalNavigationDetails } from '../Modals/ConfigurationModal/ConfigurationModal';
-
 import {
   getTransakCryptoCurrencyId,
   getTransakFiatCurrencyId,
@@ -161,9 +154,9 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
           showClose: true,
           showConfiguration: true,
           onConfigurationPress: () => {
-            navigation.navigate(
-              ...createConfigurationModalNavigationDetails({}),
-            );
+            navigation.navigate('DepositModals', {
+              screen: 'DepositConfigurationModal',
+            });
           },
         },
         theme,
@@ -233,25 +226,27 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
   }, [chainId, supportedTokens]);
 
   const handleRegionPress = useCallback(() => {
-    navigation.navigate(...createRegionSelectorModalNavigationDetails());
+    navigation.navigate('DepositModals', {
+      screen: 'DepositRegionSelectorModal',
+    });
   }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
       if (selectedRegion && !selectedRegion.supported) {
         InteractionManager.runAfterInteractions(() => {
-          navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails(),
-          );
+          navigation.navigate('DepositModals', {
+            screen: 'DepositUnsupportedRegionModal',
+          });
         });
       }
     }, [selectedRegion, navigation]),
   );
 
   const handleNavigateToIncompatibleAccountTokenModal = useCallback(() => {
-    navigation.navigate(
-      ...createIncompatibleAccountTokenModalNavigationDetails(),
-    );
+    navigation.navigate('DepositModals', {
+      screen: 'IncompatibleAccountTokenModal',
+    });
   }, [navigation]);
 
   const handleOnPressContinue = useCallback(async () => {
@@ -458,12 +453,13 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
 
   const handleCryptoPress = useCallback(
     () =>
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({
+      navigation.navigate('DepositModals', {
+        screen: 'DepositTokenSelectorModal',
+        params: {
           selectedAssetId: cryptoCurrency.assetId,
           handleSelectAssetId,
-        }),
-      ),
+        },
+      }),
     [cryptoCurrency, navigation, handleSelectAssetId],
   );
 
@@ -487,12 +483,13 @@ const BuildQuote = ({ route }: BuildQuoteProps) => {
   );
 
   const handlePaymentMethodPress = useCallback(() => {
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    navigation.navigate('DepositModals', {
+      screen: 'DepositPaymentMethodSelectorModal',
+      params: {
         selectedPaymentMethodId: paymentMethod.id,
         handleSelectPaymentMethodId,
-      }),
-    );
+      },
+    });
   }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
 
   const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;

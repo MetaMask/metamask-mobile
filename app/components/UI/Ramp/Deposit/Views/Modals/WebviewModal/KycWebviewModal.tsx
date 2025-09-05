@@ -1,32 +1,26 @@
 import React, { useEffect } from 'react';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 
-import WebviewModal, { WebviewModalParams } from './WebviewModal';
+import WebviewModal from './WebviewModal';
 import useIdProofPolling from '../../../hooks/useIdProofPolling';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { useDepositRouting } from '../../../hooks/useDepositRouting';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
 
-interface KycWebviewModalParams extends WebviewModalParams {
-  quote: BuyQuote;
-  workFlowRunId: string;
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
-}
+type KycWebviewModalProps = StackScreenProps<
+  RootParamList,
+  'DepositKycWebviewModal'
+>;
 
-export const createKycWebviewModalNavigationDetails =
-  createNavigationDetails<KycWebviewModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
-  );
-
-function KycWebviewModal() {
-  const { quote, cryptoCurrencyChainId, paymentMethodId, workFlowRunId } =
-    useParams<KycWebviewModalParams>();
+function KycWebviewModal({ route }: KycWebviewModalProps) {
+  const {
+    quote,
+    cryptoCurrencyChainId,
+    paymentMethodId,
+    workFlowRunId,
+    sourceUrl,
+    handleNavigationStateChange,
+  } = route.params;
 
   const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId,
@@ -57,7 +51,11 @@ function KycWebviewModal() {
     }
   }, [idProofStatus, quote, routeAfterAuthentication]);
 
-  return <WebviewModal />;
+  return (
+    <WebviewModal
+      route={{ params: { sourceUrl, handleNavigationStateChange } }}
+    />
+  );
 }
 
 export default KycWebviewModal;

@@ -1,6 +1,8 @@
 import React, { useCallback, forwardRef } from 'react';
 import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
 
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
@@ -8,7 +10,6 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { formatNumberToTemplate } from './formatNumberToTemplate.ts';
 import { DepositRegion } from '../../constants';
 import { useDepositSDK } from '../../sdk';
-import { createRegionSelectorModalNavigationDetails } from '../../Views/Modals/RegionSelectorModal';
 import DepositTextField from '../DepositTextField/DepositTextField';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -43,7 +44,8 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
-    const navigation = useNavigation();
+    const navigation =
+      useNavigation<StackNavigationProp<NavigatableRootParamList>>();
     const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
 
     const rawDigits = selectedRegion?.phone?.prefix
@@ -79,12 +81,14 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     );
 
     const handleFlagPress = useCallback(() => {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
+      // TODO: Params are not used in RegionSelectorModal
+      navigation.navigate('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+        params: {
           selectedRegionCode: selectedRegion?.isoCode,
           handleSelectRegion: handleRegionSelect,
-        }),
-      );
+        },
+      });
     }, [navigation, selectedRegion, handleRegionSelect]);
 
     const countryPrefixAccessory = (

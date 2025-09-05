@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../util/navigation/types';
 import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,23 +20,12 @@ import {
   getCryptoCurrencyFromTransakId,
 } from '../utils';
 
-import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
-import {
-  BasicInfoFormData,
-  createBasicInfoNavDetails,
-} from '../Views/BasicInfo/BasicInfo';
-import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
-import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
-import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
-import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
-import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
-import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyIdentity';
-import useAnalytics from '../../hooks/useAnalytics';
-import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
-import Logger from '../../../../../../app/util/Logger';
+import { BasicInfoFormData } from '../Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
-import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useDepositSDK, DEPOSIT_ENVIRONMENT } from '../sdk';
+import useAnalytics from '../../hooks/useAnalytics';
+import Logger from '../../../../../../app/util/Logger';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -45,7 +36,8 @@ export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
 }: UseDepositRoutingParams) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const handleNewOrder = useHandleNewOrder();
   const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
     useDepositSDK();
@@ -118,19 +110,10 @@ export const useDepositRouting = ({
     });
   }, [navigation]);
 
-  const navigateToVerifyIdentityCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
-      popToBuildQuote();
-      navigation.navigate(
-        ...createVerifyIdentityNavDetails({
-          quote,
-          cryptoCurrencyChainId,
-          paymentMethodId,
-        }),
-      );
-    },
-    [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
-  );
+  const navigateToVerifyIdentityCallback = useCallback(() => {
+    popToBuildQuote();
+    navigation.navigate('VerifyIdentity');
+  }, [navigation, popToBuildQuote]);
 
   const navigateToBasicInfoCallback = useCallback(
     ({
@@ -141,9 +124,7 @@ export const useDepositRouting = ({
       previousFormData?: BasicInfoFormData & AddressFormData;
     }) => {
       popToBuildQuote();
-      navigation.navigate(
-        ...createBasicInfoNavDetails({ quote, previousFormData }),
-      );
+      navigation.navigate('BasicInfo', { quote, previousFormData });
     },
     [navigation, popToBuildQuote],
   );
@@ -156,13 +137,9 @@ export const useDepositRouting = ({
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      const [name, params] = createBankDetailsNavDetails({
-        orderId,
-        shouldUpdate,
-      });
       navigation.reset({
         index: 0,
-        routes: [{ name, params }],
+        routes: [{ name: 'BankDetails', params: { orderId, shouldUpdate } }],
       });
     },
     [navigation],
@@ -171,11 +148,9 @@ export const useDepositRouting = ({
   const navigateToOrderProcessingCallback = useCallback(
     ({ orderId }: { orderId: string }) => {
       popToBuildQuote();
-      navigation.navigate(
-        ...createOrderProcessingNavDetails({
-          orderId,
-        }),
-      );
+      navigation.navigate('OrderProcessing', {
+        orderId,
+      });
     },
     [navigation, popToBuildQuote],
   );
@@ -191,15 +166,13 @@ export const useDepositRouting = ({
       workFlowRunId: string;
     }) => {
       popToBuildQuote();
-      navigation.navigate(
-        ...createAdditionalVerificationNavDetails({
-          quote,
-          kycUrl,
-          workFlowRunId,
-          cryptoCurrencyChainId,
-          paymentMethodId,
-        }),
-      );
+      navigation.navigate('AdditionalVerification', {
+        quote,
+        kycUrl,
+        workFlowRunId,
+        cryptoCurrencyChainId,
+        paymentMethodId,
+      });
     },
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
@@ -299,12 +272,13 @@ export const useDepositRouting = ({
       });
 
       popToBuildQuote();
-      navigation.navigate(
-        ...createWebviewModalNavigationDetails({
+      navigation.navigate('DepositModals', {
+        screen: 'DepositWebviewModal',
+        params: {
           sourceUrl: paymentUrl,
           handleNavigationStateChange,
-        }),
-      );
+        },
+      });
     },
     [navigation, popToBuildQuote, handleNavigationStateChange],
   );
@@ -312,7 +286,7 @@ export const useDepositRouting = ({
   const navigateToKycProcessingCallback = useCallback(
     ({ quote }: { quote: BuyQuote }) => {
       popToBuildQuote();
-      navigation.navigate(...createKycProcessingNavDetails({ quote }));
+      navigation.navigate('KycProcessing', { quote });
     },
     [navigation, popToBuildQuote],
   );
@@ -328,15 +302,16 @@ export const useDepositRouting = ({
       workFlowRunId: string;
     }) => {
       popToBuildQuote();
-      navigation.navigate(
-        ...createKycWebviewModalNavigationDetails({
+      navigation.navigate('DepositModals', {
+        screen: 'DepositKycWebviewModal',
+        params: {
           quote,
           sourceUrl: kycUrl,
           workFlowRunId,
           cryptoCurrencyChainId,
           paymentMethodId,
-        }),
-      );
+        },
+      });
     },
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
@@ -490,7 +465,7 @@ export const useDepositRouting = ({
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
           popToBuildQuote();
-          navigation.navigate(...createEnterEmailNavDetails({}));
+          navigation.navigate('EnterEmail');
           return;
         }
         throw error;

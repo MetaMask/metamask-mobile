@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -18,35 +20,30 @@ import Button, {
 
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
-import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useDepositSDK } from '../../../sdk';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
-export interface UnsupportedStateModalParams {
-  stateCode?: string;
-  stateName?: string;
-  onStateSelect: (stateCode: string) => void;
-}
+type UnsupportedStateModalProps = StackScreenProps<
+  RootParamList,
+  'DepositUnsupportedStateModal'
+>;
 
-export const createUnsupportedStateModalNavigationDetails =
-  createNavigationDetails<UnsupportedStateModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.UNSUPPORTED_STATE,
-  );
-
-function UnsupportedStateModal() {
+function UnsupportedStateModal({ route }: UnsupportedStateModalProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<
+        NavigatableRootParamList,
+        'DepositUnsupportedStateModal'
+      >
+    >();
   const { selectedRegion } = useDepositSDK();
-  const { stateCode, stateName, onStateSelect } =
-    useParams<UnsupportedStateModalParams>();
+  const { stateCode, stateName, onStateSelect } = route.params;
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -59,12 +56,13 @@ function UnsupportedStateModal() {
 
   const handleSelectDifferentState = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(
-        ...createStateSelectorModalNavigationDetails({
+      navigation.navigate('DepositModals', {
+        screen: 'DepositStateSelectorModal',
+        params: {
           selectedState: stateCode,
           onStateSelect,
-        }),
-      );
+        },
+      });
     });
   }, [closeBottomSheetAndNavigate, navigation, stateCode, onStateSelect]);
 

@@ -12,11 +12,8 @@ import {
   IconColor,
   IconName,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { WebView } from '@metamask/react-native-webview';
 import ScreenLayout from '../../../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -24,22 +21,16 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 
-export interface WebviewModalParams {
-  sourceUrl: string;
-  handleNavigationStateChange?: (navState: { url: string }) => void;
-}
+type WebviewModalProps = StackScreenProps<RootParamList, 'DepositWebviewModal'>;
 
-export const createWebviewModalNavigationDetails =
-  createNavigationDetails<WebviewModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.WEBVIEW,
-  );
-
-function WebviewModal() {
+function WebviewModal({
+  route,
+}:
+  | WebviewModalProps
+  | { route: { params: WebviewModalProps['route']['params'] } }) {
+  const { sourceUrl, handleNavigationStateChange } = route.params;
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);
-  const { sourceUrl, handleNavigationStateChange } =
-    useParams<WebviewModalParams>();
 
   const { height: screenHeight } = useWindowDimensions();
 

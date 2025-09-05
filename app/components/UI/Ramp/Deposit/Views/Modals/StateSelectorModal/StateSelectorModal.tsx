@@ -3,6 +3,8 @@ import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -20,34 +22,26 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './StateSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { US_STATES } from '../../../constants';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
 
 const MAX_STATE_RESULTS = 20;
 
-export interface StateSelectorModalParams {
-  selectedState?: string;
-  onStateSelect: (stateCode: string) => void;
-}
+type StateSelectorModalProps = StackScreenProps<
+  RootParamList,
+  'DepositStateSelectorModal'
+>;
 
-export const createStateSelectorModalNavigationDetails =
-  createNavigationDetails<StateSelectorModalParams>(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.STATE_SELECTOR,
-  );
-
-function StateSelectorModal() {
+function StateSelectorModal({ route }: StateSelectorModalProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList<{ code: string; name: string }>>(null);
-  const navigation = useNavigation();
-  const { selectedState, onStateSelect } =
-    useParams<StateSelectorModalParams>();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'DepositStateSelectorModal'>
+    >();
+  const { selectedState, onStateSelect } = route.params;
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
@@ -92,13 +86,14 @@ function StateSelectorModal() {
     (state: { code: string; name: string }) => {
       if (state.code === 'NY') {
         sheetRef.current?.onCloseBottomSheet(() => {
-          navigation.navigate(
-            ...createUnsupportedStateModalNavigationDetails({
+          navigation.navigate('DepositModals', {
+            screen: 'DepositUnsupportedStateModal',
+            params: {
               stateCode: state.code,
               stateName: state.name,
               onStateSelect,
-            }),
-          );
+            },
+          });
         });
       } else {
         onStateSelect(state.code);

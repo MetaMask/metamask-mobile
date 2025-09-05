@@ -1,17 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
 import { useDepositSDK } from '../../sdk';
 import GetStarted from './GetStarted/GetStarted';
 import { useSelector } from 'react-redux';
 import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
-import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 
 const Root = () => {
-  const navigation = useNavigation();
-  const [initialRoute] = useState<string>(Routes.DEPOSIT.BUILD_QUOTE);
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'DepositRoot'>
+    >();
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
@@ -29,40 +30,40 @@ const Root = () => {
 
       if (createdOrder) {
         if (!isAuthenticatedFromToken) {
-          const [routeName, params] = createEnterEmailNavDetails({
-            redirectToRootAfterAuth: true,
-          });
           navigation.reset({
             index: 0,
             routes: [
               {
-                name: routeName,
-                params: { ...params, animationEnabled: false },
+                name: 'EnterEmail',
+                params: {
+                  redirectToRootAfterAuth: true,
+                  animationEnabled: false,
+                },
               },
             ],
           });
           return;
         }
 
-        const [routeName, params] = createBankDetailsNavDetails({
-          orderId: createdOrder.id,
-        });
         navigation.reset({
           index: 0,
           routes: [
-            { name: routeName, params: { ...params, animationEnabled: false } },
+            {
+              name: 'BankDetails',
+              params: { orderId: createdOrder.id, animationEnabled: false },
+            },
           ],
         });
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: initialRoute, params: { animationEnabled: false } }],
+          routes: [{ name: 'BuildQuote', params: { animationEnabled: false } }],
         });
       }
     };
 
     initializeFlow();
-  }, [checkExistingToken, getStarted, orders, navigation, initialRoute]);
+  }, [checkExistingToken, getStarted, orders, navigation]);
 
   return <GetStarted />;
 };

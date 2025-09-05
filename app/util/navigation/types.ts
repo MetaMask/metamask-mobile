@@ -1,18 +1,25 @@
-import { IconColor, IconName } from '@metamask/design-system-react-native';
-import { CaipChainId } from '@metamask/utils';
-import { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
-import { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWalletId } from '@metamask/account-api';
-import { TokenI } from '../../components/UI/Tokens/types';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { BridgeToken, BridgeViewMode } from '../../components/UI/Bridge/types';
-import { Nft } from '@metamask/assets-controllers';
-import { NavigatorScreenParams } from '@react-navigation/native';
-import { TransactionMeta } from '@metamask/transaction-controller';
-import { Transaction } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
-import { DeepLinkModalParams } from '../../components/UI/DeepLinkModal';
+import type { IconColor, IconName } from '@metamask/design-system-react-native';
+import type { CaipChainId } from '@metamask/utils';
+import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
+import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountWalletId } from '@metamask/account-api';
+import type { TokenI } from '../../components/UI/Tokens/types';
+import type { BuyQuote } from '@consensys/native-ramps-sdk';
+import type { CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
+import type { BasicInfoFormData } from '../../components/UI/Ramp/Deposit/Views/BasicInfo/BasicInfo';
+import type { AddressFormData } from '../../components/UI/Ramp/Deposit/Views/EnterAddress/EnterAddress';
+import type {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../components/UI/Bridge/types';
+import type { Nft } from '@metamask/assets-controllers';
+import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { Transaction } from '@metamask/keyring-api';
+import type { Hex } from '@metamask/utils';
+import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal';
+import type { Provider } from '@consensys/on-ramp-sdk';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -392,16 +399,19 @@ export type RootParamList = {
   Ramp: undefined;
   RampBuy: undefined;
   RampSell: undefined;
+  RampSettings: undefined;
   GetStarted:
     | {
         animationEnabled?: boolean; // Used in routes to control animation
         quote?: BuyQuote;
       }
     | undefined;
+  // TODO: This route name is duplicated for Aggregator and Deposit. Make the names unique
   BuildQuote:
     | {
-        animationEnabled?: boolean; // Used in routes to control animation
-        quote?: BuyQuote;
+        showBack?: boolean;
+        shouldRouteImmediately?: boolean;
+        animationEnabled?: boolean;
       }
     | undefined;
   BuildQuoteHasStarted:
@@ -410,18 +420,16 @@ export type RootParamList = {
         quote?: BuyQuote;
       }
     | undefined;
-  Quotes:
-    | {
-        animationEnabled?: boolean; // Used in routes to control animation
-        quote?: BuyQuote;
-      }
-    | undefined;
-  Checkout:
-    | {
-        animationEnabled?: boolean; // Used in routes to control animation
-        quote?: BuyQuote;
-      }
-    | undefined;
+  Quotes: {
+    amount: number | string;
+    asset: CryptoCurrency;
+    fiatCurrency: FiatCurrency;
+  };
+  Checkout: {
+    url: string;
+    customOrderId?: string;
+    provider: Provider;
+  };
   Region:
     | {
         animationEnabled?: boolean; // Used in routes to control animation
@@ -435,6 +443,10 @@ export type RootParamList = {
       }
     | undefined;
   BuyNetworkSwitcher: undefined;
+  OrderDetails: {
+    orderId?: string;
+    redirectToSendTransaction?: boolean;
+  };
 
   // Deposit Routes
   Deposit: undefined;
@@ -446,69 +458,92 @@ export type RootParamList = {
     | undefined;
   EnterEmail:
     | {
+        redirectToRootAfterAuth?: boolean;
         animationEnabled?: boolean;
-        quote?: BuyQuote;
       }
     | undefined;
-  OtpCode:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  VerifyIdentity:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  BasicInfo:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  EnterAddress:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  KycProcessing:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  OrderProcessing:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  BankDetails:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
-  AdditionalVerification:
-    | {
-        animationEnabled?: boolean;
-        quote?: BuyQuote;
-      }
-    | undefined;
+  OtpCode: {
+    email: string;
+    stateToken: string;
+    redirectToRootAfterAuth?: boolean;
+    animationEnabled?: boolean;
+  };
+  VerifyIdentity: { animationEnabled?: boolean } | undefined;
+  BasicInfo: {
+    quote: BuyQuote;
+    previousFormData?: BasicInfoFormData & AddressFormData;
+    animationEnabled?: boolean;
+  };
+  EnterAddress: {
+    quote: BuyQuote;
+    previousFormData?: BasicInfoFormData & AddressFormData;
+    animationEnabled?: boolean;
+  };
+  KycProcessing: {
+    quote: BuyQuote;
+    kycUrl?: string;
+    animationEnabled?: boolean;
+  };
+  OrderProcessing: {
+    orderId: string;
+    animationEnabled?: boolean;
+  };
+  BankDetails: {
+    orderId: string;
+    shouldUpdate?: boolean;
+    animationEnabled?: boolean;
+  };
+  AdditionalVerification: {
+    quote: BuyQuote;
+    kycUrl: string;
+    workFlowRunId: string;
+    cryptoCurrencyChainId: string;
+    paymentMethodId: string;
+    animationEnabled?: boolean;
+  };
+  DepositOrderDetails: {
+    orderId: string;
+    animationEnabled?: boolean;
+  };
 
   // Deposit Modal Routes
   DepositModals: undefined;
-  DepositTokenSelectorModal: undefined;
-  DepositRegionSelectorModal: undefined;
-  DepositPaymentMethodSelectorModal: undefined;
+  DepositTokenSelectorModal: {
+    selectedAssetId?: string;
+    handleSelectAssetId?: (assetId: string) => void;
+  };
+  DepositRegionSelectorModal:
+    | {
+        selectedRegionCode?: string;
+        handleSelectRegion?: (region: any) => void;
+      }
+    | undefined;
+  DepositPaymentMethodSelectorModal: {
+    selectedPaymentMethodId?: string;
+    handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
+  };
   DepositUnsupportedRegionModal: undefined;
-  DepositUnsupportedStateModal: undefined;
-  DepositStateSelectorModal: undefined;
-  DepositWebviewModal: undefined;
-  DepositKycWebviewModal: undefined;
+  DepositUnsupportedStateModal: {
+    stateCode?: string;
+    stateName?: string;
+    onStateSelect: (stateCode: string) => void;
+  };
+  DepositStateSelectorModal: {
+    selectedState?: string;
+    onStateSelect: (stateCode: string) => void;
+  };
+  DepositWebviewModal: {
+    sourceUrl: string;
+    handleNavigationStateChange?: (navState: { url: string }) => void;
+  };
+  DepositKycWebviewModal: {
+    sourceUrl: string;
+    handleNavigationStateChange?: (navState: { url: string }) => void;
+    quote: BuyQuote;
+    workFlowRunId: string;
+    cryptoCurrencyChainId: string;
+    paymentMethodId: string;
+  };
   IncompatibleAccountTokenModal: undefined;
   SsnInfoModal: undefined;
   DepositConfigurationModal: undefined;
@@ -687,6 +722,14 @@ export type RootParamList = {
   // Snaps (conditional compilation)
   SnapsSettingsList: undefined;
   SnapSettings: undefined;
+
+  // Ramp Settings
+  RampActivationKeyForm: {
+    onSubmit: (key: string, label: string, active: boolean) => void;
+    key: string;
+    active: boolean;
+    label: string;
+  };
 };
 
 export type NavigatableRootParamList = {

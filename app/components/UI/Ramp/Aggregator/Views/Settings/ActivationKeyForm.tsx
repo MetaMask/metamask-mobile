@@ -16,12 +16,8 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 
 import { getNavigationOptionsTitle } from '../../../../Navbar';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../../util/theme';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { regex } from '../../../../../../util/regex';
 
@@ -34,11 +30,6 @@ interface ActivationKeyFormParams {
   active: boolean;
   label: string;
 }
-
-export const createActivationKeyFormNavDetails =
-  createNavigationDetails<ActivationKeyFormParams>(
-    Routes.RAMP.ACTIVATION_KEY_FORM,
-  );
 
 function ActivationKeyForm() {
   const navigation = useNavigation();

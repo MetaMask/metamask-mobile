@@ -47,7 +47,6 @@ import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
@@ -67,10 +66,6 @@ export interface QuotesParams {
   asset: CryptoCurrency;
   fiatCurrency: FiatCurrency;
 }
-
-export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
-  Routes.RAMP.QUOTES,
-);
 
 function Quotes() {
   const navigation =

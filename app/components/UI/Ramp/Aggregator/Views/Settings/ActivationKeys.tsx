@@ -3,6 +3,8 @@ import React, { useCallback } from 'react';
 import { ActivityIndicator, Switch } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
 // External dependencies
 import Text, {
   TextVariant,
@@ -29,7 +31,6 @@ import useActivationKeys from '../../hooks/useActivationKeys';
 import { useRampSDK } from '../../sdk';
 
 // Internal dependencies
-import { createActivationKeyFormNavDetails } from './ActivationKeyForm';
 
 import ListItem from '../../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -37,7 +38,10 @@ import ListItemColumn, {
 } from '../../../../../../component-library/components/List/ListItemColumn';
 
 function ActivationKeys() {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'RampSettings'>
+    >();
   const theme = useTheme();
   const { colors } = theme;
   const { isInternalBuild } = useRampSDK();
@@ -65,26 +69,22 @@ function ActivationKeys() {
   );
 
   const handleAddNewKeyPress = useCallback(() => {
-    navigation.navigate(
-      ...createActivationKeyFormNavDetails({
-        onSubmit: handleAddNewKey,
-        key: '',
-        label: '',
-        active: true,
-      }),
-    );
+    navigation.navigate('RampActivationKeyForm', {
+      onSubmit: handleAddNewKey,
+      key: '',
+      label: '',
+      active: true,
+    });
   }, [navigation, handleAddNewKey]);
 
   const handleEditPress = useCallback(
     (key: string, label: string, active: boolean) => {
-      navigation.navigate(
-        ...createActivationKeyFormNavDetails({
-          onSubmit: handleUpdateKey,
-          key,
-          label,
-          active,
-        }),
-      );
+      navigation.navigate('RampActivationKeyForm', {
+        onSubmit: handleUpdateKey,
+        key,
+        label,
+        active,
+      });
     },
     [navigation, handleUpdateKey],
   );

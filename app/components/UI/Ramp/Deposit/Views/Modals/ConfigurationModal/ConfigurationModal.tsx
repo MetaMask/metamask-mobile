@@ -19,9 +19,8 @@ import Icon, {
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './ConfigurationModal.styles';
 
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
 import { useDepositSDK } from '../../../sdk';
 import { useNavigation } from '@react-navigation/native';
@@ -30,12 +29,6 @@ import {
   ToastVariants,
 } from '../../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../../util/Logger';
-
-export const createConfigurationModalNavigationDetails =
-  createNavigationDetails(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.CONFIGURATION,
-  );
 
 interface MenuItemProps {
   iconName: IconName;

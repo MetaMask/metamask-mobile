@@ -112,11 +112,12 @@ describe('UnsupportedStateModal', () => {
     const changeStateButton = getByText('Change region');
     fireEvent.press(changeStateButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createStateSelectorModalNavigationDetails({
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositStateSelectorModal',
+      params: {
         selectedState: 'NY',
         onStateSelect: mockOnStateSelect,
-      }),
-    );
+      },
+    });
   });
 });

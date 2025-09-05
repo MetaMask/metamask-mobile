@@ -17,11 +17,8 @@ import usePaymentMethods from '../../../hooks/usePaymentMethods';
 import styleSheet from './PaymentMethodSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
 
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../../util/navigation/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DepositPaymentMethod } from '../../../constants';
 import Icon, {
@@ -29,23 +26,18 @@ import Icon, {
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../../../util/theme';
 
-interface PaymentMethodSelectorModalNavigationDetails {
-  selectedPaymentMethodId?: string;
-  handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
-}
+type PaymentMethodSelectorModalProps = StackScreenProps<
+  RootParamList,
+  'DepositPaymentMethodSelectorModal'
+>;
 
-export const createPaymentMethodSelectorModalNavigationDetails =
-  createNavigationDetails(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.PAYMENT_METHOD_SELECTOR,
-  );
-
-function PaymentMethodSelectorModal() {
+function PaymentMethodSelectorModal({
+  route,
+}: PaymentMethodSelectorModalProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
 
-  const { selectedPaymentMethodId, handleSelectPaymentMethodId } =
-    useParams<PaymentMethodSelectorModalNavigationDetails>();
+  const { selectedPaymentMethodId, handleSelectPaymentMethodId } = route.params;
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
   const { styles } = useStyles(styleSheet, {

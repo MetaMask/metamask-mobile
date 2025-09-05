@@ -6,11 +6,14 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import TextField, {
@@ -30,16 +33,14 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
-export interface EnterEmailParams {
-  redirectToRootAfterAuth?: boolean;
-}
+type EnterEmailProps = StackScreenProps<RootParamList, 'EnterEmail'>;
 
-export const createEnterEmailNavDetails =
-  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
-
-const EnterEmail = () => {
-  const navigation = useNavigation();
-  const { redirectToRootAfterAuth } = useParams<EnterEmailParams>();
+const EnterEmail = ({ route }: EnterEmailProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'EnterEmail'>
+    >();
+  const redirectToRootAfterAuth = route.params?.redirectToRootAfterAuth;
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

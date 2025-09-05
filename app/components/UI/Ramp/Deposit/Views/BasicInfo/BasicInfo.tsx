@@ -2,6 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -9,23 +17,13 @@ import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
-import {
-  AddressFormData,
-  createEnterAddressNavDetails,
-} from '../EnterAddress/EnterAddress';
-import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
 import { endTrace, TraceName } from '../../../../../../util/trace';
@@ -48,13 +46,7 @@ import Logger from '../../../../../../util/Logger';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
-export interface BasicInfoParams {
-  quote: BuyQuote;
-  previousFormData?: BasicInfoFormData & AddressFormData;
-}
-
-export const createBasicInfoNavDetails =
-  createNavigationDetails<BasicInfoParams>(Routes.DEPOSIT.BASIC_INFO);
+type BasicInfoProps = StackScreenProps<RootParamList, 'BasicInfo'>;
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -64,11 +56,12 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-const BasicInfo = (): JSX.Element => {
-  const navigation = useNavigation();
+const BasicInfo = ({ route }: BasicInfoProps) => {
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList, 'BasicInfo'>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote, previousFormData } = useParams<BasicInfoParams>();
+  const { quote, previousFormData } = route.params;
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -217,12 +210,7 @@ const BasicInfo = (): JSX.Element => {
         await submitSsnDetails({ ssn, quoteId: quote.quoteId });
       }
 
-      navigation.navigate(
-        ...createEnterAddressNavDetails({
-          previousFormData,
-          quote,
-        }),
-      );
+      navigation.navigate('EnterAddress', { previousFormData, quote });
     } catch (submissionError) {
       setError(
         submissionError instanceof Error && submissionError.message
@@ -272,7 +260,9 @@ const BasicInfo = (): JSX.Element => {
   );
 
   const handleSsnInfoPress = useCallback(() => {
-    navigation.navigate(...createSsnInfoModalNavigationDetails());
+    navigation.navigate('DepositModals', {
+      screen: 'SsnInfoModal',
+    });
   }, [navigation]);
 
   return (

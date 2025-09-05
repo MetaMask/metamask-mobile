@@ -13,14 +13,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../../locales/i18n';
-import Routes from '../../../../../../../constants/navigation/Routes';
-
-export const createSsnInfoModalNavigationDetails = createNavigationDetails(
-  Routes.DEPOSIT.MODALS.ID,
-  Routes.DEPOSIT.MODALS.SSN_INFO,
-);
 
 function SsnInfoModal() {
   const sheetRef = useRef<BottomSheetRef>(null);

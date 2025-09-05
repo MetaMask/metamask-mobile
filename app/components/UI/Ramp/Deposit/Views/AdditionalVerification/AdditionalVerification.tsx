@@ -6,6 +6,14 @@ import styleSheet from './AdditionalVerification.styles.ts';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Button, {
   ButtonSize,
@@ -17,34 +25,24 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text/Text.types';
 import { useDepositRouting } from '../../hooks/useDepositRouting.ts';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils.ts';
 
-interface AdditionalVerificationParams {
-  quote: BuyQuote;
-  kycUrl: string;
-  workFlowRunId: string;
-  cryptoCurrencyChainId: string;
-  paymentMethodId: string;
-}
+type AdditionalVerificationProps = StackScreenProps<
+  RootParamList,
+  'AdditionalVerification'
+>;
 
-export const createAdditionalVerificationNavDetails =
-  createNavigationDetails<AdditionalVerificationParams>(
-    Routes.DEPOSIT.ADDITIONAL_VERIFICATION,
-  );
-
-const AdditionalVerification = () => {
-  const navigation = useNavigation();
+const AdditionalVerification = ({ route }: AdditionalVerificationProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'AdditionalVerification'>
+    >();
   const {
     quote,
     kycUrl,
     workFlowRunId,
     cryptoCurrencyChainId,
     paymentMethodId,
-  } = useParams<AdditionalVerificationParams>();
+  } = route.params;
 
   const { styles, theme } = useStyles(styleSheet, {});
 

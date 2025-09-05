@@ -7,9 +7,10 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './VerifyIdentity.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
@@ -26,22 +27,20 @@ import {
   TRANSAK_URL,
 } from '../../constants/constants';
 import { useDepositSDK } from '../../sdk';
-import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
 import { endTrace, TraceName } from '../../../../../../util/trace';
 
-export const createVerifyIdentityNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.VERIFY_IDENTITY,
-);
-
 const VerifyIdentity = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'VerifyIdentity'>
+    >();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
   const { selectedRegion } = useDepositSDK();
 
   const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(...createEnterEmailNavDetails({}));
+    navigation.navigate('EnterEmail');
   }, [navigation]);
 
   useEffect(() => {

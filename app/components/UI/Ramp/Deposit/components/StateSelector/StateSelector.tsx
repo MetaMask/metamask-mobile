@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Label from '../../../../../../component-library/components/Form/Label';
 import Text, {
@@ -10,7 +12,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { createStateSelectorModalNavigationDetails } from '../../Views/Modals/StateSelectorModal';
 import { US_STATES } from '../../constants';
 import { createStateSelectorStyles } from './StateSelector.styles';
 import { strings } from '../../../../../../../locales/i18n';
@@ -34,7 +35,10 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   defaultValue,
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'EnterAddress'>
+    >();
   const { styles, theme } = useStyles(createStateSelectorStyles, {});
 
   const selectedStateName = US_STATES.find(
@@ -42,12 +46,13 @@ const StateSelector: React.FC<StateSelectorProps> = ({
   )?.name;
 
   const handlePress = useCallback(() => {
-    navigation.navigate(
-      ...createStateSelectorModalNavigationDetails({
+    navigation.navigate('DepositModals', {
+      screen: 'DepositStateSelectorModal',
+      params: {
         selectedState: selectedValue,
         onStateSelect: onValueChange,
-      }),
-    );
+      },
+    });
   }, [navigation, selectedValue, onValueChange]);
 
   return (

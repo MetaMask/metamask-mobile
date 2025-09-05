@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
-import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -110,9 +109,9 @@ describe('UnsupportedRegionModal', () => {
     const changeRegionButton = getByText('Change region');
     fireEvent.press(changeRegionButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createRegionSelectorModalNavigationDetails(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
+      screen: 'DepositRegionSelectorModal',
+    });
   });
 
   it('handles missing region gracefully', () => {

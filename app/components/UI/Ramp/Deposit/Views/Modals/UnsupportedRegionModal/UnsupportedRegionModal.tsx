@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -18,23 +20,21 @@ import Button, {
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
-import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import { useDepositSDK } from '../../../sdk';
 import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
 
-export const createUnsupportedRegionModalNavigationDetails =
-  createNavigationDetails(
-    Routes.DEPOSIT.MODALS.ID,
-    Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-  );
-
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<
+        NavigatableRootParamList,
+        'DepositUnsupportedRegionModal'
+      >
+    >();
   const { selectedRegion } = useDepositSDK();
 
   const { styles } = useStyles(styleSheet, {});
@@ -48,7 +48,9 @@ function UnsupportedRegionModal() {
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(...createRegionSelectorModalNavigationDetails());
+      navigation.navigate('DepositModals', {
+        screen: 'DepositRegionSelectorModal',
+      });
     });
   }, [navigation]);
 

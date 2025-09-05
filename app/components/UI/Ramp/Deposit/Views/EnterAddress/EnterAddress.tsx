@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../../../util/navigation/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
   TextVariant,
@@ -9,19 +17,12 @@ import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './EnterAddress.styles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
-import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -38,13 +39,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
-export interface EnterAddressParams {
-  previousFormData?: BasicInfoFormData & AddressFormData;
-  quote: BuyQuote;
-}
-
-export const createEnterAddressNavDetails =
-  createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
+type EnterAddressProps = StackScreenProps<RootParamList, 'EnterAddress'>;
 
 export interface AddressFormData {
   addressLine1: string;
@@ -55,10 +50,13 @@ export interface AddressFormData {
   countryCode: string;
 }
 
-const EnterAddress = (): JSX.Element => {
-  const navigation = useNavigation();
+const EnterAddress = ({ route }: EnterAddressProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'EnterAddress'>
+    >();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote, previousFormData } = useParams<EnterAddressParams>();
+  const { quote, previousFormData } = route.params;
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

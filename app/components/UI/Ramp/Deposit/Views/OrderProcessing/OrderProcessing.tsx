@@ -3,10 +3,10 @@ import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -30,19 +30,15 @@ import {
 } from '../../utils';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
 
-export interface OrderProcessingParams {
-  orderId: string;
-}
+type OrderProcessingProps = StackScreenProps<RootParamList, 'OrderProcessing'>;
 
-export const createOrderProcessingNavDetails =
-  createNavigationDetails<OrderProcessingParams>(
-    Routes.DEPOSIT.ORDER_PROCESSING,
-  );
-
-const OrderProcessing = () => {
-  const navigation = useNavigation();
+const OrderProcessing = ({ route }: OrderProcessingProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'OrderProcessing'>
+    >();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { orderId } = useParams<OrderProcessingParams>();
+  const { orderId } = route.params;
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
   const trackEvent = useAnalytics();
   const { selectedWalletAddress, selectedRegion } = useDepositSDK();
