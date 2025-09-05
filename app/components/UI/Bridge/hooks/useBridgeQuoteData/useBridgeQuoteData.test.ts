@@ -116,7 +116,7 @@ describe('useBridgeQuoteData', () => {
       formattedQuoteData: {
         networkFee: '-',
         estimatedTime: '5 seconds',
-        rate: '1 ETH = 0.0 USDC',
+        rate: '1 ETH = 0.0000000000000000571 USDC',
         priceImpact: '-0.20%',
         slippage: '0.5%',
       },
