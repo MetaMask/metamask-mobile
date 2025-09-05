@@ -493,6 +493,10 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -640,14 +644,14 @@ const HomeTabs = () => {
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
         <Tab.Screen
           name={Routes.SETTINGS_VIEW}
           options={options.settings}
           component={SettingsFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       )}
     </Tab.Navigator>
