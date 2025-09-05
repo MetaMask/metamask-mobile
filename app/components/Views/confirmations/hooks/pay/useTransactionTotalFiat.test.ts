@@ -120,13 +120,11 @@ describe('useTransactionTotalFiat', () => {
       values: [
         {
           address: ADDRESS_MOCK,
-          amountFiat: 12.34,
-          amountHumanOriginal: '1.22',
+          amountFiat: 1.22,
         },
         {
           address: ADDRESS_2_MOCK,
-          amountFiat: 23.45,
-          amountHumanOriginal: '2.33',
+          amountFiat: 2.33,
         },
       ],
     } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
@@ -145,7 +143,7 @@ describe('useTransactionTotalFiat', () => {
           totalMaxNetworkFee: {
             valueInCurrency: '23.45',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '11.22',
           },
         },
@@ -161,7 +159,7 @@ describe('useTransactionTotalFiat', () => {
           totalMaxNetworkFee: {
             valueInCurrency: '45.67',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '22.33',
           },
         },
@@ -198,6 +196,9 @@ describe('useTransactionTotalFiat', () => {
           },
           totalMaxNetworkFee: {
             valueInCurrency: '40',
+          },
+          minToTokenAmount: {
+            valueInCurrency: '1000',
           },
           quote: {
             destAsset: {
@@ -242,7 +243,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -253,7 +254,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {
@@ -273,7 +274,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '100',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -284,7 +285,7 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          toTokenAmount: {
+          minToTokenAmount: {
             valueInCurrency: '60',
           },
           totalMaxNetworkFee: {

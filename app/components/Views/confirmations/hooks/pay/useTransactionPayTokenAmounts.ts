@@ -96,7 +96,7 @@ export function useTransactionPayTokenAmounts({
           address: value.address,
           amountHuman,
           amountRaw,
-          targetAmountHuman: value.amountHumanOriginal,
+          targetAmountRaw: value.amountRaw,
         };
       });
   }, [address, chainId, decimals, tokenFiatRate, values]);

@@ -59,6 +59,7 @@ describe('PerpsDeposit', () => {
         address: '0x123',
         balance: '0',
         balanceFiat: '0',
+        balanceRaw: '0',
         chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
