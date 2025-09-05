@@ -371,7 +371,6 @@ jobs:
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          build-name: ${{ github.repository }}-${{ github.ref_name }}-android-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
@@ -396,6 +395,7 @@ jobs:
             echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
             echo "TEST_PLATFORM=android"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
+            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
       - name: Run Android Tests on ${{ matrix.device.name }}
@@ -463,7 +463,6 @@ jobs:
         with:
           username: ${{ env.BROWSERSTACK_USERNAME }}
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
-          build-name: ${{ github.repository }}-${{ github.ref_name }}-ios-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
       
       - name: Setup BrowserStack Local
@@ -487,6 +486,7 @@ jobs:
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
             echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
+            echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
       - name: Run iOS Tests on ${{ matrix.device.name }}
