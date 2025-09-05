@@ -117,7 +117,7 @@ const BuildQuote = () => {
     useState<DepositFiatCurrency>(USD_CURRENCY);
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedRegion } = useDepositSDK();
+  const { isAuthenticated, selectedRegion, isRegionLoading } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
@@ -519,10 +519,20 @@ const BuildQuote = () => {
               onPress={handleRegionPress}
             >
               <View style={styles.regionContent}>
-                <Text variant={TextVariant.BodyMD}>{selectedRegion?.flag}</Text>
-                <Text variant={TextVariant.BodyMD}>
-                  {selectedRegion?.isoCode}
-                </Text>
+                {isRegionLoading ? (
+                  <>
+                    <Text variant={TextVariant.BodyMD}>...</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text variant={TextVariant.BodyMD}>
+                      {selectedRegion?.flag}
+                    </Text>
+                    <Text variant={TextVariant.BodyMD}>
+                      {selectedRegion?.isoCode}
+                    </Text>
+                  </>
+                )}
                 <Icon
                   name={IconName.ArrowDown}
                   size={IconSize.Sm}

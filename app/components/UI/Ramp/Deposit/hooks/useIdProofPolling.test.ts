@@ -62,6 +62,7 @@ describe('useIdProofPolling', () => {
         isoCode: 'US',
       } as DepositRegion,
       setSelectedRegion: jest.fn(),
+      isRegionLoading: false,
     });
   });
 

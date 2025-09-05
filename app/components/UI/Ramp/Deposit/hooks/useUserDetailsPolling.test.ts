@@ -60,6 +60,7 @@ describe('useUserDetailsPolling', () => {
         isoCode: 'US',
       } as DepositRegion,
       setSelectedRegion: jest.fn(),
+      isRegionLoading: false,
     });
   });
 
