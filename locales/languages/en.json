@@ -331,6 +331,7 @@
     "seedless_password_outdated_modal_title": "Your password was changed",
     "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
     "seedless_password_outdated_modal_confirm": "Continue",
+    "no_internet_connection": "Seedless account recovery requires internet connection.",
     "seedless_controller_error_prompt_title": "Something went wrong",
     "seedless_controller_error_prompt_description": "An issue occurred while unlocking. Re-login with Google and your MetaMask password.",
     "seedless_controller_error_prompt_primary_button_label": "Log in",

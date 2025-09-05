@@ -10,6 +10,10 @@ import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
 } from '@metamask/seedless-onboarding-controller';
+import {
+  SeedlessOnboardingControllerError,
+  SeedlessOnboardingControllerErrorType,
+} from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
@@ -44,6 +48,16 @@ jest.mock('../../hooks/useMetrics', () => {
     }),
   };
 });
+
+// Mock usePromptSeedlessRelogin hook
+const mockPromptSeedlessRelogin = jest.fn();
+const mockIsDeletingInProgress = jest.fn().mockReturnValue(false);
+jest.mock('../../hooks/SeedlessHooks', () => ({
+  usePromptSeedlessRelogin: () => ({
+    isDeletingInProgress: mockIsDeletingInProgress(),
+    promptSeedlessRelogin: mockPromptSeedlessRelogin,
+  }),
+}));
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
@@ -835,6 +849,199 @@ describe('Login test suite 2', () => {
       });
 
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+    });
+  });
+
+  describe('usePromptSeedlessRelogin hook integration', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockPromptSeedlessRelogin.mockClear();
+      mockIsDeletingInProgress.mockReturnValue(false);
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+    });
+
+    it('should display loading state when isDeletingInProgress is true', async () => {
+      mockIsDeletingInProgress.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      // Button should be disabled when isDeletingInProgress is true
+      expect(loginButton.props.disabled).toBe(true);
+    });
+
+    it('should call promptSeedlessRelogin when OAuth login fails with generic error', async () => {
+      mockIsDeletingInProgress.mockReturnValue(false);
+      mockIsEnabled.mockReturnValue(true);
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - OAuth rehydration failed',
+      );
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
+    });
+
+    it('should disable login button when isDeletingInProgress is true', async () => {
+      mockIsDeletingInProgress.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+
+      // Even with valid password, button should be disabled when isDeletingInProgress is true
+      expect(loginButton.props.disabled).toBe(true);
+    });
+
+    it('should show loading state on other methods button when isDeletingInProgress is true', async () => {
+      mockIsDeletingInProgress.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const otherMethodsButton = getByTestId(
+        LoginViewSelectors.OTHER_METHODS_BUTTON,
+      );
+
+      expect(otherMethodsButton.props.disabled).toBe(true);
+    });
+
+    it('should handle SeedlessOnboardingControllerError PasswordRecentlyUpdated', async () => {
+      mockIsDeletingInProgress.mockReturnValue(false);
+
+      const seedlessError = new SeedlessOnboardingControllerError(
+        SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated,
+        'Password was recently updated',
+      );
+
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual(
+        strings('login.seedless_password_outdated'),
+      );
+    });
+
+    it('should not call promptSeedlessRelogin for non-OAuth login errors', async () => {
+      mockIsDeletingInProgress.mockReturnValue(false);
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false, // Non-OAuth login
+        },
+      });
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - Generic error',
+      );
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      // Should show error message instead of calling promptSeedlessRelogin
+      const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
+      expect(errorElement.props.children).toEqual('Generic error');
+      expect(mockPromptSeedlessRelogin).not.toHaveBeenCalled();
+    });
+
+    it('should capture exception when metrics enabled and OAuth login fails', async () => {
+      mockIsDeletingInProgress.mockReturnValue(false);
+      mockIsEnabled.mockReturnValue(true);
+
+      const seedlessError = new Error(
+        'SeedlessOnboardingController - OAuth rehydration failed',
+      );
+      jest
+        .spyOn(Authentication, 'userEntryAuth')
+        .mockRejectedValue(seedlessError);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockPromptSeedlessRelogin).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle finalLoading state correctly', async () => {
+      // Test when both loading and isDeletingInProgress are false
+      mockIsDeletingInProgress.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+
+      // Button should be enabled when both loading states are false and password is valid
+      expect(loginButton.props.disabled).toBe(false);
+
+      // Test when isDeletingInProgress is true
+      mockIsDeletingInProgress.mockReturnValue(true);
+
+      // Re-render to get updated state
+      const { getByTestId: getByTestIdUpdated } = renderWithProvider(<Login />);
+      const loginButtonUpdated = getByTestIdUpdated(
+        LoginViewSelectors.LOGIN_BUTTON_ID,
+      );
+      const passwordInputUpdated = getByTestIdUpdated(
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInputUpdated, 'valid-password123');
+      });
+
+      // Button should be disabled when isDeletingInProgress is true
+      expect(loginButtonUpdated.props.disabled).toBe(true);
     });
   });
 });
