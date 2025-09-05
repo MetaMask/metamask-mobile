@@ -12,6 +12,7 @@ import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAc
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import { getPasswordForScenario } from '../../utils/TestConstants.js';
 
 test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
@@ -97,8 +98,8 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
 
   await CreatePasswordScreen.isVisible();
   timer5.stop();
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(getPasswordForScenario('import'));
+  await CreatePasswordScreen.reEnterPassword(getPasswordForScenario('import'));
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 

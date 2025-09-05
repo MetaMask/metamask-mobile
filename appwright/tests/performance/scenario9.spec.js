@@ -16,7 +16,8 @@ import SolanaConfirmationScreen from '../../../wdio/screen-objects/SolanaConfirm
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 
-import { importSRPFlow } from '../../utils/Flows.js';
+import { importSRPFlow , login } from '../../utils/Flows.js';
+import { TEST_ADDRESSES, TEST_AMOUNTS } from '../../utils/TestConstants.js';
 
 test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -32,8 +33,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   AmountScreen.device = device;
   LoginScreen.device = device;
 
-  await LoginScreen.typePassword('123123123');
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'send');
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   const timer1 = new TimerHelper(
@@ -43,9 +43,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
-  await SendScreen.typeAddressInSendAddressField(
-    '0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf',
-  );
+  await SendScreen.typeAddressInSendAddressField(TEST_ADDRESSES.ETHEREUM);
   const timer2 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the send amount screen',
   );
@@ -57,7 +55,7 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on Next after entering the amount, until the user gets the confirmation screen',
   );
 
-  await AmountScreen.enterAmount('0.00001');
+  await AmountScreen.enterAmount(TEST_AMOUNTS.ETHEREUM);
   timer3.start();
   await AmountScreen.tapOnNextButton();
   await ConfirmationScreen.isAccountSendToVisible();
@@ -88,8 +86,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   NetworksScreen.device = device;
   LoginScreen.device = device;
 
-  await LoginScreen.typePassword('123123123');
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'send');
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
@@ -107,10 +104,8 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SendSolanaScreen.isAddressFieldVisible();
   timer1.stop();
 
-  await SendSolanaScreen.fillAddressField(
-    '3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c',
-  );
-  await SendSolanaScreen.fillAmountField('0.001');
+  await SendSolanaScreen.fillAddressField(TEST_ADDRESSES.SOLANA);
+  await SendSolanaScreen.fillAmountField(TEST_AMOUNTS.SOLANA);
 
   const timer2 = await SendSolanaScreen.tapContinueButton();
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();

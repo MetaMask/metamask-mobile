@@ -10,6 +10,9 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
+import { getPasswordForScenario } from './TestConstants.js';
+import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
+import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
@@ -41,8 +44,12 @@ export async function onboardingFlowImportSRP(device, srp) {
 
   await CreatePasswordScreen.isVisible();
 
-  await CreatePasswordScreen.enterPassword('123456789');
-  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.enterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.reEnterPassword(
+    getPasswordForScenario('onboarding'),
+  );
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
 
@@ -99,4 +106,98 @@ export async function importSRPFlow(device, srp) {
 
   timers.push(timer, timer2, timer3, timer4);
   return timers;
+}
+/**
+ * Generic function to dismiss system dialogs (iOS permission dialogs, etc.)
+ * @param {Object} device - The device object from Appwright
+ */
+export async function dismissSystemDialogs(device, waitTime = 3000) {
+  await device.waitForTimeout(waitTime);
+
+  try {
+    // Wait 3 seconds for dialog to appear
+
+    // Try common permission dialog selectors using AppwrightSelectors
+    const dialogSelectors = ['Allow', 'OK', 'Allow Notifications'];
+
+    for (const selector of dialogSelectors) {
+      try {
+        const allowButton = await AppwrightSelectors.getElementByCatchAll(
+          device,
+          selector,
+        );
+        if (allowButton) {
+          await device.tap(allowButton);
+          console.log(`Tapped permission dialog button: ${selector}`);
+          return;
+        }
+      } catch (e) {
+        // Continue to next selector
+      }
+    }
+
+    console.log(
+      'No permission dialog found - autoAcceptAlerts may have handled it',
+    );
+  } catch (error) {
+    console.debug('Error handling permission dialog:', error.message);
+  }
+}
+
+export async function login(device, scenarioType) {
+  LoginScreen.device = device;
+
+  const password = getPasswordForScenario(scenarioType);
+
+  // Type password and unlock
+  await LoginScreen.typePassword(password);
+  await LoginScreen.tapUnlockButton();
+
+  // Wait for app to settle after unlock
+  await dismissSystemDialogs(device);
+
+  // Handle iOS notification permission dialog for production builds
+  // autoAcceptAlerts capability should handle this, but add fallback for reliability
+  // try {
+  //   // Wait briefly for any system dialog to appear (production builds trigger notification requests)
+  //   let dialogHandled = false;
+  //   for (let i = 0; i < 5; i++) {
+  //     await device.waitForTimeout(1000);
+
+  //     try {
+  //       // Try common iOS permission dialog selectors
+  //       const dialogSelectors = [
+  //         '//*[@name="Allow"]',
+  //         '//*[@name="OK"]',
+  //         '//*[@name="Allow Notifications"]',
+  //         '//*[@label="Allow"]',
+  //         '//*[@label="OK"]'
+  //       ];
+
+  //       for (const selector of dialogSelectors) {
+  //         try {
+  //           const allowButton = await device.findElement('xpath', selector);
+  //           if (allowButton) {
+  //             await device.tap(allowButton);
+  //             console.log(`Tapped iOS permission dialog button: ${selector}`);
+  //             dialogHandled = true;
+  //             break;
+  //           }
+  //         } catch (e) {
+  //           // Continue to next selector
+  //         }
+  //       }
+
+  //       if (dialogHandled) break;
+  //     } catch (error) {
+  //       // Continue waiting
+  //     }
+  //   }
+
+  //   if (!dialogHandled) {
+  //     console.log('No iOS permission dialog found - autoAcceptAlerts may have handled it');
+  //   }
+  // } catch (error) {
+  //   console.debug('Error handling iOS permission dialog:', error.message);
+  // }
 }

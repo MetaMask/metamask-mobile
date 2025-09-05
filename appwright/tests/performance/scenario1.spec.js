@@ -10,7 +10,7 @@ import AccountListComponent from '../../../wdio/screen-objects/AccountListCompon
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow } from '../../utils/Flows.js';
+import { login } from '../../utils/Flows.js';
 import AddNewHdAccountComponent from '../../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
 
 test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
@@ -28,8 +28,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   AddAccountModal.device = device;
   AddNewHdAccountComponent.device = device;
 
-  await LoginScreen.typePassword('123123123');
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'account-creation');
 
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);

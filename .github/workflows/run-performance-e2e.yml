@@ -18,6 +18,7 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
@@ -114,7 +115,19 @@ jobs:
               "build_params": {
                 "branch": "${{ github.ref_name }}",
                 "pipeline_id": "create_qa_builds_pipeline",
-                "commit_message": "Triggered by Performance E2E workflow"
+                "commit_message": "Triggered by Performance E2E workflow with Pre-Imported Wallet",
+                "environments": [
+                  {
+                    "mapped_to": "ADDITIONAL_SRP_1",
+                    "value": "${{ secrets.TEST_SRP_1 }}",
+                    "is_expand": true
+                  },
+                  {
+                    "mapped_to": "PREDEFINED_PASSWORD",
+                    "value": "${{ secrets.E2E_PASSWORD }}",
+                    "is_expand": true
+                  }
+                ]
               },
               "hook_info": {
                 "type": "bitrise",

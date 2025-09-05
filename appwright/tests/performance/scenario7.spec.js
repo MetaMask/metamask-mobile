@@ -11,10 +11,11 @@ import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow } from '../../utils/Flows.js';
 import NetworkEducationModal from '../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
+import { login } from '../../utils/Flows.js';
+
 test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
   performanceTracker,
@@ -33,8 +34,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   NetworksScreen.device = device;
   BridgeScreen.device = device;
 
-  await LoginScreen.typePassword('123123123');
-  await LoginScreen.tapUnlockButton();
+  await login(device, 'swap');
   // await importSRPFlow(device, process.env.TEST_SRP_2);
 
   const timer1 = new TimerHelper(

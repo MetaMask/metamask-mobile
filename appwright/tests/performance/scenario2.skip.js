@@ -11,6 +11,7 @@ import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingS
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import { getPasswordForScenario } from '../../utils/TestConstants.js';
 
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -74,8 +75,12 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   await OnboardingSheet.tapImportSeedButton();
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
   timer4.stop();
-  await CreateNewWalletScreen.inputPasswordInFirstField('123456789');
-  await CreateNewWalletScreen.inputConfirmPasswordField('123456789');
+  await CreateNewWalletScreen.inputPasswordInFirstField(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreateNewWalletScreen.inputConfirmPasswordField(
+    getPasswordForScenario('onboarding'),
+  );
   timer5.start();
   await CreateNewWalletScreen.tapSubmitButton();
   await CreateNewWalletScreen.tapRemindMeLater();

@@ -12,7 +12,7 @@ index a51913b..8c0335c 100644
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..ca12ee5 100644
+index 638c5df..b8aa5e5 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
 @@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
@@ -51,6 +51,22 @@ index 638c5df..ca12ee5 100644
                          : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
+@@ -261,6 +269,15 @@ class BrowserStackDeviceProvider {
+                 "appium:autoAcceptAlerts": true,
+                 "appium:fullReset": true,
+                 "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[autoGrantPermissions]": true,
++                "appium:settings[waitForIdleTimeout]": 10000,
++                "appium:settings[actionAcknowledgmentTimeout]": 3000,
++                "appium:settings[ignoreUnimportantViews]": true,
++                "appium:settings[waitForSelectorTimeout]": 10000,
++                // iOS specific capabilities for system dialogs
++                "appium:waitForQuiescence": false,
++                "appium:shouldUseSingletonTestManager": false,
++                "appium:skipLogCapture": true,
+             },
+         };
+     }
 diff --git a/node_modules/appwright/dist/reporter.js b/node_modules/appwright/dist/reporter.js
 index 516da40..ae1895b 100644
 --- a/node_modules/appwright/dist/reporter.js
