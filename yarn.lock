@@ -4988,22 +4988,31 @@
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
+"@metamask/base-controller@^8.3.0":
+  version "8.3.0"
+  resolved "https://registry.npmjs.org/@metamask/base-controller/-/base-controller-8.3.0.tgz#d547323192f7e60d37db63ddbc553544bca16a7e"
+  integrity sha512-DsaQIymoS6c5cDD2sysebZ/8iZwFv1mTyk31r0d8cseyRaf7MxUDj7WUf0RTxGUYiWuOy6RjXT+ySM8IJjhqVQ==
+  dependencies:
+    "@metamask/messenger" "^0.2.0"
+    "@metamask/utils" "^11.4.2"
+    immer "^9.0.6"
+
 "@metamask/bitcoin-wallet-snap@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-1.0.0.tgz#a79ebf1925ebaa20d059c19bb8a6a20b2fb121f5"
   integrity sha512-xFz/L5/2tjduzIUj+86P63ACExD2icbrDeJzB6nfjhZ4GsfIcOHSm1Rwc5q945Ef88eVwMpqZhMv19i9K0dWmA==
 
-"@metamask/bridge-controller@^41.4.0":
-  version "41.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-41.4.0.tgz#059f45a79c1fa1a788de44ae1757aedd4197fa86"
-  integrity sha512-iJEASk5S8NWyH1d/hSa91IvAe5bOj4PkMwDAZVjtuhja9MMaMXi+j7WwNDTQ6jRP3xxnwkYfK88JYeTI/pT0eQ==
+"@metamask/bridge-controller@^42.0.0":
+  version "42.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-controller/-/bridge-controller-42.0.0.tgz#63dc3165c0dcd8654c1e58a080154c2992a5efbe"
+  integrity sha512-C+W1EbtwUWmgp6mds1Vc7yyY1cScZ0xWgBnQ3ta0J8c80lbi4uExZRF+Jsupf1aG7xCsIihfNZymb/QKFBNyYg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/gas-fee-controller" "^24.0.0"
     "@metamask/keyring-api" "^20.1.0"
@@ -5015,12 +5024,12 @@
     reselect "^5.1.1"
     uuid "^8.3.2"
 
-"@metamask/bridge-status-controller@^41.0.0":
-  version "41.0.0"
-  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-41.0.0.tgz#cdca9fd30e2e98746ab256c32a7b5e8faed2fdd8"
-  integrity sha512-coONJs55mxvIqT3KhatVwLfczveJjT2vDI0Abt/eGbDZawPn/GDuJO+AkVSbtS4Xe+BPZkjXlwV9c6DaZLCTyA==
+"@metamask/bridge-status-controller@^42.0.0":
+  version "42.0.0"
+  resolved "https://registry.npmjs.org/@metamask/bridge-status-controller/-/bridge-status-controller-42.0.0.tgz#9e42f0b7543d9abc59a422a0758cde1c552f8962"
+  integrity sha512-wvB/DlVtYKWhi+bXzEI3N7rr5F9uJCqV5KDUzoiVA8BbRHdziZYBPGTm3Wyer0+pFUeOcQ4TpbYgpdSxtODwtw==
   dependencies:
-    "@metamask/base-controller" "^8.2.0"
+    "@metamask/base-controller" "^8.3.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/keyring-api" "^20.1.0"
     "@metamask/polling-controller" "^14.0.0"
@@ -5542,6 +5551,11 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
   integrity sha512-UqYOFvPb8CvRML26h/ftrwFhiQiB0VENoRnUlM0Tl9QjGh17un2emyxpsib3c2rdzP5U/VskXH2KlzPBtfFLYw==
+
+"@metamask/messenger@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.npmjs.org/@metamask/messenger/-/messenger-0.2.0.tgz#2954cc3d893532b11766516ee284997557de8c65"
+  integrity sha512-Ktv9aselR1KH2Nnpj7kulragl4kdCUtLZcuQeAxClV7atn6HmJBmuIYLlTawnRwr8guiKqscAs7EiQQvU0DLiA==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
