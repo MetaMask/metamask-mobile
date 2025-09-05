@@ -179,7 +179,7 @@ async function getSingleBridgeQuote(
     destTokenAddress: toChecksumAddress(targetTokenAddress),
     destWalletAddress: from,
     gasIncluded: false,
-    gasless7702: false,
+    gasIncluded7702: false,
     insufficientBal: false,
     slippage: index === 0 ? slippageInitial : slippageSubsequent,
     srcChainId: sourceChainId,
