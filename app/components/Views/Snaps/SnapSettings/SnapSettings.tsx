@@ -12,14 +12,12 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 
 import stylesheet from './SnapSettings.styles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
-import { Snap } from '@metamask/snaps-utils';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../util/navigation/types';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';
@@ -37,19 +35,17 @@ import { selectInternalAccounts } from '../../../../selectors/accountsController
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../../util/Logger';
 import { areAddressesEqual } from '../../../../util/address';
-interface SnapSettingsProps {
-  snap: Snap;
-}
+type SnapSettingsProps = StackScreenProps<RootParamList, 'SnapSettings'>;
 
-export const createSnapSettingsNavDetails =
-  createNavigationDetails<SnapSettingsProps>(Routes.SNAPS.SNAP_SETTINGS);
-
-const SnapSettings = () => {
+const SnapSettings = ({ route }: SnapSettingsProps) => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'SnapSettings'>
+    >();
 
-  const { snap } = useParams<SnapSettingsProps>();
+  const { snap } = route.params;
   const permissionsState = useSelector(selectPermissionControllerState);
 
   const [

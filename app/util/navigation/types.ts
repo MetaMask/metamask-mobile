@@ -19,6 +19,7 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import type { Hex } from '@metamask/utils';
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal';
+import type { Snap } from '@metamask/snaps-utils';
 import type { Provider } from '@consensys/on-ramp-sdk';
 
 export type RootParamList = {
@@ -719,9 +720,11 @@ export type RootParamList = {
   CardScreens: undefined;
   CardHome: undefined;
 
-  // Snaps (conditional compilation)
+  // Snaps Routes
   SnapsSettingsList: undefined;
-  SnapSettings: undefined;
+  SnapSettings: {
+    snap: Snap;
+  };
 
   // Ramp Settings
   RampActivationKeyForm: {

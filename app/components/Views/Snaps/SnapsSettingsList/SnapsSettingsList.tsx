@@ -3,23 +3,22 @@ import React, { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../util/navigation/types';
 
 import { SnapElement } from '../components/SnapElement';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { createNavigationDetails } from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import stylesheet from './SnapsSettingsList.styles';
 import { Snap } from '@metamask/snaps-utils';
 import { selectSnaps } from '../../../../selectors/snaps/snapController';
 
-export const createSnapsSettingsListNavDetails = createNavigationDetails(
-  Routes.SNAPS.SNAPS_SETTINGS_LIST,
-);
-
 const SnapsSettingsList = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'SnapsSettingsList'>
+    >();
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const snaps = useSelector(selectSnaps);
