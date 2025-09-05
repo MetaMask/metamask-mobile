@@ -43,7 +43,6 @@ import {
   selectIsEvmSolanaBridge,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
-import BigNumber from 'bignumber.js';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 
 const ANIMATION_DURATION_MS = 50;
@@ -136,10 +135,6 @@ const QuoteDetailsCard = () => {
       (!gasIncluded &&
         Number(rawPriceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.normal));
-
-  const hasFee = activeQuote
-    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
-    : false;
 
   const formattedMinToTokenAmount = intlNumberFormatter.format(
     parseFloat(activeQuote?.minToTokenAmount.amount || '0'),
@@ -388,15 +383,6 @@ const QuoteDetailsCard = () => {
           </Box>
         )}
       </Box>
-      {hasFee ? (
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.disclaimerText}
-        >
-          {strings('bridge.fee_disclaimer')}
-        </Text>
-      ) : null}
     </Box>
   );
 };

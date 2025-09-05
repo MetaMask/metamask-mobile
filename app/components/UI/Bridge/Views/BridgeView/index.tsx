@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
@@ -71,6 +72,7 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import ApprovalText from '../../components/ApprovalText';
+import { BigNumber } from 'bignumber.js';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -359,6 +361,10 @@ const BridgeView = () => {
       );
     }
 
+    const hasFee =
+      activeQuote &&
+      new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0);
+
     return (
       activeQuote &&
       quotesLastFetched && (
@@ -378,6 +384,15 @@ const BridgeView = () => {
               description={blockaidError}
             />
           )}
+          {hasFee ? (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.disclaimerText}
+            >
+              {strings('bridge.fee_disclaimer')}
+            </Text>
+          ) : null}
           <Button
             variant={ButtonVariants.Primary}
             label={getButtonLabel()}
