@@ -74,11 +74,8 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
   );
 
   let isDisabled: boolean = Boolean(!isEvmSelected);
-
   // We don't have Solana testnet networks, so we disable the network selector if Solana is selected
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   isDisabled = Boolean(isSolanaSelected);
-  ///: END:ONLY_INCLUDE_IF(bitcoin)
 
   const hasEnabledNetworks = enabledNetworks.length > 0;
 

@@ -11,11 +11,7 @@ import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import {
-  parseCaipChainId,
-  CaipChainId,
-  KnownCaipNamespace,
-} from '@metamask/utils';
+import { parseCaipChainId, CaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
@@ -84,9 +80,6 @@ const NetworkMultiSelectList = ({
   const selectedChainId = useSelector(selectChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
-  const isBip122Selected = selectedChainIdCaip.includes(
-    KnownCaipNamespace.Bip122,
-  );
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -104,13 +97,10 @@ const NetworkMultiSelectList = ({
           namespace: parsedCaipChainId.namespace,
           isMainChain: MAIN_CHAIN_IDS.has(chainId),
           isTestNetwork: Boolean(chainId && isTestNet(chainId)),
-          isSelected:
-            areAllNetworksSelected && !isBip122Selected
-              ? false
-              : network.isSelected,
+          isSelected: areAllNetworksSelected ? false : network.isSelected,
         };
       }),
-    [areAllNetworksSelected, networks, isEvmSelected, isBip122Selected],
+    [areAllNetworksSelected, networks, isEvmSelected],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -123,7 +113,7 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (selectAllNetworksComponent) {
+    if (selectAllNetworksComponent && isEvmSelected) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -144,6 +134,7 @@ const NetworkMultiSelectList = ({
     processedNetworks,
     additionalNetworksComponent,
     selectAllNetworksComponent,
+    isEvmSelected,
   ]);
 
   const contentContainerStyle = useMemo(
@@ -246,9 +237,6 @@ const NetworkMultiSelectList = ({
       }
 
       if (isSelectAllNetworksSection(item)) {
-        if (isBip122Selected) {
-          return null;
-        }
         return <View>{item.component}</View>;
       }
 
@@ -284,7 +272,6 @@ const NetworkMultiSelectList = ({
       createAvatarProps,
       createButtonProps,
       isSelectAllNetworksSection,
-      isBip122Selected,
     ],
   );
 

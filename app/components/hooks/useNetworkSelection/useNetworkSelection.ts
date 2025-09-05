@@ -1,12 +1,17 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../../core/NavigationService';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import Engine from '../../../core/Engine';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -52,6 +57,10 @@ export const useNetworkSelection = ({
     selectPopularNetworkConfigurationsByCaipChainId,
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const internalAccounts = useSelector(selectInternalAccounts);
+  ///: END:ONLY_INCLUDE_IF(bitcoin)
+
   const popularNetworkChainIds = useMemo(
     () =>
       new Set(
@@ -76,6 +85,16 @@ export const useNetworkSelection = ({
     [currentEnabledNetworks, popularNetworkChainIds],
   );
 
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const bitcoinInternalAccounts = useMemo(
+    () =>
+      internalAccounts.filter((account) =>
+        account.type.includes(KnownCaipNamespace.Bip122),
+      ),
+    [internalAccounts],
+  );
+  ///: END:ONLY_INCLUDE_IF(bitcoin)
+
   /** Disables all custom networks except the optionally specified one */
   const resetCustomNetworks = useCallback(
     (excludeChainId?: CaipChainId) => {
@@ -97,11 +116,36 @@ export const useNetworkSelection = ({
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
+        account.scopes.includes(chainId),
+      );
+
+      if (chainId.includes(KnownCaipNamespace.Bip122)) {
+        // if the network is bitcoin and there is no bitcoin account in the scope
+        // create a new bitcoin account (Bitcoin accounts are different per network)
+        if (!bitcoAccountInScope) {
+          // TOOD: Icannot cancel or go back from the add account screen
+          NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ADD_ACCOUNT,
+            params: {
+              clientType: WalletClientType.Bitcoin,
+              scope: chainId,
+            },
+          });
+
+          return;
+        }
+        // if the network is bitcoin and there is a bitcoin account in the scope
+        // set the selected address to the bitcoin account
+        Engine.setSelectedAddress(bitcoAccountInScope.address);
+      }
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
       await enableNetwork(chainId);
       await resetCustomNetworks(chainId);
       onComplete?.();
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, bitcoinInternalAccounts],
   );
 
   const selectAllPopularNetworks = useCallback(
@@ -116,11 +160,23 @@ export const useNetworkSelection = ({
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+      if (chainId.includes(KnownCaipNamespace.Bip122)) {
+        const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
+          account.scopes.includes(chainId),
+        );
+
+        if (bitcoAccountInScope) {
+          Engine.setSelectedAddress(bitcoAccountInScope.address);
+        }
+      }
+      ///: END:ONLY_INCLUDE_IF(bitcoin)
+
       await enableNetwork(chainId);
       await resetCustomNetworks();
       onComplete?.();
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, bitcoinInternalAccounts],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
