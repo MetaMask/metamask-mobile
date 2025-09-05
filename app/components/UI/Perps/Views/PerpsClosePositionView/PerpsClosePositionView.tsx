@@ -447,20 +447,22 @@ const PerpsClosePositionView: React.FC = () => {
           </Text>
         </View>
         <TouchableOpacity
-          style={styles.orderTypeButton}
           onPress={() => setIsOrderTypeVisible(true)}
           testID={PerpsClosePositionViewSelectorsIDs.ORDER_TYPE_BUTTON}
         >
-          <Text variant={TextVariant.BodyMD}>
-            {orderType === 'market'
-              ? strings('perps.order.market')
-              : strings('perps.order.limit')}
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            color={IconColor.Alternative}
-          />
+          <View style={styles.marketButton}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              {orderType === 'market'
+                ? strings('perps.order.market')
+                : strings('perps.order.limit')}
+            </Text>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Xs}
+              color={IconColor.Default}
+              style={styles.marketButtonIcon}
+            />
+          </View>
         </TouchableOpacity>
       </View>
 

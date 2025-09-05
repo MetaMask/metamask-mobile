@@ -116,21 +116,21 @@ function getQuoteGasAndRelayFee(quote: TransactionBridgeQuote): BigNumber {
 
 function getQuoteSourceFee(quote: TransactionBridgeQuote): BigNumber {
   return getQuoteSourceAmount(quote).minus(
-    quote.toTokenAmount?.valueInCurrency ?? 0,
+    quote.minToTokenAmount?.valueInCurrency ?? 0,
   );
 }
 
 function getQuoteDust(
   quote: TransactionBridgeQuote,
-  requiredFiat: { address: Hex; amountHumanOriginal: string }[],
+  requiredFiat: { address: Hex; amountFiat: number }[],
 ): BigNumber {
-  const targetAmount = quote.toTokenAmount?.valueInCurrency ?? '0';
+  const targetAmount = quote.minToTokenAmount?.valueInCurrency ?? '0';
 
   const requiredAmount = requiredFiat.find(
     (token) =>
       token.address.toLowerCase() ===
       quote.quote.destAsset.address.toLowerCase(),
-  )?.amountHumanOriginal;
+  )?.amountFiat;
 
   if (!requiredAmount) {
     return new BigNumber(0);
