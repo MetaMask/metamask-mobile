@@ -33,7 +33,6 @@ test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
-  dismissSystemDialogs.device = device;
   const timer1 = new TimerHelper(
     'Time since the user clicks on "Get Started" button until the Term of Use screen is visible',
   );
