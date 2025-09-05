@@ -77,6 +77,16 @@ const TradingViewChart = React.forwardRef<
         webviewDebuggingEnabled: __DEV__,
       };
 
+      if (Platform.OS === 'android') {
+        return {
+          ...baseProps,
+          cacheEnabled: true, // Enable caching for better performance
+          incognito: false,
+          androidLayerType: 'hardware',
+          allowsInlineMediaPlayback: false,
+        };
+      }
+
       if (Platform.OS === 'ios') {
         return {
           ...baseProps,
@@ -90,9 +100,6 @@ const TradingViewChart = React.forwardRef<
           dataDetectorTypes: 'none' as const,
         };
       }
-
-      // Android-safe configuration
-      return baseProps;
     }, []);
 
     const htmlContent = useMemo(
