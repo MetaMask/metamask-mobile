@@ -71,7 +71,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import { MultichainAccountWallet } from '@metamask/multichain-account-service';
 import { Bip44Account } from '@metamask/account-api';
-import { EntropSourceId, KeyringAccount } from '@metamask/keyring-api';
+import { EntropSourceId, EntropySourceId, KeyringAccount } from '@metamask/keyring-api';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -103,6 +103,15 @@ class AuthenticationService {
 
   private dispatchOauthReset(): void {
     OAuthService.resetOauthState();
+  }
+
+  /**
+   * This method gets the primary entropy source ID. It assumes it's always being defined, which means, vault
+   * creation must have been executed beforehand.
+   * @returns Primary entropy source ID (similar to keyring ID).
+   */
+  private getPrimaryEntropySourceId(): EntropySourceId {
+    return Engine.context.KeyringController.state.keyrings[0].metadata.id;
   }
 
   /**
@@ -163,11 +172,7 @@ class AuthenticationService {
   };
 
   private attemptAccountDiscovery = async (): Promise<void> => {
-    const primaryEntropySourceId =
-      Engine.context.KeyringController.state.keyrings[0].metadata.id;
-
-    console.log('-- Entropy source is:', primaryEntropySourceId);
-    await this.attemptAccountDiscoveryFor([primaryEntropySourceId]);
+    await this.attemptAccountDiscoveryFor([this.getPrimaryEntropySourceId()]);
   };
 
   private retryDiscoveryIfPending = async (): Promise<void> => {
