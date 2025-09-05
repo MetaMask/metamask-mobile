@@ -83,7 +83,7 @@ export const createTradingViewChartTemplate = (
                     height: window.innerHeight,
                     layout: {
                         background: {
-                            color: '${theme.colors.background.default}',
+                            color: 'transparent'
                         },
                         textColor: '${theme.colors.text.muted}',
                         attributionLogo: false, // Hide the TradingView logo
@@ -101,8 +101,8 @@ export const createTradingViewChartTemplate = (
                         touch: true,
                         // Momentum and friction tuning for smoother panning
                         momentum: {
-                            friction: 0.95, // Adjust momentum decay (0.9-0.98 range)
-                            minVelocity: 0.1, // Minimum velocity threshold
+                            friction: 0.1, // Very low friction for quick stop after fling
+                            minVelocity: 0.1, // Lower threshold for more responsive stopping
                         },
                         // Additional kinetic settings for mobile optimization
                         touch: {
@@ -172,9 +172,13 @@ export const createTradingViewChartTemplate = (
                         },
                         handleScroll: {
                             mouseWheel: false, // Disable mouse wheel scroll (mobile app)
-                            pressedMouseMove: false, // Disable drag scroll (mobile app)
+                            pressedMouseMove: false, // Enable drag scroll for direct touch control
                             horzTouchDrag: true, // Enable horizontal touch drag
                             vertTouchDrag: false, // Disable vertical touch drag
+                            // Optimize for direct press-and-drag responsiveness
+                            kineticScroll: true, // Keep kinetic scroll for fling gestures
+                            momentum: true, // Keep momentum for natural feel
+                            rubberBand: false, // Disable rubber band effect to reduce conflicts
                         },
                         // Simplified panning configuration
                         shiftVisibleRangeOnNewBar: false, // Prevent automatic shifting
@@ -306,11 +310,9 @@ export const createTradingViewChartTemplate = (
                     precision: 6, // Allow up to 6 decimal places for very small values
                     minMove: 0.000001, // Very small minimum move for precision
                 },
-                // Reduce visual updates during panning for better performance
-                crosshairMarkerVisible: true,
-                crosshairMarkerRadius: 3,
-                crosshairMarkerBorderColor: '#FFF',
-                crosshairMarkerBackgroundColor: '#FF7584',
+                // Optimize for smooth panning
+                crosshairMarkerVisible: false, // Disable crosshair during panning for performance
+                crosshairMarkerRadius: 0, // Minimize crosshair impact
             });
             return window.candlestickSeries;
         };
