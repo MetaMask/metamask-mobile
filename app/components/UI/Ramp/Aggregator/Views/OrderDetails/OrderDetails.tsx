@@ -32,15 +32,14 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../../routes/utils';
+import type { RootParamList } from '../../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-interface OrderDetailsParams {
-  orderId?: string;
-  redirectToSendTransaction?: boolean;
-}
+type OrderDetailsProps = StackScreenProps<RootParamList, 'OrderDetails'>;
 
-const OrderDetails = () => {
+const OrderDetails = ({ route }: OrderDetailsProps) => {
+  const params = route.params;
   const trackEvent = useAnalytics();
-  const params = useParams<OrderDetailsParams>();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
@@ -72,7 +71,7 @@ const OrderDetails = () => {
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
-      navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {
+      navigation.navigate('SendTransaction', {
         orderId: order.id,
       });
     }

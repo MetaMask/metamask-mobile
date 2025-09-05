@@ -75,10 +75,10 @@ function UnsupportedStateModal({ route }: UnsupportedStateModalProps) {
 
   const handleClose = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
+      navigation.navigate('WalletTabHome', {
+        screen: 'WalletTabStackFlow',
         params: {
-          screen: Routes.WALLET_VIEW,
+          screen: 'WalletView',
         },
       });
     });

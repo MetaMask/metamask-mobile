@@ -114,7 +114,7 @@ const FundActionMenu = () => {
             ramp_type: 'DEPOSIT',
           },
           traceName: TraceName.LoadDepositExperience,
-          navigationAction: () => navigate(Routes.DEPOSIT.ID),
+          navigationAction: () => navigate('Deposit'),
         },
         {
           type: 'buy',

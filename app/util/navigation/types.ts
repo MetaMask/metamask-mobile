@@ -26,6 +26,7 @@ import { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher';
 import { OptionsSheetParams } from '../../components/UI/SelectOptionSheet/types';
 import { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { RampIntent } from '../../components/UI/Ramp/Aggregator/types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -415,12 +416,7 @@ export type RootParamList = {
   RampBuy: undefined;
   RampSell: undefined;
   RampSettings: undefined;
-  GetStarted:
-    | {
-        animationEnabled?: boolean; // Used in routes to control animation
-        quote?: BuyQuote;
-      }
-    | undefined;
+  GetStarted: RampIntent | undefined;
   // TODO: This route name is duplicated for Aggregator and Deposit. Make the names unique
   BuildQuote:
     | {
@@ -461,6 +457,15 @@ export type RootParamList = {
   OrderDetails: {
     orderId?: string;
     redirectToSendTransaction?: boolean;
+  };
+  RampActivationKeyForm: {
+    onSubmit: (key: string, label: string, active: boolean) => void;
+    key: string;
+    active: boolean;
+    label: string;
+  };
+  SendTransaction: {
+    orderId: string;
   };
 
   // Deposit Routes
@@ -636,11 +641,13 @@ export type RootParamList = {
   NftDetails: { collectible: Nft };
   NftDetailsFullImage: { collectible: Nft };
   PaymentRequestView: undefined;
-  Swaps: {
-    sourceToken?: string; // Component accesses route.params?.sourceToken
-    destinationToken?: string; // Component accesses route.params?.destinationToken
-    sourcePage?: string; // Component accesses route.params?.sourcePage
-  };
+  Swaps:
+    | {
+        sourceToken?: string; // Component accesses route.params?.sourceToken
+        destinationToken?: string; // Component accesses route.params?.destinationToken
+        sourcePage?: string; // Component accesses route.params?.sourcePage
+      }
+    | undefined;
   SwapsAmountView: undefined;
   SwapsQuotesView: undefined;
   SetPasswordFlow: undefined;
@@ -744,14 +751,6 @@ export type RootParamList = {
   SnapSettings: {
     snap: Snap;
   };
-
-  // Ramp Settings
-  RampActivationKeyForm: {
-    onSubmit: (key: string, label: string, active: boolean) => void;
-    key: string;
-    active: boolean;
-    label: string;
-  };
 };
 
 export type NavigatableRootParamList = {
@@ -759,3 +758,11 @@ export type NavigatableRootParamList = {
     | RootParamList[K] // Direct navigation
     | NavigatorScreenParams<RootParamList>; // Nested navigation
 };
+
+// Specifying default types for React Navigation
+// ex. useNavigation, Link, ref, etc - https://reactnavigation.org/docs/typescript/?config=dynamic#specifying-default-types-for-usenavigation-link-ref-etc
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends NavigatableRootParamList {}
+  }
+}

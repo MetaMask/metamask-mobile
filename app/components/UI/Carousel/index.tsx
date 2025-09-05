@@ -251,10 +251,12 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       }
 
       if (navigation.type === 'function') {
+        // @ts-expect-error - TODO: Fix this to use RootParamList types
         return navigate(...navigation.navigate());
       }
 
       if (navigation.type === 'route') {
+        // @ts-expect-error - TODO: Fix this to use RootParamList types
         return navigate(navigation.route);
       }
     },

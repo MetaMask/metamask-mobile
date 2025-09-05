@@ -45,7 +45,6 @@ import {
   setFiatSellTxHash,
 } from '../../../../../../reducers/fiatOrders';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
-import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   addHexPrefix,
   fromTokenMinimalUnitString,
@@ -62,14 +61,14 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 
 import { RAMPS_SEND } from '../../constants';
+import { RootParamList } from '../../../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
-interface SendTransactionParams {
-  orderId?: string;
-}
+type SendTransactionProps = StackScreenProps<RootParamList, 'SendTransaction'>;
 
-function SendTransaction() {
+function SendTransaction({ route }: SendTransactionProps) {
+  const params = route.params;
   const navigation = useNavigation();
-  const params = useParams<SendTransactionParams>();
   const dispatch = useDispatch();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),

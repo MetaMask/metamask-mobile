@@ -29,12 +29,7 @@ import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils'
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation =
-    useNavigation<
-      StackNavigationProp<
-        NavigatableRootParamList,
-        'DepositUnsupportedRegionModal'
-      >
-    >();
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const { selectedRegion } = useDepositSDK();
 
   const { styles } = useStyles(styleSheet, {});
@@ -56,10 +51,10 @@ function UnsupportedRegionModal() {
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
+      navigation.navigate('WalletTabHome', {
+        screen: 'WalletTabStackFlow',
         params: {
-          screen: Routes.WALLET_VIEW,
+          screen: 'WalletView',
         },
       });
     });

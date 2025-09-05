@@ -3,8 +3,6 @@ import React, { useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../util/navigation/types';
 
 import { SnapElement } from '../components/SnapElement';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -15,10 +13,7 @@ import { Snap } from '@metamask/snaps-utils';
 import { selectSnaps } from '../../../../selectors/snaps/snapController';
 
 const SnapsSettingsList = () => {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<NavigatableRootParamList, 'SnapsSettingsList'>
-    >();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const snaps = useSelector(selectSnaps);

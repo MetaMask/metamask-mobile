@@ -8,6 +8,9 @@ jest.mock('./handleRpcOverwrite');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
 jest.mock('../../../util/Logger');
+jest.mock('../../NavigationService', () => ({
+  navigation: jest.fn(),
+}));
 
 describe('handleCustomRpcCalls', () => {
   const mockOverwriteRPCWith = overwriteRPCWith as jest.MockedFunction<

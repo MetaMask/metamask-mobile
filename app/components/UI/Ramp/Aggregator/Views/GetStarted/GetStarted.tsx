@@ -9,18 +9,20 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { useRampSDK } from '../../sdk';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
-import Routes from '../../../../../../constants/navigation/Routes';
 import useAnalytics from '../../../hooks/useAnalytics';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
-import { useParams } from '../../../../../../util/navigation/navUtils';
-import { RampIntent } from '../../types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
 
-const GetStarted: React.FC = () => {
+type GetStartedProps = StackScreenProps<RootParamList, 'GetStarted'>;
+
+const GetStarted: React.FC<GetStartedProps> = ({ route }) => {
+  const params = route.params;
   const navigation = useNavigation();
   const {
     getStarted,
@@ -33,7 +35,6 @@ const GetStarted: React.FC = () => {
   const { selectedRegion } = useRegions();
   const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
-  const params = useParams<RampIntent>();
 
   const { colors } = useTheme();
 
@@ -94,7 +95,7 @@ const GetStarted: React.FC = () => {
       ) {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
+          routes: [{ name: 'BuyNetworkSwitcher' }],
         });
         return;
       }
@@ -104,7 +105,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
+              name: 'BuildQuoteHasStarted',
               params: { showBack: false },
             },
           ],
@@ -112,7 +113,7 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
+          routes: [{ name: 'RegionHasStarted' }],
         });
       }
     }

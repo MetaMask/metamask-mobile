@@ -1,12 +1,14 @@
 import { RampIntent, RampType } from '../types';
-import Routes from '../../../../../constants/navigation/Routes';
+import { RootParamList } from '../../../../../util/navigation';
 
 function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {
-  const route = rampType === RampType.BUY ? Routes.RAMP.BUY : Routes.RAMP.SELL;
+  const route = rampType === RampType.BUY ? 'RampBuy' : 'RampSell';
   if (!intent) {
     return [route] as const;
   }
-  return [route, { screen: Routes.RAMP.GET_STARTED, params: intent }] as const;
+  const screen: keyof RootParamList = 'GetStarted';
+  const params: RootParamList[typeof screen] = intent;
+  return [route, { screen, params }] as const;
 }
 
 export function createBuyNavigationDetails(intent?: RampIntent) {

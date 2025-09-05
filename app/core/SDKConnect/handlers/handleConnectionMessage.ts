@@ -186,7 +186,6 @@ export const handleConnectionMessage = async ({
     selectedAddress: selectedInternalAccountChecksummedAddress,
     selectedChainId: chainId,
     connection,
-    navigation: connection.navigation,
     rpc: {
       id: message.id,
       method: message.method,
