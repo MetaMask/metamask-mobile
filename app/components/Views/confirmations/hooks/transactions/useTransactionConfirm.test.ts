@@ -298,7 +298,7 @@ describe('useTransactionConfirm', () => {
   });
 
   describe('navigates to', () => {
-    it('transaction details if transaction is perps deposit', async () => {
+    it('previous page if perps deposit', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDeposit,
@@ -308,10 +308,8 @@ describe('useTransactionConfirm', () => {
 
       await result.current.onConfirm();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.TRANSACTION_DETAILS,
-        params: { transactionId: transactionIdMock },
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {
