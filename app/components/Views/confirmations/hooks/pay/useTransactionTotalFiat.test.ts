@@ -162,7 +162,6 @@ describe('useTransactionTotalFiat', () => {
             valueInCurrency: '100',
           },
           minToTokenAmount: {
-          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -173,7 +172,6 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          minToTokenAmount: {
           minToTokenAmount: {
             valueInCurrency: '60',
           },
@@ -195,7 +193,6 @@ describe('useTransactionTotalFiat', () => {
             valueInCurrency: '100',
           },
           minToTokenAmount: {
-          minToTokenAmount: {
             valueInCurrency: '90',
           },
           totalMaxNetworkFee: {
@@ -206,7 +203,6 @@ describe('useTransactionTotalFiat', () => {
           sentAmount: {
             valueInCurrency: '80',
           },
-          minToTokenAmount: {
           minToTokenAmount: {
             valueInCurrency: '60',
           },
