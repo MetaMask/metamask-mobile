@@ -1,5 +1,8 @@
 import { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
-import { ConnectionRequest } from '../types/connection-request';
+import {
+  ConnectionRequest,
+  isConnectionRequest,
+} from '../types/connection-request';
 import { IConnectionStore } from '../types/connection-store';
 import { IHostApplicationAdapter } from '../types/host-application-adapter';
 import { Connection } from './connection';
@@ -44,8 +47,8 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
 
     try {
-      this.hostapp.showLoading();
       const connreq = this.parseConnectionRequest(url);
+      this.hostapp.showLoading();
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
@@ -57,6 +60,10 @@ export class ConnectionRegistry {
     } catch (error) {
       console.error('[SDKConnectV2] Connection handshake failed:', error);
       if (conn) await this.disconnect(conn.id);
+      this.hostapp.showAlert(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
     } finally {
       this.hostapp.hideLoading();
     }
@@ -74,24 +81,41 @@ export class ConnectionRegistry {
   }
 
   /**
-   * Parses a Mobile Wallet Protocol deeplink URL.
+   * Parse the connection request from the deeplink URL.
    * @param url The full deeplink URL that triggered the connection.
    * @returns The parsed connection request.
    *
-   * Format: metamask://connect/mwp/<encoded_connection_request>
+   * Format: metamask://connect/mwp?p=<encoded_connection_request>
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    const payload = url.substring(url.lastIndexOf('/') + 1);
-    if (!payload) {
-      throw new Error('[SDKConnectV2] Invalid URL: No payload found.');
-    }
+    let parsed: URL;
 
     try {
-      const jsonStr = decodeURIComponent(payload);
-      const parsed = JSON.parse(jsonStr);
-      return parsed as ConnectionRequest;
+      parsed = new URL(url);
     } catch (error) {
-      throw new Error('[SDKConnectV2] Failed to parse connection request.');
+      throw new Error('[SDKConnectV2] Invalid URL format.');
     }
+
+    const payload = parsed.searchParams.get('p');
+    if (!payload) {
+      throw new Error('[SDKConnectV2] No payload found in URL.');
+    }
+
+    if (payload.length > 1024 * 1024) {
+      throw new Error('[SDKConnectV2] Payload too large (max 1MB).');
+    }
+
+    let connreq: unknown;
+    try {
+      connreq = JSON.parse(payload);
+    } catch (error) {
+      throw new Error('[SDKConnectV2] Invalid JSON in payload.');
+    }
+
+    if (!isConnectionRequest(connreq)) {
+      throw new Error('[SDKConnectV2] Invalid connection request structure.');
+    }
+
+    return connreq;
   }
 }

@@ -25,6 +25,12 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     );
   }
 
+  showAlert(): void {
+    console.warn(
+      '[SDKConnectV2] HostApplicationAdapter.showAlert called but is not yet implemented.',
+    );
+  }
+
   showOTPModal(): Promise<void> {
     console.warn(
       '[SDKConnectV2] HostApplicationAdapter.showOTPModal called but is not yet implemented.',

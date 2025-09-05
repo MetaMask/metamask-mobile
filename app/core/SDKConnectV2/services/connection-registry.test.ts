@@ -32,7 +32,7 @@ const mockConnectionRequest: ConnectionRequest = {
 };
 
 // A valid deeplink URL containing the encoded connection request
-const validDeeplink = `metamask://connect/mwp/${encodeURIComponent(
+const validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
   JSON.stringify(mockConnectionRequest),
 )}`;
 
@@ -105,20 +105,43 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
     });
 
+    it('should handle invalid URL gracefully', async () => {
+      const invalidDeeplink = 'invalid-url';
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      // Error alert is shown
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
+      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
+      expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
+    });
+
     it('should call hideLoading and not save anything if the URL is invalid', async () => {
-      const invalidDeeplink = 'metamask://connect/mwp/not-json';
+      const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
 
       await registry.handleConnectDeeplink(invalidDeeplink);
 
-      // Loading UI starts but no connection operations occur
-      expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
+      // Error alert is shown
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
+      expect(mockHostApp.showLoading).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
 
       // No data is persisted or UI updates made for invalid requests
+      expect(mockConnection.disconnect).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
       expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
-
-      // Loading UI is still cleaned up properly
       expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
     });
 
@@ -131,6 +154,12 @@ describe('ConnectionRegistry', () => {
       await registry.handleConnectDeeplink(validDeeplink);
 
       // Connection creation is attempted but fails during handshake
+      expect(mockHostApp.showAlert).toHaveBeenCalledWith(
+        'Connection Error',
+        'The connection request failed. Please try again.',
+      );
+
+      // Nothing else happens
       expect(mockHostApp.showLoading).toHaveBeenCalledTimes(1);
       expect(Connection.create).toHaveBeenCalledTimes(1);
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
@@ -140,7 +169,6 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
 
-      // Loading UI is cleaned up despite the error
       expect(mockHostApp.hideLoading).toHaveBeenCalledTimes(1);
 
       disconnectSpy.mockRestore();

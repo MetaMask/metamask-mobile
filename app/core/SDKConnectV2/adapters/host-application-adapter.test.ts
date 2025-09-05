@@ -18,6 +18,7 @@ describe('HostApplicationAdapter', () => {
     ).resolves.not.toThrow();
     expect(() => adapter.showLoading()).not.toThrow();
     expect(() => adapter.hideLoading()).not.toThrow();
+    expect(() => adapter.showAlert()).not.toThrow();
     expect(adapter.showOTPModal()).resolves.not.toThrow();
     expect(() => adapter.syncConnectionList([])).not.toThrow();
   });
