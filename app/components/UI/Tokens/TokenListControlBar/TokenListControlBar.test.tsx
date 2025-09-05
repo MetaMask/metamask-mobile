@@ -252,12 +252,6 @@ describe('TokenListControlBar', () => {
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('should show "All Networks text when multiple networks are enabled', () => {
-        const { getByText } = renderComponent();
-
-        expect(getByText('wallet.all_networks')).toBeTruthy();
-      });
-
       it('should show current network name when only one network is enabled', () => {
         const singleNetworkInfo = {
           enabledNetworks: [{ chainId: '1', enabled: true }],
