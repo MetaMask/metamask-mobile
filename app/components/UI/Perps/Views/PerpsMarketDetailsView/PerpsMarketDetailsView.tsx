@@ -233,7 +233,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
   };
 
-  const handleLongPress = async () => {
+  const handleLongPress = () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
@@ -245,7 +245,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleShortPress = async () => {
+  const handleShortPress = () => {
     if (!isEligible) {
       setIsEligibilityModalVisible(true);
       return;
