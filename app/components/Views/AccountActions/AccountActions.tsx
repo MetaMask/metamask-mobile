@@ -1,17 +1,11 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, View, Text } from 'react-native';
-import {
-  useNavigation,
-  RouteProp,
-  ParamListBase,
-  useRoute,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -47,14 +41,13 @@ import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networ
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { getMultichainBlockExplorer } from '../../../core/Multichain/networks';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-interface AccountActionsParams {
-  selectedAccount: InternalAccount;
-}
+type AccountActionsProps = StackScreenProps<RootParamList, 'AccountActions'>;
 
-const AccountActions = () => {
-  const route = useRoute<RouteProp<ParamListBase, string>>();
-  const { selectedAccount } = route.params as AccountActionsParams;
+const AccountActions = ({ route }: AccountActionsProps) => {
+  const selectedAccount = route.params.selectedAccount;
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -165,7 +158,7 @@ const AccountActions = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId,
+        params: { keyringId },
       });
     });
   };

@@ -1,5 +1,5 @@
 import type { IconColor, IconName } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipChainId, Json } from '@metamask/utils';
 import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
@@ -57,7 +57,9 @@ export type RootParamList = {
   ChoosePassword: undefined;
   AccountBackupStep1: undefined;
   AccountBackupStep1B: undefined;
-  ManualBackupStep1: undefined;
+  ManualBackupStep1: {
+    backupFlow: boolean;
+  };
   ManualBackupStep2: undefined;
   ManualBackupStep3: undefined;
   AccountStatus: { type?: 'found' | 'not_exist'; onboardingTraceCtx?: string };
@@ -131,9 +133,11 @@ export type RootParamList = {
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   OptionsSheet: OptionsSheetParams;
-  SRPRevealQuiz: {
-    keyringId?: string;
-  };
+  SRPRevealQuiz:
+    | {
+        keyringId: Json;
+      }
+    | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
   MaxBrowserTabsModal: undefined;
@@ -235,7 +239,7 @@ export type RootParamList = {
   ConfirmTurnOnBackupAndSync: undefined;
   ResetNotifications: undefined;
   ReturnToDappModal: undefined;
-  AccountActions: undefined;
+  AccountActions: { selectedAccount: InternalAccount };
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
   ShowIpfs: undefined;
   ShowNftDisplayMedia: undefined;
@@ -330,7 +334,9 @@ export type RootParamList = {
 
   // Confirmation Screens
   ConfirmationRequestModal: undefined;
-  ConfirmationSwitchAccountType: undefined;
+  ConfirmationSwitchAccountType: {
+    address: string;
+  };
   SmartAccountOptIn: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithNetworkModal: undefined;
@@ -338,7 +344,9 @@ export type RootParamList = {
   // Main App Screens
   FoxLoader: undefined;
   LockScreen: { bioStateMachineId: string };
-  EditAccountName: undefined;
+  EditAccountName: {
+    selectedAccount: InternalAccount;
+  };
   TransactionsView: undefined;
   TransactionDetails: undefined;
 
@@ -697,7 +705,12 @@ export type RootParamList = {
   NotificationsSettings: undefined;
   BackupAndSyncSettings: undefined;
   DeveloperOptions: undefined;
-  RevealPrivateCredentialView: undefined;
+  RevealPrivateCredentialView: {
+    credentialName: string;
+    shouldUpdateNav?: boolean;
+    selectedAccount?: InternalAccount;
+    keyringId?: Json;
+  };
 
   // Notification Flow Screens
   NotificationsOptInStack: undefined;

@@ -1,3 +1,5 @@
+import type { RootParamList } from '../../util/navigation/types';
+
 enum RouteNames {
   // Main Views
   WalletView = 'WalletView',
@@ -616,7 +618,27 @@ const Routes = {
   },
   REWARDS_VIEW: RouteNames.RewardsView,
   REFERRAL_REWARDS_VIEW: RouteNames.ReferralRewardsView,
+} as const;
+
+// Type constraint to ensure Routes values are valid navigation targets
+type ValidRouteKey = keyof RootParamList;
+
+// Utility function to create type-safe route constants
+export function createTypedRoute<T extends ValidRouteKey>(routeName: T): T {
+  return routeName;
+}
+
+// Validation for direct route mappings (not nested objects)
+type DirectRouteValidation = {
+  readonly [K in keyof typeof Routes]: (typeof Routes)[K] extends string
+    ? (typeof Routes)[K] extends ValidRouteKey
+      ? (typeof Routes)[K]
+      : never
+    : (typeof Routes)[K]; // Allow nested objects
 };
+
+// Uncomment the line below to enable compile-time validation of direct routes
+// const _directRouteValidation: DirectRouteValidation = Routes;
 
 export { RouteNames };
 export default Routes;

@@ -29,25 +29,15 @@ import {
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useSelector } from 'react-redux';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../util/navigation/types';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
-export interface SRPQuizProps {
-  route: {
-    params: {
-      keyringId?: string;
-    };
-  };
-}
+type SRPQuizProps = StackScreenProps<RootParamList, 'SRPRevealQuiz'>;
 
-const SRPQuiz = (props: SRPQuizProps) => {
-  // It has be destructured like this because of prettier
-  // shifting the fence to the ending curly brace.
-  const {
-    route: {
-      params: { keyringId },
-    },
-  } = props;
+const SRPQuiz = ({ route }: SRPQuizProps) => {
+  const keyringId = route.params?.keyringId;
   const modalRef = useRef<ReusableModalRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
