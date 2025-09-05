@@ -56,6 +56,7 @@ jest.mock('@shopify/flash-list', () => {
     (
       props: {
         data: unknown[];
+        keyExtractor?: (item: unknown, index: number) => string;
         renderItem: ({
           item,
           index,
@@ -70,7 +71,7 @@ jest.mock('@shopify/flash-list', () => {
         scrollToOffset: (offset: number) => void;
       }>,
     ) => {
-      const { data, renderItem, ...otherProps } = props;
+      const { data, keyExtractor, renderItem, ...otherProps } = props;
 
       // Create a mock ref with scrollToEnd method
       ReactMock.useImperativeHandle(ref, () => ({
@@ -81,11 +82,16 @@ jest.mock('@shopify/flash-list', () => {
 
       return (
         <View testID="flash-list" {...otherProps}>
-          {data?.map((item: unknown, index: number) => (
-            <View key={index} testID={`flash-list-item-${index}`}>
-              {renderItem({ item, index })}
-            </View>
-          ))}
+          {data?.map((item: unknown, index: number) => {
+            const key = keyExtractor
+              ? keyExtractor(item, index)
+              : index.toString();
+            return (
+              <View key={key} testID={`flash-list-item-${key}`}>
+                {renderItem({ item, index })}
+              </View>
+            );
+          })}
         </View>
       );
     },
@@ -828,6 +834,46 @@ describe('BaseWalletDetails', () => {
       // Button should not be rendered at all
       expect(queryByTestId(WalletDetailsIds.REVEAL_SRP_BUTTON)).toBeNull();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('keyExtractor logic', () => {
+    it('generates correct keys for add-account vs regular items in legacy view', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByTestId(`flash-list-item-${mockAccount1.id}`)).toBeTruthy();
+      expect(getByTestId('flash-list-item-add-account-2')).toBeTruthy();
+    });
+
+    it('generates correct keys for add-account vs regular items in state 2 view', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(`flash-list-item-${mockAccountGroup1.id}`),
+      ).toBeTruthy();
+      expect(getByTestId('flash-list-item-add-account-2')).toBeTruthy();
+    });
+  });
+
+  describe('handleCloseAddAccountModal function', () => {
+    it('opens and closes modal correctly', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+      const { getByTestId, queryByText } = renderWithProvider(
+        <BaseWalletDetails wallet={mockWallet} />,
+        { state: mockInitialState },
+      );
+
+      expect(queryByText('Create a new account')).toBeNull();
+      fireEvent.press(getByTestId(WalletDetailsIds.ADD_ACCOUNT_BUTTON));
+      expect(queryByText('Create a new account')).toBeTruthy();
     });
   });
 });
