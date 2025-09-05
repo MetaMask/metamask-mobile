@@ -5,24 +5,17 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import React, { useRef } from 'react';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import { OptionsSheetParams } from './types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import Routes from '../../../constants/navigation/Routes';
 import { SELECT_OPTION_PREFIX, SELECT_VALUE_TICK_PREFIX } from './constants';
 
-export const createOptionsSheetNavDetails = (params: OptionsSheetParams) =>
-  createNavigationDetails<OptionsSheetParams>(Routes.OPTIONS_SHEET)({
-    ...params,
-  });
+type OptionsSheetProps = StackScreenProps<RootParamList, 'OptionsSheet'>;
 
-const OptionsSheet = () => {
+const OptionsSheet = ({ route }: OptionsSheetProps) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const params = useParams<OptionsSheetParams>();
+  const params = route.params;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

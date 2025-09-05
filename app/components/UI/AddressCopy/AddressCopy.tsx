@@ -21,17 +21,19 @@ import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../util/navigation';
 
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
+  const { navigate } =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -84,14 +86,10 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   ]);
 
   const navigateToAddressList = useCallback(() => {
-    navigate(
-      ...createAddressListNavigationDetails({
-        groupId: selectedAccountGroupId as AccountGroupId,
-        title: `${strings(
-          'multichain_accounts.address_list.receiving_address',
-        )}`,
-      }),
-    );
+    navigate('MultichainAddressList', {
+      groupId: selectedAccountGroupId as AccountGroupId,
+      title: `${strings('multichain_accounts.address_list.receiving_address')}`,
+    });
   }, [navigate, selectedAccountGroupId]);
 
   const handleOnPress = useCallback(() => {

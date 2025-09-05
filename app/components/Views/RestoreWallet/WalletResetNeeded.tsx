@@ -6,7 +6,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppThemeFromContext } from '../../../util/theme';
@@ -16,14 +15,9 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-
-export const createWalletResetNeededNavDetails = createNavigationDetails(
-  Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
-);
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
@@ -67,11 +61,9 @@ const WalletResetNeeded = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    navigation.replace(
-      ...createRestoreWalletNavDetails({
-        previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
-      }),
-    );
+    navigation.replace('RestoreWallet', {
+      previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
+    });
   }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 
   return (

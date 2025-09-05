@@ -8,7 +8,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
-import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
   Box,
@@ -24,33 +23,31 @@ import { MultichainAddressRow } from '../../../component-library/components-temp
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import ListItemSelect from '../../../component-library/components/List/ListItemSelect';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../selectors/multichainAccounts/accounts';
 import {
   selectChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
 import { useAccountName } from '../../hooks/useAccountName';
-import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
+import type {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../util/navigation';
 
-export const createAddressSelectorNavDetails =
-  createNavigationDetails<AddressSelectorParams>(
-    Routes.MODAL.ROOT_MODAL_FLOW,
-    Routes.SHEET.ADDRESS_SELECTOR,
-  );
+type AddressSelectorProps = StackScreenProps<RootParamList, 'AddressSelector'>;
 
-const AddressSelector = () => {
+const AddressSelector = ({ route }: AddressSelectorProps) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
-  const { displayOnlyCaipChainIds, isEvmOnly } =
-    useParams<AddressSelectorParams>();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { displayOnlyCaipChainIds, isEvmOnly } = route.params;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const networksByCaipChainId = useSelector(
@@ -83,11 +80,12 @@ const AddressSelector = () => {
 
   const handleAccountSelectorPress = useCallback(
     () =>
-      navigation.navigate(
-        ...createAccountSelectorNavDetails({
+      navigation.navigate('RootModalFlow', {
+        screen: 'AccountSelector',
+        params: {
           isSelectOnly: true,
-        }),
-      ),
+        },
+      }),
     [navigation],
   );
 

@@ -17,10 +17,11 @@ import { useAccountName } from '../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { formatAddress } from '../../../../../util/address';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
-import { createAddressSelectorNavDetails } from '../../../../Views/AddressSelector/AddressSelector';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
+import type { NavigatableRootParamList } from '../../../../../util/navigation';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 const styles = StyleSheet.create({
   selector: {
@@ -34,7 +35,8 @@ const styles = StyleSheet.create({
 });
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -60,12 +62,13 @@ const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
 
   const openAccountSelector = useCallback(
     () =>
-      navigation.navigate(
-        ...createAddressSelectorNavDetails({
+      navigation.navigate('RootModalFlow', {
+        screen: 'AddressSelector',
+        params: {
           isEvmOnly,
           displayOnlyCaipChainIds: rampNetworksCaipIds,
-        }),
-      ),
+        },
+      }),
     [isEvmOnly, navigation, rampNetworksCaipIds],
   );
 

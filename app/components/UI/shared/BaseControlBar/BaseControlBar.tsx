@@ -25,10 +25,6 @@ import {
   isRemoveGlobalNetworkSelectorEnabled,
   getNetworkImageSource,
 } from '../../../../util/networks';
-import {
-  createTokenBottomSheetFilterNavDetails,
-  createTokensBottomSheetNavDetails,
-} from '../../Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import {
   useNetworksByNamespace,
@@ -111,14 +107,14 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
         screen: 'NetworkManager',
       });
     } else if (useEvmSelectionLogic && isEvmSelected) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
     } else if (!useEvmSelectionLogic) {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
     }
   }, [navigation, isEvmSelected, useEvmSelectionLogic]);
 
   const defaultShowSortControls = useCallback(() => {
-    navigation.navigate(...createTokensBottomSheetNavDetails({}));
+    navigation.navigate('RootModalFlow', { screen: 'TokenSort' });
   }, [navigation]);
 
   // Use custom handlers if provided, otherwise use defaults

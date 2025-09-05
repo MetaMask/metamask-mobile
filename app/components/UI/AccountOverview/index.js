@@ -39,7 +39,6 @@ import {
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
-import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -204,7 +203,9 @@ class AccountOverview extends PureComponent {
 
   openAccountSelector = () => {
     const { navigation } = this.props;
-    navigation.navigate(...createAccountSelectorNavDetails({}));
+    navigation.navigate('RootModalFlow', {
+      screen: 'AccountSelector',
+    });
   };
 
   isAccountLabelDefined = (accountLabel) =>

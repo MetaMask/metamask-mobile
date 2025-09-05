@@ -38,7 +38,6 @@ import {
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
 import Text from '../../Base/Text';
-import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
 } from '../../hooks/useTokenHistoricalPrices';
@@ -48,7 +47,6 @@ import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
-import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -77,6 +75,8 @@ import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
+import type { NavigatableRootParamList } from '../../../util/navigation';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -98,7 +98,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;
@@ -186,7 +187,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, [selectedNetworkClientId]);
 
   const onReceive = () => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+    navigation.navigate('QRTabSwitcher', {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
       networkName,
@@ -204,10 +205,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
+    navigation.navigate('WalletTabHome', {
+      screen: 'WalletTabStackFlow',
       params: {
-        screen: Routes.WALLET_VIEW,
+        screen: 'WalletView',
       },
     });
 
@@ -256,12 +257,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const goToBrowserUrl = (url: string) => {
-    const [screen, params] = createWebviewNavDetails({
-      url,
-    });
-
     // TODO: params should not have to be cast here
-    navigation.navigate(screen, params as Record<string, unknown>);
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url,
+      },
+    });
   };
 
   const renderWarning = () => (

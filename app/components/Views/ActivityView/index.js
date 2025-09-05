@@ -44,7 +44,6 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTransactionsView from '../../UI/Perps/Views/PerpsTransactionsView';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
-import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
@@ -187,7 +186,7 @@ const ActivityView = () => {
         screen: 'NetworkManager',
       });
     } else {
-      navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
+      navigation.navigate('RootModalFlow', { screen: 'TokenFilter' });
     }
   };
 

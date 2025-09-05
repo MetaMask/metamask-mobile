@@ -5,9 +5,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { ISelectOptionSheet } from './types';
-import { createOptionsSheetNavDetails } from './OptionsSheet';
 import { useNavigation } from '@react-navigation/native';
 import { SELECT_DROP_DOWN } from './constants';
+import type { NavigatableRootParamList } from '../../../util/navigation';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 const SelectOptionSheet = ({
   defaultValue,
@@ -18,7 +19,8 @@ const SelectOptionSheet = ({
 }: ISelectOptionSheet) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   const renderDisplayValue = () => {
     const selectedOptions = options?.filter((o) => o.value === selectedValue);
@@ -32,14 +34,12 @@ const SelectOptionSheet = ({
   };
 
   const showPicker = () => {
-    navigation.navigate(
-      ...createOptionsSheetNavDetails({
-        label,
-        options,
-        selectedValue,
-        onValueChange,
-      }),
-    );
+    navigation.navigate('OptionsSheet', {
+      label,
+      options,
+      selectedValue,
+      onValueChange,
+    });
   };
 
   return (

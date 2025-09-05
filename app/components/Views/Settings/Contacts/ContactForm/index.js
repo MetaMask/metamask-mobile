@@ -30,8 +30,6 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
-import Routes from '../../../../../constants/navigation/Routes';
-import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import {
   selectEvmChainId,
   selectNetworkConfigurations,
@@ -362,16 +360,14 @@ class ContactForm extends PureComponent {
   };
 
   onScan = () => {
-    this.props.navigation.navigate(
-      ...createQRScannerNavDetails({
-        onScanSuccess: (meta) => {
-          if (meta.target_address) {
-            this.onChangeAddress(meta.target_address);
-          }
-        },
-        origin: Routes.SETTINGS.CONTACT_FORM,
-      }),
-    );
+    this.props.navigation.navigate('QRTabSwitcher', {
+      onScanSuccess: (meta) => {
+        if (meta.target_address) {
+          this.onChangeAddress(meta.target_address);
+        }
+      },
+      origin: 'ContactForm',
+    });
   };
 
   setSelectedNetwork = (contactChainId) => {

@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -12,14 +11,13 @@ import {
   getAllScopesFromPermission,
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../util/navigation';
 
-export interface PermissionApprovalProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
-}
-
-const PermissionApproval = (props: PermissionApprovalProps) => {
+const PermissionApproval = () => {
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
@@ -69,16 +67,17 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
         .build(),
     );
 
-    props.navigation.navigate(
-      ...createAccountConnectNavDetails({
+    navigation.navigate('RootModalFlow', {
+      screen: 'AccountConnect',
+      params: {
         hostInfo: requestData,
         permissionRequestId: id,
-      }),
-    );
+      },
+    });
   }, [
     approvalRequest,
     totalAccounts,
-    props.navigation,
+    navigation,
     trackEvent,
     createEventBuilder,
     eventSource,

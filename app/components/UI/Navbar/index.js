@@ -53,7 +53,6 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
@@ -75,7 +74,7 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import CardButton from '../Card/components/CardButton';
 
-const trackEvent = (event, params = {}) => {
+const trackEvent = (event) => {
   MetaMetrics.getInstance().trackEvent(event);
 };
 
@@ -1210,7 +1209,9 @@ export function getWalletNavbarOptions(
               tags: getTraceTags(store.getState()),
               op: TraceOperation.AccountList,
             });
-            navigation.navigate(...createAccountSelectorNavDetails({}));
+            navigation.navigate('RootModalFlow', {
+              screen: 'AccountSelector',
+            });
           }}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
           hitSlop={innerStyles.touchAreaSlop}

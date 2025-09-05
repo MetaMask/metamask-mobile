@@ -51,7 +51,6 @@ import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../../selectors/currencyRateController';
-import { createBrowserNavDetails } from '../../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../../../../../reducers/fiatOrders';
 import { createBuyNavigationDetails } from '../../../../../../UI/Ramp/Aggregator/routes/utils';
@@ -547,12 +546,13 @@ class TransactionReviewInformation extends PureComponent {
     const { chainId } = this.props;
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(
-        ...createBrowserNavDetails({
+      this.props.navigation.navigate('BrowserTabHome', {
+        screen: 'BrowserView',
+        params: {
           newTabUrl: TESTNET_FAUCETS[chainId],
           timestamp: Date.now(),
-        }),
-      );
+        },
+      });
     });
   };
 

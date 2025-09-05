@@ -27,8 +27,6 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
 import {
   selectDetectedTokens,
   selectAllDetectedTokensFlat,
@@ -46,6 +44,8 @@ import BottomSheet, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 import { TokenI } from '../../UI/Tokens/types';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../util/navigation';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +90,10 @@ interface IgnoredTokensByAddress {
 }
 
 const DetectedTokens = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'DetectedTokens'>
+    >();
   const { trackEvent, createEventBuilder } = useMetrics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
@@ -425,10 +428,5 @@ const DetectedTokens = () => {
     </BottomSheet>
   );
 };
-
-export const createDetectedTokensNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.MODAL.DETECTED_TOKENS,
-);
 
 export default DetectedTokens;

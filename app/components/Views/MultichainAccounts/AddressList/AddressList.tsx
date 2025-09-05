@@ -18,32 +18,26 @@ import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
-import {
-  useParams,
-  createNavigationDetails,
-} from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
 
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
-
-export const createAddressListNavigationDetails =
-  createNavigationDetails<AddressListProps>(
-    Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
-  );
+import type { NavigatableRootParamList } from '../../../../util/navigation';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 /**
  * AddressList component displays a list of addresses spread by scopes.
  *
  * @returns {JSX.Element} The rendered component.
  */
-export const AddressList = () => {
-  const navigation = useNavigation();
+export const AddressList = ({ route }: AddressListProps) => {
+  const { groupId, title } = route.params;
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'MultichainAddressList'>
+    >();
   const { styles } = useStyles(styleSheet, {});
-
-  const { groupId, title } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -70,19 +64,15 @@ export const AddressList = () => {
             {
               name: IconName.QrCode,
               callback: () => {
-                navigation.navigate(
-                  Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-                  {
-                    screen:
-                      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS_QR,
-                    params: {
-                      address: item.account.address,
-                      networkName: item.networkName,
-                      chainId: item.scope,
-                      accountName: item.account.metadata.name,
-                    },
+                navigation.navigate('MultichainAccountDetailActions', {
+                  screen: 'ShareAddressQR',
+                  params: {
+                    address: item.account.address,
+                    networkName: item.networkName,
+                    chainId: item.scope,
+                    accountName: item.account.metadata.name,
                   },
-                );
+                });
               },
               testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
             },

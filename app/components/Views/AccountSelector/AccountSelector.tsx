@@ -35,10 +35,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 // Internal dependencies.
 import { useStyles } from '../../../component-library/hooks';
-import {
-  AccountSelectorProps,
-  AccountSelectorScreens,
-} from './AccountSelector.types';
+import { AccountSelectorScreens } from './AccountSelector.types';
 import styleSheet from './AccountSelector.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
@@ -54,6 +51,10 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
+
+type AccountSelectorProps = StackScreenProps<RootParamList, 'AccountSelector'>;
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});

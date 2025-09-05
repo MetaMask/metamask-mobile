@@ -7,11 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { showAlert } from '../../../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../../../constants/error';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import { AddressTo } from '../../../../../UI/AddressInputs';
-import { createQRScannerNavDetails } from '../../../../QRTabSwitcher';
 import { SFAddressToProps } from './AddressTo.types';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 
 const SendFlowAddressTo = ({
   addressToReady,
@@ -26,7 +26,8 @@ const SendFlowAddressTo = ({
   toSelectedAddressName,
   updateParentState,
 }: SFAddressToProps) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const dispatch = useDispatch();
 
   // TODO: Replace "any" with type
@@ -63,19 +64,17 @@ const SendFlowAddressTo = ({
   };
 
   const onScan = () => {
-    navigation.navigate(
-      ...createQRScannerNavDetails({
-        onScanSuccess: (meta) => {
-          if (meta.chain_id) {
-            onHandleNetworkSwitch(meta.chain_id);
-          }
-          if (meta.target_address) {
-            onToSelectedAddressChange(meta.target_address);
-          }
-        },
-        origin: Routes.SEND_FLOW.SEND_TO,
-      }),
-    );
+    navigation.navigate('QRTabSwitcher', {
+      onScanSuccess: (meta) => {
+        if (meta.chain_id) {
+          onHandleNetworkSwitch(meta.chain_id);
+        }
+        if (meta.target_address) {
+          onToSelectedAddressChange(meta.target_address);
+        }
+      },
+      origin: 'SEND_TO',
+    });
   };
 
   const onToInputFocus = () => {

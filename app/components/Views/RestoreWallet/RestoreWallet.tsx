@@ -7,17 +7,11 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
+import { useParams } from '../../../util/navigation/navUtils';
 import EngineService from '../../../core/EngineService';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAppThemeFromContext } from '../../../util/theme';
-import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
-import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -29,19 +23,6 @@ const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png'
 interface RestoreWalletParams {
   previousScreen: string;
 }
-
-export const createRestoreWalletNavDetails =
-  createNavigationDetails<RestoreWalletParams>(
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-  );
-
-// Needed for passing the proper params from outside this stack navigator
-// This occurs from the Login screen
-export const createRestoreWalletNavDetailsNested =
-  createNavigationDetails<RestoreWalletParams>(
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-    Routes.VAULT_RECOVERY.RESTORE_WALLET,
-  );
 
 const RestoreWallet = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -79,10 +60,10 @@ const RestoreWallet = () => {
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
-      replace(...createWalletRestoredNavDetails());
+      replace('WalletRestored');
       setLoading(false);
     } else {
-      replace(...createWalletResetNeededNavDetails());
+      replace('WalletResetNeeded');
       setLoading(false);
     }
   }, [deviceMetaData, replace, trackEvent, createEventBuilder]);

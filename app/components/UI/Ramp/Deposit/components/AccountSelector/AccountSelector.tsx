@@ -12,7 +12,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { createAddressSelectorNavDetails } from '../../../../../Views/AddressSelector/AddressSelector';
 import { type RootState } from '../../../../../../reducers';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
@@ -21,6 +20,8 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -29,7 +30,8 @@ interface AccountSelectorProps {
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   isEvmOnly = true,
 }) => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -48,12 +50,12 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const openAccountSelector = useCallback(
     () =>
-      navigation.navigate(
-        ...createAddressSelectorNavDetails({
-          disablePrivacyMode: true,
+      navigation.navigate('RootModalFlow', {
+        screen: 'AddressSelector',
+        params: {
           isEvmOnly,
-        }),
-      ),
+        },
+      }),
     [navigation, isEvmOnly],
   );
 

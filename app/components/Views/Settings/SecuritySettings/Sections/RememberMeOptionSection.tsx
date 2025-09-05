@@ -4,14 +4,16 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAllowLoginWithRememberMe } from '../../../../../actions/security';
 import { useNavigation } from '@react-navigation/native';
-import { createTurnOffRememberMeModalNavDetails } from '../../../..//UI/TurnOffRememberMeModal/TurnOffRememberMeModal';
 
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../util/navigation';
 
 const RememberMeOptionSection = () => {
-  const { navigate } = useNavigation();
+  const { navigate } =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const allowLoginWithRememberMe = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,7 +43,9 @@ const RememberMeOptionSection = () => {
   const onValueChanged = useCallback(
     (enabled: boolean) => {
       isUsingRememberMe
-        ? navigate(...createTurnOffRememberMeModalNavDetails())
+        ? navigate('RootModalFlow', {
+            screen: 'TurnOffRememberMeModal',
+          })
         : toggleRememberMe(enabled);
     },
     [isUsingRememberMe, navigate, toggleRememberMe],

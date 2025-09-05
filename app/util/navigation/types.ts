@@ -3,7 +3,7 @@ import type { CaipChainId } from '@metamask/utils';
 import type { WalletClientType } from '../../core/SnapKeyring/MultichainWalletSnapClient';
 import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { AccountWalletId } from '@metamask/account-api';
+import type { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import type { TokenI } from '../../components/UI/Tokens/types';
 import type { BuyQuote } from '@consensys/native-ramps-sdk';
 import type { CryptoCurrency, FiatCurrency } from '@consensys/on-ramp-sdk';
@@ -21,6 +21,11 @@ import type { Hex } from '@metamask/utils';
 import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal';
 import type { Snap } from '@metamask/snaps-utils';
 import type { Provider } from '@consensys/on-ramp-sdk';
+import { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
+import { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher';
+import { OptionsSheetParams } from '../../components/UI/SelectOptionSheet/types';
+import { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -59,18 +64,16 @@ export type RootParamList = {
   AccountNotFound: undefined;
   Rehydrate: undefined;
 
-  // Webview Screens
-  SimpleWebview: {
-    url?: string;
-    title?: string; // Used by navigation header, not directly by component
-  };
   Webview: undefined;
+  SimpleWebview: { url?: string; title?: string };
 
   // QR and Tab Switcher
-  QRTabSwitcher: undefined;
+  QRTabSwitcher: QRTabSwitcherParams;
 
   // Vault Recovery
-  RestoreWallet: undefined;
+  RestoreWallet: {
+    previousScreen: string;
+  };
   WalletRestored: undefined;
   WalletResetNeeded: undefined;
 
@@ -89,7 +92,10 @@ export type RootParamList = {
   // Modal Screens
   WalletActions: undefined;
   FundActionMenu: undefined;
-  DeleteWalletModal: undefined;
+  DeleteWalletModal: {
+    oauthLoginSuccess?: boolean;
+    isResetWallet?: boolean;
+  };
   ModalConfirmation: {
     title: string;
     description: string;
@@ -123,6 +129,7 @@ export type RootParamList = {
   };
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
+  OptionsSheet: OptionsSheetParams;
   SRPRevealQuiz: {
     keyringId?: string;
   };
@@ -165,8 +172,8 @@ export type RootParamList = {
     descriptionAlign?: 'center' | 'left';
     iconColor?: IconColor;
   };
-  AccountSelector: undefined;
-  AddressSelector: undefined;
+  AccountSelector: AccountSelectorParams | undefined;
+  AddressSelector: AddressSelectorParams;
   AddAccount:
     | {
         scope: CaipChainId;
@@ -300,20 +307,22 @@ export type RootParamList = {
     account: InternalAccount;
   };
   MultichainAccountGroupDetails: {
-    accountGroup: any;
+    accountGroup: AccountGroupObject;
   };
   MultichainWalletDetails: {
     walletId: AccountWalletId;
   };
   MultichainAddressList: {
-    groupId: string;
+    groupId: AccountGroupId;
     title: string;
   };
   MultichainPrivateKeyList: {
     title: string;
-    groupId: string;
+    groupId: AccountGroupId;
   };
-  MultichainAccountActions: undefined;
+  MultichainAccountActions: {
+    accountGroup: AccountGroupObject;
+  };
   SmartAccountDetails: {
     account: InternalAccount;
   };
@@ -328,7 +337,6 @@ export type RootParamList = {
   // Main App Screens
   FoxLoader: undefined;
   LockScreen: { bioStateMachineId: string };
-  OptionsSheet: undefined;
   EditAccountName: undefined;
   TransactionsView: undefined;
   TransactionDetails: undefined;
@@ -642,6 +650,7 @@ export type RootParamList = {
   StakeModals: undefined;
 
   // Tab Navigator Screens
+  WalletTabHome: undefined;
   WalletHome: undefined;
   BrowserHome: undefined;
   SettingsFlow: undefined;
@@ -650,11 +659,15 @@ export type RootParamList = {
   ReferralRewardsView: undefined;
 
   // Asset Flow Screens
-  WalletView: {
-    shouldSelectPerpsTab?: boolean;
-    initialTab?: string;
+  WalletView:
+    | {
+        shouldSelectPerpsTab?: boolean;
+        initialTab?: string;
+      }
+    | undefined;
+  WalletTabStackFlow: {
+    screen: string;
   };
-  WalletTabStackFlow: undefined;
   AddAsset: undefined;
   Collectible: undefined;
   ConfirmAddAsset: undefined;

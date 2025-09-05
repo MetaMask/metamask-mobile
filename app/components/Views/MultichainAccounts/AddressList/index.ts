@@ -1,2 +1,2 @@
-export { AddressList, createAddressListNavigationDetails } from './AddressList';
+export { AddressList } from './AddressList';
 export type { AddressListProps, AddressItem } from './types';

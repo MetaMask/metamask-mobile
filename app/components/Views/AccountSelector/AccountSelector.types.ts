@@ -1,5 +1,5 @@
 // External dependencies.
-import { UseAccountsParams } from '../../../components/hooks/useAccounts';
+import type { UseAccountsParams } from '../../../components/hooks/useAccounts';
 
 /**
  * Enum to track states of the account selector screen.
@@ -50,16 +50,4 @@ export interface AccountSelectorParams {
    * Only show EVM accounts.
    */
   isEvmOnly?: boolean;
-}
-
-/**
- * AccountSelectorProps props.
- */
-export interface AccountSelectorProps {
-  /**
-   * Props that are passed in while navigating to screen.
-   */
-  route: {
-    params?: AccountSelectorParams;
-  };
 }

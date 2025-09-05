@@ -1,12 +1,10 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Animated, TouchableWithoutFeedback } from 'react-native';
 import QRScanner from '../QRScanner';
 import { strings } from '../../../../locales/i18n';
 import ReceiveRequest from '../../UI/ReceiveRequest';
 import { useTheme } from '../../../util/theme';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
 import NavbarTitle from '../../../components/UI/NavbarTitle';
 import ButtonIcon, {
@@ -15,47 +13,15 @@ import ButtonIcon, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import HeaderBase from '../../../component-library/components/HeaderBase';
 import { endTrace, trace, TraceName } from '../../../util/trace';
-
-export enum QRTabSwitcherScreens {
-  Scanner,
-  Receive,
-}
-
-export interface ScanSuccess {
-  content?: string;
-  chain_id?: string;
-  seed?: string;
-  private_key?: string;
-  target_address?: string;
-  action?: 'send-eth';
-  walletConnectURI?: string;
-}
-
-export interface StartScan {
-  content?: string;
-  seed?: string;
-  private_key?: string;
-  target_address?: string;
-  action?: 'send-eth';
-  walletConnectURI?: string;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../util/navigation/types';
+import { QRTabSwitcherScreens } from './types';
 
 const USER_CANCELLED = 'USER_CANCELLED';
 
-export interface QRTabSwitcherParams {
-  onScanSuccess: (data: ScanSuccess, content?: string) => void;
-  onStartScan?: (data: StartScan) => Promise<void>;
-  onScanError?: (error: string) => void;
-  initialScreen?: QRTabSwitcherScreens;
-  disableTabber?: boolean;
-  origin?: string;
-  networkName?: string;
-}
+type QRTabSwitcherProps = StackScreenProps<RootParamList, 'QRTabSwitcher'>;
 
-export const createQRScannerNavDetails =
-  createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
-
-const QRTabSwitcher = () => {
+const QRTabSwitcher = ({ route }: QRTabSwitcherProps) => {
   // Start tracing component loading
   const isFirstRender = useRef(true);
 
@@ -63,16 +29,15 @@ const QRTabSwitcher = () => {
     trace({ name: TraceName.QRTabSwitcher });
   }
 
-  const route = useRoute();
   const {
     onScanError,
-    onScanSuccess,
+    onScanSuccess = () => {},
     onStartScan,
     initialScreen,
     origin,
     disableTabber,
     networkName,
-  } = route.params as QRTabSwitcherParams;
+  } = route.params;
 
   const [selectedIndex, setSelectedIndex] = useState(
     initialScreen || QRTabSwitcherScreens.Scanner,
@@ -146,15 +111,10 @@ const QRTabSwitcher = () => {
           }
         >
           {selectedIndex === QRTabSwitcherScreens.Receive ? (
-            // @ts-expect-error proptypes components requires ts-expect-error
             <NavbarTitle
-              // @ts-expect-error proptypes components requires ts-expect-error
               title={strings(`receive.title`)}
-              // @ts-expect-error proptypes components requires ts-expect-error
               translate={false}
-              // @ts-expect-error proptypes components requires ts-expect-error
               disableNetwork
-              // @ts-expect-error proptypes components requires ts-expect-error
               networkName={networkName}
             />
           ) : null}

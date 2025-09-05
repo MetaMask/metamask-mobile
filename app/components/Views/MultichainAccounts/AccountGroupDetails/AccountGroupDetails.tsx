@@ -37,22 +37,23 @@ import { AccountGroupType } from '@metamask/account-api';
 import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
-import { createAddressListNavigationDetails } from '../AddressList';
-import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
+import {
+  NavigatableRootParamList,
+  RootParamList,
+} from '../../../../util/navigation';
 
-interface AccountGroupDetailsProps {
-  route: {
-    params: {
-      accountGroup: AccountGroupObject;
-    };
-  };
-}
+type AccountGroupDetailsProps = StackScreenProps<
+  RootParamList,
+  'MultichainAccountGroupDetails'
+>;
 
-export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
-  const navigation = useNavigation();
+export const AccountGroupDetails = ({ route }: AccountGroupDetailsProps) => {
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
   const {
     accountGroup: { id, metadata, type, accounts },
-  } = props.route.params;
+  } = route.params;
   const groupName = useMemo(() => metadata.name, [metadata.name]);
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
@@ -84,14 +85,12 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   );
 
   const navigateToAddressList = useCallback(() => {
-    navigation.navigate(
-      ...createAddressListNavigationDetails({
-        groupId: id,
-        title: `${strings('multichain_accounts.address_list.addresses')} / ${
-          metadata.name
-        }`,
-      }),
-    );
+    navigation.navigate('MultichainAddressList', {
+      groupId: id,
+      title: `${strings('multichain_accounts.address_list.addresses')} / ${
+        metadata.name
+      }`,
+    });
   }, [id, metadata.name, navigation]);
 
   const navigateToSmartAccount = useCallback(() => {
@@ -175,14 +174,12 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
           style={styles.privateKeys}
           testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
           onPress={() => {
-            navigation.navigate(
-              ...createPrivateKeyListNavigationDetails({
-                groupId: id,
-                title: strings(
-                  'multichain_accounts.account_details.private_keys',
-                ),
-              }),
-            );
+            navigation.navigate('MultichainPrivateKeyList', {
+              groupId: id,
+              title: strings(
+                'multichain_accounts.account_details.private_keys',
+              ),
+            });
           }}
         >
           <Text variant={TextVariant.BodyMDMedium}>

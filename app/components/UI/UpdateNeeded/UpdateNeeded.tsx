@@ -5,8 +5,6 @@ import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Logger from '../../../util/Logger';
@@ -30,11 +28,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskName = require('../../../images/branding/metamask-name.png');
-
-export const createUpdateNeededNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.MODAL.UPDATE_NEEDED,
-);
 
 const UpdateNeeded = () => {
   const { colors } = useTheme();

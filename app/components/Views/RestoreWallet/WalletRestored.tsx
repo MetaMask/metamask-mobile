@@ -13,7 +13,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,10 +23,6 @@ import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-
-export const createWalletRestoredNavDetails = createNavigationDetails(
-  Routes.VAULT_RECOVERY.WALLET_RESTORED,
-);
 
 const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);

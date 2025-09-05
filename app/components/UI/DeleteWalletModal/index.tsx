@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, InteractionManager, UIManager } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Icon, {
   IconName,
   IconSize,
@@ -40,14 +40,26 @@ import ButtonIcon, {
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { OPTIN_META_METRICS_UI_SEEN } from '../../../constants/storage';
+import type { NavigatableRootParamList } from '../../../util/navigation';
+import type {
+  StackNavigationProp,
+  StackScreenProps,
+} from '@react-navigation/stack';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const DeleteWalletModal: React.FC = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
+type DeleteWalletModalProps = StackScreenProps<
+  NavigatableRootParamList,
+  'DeleteWalletModal'
+>;
+
+const DeleteWalletModal = ({ route }: DeleteWalletModalProps) => {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NavigatableRootParamList, 'DeleteWalletModal'>
+    >();
   const { colors } = useTheme();
   const { isEnabled } = useMetrics();
   const styles = createStyles(colors);
@@ -81,7 +93,7 @@ const DeleteWalletModal: React.FC = () => {
     navigation.reset({
       routes: [
         {
-          name: Routes.ONBOARDING.ROOT_NAV,
+          name: 'OnboardingRootNav',
           state: {
             routes: [
               {

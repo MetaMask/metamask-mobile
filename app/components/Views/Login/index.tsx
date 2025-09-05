@@ -49,7 +49,6 @@ import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
@@ -81,12 +80,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
@@ -110,6 +104,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import FOX_LOGO from '../../../images/branding/fox.png';
+import type { NavigatableRootParamList } from '../../../util/navigation';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -147,7 +142,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const [rehydrationFailedAttempts, setRehydrationFailedAttempts] = useState(0);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList, 'Login'>>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
   const {
     styles,
@@ -260,11 +256,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               password,
               authData.currentAuthType,
             );
-            navigation.replace(
-              ...createRestoreWalletNavDetailsNested({
+            navigation.replace('RestoreWallet', {
+              screen: 'RestoreWallet',
+              params: {
                 previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
-            );
+              },
+            });
             setLoading(false);
             setError(null);
             return;
@@ -290,7 +287,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   };
 
   const navigateToHome = async () => {
-    navigation.replace(Routes.ONBOARDING.HOME_NAV);
+    navigation.replace('HomeNav');
   };
 
   const checkMetricsUISeen = async (): Promise<void> => {
@@ -302,7 +299,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       navigation.reset({
         routes: [
           {
-            name: Routes.ONBOARDING.ROOT_NAV,
+            name: 'OnboardingRootNav',
             params: {
               screen: Routes.ONBOARDING.NAV,
               params: {
@@ -599,8 +596,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
+    navigation.navigate('RootModalFlow', {
+      screen: 'DeleteWalletModal',
       params: {
         oauthLoginSuccess,
       },

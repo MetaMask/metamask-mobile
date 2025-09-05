@@ -17,17 +17,10 @@ import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { doesPasswordMatch } from '../../../util/password';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { useDispatch } from 'react-redux';
 import { Authentication } from '../../../core';
-
-export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.MODAL.TURN_OFF_REMEMBER_ME,
-);
 
 const TurnOffRememberMeModal = () => {
   const { colors, themeAppearance } = useTheme();

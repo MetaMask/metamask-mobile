@@ -39,20 +39,11 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
-import {
-  useParams,
-  createNavigationDetails,
-} from '../../../../util/navigation/navUtils';
-import Routes from '../../../../constants/navigation/Routes';
+import { useParams } from '../../../../util/navigation/navUtils';
 import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
-
-export const createPrivateKeyListNavigationDetails =
-  createNavigationDetails<PrivateKeyListParams>(
-    Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
-  );
 
 /**
  * Check if the account has the private key available according to its keyring type.
