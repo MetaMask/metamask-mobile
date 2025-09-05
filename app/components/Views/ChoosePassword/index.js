@@ -85,7 +85,6 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { colors as commonColors } from '../../../styles/common';
 
 const createStyles = (colors) =>
   StyleSheet.create({
