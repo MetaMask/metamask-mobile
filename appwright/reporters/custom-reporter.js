@@ -7,11 +7,23 @@ class CustomReporter {
   constructor() {
     this.metrics = [];
     this.sessions = []; // Array to store all session data
+    this.processedTests = new Set(); // Track processed tests to avoid duplicates
   }
 
   // We'll skip the onStdOut and onStdErr methods since the list reporter will handle those
 
   onTestEnd(test, result) {
+    // Create a unique test identifier to avoid duplicate processing
+    // Use test title and first few characters of attachments as unique ID
+    const attachmentNames = result.attachments.map((att) => att.name).join('|');
+    const testId = `${test.title}-${attachmentNames.substring(0, 50)}`;
+
+    if (this.processedTests.has(testId)) {
+      console.log(`⚠️ Test already processed, skipping: ${test.title}`);
+      return;
+    }
+    this.processedTests.add(testId);
+
     console.log('Result is:', result);
     console.log('Test is:', test);
     console.log(`\n🔍 onTestEnd called for test: ${test.title}`);
@@ -77,6 +89,21 @@ class CustomReporter {
       (att) => att.name && att.name.includes('performance-metrics'),
     );
 
+    console.log(`🔍 DEBUG: Looking for performance-metrics attachment...`);
+    console.log(
+      `🔍 DEBUG: Found ${result.attachments.length} attachments total`,
+    );
+    console.log(
+      `🔍 DEBUG: metricsAttachment found:`,
+      metricsAttachment ? 'YES' : 'NO',
+    );
+    if (metricsAttachment) {
+      console.log(`🔍 DEBUG: Attachment name: ${metricsAttachment.name}`);
+      console.log(
+        `🔍 DEBUG: Has body: ${metricsAttachment.body ? 'YES' : 'NO'}`,
+      );
+    }
+
     if (metricsAttachment && metricsAttachment.body) {
       try {
         const metrics = JSON.parse(metricsAttachment.body.toString());
@@ -112,10 +139,25 @@ class CustomReporter {
         console.log(`TOTAL TIME: ${metrics.total.toFixed(2)} seconds`);
         console.log('─'.repeat(50));
 
-        this.metrics.push({
+        console.log(
+          `✅ Adding metrics entry for test: ${test.title} (with performance data)`,
+        );
+
+        // If test failed but we have metrics, include failure info
+        const metricsEntry = {
           testName: test.title,
           ...metrics,
-        });
+        };
+
+        if (result.status !== 'passed') {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = result.status;
+          console.log(
+            `⚠️ Test failed but has performance metrics - including failure info`,
+          );
+        }
+
+        this.metrics.push(metricsEntry);
       } catch (error) {
         console.error('Error processing metrics:', error);
       }
@@ -126,6 +168,9 @@ class CustomReporter {
       if (result.status !== 'passed') {
         console.log(
           `⚠️  Test failed (${result.status}), creating basic metrics entry`,
+        );
+        console.log(
+          `✅ Adding metrics entry for test: ${test.title} (failed test fallback)`,
         );
         this.metrics.push({
           testName: test.title,
