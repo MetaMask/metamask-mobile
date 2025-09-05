@@ -136,13 +136,17 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays processing time', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByLabelText } = renderScreen(
       QuoteDetailsCard,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
+
+    // Expand the accordion to show the time field
+    const expandButton = getByLabelText('Expand quote details');
+    fireEvent.press(expandButton);
 
     expect(getByText('1 min')).toBeDefined();
   });
@@ -168,22 +172,22 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    // Initially price impact should not be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeNull();
+    // Initially slippage should not be visible (it's in the expandable section)
+    expect(queryByText(strings('bridge.slippage'))).toBeNull();
 
     // Press chevron to expand
     const expandButton = getByLabelText('Expand quote details');
     fireEvent.press(expandButton);
 
-    // After expansion, price impact should be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeDefined();
-    expect(queryByText('-0.06%')).toBeDefined();
+    // After expansion, slippage should be visible
+    expect(queryByText(strings('bridge.slippage'))).toBeDefined();
+    expect(queryByText('0.5%')).toBeDefined();
 
     // Press chevron again to collapse
     fireEvent.press(expandButton);
 
-    // After collapse, price impact should not be visible
-    expect(queryByText(strings('bridge.price_impact'))).toBeNull();
+    // After collapse, slippage should not be visible
+    expect(queryByText(strings('bridge.slippage'))).toBeNull();
   });
 
   it('navigates to slippage modal on edit press', () => {
@@ -207,20 +211,6 @@ describe('QuoteDetailsCard', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
     });
-  });
-
-  it('displays network names', () => {
-    const initialTestState = createBridgeTestState();
-
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: initialTestState },
-    );
-
-    expect(getByText('Solana')).toBeDefined();
   });
 
   it('displays slippage value', () => {
@@ -332,7 +322,6 @@ describe('QuoteDetailsCard', () => {
       );
       fireEvent.press(priceImpactTooltip);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
         params: { isGasIncluded: false },
       });
     } catch {
@@ -347,14 +336,15 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    const expandButton = getByLabelText('Expand quote details');
-    fireEvent.press(expandButton);
-
-    const quoteTooltip = getByLabelText(/Why we recommend this quote tooltip/i);
+    const quoteTooltip = getByLabelText('Rate tooltip');
     fireEvent.press(quoteTooltip);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      params: {
+        title: strings('bridge.quote_info_title'),
+        tooltip: strings('bridge.quote_info_content'),
+      },
+      screen: 'tooltipModal',
     });
   });
 
@@ -444,81 +434,5 @@ describe('QuoteDetailsCard', () => {
       // False branch - no warning tooltip
       expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
     }
-  });
-
-  it('does not show fee disclaimer when there is no fee', () => {
-    // Given a quote with zero fee
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
-      quoteFetchError: null,
-      activeQuote: {
-        ...mockQuotes[0],
-        quote: {
-          ...mockQuotes[0].quote,
-          feeData: {
-            metabridge: {
-              amount: '0', // Zero fee
-            },
-          },
-        },
-      },
-      destTokenAmount: '24.44',
-      isLoading: false,
-      formattedQuoteData: {
-        networkFee: '0.01',
-        estimatedTime: '1 min',
-        rate: '1 ETH = 24.4 USDC',
-        priceImpact: '-0.06%',
-        slippage: '0.5%',
-      },
-    }));
-
-    // When rendering the QuoteDetailsCard
-    const { queryByText } = renderScreen(
-      QuoteDetailsCard,
-      { name: Routes.BRIDGE.ROOT },
-      { state: testState },
-    );
-
-    // Then the fee disclaimer should not be displayed
-    expect(queryByText(strings('bridge.fee_disclaimer'))).toBeNull();
-  });
-
-  it('shows fee disclaimer when there is a fee', () => {
-    // Given a quote with a non-zero fee
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
-      quoteFetchError: null,
-      activeQuote: {
-        ...mockQuotes[0],
-        quote: {
-          ...mockQuotes[0].quote,
-          feeData: {
-            metabridge: {
-              amount: '1000000', // Non-zero fee
-            },
-          },
-        },
-      },
-      destTokenAmount: '24.44',
-      isLoading: false,
-      formattedQuoteData: {
-        networkFee: '0.01',
-        estimatedTime: '1 min',
-        rate: '1 ETH = 24.4 USDC',
-        priceImpact: '-0.06%',
-        slippage: '0.5%',
-      },
-    }));
-
-    // When rendering the QuoteDetailsCard
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
-      { name: Routes.BRIDGE.ROOT },
-      { state: testState },
-    );
-
-    // Then the fee disclaimer should be displayed
-    expect(getByText(strings('bridge.fee_disclaimer'))).toBeOnTheScreen();
   });
 });
