@@ -211,9 +211,9 @@ class AuthenticationService {
     entropySource?: EntropySourceId,
   ): Promise<void> => {
     await this.retryAccountDiscovery(async (): Promise<void> => {
-      await discoverAndCreateAccounts([
+      await discoverAndCreateAccounts(
         entropySource ?? this.getPrimaryEntropySourceId(),
-      ]);
+      );
     });
   };
 
