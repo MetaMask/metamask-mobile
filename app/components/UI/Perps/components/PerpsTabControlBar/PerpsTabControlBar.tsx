@@ -32,7 +32,6 @@ interface PerpsTabControlBarProps {
 export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
   hasPositions = false,
-  hasOrders = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   // Use live account data with 1 second throttle for balance display
@@ -137,7 +136,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
   const pnlColor = pnlNum >= 0 ? TextColor.Success : TextColor.Error;
   const isBalanceEmpty = BigNumber(availableBalance).isZero();
-  const shouldShowPnl = hasPositions || hasOrders;
+  const shouldShowPnl = hasPositions;
   const shouldShowBalance = !isBalanceEmpty || shouldShowPnl;
   const balancePillContainerStyle =
     shouldShowBalance && !shouldShowPnl
@@ -191,17 +190,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
             >
               {strings('perps.position.account.unrealized_pnl')}
             </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.Alternative}
-              style={styles.infoIcon}
-            />
           </View>
           <View style={styles.rightSection}>
             <Animated.View style={[getPnlAnimatedStyle]}>
               <Text
-                style={styles.valueText}
+                style={styles.pnlValueText}
                 variant={TextVariant.HeadingSM}
                 color={pnlColor}
               >

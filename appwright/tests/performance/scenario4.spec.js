@@ -1,7 +1,5 @@
-import { test } from 'appwright';
-
+import { test, expect } from '../../fixtures/performance-test.js';
 import TimerHelper from '../../utils/TimersHelper.js';
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
 import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -18,6 +16,7 @@ import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
 test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   device,
+  performanceTracker,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
@@ -43,7 +42,6 @@ test('Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3', async ({
   await WalletMainScreen.isTokenVisible('Ethereum');
 
   await WalletMainScreen.tapIdenticon();
-  const performanceTracker = new PerformanceTracker();
   timers.forEach((timer) => performanceTracker.addTimer(timer));
   await performanceTracker.attachToTest(testInfo);
 });
