@@ -29,6 +29,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
+import { ActivityTab } from '../components/ActivityTab/ActivityTab';
 
 const RewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -83,11 +84,18 @@ const RewardsView: React.FC = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'activity':
+        return <ActivityTab />;
       default:
         return (
-          <Text variant={TextVariant.BodyMd}>
-            {strings('rewards.not_implemented')}
-          </Text>
+          <Box
+            twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md"
+            testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
+          >
+            <Text variant={TextVariant.BodyMd}>
+              {strings('rewards.not_implemented')}
+            </Text>
+          </Box>
         );
     }
   };
@@ -95,7 +103,7 @@ const RewardsView: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView style={tw.style('flex-1 bg-default')}>
-        <Box twClassName="flex-1 px-4 py-4 bg-default gap-8 relative">
+        <Box twClassName="flex-1 px-4 bg-default gap-8 relative">
           {/* Header row */}
           <Box twClassName="flex-row  justify-between">
             <Text variant={TextVariant.HeadingMd} twClassName="text-default">
@@ -139,13 +147,8 @@ const RewardsView: React.FC = () => {
           />
 
           {/* Tab Content */}
-          <Box
-            twClassName="flex-1 items-center justify-center border-dashed border-default border-2 rounded-md"
-            testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-default">
-              {renderTabContent()}
-            </Text>
+          <Box twClassName="flex-1" testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT}>
+            {renderTabContent()}
           </Box>
         </Box>
 
