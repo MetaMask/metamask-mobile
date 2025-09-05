@@ -2,6 +2,7 @@ import compareVersions from 'compare-versions';
 import packageJson from '../../package.json';
 import { isProduction } from '../util/environment';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
+import Engine from '../core/Engine';
 
 /**
  * Multichain accounts feature flag
@@ -82,3 +83,27 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
       compareVersions.compare(minimumVersion, APP_VERSION, '<='),
   );
 };
+
+/**
+ * Get remote feature flags from its controller's state.
+ */
+function getRemoteFeatureFlags(): FeatureFlags {
+  return Engine.context.RemoteFeatureFlagController.state.remoteFeatureFlags;
+}
+
+/**
+ * Check if multichain accounts state 1 is enabled.
+ * Returns true if the feature is enabled for state 1 or state 2.
+ */
+export const isMultichainAccountsState1Enabled = () => isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
+    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1,
+    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  ]);
+
+/**
+ * Check if multichain accounts state 2 is enabled.
+ * @returns Boolean indicating if multichain accounts state 2 is enabled.
+ */
+export const isMultichainAccountsState2Enabled = () => isMultichainAccountsRemoteFeatureEnabled(getRemoteFeatureFlags(), [
+    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  ]);
