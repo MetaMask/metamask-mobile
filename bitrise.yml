@@ -128,8 +128,8 @@ pipelines:
       - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
-      - build_regression_e2e_ios_android_gns_disabled_stage: {}
-      - run_regression_e2e_ios_android_gns_disabled_stage: {}
+      - build_regression_e2e_ios_gns_disabled_stage: {}
+      - run_regression_e2e_ios_gns_disabled_stage: {}
       - notify: {}
   #App launch times pipeline. Runs on browserstack
   app_launch_times_and_expo_pipeline:
@@ -399,17 +399,14 @@ stages:
       - android_run_regression_identity_tests: {}
       - android_run_regression_accounts_tests: {}
       - android_run_regression_ux_tests: {}
-  build_regression_e2e_ios_android_gns_disabled_stage:
+  build_regression_e2e_ios_gns_disabled_stage:
     abort_on_fail: true
     workflows:
       - build_ios_main_e2e_gns_disabled:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - build_android_main_e2e_gns_disabled:
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-  run_regression_e2e_ios_android_gns_disabled_stage:
+  run_regression_e2e_ios_gns_disabled_stage:
     workflows:
-      - ios_run_regression_network_abstraction_tests: {}
-      - android_run_regression_network_abstraction_tests: {}
+      - ios_run_regression_network_abstraction_tests_gns_disabled: {}
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_confirmations_tests: {}
@@ -870,6 +867,12 @@ workflows:
   ios_run_regression_network_abstraction_tests:
     envs:
       - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+    after_run:
+      - ios_e2e_test
+  ios_run_regression_network_abstraction_tests_gns_disabled:
+    envs:
+      - TEST_SUITE_TAG: 'RegressionNetworkAbstractions'
+      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - ios_e2e_test
   ios_run_regression_network_expansion_tests:
@@ -2704,22 +2707,6 @@ workflows:
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
       - SHARE_WITH_DETOX: 'true'
-    after_run:
-      - _android_build_template
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-  build_android_main_e2e_gns_disabled:
-    envs:
-      - YARN_COMMAND: 'build:android:main:e2e'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
-      - APP_NAME: 'prod'
-      - OUTPUT_PATH: 'prodRelease'
-      - SHARE_WITH_DETOX: 'true'
-      - MM_REMOVE_GLOBAL_NETWORK_SELECTOR: 'false'
     after_run:
       - _android_build_template
     meta:
