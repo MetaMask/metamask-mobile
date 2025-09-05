@@ -166,10 +166,10 @@ const baseReducers = {
   cronjobController: cronjobControllerReducer,
 };
 
-if (isTest) {
+// if (isTest) {
   // @ts-expect-error - it's expected to not exist, it should only exist in not production environments
   baseReducers.performance = performanceReducer;
-}
+// }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
