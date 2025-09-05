@@ -209,25 +209,6 @@ export const isMainnetNetwork = (networkType) =>
   getMainnetNetworks().includes(networkType);
 
 /**
- * Returns a list of networks that can't be removed by users.
- *
- * @returns {string[]} - List of networks that can't be removed by users.
- */
-export const getPersistentNetworks = () => [
-  ...getAllNetworks().slice(0, 2),
-  ...getTestNetworks(),
-];
-
-/**
- * Checks if a network type is persistent (cannot be removed).
- *
- * @param {string} networkType - The network type to check.
- * @returns {boolean} - True if the network is persistent, false otherwise.
- */
-export const isPersistentNetwork = (networkType) =>
-  getPersistentNetworks().includes(networkType);
-
-/**
  * Checks if network is default mainnet.
  *
  * @param {string} networkType - Type of network.

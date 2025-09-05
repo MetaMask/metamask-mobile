@@ -40,7 +40,6 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
-  isPersistentNetwork,
   isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
@@ -420,7 +419,7 @@ const NetworkSelector = () => {
           buttonIcon={IconName.MoreVertical}
           buttonProps={{
             onButtonClick: () => {
-              openModal(chainId, !isPersistentNetwork(MAINNET), MAINNET, true);
+              openModal(chainId, false, MAINNET, true);
             },
           }}
           onTextClick={() =>
@@ -430,7 +429,7 @@ const NetworkSelector = () => {
             })
           }
           onLongPress={() => {
-            openModal(chainId, !isPersistentNetwork(MAINNET), MAINNET, true);
+            openModal(chainId, false, MAINNET, true);
           }}
         />
       );
@@ -454,14 +453,14 @@ const NetworkSelector = () => {
   };
 
   const renderLineaMainnet = () => {
-    const { name: lineaMainnetName, chainId } = Networks[LINEA_MAINNET];
+    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
     const rpcUrl =
       networkConfigurations?.[chainId]?.rpcEndpoints?.[
         networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
       ].url;
 
-    if (isNetworkUiRedesignEnabled() && isNoSearchResults(LINEA_MAINNET))
+    if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
 
     if (isNetworkUiRedesignEnabled()) {
@@ -487,12 +486,7 @@ const NetworkSelector = () => {
           }
           buttonProps={{
             onButtonClick: () => {
-              openModal(
-                chainId,
-                !isPersistentNetwork(LINEA_MAINNET),
-                LINEA_MAINNET,
-                true,
-              );
+              openModal(chainId, false, LINEA_MAINNET, true);
             },
           }}
           onTextClick={() =>
@@ -502,12 +496,7 @@ const NetworkSelector = () => {
             })
           }
           onLongPress={() => {
-            openModal(
-              chainId,
-              !isPersistentNetwork(LINEA_MAINNET),
-              LINEA_MAINNET,
-              true,
-            );
+            openModal(chainId, false, LINEA_MAINNET, true);
           }}
         />
       );
@@ -668,12 +657,7 @@ const NetworkSelector = () => {
             buttonIcon={IconName.MoreVertical}
             buttonProps={{
               onButtonClick: () => {
-                openModal(
-                  chainId,
-                  !isPersistentNetwork(networkType),
-                  networkType,
-                  true,
-                );
+                openModal(chainId, false, networkType, true);
               },
             }}
             onTextClick={() =>
@@ -683,12 +667,7 @@ const NetworkSelector = () => {
               })
             }
             onLongPress={() => {
-              openModal(
-                chainId,
-                !isPersistentNetwork(networkType),
-                networkType,
-                true,
-              );
+              openModal(chainId, false, networkType, true);
             }}
           />
         );
