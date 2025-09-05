@@ -41,9 +41,9 @@ export function EditAmount({
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
   const { payToken } = useTransactionPayToken();
-  const { fiatUnformatted, updateTokenAmount } = useTokenAmount();
+  const { updateTokenAmount } = useTokenAmount();
   const transactionMeta = useTransactionMetadataRequest();
-  const [amountFiat, setAmountFiat] = useState<string>(fiatUnformatted ?? '0');
+  const [amountFiat, setAmountFiat] = useState<string>('0');
 
   const tokenAddress = transactionMeta?.txParams?.to as Hex;
   const chainId = transactionMeta?.chainId as Hex;
