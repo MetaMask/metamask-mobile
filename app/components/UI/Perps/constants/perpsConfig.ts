@@ -80,12 +80,6 @@ export const PERFORMANCE_CONFIG = {
 } as const;
 
 /**
- * Perps notifications feature flag (temporary hard-coded flag)
- * This flag controls whether the perps notifications feature logic is enabled
- */
-export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;
-
-/**
  * Leverage slider UI configuration
  * Controls the visual and interactive aspects of the leverage slider
  */
