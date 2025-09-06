@@ -435,9 +435,6 @@
     "isUpdatingFCMToken": false
   },
   "UserStorageController": {
-    "hasAccountSyncingSyncedAtLeastOnce": false,
-    "isAccountSyncingReadyToBeDispatched": false,
-    "isAccountSyncingInProgress": false,
     "isBackupAndSyncEnabled": true,
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,

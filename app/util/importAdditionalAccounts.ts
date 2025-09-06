@@ -6,7 +6,6 @@ import type EthQuery from '@metamask/eth-query';
 import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
 import { getGlobalEthQuery } from './networks/global-network';
-import { setIsAccountSyncingReadyToBeDispatched } from '../actions/identity';
 import { trace, endTrace, TraceName, TraceOperation } from './trace';
 import { getTraceTags } from './sentry/tags';
 import { store } from '../store';
@@ -36,59 +35,49 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
  * Add additional accounts in the wallet based on balance
  */
 export default async (maxAccounts: number = MAX, index: number = 0) => {
-  try {
-    const { KeyringController } = Engine.context;
-    const ethQuery = getGlobalEthQuery();
+  const { KeyringController } = Engine.context;
+  const ethQuery = getGlobalEthQuery();
 
-    trace({
-      name: TraceName.EvmDiscoverAccounts,
-      op: TraceOperation.DiscoverAccounts,
-      tags: getTraceTags(store.getState()),
-    });
+  trace({
+    name: TraceName.EvmDiscoverAccounts,
+    op: TraceOperation.DiscoverAccounts,
+    tags: getTraceTags(store.getState()),
+  });
 
-    await KeyringController.withKeyring(
-      { type: ExtendedKeyringTypes.hd, index },
-      async ({ keyring }) => {
-        for (let i = 0; i < maxAccounts; i++) {
-          // TODO: Maybe refactor this and re-use the same function for HD account creation
-          // to have tracing in one single place?
-          trace({
-            name: TraceName.CreateHdAccount,
-            op: TraceOperation.CreateAccount,
-            tags: {
-              ...getTraceTags(store.getState()),
-              discovery: true,
-            },
-          });
-          const [newAccount] = await keyring.addAccounts(1);
-          endTrace({
-            name: TraceName.CreateHdAccount,
-          });
+  await KeyringController.withKeyring(
+    { type: ExtendedKeyringTypes.hd, index },
+    async ({ keyring }) => {
+      for (let i = 0; i < maxAccounts; i++) {
+        // TODO: Maybe refactor this and re-use the same function for HD account creation
+        // to have tracing in one single place?
+        trace({
+          name: TraceName.CreateHdAccount,
+          op: TraceOperation.CreateAccount,
+          tags: {
+            ...getTraceTags(store.getState()),
+            discovery: true,
+          },
+        });
+        const [newAccount] = await keyring.addAccounts(1);
+        endTrace({
+          name: TraceName.CreateHdAccount,
+        });
 
-          let newAccountBalance = ZERO_BALANCE;
-          try {
-            newAccountBalance = await getBalance(newAccount, ethQuery);
-          } catch (error) {
-            // Errors are gracefully handled so that `withKeyring`
-            // will not rollback the primary keyring, and accounts
-            // created in previous loop iterations will remain in place.
-          }
-
-          if (newAccountBalance === ZERO_BALANCE) {
-            // remove extra zero balance account we just added and break the loop
-            keyring.removeAccount?.(newAccount);
-            break;
-          }
+        let newAccountBalance = ZERO_BALANCE;
+        try {
+          newAccountBalance = await getBalance(newAccount, ethQuery);
+        } catch (error) {
+          // Errors are gracefully handled so that `withKeyring`
+          // will not rollback the primary keyring, and accounts
+          // created in previous loop iterations will remain in place.
         }
-      },
-    );
-  } finally {
-    endTrace({
-      name: TraceName.EvmDiscoverAccounts,
-    });
 
-    // We don't want to catch errors here, we let them bubble up to the caller
-    // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
-    await setIsAccountSyncingReadyToBeDispatched(true);
-  }
+        if (newAccountBalance === ZERO_BALANCE) {
+          // remove extra zero balance account we just added and break the loop
+          keyring.removeAccount?.(newAccount);
+          break;
+        }
+      }
+    },
+  );
 };
