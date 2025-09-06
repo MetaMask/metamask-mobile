@@ -2,6 +2,7 @@ import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { uniq } from 'lodash';
+import { Hex } from '@metamask/utils';
 
 /**
  * Determines if the transaction is from or to the current wallet
@@ -82,23 +83,26 @@ export const filterByAddressAndNetwork = (
   allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
-    txParams: { from, to },
+    id: transactionId,
     isTransfer,
-    requiredTransactionIds,
     transferInformation,
+    txParams: { from, to },
   } = tx;
 
-  const requiredTransactionChainIds = uniq(
-    (allTransactions ?? [])
-      .filter((t) => requiredTransactionIds?.includes(t.id))
-      .map((t) => t.chainId),
+  const isRequiredTransaction = allTransactions?.some((t) =>
+    t.requiredTransactionIds?.includes(transactionId),
   );
 
-  const transactionChainIds = [tx.chainId, ...requiredTransactionChainIds];
-  const validChainIds = Object.keys(tokenNetworkFilter);
+  if (isRequiredTransaction) {
+    return false;
+  }
 
-  const condition = transactionChainIds.some((chainId) =>
-    validChainIds.includes(chainId),
+  const validChainIds = Object.keys(tokenNetworkFilter) as Hex[];
+
+  const condition = isTransactionOnChains(
+    tx,
+    validChainIds,
+    allTransactions ?? [],
   );
 
   if (
@@ -118,3 +122,23 @@ export const filterByAddressAndNetwork = (
 
   return false;
 };
+
+export function isTransactionOnChains(
+  transaction: TransactionMeta,
+  chainIds: Hex[],
+  allTransactions: TransactionMeta[],
+): boolean {
+  const { chainId, requiredTransactionIds } = transaction;
+
+  if (chainIds.includes(chainId)) {
+    return true;
+  }
+
+  const requiredTransactionChainIds = uniq(
+    allTransactions
+      .filter((t) => requiredTransactionIds?.includes(t.id))
+      .map((t) => t.chainId),
+  );
+
+  return requiredTransactionChainIds.some((id) => chainIds.includes(id));
+}

@@ -16,6 +16,7 @@ import {
 import {
   sortTransactions,
   filterByAddressAndNetwork,
+  isTransactionOnChains,
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -141,39 +142,57 @@ const TransactionsView = ({
       if (isRemoveGlobalNetworkSelectorEnabled()) {
         // TODO: Make sure to come back and check on how Solana transactions are handled
         allTransactionsFiltered = allTransactions.filter((tx) => {
-          const chainId = tx.chainId;
-          return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
-            chainId
-          ];
+          const enabledChainIds = Object.entries(
+            enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155] ?? {},
+          )
+            .filter(([, enabled]) => enabled)
+            .map(([chainId]) => chainId);
+
+          return isTransactionOnChains(tx, enabledChainIds, allTransactions);
         });
       } else {
         allTransactionsFiltered = isPopularNetwork
-          ? allTransactions.filter(
-              (tx) =>
-                tx.chainId === CHAIN_IDS.MAINNET ||
-                tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-                PopularList.some((network) => network.chainId === tx.chainId),
-            )
-          : allTransactions.filter((tx) => tx.chainId === chainId);
+          ? allTransactions.filter((tx) => {
+              const popularChainIds = [
+                CHAIN_IDS.MAINNET,
+                CHAIN_IDS.LINEA_MAINNET,
+                ...PopularList.map((n) => n.chainId),
+              ];
+              return isTransactionOnChains(
+                tx,
+                popularChainIds,
+                allTransactions,
+              );
+            })
+          : allTransactions.filter((tx) =>
+              isTransactionOnChains(tx, [chainId], allTransactions),
+            );
       }
 
-      const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
-        const { from, nonce } = txParams;
-        if (!areAddressesEqual(from, selectedAddress)) {
-          return false;
-        }
-        const alreadySubmitted = submittedNonces.includes(nonce);
-        const alreadyConfirmed = confirmedTxs.find(
-          (tx) =>
-            areAddressesEqual(tx.txParams.from, selectedAddress) &&
-            tx.txParams.nonce === nonce,
-        );
-        if (alreadyConfirmed) {
-          return false;
-        }
-        submittedNonces.push(nonce);
-        return !alreadySubmitted;
-      });
+      const submittedTxsFiltered = submittedTxs.filter(
+        ({ chainId, txParams }) => {
+          const { from, nonce } = txParams;
+
+          if (!areAddressesEqual(from, selectedAddress)) {
+            return false;
+          }
+
+          const nonceKey = `${chainId}-${nonce}`;
+          const alreadySubmitted = submittedNonces.includes(nonceKey);
+          const alreadyConfirmed = confirmedTxs.find(
+            (tx) =>
+              areAddressesEqual(tx.txParams.from, selectedAddress) &&
+              tx.txParams.nonce === nonce,
+          );
+
+          if (alreadyConfirmed) {
+            return false;
+          }
+
+          submittedNonces.push(nonceKey);
+          return !alreadySubmitted;
+        },
+      );
 
       // If the account added insert point is not found, add it to the last transaction
       if (
