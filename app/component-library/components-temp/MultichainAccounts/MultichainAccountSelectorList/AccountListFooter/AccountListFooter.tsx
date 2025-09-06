@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useState, useEffect } from 'react';
 import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -21,6 +21,12 @@ import { useWalletInfo } from '../../../../../components/Views/MultichainAccount
 import { AccountWalletId } from '@metamask/account-api';
 import createStyles from './AccountListFooter.styles';
 import Engine from '../../../../../core/Engine';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../../../util/trace';
 
 interface AccountListFooterProps {
   walletId: AccountWalletId;
@@ -37,6 +43,13 @@ const AccountListFooter = memo(
     const wallet = walletsMap?.[walletId];
     const walletInfo = useWalletInfo(wallet);
 
+    // End trace when the loading finishes
+    useEffect(() => {
+      if (!isLoading) {
+        endTrace({ name: TraceName.CreateMultichainAccount });
+      }
+    }, [isLoading]);
+
     const handleCreateAccount = useCallback(async () => {
       if (!walletInfo?.keyringId) {
         Logger.error(
@@ -44,7 +57,6 @@ const AccountListFooter = memo(
           'Cannot create account without keyring ID',
         );
         setIsLoading(false);
-
         return;
       }
 
@@ -73,6 +85,12 @@ const AccountListFooter = memo(
     }, [walletInfo?.keyringId, onAccountCreated]);
 
     const handlePress = useCallback(() => {
+      // Start the trace before setting the loading state
+      trace({
+        name: TraceName.CreateMultichainAccount,
+        op: TraceOperation.AccountCreate,
+      });
+
       // Force immediate state update
       setIsLoading(true);
 

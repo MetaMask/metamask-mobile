@@ -43,7 +43,7 @@ export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { groupId, title } = useParams<AddressListProps>();
+  const { groupId, title, onLoad } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -114,6 +114,7 @@ export const AddressList = () => {
           data={internalAccountsSpreadByScopes}
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
+          onLoad={onLoad}
         />
       </View>
     </SafeAreaView>

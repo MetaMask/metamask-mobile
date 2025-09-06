@@ -41,7 +41,6 @@ export enum TraceName {
   SwitchBuiltInNetwork = 'Switch to Built in Network',
   SwitchCustomNetwork = 'Switch to Custom Network',
   VaultCreation = 'Login Vault Creation',
-  AccountList = 'Account List',
   StoreInit = 'Store Initialization',
   Tokens = 'Tokens List',
   CreateHdAccount = 'Create HD Account',
@@ -118,6 +117,11 @@ export enum TraceName {
   EarnTokenList = 'Earn Token List',
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
+  // Accounts
+  ShowAccountList = 'Show Account List',
+  ShowAccountAddressList = 'Show Account Address List',
+  ShowAccountPrivateKeyList = 'Show Account Private Key List',
+  CreateMultichainAccount = 'Create Multichain Account',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',
   PerpsClosePosition = 'Perps Close Position',
@@ -161,6 +165,9 @@ export enum TraceOperation {
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
+  // Accounts
+  AccountCreate = 'account.create',
+  AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
   PerpsMarketData = 'perps.market_data',
