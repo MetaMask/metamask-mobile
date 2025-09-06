@@ -56,9 +56,11 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
     },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
+    },
     "no_pay_token_quotes": {
-      "title": "We couldn't find any quotes.",
-      "message": "Change the amount or select a different token for payment."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     }
   },
   "blockaid_banner": {
@@ -477,7 +479,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "送信",
@@ -539,7 +542,9 @@
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
-    "show_more_nfts": "Show more NFTs"
+    "show_more_nfts": "Show more NFTs",
+    "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
   },
   "deposit": {
     "title": "入金",
@@ -819,8 +824,14 @@
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "合計残高",
-    "available_balance": "利用可能残高",
+    "available_balance": "Available balance",
     "margin_used": "利用中証拠金",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "出金",
     "refresh_balance": "Refresh Balance",
@@ -1083,18 +1094,23 @@
     },
     "tpsl": {
       "title": "Take profit and stop loss",
+      "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
       "set": "Set",
       "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
+      "leverage": "Leverage",
+      "margin": "Margin",
       "liquidation_price": "Liquidation price",
-      "take_profit_long": "Take profit when price increases by",
-      "take_profit_short": "Take profit when price decreases by",
-      "stop_loss_long": "Stop loss when price drops by",
-      "stop_loss_short": "Stop loss when price increases by",
+      "take_profit_long": "Take profit",
+      "take_profit_short": "Take profit",
+      "stop_loss_long": "Stop loss",
+      "stop_loss_short": "Stop loss",
       "trigger_price_placeholder": "Trigger price",
       "profit_percent_placeholder": "Profit",
       "loss_percent_placeholder": "Loss",
+      "profit_roe_placeholder": "% Profit",
+      "loss_roe_placeholder": "% Loss",
       "usd_label": "($)"
     },
     "token_selector": {
@@ -1150,9 +1166,10 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "デポジット失敗",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
-        "retry": "Retry"
+        "title": "Perps is temporarily offline",
+        "description": "We're working to get it back online soon.",
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1186,6 +1203,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "保有中のポジション",
         "position_count": "{{count}}件のポジション",
         "position_count_plural": "{{count}}件のポジション"
@@ -1277,8 +1295,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1304,21 +1322,27 @@
       "failed": "接続失敗",
       "error_message": "パーペチュアル取引サービスに接続できません。",
       "retry_connection": "接続を再試行する",
-      "retrying_connection": "接続中..."
+      "retrying_connection": "接続中...",
+      "connecting_to_perps": "Connecting to Perps"
     },
     "chart": {
-      "no_data": "利用可能なチャートデータがありません"
+      "no_data": "利用可能なチャートデータがありません",
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
-    "token_volume": "Token Volume",
-    "last_price_24h_change": "Last Price / 24h Change",
+    "volume": "Volume",
+    "price_24h_change": "Price / 24h change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search",
+    "search_by_token_symbol": "Search by token symbol",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "simulate_connection_error": "Simulate Connection Error"
     },
     "transactions": {
       "title": "Perps",
@@ -1498,6 +1522,8 @@
     "alphabetically": "アルファベット順 (A～Z)",
     "add_to_get_started": "開始するには仮想通貨を追加してください",
     "token_is_needed_to_continue": "続けるには{{tokenSymbol}}が必要です",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "次へ",
     "buy_asset": "{{asset}}を購入",
     "no_tokens": "トークンがありません！",
@@ -1887,6 +1913,9 @@
     "next": "次へ",
     "unlock": "ロックを解除",
     "forget": "このデバイスの登録を解除"
+  },
+  "address_selector": {
+    "select_an_address": "Select an address"
   },
   "app_settings": {
     "enabling_notifications": "通知を有効にしています...",
@@ -2838,6 +2867,7 @@
     "tx_review_staking_unstake": "ステーキングを解除",
     "tx_review_lending_deposit": "貸付金のデポジット",
     "tx_review_lending_withdraw": "貸付金の引き出し",
+    "tx_review_perps_deposit": "Funded Perps account",
     "sent_ether": "送信されたイーサ",
     "self_sent_ether": "自分に送信されたイーサ",
     "received_ether": "受け取ったイーサ",
@@ -3096,7 +3126,8 @@
     "non_permitted_network_description": "このサイトは現在のネットワークでは使用できません。ネットワークのアクセス許可を追加するか、すでに許可されているネットワークを選択してください。",
     "edit_permissions": "アクセス許可を編集",
     "permitted_networks_info_sheet_description": "これは、以前このサイトで使用するためにアクセス許可を与えたネットワークのリストです。このリストから1つ選択するか、このサイトへのネットワークのアクセス許可を編集してください。",
-    "connect_an_account": "アカウントを接続"
+    "connect_an_account": "アカウントを接続",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "このWebサイトをMetaMaskに接続します"
@@ -3566,7 +3597,19 @@
       "lido_withdrawal_requested_title": "出金がリクエストされました",
       "lido_withdrawal_requested_description": "Lidoの出金リクエストが送信されました",
       "lido_withdrawal_completed_title": "出金が完了しました",
-      "lido_withdrawal_completed_description": "Lidoの出金に成功しました"
+      "lido_withdrawal_completed_description": "Lidoの出金に成功しました",
+      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
+      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
+      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
+      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
+      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
+      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
+      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
+      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
     "prompt_title": "プッシュ通知の受取",
     "notifications_enabled_error_title": "問題が発生しました",
@@ -3809,6 +3852,7 @@
     "token_marketplace": "トークンマーケットプレイス",
     "Purchased": "購入しました",
     "Sold": "売却しました",
+    "empty_orders_list": "You don't have any orders",
     "empty_buy_orders_list": "購入注文がありません",
     "empty_sell_orders_list": "売却注文がありません",
     "purchased_currency": "{{currency}}を購入しました",
@@ -5012,7 +5056,8 @@
       "switching_to": "切り替え先",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "署名要求",
@@ -5177,7 +5222,10 @@
     "quote_details": "クォートの詳細",
     "price_impact": "プライスインパクト",
     "time": "時間",
-    "quote_info_content": "このクォートは、当社の検索で最も有利な条件を提供します。クォートはスワップレートに基づくもので、ブリッジ手数料と0.875%のMetaMask手数料が含まれていますが、ガス代は別になります。ガス代はネットワークのアクティビティとトランザクションの複雑さによって異なります。",
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "quote_info_content": "This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
     "quote_info_title": "このクォートをお勧めする理由",
     "see_other_quotes": "他のクォートを表示",
     "receive_at": "受取先:",
@@ -5364,6 +5412,7 @@
       "wallet_name": "ウォレット名",
       "balance": "残高",
       "create_account": "アカウントを作成",
+      "creating_account": "Creating account...",
       "back_up": "バックアップ",
       "reveal_recovery_phrase_with_index": "リカバリーフレーズ{{index}}を確認"
     },
@@ -5374,9 +5423,13 @@
     },
     "edit_account_name": {
       "title": "アカウント名を編集",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "名前",
       "save_button": "保存",
-      "error_duplicate_name": "このアカウント名はすでに存在します"
+      "error": "Failed to edit account name",
+      "error_duplicate_name": "このアカウント名はすでに存在します",
+      "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
       "title": "アカウントを削除",
@@ -5485,8 +5538,53 @@
     "tryAgain": "Try again",
     "close": "Close"
   },
+  "rewards": {
+    "not_implemented": "Coming soon",
+    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+    "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
+    "main_title": "Rewards",
+    "referral_title": "Referrals",
+    "tab_overview_title": "Overview",
+    "tab_activity_title": "Activity",
+    "tab_levels_title": "Levels",
+    "referral_stats_earned_from_referrals": "Earned from referrals",
+    "referral_stats_referrals": "Referrals",
+    "referral": {
+      "actions": {
+        "share_referral_link": "Refer a friend",
+        "share_referral_subject": "Join MetaMask Rewards"
+      },
+      "info": {
+        "title": "Share your code to earn more",
+        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+      }
+    }
+  },
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    },
+    "label": {
+      "bridge_fee": "Bridge fee",
+      "network_fee": "Network fee",
+      "paid_with": "Paid with",
+      "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
+    }
   }
 }

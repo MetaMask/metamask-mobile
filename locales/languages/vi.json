@@ -56,9 +56,11 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
     },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
+    },
     "no_pay_token_quotes": {
-      "title": "We couldn't find any quotes.",
-      "message": "Change the amount or select a different token for payment."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     }
   },
   "blockaid_banner": {
@@ -477,7 +479,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Gửi",
@@ -539,7 +542,9 @@
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
-    "show_more_nfts": "Show more NFTs"
+    "show_more_nfts": "Show more NFTs",
+    "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
   },
   "deposit": {
     "title": "Nạp",
@@ -819,8 +824,14 @@
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Tổng số dư",
-    "available_balance": "Số dư khả dụng",
+    "available_balance": "Available balance",
     "margin_used": "Ký quỹ đã sử dụng",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Rút tiền",
     "refresh_balance": "Refresh Balance",
@@ -1083,18 +1094,23 @@
     },
     "tpsl": {
       "title": "Take profit and stop loss",
+      "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
       "set": "Set",
       "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
+      "leverage": "Leverage",
+      "margin": "Margin",
       "liquidation_price": "Liquidation price",
-      "take_profit_long": "Take profit when price increases by",
-      "take_profit_short": "Take profit when price decreases by",
-      "stop_loss_long": "Stop loss when price drops by",
-      "stop_loss_short": "Stop loss when price increases by",
+      "take_profit_long": "Take profit",
+      "take_profit_short": "Take profit",
+      "stop_loss_long": "Stop loss",
+      "stop_loss_short": "Stop loss",
       "trigger_price_placeholder": "Trigger price",
       "profit_percent_placeholder": "Profit",
       "loss_percent_placeholder": "Loss",
+      "profit_roe_placeholder": "% Profit",
+      "loss_roe_placeholder": "% Loss",
       "usd_label": "($)"
     },
     "token_selector": {
@@ -1150,9 +1166,10 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Nạp tiền thất bại",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
-        "retry": "Retry"
+        "title": "Perps is temporarily offline",
+        "description": "We're working to get it back online soon.",
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1186,6 +1203,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "Vị thế đang mở",
         "position_count": "{{count}} vị thế",
         "position_count_plural": "{{count}} vị thế"
@@ -1277,8 +1295,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1304,21 +1322,27 @@
       "failed": "Kết nối thất bại",
       "error_message": "Không thể kết nối với dịch vụ giao dịch hợp đồng vĩnh cửu.",
       "retry_connection": "Thử kết nối lại",
-      "retrying_connection": "Đang kết nối..."
+      "retrying_connection": "Đang kết nối...",
+      "connecting_to_perps": "Connecting to Perps"
     },
     "chart": {
-      "no_data": "Không có dữ liệu biểu đồ"
+      "no_data": "Không có dữ liệu biểu đồ",
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
-    "token_volume": "Token Volume",
-    "last_price_24h_change": "Last Price / 24h Change",
+    "volume": "Volume",
+    "price_24h_change": "Price / 24h change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search",
+    "search_by_token_symbol": "Search by token symbol",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "simulate_connection_error": "Simulate Connection Error"
     },
     "transactions": {
       "title": "Perps",
@@ -1498,6 +1522,8 @@
     "alphabetically": "Thứ tự bảng chữ cái (A – Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
     "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có Token nào!",
@@ -1887,6 +1913,9 @@
     "next": "TIẾP",
     "unlock": "Mở khóa",
     "forget": "Quên thiết bị này"
+  },
+  "address_selector": {
+    "select_an_address": "Select an address"
   },
   "app_settings": {
     "enabling_notifications": "Đang bật thông báo...",
@@ -2838,6 +2867,7 @@
     "tx_review_staking_unstake": "Hủy ký gửi",
     "tx_review_lending_deposit": "Nạp tiền cho vay",
     "tx_review_lending_withdraw": "Rút tiền cho vay",
+    "tx_review_perps_deposit": "Funded Perps account",
     "sent_ether": "Đã gửi Ether",
     "self_sent_ether": "Đã gửi Ether cho chính bạn",
     "received_ether": "Đã nhận Ether",
@@ -3096,7 +3126,8 @@
     "non_permitted_network_description": "Không thể sử dụng trang web này với mạng hiện tại của bạn. Thêm quyền truy cập mạng hoặc chọn một mạng đã được cho phép.",
     "edit_permissions": "Chỉnh sửa quyền",
     "permitted_networks_info_sheet_description": "Đây là danh sách các mạng mà bạn đã cấp quyền sử dụng trên trang web này trước đây. Chọn một mạng từ danh sách hoặc chỉnh sửa quyền truy cập mạng cho trang web này.",
-    "connect_an_account": "Kết nối tài khoản"
+    "connect_an_account": "Kết nối tài khoản",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Kết nối trang web này với MetaMask"
@@ -3566,7 +3597,19 @@
       "lido_withdrawal_requested_title": "Đã yêu cầu rút tiền",
       "lido_withdrawal_requested_description": "Yêu cầu rút Lido của bạn đã được gửi",
       "lido_withdrawal_completed_title": "Đã hoàn tất rút tiền",
-      "lido_withdrawal_completed_description": "Quá trình Rút Lido của bạn đã thành công"
+      "lido_withdrawal_completed_description": "Quá trình Rút Lido của bạn đã thành công",
+      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
+      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
+      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
+      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
+      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
+      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
+      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
+      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
     "prompt_title": "Nhận thông báo đẩy",
     "notifications_enabled_error_title": "Đã xảy ra sự cố",
@@ -3809,6 +3852,7 @@
     "token_marketplace": "Thị trường token",
     "Purchased": "Đã mua",
     "Sold": "Đã bán",
+    "empty_orders_list": "You don't have any orders",
     "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
     "empty_sell_orders_list": "Bạn không có bất kỳ lệnh bán nào",
     "purchased_currency": "Đã mua {{currency}}",
@@ -5012,7 +5056,8 @@
       "switching_to": "Chuyển sang",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "Yêu cầu chữ ký",
@@ -5177,7 +5222,10 @@
     "quote_details": "Chi tiết báo giá",
     "price_impact": "Tác động đến giá",
     "time": "Thời gian",
-    "quote_info_content": "Báo giá này mang lại lợi nhuận tốt nhất từ kết quả tìm kiếm của chúng tôi. Được dựa trên tỷ giá hoán đổi, bao gồm phí cầu nối và phí 0,875% của MetaMask, không bao gồm phí gas. Phí gas thay đổi theo hoạt động mạng và độ phức tạp của giao dịch.",
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "quote_info_content": "This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
     "quote_info_title": "Tại sao chúng tôi đề xuất báo giá này",
     "see_other_quotes": "Xem các báo giá khác",
     "receive_at": "Nhận tại",
@@ -5364,6 +5412,7 @@
       "wallet_name": "Tên ví",
       "balance": "Số dư",
       "create_account": "Tạo tài khoản",
+      "creating_account": "Creating account...",
       "back_up": "Sao lưu",
       "reveal_recovery_phrase_with_index": "Hiển thị Cụm từ khôi phục {{index}}"
     },
@@ -5374,9 +5423,13 @@
     },
     "edit_account_name": {
       "title": "Sửa Tên tài khoản",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "Tên",
       "save_button": "Lưu",
-      "error_duplicate_name": "Tên tài khoản này đã tồn tại"
+      "error": "Failed to edit account name",
+      "error_duplicate_name": "Tên tài khoản này đã tồn tại",
+      "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
       "title": "Xóa tài khoản",
@@ -5485,8 +5538,53 @@
     "tryAgain": "Try again",
     "close": "Close"
   },
+  "rewards": {
+    "not_implemented": "Coming soon",
+    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+    "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
+    "main_title": "Rewards",
+    "referral_title": "Referrals",
+    "tab_overview_title": "Overview",
+    "tab_activity_title": "Activity",
+    "tab_levels_title": "Levels",
+    "referral_stats_earned_from_referrals": "Earned from referrals",
+    "referral_stats_referrals": "Referrals",
+    "referral": {
+      "actions": {
+        "share_referral_link": "Refer a friend",
+        "share_referral_subject": "Join MetaMask Rewards"
+      },
+      "info": {
+        "title": "Share your code to earn more",
+        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+      }
+    }
+  },
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    },
+    "label": {
+      "bridge_fee": "Bridge fee",
+      "network_fee": "Network fee",
+      "paid_with": "Paid with",
+      "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
+    }
   }
 }
