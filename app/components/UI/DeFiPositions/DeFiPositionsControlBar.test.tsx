@@ -67,6 +67,23 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
 jest.mock('../Tokens/TokensBottomSheet', () => ({
   createTokenBottomSheetFilterNavDetails: () => [
     'RootModalFlow',
@@ -219,6 +236,14 @@ describe('DeFiPositionsControlBar', () => {
       }),
     });
 
+    const useNetworksByNamespaceModule = jest.requireMock(
+      '../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+    );
+    useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 1,
+    });
+
     const mockState = createMockState();
     store = mockStore(mockState);
 
@@ -241,6 +266,14 @@ describe('DeFiPositionsControlBar', () => {
     useCurrentNetworkInfoModule.useCurrentNetworkInfo = () => ({
       enabledNetworks: [{ chainId: '0x1' }],
       getNetworkInfo: jest.fn().mockReturnValue(null),
+    });
+
+    const useNetworksByNamespaceModule = jest.requireMock(
+      '../../hooks/useNetworksByNamespace/useNetworksByNamespace',
+    );
+    useNetworksByNamespaceModule.useNetworksByCustomNamespace = () => ({
+      areAllNetworksSelected: false,
+      totalEnabledNetworksCount: 1,
     });
 
     const mockState = createMockState();

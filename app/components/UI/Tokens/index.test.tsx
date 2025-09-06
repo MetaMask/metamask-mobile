@@ -255,6 +255,10 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
   }),
+  useNetworksByCustomNamespace: () => ({
+    areAllNetworksSelected: false,
+    totalEnabledNetworksCount: 2,
+  }),
   NetworkType: {
     Popular: 'popular',
     Custom: 'custom',

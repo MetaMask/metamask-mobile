@@ -1,11 +1,11 @@
 // third party dependencies
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { parseCaipChainId } from '@metamask/utils';
+import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 
 // external dependencies
@@ -32,6 +32,7 @@ import Device from '../../../util/device';
 import {
   useNetworksByNamespace,
   NetworkType,
+  useNetworksByCustomNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 
@@ -41,6 +42,8 @@ import {
   CustomNetworkItem,
   CustomNetworkSelectorProps,
 } from './CustomNetworkSelector.types';
+import { useSelector } from 'react-redux';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 const CustomNetworkSelector = ({
   openModal,
@@ -55,8 +58,42 @@ const CustomNetworkSelector = ({
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Custom,
   });
-  const { selectCustomNetwork } = useNetworkSelection({
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const { networks: evmNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Custom,
+    namespace: KnownCaipNamespace.Eip155,
+  });
+
+  const { networks: solanaNetworks } = useNetworksByCustomNamespace({
+    networkType: NetworkType.Custom,
+    namespace: KnownCaipNamespace.Solana,
+  });
+
+  const networksToUse = useMemo(() => {
+    if (isMultichainAccountsState2Enabled) {
+      if (evmNetworks && solanaNetworks) {
+        return [...evmNetworks, ...solanaNetworks];
+      } else if (evmNetworks) {
+        return evmNetworks;
+      } else if (solanaNetworks) {
+        return solanaNetworks;
+      }
+      return networks;
+    }
+    return networks;
+  }, [
+    isMultichainAccountsState2Enabled,
     networks,
+    evmNetworks,
+    solanaNetworks,
+  ]);
+
+  const { selectCustomNetwork } = useNetworkSelection({
+    networks: networksToUse,
   });
 
   const goToNetworkSettings = useCallback(() => {
@@ -134,7 +171,7 @@ const CustomNetworkSelector = ({
   return (
     <ScrollView style={styles.container}>
       <FlashList
-        data={networks}
+        data={networksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}
