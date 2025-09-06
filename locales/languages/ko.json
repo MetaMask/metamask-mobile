@@ -51,14 +51,16 @@
       "message": "이 트랜잭션에 필요하지 않음에도 불구하고 타인에게 토큰을 인출할 수 있는 권한을 부여하고 있습니다."
     },
     "perps_deposit_minimum": {
-      "message": "Min order value is $10"
+      "message": "최소 주문 금액은 $10입니다"
     },
     "insufficient_pay_token_balance": {
-      "message": "Insufficient funds. Select different token."
+      "message": "자금이 부족합니다. 다른 토큰을 선택하세요."
+    },
+    "insufficient_pay_token_native": {
+      "message": "결제 토큰 체인의 네이티브 자금이 부족합니다. 다른 토큰을 선택하세요."
     },
     "no_pay_token_quotes": {
-      "title": "We couldn't find any quotes.",
-      "message": "Change the amount or select a different token for payment."
+      "message": "현재 이 결제 경로를 이용할 수 없습니다. 금액이나 네트워크, 토큰을 변경해 보세요. 최적의 옵션을 찾아드리겠습니다."
     }
   },
   "blockaid_banner": {
@@ -160,7 +162,7 @@
     "or": "또는",
     "import_existing_wallet": "기존 지갑 가져오기",
     "bottom_sheet_title": "계속하려면 옵션을 선택하세요",
-    "continue_with_srp": "Use Secret Recovery Phrase",
+    "continue_with_srp": "비밀복구구문 사용",
     "import_srp": "비밀복구구문을 사용하여 가져오기",
     "sign_in_with_google": "Google로 로그인",
     "sign_in_with_apple": "Apple로 로그인",
@@ -186,8 +188,8 @@
     "import_title": "지갑이 준비되었습니다!",
     "import_description": "비밀복구구문을 분실하면 지갑을 사용할 수 없습니다.",
     "import_description2": "이 구문을 안전하게 보관하면 자산 접근 권한을 잃지 않을 수 있습니다.",
-    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
-    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
+    "import_description_social_login": "{{authConnection}} 계정과 비밀번호를 사용하면 언제든지 지갑에 로그인할 수 있습니다.",
+    "import_description_social_login_2": "비밀번호을 잊으면 지갑에 접근할 수 없습니다.",
     "done": "완료",
     "create_hint": "비밀번호 힌트 생성",
     "hint_title": "비밀번호 힌트",
@@ -303,7 +305,7 @@
   "login": {
     "title": "다시 방문해 주셔서 감사합니다!",
     "password": "비밀번호",
-    "password_placeholder": "Enter MetaMask password",
+    "password_placeholder": "MetaMask 비밀번호를 입력하세요",
     "unlock_button": "잠금 해제",
     "go_back": "지갑의 잠금이 해제되지 않나요? 현재 지갑을 삭제한 후 새 지갑을 생성할 수 있습니다",
     "forgot_password": "비밀번호를 잊으셨나요?",
@@ -348,7 +350,7 @@
     "reset_wallet_desc_bold": "지갑 데이터가",
     "reset_wallet_desc_2": "영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     "reset_wallet_desc_login": "지갑을 복구하려면 비밀복구구문, Google 계정 비밀번호, Apple 계정 비밀번호를 사용할 수 있습니다. MetaMask는 이 정보를 보관하지 않습니다.",
-    "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information."
+    "reset_wallet_desc_srp": "지갑을 복구하려면 비밀복구구문이 있어야 합니다. MetaMask는 이 정보를 보관하지 않습니다."
   },
   "connect_hardware": {
     "title_select_hardware": "하드웨어 지갑 연결",
@@ -364,7 +366,7 @@
   "choose_password": {
     "title": "MetaMask 비밀번호",
     "description": "이 장치에서만 MetaMask 잠금해제에 사용됩니다.",
-    "description_social_login": "Use this for wallet recovery on all devices.",
+    "description_social_login": "이를 모든 기기에서 지갑을 복구하는 데 사용하세요.",
     "subtitle": "이 비밀번호는 이 기기에서 귀하의 MetaMask 지갑을 잠금 해제할 때만 사용됩니다.",
     "password": "새 비밀번호 생성",
     "confirm_password": "비밀번호 확인",
@@ -422,7 +424,7 @@
     "confirm_password_placeholder": "비밀번호를 다시 입력하세요",
     "confirm_btn": "저장",
     "warning_password_change_title": "진행하시겠습니까?",
-    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
+    "warning_password_change_description": "여기서 비밀번호를 변경하면 다른 장치에서 사용 중인 MetaMask가 잠깁니다. 그러면 새 비밀번호로 다시 로그인해야 합니다",
     "warning_password_change_button": "확인",
     "warning_password_cancel_button": "취소",
     "changing_password": "비밀번호 변경 중...",
@@ -474,10 +476,11 @@
     "transfer": "송금"
   },
   "bottom_nav": {
-    "home": "Home",
-    "browser": "Browser",
-    "activity": "Activity",
-    "settings": "Settings"
+    "home": "홈",
+    "browser": "브라우저",
+    "activity": "활동",
+    "settings": "설정",
+    "rewards": "보상"
   },
   "drawer": {
     "send_button": "보내기",
@@ -506,40 +509,42 @@
     "public_address": "공개 주소"
   },
   "send": {
-    "available": "available",
-    "invalid_value": "Invalid value",
-    "insufficient_funds": "Insufficient funds",
-    "continue": "Continue",
-    "unit": "unit",
-    "units": "units",
-    "next": "Next",
+    "available": "사용 가능",
+    "invalid_value": "잘못된 값",
+    "insufficient_funds": "자금 부족",
+    "continue": "계속",
+    "unit": "단위",
+    "units": "단위",
+    "next": "다음",
     "title": "보내기",
     "deeplink_failure": "문제가 발생했습니다...다시 시도해 주세요",
     "warn_network_change": "다음으로 네트워크 변경:",
     "send_to": "수신:",
     "amount": "금액",
     "confirm": "확인",
-    "paste": "Paste",
-    "no_assets_available": "No assets available to send",
-    "clear": "Clear",
-    "to": "To",
-    "enter_address_to_send_to": "Enter address to send to",
-    "accounts": "Accounts",
-    "contacts": "Contacts",
-    "no_contacts_found": "No contacts found",
-    "review": "Review",
-    "all_networks": "All",
-    "no_tokens_match_filters": "No tokens match your filters",
-    "clear_filters": "Clear filters",
-    "no_tokens_available": "No tokens available",
+    "paste": "붙여넣기",
+    "no_assets_available": "전송할 수 있는 자산이 없습니다",
+    "clear": "지우기",
+    "to": "수신:",
+    "enter_address_to_send_to": "전송할 주소를 입력하세요",
+    "accounts": "계정",
+    "contacts": "연락처",
+    "no_contacts_found": "연락처를 찾을 수 없습니다",
+    "review": "검토",
+    "all_networks": "전부",
+    "no_tokens_match_filters": "필터와 일치하는 토큰이 없습니다",
+    "clear_filters": "필터 초기화",
+    "no_tokens_available": "사용 가능한 토큰이 없습니다",
     "sign": "서명",
     "network_not_found_title": "네트워크를 찾을 수 없습니다",
     "network_not_found_description": "체인 id {{chain_id}}의 네트워크를 지갑에서 찾을 수 없습니다. 네트워크를 먼저 추가하세요.",
     "network_missing_id": "체인 id가 없습니다.",
-    "search_tokens_and_nfts": "Search tokens and NFTs",
-    "tokens": "Tokens",
-    "nfts": "NFTs",
-    "show_more_nfts": "Show more NFTs"
+    "search_tokens_and_nfts": "토큰 및 NFT 검색",
+    "tokens": "토큰",
+    "nfts": "NFT",
+    "show_more_nfts": "NFT 더 보기",
+    "token_contract_warning": "이 주소는 토큰 계약 주소입니다. 이 주소로 토큰을 보내면 토큰을 잃게 됩니다.",
+    "invisible_character_error": "ENS 이름에서 보이지 않는 문자가 감지되었습니다. 잠재적인 사기를 피하기 위해 ENS 이름을 확인하세요."
   },
   "deposit": {
     "title": "예금",
@@ -554,27 +559,27 @@
     },
     "token_modal": {
       "select_a_token": "토큰 선택",
-      "select_token": "Select token",
+      "select_token": "토큰 선택",
       "search_by_name_or_address": "이름 또는 주소로 토큰 검색",
       "no_tokens_found": "\"{{searchString}}\"(와)과 일치하는 토큰이 없습니다"
     },
     "networks_filter_bar": {
-      "all_networks": "All networks"
+      "all_networks": "모든 네트워크"
     },
     "networks_filter_selector": {
-      "select_network": "Select network",
-      "select_all": "Select all",
-      "deselect_all": "Deselect all",
-      "apply": "Apply"
+      "select_network": "네트워크 선택",
+      "select_all": "전체 선택",
+      "deselect_all": "전체 선택 해제",
+      "apply": "적용"
     },
     "configuration_modal": {
-      "title": "Options",
-      "view_order_history": "View order history",
+      "title": "옵션",
+      "view_order_history": "주문 내역 보기",
       "contact_support": "지원팀에 문의",
-      "log_out": "Log out",
-      "logged_out_success": "Successfully logged out",
-      "error_sdk_not_initialized": "SDK not initialized",
-      "logged_out_error": "Error logging out"
+      "log_out": "로그아웃",
+      "logged_out_success": "로그아웃했습니다",
+      "error_sdk_not_initialized": "SDK가 초기화되지 않았습니다",
+      "logged_out_error": "로그아웃 오류"
     },
     "region_modal": {
       "select_a_region": "지역 선택",
@@ -596,25 +601,25 @@
     "unsupported_region_modal": {
       "title": "지원되지 않는 지역입니다",
       "location_prefix": "회원님의 추정 위치:",
-      "description": "We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.",
+      "description": "회원님이 계신 지역으로 서비스를 확장하기 위해 노력하고 있습니다. 그동안 암호화폐를 매수할 다른 방법이 있을 수 있으니 확인해 보세요.",
       "change_region": "지역 변경",
       "buy_crypto": "암호화폐 구매"
     },
     "unsupported_state_modal": {
       "title": "지원되지 않는 지역입니다",
-      "location_prefix": "You've selected:",
-      "description": "We're working hard to expand coverage to your region. In the meantime, there are other ways for you to get crypto.",
+      "location_prefix": "선택한 항목:",
+      "description": "회원님이 계신 지역으로 서비스를 확장하기 위해 노력하고 있습니다. 그동안 암호화폐를 매수할 다른 방법이 있으니 확인해 보세요.",
       "change_state": "지역 변경",
-      "try_another_option": "Try another option"
+      "try_another_option": "다른 옵션 사용"
     },
     "incompatible_token_acount_modal": {
-      "title": "Switch your account",
-      "description": "The {{networkName}} account you’re on doesn't support the selected token. Switch your account or token to continue.",
+      "title": "계정을 전환하세요",
+      "description": "현재 사용 중인 {{networkName}} 계정은 선택한 토큰을 지원하지 않습니다. 계속하려면 다른 계정을 사용하거나 다른 토큰을 선택하세요.",
       "cta": "견적은 다음 기간 전에 만료됨을"
     },
     "ssn_info_modal": {
-      "title": "Why we ask",
-      "description": "U.S. laws require Transak to check your identity before changing dollars into crypto. This means U.S. customers need to provide a Social Security number."
+      "title": "정보 요청 사유",
+      "description": "미국 법률에 따라 Transak은 달러를 암호화폐로 환전하기 전 신원 확인이 필요합니다. 따라서 미국 고객의 경우 사회보장번호를 제공해야 합니다."
     },
     "get_started": {
       "navbar_title": "예치",
@@ -658,7 +663,7 @@
       "navbar_title": "예치",
       "description_1": "첫 현금 입금을 위해서는 본인 인증을 해야 합니다.",
       "description_2_transak": "Transak",
-      "description_2_rest": " will facilitate your deposit and your data is sent directly to Transak. We do not process the data you share.",
+      "description_2_rest": " 에서 입금을 처리하며, 회원님의 데이터는 Transak으로 직접 전송됩니다. 당사는 회원님이 공유하는 데이터를 처리하지 않습니다.",
       "description_3_part1": "자세한 내용은 ",
       "description_3_privacy_policy": "개인정보 처리방침",
       "description_3_part2": " 을(를) 참고하세요.",
@@ -680,11 +685,11 @@
       "title": "기본 정보를 입력하세요",
       "continue": "계속",
       "subtitle": "다음으로 회원님에 대한 기본 정보가 필요합니다.",
-      "first_name": "First name",
-      "last_name": "Last name",
-      "phone_number": "Phone number",
+      "first_name": "이름",
+      "last_name": "성",
+      "phone_number": "전화번호",
       "date_of_birth": "생년월일",
-      "social_security_number": "Social security number (SSN)",
+      "social_security_number": "사회보장번호(SSN)",
       "enter_phone_number": "전화번호 입력",
       "select_region": "지역 선택",
       "first_name_required": "이름은 필수입니다",
@@ -696,7 +701,7 @@
       "dob_required": "생년월일은 필수입니다",
       "dob_invalid": "유효한 생년월일을 입력해 주세요",
       "ssn_required": "사회보장번호는 필수입니다",
-      "unexpected_error": "An unexpected error occurred. Please try again."
+      "unexpected_error": "예기치 못한 오류가 발생했습니다. 다시 시도하세요."
     },
     "enter_address": {
       "navbar_title": "본인 인증",
@@ -772,11 +777,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}} 은행 송금",
-      "button": "Confirm transfer",
+      "button": "전송 컨펌",
       "button_cancel": "주문 취소",
       "main_title": "주문을 완료하려면",
       "main_content_1": "아래 정보를 사용하여 원하는 은행에서 송금을 시작하세요.",
-      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
+      "main_content_2": "완료되면 다시 돌아와서 '전송 컨펌'을 클릭하여 컨펌하세요.",
       "show_bank_info": "은행 정보 보기",
       "hide_bank_info": "은행 정보 숨기기",
       "transfer_amount": "송금액",
@@ -788,7 +793,7 @@
       "bic": "BIC",
       "account_type": "계좌 유형",
       "bank_name": "은행 이름",
-      "beneficiary_address": "Beneficiary address",
+      "beneficiary_address": "수취인 주소",
       "bank_address": "은행 주소",
       "info_banner_text": "계좌 소유자가 '{{accountHolderName}}'(으)로 표시되어야 합니다. 이는 은행이 송금을 처리하는 데 도움이 됩니다.",
       "error_message": "은행 송금을 컨펌할 수 없습니다. 다시 시도해 주세요.",
@@ -814,41 +819,47 @@
     }
   },
   "perps": {
-    "title": "Perps",
-    "perps_trading": "Perps Trading",
-    "perp_account_balance": "Perp account balance",
-    "manage_balance": "Manage Balance",
+    "title": "무기한 선물",
+    "perps_trading": "무기한 선물 거래",
+    "perp_account_balance": "무기한 선물 계정 잔액",
+    "manage_balance": "잔액 관리",
     "total_balance": "총 잔액",
-    "available_balance": "사용 가능한 잔액",
+    "available_balance": "Available balance",
     "margin_used": "사용된 마진",
-    "unrealized_pnl": "Unrealized PnL",
+    "gtm_content": {
+      "title": "무기한 선물 거래 시작",
+      "title_description": "최대 40배 레버리지로 가격 변동을 예측하세요.",
+      "not_now": "나중에",
+      "try_now": "무기한 선물 거래하기"
+    },
+    "unrealized_pnl": "미실현 손익",
     "withdraw": "출금",
-    "refresh_balance": "Refresh Balance",
+    "refresh_balance": "잔액 새로고침",
     "add_funds": "자금 추가",
-    "your_positions": "Your positions",
+    "your_positions": "내 포지션",
     "loading_positions": "포지션 불러오는 중...",
-    "refreshing_positions": "Refreshing positions...",
-    "no_open_orders": "No open orders",
+    "refreshing_positions": "포지션 새로고침 중...",
+    "no_open_orders": "진행 중인 주문 없음",
     "deposit": {
-      "title": "Amount to deposit",
-      "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
+      "title": "예치 금액",
+      "get_usdc_hyperliquid": "USDC 받기 • Hyperliquid",
       "insufficient_funds": "자금 부족",
       "enter_amount": "금액 입력",
       "fetching_quote": "견적 가져오기",
-      "submitting": "Submitting transaction",
-      "get_usdc": "Get USDC",
+      "submitting": "트랜잭션 제출 중",
+      "get_usdc": "USDC 받기",
       "network_fee": "네트워크 수수료",
-      "estimated_time": "Estimated time",
+      "estimated_time": "예상 시간",
       "rate": "환율",
       "slippage": "슬리피지",
-      "slippage_info": "If the price changes between the time your order is placed and confirmed it's called slippage. Your transaction will automatically cancel if slippage exceeds the tolerance you set here.",
-      "slippage_auto": "Auto",
+      "slippage_info": "주문이 제출되고 확정되는 시점 사이에 가격이 변동되는 것을 슬리피지라고 합니다. 슬리피지가 여기 설정한 허용치를 초과하면 트랜잭션이 자동으로 취소됩니다.",
+      "slippage_auto": "자동",
       "apply": "적용",
       "max_button": "최대",
       "done_button": "완료",
-      "metamask_fee": "MetaMask fee",
-      "metamask_fee_tooltip": "MetaMask does not charge any fees for deposits to Hyperliquid",
-      "minimum_deposit_error": "Minimum deposit amount is {{amount}} USDC",
+      "metamask_fee": "MetaMask 수수료",
+      "metamask_fee_tooltip": "MetaMask는 Hyperliquid 입금에 대해 수수료를 부과하지 않습니다",
+      "minimum_deposit_error": "최소 예치금은 {{amount}} USDC 입니다",
       "processing_title": "예치 처리 중",
       "preview": {
         "title": "입금 미리보기"
@@ -856,121 +867,121 @@
       "processing": {
         "title": "입금 처리"
       },
-      "deposit_completed": "Deposit completed successfully!",
-      "deposit_failed": "Deposit Failed",
-      "retry_deposit": "Retry Deposit",
-      "go_back": "Go Back",
-      "view_balance": "View Balance",
-      "calculating_fee": "Calculating...",
+      "deposit_completed": "예치가 완료되었습니다!",
+      "deposit_failed": "예치 실패",
+      "retry_deposit": "예치 다시 시도",
+      "go_back": "뒤로 가기",
+      "view_balance": "잔액 보기",
+      "calculating_fee": "계산 중...",
       "quote_expired_modal": {
-        "title": "Quote Expired",
-        "description": "The quote for your deposit has expired after {{refreshRate}} seconds. Get a new quote to continue.",
-        "get_new_quote": "Get New Quote"
+        "title": "견적 만료됨",
+        "description": "{{refreshRate}}초가 지나 입금 견적이 만료되었습니다. 계속하려면 새 견적을 받으세요.",
+        "get_new_quote": "새 견적 받기"
       },
       "steps": {
-        "preparing": "Preparing deposit...",
-        "swapping": "Swapping {{token}} to USDC",
-        "bridging": "Bridging to Hyperliquid",
-        "depositing": "Depositing into perps account",
-        "depositing_direct": "Transferring USDC directly to your HyperLiquid account..."
+        "preparing": "예치 준비 중...",
+        "swapping": "{{token}} 토큰을 USDC로 스왑 중",
+        "bridging": "Hyperliquid로 브릿지",
+        "depositing": "무기한 선물 거래 계정에 예치 중",
+        "depositing_direct": "USDC를 HyperLiquid 계정으로 직접 전송 중..."
       },
       "step_descriptions": {
-        "preparing": "Preparing your deposit transaction...",
-        "swapping": "Converting your tokens to USDC for deposit...",
-        "bridging": "Moving USDC to Arbitrum network...",
-        "depositing": "Transferring USDC to your HyperLiquid account...",
-        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
-        "error": "Something went wrong during the deposit process. Please try again."
+        "preparing": "예치 트랜잭션 준비 중...",
+        "swapping": "예치를 위해 토큰을 USDC로 전환 중...",
+        "bridging": "USDC를 Arbitrum 네트워크로 이동 중...",
+        "depositing": "USDC를 HyperLiquid 계정으로 전송 중...",
+        "success": "{{amount}} USDC를 HyperLiquid 계정으로 예치했습니다",
+        "error": "예치 과정에서 오류가 발생했습니다. 다시 시도해 주세요."
       },
-      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
-      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
-      "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
+      "quote_fetch_error": "예치 견적을 불러오지 못했습니다. 다시 시도해 주세요.",
+      "bridge_quote_timeout": "브릿지 견적을 불러오지 못했습니다. 다시 시도하시거나 다른 토큰을 선택해 주세요.",
+      "no_quotes_available": "이 스왑에 사용할 경로가 없습니다. 다른 토큰이나 금액으로 시도해 보세요.",
       "success": {
-        "title": "Deposit Successful!",
-        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "title": "예치 성공!",
+        "description": "USDC가 HyperLiquid 거래 계정에 입금되었습니다",
         "amount": "수량",
-        "processing_time": "Processing Time",
+        "processing_time": "처리 시간",
         "status": "상태",
         "completed": "완료",
-        "view_balance": "View Balance",
-        "view_transaction": "View Transaction"
+        "view_balance": "잔액 보기",
+        "view_transaction": "트랜잭션 보기"
       },
-      "success_toast": "Deposit Complete",
-      "success_message": "Your balance will update in a few moments",
-      "error_toast": "Deposit Failed",
-      "error_generic": "Something went wrong. Please try again.",
-      "in_progress": "Processing deposit",
-      "processing_message": "Processing your deposit..."
+      "success_toast": "예치 완료",
+      "success_message": "잔액이 곧 업데이트됩니다",
+      "error_toast": "예치 실패",
+      "error_generic": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "in_progress": "예치 처리 중",
+      "processing_message": "예치 처리 중..."
     },
     "withdrawal": {
       "title": "출금",
       "insufficient_funds": "자금 부족",
       "enter_amount": "금액 입력",
-      "review": "Review withdrawal",
+      "review": "출금 검토",
       "withdraw": "출금",
-      "withdraw_usdc": "Withdraw USDC",
-      "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
-      "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
-      "confirm": "Confirm withdrawal",
-      "processing_title": "Withdrawal initiated",
-      "processing_description": "Your USDC will arrive in approximately 5 minutes",
-      "success_title": "Withdrawal successful",
-      "success_description": "Your {{amount}} USDC has been withdrawn from Hyperliquid",
+      "withdraw_usdc": "USDC 출금",
+      "minimum_amount_error": "최소 출금액은 ${{amount}}입니다",
+      "amount_too_low": "수수료를 충당하려면 금액이 ${{minAmount}}보다 커야 합니다",
+      "confirm": "출금 컨펌",
+      "processing_title": "출금 시작",
+      "processing_description": "USDC가 약 5분 후에 입금될 예정입니다",
+      "success_title": "출금 성공",
+      "success_description": "Hyperliquid에서 {{amount}} USDC가 출금되었습니다",
       "network_fee": "네트워크 수수료",
-      "metamask_fee": "MetaMask fee",
-      "total_fees": "Total fees",
-      "receiving_amount": "You will receive",
-      "estimated_time": "Estimated time",
+      "metamask_fee": "MetaMask 수수료",
+      "total_fees": "총 수수료",
+      "receiving_amount": "받을 금액:",
+      "estimated_time": "예상 시간",
       "done": "완료",
-      "initiated": "Withdrawal initiated",
-      "wait_time_message": "Your funds should arrive within 5 minutes",
-      "submitting": "Submitting...",
-      "error": "Withdrawal failed",
-      "success_toast": "Withdrawal successful",
-      "arrival_time": "{{amount}} {{symbol}} will arrive within 5 minutes",
-      "bridge_info": "HyperLiquid validators are processing your withdrawal",
-      "error_generic": "An error occurred during withdrawal",
-      "invalid_amount": "Please enter a valid amount",
+      "initiated": "출금 시작",
+      "wait_time_message": "자금이 5분 이내에 입금될 예정입니다",
+      "submitting": "제출 중...",
+      "error": "출금 실패",
+      "success_toast": "출금 성공",
+      "arrival_time": "{{amount}} {{symbol}}(이)가 5분 이내에 입금될 예정입니다",
+      "bridge_info": "HyperLiquid 밸리데이터가 출금을 처리하고 있습니다",
+      "error_generic": "출금 중 오류가 발생했습니다",
+      "invalid_amount": "유효한 금액을 입력해 주세요",
       "max": "최대",
       "percentage_10": "10%",
       "percentage_25": "25%",
-      "available_balance": "Available perps balance: {{amount}}",
-      "receive": "Receive",
-      "provider_fee": "Provider fee",
-      "you_will_receive": "You'll receive",
-      "continue": "Continue",
-      "funds_received": "{{amount}} {{symbol}} received"
+      "available_balance": "사용 가능한 무기한 선물 잔액: {{amount}}",
+      "receive": "받기",
+      "provider_fee": "공급자 수수료",
+      "you_will_receive": "받을 금액:",
+      "continue": "계속",
+      "funds_received": "{{amount}} {{symbol}} 받음"
     },
     "quote": {
       "network_fee": "네트워크 수수료",
-      "estimated_time": "Estimated time",
+      "estimated_time": "예상 시간",
       "rate": "환율",
-      "metamask_fee": "MetaMask fee",
-      "metamask_fee_tooltip": "MetaMask does not charge any fees for Hyperliquid transactions",
-      "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
-      "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
+      "metamask_fee": "MetaMask 수수료",
+      "metamask_fee_tooltip": "MetaMask는 Hyperliquid 트랜잭션에 수수료를 부과하지 않습니다",
+      "metamask_fee_tooltip_deposit": "MetaMask는 Hyperliquid 입금에 대해 수수료를 부과하지 않습니다",
+      "metamask_fee_tooltip_withdrawal": "MetaMask는 Hyperliquid 출금에 대해 수수료를 부과하지 않습니다"
     },
     "order": {
       "title": "새 주문",
       "leverage": "레버리지",
-      "limit_price": "Limit price",
-      "enter_price": "Enter price",
-      "trigger_price": "Trigger price",
+      "limit_price": "지정가",
+      "enter_price": "가격 입력",
+      "trigger_price": "트리거 가격",
       "liquidation_price": "청산 가격",
       "fees": "수수료",
       "market": "시장",
-      "limit": "Limit",
-      "open_orders": "Orders",
-      "max": "max",
-      "cancel_order": "Cancel order",
-      "filled": "filled",
-      "reduce_only": "Reduce only",
-      "yes": "Yes",
+      "limit": "한도",
+      "open_orders": "주문",
+      "max": "최대",
+      "cancel_order": "주문 취소",
+      "filled": "체결",
+      "reduce_only": "청산 전용",
+      "yes": "예",
       "status": {
-        "open": "Open",
-        "filled": "Filled",
-        "canceled": "Canceled",
-        "rejected": "Rejected"
+        "open": "미체결",
+        "filled": "체결",
+        "canceled": "취소됨",
+        "rejected": "거부됨"
       },
       "validation": {
         "failed": "주문 검증 실패",
@@ -982,65 +993,65 @@
         "invalid_take_profit": "{{positionType}} 포지션의 경우 익절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "invalid_stop_loss": "{{positionType}} 포지션의 경우 손절 가격은 {{direction}}의 현재 가격으로 지정해야 합니다",
         "liquidation_warning": "포지션이 청산 가격에 가까워졌습니다",
-        "limit_price_required": "Please set a limit price for limit orders",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "limit_price_required": "지정가 주문을 위해 지정가를 설정해 주세요",
+        "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다"
       },
       "error": {
         "placement_failed": "주문 실패",
         "network_error": "네트워크 오류",
         "unknown": "알 수 없는 오류가 발생했습니다",
         "dismiss": "해지",
-        "invalid_asset": "Invalid asset",
-        "go_back": "Go Back",
-        "asset_not_tradable": "{{asset}} is not a tradable asset"
+        "invalid_asset": "잘못된 자산",
+        "go_back": "뒤로 가기",
+        "asset_not_tradable": "{{asset}}은(는) 거래할 수 있는 자산이 아닙니다"
       },
-      "off": "Off",
-      "estimated_execution_time": "Estimated execution time",
-      "one_to_three_seconds": "1 to 3 seconds",
+      "off": "비활성화",
+      "estimated_execution_time": "예상 체결 시간",
+      "one_to_three_seconds": "1~3초",
       "margin": "마진",
-      "take_profit": "Take profit",
-      "stop_loss": "Stop loss",
-      "tp_sl": "TP/SL",
+      "take_profit": "익절",
+      "stop_loss": "손절",
+      "tp_sl": "익절/손절",
       "button": {
         "long": "{{asset}} 롱",
         "short": "{{asset}} 숏"
       },
       "tpsl_modal": {
-        "title": "Take profit & Stop loss",
+        "title": "익절 및 손절",
         "save": "저장",
-        "current_price": "Current price: {{price}}",
-        "on": "ON",
-        "off": "OFF",
-        "take_profit_helper": "Close position when price reaches this level",
-        "stop_loss_helper": "Limit losses by closing position at this price"
+        "current_price": "현재가: {{price}}",
+        "on": "활성화",
+        "off": "비활성화",
+        "take_profit_helper": "가격이 이 수준에 도달하면 포지션을 종료합니다",
+        "stop_loss_helper": "이 가격에서 포지션을 종료해 손실을 제한합니다"
       },
       "limit_price_modal": {
-        "title": "Set limit price",
+        "title": "지정가 설정",
         "set": "설정",
-        "market_price": "Market price: {{price}}",
+        "market_price": "시장가: {{price}}",
         "market": "시장",
-        "current_price": "Current price",
-        "ask_price": "Ask price",
-        "bid_price": "Bid price",
-        "difference_from_market": "Difference from market:"
+        "current_price": "현재가",
+        "ask_price": "매도 호가",
+        "bid_price": "매수 호가",
+        "difference_from_market": "시장가 대비 차이:"
       },
       "leverage_modal": {
-        "title": "Set Leverage",
+        "title": "레버리지 설정",
         "confirm": "컨펌",
         "entry_price": "진입 가격",
-        "current_price": "Current price",
-        "liquidation_price": "Liquidation Price",
-        "liquidation_distance": "Liquidation Distance"
+        "current_price": "현재가",
+        "liquidation_price": "청산 가격",
+        "liquidation_distance": "청산 가격과의 차이"
       },
       "type": {
-        "title": "Order Type",
+        "title": "주문 유형",
         "market": {
           "title": "시장",
-          "description": "Execute immediately at current market price"
+          "description": "현재 시장가로 즉시 체결"
         },
         "limit": {
-          "title": "Limit",
-          "description": "Execute only at your specified price or better"
+          "title": "한도",
+          "description": "지정 가격 이상에서만 체결"
         }
       },
       "success": {
@@ -1052,93 +1063,98 @@
         "orderId": "주문 ID",
         "viewPositions": "포지션 보기",
         "placeAnother": "다른 주문 하기",
-        "backToPerps": "Back to Perps"
+        "backToPerps": "무기한 선물로 돌아가기"
       },
-      "submitted": "Order Submitted",
-      "confirmed": "Order Confirmed"
+      "submitted": "주문 제출 완료",
+      "confirmed": "주문 컨펌 완료"
     },
     "close_position": {
-      "title": "Close position",
-      "button": "Close position",
-      "closing": "Closing position...",
-      "cancel": "Cancel",
-      "margin": "Margin",
-      "pnl": "PnL",
-      "estimated_pnl": "Estimated PnL",
+      "title": "포지션 종료",
+      "button": "포지션 종료",
+      "closing": "포지션 종료 중...",
+      "cancel": "취소",
+      "margin": "마진",
+      "pnl": "손익",
+      "estimated_pnl": "예상 손익",
       "fees": "수수료",
-      "receive": "You'll receive",
-      "you_receive": "You'll receive",
-      "select_amount": "Select amount to close",
-      "error_unknown": "Failed to close position",
-      "success_title": "Position Closed Successfully",
-      "success_description": "Your {{direction}} position for {{asset}} has been closed",
-      "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
-      "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!",
-      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
-      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
-      "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
-      "negative_receive_amount": "The fees exceed your position value",
-      "no_amount_selected": "Please select an amount to close"
+      "receive": "받을 금액:",
+      "you_receive": "받을 금액:",
+      "select_amount": "종료할 금액 선택",
+      "error_unknown": "포지션 종료에 실패했습니다",
+      "success_title": "포지션을 종료했습니다",
+      "success_description": "{{asset}}에 대한 {{direction}} 포지션이 종료되었습니다",
+      "success_message": "{{coin}} 포지션을 종료했습니다. 주문 ID: {{orderId}}",
+      "error_title": "포지션 종료 실패",
+      "fox_points_earned": "{{points}} Fox 포인트 획득!",
+      "minimum_remaining_warning": "남은 포지션은 최소 ${{minimum}} 이상이어야 합니다. 현재: ${{remaining}}",
+      "minimum_remaining_error": "부분 종료 불가: 남은 포지션(${{remaining}})이 최소 주문 수량(${{minimum}})보다 작습니다. 대신 전체 포지션을 청산하세요.",
+      "must_close_full_below_minimum": "포지션 값이 $10 미만입니다. 전체 포지션을 종료해야 합니다.",
+      "negative_receive_amount": "수수료가 포지션 값을 초과합니다",
+      "no_amount_selected": "종료할 금액을 선택하세요"
     },
     "tpsl": {
-      "title": "Take profit and stop loss",
-      "set": "Set",
-      "updating": "Updating...",
-      "off": "Off",
-      "current_price": "Current price",
-      "liquidation_price": "Liquidation price",
-      "take_profit_long": "Take profit when price increases by",
-      "take_profit_short": "Take profit when price decreases by",
-      "stop_loss_long": "Stop loss when price drops by",
-      "stop_loss_short": "Stop loss when price increases by",
-      "trigger_price_placeholder": "Trigger price",
-      "profit_percent_placeholder": "Profit",
-      "loss_percent_placeholder": "Loss",
+      "title": "익절 및 손절",
+      "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
+      "set": "설정",
+      "updating": "업데이트 중...",
+      "off": "비활성화",
+      "current_price": "현재가",
+      "leverage": "Leverage",
+      "margin": "Margin",
+      "liquidation_price": "청산 가격",
+      "take_profit_long": "Take profit",
+      "take_profit_short": "Take profit",
+      "stop_loss_long": "Stop loss",
+      "stop_loss_short": "Stop loss",
+      "trigger_price_placeholder": "트리거 가격",
+      "profit_percent_placeholder": "이익",
+      "loss_percent_placeholder": "손실",
+      "profit_roe_placeholder": "% Profit",
+      "loss_roe_placeholder": "% Loss",
       "usd_label": "($)"
     },
     "token_selector": {
-      "no_tokens": "No tokens available"
+      "no_tokens": "사용 가능한 토큰이 없습니다"
     },
     "errors": {
-      "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
-      "tokenNotSupported": "Token {{token}} not supported for deposits",
+      "minimumDeposit": "최소 예치금은 {{amount}} USDC 입니다",
+      "tokenNotSupported": "{{token}} 토큰은 예치가 지원되지 않습니다",
       "unknownError": "알 수 없는 오류가 발생했습니다",
-      "clientNotInitialized": "HyperLiquid SDK clients not properly initialized",
-      "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
-      "infoClientNotAvailable": "InfoClient not available after initialization",
-      "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
-      "failedToSubscribePosition": "Failed to subscribe to position updates",
-      "failedToUnsubscribePosition": "Failed to unsubscribe from position updates",
-      "failedToSubscribeOrderFill": "Failed to subscribe to order fill updates",
-      "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
-      "failedToEstablishAllMids": "Failed to establish global allMids subscription",
-      "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
-      "failed_to_toggle_network": "Failed to toggle network",
-      "noAccountSelected": "No account selected",
-      "unsupportedMethod": "Unsupported method: {{method}}",
-      "invalidAddressFormat": "Invalid address format: {{address}}",
+      "clientNotInitialized": "HyperLiquid SDK 클라이언트가 제대로 초기화되지 않았습니다",
+      "exchangeClientNotAvailable": "초기화 후에는 교환 클라이언트를 사용할 수 없습니다",
+      "infoClientNotAvailable": "초기화 후에는 정보 클라이언트를 사용할 수 없습니다",
+      "subscriptionClientNotInitialized": "구독 클라이언트가 초기화되지 않았습니다",
+      "failedToSubscribePosition": "포지션 업데이트 구독에 실패했습니다",
+      "failedToUnsubscribePosition": "포지션 업데이트 구독 해제에 실패했습니다",
+      "failedToSubscribeOrderFill": "주문 체결 업데이트 구독에 실패했습니다",
+      "failedToUnsubscribeOrderFill": "주문 체결 업데이트 구독 해제에 실패했습니다",
+      "failedToEstablishAllMids": "글로벌 allMids 구독 시작에 실패했습니다",
+      "failedToEstablishMarketData": "{{symbol}}의 시장 데이터 구독 시작에 실패했습니다",
+      "failed_to_toggle_network": "네트워크 전환에 실패했습니다",
+      "noAccountSelected": "선택한 계정이 없습니다",
+      "unsupportedMethod": "지원되지 않는 방법: {{method}}",
+      "invalidAddressFormat": "잘못된 주소 형식: {{address}}",
       "depositValidation": {
-        "assetIdRequired": "AssetId is required for deposit validation",
-        "amountRequired": "Amount is required and must be greater than 0",
-        "amountPositive": "Amount must be a positive number"
+        "assetIdRequired": "예치 검증에는 자산 ID가 필요합니다",
+        "amountRequired": "금액을 입력해야 하며, 0보다 큰 값이어야 합니다",
+        "amountPositive": "금액은 0보다 커야 합니다"
       },
       "withdrawValidation": {
-        "missingParams": "Missing required parameters for withdrawal",
-        "assetIdRequired": "assetId is required for withdrawals",
-        "amountRequired": "amount is required for withdrawals",
-        "amountPositive": "Amount must be a positive number",
-        "invalidDestination": "Invalid destination address format: {{address}}",
-        "insufficientBalance": "Insufficient balance. Available: {{available}}, Requested: {{requested}}",
-        "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
+        "missingParams": "출금에 필요한 매개변수가 누락되었습니다",
+        "assetIdRequired": "출금하려면 자산 ID가 필요합니다",
+        "amountRequired": "출금하려면 금액이 필요합니다",
+        "amountPositive": "금액은 0보다 커야 합니다",
+        "invalidDestination": "잘못된 대상 주소 형식: {{address}}",
+        "insufficientBalance": "잔액이 부족합니다. 사용 가능 잔액: {{available}}, 요청 금액: {{requested}}",
+        "assetNotSupported": "{{assetId}} 자산은 출금할 수 없습니다. 출금 가능 자산: {{supportedAssets}}"
       },
       "orderValidation": {
-        "coinRequired": "Coin is required for orders",
-        "sizePositive": "Size must be a positive number",
-        "pricePositive": "Price must be a positive number if provided",
-        "unknownCoin": "Unknown coin: {{coin}}"
+        "coinRequired": "주문하려면 코인이 필요합니다",
+        "sizePositive": "규모는 0보다 커야 합니다",
+        "pricePositive": "가격을 입력할 때는 0보다 커야 합니다",
+        "unknownCoin": "알 수 없는 코인: {{coin}}"
       },
-      "networkToggleFailed": "Failed to toggle network: {{error}}",
+      "networkToggleFailed": "네트워크 전환에 실패했습니다: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
       "positionsFailed": "Failed to get positions",
       "accountStateFailed": "Failed to get account state",
@@ -1146,13 +1162,14 @@
       "bridgeContractNotFound": "Unable to get HyperLiquid bridge contract address",
       "providerNotAvailable": "Provider {{providerId}} not available",
       "withdrawFailed": "Failed to withdraw",
-      "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
+      "connectionRequired": "usePerpsConnection은 PerpsConnectionProvider 내에서 사용되어야 합니다",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "예치 실패",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
-        "retry": "Retry"
+        "title": "무기한 선물이 일시적으로 중단되었습니다",
+        "description": "We're working to get it back online soon.",
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1183,9 +1200,10 @@
         "error_title": "포지션 불러오기 오류",
         "empty_title": "열린 포지션 없음",
         "empty_description": "아직 열린 포지션이 없습니다.\n거래를 시작한 후 여기서 포지션을 확인하세요.",
-        "first_time_title": "Perps",
+        "first_time_title": "무기한 선물",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "열린 포지션",
         "position_count": "{{count}}개 포지션",
         "position_count_plural": "{{count}}개 포지션"
@@ -1224,7 +1242,7 @@
       "long": "Long",
       "short": "Short",
       "add_funds": "Add Funds",
-      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "add_funds_to_start_trading_perps": "무기한 선물 거래를 시작하려면 자금을 추가하세요",
       "position": "Position",
       "orders": "Orders"
     },
@@ -1277,8 +1295,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1304,21 +1322,27 @@
       "failed": "연결 실패",
       "error_message": "무기한 선물 거래 서비스에 연결할 수 없습니다.",
       "retry_connection": "연결 재시도",
-      "retrying_connection": "연결 중..."
+      "retrying_connection": "연결 중...",
+      "connecting_to_perps": "Connecting to Perps"
     },
     "chart": {
-      "no_data": "사용 가능한 차트 데이터가 없습니다"
+      "no_data": "사용 가능한 차트 데이터가 없습니다",
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
-    "token_volume": "Token Volume",
-    "last_price_24h_change": "Last Price / 24h Change",
+    "volume": "Volume",
+    "price_24h_change": "Price / 24h change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search",
+    "search_by_token_symbol": "Search by token symbol",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "simulate_connection_error": "Simulate Connection Error"
     },
     "transactions": {
       "title": "Perps",
@@ -1498,6 +1522,8 @@
     "alphabetically": "알파벳순(A-Z)",
     "add_to_get_started": "암호화폐를 추가하여 시작하세요",
     "token_is_needed_to_continue": "계속하려면 {{tokenSymbol}}이(가) 필요합니다",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "다음",
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
@@ -1887,6 +1913,9 @@
     "next": "다음",
     "unlock": "잠금해제",
     "forget": "이 기기 제거"
+  },
+  "address_selector": {
+    "select_an_address": "Select an address"
   },
   "app_settings": {
     "enabling_notifications": "알림 활성화 중...",
@@ -2838,6 +2867,7 @@
     "tx_review_staking_unstake": "언스테이크",
     "tx_review_lending_deposit": "대출 예치",
     "tx_review_lending_withdraw": "대출 출금",
+    "tx_review_perps_deposit": "Funded Perps account",
     "sent_ether": "보낸 이더",
     "self_sent_ether": "나에게 보낸 이더",
     "received_ether": "받은 이더",
@@ -3096,7 +3126,8 @@
     "non_permitted_network_description": "현재 네트워크에서는 이 사이트를 사용할 수 없습니다. 네트워크 권한을 추가하거나 이미 허용된 네트워크를 선택하세요.",
     "edit_permissions": "권한 수정",
     "permitted_networks_info_sheet_description": "이는 이전에 이 사이트에서 사용할 수 있는 권한을 부여한 네트워크 목록입니다. 목록에서 한 사이트를 선택하거나 이 사이트에 대한 네트워크 권한을 수정하세요.",
-    "connect_an_account": "계정 연결"
+    "connect_an_account": "계정 연결",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "이 웹사이트를 MetaMask와 연결"
@@ -3566,7 +3597,19 @@
       "lido_withdrawal_requested_title": "출금 요청됨",
       "lido_withdrawal_requested_description": "Lido 출금 요청이 제출되었습니다",
       "lido_withdrawal_completed_title": "출금 완료",
-      "lido_withdrawal_completed_description": "Lido 출금이 완료되었습니다"
+      "lido_withdrawal_completed_description": "Lido 출금이 완료되었습니다",
+      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
+      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
+      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
+      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
+      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
+      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
+      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
+      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
     "prompt_title": "푸시 알림 받기",
     "notifications_enabled_error_title": "문제가 발생했습니다",
@@ -3809,6 +3852,7 @@
     "token_marketplace": "토큰 마켓플레이스",
     "Purchased": "매수함",
     "Sold": "매도함",
+    "empty_orders_list": "You don't have any orders",
     "empty_buy_orders_list": "매수 주문이 없습니다",
     "empty_sell_orders_list": "매도 주문이 없습니다",
     "purchased_currency": "구매한 {{currency}}",
@@ -5012,7 +5056,8 @@
       "switching_to": "다음으로 전환 중",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "서명 요청",
@@ -5177,7 +5222,10 @@
     "quote_details": "견적 세부 정보",
     "price_impact": "가격 영향",
     "time": "시간",
-    "quote_info_content": "이 견적은 검색 결과 중 가장 높은 수익을 제공합니다. 브릿징 수수료와 0.875% MetaMask 수수료가 포함된 스왑 비율을 기반으로 하며, 가스비는 포함되어 있지 않습니다. 가스비는 네트워크 활동과 트랜잭션 복잡성에 따라 달라집니다.",
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "quote_info_content": "This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
     "quote_info_title": "이 견적 추천 이유",
     "see_other_quotes": "다른 견적 보기",
     "receive_at": "수령 주소:",
@@ -5364,6 +5412,7 @@
       "wallet_name": "지갑 이름",
       "balance": "잔액",
       "create_account": "계정 만들기",
+      "creating_account": "Creating account...",
       "back_up": "백업",
       "reveal_recovery_phrase_with_index": "복구구문 {{index}} 공개"
     },
@@ -5374,9 +5423,13 @@
     },
     "edit_account_name": {
       "title": "계정 이름 편집",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "이름",
       "save_button": "저장",
-      "error_duplicate_name": "이미 존재하는 계정 이름입니다"
+      "error": "Failed to edit account name",
+      "error_duplicate_name": "이미 존재하는 계정 이름입니다",
+      "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
       "title": "계정 제거",
@@ -5485,8 +5538,53 @@
     "tryAgain": "Try again",
     "close": "Close"
   },
+  "rewards": {
+    "not_implemented": "Coming soon",
+    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+    "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
+    "main_title": "Rewards",
+    "referral_title": "Referrals",
+    "tab_overview_title": "Overview",
+    "tab_activity_title": "Activity",
+    "tab_levels_title": "Levels",
+    "referral_stats_earned_from_referrals": "Earned from referrals",
+    "referral_stats_referrals": "Referrals",
+    "referral": {
+      "actions": {
+        "share_referral_link": "Refer a friend",
+        "share_referral_subject": "Join MetaMask Rewards"
+      },
+      "info": {
+        "title": "Share your code to earn more",
+        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+      }
+    }
+  },
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    },
+    "label": {
+      "bridge_fee": "Bridge fee",
+      "network_fee": "Network fee",
+      "paid_with": "Paid with",
+      "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
+    }
   }
 }

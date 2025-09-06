@@ -56,9 +56,11 @@
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
     },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
+    },
     "no_pay_token_quotes": {
-      "title": "We couldn't find any quotes.",
-      "message": "Change the amount or select a different token for payment."
+      "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option."
     }
   },
   "blockaid_banner": {
@@ -477,7 +479,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Αποστολή",
@@ -539,7 +542,9 @@
     "search_tokens_and_nfts": "Search tokens and NFTs",
     "tokens": "Tokens",
     "nfts": "NFTs",
-    "show_more_nfts": "Show more NFTs"
+    "show_more_nfts": "Show more NFTs",
+    "token_contract_warning": "This address is a token contract address. If you send tokens to this address, you will lose them.",
+    "invisible_character_error": "We detected an invisible character in the ENS name. Check the ENS name to avoid a potential scam."
   },
   "deposit": {
     "title": "Κατάθεση",
@@ -819,8 +824,14 @@
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Συνολικό υπόλοιπο",
-    "available_balance": "Διαθέσιμο υπόλοιπο",
+    "available_balance": "Available balance",
     "margin_used": "Περιθώριο που χρησιμοποιήθηκε",
+    "gtm_content": {
+      "title": "WE'VE GOT PERPS",
+      "title_description": "Predict price moves with up to 40x leverage.",
+      "not_now": "Not now",
+      "try_now": "Trade perps"
+    },
     "unrealized_pnl": "Unrealized PnL",
     "withdraw": "Ανάληψη",
     "refresh_balance": "Refresh Balance",
@@ -1083,18 +1094,23 @@
     },
     "tpsl": {
       "title": "Take profit and stop loss",
+      "description": "Pick a percentage gain or loss, or enter a custom trigger price to automatically close your position.",
       "set": "Set",
       "updating": "Updating...",
       "off": "Off",
       "current_price": "Current price",
+      "leverage": "Leverage",
+      "margin": "Margin",
       "liquidation_price": "Liquidation price",
-      "take_profit_long": "Take profit when price increases by",
-      "take_profit_short": "Take profit when price decreases by",
-      "stop_loss_long": "Stop loss when price drops by",
-      "stop_loss_short": "Stop loss when price increases by",
+      "take_profit_long": "Take profit",
+      "take_profit_short": "Take profit",
+      "stop_loss_long": "Stop loss",
+      "stop_loss_short": "Stop loss",
       "trigger_price_placeholder": "Trigger price",
       "profit_percent_placeholder": "Profit",
       "loss_percent_placeholder": "Loss",
+      "profit_roe_placeholder": "% Profit",
+      "loss_roe_placeholder": "% Loss",
       "usd_label": "($)"
     },
     "token_selector": {
@@ -1150,9 +1166,10 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Η κατάθεση απέτυχε",
       "connectionFailed": {
-        "title": "Connection Failed",
-        "description": "Unable to connect to Perps services. Please check your connection and try again.",
-        "retry": "Retry"
+        "title": "Perps is temporarily offline",
+        "description": "We're working to get it back online soon.",
+        "retry": "Retry",
+        "go_back": "Go Back"
       },
       "networkError": {
         "title": "Network Error",
@@ -1186,6 +1203,7 @@
         "first_time_title": "Perps",
         "first_time_description": "Predict price moves with up to 40x leverage.",
         "start_trading": "Start trading",
+        "start_new_trade": "Start a new trade",
         "open_positions": "Ανοιχτές θέσεις",
         "position_count": "{{count}} θέση",
         "position_count_plural": "{{count}} θέσεις"
@@ -1277,8 +1295,8 @@
         "title": "Funding rate",
         "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
       },
-      "perps_geo_block": {
-        "title": "Perps geo block",
+      "geo_block": {
+        "title": "Perps unavailable in your region",
         "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
       },
       "receive": {
@@ -1304,21 +1322,27 @@
       "failed": "Η σύνδεση απέτυχε",
       "error_message": "Δεν είναι δυνατή η σύνδεση με την υπηρεσία συναλλαγών συμβολαίων αορίστου διάρκειας.",
       "retry_connection": "Επανάληψη σύνδεσης",
-      "retrying_connection": "Σύνδεση..."
+      "retrying_connection": "Σύνδεση...",
+      "connecting_to_perps": "Connecting to Perps"
     },
     "chart": {
-      "no_data": "Δεν υπάρχουν διαθέσιμα δεδομένα γραφήματος"
+      "no_data": "Δεν υπάρχουν διαθέσιμα δεδομένα γραφήματος",
+      "candle_intervals": "Candle intervals",
+      "candle_period_selector": {
+        "show_more": "More"
+      }
     },
     "perps_markets": "Perps markets",
-    "token_volume": "Token Volume",
-    "last_price_24h_change": "Last Price / 24h Change",
+    "volume": "Volume",
+    "price_24h_change": "Price / 24h change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Αναζήτηση",
+    "search_by_token_symbol": "Search by token symbol",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
-      "hyperliquid_network_toggle": "Hyperliquid Network Toggle"
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "simulate_connection_error": "Simulate Connection Error"
     },
     "transactions": {
       "title": "Perps",
@@ -1498,6 +1522,8 @@
     "alphabetically": "Αλφαβητικά (Α-Ω)",
     "add_to_get_started": "Προσθέστε κρυπτονομίσματα για να ξεκινήσετε",
     "token_is_needed_to_continue": "Απαιτείται τo {{tokenSymbol}} για να συνεχίσετε",
+    "fund_your_wallet_to_get_started": "Fund your wallet to get started in web3",
+    "add_funds": "Add funds",
     "next": "Επόμενο",
     "buy_asset": "Αγοράστε {{asset}}",
     "no_tokens": "Δεν έχετε καθόλου tokens!",
@@ -1887,6 +1913,9 @@
     "next": "ΕΠΌΜΕΝΟ",
     "unlock": "Ξεκλείδωμα",
     "forget": "Αγνοήστε αυτή τη συσκευή"
+  },
+  "address_selector": {
+    "select_an_address": "Select an address"
   },
   "app_settings": {
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
@@ -2838,6 +2867,7 @@
     "tx_review_staking_unstake": "Ακύρωση πονταρίσματος",
     "tx_review_lending_deposit": "Κατάθεση Δανεισμού",
     "tx_review_lending_withdraw": "Ανάληψη Δανεισμού",
+    "tx_review_perps_deposit": "Funded Perps account",
     "sent_ether": "Αποστολή Ether",
     "self_sent_ether": "Στείλτε Ether στον εαυτό σας",
     "received_ether": "Ληφθέντα Ether",
@@ -3096,7 +3126,8 @@
     "non_permitted_network_description": "Αυτός ο ιστότοπος δεν μπορεί να χρησιμοποιηθεί με το τρέχον δίκτυό σας. Προσθέστε άδειες χρήσης δικτύου ή επιλέξτε ένα ήδη επιτρεπόμενο δίκτυο.",
     "edit_permissions": "Επεξεργασία αδειών",
     "permitted_networks_info_sheet_description": "Αυτή είναι μια λίστα με τα δίκτυα που έχετε προηγουμένως παραχωρήσει άδειες χρήσης σε αυτόν τον ιστότοπο. Επιλέξτε ένα από τη λίστα ή επεξεργαστείτε τις άδειες χρήσης δικτύου για αυτόν τον ιστότοπο.",
-    "connect_an_account": "Σύνδεση ενός λογαριασμού"
+    "connect_an_account": "Σύνδεση ενός λογαριασμού",
+    "sdk_connection": "SDK {{originator_platform}} v{{api_version}}"
   },
   "account_dapp_connections": {
     "account_summary_header": "Συνδέστε αυτόν τον ιστότοπο με το MetaMask"
@@ -3566,7 +3597,19 @@
       "lido_withdrawal_requested_title": "Αίτημα ανάληψης",
       "lido_withdrawal_requested_description": "Υποβλήθηκε το αίτημα ανάληψης από το Lido",
       "lido_withdrawal_completed_title": "Η ανάληψη ολοκληρώθηκε",
-      "lido_withdrawal_completed_description": "Η ανάληψή σας από το Lido ήταν επιτυχής"
+      "lido_withdrawal_completed_description": "Η ανάληψή σας από το Lido ήταν επιτυχής",
+      "perps_position_liquidated_title": "😟 Position liquidated",
+      "perps_position_liquidated_description_long": "Your {{symbol}} long was closed.",
+      "perps_position_liquidated_description_short": "Your {{symbol}} short was closed.",
+      "perps_stop_loss_triggered_title": "🛑 Stop loss triggered",
+      "perps_stop_loss_triggered_description_long": "Your {{symbol}} long closed at your stop loss.",
+      "perps_stop_loss_triggered_description_short": "Your {{symbol}} short closed at your stop loss.",
+      "perps_take_profit_triggered_title": "📈 Take profit triggered",
+      "perps_take_profit_triggered_description_long": "Your {{symbol}} long closed at your take profit.",
+      "perps_take_profit_triggered_description_short": "Your {{symbol}} short closed at your take profit.",
+      "perps_limit_order_filled_title": "✅ Limit order filled",
+      "perps_limit_order_filled_description_long": "Your {{symbol}} long position is now open.",
+      "perps_limit_order_filled_description_short": "Your {{symbol}} short position is now open."
     },
     "prompt_title": "Λαμβάνετε ειδοποιήσεις ώθησης",
     "notifications_enabled_error_title": "Κάτι πήγε στραβά",
@@ -3809,6 +3852,7 @@
     "token_marketplace": "Χώρος αγοράς των tokens",
     "Purchased": "Αγοράστηκαν",
     "Sold": "Πουλήθηκαν",
+    "empty_orders_list": "You don't have any orders",
     "empty_buy_orders_list": "Δεν έχετε εντολές αγοράς",
     "empty_sell_orders_list": "Δεν έχετε εντολές πώλησης",
     "purchased_currency": "Αγοράστηκαν {{currency}}",
@@ -5012,7 +5056,8 @@
       "switching_to": "Αλλαγή σε",
       "bridge_estimated_time": "Est. time",
       "pay_with": "Pay with",
-      "total": "Total"
+      "total": "Total",
+      "bridge_fee": "Bridge Fee"
     },
     "title": {
       "signature": "Αίτημα υπογραφής",
@@ -5177,7 +5222,10 @@
     "quote_details": "Λεπτομέρειες προσφοράς",
     "price_impact": "Επιπτώσεις στην τιμή",
     "time": "Ώρα",
-    "quote_info_content": "Αυτή η προσφορά παρέχει την καλύτερη απόδοση από την αναζήτησή μας. Βασίζεται στο επιτόκιο swap (ανταλλαγής), συμπεριλαμβανομένων των τελών διασύνδεσης και μια χρέωση 0,875% στο MetaMask, αλλά όχι των τελών συναλλαγών. Τα τέλη συναλλαγών ποικίλλουν ανάλογα με τη δραστηριότητα του δικτύου και την πολυπλοκότητα της συναλλαγής.",
+    "points": "Points",
+    "points_tooltip": "Points",
+    "points_tooltip_content": "Estimate of MetaMask Rewards Points you will earn from this trade. Points can take up to 1 hour to be confirmed in your Rewards balance",
+    "quote_info_content": "This quote offers the best return from our search. It's based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
     "quote_info_title": "Γιατί προτείνουμε αυτή την προσφορά",
     "see_other_quotes": "Δείτε άλλες προσφορές",
     "receive_at": "Θα λάβετε στις",
@@ -5364,6 +5412,7 @@
       "wallet_name": "Όνομα πορτοφολιού",
       "balance": "Υπόλοιπο",
       "create_account": "Δημιουργία λογαριασμού",
+      "creating_account": "Creating account...",
       "back_up": "Δημιουργία αντιγράφων ασφαλείας",
       "reveal_recovery_phrase_with_index": "Εμφάνιση Μυστικής Φράσης Ανάκτησης {{index}}"
     },
@@ -5374,9 +5423,13 @@
     },
     "edit_account_name": {
       "title": "Επεξεργασία Ονόματος Λογαριασμού",
+      "account_name": "Account name",
+      "confirm_button": "Confirm",
       "name": "Όνομα",
       "save_button": "Αποθήκευση",
-      "error_duplicate_name": "Αυτό το όνομα λογαριασμού υπάρχει ήδη"
+      "error": "Failed to edit account name",
+      "error_duplicate_name": "Αυτό το όνομα λογαριασμού υπάρχει ήδη",
+      "error_empty_name": "Account name cannot be empty"
     },
     "delete_account": {
       "title": "Διαγραφή Λογαριασμού",
@@ -5485,8 +5538,53 @@
     "tryAgain": "Try again",
     "close": "Close"
   },
+  "rewards": {
+    "not_implemented": "Coming soon",
+    "not_implemented_season_summary": "Season Summary Coming Soon",
+    "not_opted_in_to_rewards": "This account hasn't opted in to rewards yet",
+    "referral_rewards_title": "Referrals",
+    "points": "Points",
+    "point": "Point",
+    "level": "Level",
+    "to_level_up": "To level up",
+    "season_ends": "Season ends",
+    "season_ended": "Season ended",
+    "main_title": "Rewards",
+    "referral_title": "Referrals",
+    "tab_overview_title": "Overview",
+    "tab_activity_title": "Activity",
+    "tab_levels_title": "Levels",
+    "referral_stats_earned_from_referrals": "Earned from referrals",
+    "referral_stats_referrals": "Referrals",
+    "referral": {
+      "actions": {
+        "share_referral_link": "Refer a friend",
+        "share_referral_subject": "Join MetaMask Rewards"
+      },
+      "info": {
+        "title": "Share your code to earn more",
+        "description": "Your friends earn bonus points, and you get 20% of their rewards."
+      }
+    }
+  },
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    },
+    "label": {
+      "bridge_fee": "Bridge fee",
+      "network_fee": "Network fee",
+      "paid_with": "Paid with",
+      "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
+    }
   }
 }
