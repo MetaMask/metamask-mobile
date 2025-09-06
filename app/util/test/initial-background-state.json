@@ -598,6 +598,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "SamplePetnamesController": {
+    "namesByChainIdAndAddress": {}
+  },
   "RewardsController": {
     "accounts": {},
     "lastAuthenticatedAccount": null,
