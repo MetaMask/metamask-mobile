@@ -1,17 +1,9 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  CaipAccountAddress,
-  CaipAccountId,
-  CaipNamespace,
-  KnownCaipNamespace,
-  parseCaipAccountId,
-  stringToBytes,
-} from '@metamask/utils';
-import { Image } from 'react-native';
-import Jazzicon from 'react-native-jazzicon';
-import { toDataUrl } from '../../../util/blockies';
-import { RootState } from '../../../reducers';
+import { CaipAccountId, parseCaipAccountId } from '@metamask/utils';
+import { selectAvatarAccountType } from '../../../selectors/settings';
+import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
 export const DIAMETERS: Record<string, number> = {
   xs: 16,
@@ -20,55 +12,30 @@ export const DIAMETERS: Record<string, number> = {
   lg: 40,
 };
 
+export const SNAP_UI_AVATAR_TEST_ID = 'snap-ui-avatar';
+
 export interface SnapUIAvatarProps {
   // The address must be a CAIP-10 string.
   address: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
-}
-
-function getJazziconSeed(
-  namespace: CaipNamespace,
-  address: CaipAccountAddress,
-) {
-  if (namespace === KnownCaipNamespace.Eip155) {
-    // Default behaviour for EIP155 namespace to match existing Jazzicons
-    return parseInt(address.slice(2, 10), 16);
-  }
-  return Array.from(stringToBytes(address.normalize('NFKC').toLowerCase()));
+  size?: AvatarSize;
 }
 
 export const SnapUIAvatar: React.FunctionComponent<SnapUIAvatarProps> = ({
   address,
-  size = 'md',
+  size = AvatarSize.Md,
 }) => {
   const parsed = useMemo(
     () => parseCaipAccountId(address as CaipAccountId),
     [address],
   );
-  const useBlockie = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
-
-  const diameter = DIAMETERS[size];
-
-  if (useBlockie) {
-    return (
-      <Image
-        source={{ uri: toDataUrl(parsed.address) }}
-        height={diameter}
-        width={diameter}
-        borderRadius={diameter / 2}
-      />
-    );
-  }
-
-  const seed = getJazziconSeed(parsed.chain.namespace, parsed.address);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   return (
-    <Jazzicon
-      // @ts-expect-error The underlying PRNG supports the seed being an array but the component is typed wrong.
-      seed={seed}
-      size={diameter}
+    <AvatarAccount
+      type={avatarAccountType}
+      accountAddress={parsed.address}
+      size={size}
+      testID={SNAP_UI_AVATAR_TEST_ID}
     />
   );
 };

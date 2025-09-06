@@ -7,7 +7,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
-import { RootState } from '../../../../../../reducers';
 import Icon, {
   IconName,
   IconSize,
@@ -23,7 +22,6 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../sele
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -38,6 +36,7 @@ import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
 import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -50,11 +49,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const getCryptoToken = () => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {

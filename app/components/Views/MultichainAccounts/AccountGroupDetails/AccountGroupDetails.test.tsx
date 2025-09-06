@@ -11,6 +11,7 @@ import {
   createMockAccountGroup,
   createMockInternalAccount,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -103,7 +104,7 @@ describe('AccountGroupDetails', () => {
 
   const mockState = {
     settings: {
-      useBlockieIcon: false,
+      avatarAccountType: AvatarAccountType.Maskicon,
     },
     user: {
       seedphraseBackedUp: false,

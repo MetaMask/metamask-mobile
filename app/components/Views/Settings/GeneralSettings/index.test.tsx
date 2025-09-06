@@ -11,6 +11,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../../core/Analytics');
 
@@ -21,7 +22,7 @@ const initialState = {
   settings: {
     lockTime: 1000,
     searchEngine: 'Google',
-    useBlockieIcon: true,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,

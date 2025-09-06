@@ -1,6 +1,6 @@
 import { RootState } from '../reducers';
 import { createSelector } from 'reselect';
-import { createDeepEqualSelector } from './util';
+import { AvatarAccountType } from '../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const selectSettings = (state: RootState) => state.settings;
 
@@ -37,8 +37,9 @@ export const selectDeepLinkModalDisabled = createSelector(
     Boolean(settingsState.deepLinkModalDisabled),
 );
 
-export const selectUseBlockieIcon = createDeepEqualSelector(
+export const selectAvatarAccountType = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
-    Boolean(settingsState.useBlockieIcon),
+    (settingsState.avatarAccountType as AvatarAccountType) ??
+    AvatarAccountType.Maskicon,
 );

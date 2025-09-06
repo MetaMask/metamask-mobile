@@ -185,7 +185,7 @@ describe('useAccountProps', () => {
   const arrangeMocks = () => {
     const mockStore = jest.fn().mockReturnValue({
       settings: {
-        useBlockieIcon: true,
+        avatarAccountType: AvatarAccountType.Maskicon,
       },
     });
 
@@ -202,7 +202,7 @@ describe('useAccountProps', () => {
     });
 
     expect(result.current.accounts).toHaveLength(2);
-    expect(result.current.accountAvatarType).toBe(AvatarAccountType.Blockies);
+    expect(result.current.accountAvatarType).toBe(AvatarAccountType.Maskicon);
     expect(result.current.accountAddresses).toEqual(['0x123', '0x456']);
   });
 });

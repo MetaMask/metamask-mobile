@@ -11,6 +11,7 @@ import { CaipAccountId } from '@metamask/utils';
 import { Account, EnsByAccountAddress } from '../../../hooks/useAccounts';
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import {
+  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -128,7 +129,7 @@ const DEFAULT_PROPS = {
 const mockStore = configureStore([]);
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarAccountType: AvatarAccountType.Maskicon,
   },
 };
 

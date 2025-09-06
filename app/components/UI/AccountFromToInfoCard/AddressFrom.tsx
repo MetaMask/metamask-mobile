@@ -22,6 +22,7 @@ import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
 import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 interface Asset {
   isETH?: boolean;
@@ -68,11 +69,7 @@ const AddressFrom = ({
   const networkImage = useSelector(selectEvmNetworkImageSource);
   const perDappNetworkInfo = useNetworkInfo(chainId);
 
-  const useBlockieIcon = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.useBlockieIcon,
-  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   useEffect(() => {
     const accountNameVal = activeAddress
@@ -114,7 +111,7 @@ const AddressFrom = ({
           name: displayNetworkName,
           imageSource: displayNetworkImage,
         }}
-        useBlockieIcon={useBlockieIcon}
+        avatarAccountType={avatarAccountType}
       />
     </View>
   );

@@ -19,14 +19,13 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPListItem.selectors';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 
 const SRPListItem = ({
   name,
@@ -45,11 +44,7 @@ const SRPListItem = ({
       ),
     [keyring],
   );
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const handleSRPSelection = () => {
     trackEvent(

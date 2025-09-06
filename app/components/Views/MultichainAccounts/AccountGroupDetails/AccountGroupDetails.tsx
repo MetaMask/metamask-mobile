@@ -19,7 +19,6 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -44,6 +43,7 @@ import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
 import Routes from '../../../../constants/navigation/Routes';
 import { createMultichainAccountDetailActionsModalNavigationDetails } from '../sheets/MultichainAccountActions/MultichainAccountActions';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 
 const createEditAccountNameNavigationDetails = (
   accountGroup: AccountGroupObject,
@@ -76,11 +76,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarAccountType);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);
