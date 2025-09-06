@@ -121,11 +121,8 @@ export const createTradingViewChartTemplate = (
                             color: '${theme.colors.text.default}',
                         },
                         horzLine: {
-                            visible: true, // Hide horizontal line
-                            labelVisible: true,
-                            width: 1,
-                            style: 2, // Dotted line
-                            color: '${theme.colors.text.default}',
+                            visible: false, // Hide horizontal line
+                            labelVisible: false,
                         },
                     },
                     localization: {
@@ -361,7 +358,14 @@ export const createTradingViewChartTemplate = (
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
                 if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
-                    // Crosshair is outside the chart area
+                    // Crosshair is outside the chart area - hide legend
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'OHLC_DATA',
+                            data: null,
+                            timestamp: new Date().toISOString()
+                        }));
+                    }
                     return;
                 }
 
@@ -388,6 +392,24 @@ export const createTradingViewChartTemplate = (
                                 timestamp: new Date().toISOString()
                             }));
                         }
+                    } else {
+                        // No valid OHLC data - hide legend
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'OHLC_DATA',
+                                data: null,
+                                timestamp: new Date().toISOString()
+                            }));
+                        }
+                    }
+                } else {
+                    // No series data - hide legend
+                    if (window.ReactNativeWebView) {
+                        window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'OHLC_DATA',
+                            data: null,
+                            timestamp: new Date().toISOString()
+                        }));
                     }
                 }
             });
