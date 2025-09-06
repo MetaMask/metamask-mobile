@@ -6,22 +6,27 @@ import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionTotalFiat } from '../pay/useTransactionTotalFiat';
-import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 
 export function useInsufficientPayTokenNativeAlert(): Alert[] {
-  const { quoteNetworkFee } = useTransactionTotalFiat();
+  const { totalNetworkFeeMax, total } = useTransactionTotalFiat();
   const { payToken } = useTransactionPayToken();
   const { chainId } = payToken ?? {};
-  const chainIds = useMemo(() => (chainId ? [chainId] : []), [chainId]);
-  const tokens = useTokensWithBalance({ chainIds });
-  const nativeToken = tokens.find((t) => t.address === NATIVE_TOKEN_ADDRESS);
+
+  const nativeToken = useTokenWithBalance(
+    NATIVE_TOKEN_ADDRESS,
+    chainId ?? '0x0',
+  );
+
   const { tokenFiatAmount } = nativeToken ?? {};
+  const isPayTokenNative = payToken?.address === NATIVE_TOKEN_ADDRESS;
+  const requiredAmount = isPayTokenNative ? total : totalNetworkFeeMax;
 
   const isInsufficient =
     payToken &&
     new BigNumber(tokenFiatAmount ?? '0').isLessThan(
-      new BigNumber(quoteNetworkFee ?? '0'),
+      new BigNumber(requiredAmount ?? '0'),
     );
 
   return useMemo(() => {

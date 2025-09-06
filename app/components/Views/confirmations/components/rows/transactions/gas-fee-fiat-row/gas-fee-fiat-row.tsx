@@ -13,7 +13,7 @@ import AnimatedSpinner, {
 
 export function GasFeeFiatRow() {
   const { id: transactionId } = useTransactionMetadataRequest() ?? {};
-  const { totalGasFormatted } = useTransactionTotalFiat();
+  const { totalNativeEstimatedFormatted } = useTransactionTotalFiat();
 
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId ?? ''),
@@ -22,7 +22,7 @@ export function GasFeeFiatRow() {
   return (
     <InfoRow label={strings('transactions.network_fee')}>
       {isQuotesLoading && <AnimatedSpinner size={SpinnerSize.SM} />}
-      {!isQuotesLoading && <Text>{totalGasFormatted}</Text>}
+      {!isQuotesLoading && <Text>{totalNativeEstimatedFormatted}</Text>}
     </InfoRow>
   );
 }

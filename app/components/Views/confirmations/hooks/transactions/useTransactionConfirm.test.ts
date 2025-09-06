@@ -138,12 +138,10 @@ describe('useTransactionConfirm', () => {
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
     useTransactionTotalFiatMock.mockReturnValue({
-      bridgeFeeFormatted: BRIDGE_FEE_MOCK,
-      formatted: TOTAL_FIAT_MOCK,
-      quoteNetworkFee: '0.0',
-      totalGasFormatted: NETWORK_FEE_MOCK,
-      value: '',
-    });
+      totalBridgeFeeFormatted: BRIDGE_FEE_MOCK,
+      totalFormatted: TOTAL_FIAT_MOCK,
+      totalNativeEstimatedFormatted: NETWORK_FEE_MOCK,
+    } as ReturnType<typeof useTransactionTotalFiat>);
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
 
@@ -300,7 +298,7 @@ describe('useTransactionConfirm', () => {
   });
 
   describe('navigates to', () => {
-    it('wallet view if transaction is perps deposit', async () => {
+    it('previous page if perps deposit', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDeposit,
@@ -310,7 +308,8 @@ describe('useTransactionConfirm', () => {
 
       await result.current.onConfirm();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {

@@ -103,6 +103,7 @@ const TransactionsView = ({
           tokens,
           selectedAddress,
           tokenNetworkFilter,
+          allTransactionsSorted,
         );
 
         if (!filter) return false;

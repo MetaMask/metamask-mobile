@@ -1,5 +1,7 @@
 import { areAddressesEqual } from '../../util/address';
 import { TX_UNAPPROVED } from '../../constants/transaction';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { uniq } from 'lodash';
 
 /**
  * Determines if the transaction is from or to the current wallet
@@ -71,31 +73,45 @@ export const sortTransactions = (transactions: any[]): any[] =>
  * @returns A boolean indicating if the transaction meets the conditions
  */
 export const filterByAddressAndNetwork = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tx: any,
+  tx: TransactionMeta,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tokens: any[],
   selectedAddress: string,
   tokenNetworkFilter: { [key: string]: boolean },
+  allTransactions?: TransactionMeta[],
 ): boolean => {
   const {
     txParams: { from, to },
     isTransfer,
+    requiredTransactionIds,
     transferInformation,
   } = tx;
 
-  const condition = Object.keys(tokenNetworkFilter).includes(tx.chainId);
+  const requiredTransactionChainIds = uniq(
+    (allTransactions ?? [])
+      .filter((t) => requiredTransactionIds?.includes(t.id))
+      .map((t) => t.chainId),
+  );
+
+  const transactionChainIds = [tx.chainId, ...requiredTransactionChainIds];
+  const validChainIds = Object.keys(tokenNetworkFilter);
+
+  const condition = transactionChainIds.some((chainId) =>
+    validChainIds.includes(chainId),
+  );
 
   if (
-    isFromOrToSelectedAddress(from, to, selectedAddress) &&
+    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
     return isTransfer
       ? !!tokens.find(({ address }) =>
-          areAddressesEqual(address, transferInformation.contractAddress),
+          areAddressesEqual(
+            address,
+            transferInformation?.contractAddress ?? '',
+          ),
         )
       : true;
   }

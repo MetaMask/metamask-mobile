@@ -33,9 +33,9 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
   const {
-    bridgeFeeFormatted: bridgeFeeFiat,
-    formatted: totalFiat,
-    totalGasFormatted: networkFeeFiat,
+    totalBridgeFeeFormatted: bridgeFeeFiat,
+    totalFormatted: totalFiat,
+    totalNativeEstimatedFormatted: networkFeeFiat,
   } = useTransactionTotalFiat();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
@@ -86,9 +86,7 @@ export function useTransactionConfirm() {
       { txMeta: updatedMetadata },
     );
 
-    if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.WALLET_VIEW);
-    } else if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation && type !== TransactionType.perpsDeposit) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
