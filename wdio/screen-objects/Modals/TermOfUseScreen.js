@@ -1,33 +1,66 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class TermOfUseScreen {
+
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get container() {
-    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CONTAINER);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CONTAINER);
+    }
   }
 
   get checkbox() {
-    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CHECKBOX);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CHECKBOX);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
+    }
   }
 
   get scrollEndArrowButton() {
-    return Selectors.getXpathElementByResourceId(
-      TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
-    );
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
+    }
   }
 
   get acceptButton() {
-    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+    }
   }
 
   get webview() {
-    return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.WEBVIEW);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.WEBVIEW);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.WEBVIEW);
+    }
   }
 
   async isDisplayed() {
-    const container = await this.container;
-    await container.waitForDisplayed();
+    if (!this._device) {
+      const container = await this.container;
+      await container.waitForDisplayed();
+    } else {
+      await appwrightExpect(await this.container).toBeVisible();
+    }
   }
 
   async textIsDisplayed() {
@@ -43,11 +76,21 @@ class TermOfUseScreen {
   }
 
   async tapAgreeCheckBox() {
-    await Gestures.waitAndTap(this.checkbox);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.checkbox);
+    } else {
+      const cb = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
+      await cb.tap();
+    }
   }
 
   async tapScrollEndButton() {
-    await Gestures.waitAndTap(this.scrollEndArrowButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.scrollEndArrowButton);
+    } else {
+      const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
+      await button.tap();
+    }
   }
 
   async acceptIsEnabled() {
@@ -61,7 +104,12 @@ class TermOfUseScreen {
   }
 
   async tapAcceptButton() {
-    await Gestures.tap(this.acceptButton);
+    if (!this._device) {
+      await Gestures.tap(this.acceptButton);
+    } else {
+      const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+      await button.tap();
+    }
   }
 }
 

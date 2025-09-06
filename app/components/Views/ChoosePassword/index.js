@@ -476,7 +476,6 @@ class ChoosePassword extends PureComponent {
 
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-      this.setState({ loading: false });
 
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });

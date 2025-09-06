@@ -44,6 +44,7 @@ const FundActionMenu = () => {
 
   const chainId = useSelector(selectChainId);
   const [isNetworkRampSupported] = useRampNetwork();
+
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -122,7 +123,7 @@ const FundActionMenu = () => {
           description: strings('fund_actionmenu.buy_description'),
           iconName: IconName.Add,
           testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-          isVisible: isNetworkRampSupported || !!customOnBuy,
+          isVisible: true,
           analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
           analyticsProperties: {
             text: 'Buy',

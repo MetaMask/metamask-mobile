@@ -1,6 +1,5 @@
-import React, { useMemo, useCallback, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
+import React, { useMemo, useCallback } from 'react';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -10,56 +9,62 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { useSendContext } from '../../context/send-context/send-context';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useSendActions } from './useSendActions';
 
-export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
+export function useSendNavbar() {
+  const { handleCancelPress } = useSendActions();
   const navigation = useNavigation();
-  const { handleCancelPress, handleBackPress } = useSendActions();
-  const { updateTo, updateAsset } = useSendContext();
   const theme = useTheme();
-  const tw = useTailwind();
+  const sendStackState = useNavigationState((state) => state);
 
-  const onBackPress = useCallback(() => {
-    if (currentRoute === Routes.SEND.RECIPIENT) {
-      updateTo('');
-    }
-    if (currentRoute === Routes.SEND.AMOUNT) {
-      updateAsset(undefined);
-    }
-    handleBackPress();
-  }, [currentRoute, updateTo, updateAsset, handleBackPress]);
+  const handleBackPress = useCallback(() => {
+    const sendRoute = sendStackState.routes.find(
+      (route) => route.name === 'Send',
+    );
+    // Handle nested Send route navigation
+    const sendRouteState = sendRoute?.state;
+    if (sendRouteState && sendRouteState.routes.length > 1) {
+      const currentIndex = sendRouteState.index;
+      const previousRoute = currentIndex
+        ? sendRouteState.routes[currentIndex - 1]
+        : null;
 
-  const styles = useMemo(
+      const screenName = previousRoute?.name || Routes.SEND.ASSET;
+      navigation.navigate(Routes.SEND.DEFAULT, { screen: screenName });
+      return;
+    }
+
+    // Handle main stack navigation
+    const sendRouteIndex = sendStackState.routes.findIndex(
+      (route) => route.name === 'Send',
+    );
+
+    if (sendRouteIndex <= 0) {
+      navigation.navigate(Routes.WALLET_VIEW);
+      return;
+    }
+
+    const previousMainRoute = sendStackState.routes[sendRouteIndex - 1];
+
+    // Navigate to previous route with special handling for specific routes
+    if (previousMainRoute.name === 'Home') {
+      navigation.navigate(Routes.WALLET_VIEW);
+    } else {
+      navigation.navigate(previousMainRoute.name, previousMainRoute.params);
+    }
+  }, [navigation, sendStackState]);
+
+  const headerStyle = useMemo(
     () => ({
-      headerLeft: tw`ml-4`,
-      headerRight: tw`mx-4`,
-      headerTitle: tw`items-center`,
-      headerStyle: {
-        backgroundColor: theme.colors.background.default,
-        shadowColor: 'transparent',
-        elevation: 0,
-      },
+      backgroundColor: theme.colors.background.default,
+      shadowColor: 'transparent',
+      elevation: 0,
     }),
-    [theme.colors.background.default, tw],
-  );
-
-  const headerLeft = useCallback(
-    () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.ArrowLeft}
-        onPress={onBackPress}
-        twClassName="ml-2"
-        testID="send-navbar-back-button"
-      />
-    ),
-    [onBackPress],
+    [theme.colors.background.default],
   );
 
   const headerRight = useCallback(
@@ -84,30 +89,42 @@ export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
     [],
   );
 
-  const navigationOptions = useMemo(() => {
-    const baseOptions = {
-      headerLeft,
+  const createHeaderLeft = useCallback(
+    (onPress: () => void) => () =>
+      (
+        <ButtonIcon
+          size={ButtonIconSize.Lg}
+          iconName={IconName.ArrowLeft}
+          onPress={onPress}
+          twClassName="ml-2"
+          testID="send-navbar-back-button"
+        />
+      ),
+    [],
+  );
+
+  return {
+    Amount: {
+      headerLeft: createHeaderLeft(handleBackPress),
       headerRight,
       headerTitle,
-      headerStyle: styles.headerStyle,
-    };
-
-    if (currentRoute === Routes.SEND.ASSET) {
-      return {
-        ...baseOptions,
-        headerLeft: () => (
-          <Box twClassName="ml-4">
-            <Text variant={TextVariant.HeadingLg}>{strings('send.title')}</Text>
-          </Box>
-        ),
-        headerTitle: null,
-      };
-    }
-
-    return baseOptions;
-  }, [currentRoute, headerLeft, headerRight, headerTitle, styles.headerStyle]);
-
-  useEffect(() => {
-    navigation.setOptions(navigationOptions);
-  }, [navigation, navigationOptions]);
+      headerStyle,
+    },
+    Asset: {
+      headerLeft: () => (
+        <Box twClassName="ml-4">
+          <Text variant={TextVariant.HeadingLg}>{strings('send.title')}</Text>
+        </Box>
+      ),
+      headerRight,
+      headerTitle: () => <></>,
+      headerStyle,
+    },
+    Recipient: {
+      headerLeft: createHeaderLeft(handleBackPress),
+      headerRight,
+      headerTitle,
+      headerStyle,
+    },
+  };
 }

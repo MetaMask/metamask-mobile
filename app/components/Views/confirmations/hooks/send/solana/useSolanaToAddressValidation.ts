@@ -8,6 +8,7 @@ import { areAddressesEqual } from '../../../../../../util/address';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
+// todo: this should go away as we use snap for name mapping
 export const shouldSkipValidation = ({
   toAddress,
   chainId,
@@ -32,7 +33,6 @@ export const shouldSkipValidation = ({
   return false;
 };
 
-// todo: once we integrate with solana snap for validations this can be fully / partially removed
 export const validateToAddress = (
   internalAccounts: InternalAccount[],
   toAddress?: string,

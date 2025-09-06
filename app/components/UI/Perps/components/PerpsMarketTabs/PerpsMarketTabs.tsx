@@ -31,12 +31,13 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   position,
   isLoadingPosition,
   unfilledOrders = [],
-  onPositionUpdate,
   onActiveTabChange,
-  priceData,
+  nextFundingTime,
+  fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const hasUserInteracted = useRef(false);
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -52,27 +53,98 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     }
   }, [isLoadingPosition, fadeAnim]);
 
-  // Tab configuration
-  const tabs = [
-    {
-      id: 'position',
-      label: strings('perps.market.position'),
-    },
-    {
-      id: 'orders',
-      label: strings('perps.market.orders'),
-    },
-    {
+  const tabs = React.useMemo(() => {
+    const dynamicTabs = [];
+
+    // Only show position tab if there's a position
+    if (position) {
+      dynamicTabs.push({
+        id: 'position',
+        label: strings('perps.market.position'),
+      });
+    }
+
+    // Only show orders tab if there are orders
+    if (unfilledOrders.length > 0) {
+      dynamicTabs.push({
+        id: 'orders',
+        label: strings('perps.market.orders'),
+      });
+    }
+
+    // Always show statistics tab
+    dynamicTabs.push({
       id: 'statistics',
       label: strings('perps.market.statistics'),
-    },
-  ];
+    });
 
-  const [activeTabId, setActiveTabId] = useState(tabs[0].id);
+    return dynamicTabs;
+  }, [position, unfilledOrders.length]);
+
+  // Initialize with statistics by default
+  const [activeTabId, setActiveTabId] = useState('statistics');
+
+  // Set initial tab based on data availability
+  // Now we can properly distinguish between loading and empty states
+  useEffect(() => {
+    // If user has interacted, respect their choice
+    if (hasUserInteracted.current) {
+      return;
+    }
+
+    // Wait until position data has loaded
+    // isLoadingPosition will be true until first WebSocket update
+    if (isLoadingPosition) {
+      return;
+    }
+
+    let targetTabId = 'statistics'; // Default fallback
+
+    // Priority 1: Position tab if position exists
+    if (position) {
+      targetTabId = 'position';
+    }
+    // Priority 2: Orders tab if orders exist but no position
+    else if (unfilledOrders && unfilledOrders.length > 0) {
+      targetTabId = 'orders';
+    }
+    // Priority 3: Statistics tab (already set)
+
+    // Only update if tab actually needs to change
+    if (activeTabId !== targetTabId) {
+      DevLogger.log('PerpsMarketTabs: Auto-selecting tab:', {
+        targetTabId,
+        hasPosition: !!position,
+        ordersCount: unfilledOrders?.length || 0,
+        previousTab: activeTabId,
+        isLoadingPosition,
+      });
+      setActiveTabId(targetTabId);
+      onActiveTabChange?.(targetTabId);
+    }
+  }, [
+    position,
+    unfilledOrders,
+    activeTabId,
+    onActiveTabChange,
+    isLoadingPosition,
+  ]);
+
+  // Update active tab if current tab is no longer available (but respect user interaction)
+  useEffect(() => {
+    const tabIds = tabs.map((t) => t.id);
+    if (!tabIds.includes(activeTabId)) {
+      // Switch to first available tab if current tab is hidden
+      const newTabId = tabs[0]?.id || 'statistics';
+      setActiveTabId(newTabId);
+      onActiveTabChange?.(newTabId);
+    }
+  }, [tabs, activeTabId, onActiveTabChange]);
 
   // Notify parent when tab changes
   const handleTabChange = useCallback(
     (tabId: string) => {
+      hasUserInteracted.current = true; // Mark that user has interacted
       setActiveTabId(tabId);
       onActiveTabChange?.(tabId);
     },
@@ -151,8 +223,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }
 
-  // If no position and no orders after loading, show just statistics
-  if (!position && unfilledOrders.length === 0) {
+  if (tabs.length === 1 && tabs[0].id === 'statistics') {
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
         <Text
@@ -167,11 +238,19 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         <PerpsMarketStatisticsCard
           marketStats={marketStats}
           onTooltipPress={handleTooltipPress}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
         />
         {renderTooltipModal()}
       </Animated.View>
     );
   }
+
+  const getTabTestId = (tabId: string) => {
+    if (tabId === 'position') return PerpsMarketTabsSelectorsIDs.POSITION_TAB;
+    if (tabId === 'orders') return PerpsMarketTabsSelectorsIDs.ORDERS_TAB;
+    return PerpsMarketTabsSelectorsIDs.STATISTICS_TAB;
+  };
 
   const renderTabBar = () => (
     <View style={styles.tabBar} testID={PerpsMarketTabsSelectorsIDs.TAB_BAR}>
@@ -183,13 +262,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             style={[styles.tab]}
             onPress={() => handleTabChange(tab.id)}
             activeOpacity={0.7}
-            testID={
-              tab.id === 'position'
-                ? PerpsMarketTabsSelectorsIDs.POSITION_TAB
-                : tab.id === 'orders'
-                ? PerpsMarketTabsSelectorsIDs.ORDERS_TAB
-                : PerpsMarketTabsSelectorsIDs.STATISTICS_TAB
-            }
+            testID={getTabTestId(tab.id)}
           >
             <Text
               variant={TextVariant.BodyMDBold}
@@ -218,8 +291,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
-              onPositionUpdate={onPositionUpdate}
-              priceData={priceData}
             />
           </View>
         );
@@ -233,6 +304,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             <PerpsMarketStatisticsCard
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
+              nextFundingTime={nextFundingTime}
+              fundingIntervalHours={fundingIntervalHours}
             />
           </View>
         );

@@ -13,12 +13,14 @@ import Text, {
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
-// TODO: Consider renaming to PerpsMarketStatisticsCard since it isn't tied to a specific view anymore
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import FundingCountdown from '../FundingCountdown';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   marketStats,
   onTooltipPress,
+  nextFundingTime,
+  fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -120,16 +122,16 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             >
               {marketStats.fundingRate}
             </Text>
-            <Text
+            <FundingCountdown
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
               style={styles.fundingCountdown}
+              nextFundingTime={nextFundingTime}
+              fundingIntervalHours={fundingIntervalHours}
               testID={
                 PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
               }
-            >
-              ({marketStats.fundingCountdown})
-            </Text>
+            />
           </View>
         </View>
       </View>

@@ -216,7 +216,6 @@ export const importWalletWithRecoveryPhrase = async ({
   //'Should dismiss Enable device Notifications checks alert'
   // await skipNotificationsDeviceSettings();
 
-  // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(fromResetWallet);
 };

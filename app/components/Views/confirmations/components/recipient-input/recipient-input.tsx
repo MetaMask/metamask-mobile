@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { TextInput } from 'react-native';
 import {
   Box,
@@ -13,45 +13,59 @@ import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-
-export interface RecipientInputProps {
-  onChangeText: (text: string) => void;
-  value?: string;
-}
+import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
+import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useSendActions } from '../../hooks/send/useSendActions';
+import { useSendContext } from '../../context/send-context/send-context';
 
 export const RecipientInput = ({
-  value: externalValue,
-  onChangeText,
-}: RecipientInputProps) => {
-  const [internalValue, setInternalValue] = useState('');
-  const internalInputRef = useRef<TextInput>(null);
-
-  const addressInput =
-    externalValue !== undefined ? externalValue : internalValue;
-  const setAddressInput = onChangeText || setInternalValue;
-  const textInputRef = internalInputRef;
+  isRecipientSelectedFromList,
+}: {
+  isRecipientSelectedFromList: boolean;
+}) => {
+  const { to, updateTo } = useSendContext();
+  const inputRef = useRef<TextInput>(null);
+  const { validateToAddress } = useToAddressValidation();
+  const { setRecipientInputMethodPasted, captureRecipientSelected } =
+    useRecipientSelectionMetrics();
+  const { handleSubmitPress } = useSendActions();
 
   const handlePaste = useCallback(async () => {
     try {
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
-        setAddressInput(clipboardText.trim());
+        const trimmedText = clipboardText.trim();
+        const { error } = await validateToAddress(trimmedText);
+        if (!error) {
+          setRecipientInputMethodPasted();
+          captureRecipientSelected();
+          handleSubmitPress(clipboardText);
+          return;
+        }
+        updateTo(trimmedText);
         setTimeout(() => {
-          textInputRef.current?.focus();
+          inputRef.current?.focus();
         }, 100);
       }
     } catch (error) {
       // Might consider showing an alert here if pasting fails
       // for now just ignore it
     }
-  }, [setAddressInput, textInputRef]);
+  }, [
+    updateTo,
+    inputRef,
+    validateToAddress,
+    setRecipientInputMethodPasted,
+    captureRecipientSelected,
+    handleSubmitPress,
+  ]);
 
   const handleClearInput = useCallback(() => {
-    setAddressInput('');
+    updateTo('');
     setTimeout(() => {
-      textInputRef.current?.focus();
+      inputRef.current?.blur();
     }, 100);
-  }, [setAddressInput, textInputRef]);
+  }, [updateTo, inputRef]);
 
   const defaultStartAccessory = useMemo(
     () => <Text color={TextColor.TextAlternative}>{strings('send.to')}</Text>,
@@ -59,7 +73,7 @@ export const RecipientInput = ({
   );
 
   const renderEndAccessory = useMemo(() => {
-    if (addressInput.length > 0) {
+    if (to && to.length > 0 && !isRecipientSelectedFromList) {
       return (
         <Button
           variant={ButtonVariant.Secondary}
@@ -81,15 +95,15 @@ export const RecipientInput = ({
         {strings('send.paste')}
       </Button>
     );
-  }, [addressInput.length, handleClearInput, handlePaste]);
+  }, [to, handleClearInput, handlePaste, isRecipientSelectedFromList]);
 
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
         autoCorrect={false}
-        ref={textInputRef}
-        value={addressInput}
-        onChangeText={setAddressInput}
+        ref={inputRef}
+        value={isRecipientSelectedFromList ? '' : to}
+        onChangeText={updateTo}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="none"

@@ -10,6 +10,14 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { formatAddress } from '../../../../../../util/address';
 
+// Mock navigation before importing renderWithProvider
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 const mockAddress = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const mockAccount = createMockInternalAccount(
   mockAddress,

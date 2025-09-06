@@ -33,6 +33,7 @@ const MOCK_STORE_STATE = {
           chainId: '0x1',
           ticker: 'ETH',
         },
+        selectedNetworkClientId: 'mainnet',
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
@@ -40,6 +41,14 @@ const MOCK_STORE_STATE = {
       },
       PreferencesController: {
         isTokenNetworkFilterEqualCurrentNetwork: true,
+      },
+      TokensController: {
+        allTokens: {},
+        allIgnoredTokens: {},
+        allDetectedTokens: {},
+      },
+      NetworkEnablementController: {
+        enabledNetworks: ['0x1', '0x89'],
       },
     },
   },
@@ -63,10 +72,16 @@ jest.mock('../useGetTotalFiatBalanceCrossChains', () => ({
   useGetTotalFiatBalanceCrossChains: jest.fn().mockReturnValue({}),
 }));
 
+jest.mock(
+  '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol',
+  () => jest.fn().mockReturnValue(true),
+);
+
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   isTestNet: jest.fn().mockReturnValue(false),
   isPortfolioViewEnabled: jest.fn().mockReturnValue(false),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
 }));
 
 describe('useSelectedAccountMultichainBalances', () => {

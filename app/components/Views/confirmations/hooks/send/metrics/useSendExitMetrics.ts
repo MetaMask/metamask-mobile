@@ -11,12 +11,12 @@ import { useToAddressValidation } from '../useToAddressValidation';
 
 export const useSendExitMetrics = () => {
   const route = useRoute();
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
   const { accountType } = useSendMetricsContext();
   const { isEvmSendType } = useSendType();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { amountError } = useAmountValidation();
-  const { toAddressError } = useToAddressValidation(to as string);
+  const { toAddressError } = useToAddressValidation();
 
   const alertDisplayed = useMemo(() => {
     if (route.name === Routes.SEND.AMOUNT) {

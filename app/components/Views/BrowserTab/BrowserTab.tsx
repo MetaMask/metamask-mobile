@@ -36,7 +36,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
@@ -129,7 +128,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     showTabs,
     linkType,
     isInTabsView,
-    wizardStep,
     updateTabInfo,
     addToBrowserHistory,
     bookmarks,
@@ -189,7 +187,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onMessage: (message: Record<string, unknown>) => void;
     }>();
     const fromHomepage = useRef(false);
-    const wizardScrollAdjustedRef = useRef(false);
     const searchEngine = useSelector(selectSearchEngine);
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -997,8 +994,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
               // Show autocomplete
               fromHomepage,
               toggleUrlModal,
-              // Wizard
-              wizardScrollAdjusted: wizardScrollAdjustedRef,
               tabId,
               injectHomePageScripts,
               // TODO: This properties were missing, and were not optional
@@ -1266,22 +1261,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       onSubmitEditing(resolvedUrlRef.current);
       triggerDappViewedEvent(resolvedUrlRef.current);
     }, [onSubmitEditing, triggerDappViewedEvent]);
-
-    /**
-     * Render the onboarding wizard browser step
-     */
-    const renderOnboardingWizard = () => {
-      if ([7].includes(wizardStep)) {
-        if (!wizardScrollAdjustedRef.current) {
-          setTimeout(() => {
-            reload();
-          }, 1);
-          wizardScrollAdjustedRef.current = true;
-        }
-        return <OnboardingWizard navigation={navigation} />;
-      }
-      return null;
-    };
 
     const handleOnFileDownload = useCallback(
       async ({
@@ -1575,7 +1554,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 onNewTabPress={onNewTabPress}
                 toggleOptionsIfNeeded={toggleOptionsIfNeeded}
                 activeUrl={resolvedUrlRef.current}
-                isHomepage={isHomepage}
                 getMaskedUrl={getMaskedUrl}
                 title={titleRef}
                 reload={reload}
@@ -1586,7 +1564,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             )}
 
             {renderBottomBar()}
-            {isTabActive && renderOnboardingWizard()}
           </View>
         </View>
       </ErrorBoundary>
@@ -1599,7 +1576,6 @@ const mapStateToProps = (state: RootState) => ({
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  wizardStep: state.wizard.step,
   activeChainId: selectEvmChainId(state),
 });
 

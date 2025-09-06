@@ -103,7 +103,7 @@ describe('useNetworksByNamespace', () => {
       >['networkEnablementController'],
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
-      toggleNetwork: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
     });
@@ -277,7 +277,7 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });
@@ -326,7 +326,7 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });
@@ -425,7 +425,7 @@ describe('useNetworksByNamespace', () => {
         >['networkEnablementController'],
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
-        toggleNetwork: jest.fn(),
+        enableAllPopularNetworks: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
       });

@@ -49,12 +49,13 @@ describe('useTransactionPayTokenAmounts', () => {
     useTokenFiatRatesMock.mockReturnValue([4]);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '123.456',
-      balanceHuman: '123.456',
-      decimals: 4,
       payToken: {
         address: tokenAddress1Mock,
+        balance: '123.456',
+        balanceFiat: '123.456',
         chainId: CHAIN_ID_MOCK,
+        decimals: 4,
+        symbol: 'TST',
       },
       setPayToken: jest.fn(),
     });

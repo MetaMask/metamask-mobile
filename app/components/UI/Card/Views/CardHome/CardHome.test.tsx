@@ -10,11 +10,8 @@ import { AllowanceState } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useMetrics } from '../../../../hooks/useMetrics';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
-} from '../../../Tokens/constants';
+import { useIsCardholder } from '../../hooks/useIsCardholder';
+import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   selectDepositActiveFlag,
@@ -22,6 +19,7 @@ import {
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -96,6 +94,10 @@ jest.mock('../../hooks/useAssetBalance', () => ({
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
   useNavigateToCardPage: () => mockUseNavigateToCardPage(),
+}));
+
+jest.mock('../../hooks/useIsCardholder', () => ({
+  useIsCardholder: jest.fn(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -328,6 +330,8 @@ describe('CardHome Component', () => {
       openSwaps: mockOpenSwaps,
     });
 
+    (useIsCardholder as jest.Mock).mockReturnValue(true);
+
     (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
@@ -350,6 +354,21 @@ describe('CardHome Component', () => {
       }
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
+      }
+      if (selector === selectSelectedInternalAccount) {
+        return {
+          address: mockCurrentAddress,
+          id: 'account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: [],
+          methods: [],
+        };
       }
       if (
         selector
@@ -403,6 +422,21 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
+      if (selector === selectSelectedInternalAccount) {
+        return {
+          address: mockCurrentAddress,
+          id: 'account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: [],
+          methods: [],
+        };
+      }
       if (
         selector
           .toString()
@@ -434,18 +468,6 @@ describe('CardHome Component', () => {
     expect(screen.getByText('••••••••••••')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays loading state when priority token is loading', () => {
-    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
-      priorityToken: mockPriorityToken,
-      fetchPriorityToken: mockFetchPriorityToken,
-      isLoading: true,
-      error: null,
-    });
-
-    render();
-    expect(screen.getByTestId(CardHomeSelectors.LOADER)).toBeTruthy();
   });
 
   it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
@@ -718,6 +740,21 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
+      if (selector === selectSelectedInternalAccount) {
+        return {
+          address: mockCurrentAddress,
+          id: 'account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: [],
+          methods: [],
+        };
+      }
       if (selector.toString().includes('selectChainId')) {
         return '0x1'; // Ethereum mainnet - fallback
       }
@@ -778,6 +815,21 @@ describe('CardHome Component', () => {
       }
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
+      }
+      if (selector === selectSelectedInternalAccount) {
+        return {
+          address: mockCurrentAddress,
+          id: 'account-id',
+          type: 'eip155:eoa',
+          options: {},
+          metadata: {
+            name: 'Test Account',
+            importTime: Date.now(),
+            keyring: { type: 'HD Key Tree' },
+          },
+          scopes: [],
+          methods: [],
+        };
       }
       if (selector.toString().includes('selectChainId')) {
         return '0x1'; // Ethereum mainnet - fallback
@@ -853,43 +905,6 @@ describe('CardHome Component', () => {
         cardholderAddress: mockCurrentAddress,
       });
     });
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING,
-      secondaryBalance: '1000 USDC',
-    });
-
-    const { getByText } = render();
-
-    // When balance is TOKEN_BALANCE_LOADING, it should render a SkeletonText component
-    // instead of actual balance text. Since we can't access testID easily, we check
-    // that the loading constants are not rendered as text
-    expect(() => getByText(TOKEN_BALANCE_LOADING)).toThrow();
-  });
-
-  it('displays skeleton loader when balance is TOKEN_BALANCE_LOADING_UPPERCASE', () => {
-    mockUseAssetBalance.mockReturnValue({
-      balanceFiat: TOKEN_BALANCE_LOADING_UPPERCASE,
-      asset: {
-        symbol: 'USDC',
-        image: 'usdc-image-url',
-      },
-      mainBalance: TOKEN_BALANCE_LOADING_UPPERCASE,
-      secondaryBalance: '1000 USDC',
-    });
-
-    const { getByText } = render();
-
-    // When balance is TOKEN_BALANCE_LOADING_UPPERCASE, it should render a SkeletonText component
-    // instead of actual balance text
-    expect(() => getByText(TOKEN_BALANCE_LOADING_UPPERCASE)).toThrow();
   });
 
   it('falls back to mainBalance when balanceFiat is TOKEN_RATE_UNDEFINED', () => {

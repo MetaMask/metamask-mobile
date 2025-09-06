@@ -5,11 +5,24 @@ import { usePollingNetworks } from './use-polling-networks';
 
 const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const pollingNetworks = usePollingNetworks();
-  const pollingInput = pollingNetworks.map((c) => ({ chainId: c.chainId }));
 
-  let overridePollingInput: { chainId: Hex }[] | undefined;
+  const pollingInput =
+    pollingNetworks.length > 0
+      ? [
+          {
+            chainIds: pollingNetworks.map((c) => c.chainId),
+          },
+        ]
+      : [];
+
+  let overridePollingInput: { chainIds: Hex[] }[] | undefined;
   if (chainIds) {
-    overridePollingInput = chainIds.map((chainId) => ({ chainId }));
+    // We don't want to take evmNetwork into account
+    overridePollingInput = [
+      {
+        chainIds,
+      },
+    ];
   }
 
   const { TokenBalancesController } = Engine.context;

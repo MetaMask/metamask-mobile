@@ -72,7 +72,7 @@ export const PortfolioBalance = React.memo(() => {
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
                 variant={TextVariant.DisplayLG}
               >
-                {selectedAccountMultichainBalance.displayBalance}
+                {selectedAccountMultichainBalance?.displayBalance}
               </SensitiveText>
             </View>
 

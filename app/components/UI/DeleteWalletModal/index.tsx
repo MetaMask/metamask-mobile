@@ -112,16 +112,13 @@ const DeleteWalletModal: React.FC = () => {
   const deleteWallet = async () => {
     try {
       setIsDeletingWallet(true);
-      await dispatch(
-        clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
-      );
+      dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
       signOut();
       await CookieManager.clearAll(true);
       await resetWalletState();
       await deleteUser();
       await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-      await dispatch(setCompletedOnboarding(false));
-      triggerClose();
+      dispatch(setCompletedOnboarding(false));
       // Track analytics for successful deletion
       track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
       InteractionManager.runAfterInteractions(() => {
@@ -129,13 +126,14 @@ const DeleteWalletModal: React.FC = () => {
       });
     } catch (error) {
       console.error('Error during wallet deletion:', error);
+      triggerClose();
     } finally {
       setIsDeletingWallet(false);
     }
   };
 
   return (
-    <BottomSheet ref={modalRef}>
+    <BottomSheet ref={modalRef} isInteractable={!isDeletingWallet}>
       {!isResetWallet && !isResetWalletFromParams ? (
         <View
           style={styles.forgotPasswordContainer}
@@ -174,6 +172,7 @@ const DeleteWalletModal: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMDBold}
                   color={TextColor.Default}
+                  style={styles.bold}
                 >
                   {strings('login.forgot_password_point_1_bold')}
                 </Text>{' '}
@@ -195,6 +194,7 @@ const DeleteWalletModal: React.FC = () => {
                 <Text
                   variant={TextVariant.BodyMDBold}
                   color={TextColor.Default}
+                  style={styles.bold}
                 >
                   {strings('login.forgot_password_point_2_bold')}{' '}
                 </Text>
@@ -232,6 +232,7 @@ const DeleteWalletModal: React.FC = () => {
                   iconColor={IconColor.Default}
                   onPress={() => setIsResetWallet(false)}
                   testID={ForgotPasswordModalSelectorsIDs.BACK_BUTTON}
+                  isDisabled={isDeletingWallet}
                 />
               ) : (
                 <View style={styles.iconEmptyContainer} />
@@ -288,6 +289,7 @@ const DeleteWalletModal: React.FC = () => {
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
+                isDisabled={isDeletingWallet}
               />
             </View>
           </View>

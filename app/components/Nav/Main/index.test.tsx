@@ -11,7 +11,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-
 const mockStore = configureMockStore();
 const mockInitialState = {
   user: {

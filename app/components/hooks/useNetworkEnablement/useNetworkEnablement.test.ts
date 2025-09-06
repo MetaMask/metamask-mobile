@@ -62,6 +62,7 @@ const mockNetworkEnablementController = {
   disableNetwork: jest.fn(),
   isNetworkEnabled: jest.fn(),
   hasOneEnabledNetwork: jest.fn(),
+  enableAllPopularNetworks: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
@@ -125,9 +126,9 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('networkEnablementController');
       expect(result.current).toHaveProperty('enableNetwork');
       expect(result.current).toHaveProperty('disableNetwork');
-      expect(result.current).toHaveProperty('toggleNetwork');
       expect(result.current).toHaveProperty('isNetworkEnabled');
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
+      expect(result.current).toHaveProperty('enableAllPopularNetworks');
     });
 
     it('returns functions for network operations', () => {
@@ -135,7 +136,7 @@ describe('useNetworkEnablement', () => {
 
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
-      expect(typeof result.current.toggleNetwork).toBe('function');
+      expect(typeof result.current.enableAllPopularNetworks).toBe('function');
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
     });
@@ -285,61 +286,14 @@ describe('useNetworkEnablement', () => {
     });
   });
 
-  describe('toggleNetwork logic', () => {
-    it('disables network when store shows it as enabled', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-
+  describe('enableAllPopularNetworks', () => {
+    it('calls enableAllPopularNetworks when enableAllPopularNetworks is called', () => {
       const { result } = renderHook(() => useNetworkEnablement());
-      result.current.toggleNetwork(chainId);
+      result.current.enableAllPopularNetworks();
 
       expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('enables network when store shows it as disabled', () => {
-      const chainId = 'eip155:89' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('disables non-EVM network when store shows it as enabled', () => {
-      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('enables non-EVM network when store shows it as disabled', () => {
-      const chainId = 'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as CaipChainId;
-
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).not.toHaveBeenCalled();
+        mockNetworkEnablementController.enableAllPopularNetworks,
+      ).toHaveBeenCalled();
     });
   });
 
@@ -443,7 +397,7 @@ describe('useNetworkEnablement', () => {
         networkEnablementController: mockNetworkEnablementController,
         enableNetwork: expect.any(Function),
         disableNetwork: expect.any(Function),
-        toggleNetwork: expect.any(Function),
+        enableAllPopularNetworks: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
       });

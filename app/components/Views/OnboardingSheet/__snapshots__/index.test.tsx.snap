@@ -722,7 +722,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                 }
               }
             >
-              Continue with Secret Recovery Phrase
+              Use Secret Recovery Phrase
             </Text>
           </TouchableOpacity>
         </View>

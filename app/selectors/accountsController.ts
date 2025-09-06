@@ -10,7 +10,6 @@ import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
   BtcMethod,
   EthMethod,
-  EthScope,
   SolMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
@@ -19,13 +18,9 @@ import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
 } from '../core/Multichain/utils';
-import {
-  CaipAccountId,
-  CaipChainId,
-  KnownCaipNamespace,
-  parseCaipChainId,
-} from '@metamask/utils';
+import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
+import { anyScopesMatch } from '../components/hooks/useAccountGroupsForPermissions/utils';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
   caipAccountId: CaipAccountId;
@@ -36,7 +31,7 @@ export type InternalAccountWithCaipAccountId = InternalAccount & {
  * @param state - Root redux state
  * @returns - AccountsController state
  */
-const selectAccountsControllerState = (state: RootState) =>
+export const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
 /**
@@ -225,7 +220,7 @@ export const selectCanSignTransactions = createSelector(
       selectedAccount?.methods?.includes(SolMethod.SignMessage) ||
       selectedAccount?.methods?.includes(SolMethod.SendAndConfirmTransaction) ||
       selectedAccount?.methods?.includes(SolMethod.SignAndSendTransaction) ||
-      selectedAccount?.methods?.includes(BtcMethod.SendBitcoin)) ??
+      selectedAccount?.methods?.includes(BtcMethod.SignPsbt)) ??
     false,
 );
 
@@ -277,44 +272,9 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
       return [];
     }
 
-    // Parse the requested scope
-    let namespace: string;
-    let reference: string;
-    try {
-      const parsed = parseCaipChainId(scope);
-      namespace = parsed.namespace;
-      reference = parsed.reference;
-    } catch {
-      return [];
-    }
-
-    if (namespace === KnownCaipNamespace.Eip155) {
-      // If requesting eip155:0 (wildcard), include any account that has any EVM scope
-      if (reference === '0') {
-        return accounts.filter(
-          (account) =>
-            Array.isArray(account.scopes) &&
-            account.scopes.some((s) =>
-              s.startsWith(`${KnownCaipNamespace.Eip155}:`),
-            ),
-        );
-      }
-
-      // For a specific EVM chain, include accounts that either:
-      // - have the exact scope (e.g., eip155:1), or
-      // - have the wildcard scope (eip155:0)
-      return accounts.filter(
-        (account) =>
-          Array.isArray(account.scopes) &&
-          (account.scopes.includes(scope) ||
-            account.scopes.includes(EthScope.Eoa)),
-      );
-    }
-
-    // Non-EVM: exact scope match only
     return accounts.filter(
       (account) =>
-        Array.isArray(account.scopes) && account.scopes.includes(scope),
+        Array.isArray(account.scopes) && anyScopesMatch(account.scopes, scope),
     );
   },
 );

@@ -5,10 +5,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
+
+// Mock PerpsStreamManager
+jest.mock('../../providers/PerpsStreamManager');
 
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
@@ -18,6 +21,23 @@ const mockUseHasExistingPosition = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+// Mock notification feature flag
+const mockIsNotificationsFeatureEnabled = jest.fn();
+
+// Mock route params that can be modified during tests
+const mockRouteParams = {
+  market: {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    price: '$45,000.00',
+    change24h: '+$1,125.00',
+    change24hPercent: '+2.50%',
+    volume: '$1.23B',
+    maxLeverage: '40x',
+  },
+  isNavigationFromOrderSuccess: false,
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -25,19 +45,10 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      setOptions: jest.fn(),
     }),
     useRoute: () => ({
-      params: {
-        market: {
-          symbol: 'BTC',
-          name: 'Bitcoin',
-          price: '$45,000.00',
-          change24h: '+$1,125.00',
-          change24hPercent: '+2.50%',
-          volume: '$1.23B',
-          maxLeverage: '40x',
-        },
-      },
+      params: mockRouteParams,
     }),
     useFocusEffect: jest.fn(),
   };
@@ -232,6 +243,33 @@ jest.mock('../../components/PerpsPositionCard', () => ({
   default: () => null,
 }));
 
+// Mock notification utility
+jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
+  isNotificationsFeatureEnabled: () => mockIsNotificationsFeatureEnabled(),
+}));
+
+// Mock perps config to control the notification feature flag
+jest.mock('../../constants/perpsConfig', () => ({
+  ...jest.requireActual('../../constants/perpsConfig'),
+  PERPS_NOTIFICATIONS_FEATURE_ENABLED: false, // Hardcoded to false until feature is ready
+}));
+
+// Mock PerpsNotificationTooltip
+jest.mock('../../components/PerpsNotificationTooltip', () => ({
+  __esModule: true,
+  default: ({
+    orderSuccess,
+    testID,
+  }: {
+    orderSuccess: boolean;
+    testID: string;
+  }) => {
+    const { View } = jest.requireActual('react-native');
+    return orderSuccess ? <View testID={testID} /> : null;
+  },
+}));
+
 // Mock PerpsOpenOrderCard
 jest.mock('../../components/PerpsOpenOrderCard', () => ({
   __esModule: true,
@@ -289,6 +327,12 @@ describe('PerpsMarketDetailsView', () => {
       existingPosition: null,
       refreshPosition: jest.fn(),
     });
+
+    // Reset notification feature flag to default
+    mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+
+    // Reset route params to default
+    mockRouteParams.isNavigationFromOrderSuccess = false;
   });
 
   // Clean up mocks after each test
@@ -569,14 +613,15 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
     });
 
-    it('refreshes position data when position tab is active', async () => {
+    it('refreshes candle data when position tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: false,
         error: null,
         existingPosition: null,
-        refreshPosition: mockRefreshPosition,
+        refreshPosition: mockRefreshPosition, // No-op function for WebSocket positions
       });
 
       const { getByTestId } = renderWithProvider(
@@ -588,76 +633,21 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh (position tab is active by default)
       await refreshControl.props.onRefresh();
 
-      // Should refresh both candle data and position data
+      // Assert - Only candle data refreshes since positions update via WebSocket
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-    });
-
-    it('refreshes orders data when orders tab is active', async () => {
-      const mockRefreshPosition = jest.fn();
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition: {
-          coin: 'BTC',
-          size: '0.5',
-          entryPrice: '44000',
-          positionValue: '22000',
-          unrealizedPnl: '50',
-          marginUsed: '500',
-          leverage: { type: 'isolated', value: 5 },
-          liquidationPrice: '40000',
-          maxLeverage: 20,
-          returnOnEquity: '1.14',
-          cumulativeFunding: {
-            allTime: '0',
-            sinceOpen: '0',
-            sinceChange: '0',
-          },
-        },
-        refreshPosition: mockRefreshPosition,
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      // Switch to orders tab
-      const ordersTab = getByTestId('perps-market-tabs-orders-tab');
-      fireEvent.press(ordersTab);
-
-      // Get the ScrollView component
-      const scrollView = getByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
-      );
-      const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
-      await refreshControl.props.onRefresh();
-
-      // Should refresh candle data and orders data
-      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshOrders).toHaveBeenCalledTimes(1);
-      // Should not refresh position data when orders tab is active
+      // refreshPosition is a no-op for WebSocket, so we don't expect it to be called
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('refreshes statistics data when statistics tab is active', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
@@ -692,28 +682,26 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Switch to statistics tab
+      // Act - Switch to statistics tab
       const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
       fireEvent.press(statisticsTab);
 
-      // Get the ScrollView component
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data, market stats, and position data
+      // Assert - Only candle data refreshes (all other data updates via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshMarketStats).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
-      // Should not refresh orders data when statistics tab is active
+      // Market stats, positions, and orders update via WebSocket, no manual refresh
+      expect(mockRefreshMarketStats).not.toHaveBeenCalled();
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
       expect(mockRefreshOrders).not.toHaveBeenCalled();
     });
 
-    it('calls refresh functions for chart data and position by default', async () => {
+    it('refreshes candle data by default', async () => {
+      // Arrange
       const mockRefreshPosition = jest.fn();
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
@@ -732,18 +720,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Get the ScrollView component
+      // Act
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
       const refreshControl = scrollView.props.refreshControl;
-
-      // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data and position data (default behavior)
+      // Assert - Only candle data refreshes (positions update via WebSocket)
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
     });
 
     it('handles refresh state correctly during refresh operation', async () => {
@@ -822,22 +808,6 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Navigation functionality', () => {
-    it('calls navigation.goBack when back button is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-
-      const backButton = getByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON);
-      fireEvent.press(backButton);
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
     it('navigates to long order screen when long button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
@@ -908,6 +878,183 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+    });
+  });
+
+  describe('notification tooltip functionality', () => {
+    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+    it('does not show PerpsNotificationTooltip even when conditions are met due to PERPS_NOTIFICATIONS_FEATURE_ENABLED being false', async () => {
+      mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+      mockRouteParams.isNavigationFromOrderSuccess = true;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Notification tooltip should NOT be visible because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
+      await waitFor(() => {
+        expect(
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+      });
+    });
+
+    it('does not show PerpsNotificationTooltip when not navigating from order success', () => {
+      mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+      mockRouteParams.isNavigationFromOrderSuccess = false;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Notification tooltip should not be visible
+      expect(
+        queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+      ).toBeNull();
+    });
+
+    it('does not show PerpsNotificationTooltip when notifications feature is disabled', () => {
+      mockIsNotificationsFeatureEnabled.mockReturnValue(false);
+      mockRouteParams.isNavigationFromOrderSuccess = true;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Notification tooltip should not be visible even when navigating from order success
+      expect(
+        queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+      ).toBeNull();
+    });
+
+    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+    it('never shows tooltip because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', () => {
+      // Test all four combinations - all should result in no tooltip due to the constant flag
+      const testCases = [
+        {
+          notificationsEnabled: true,
+          fromOrderSuccess: true,
+          shouldShow: false, // Would be true if PERPS_NOTIFICATIONS_FEATURE_ENABLED was true
+        },
+        {
+          notificationsEnabled: true,
+          fromOrderSuccess: false,
+          shouldShow: false,
+        },
+        {
+          notificationsEnabled: false,
+          fromOrderSuccess: true,
+          shouldShow: false,
+        },
+        {
+          notificationsEnabled: false,
+          fromOrderSuccess: false,
+          shouldShow: false,
+        },
+      ];
+
+      testCases.forEach(({ notificationsEnabled, fromOrderSuccess }) => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(notificationsEnabled);
+        mockRouteParams.isNavigationFromOrderSuccess = fromOrderSuccess;
+
+        const { queryByTestId, unmount } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        // Always expect null because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
+        expect(
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+
+        unmount();
+      });
+    });
+
+    describe('notifications feature flag behavior', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      // TODO: Update these tests when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+      it('does not render notification when PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', async () => {
+        // Even when isNotificationsFeatureEnabled returns true, the constant flag prevents rendering
+        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+        mockRouteParams.isNavigationFromOrderSuccess = true;
+
+        const { queryByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        // Tooltip should NOT be shown because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
+        await waitFor(() => {
+          expect(
+            queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+          ).toBeNull();
+        });
+      });
+
+      it('does not render notification when feature is disabled even when navigating from order success', () => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(false);
+        mockRouteParams.isNavigationFromOrderSuccess = true;
+
+        const { queryByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        // Tooltip should NOT be shown since notifications feature is disabled
+        expect(
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+      });
+
+      it('does not render notification when feature is enabled but not navigating from order success', () => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+        mockRouteParams.isNavigationFromOrderSuccess = false;
+
+        const { queryByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        // Tooltip should NOT be shown since not navigating from order success
+        expect(
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
       });
     });
   });

@@ -139,10 +139,23 @@ jest.mock('../../../../../core/Engine', () => {
 jest.mock('react-native-qrcode-svg', () => {
   const actualReact = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
-  return function MockQRCode({ value }: { value: string }) {
+  return function MockQRCode({
+    value,
+    size,
+    logoSize,
+    logoBorderRadius,
+  }: {
+    value: string;
+    size?: number;
+    logoSize?: number;
+    logoBorderRadius?: number;
+  }) {
     return actualReact.createElement(
       Text,
-      { testID: 'mock-qr-code' },
+      {
+        testID: 'mock-qr-code',
+        accessibilityLabel: `QR Code: ${value}, size: ${size}, logoSize: ${logoSize}, logoBorderRadius: ${logoBorderRadius}`,
+      },
       `QR Code: ${value}`,
     );
   };
@@ -199,46 +212,61 @@ describe('ShareAddress', () => {
     mockAccount = internalAccount1; // Reset to default
   });
 
-  it('renders correctly with account information', () => {
+  it('displays title and QR account information', () => {
+    // Arrange
     const { getByText, getByTestId } = render();
 
+    // Assert
     expect(
       getByText(strings('multichain_accounts.share_address.title')),
-    ).toBeTruthy();
-    expect(getByTestId('mock-qr-code')).toBeTruthy();
-    expect(getByTestId('qr-account-display')).toBeTruthy();
-
-    expect(getByTestId('account-label')).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(getByTestId('mock-qr-code')).toBeOnTheScreen();
+    expect(getByTestId('qr-account-display')).toBeOnTheScreen();
+    expect(getByTestId('account-label')).toBeOnTheScreen();
   });
 
-  it('displays QR code with account address', () => {
+  it('renders QR code with correct size and logo properties', () => {
+    // Arrange
     const { getByTestId } = render();
-    expect(getByTestId('account-address')).toBeTruthy();
+    const qrCode = getByTestId('mock-qr-code');
+
+    // Assert
+    expect(qrCode).toBeOnTheScreen();
+    expect(qrCode.props.accessibilityLabel).toContain('size: 200');
+    expect(qrCode.props.accessibilityLabel).toContain('logoSize: 32');
+    expect(qrCode.props.accessibilityLabel).toContain('logoBorderRadius: 8');
   });
 
-  it('navigates back when the back button is pressed', () => {
+  it('navigates back when back button is pressed', () => {
+    // Arrange
     const rendered = render();
     const { root } = rendered;
     const touchableOpacities = root.findAllByType(TouchableOpacity);
-
-    // Hack to get the button
     const backButton = touchableOpacities.find(
       (touchable) =>
         touchable.props.accessible === true && touchable.props.onPress,
     );
 
+    // Act
     expect(backButton).toBeTruthy();
     if (backButton) {
       fireEvent.press(backButton);
     }
-    expect(mockGoBack).toHaveBeenCalled();
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to the explorer when the explorer button is pressed', () => {
+  it('navigates to block explorer when explorer button is pressed', () => {
+    // Arrange
     const { getByTestId } = render();
     const explorerButton = getByTestId('share-address-view-on-explorer-button');
-    expect(explorerButton).toBeTruthy();
+
+    // Act
+    expect(explorerButton).toBeOnTheScreen();
     fireEvent.press(explorerButton);
+
+    // Assert
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -246,21 +274,38 @@ describe('ShareAddress', () => {
         title: 'Etherscan',
       },
     });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it('handles different account types', () => {
+  it('renders different account types correctly', () => {
+    // Arrange
     const snapAccount = createMockSnapInternalAccount(
       '0x9876543210987654321098765432109876543210',
       'Snap Account',
       SolAccountType.DataAccount,
     );
 
+    // Act
     const { getByTestId } = render(snapAccount);
-    expect(getByTestId('account-address')).toBeTruthy();
+
+    // Assert
+    expect(getByTestId('account-address')).toBeOnTheScreen();
+    expect(getByTestId('qr-account-display')).toBeOnTheScreen();
   });
 
-  it('renders with correct QR code size and logo', () => {
+  it('displays explorer button with correct text', () => {
+    // Arrange
+    const { getByText } = render();
+
+    // Assert
+    expect(getByText(/View on Etherscan/i)).toBeOnTheScreen();
+  });
+
+  it('shows account address in QR account display', () => {
+    // Arrange
     const { getByTestId } = render();
-    expect(getByTestId('mock-qr-code')).toBeTruthy();
+
+    // Assert
+    expect(getByTestId('account-address')).toBeOnTheScreen();
   });
 });

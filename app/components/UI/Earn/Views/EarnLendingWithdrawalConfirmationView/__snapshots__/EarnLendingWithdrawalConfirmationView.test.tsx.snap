@@ -660,9 +660,11 @@ exports[`EarnLendingWithdrawalConfirmationView matches snapshot 1`] = `
                       <View
                         style={
                           {
+                            "alignItems": "center",
                             "backgroundColor": "#ffffff",
                             "borderRadius": 4,
                             "height": 16,
+                            "justifyContent": "center",
                             "overflow": "hidden",
                             "width": 16,
                           }

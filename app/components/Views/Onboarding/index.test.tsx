@@ -24,6 +24,24 @@ import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
+    fetch: jest.fn(),
+    addEventListener: jest.fn(() => jest.fn()), // unsubscribe fn
+  },
+  NetInfoStateType: {
+    none: 'none',
+    wifi: 'wifi',
+    cellular: 'cellular',
+    unknown: 'unknown',
+  },
+}));
+
+import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
+
+const mockNetInfoFetch = NetInfo.fetch as jest.Mock;
+
 const mockInitialState = {
   engine: {
     backgroundState: {
@@ -69,7 +87,11 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
 }));
 
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  handleOAuthLogin: jest.fn(),
+  handleOAuthLogin: jest.fn().mockResolvedValue({
+    type: 'success',
+    existingUser: false,
+    accountName: 'test@example.com',
+  }),
   resetOauthState: jest.fn(),
 }));
 
@@ -278,6 +300,8 @@ describe('Onboarding', () => {
   describe('Create wallet flow', () => {
     afterEach(() => {
       mockSeedlessOnboardingEnabled.mockReset();
+      mockNavigate.mockReset();
+      mockNetInfoFetch.mockReset();
     });
 
     it('should navigate to onboarding sheet when create wallet is pressed for new user', async () => {
@@ -343,6 +367,73 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           onboardingTraceCtx: expect.any(Object),
+        }),
+      );
+    });
+
+    it('should navigate to offline error sheet when there is no internet', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      mockNetInfoFetch.mockResolvedValue({
+        type: NetInfoStateType.none,
+        isConnected: false,
+        isInternetReachable: false,
+        details: null,
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      expect(navCall).toBeDefined();
+
+      const googleOAuthFunction =
+        navCall?.[1]?.params?.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.no_internet_connection_title'),
+            description: strings(
+              'error_sheet.no_internet_connection_description',
+            ),
+            descriptionAlign: 'left',
+            buttonLabel: strings('error_sheet.no_internet_connection_button'),
+            primaryButtonLabel: strings(
+              'error_sheet.no_internet_connection_button',
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          }),
         }),
       );
     });

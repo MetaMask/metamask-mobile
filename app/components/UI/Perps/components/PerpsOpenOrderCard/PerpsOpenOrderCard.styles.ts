@@ -39,11 +39,6 @@ const styleSheet = (params: { theme: Theme }) => {
       overflow: 'hidden',
       backgroundColor: colors.background.alternative,
     },
-    tokenIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    },
     headerLeft: {
       flex: 1,
       alignItems: 'flex-start',

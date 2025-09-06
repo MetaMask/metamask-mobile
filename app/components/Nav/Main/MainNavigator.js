@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -111,7 +111,8 @@ import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
+import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -767,7 +768,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={AccountBackupStep1.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -799,7 +800,15 @@ const SetPasswordFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
+  const { enabled: isSendRedesignEnabled } = useSelector(
+    selectSendRedesignFlags,
+  );
 
   return (
     <Stack.Navigator
@@ -847,7 +856,7 @@ const MainNavigator = () => {
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? Send : SendFlowView}
+        component={isSendRedesignEnabled ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />

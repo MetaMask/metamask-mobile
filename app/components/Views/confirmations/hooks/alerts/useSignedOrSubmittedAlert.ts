@@ -16,12 +16,22 @@ const blockableStatuses = [
 export const useSignedOrSubmittedAlert = () => {
   const transactions = useSelector(selectTransactions);
   const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId, txParams } = transactionMetadata || {};
+  const { from } = txParams ?? {};
+
+  const showAlert = useMemo(
+    () =>
+      transactions.some(
+        (transaction) =>
+          blockableStatuses.includes(transaction.status) &&
+          transaction.id !== transactionId &&
+          transaction.chainId === chainId &&
+          transaction.txParams.from.toLowerCase() === from?.toLowerCase(),
+      ),
+    [transactions, transactionId, chainId, from],
+  );
 
   return useMemo(() => {
-    const showAlert = transactions
-      .filter((transaction) => transaction.id !== transactionMetadata?.id)
-      .some((transaction) => blockableStatuses.includes(transaction.status));
-
     if (!showAlert) {
       return [];
     }
@@ -34,5 +44,5 @@ export const useSignedOrSubmittedAlert = () => {
         severity: Severity.Danger,
       },
     ];
-  }, [transactions, transactionMetadata]);
+  }, [showAlert]);
 };

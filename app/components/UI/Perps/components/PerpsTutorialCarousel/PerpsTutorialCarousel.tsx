@@ -1,4 +1,9 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -25,51 +30,86 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsFirstTimeUser } from '../../hooks';
+import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
+import Rive, { Alignment, Fit } from 'rive-react-native';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
+const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
-const tutorialScreens = [
+export enum PERPS_RIVE_ARTBOARD_NAMES {
+  INTRO = 'Intro_Perps_v03 2',
+  SHORT_LONG = 'Short_Long_v03',
+  LEVERAGE = 'Leverage_v03',
+  LIQUIDATION = 'Liquidation_v03',
+  CLOSE = 'Close_v03',
+  READY = 'Ready_v03',
+}
+
+export interface TutorialScreen {
+  id: string;
+  title: string;
+  description: string;
+  subtitle?: string;
+  riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
+}
+
+const tutorialScreens: TutorialScreen[] = [
   {
     id: 'what_are_perps',
     title: strings('perps.tutorial.what_are_perps.title'),
     description: strings('perps.tutorial.what_are_perps.description'),
     subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
   },
   {
     id: 'go_long_or_short',
     title: strings('perps.tutorial.go_long_or_short.title'),
     description: strings('perps.tutorial.go_long_or_short.description'),
     subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
   },
   {
     id: 'choose_leverage',
     title: strings('perps.tutorial.choose_leverage.title'),
     description: strings('perps.tutorial.choose_leverage.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
   },
   {
     id: 'watch_liquidation',
     title: strings('perps.tutorial.watch_liquidation.title'),
     description: strings('perps.tutorial.watch_liquidation.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
   },
   {
     id: 'close_anytime',
     title: strings('perps.tutorial.close_anytime.title'),
     description: strings('perps.tutorial.close_anytime.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
   },
   {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   },
 ];
+
+interface PerpsTutorialRouteParams {
+  isFromDeeplink?: boolean;
+}
 
 const PerpsTutorialCarousel: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const route =
+    useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
+  const isFromDeeplink = route.params?.isFromDeeplink || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
+  const { depositWithConfirmation } = usePerpsTrading();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -127,8 +167,18 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-      // Navigate to deposit/add funds flow
-      navigation.navigate(Routes.PERPS.DEPOSIT);
+
+      // Navigate immediately to confirmations screen for instant UI response
+      // Note: When from deeplink, user will go through deposit flow
+      // and should return to markets after completion
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
+      });
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -144,7 +194,14 @@ const PerpsTutorialCarousel: React.FC = () => {
         hasTrackedStarted.current = true;
       }
     }
-  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
+  }, [
+    isLastScreen,
+    markTutorialCompleted,
+    navigation,
+    currentTab,
+    track,
+    depositWithConfirmation,
+  ]);
 
   const handleSkip = useCallback(() => {
     if (isLastScreen) {
@@ -161,8 +218,31 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
     }
-    navigation.goBack();
-  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
+
+    // Navigate based on deeplink flag
+    if (isFromDeeplink) {
+      // Navigate to wallet home first
+      navigation.navigate(Routes.WALLET.HOME);
+
+      // The timeout is REQUIRED - React Navigation needs time to complete
+      // the navigation before params can be set on the new screen
+      setTimeout(() => {
+        navigation.setParams({
+          initialTab: 'perps',
+          shouldSelectPerpsTab: true,
+        });
+      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+    } else {
+      navigation.goBack();
+    }
+  }, [
+    isLastScreen,
+    markTutorialCompleted,
+    navigation,
+    currentTab,
+    track,
+    isFromDeeplink,
+  ]);
 
   const renderTabBar = () => <View />;
 
@@ -178,9 +258,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
       {/* Progress Dots */}
       <View style={styles.progressContainer}>
-        {tutorialScreens.map((_, index) => (
+        {tutorialScreens.map((screen, index) => (
           <View
-            key={index}
+            key={screen.id}
             style={[
               styles.progressDot,
               currentTab === index && styles.progressDotActive,
@@ -227,6 +307,16 @@ const PerpsTutorialCarousel: React.FC = () => {
                       {screen.subtitle}
                     </Text>
                   )}
+                  {/* Animation Container */}
+                  <View style={styles.animationContainer}>
+                    <Rive
+                      artboardName={screen.riveArtboardName}
+                      source={PerpsOnboardingAnimation}
+                      fit={Fit.Cover}
+                      alignment={Alignment.Center}
+                      autoplay
+                    />
+                  </View>
                 </View>
               </View>
             ))}

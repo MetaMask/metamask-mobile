@@ -31,7 +31,7 @@ const ApplePayButton = ({
   quote: QuoteResponse;
   label: string;
 }) => {
-  const { selectedAddress, selectedChainId, callbackBaseUrl } = useRampSDK();
+  const { selectedAddress, callbackBaseUrl } = useRampSDK();
   const dispatch = useDispatch();
   const [pay] = useApplePay(quote);
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
@@ -55,7 +55,6 @@ const ApplePayButton = ({
         if (paymentResult.order) {
           const fiatOrder: FiatOrder = {
             ...aggregatorOrderToFiatOrder(paymentResult.order),
-            network: selectedChainId,
             account: selectedAddress,
           };
           handleSuccessfulOrder(fiatOrder, { isApplePay: true });
@@ -84,7 +83,6 @@ const ApplePayButton = ({
     dispatch,
     pay,
     callbackBaseUrl,
-    selectedChainId,
     selectedAddress,
     handleSuccessfulOrder,
     quote.crypto?.symbol,

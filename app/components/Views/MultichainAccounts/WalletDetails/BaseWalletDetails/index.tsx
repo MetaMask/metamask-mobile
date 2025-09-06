@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -22,19 +22,25 @@ import {
 } from '../../../../UI/Box/box.types';
 import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  AccountWalletObject,
+  AccountGroupObject,
+} from '@metamask/account-tree-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 import { useWalletBalances } from '../hooks/useWalletBalances';
-import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import WalletAddAccountActions from './components/WalletAddAccountActions';
-import AccountItem from './components/AccountItem';
 import AddAccountItem from './components/AddAccountItem';
 import { FlashList } from '@shopify/flash-list';
+import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell';
+import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import AccountItem from './components/AccountItem';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+import { RootState } from '../../../../../reducers';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -50,26 +56,28 @@ export const BaseWalletDetails = ({
   const { colors } = theme;
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
 
+  const { accounts, keyringId, isSRPBackedUp } = useWalletInfo(wallet);
+
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
+  const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
+  const accountGroups = useMemo(
+    () =>
+      accountGroupsByWallet.find((section) => section.wallet.id === wallet.id)
+        ?.data ?? [],
+    [accountGroupsByWallet, wallet.id],
+  );
+
+  const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
+    useWalletBalances(accounts);
+
   const accountAvatarType = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   )
     ? AvatarAccountType.Blockies
     : AvatarAccountType.JazzIcon;
-
-  const { accounts, keyringId, srpIndex, isSRPBackedUp } =
-    useWalletInfo(wallet);
-
-  const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
-    useWalletBalances(accounts);
-
-  const handleGoToAccountDetails = useCallback(
-    (account: InternalAccount) => {
-      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
-        account,
-      });
-    },
-    [navigation],
-  );
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {
@@ -97,6 +105,38 @@ export const BaseWalletDetails = ({
     setShowAddAccountModal(false);
   }, []);
 
+  const handleGoToAccountDetails = useCallback(
+    (account: InternalAccount) => {
+      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS, {
+        account,
+      });
+    },
+    [navigation],
+  );
+
+  // Render account group item for multichain accounts state 2
+  const renderAccountGroupItem = ({
+    item: accountGroup,
+    index,
+  }: {
+    item: AccountGroupObject;
+    index: number;
+  }) => {
+    const isFirst = index === 0;
+
+    const accountBoxStyle = [
+      styles.accountGroupBox,
+      ...(isFirst ? [styles.firstAccountBox] : []),
+    ];
+
+    return (
+      <View style={accountBoxStyle}>
+        <AccountCell accountGroup={accountGroup} isSelected={false} hideMenu />
+      </View>
+    );
+  };
+
+  // Render individual account item for legacy view
   const renderAccountItem = ({
     item: account,
     index,
@@ -124,12 +164,33 @@ export const BaseWalletDetails = ({
   };
 
   const renderAddAccountItem = () => {
-    const totalItemsCount = accounts.length + 1;
+    const totalItemsCount = isMultichainAccountsState2Enabled
+      ? accountGroups.length + 1
+      : accounts.length + 1;
 
     return (
       <AddAccountItem
         totalItemsCount={totalItemsCount}
         onPress={handleAddAccount}
+      />
+    );
+  };
+
+  const renderAccountsList = () => {
+    if (isMultichainAccountsState2Enabled) {
+      return (
+        <FlashList
+          data={accountGroups}
+          keyExtractor={(item) => item.id}
+          renderItem={renderAccountGroupItem}
+        />
+      );
+    }
+    return (
+      <FlashList
+        data={accounts}
+        keyExtractor={(item) => item.id}
+        renderItem={renderAccountItem}
       />
     );
   };
@@ -190,34 +251,22 @@ export const BaseWalletDetails = ({
           <TouchableOpacity
             testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
             onPress={handleRevealSRP}
-            style={styles.srpRevealSection}
+            style={styles.srpSection}
           >
+            <Text variant={TextVariant.BodyMDMedium}>
+              {strings('accounts.secret_recovery_phrase')}
+            </Text>
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               justifyContent={JustifyContent.spaceBetween}
-              style={styles.srpRevealContent}
             >
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
                 gap={8}
               >
-                <Text variant={TextVariant.BodyMDMedium}>
-                  {strings(
-                    'multichain_accounts.wallet_details.reveal_recovery_phrase_with_index',
-                    {
-                      index: srpIndex,
-                    },
-                  )}
-                </Text>
-              </Box>
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                {isSRPBackedUp === false ? (
+                {isSRPBackedUp === false && (
                   <TouchableOpacity onPress={handleBackupPressed}>
                     <Text
                       variant={TextVariant.BodyMDMedium}
@@ -226,7 +275,7 @@ export const BaseWalletDetails = ({
                       {strings('multichain_accounts.wallet_details.back_up')}
                     </Text>
                   </TouchableOpacity>
-                ) : null}
+                )}
                 <Icon
                   name={IconName.ArrowRight}
                   size={IconSize.Md}
@@ -240,13 +289,7 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          <View style={styles.listContainer}>
-            <FlashList
-              data={accounts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderAccountItem}
-            />
-          </View>
+          <View style={styles.listContainer}>{renderAccountsList()}</View>
           {keyringId && renderAddAccountItem()}
         </View>
 

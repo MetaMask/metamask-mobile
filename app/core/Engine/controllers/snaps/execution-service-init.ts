@@ -49,7 +49,6 @@ export const executionServiceInit: ControllerInitFunction<
           isHomepage: () => false,
           fromHomepage: { current: false },
           toggleUrlModal: () => null,
-          wizardScrollAdjusted: { current: false },
           tabId: false,
           isWalletConnect: true,
           isMMSDK: false,
