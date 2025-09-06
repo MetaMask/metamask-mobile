@@ -111,10 +111,20 @@ export const createTradingViewChartTemplate = (
                             sensitivity: 1.0, // Default sensitivity
                         }
                     },
-                    // Disable crosshair for better performance on low-end devices
-                    crosshair: {
-                        mode: 2, // Hidden mode - no crosshair at all
-                    },
+                    // crosshair: {
+                    //     mode: 3, // Normal mode - crosshair appears on touch/hover
+                    //     vertLine: {
+                    //         visible: true,
+                    //         labelVisible: true,
+                    //         width: 1,
+                    //         style: 2, // Dotted line
+                    //         color: '${theme.colors.text.default}',
+                    //     },
+                    //     horzLine: {
+                    //         visible: false, // Hide horizontal line
+                    //         labelVisible: false,
+                    //     },
+                    // },
                     localization: {
                         priceFormatter: (price) => {
                             // Smart decimal precision based on price value and range
@@ -221,6 +231,79 @@ export const createTradingViewChartTemplate = (
                         visible: false, // Disable left scale to avoid conflicts
                     }
                 });
+
+                // Custom crosshair implementation for mobile touch
+                let customCrosshair = null;
+                let isCrosshairVisible = false;
+
+                const createCustomCrosshair = () => {
+                    const crosshair = document.createElement('div');
+                    crosshair.style.position = 'absolute';
+                    crosshair.style.width = '1px';
+                    crosshair.style.height = '100%';
+                    crosshair.style.backgroundColor = '#666666';
+                    crosshair.style.pointerEvents = 'none';
+                    crosshair.style.zIndex = '1000';
+                    crosshair.style.display = 'none';
+                    crosshair.style.borderLeft = '1px dotted #666666';
+                    crosshair.id = 'custom-crosshair';
+                    container.appendChild(crosshair);
+                    return crosshair;
+                };
+
+                const showCrosshair = (x) => {
+                    if (!customCrosshair) {
+                        customCrosshair = createCustomCrosshair();
+                    }
+                    customCrosshair.style.display = 'block';
+                    customCrosshair.style.left = x + 'px';
+                    isCrosshairVisible = true;
+                };
+
+                const hideCrosshair = () => {
+                    if (customCrosshair) {
+                        customCrosshair.style.display = 'none';
+                        isCrosshairVisible = false;
+                    }
+                };
+
+                // Double tap to toggle crosshair
+                let lastTap = 0;
+                container.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    
+                    if (tapLength < 500 && tapLength > 0) {
+                        // Double tap detected
+                        e.preventDefault();
+                        const rect = container.getBoundingClientRect();
+                        const x = e.changedTouches[0].clientX - rect.left;
+                        
+                        if (isCrosshairVisible) {
+                            hideCrosshair();
+                        } else {
+                            showCrosshair(x);
+                        }
+                    }
+                    lastTap = currentTime;
+                }, { passive: false });
+
+                // Move crosshair on touch move when visible
+                container.addEventListener('touchmove', (e) => {
+                    if (isCrosshairVisible && customCrosshair) {
+                        e.preventDefault();
+                        const rect = container.getBoundingClientRect();
+                        const x = e.touches[0].clientX - rect.left;
+                        customCrosshair.style.left = x + 'px';
+                    }
+                }, { passive: false });
+
+                // Hide crosshair on touch start (new gesture)
+                container.addEventListener('touchstart', (e) => {
+                    if (isCrosshairVisible) {
+                        hideCrosshair();
+                    }
+                }, { passive: true });
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
