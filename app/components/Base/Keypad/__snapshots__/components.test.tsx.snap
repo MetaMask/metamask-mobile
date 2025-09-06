@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Keypad components components should render correctly and match snapshot 1`] = `
+exports[`Keypad Components Keypad compound component should render complete keypad layout 1`] = `
 <View
   style={
     [
@@ -2222,7 +2222,532 @@ exports[`Keypad components components should render correctly and match snapshot
 </View>
 `;
 
-exports[`Keypad should render correctly and match snapshot 1`] = `
+exports[`Keypad Components KeypadButton should render with custom variant 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityLabel="5"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#121314",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#ffffff",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <Text
+          accessibilityRole="none"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 32,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              },
+              undefined,
+            ]
+          }
+        >
+          5
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadButton should render with default variant 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityLabel="5"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <Text
+          accessibilityRole="none"
+          ellipsizeMode="clip"
+          numberOfLines={1}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 32,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              },
+              undefined,
+            ]
+          }
+        >
+          5
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadButton should render without children 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      />
+    </View>
+  </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadContainer should render with default gap 1`] = `
 <View
   style={
     [
@@ -2239,9 +2764,9 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
       [
         {
           "display": "flex",
-          "flexDirection": "row",
-          "gap": 12,
-          "justifyContent": "space-between",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         },
         undefined,
       ]
@@ -2251,2193 +2776,1070 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
       style={
         [
           {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
           },
-          undefined,
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
         ]
       }
     >
       <View
+        accessibilityLabel="Test"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           [
             {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
               "alignItems": "center",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 48,
               "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
             },
           ]
         }
       >
         <View
-          accessibilityLabel="1"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
           style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
           }
+          testID="spinner-container"
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
             }
-            testID="spinner-container"
+            testID="spinner"
           >
             <View
               style={
                 [
                   {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
                   },
-                  undefined,
                 ]
               }
-              testID="spinner"
+              testID="spinner-animated-view"
             >
-              <View
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
                 style={
                   [
                     {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
+                      "color": "#121314",
+                      "height": 20,
+                      "width": 20,
                     },
+                    undefined,
                   ]
                 }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
+                testID="spinner-icon"
+              />
             </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              1
-            </Text>
           </View>
         </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
+        <View
+          style={
             {
               "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
               "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="2"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
+              "opacity": 1,
             }
           }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
+          testID="content-container"
         >
-          <View
+          <Text
+            accessibilityRole="none"
+            ellipsizeMode="clip"
+            numberOfLines={1}
             style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              2
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
+              [
                 {
-                  "scale": 1,
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 32,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
                 },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="3"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
+                undefined,
+              ]
             }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
           >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              3
-            </Text>
-          </View>
+            Test
+          </Text>
         </View>
       </View>
     </View>
   </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadDeleteButton should render with backspace icon 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      },
+      undefined,
+    ]
+  }
+>
   <View
     style={
       [
         {
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 12,
-          "justifyContent": "space-between",
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
         },
-        undefined,
-      ]
-    }
-  >
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="4"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              4
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="5"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              5
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="6"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              6
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  </View>
-  <View
-    style={
-      [
         {
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 12,
-          "justifyContent": "space-between",
+          "alignItems": "center",
+          "justifyContent": "center",
         },
-        undefined,
       ]
     }
   >
     <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="7"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              7
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="8"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              8
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="9"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              9
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  </View>
-  <View
-    style={
-      [
+      accessibilityRole="button"
+      accessibilityState={
         {
-          "display": "flex",
-          "flexDirection": "row",
-          "gap": 12,
-          "justifyContent": "space-between",
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
       style={
         [
           {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
           },
-          undefined,
         ]
       }
     >
       <View
         style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityLabel="."
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              .
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
           {
+            "alignItems": "center",
+            "bottom": 0,
             "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
-                {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
         }
+        testID="spinner-container"
       >
         <View
-          accessibilityLabel="0"
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": false,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
           style={
             [
               {
                 "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
-                "borderRadius": 12,
-                "borderWidth": 1,
+                "columnGap": 8,
                 "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
               },
+              undefined,
             ]
           }
+          testID="spinner"
         >
           <View
             style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
-                    },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
-            }
-            testID="content-container"
-          >
-            <Text
-              accessibilityRole="none"
-              ellipsizeMode="clip"
-              numberOfLines={1}
-              style={
-                [
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 32,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 40,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              0
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "display": "flex",
-            "flexBasis": "0%",
-            "flexGrow": 1,
-            "flexShrink": 1,
-          },
-          undefined,
-        ]
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "transform": [
+              [
                 {
-                  "scale": 1,
-                },
-              ],
-            },
-            {
-              "alignItems": "center",
-              "justifyContent": "center",
-            },
-          ]
-        }
-      >
-        <View
-          accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
-          accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            [
-              {
-                "alignItems": "center",
-                "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "minWidth": 80,
-                "opacity": 1,
-                "overflow": "hidden",
-                "paddingLeft": 16,
-                "paddingRight": 16,
-                "width": "100%",
-              },
-            ]
-          }
-          testID="keypad-delete-button"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "bottom": 0,
-                "display": "flex",
-                "justifyContent": "center",
-                "left": 0,
-                "opacity": 0,
-                "position": "absolute",
-                "right": 0,
-                "top": 0,
-              }
-            }
-            testID="spinner-container"
-          >
-            <View
-              style={
-                [
-                  {
-                    "alignItems": "center",
-                    "columnGap": 8,
-                    "flexDirection": "row",
-                  },
-                  undefined,
-                ]
-              }
-              testID="spinner"
-            >
-              <View
-                style={
-                  [
+                  "transform": [
                     {
-                      "transform": [
-                        {
-                          "rotate": "0deg",
-                        },
-                      ],
+                      "rotate": "0deg",
                     },
-                  ]
-                }
-                testID="spinner-animated-view"
-              >
-                <SvgMock
-                  fill="currentColor"
-                  name="Loading"
-                  style={
-                    [
-                      {
-                        "color": "#121314",
-                        "height": 20,
-                        "width": 20,
-                      },
-                      undefined,
-                    ]
-                  }
-                  testID="spinner-icon"
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "columnGap": 8,
-                "flexDirection": "row",
-                "justifyContent": "center",
-                "opacity": 1,
-              }
+                  ],
+                },
+              ]
             }
-            testID="content-container"
+            testID="spinner-animated-view"
           >
             <SvgMock
               fill="currentColor"
-              name="Backspace"
+              name="Loading"
               style={
                 [
                   {
                     "color": "#121314",
-                    "height": 32,
-                    "width": 32,
+                    "height": 20,
+                    "width": 20,
                   },
                   undefined,
                 ]
               }
+              testID="spinner-icon"
             />
           </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Backspace"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadDeleteButton should use custom delayLongPress 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <SvgMock
+          fill="currentColor"
+          name="Backspace"
+          style={
+            [
+              {
+                "color": "#121314",
+                "height": 32,
+                "width": 32,
+              },
+              undefined,
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`Keypad Components KeypadRow should render children in a row 1`] = `
+<View
+  style={
+    [
+      {
+        "display": "flex",
+        "flexDirection": "row",
+        "gap": 12,
+        "justifyContent": "space-between",
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="1"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="none"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 32,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
+            }
+          >
+            1
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="2"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="none"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 32,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
+            }
+          >
+            2
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "display": "flex",
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+          {
+            "alignItems": "center",
+            "justifyContent": "center",
+          },
+        ]
+      }
+    >
+      <View
+        accessibilityLabel="3"
+        accessibilityRole="button"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
+              "borderRadius": 12,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "bottom": 0,
+              "display": "flex",
+              "justifyContent": "center",
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+          testID="spinner-container"
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                },
+                undefined,
+              ]
+            }
+            testID="spinner"
+          >
+            <View
+              style={
+                [
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="spinner-animated-view"
+            >
+              <SvgMock
+                fill="currentColor"
+                name="Loading"
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "height": 20,
+                      "width": 20,
+                    },
+                    undefined,
+                  ]
+                }
+                testID="spinner-icon"
+              />
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "columnGap": 8,
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "opacity": 1,
+            }
+          }
+          testID="content-container"
+        >
+          <Text
+            accessibilityRole="none"
+            ellipsizeMode="clip"
+            numberOfLines={1}
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 32,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 40,
+                },
+                undefined,
+              ]
+            }
+          >
+            3
+          </Text>
         </View>
       </View>
     </View>
