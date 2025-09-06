@@ -40,6 +40,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+jest.mock('../../hooks/useTokenAsset', () => ({
+  useTokenAsset: jest.fn().mockReturnValue({ asset: { logo: 'logo.png' } }),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
