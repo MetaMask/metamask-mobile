@@ -4,7 +4,6 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import BackgroundTimer from 'react-native-background-timer';
 import SDKConnect from '../SDKConnect';
-import { TIMEOUT_PAUSE_CONNECTIONS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 
@@ -92,22 +91,8 @@ async function handleAppState({
       instance.state.paused = false;
     } else if (appState === 'background') {
       if (!instance.state.paused) {
-        /**
-         * Pause connections after 20 seconds of the app being in background to respect device resources.
-         * Also, OS closes the app if after 30 seconds, the connections are still open.
-         */
-        if (Device.isIos()) {
-          BackgroundTimer.start();
-          instance.state.timeout = setTimeout(() => {
-            instance.pause();
-          }, TIMEOUT_PAUSE_CONNECTIONS) as unknown as number;
-          BackgroundTimer.stop();
-        } else if (Device.isAndroid()) {
-          instance.state.timeout = BackgroundTimer.setTimeout(() => {
-            instance.pause();
-          }, TIMEOUT_PAUSE_CONNECTIONS);
-          // TODO manage interval clearTimeout
-        }
+        DevLogger.log(`SDKConnect::_handleAppState - pausing`);
+        instance.pause();
       }
     }
   } catch (error) {

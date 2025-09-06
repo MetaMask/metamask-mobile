@@ -291,7 +291,7 @@ const generateRawSignature = async ({
       requestId: req.id,
       ...pageMeta,
       channelId,
-      origin: hostname,
+      origin,
       securityAlertResponse: req.securityAlertResponse,
     } as MessageParamsTyped,
     req,
@@ -451,7 +451,7 @@ export const getRpcMethodMiddleware = ({
       );
 
       const responseData = await Engine.context.ApprovalController.add({
-        origin: hostname,
+        origin,
         type,
         requestData: {
           ...requestData,
@@ -516,7 +516,7 @@ export const getRpcMethodMiddleware = ({
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
-                  channelId ?? hostname,
+                  origin,
                 ),
             },
           );
@@ -549,7 +549,7 @@ export const getRpcMethodMiddleware = ({
                   ) as unknown as RequestedPermissions,
                 requestPermissionsForOrigin: (requestedPermissions) =>
                   Engine.context.PermissionController.requestPermissions(
-                    { origin: channelId ?? hostname },
+                    { origin },
                     requestedPermissions,
                     {
                       metadata: {
@@ -634,7 +634,7 @@ export const getRpcMethodMiddleware = ({
                   requestedPermissions: RequestedPermissions,
                 ) =>
                   Engine.context.PermissionController.requestPermissions(
-                    { origin: channelId ?? hostname },
+                    { origin },
                     requestedPermissions,
                     {
                       metadata: {
@@ -738,11 +738,17 @@ export const getRpcMethodMiddleware = ({
           () => PPOMUtil.validateRequest(req),
         );
 
+        DevLogger.log(
+          `personal_sign newUnsignedPersonalMessage`,
+          params,
+          pageMeta,
+          origin,
+        );
         const rawSig = await signatureController.newUnsignedPersonalMessage(
           {
             ...params,
             ...pageMeta,
-            origin: hostname,
+            origin,
           },
           req,
           { traceContext: req.traceContext },
@@ -806,7 +812,7 @@ export const getRpcMethodMiddleware = ({
             from: req.params[1],
             requestId: req.id,
             ...pageMeta,
-            origin: hostname,
+            origin,
           },
           req,
           'V1',

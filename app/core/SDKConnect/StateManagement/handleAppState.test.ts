@@ -109,7 +109,7 @@ describe('handleAppState', () => {
   });
 
   describe('When app state is background', () => {
-    it('should start a timeout to pause connections on Android', () => {
+    it('should pause connections on Android', () => {
       const mockAppState = 'background';
       mockIsAndroid.mockReturnValue(true);
 
@@ -118,7 +118,7 @@ describe('handleAppState', () => {
         instance: mockInstance,
       });
 
-      expect(BackgroundTimer.setTimeout).toHaveBeenCalled();
+      expect(mockInstance.pause).toHaveBeenCalled();
     });
 
     it('should not start a timeout if already paused', () => {
@@ -130,7 +130,7 @@ describe('handleAppState', () => {
         instance: mockInstance,
       });
 
-      expect(BackgroundTimer.setTimeout).not.toHaveBeenCalled();
+      expect(mockInstance.pause).not.toHaveBeenCalled();
     });
   });
 });

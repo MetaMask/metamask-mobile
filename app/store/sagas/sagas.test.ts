@@ -21,7 +21,6 @@ import {
 import { NavigationActionType } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import SharedDeeplinkManager from '../../core/DeeplinkManager/SharedDeeplinkManager';
 import Engine from '../../core/Engine';
 import DeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import branch from 'react-native-branch';
@@ -81,13 +80,22 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
-  __esModule: true,
-  default: {
-    init: jest.fn(),
-    parse: jest.fn(),
-  },
-}));
+jest.mock('../../core/DeeplinkManager/DeeplinkManager', () => {
+  // Defer resolving the actual implementation until call time to avoid circular import issues
+  const getActual = () =>
+    jest.requireActual('../../core/DeeplinkManager/DeeplinkManager').default;
+
+  const start = (...args: unknown[]) => getActual().start(...(args as []));
+
+  return {
+    __esModule: true,
+    default: {
+      start,
+      init: jest.fn(),
+      parse: jest.fn(),
+    },
+  };
+});
 
 // Use real DeeplinkManager to verify Branch/linking behavior triggered by startAppServices
 
@@ -335,7 +343,7 @@ describe('handleDeeplinkSaga', () => {
         .dispatch(checkForDeeplink())
         .silentRun();
 
-      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+      expect(DeeplinkManager.parse).not.toHaveBeenCalled();
       expect(
         AppStateEventProcessor.clearPendingDeeplink,
       ).not.toHaveBeenCalled();
@@ -370,7 +378,7 @@ describe('handleDeeplinkSaga', () => {
           .silentRun();
 
         expect(Engine.context.KeyringController.isUnlocked).toHaveBeenCalled();
-        expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+        expect(DeeplinkManager.parse).not.toHaveBeenCalled();
         expect(
           AppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();
@@ -391,7 +399,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(DeeplinkManager.parse).not.toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).not.toHaveBeenCalled();
@@ -414,7 +422,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -452,7 +460,7 @@ describe('handleDeeplinkSaga', () => {
           expect(
             Engine.context.KeyringController.isUnlocked,
           ).toHaveBeenCalled();
-          expect(SharedDeeplinkManager.parse).toHaveBeenCalled();
+          expect(DeeplinkManager.parse).toHaveBeenCalled();
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
@@ -467,11 +475,6 @@ describe('handleDeeplinkSaga', () => {
 describe('DeeplinkManager.start Branch deeplink handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('initializes SharedDeeplinkManager', async () => {
-    DeeplinkManager.start();
-    expect(SharedDeeplinkManager.init).toHaveBeenCalled();
   });
 
   it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {

@@ -20,6 +20,7 @@ import { wait, waitForCondition } from '../utils/wait.util';
 import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
+import NavigationService from '../../NavigationService';
 const { version: walletVersion } = packageJSON;
 
 async function connectToChannel({
@@ -106,7 +107,7 @@ async function connectToChannel({
       trigger,
       rpcQueueManager: instance.state.rpcqueueManager,
       originatorInfo,
-      navigation: instance.state.navigation,
+      navigation: NavigationService.navigation,
       updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
       approveHost: instance._approveHost.bind(instance),
       disapprove: instance.disapproveChannel.bind(instance),
