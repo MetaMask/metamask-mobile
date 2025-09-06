@@ -2,12 +2,15 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../locales/i18n';
+import AppConstants from '../../../core/AppConstants';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
 const mockOnPressImport = jest.fn();
 const mockOnPressContinueWithGoogle = jest.fn();
 const mockOnPressContinueWithApple = jest.fn();
+
+const mockNavigate = jest.fn();
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -27,7 +30,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       goBack: jest.fn(),
       setOptions: jest.fn(),
     }),
@@ -161,6 +164,42 @@ describe('OnboardingSheet', () => {
 
         expect(mockOnPressCreate).toHaveBeenCalledTimes(1);
         expect(mockOnPressImport).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('OnboardingSheet - Terms & Privacy', () => {
+      afterEach(() => {
+        mockNavigate.mockReset();
+      });
+
+      it('navigates to Terms of Use when terms link is pressed', () => {
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+
+        const termsLink = getByTestId('terms-of-use-link');
+        fireEvent.press(termsLink);
+
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: AppConstants.URLS.TERMS_OF_USE_URL,
+            title: strings('onboarding.terms_of_use'),
+          },
+        });
+      });
+
+      it('navigates to Privacy Notice when privacy link is pressed', () => {
+        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+
+        const privacyLink = getByTestId('privacy-notice-link');
+        fireEvent.press(privacyLink);
+
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: AppConstants.URLS.PRIVACY_NOTICE,
+            title: strings('onboarding.privacy_notice'),
+          },
+        });
       });
     });
   });
