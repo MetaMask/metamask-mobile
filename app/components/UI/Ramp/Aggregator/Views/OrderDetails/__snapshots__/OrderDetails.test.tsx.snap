@@ -380,7 +380,15 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -1435,7 +1443,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -1828,7 +1836,15 @@ exports[`OrderDetails renders a completed order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -2901,7 +2917,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -3294,7 +3310,15 @@ exports[`OrderDetails renders a created order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -4329,7 +4353,7 @@ exports[`OrderDetails renders a created order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -4722,7 +4746,15 @@ exports[`OrderDetails renders a failed order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -5777,7 +5809,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -6170,7 +6202,15 @@ exports[`OrderDetails renders a pending order 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7205,7 +7245,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -7598,7 +7638,15 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -7616,7 +7664,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                           ]
                         }
                       />
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8009,7 +8057,15 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -8234,7 +8290,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                           </View>
                         </View>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -8627,7 +8683,15 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -9743,7 +9807,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -10136,7 +10200,15 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -11255,7 +11327,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -11648,7 +11720,15 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -12683,7 +12763,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
@@ -13076,7 +13156,15 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "additive",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
@@ -14126,7 +14214,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                           </View>
                         </RCTScrollView>
                       </View>
-                    </RCTSafeAreaView>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

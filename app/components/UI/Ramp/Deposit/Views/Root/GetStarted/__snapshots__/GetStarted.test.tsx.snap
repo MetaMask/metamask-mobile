@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GetStarted render matches snapshot 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -322,11 +330,19 @@ exports[`GetStarted render matches snapshot 1`] = `
       </View>
     </View>
   </View>
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;
 
 exports[`GetStarted renders blank screen when getStarted is true 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     {
       "flex": 1,
@@ -344,5 +360,5 @@ exports[`GetStarted renders blank screen when getStarted is true 1`] = `
       ]
     }
   />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

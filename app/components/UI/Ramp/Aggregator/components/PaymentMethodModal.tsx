@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import Modal from 'react-native-modal';
 import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 
