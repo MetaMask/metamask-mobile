@@ -37,16 +37,29 @@ describe('AddCustomCollectible', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <AddCustomCollectible />
+        <AddCustomCollectible
+          setOpenNetworkSelector={jest.fn()}
+          networkId={''}
+          selectedNetwork={''}
+          networkClientId={''}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('handles address input changes', () => {
-    const { getByTestId } = renderWithProvider(<AddCustomCollectible />, {
-      state: initialRootState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <AddCustomCollectible
+        setOpenNetworkSelector={jest.fn()}
+        networkId={''}
+        selectedNetwork={''}
+        networkClientId={''}
+      />,
+      {
+        state: initialRootState,
+      },
+    );
 
     const textfield = getByTestId('input-collectible-address');
     fireEvent.changeText(textfield, '0xtestAddress');
@@ -54,9 +67,17 @@ describe('AddCustomCollectible', () => {
   });
 
   it('handles tokenId input changes', () => {
-    const { getByTestId } = renderWithProvider(<AddCustomCollectible />, {
-      state: initialRootState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <AddCustomCollectible
+        setOpenNetworkSelector={jest.fn()}
+        networkId={''}
+        selectedNetwork={''}
+        networkClientId={''}
+      />,
+      {
+        state: initialRootState,
+      },
+    );
 
     const textfield = getByTestId('input-collectible-identifier');
     fireEvent.changeText(textfield, '55');
@@ -79,6 +100,10 @@ describe('AddCustomCollectible', () => {
     const { getByTestId } = renderWithProvider(
       <AddCustomCollectible
         navigation={{ navigate: jest.fn(), goBack: jest.fn() }}
+        setOpenNetworkSelector={jest.fn()}
+        networkId={''}
+        selectedNetwork={''}
+        networkClientId={''}
       />,
       { state: initialRootState },
     );
