@@ -27,7 +27,7 @@ import {
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -109,6 +109,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import FOX_LOGO from '../../../images/branding/fox.png';
 
 // In android, having {} will cause the styles to update state
@@ -159,6 +160,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -185,7 +190,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
       passwordLoginAttemptTraceCtxRef.current = trace({
@@ -194,12 +207,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         parentContext: onboardingTraceCtxFromRoute,
       });
     }
+  }, [route.params?.onboardingTraceCtx]);
 
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
+  useEffect(() => {
     const getUserAuthPreferences = async () => {
+      if (isSeedlessPasswordOutdated) {
+        setError(strings('login.seedless_password_outdated'));
+        // password outdated, reset biometric password and choice
+        await Authentication.resetPassword().catch((e) => {
+          Logger.error(e);
+        });
+      }
+
       const authData = await Authentication.getType();
 
       //Setup UI to handle Biometric
@@ -233,12 +252,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSeedlessPasswordOutdated, route?.params?.locked]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
@@ -632,8 +646,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     downloadStateLogs(fullState, false);
   };
 
+  // for rehydration and when global password is outdated
+  // hide biometric button
   const shouldHideBiometricAccessoryButton = !(
     !oauthLoginSuccess &&
+    !isSeedlessPasswordOutdated &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
