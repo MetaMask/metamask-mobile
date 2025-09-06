@@ -145,6 +145,10 @@ const TradingViewChart = React.forwardRef<
               break;
             case 'WEBVIEW_TEST':
               break;
+            case 'OHLC_DATA':
+              // Log OHLC data to console
+              console.log('OHLC Data received from WebView:', message.data);
+              break;
             default:
               break;
           }

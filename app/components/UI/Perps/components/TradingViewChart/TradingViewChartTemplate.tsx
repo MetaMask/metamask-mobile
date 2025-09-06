@@ -306,7 +306,40 @@ export const createTradingViewChartTemplate = (
                     if (isCrosshairVisible) {
                         hideCrosshair();
                     }
-                }, { passive: true });
+                }, { passive: true                 });
+
+                // Create absolutely positioned square above top left corner with OHLC data
+                const createPositionedSquare = () => {
+                    const square = document.createElement('div');
+                    square.style.position = 'fixed'; // Use fixed positioning instead of absolute
+                    square.style.top = '10px'; // Position from top of viewport
+                    square.style.left = '10px'; // Position from left of viewport
+                    square.style.width = 'auto'; // Auto width to fit content
+                    square.style.height = 'auto'; // Auto height to fit content
+                    square.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'; // Dark background
+                    square.style.border = '2px solid #FF7584'; // Red border
+                    square.style.borderRadius = '4px';
+                    square.style.pointerEvents = 'none'; // Don't block chart interactions
+                    square.style.zIndex = '9999'; // Very high z-index to ensure it's on top
+                    square.style.position = 'absolute'; // Override to absolute for chart container
+                    square.style.padding = '6px 8px'; // Minimal padding
+                    square.style.fontSize = '10px';
+                    square.style.fontFamily = 'monospace';
+                    square.style.color = 'white';
+                    square.style.lineHeight = '1.2';
+                    square.style.whiteSpace = 'nowrap'; // Keep text on single lines
+                    square.id = 'positioned-square';
+                    
+                    // Add static OHLC data
+                    square.innerHTML = 'O: 1.2345<br>H: 1.2456<br>L: 1.2234<br>C: 1.2389';
+                    
+                    // Append to document body instead of container to avoid stacking context issues
+                    document.body.appendChild(square);
+                    return square;
+                };
+
+                // Create the square and store reference
+                const ohlcLegendBox = createPositionedSquare();
 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
@@ -349,6 +382,41 @@ export const createTradingViewChartTemplate = (
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
                 crosshairMarkerRadius: 0, // Minimize crosshair impact
             });
+            
+            // Subscribe to crosshair events to send OHLC data to React Native
+            window.chart.subscribeCrosshairMove((param) => {
+                if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
+                    // Crosshair is outside the chart area
+                    return;
+                }
+
+                // Get OHLC data from the candlestick series
+                if (window.candlestickSeries && param.seriesData && param.seriesData.get(window.candlestickSeries)) {
+                    const data = param.seriesData.get(window.candlestickSeries);
+                    if (data && data.open !== undefined) {
+                        const ohlcData = {
+                            open: data.open.toFixed(6),
+                            high: data.high.toFixed(6),
+                            low: data.low.toFixed(6),
+                            close: data.close.toFixed(6),
+                            time: param.time
+                        };
+                        
+                        // Console log for debugging
+                        console.log('OHLC Data:', ohlcData);
+                        
+                        // Send OHLC data back to React Native
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'OHLC_DATA',
+                                data: ohlcData,
+                                timestamp: new Date().toISOString()
+                            }));
+                        }
+                    }
+                }
+            });
+            
             return window.candlestickSeries;
         };
 
