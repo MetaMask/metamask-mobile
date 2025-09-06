@@ -249,4 +249,5 @@ export default {
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',
   EIP_7702_PUBLIC_KEY: '0x3c7a1cCCe462e96D186B8ca9a1BCB2010C3dABa3',
+  TRUSTED_DAPP_DOMAINS: ['portfolio.metamask.io'] as string[],
 } as const;

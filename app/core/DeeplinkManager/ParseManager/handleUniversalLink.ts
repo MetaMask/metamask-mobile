@@ -18,6 +18,7 @@ const {
   MM_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
+  TRUSTED_DAPP_DOMAINS,
 } = AppConstants;
 
 enum SUPPORTED_ACTIONS {
@@ -108,28 +109,60 @@ async function handleUniversalLink({
     }
   }
 
-  const linkType = () => {
-    if (isInvalidLink) {
-      return DeepLinkModalLinkType.INVALID;
-    }
-    if (isPrivateLink) {
-      return DeepLinkModalLinkType.PRIVATE;
-    }
-    return DeepLinkModalLinkType.PUBLIC;
-  };
+  // Check if it's a trusted MetaMask domain for dapp actions - skip modal entirely
+  let isTrustedDapp = false;
+  if (action === SUPPORTED_ACTIONS.DAPP && !isInvalidLink) {
+    try {
+      const dappUrlPath = validatedUrl.pathname.replace('/dapp/', '');
+      if (dappUrlPath) {
+        // Since handleUniversalLink is only called for HTTPS/HTTP, we can assume HTTPS
+        const dappUrl = new URL(`https://${dappUrlPath}`);
 
-  const shouldProceed = await new Promise<boolean>((resolve) => {
-    const [, actionName] = validatedUrl.pathname.split('/');
-    const sanitizedAction = actionName?.replace(/-/g, ' ');
-    const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
+        if (TRUSTED_DAPP_DOMAINS.includes(dappUrl.hostname)) {
+          isTrustedDapp = true;
+        }
+      }
+    } catch (error) {
+      // If URL parsing fails, fall back to mapping deeplink type to modal behavior
+      DevLogger.log(
+        'DeepLinkManager:parse Failed to parse dapp URL for trusted domain check',
+        error,
+      );
+    }
+  }
 
-    handleDeepLinkModalDisplay({
-      linkType: linkType(),
-      pageTitle,
-      onContinue: () => resolve(true),
-      onBack: () => resolve(false),
+  // Determine if we should proceed with the deeplink
+  let shouldProceed: boolean;
+
+  if (isTrustedDapp) {
+    // Skip modal entirely for trusted dapp domains
+    shouldProceed = true;
+  } else {
+    // Show modal for non-trusted domains and wait for user decision
+    const linkType = () => {
+      if (isInvalidLink) {
+        return DeepLinkModalLinkType.INVALID;
+      }
+      if (isPrivateLink) {
+        return DeepLinkModalLinkType.PRIVATE;
+      }
+      return DeepLinkModalLinkType.PUBLIC;
+    };
+
+    shouldProceed = await new Promise<boolean>((resolve) => {
+      const [, actionName] = validatedUrl.pathname.split('/');
+      const sanitizedAction = actionName?.replace(/-/g, ' ');
+      const pageTitle: string =
+        capitalize(sanitizedAction?.toLowerCase()) || '';
+
+      handleDeepLinkModalDisplay({
+        linkType: linkType(),
+        pageTitle,
+        onContinue: () => resolve(true),
+        onBack: () => resolve(false),
+      });
     });
-  });
+  }
 
   // Universal links
   handled();
