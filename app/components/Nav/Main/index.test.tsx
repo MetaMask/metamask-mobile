@@ -11,6 +11,33 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+
+// Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
+jest.mock('../../../components/UI/Ramp', () => ({
+  RampOrders: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('../../../components/UI/Ramp/Deposit/sdk', () => ({
+  DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
+  DepositSDKContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
+}));
+
+jest.mock('../../../components/UI/Ramp/Deposit/orderProcessor', () => ({}));
+
+jest.mock('@consensys/native-ramps-sdk', () => ({
+  SdkEnvironment: {
+    Production: 'production',
+    Staging: 'staging',
+  },
+  Context: {
+    MobileIOS: 'mobile-ios',
+    MobileAndroid: 'mobile-android',
+  },
+  NativeRampsSdk: jest.fn(),
+}));
+
 const mockStore = configureMockStore();
 const mockInitialState = {
   user: {

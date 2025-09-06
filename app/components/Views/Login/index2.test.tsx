@@ -645,6 +645,7 @@ describe('Login test suite 2', () => {
 
   describe('OAuth Login', () => {
     afterEach(() => {
+      mockNavigate.mockReset();
       jest.clearAllMocks();
     });
 
@@ -727,8 +728,47 @@ describe('Login test suite 2', () => {
       expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
 
-    it('should handle OAuth login success when metrics UI is not seen', async () => {
-      mockIsEnabled.mockReturnValue(false);
+    it('should replace navigation when non-OAuth login ', async () => {
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: false,
+        },
+      });
+      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
+        return null;
+      });
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: undefined,
+            },
+          },
+        },
+      };
+      // mock Redux store
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+    });
+
+    it('should handle OAuth login success and navigate to home', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -737,9 +777,10 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
+        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });
+
       const mockState: RecursivePartial<RootState> = {
         engine: {
           backgroundState: {
@@ -781,7 +822,8 @@ describe('Login test suite 2', () => {
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingJourneyOverall,
       });
-      expect(mockReset).toHaveBeenCalledWith({
+      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReset).not.toHaveBeenCalledWith({
         routes: [
           {
             name: Routes.ONBOARDING.ROOT_NAV,
@@ -794,47 +836,6 @@ describe('Login test suite 2', () => {
           },
         ],
       });
-      mockIsEnabled.mockReturnValue(true);
-    });
-
-    it('should replace navigation when non-OAuth login ', async () => {
-      mockRoute.mockReturnValue({
-        params: {
-          locked: false,
-          oauthLoginSuccess: false,
-        },
-      });
-      (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === OPTIN_META_METRICS_UI_SEEN) return true;
-        return null;
-      });
-      const mockState: RecursivePartial<RootState> = {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: {
-              vault: undefined,
-            },
-          },
-        },
-      };
-      // mock Redux store
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        dispatch: jest.fn(),
-        getState: jest.fn(() => mockState),
-      } as unknown as ReduxStore);
-      jest.spyOn(Authentication, 'storePassword').mockResolvedValue(undefined);
-
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'valid-password123');
-      });
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     });
   });
 });
