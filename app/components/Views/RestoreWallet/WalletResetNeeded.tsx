@@ -18,15 +18,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import type { NavigatableRootParamList } from '../../../util/navigation';
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation =
+    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 

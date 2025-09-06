@@ -6,7 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { ConfirmationUIType } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../../component-library/hooks';
-import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
@@ -25,13 +24,17 @@ import { getNavbar } from '../UI/navbar/navbar';
 import { Footer } from '../footer';
 import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
+import type { RootParamList } from '../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+
+type ConfirmProps = StackScreenProps<RootParamList, 'RedesignedConfirmations'>;
 
 const ConfirmWrapped = ({
   styles,
   route,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
-  route?: UnstakeConfirmationViewProps['route'];
+  route?: ConfirmProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
 
@@ -63,10 +66,6 @@ const ConfirmWrapped = ({
     </ConfirmationContextProvider>
   );
 };
-
-interface ConfirmProps {
-  route?: UnstakeConfirmationViewProps['route'];
-}
 
 export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();

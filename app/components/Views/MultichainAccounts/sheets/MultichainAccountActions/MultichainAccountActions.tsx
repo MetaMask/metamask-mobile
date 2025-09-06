@@ -15,14 +15,8 @@ import {
   // MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
-import type {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../../../util/navigation';
-import type {
-  StackNavigationProp,
-  StackScreenProps,
-} from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 type MultichainAccountActionsProps = StackScreenProps<
   RootParamList,
@@ -32,8 +26,7 @@ const MultichainAccountActions = ({ route }: MultichainAccountActionsProps) => {
   const { accountGroup } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = React.useRef<BottomSheetRef>(null);
-  const { navigate } =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { navigate } = useNavigation();
 
   const goToAccountDetails = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {

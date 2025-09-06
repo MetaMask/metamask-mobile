@@ -31,8 +31,6 @@ import Button, {
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { trace, TraceName } from '../../../../../../util/trace';
-import { type NavigatableRootParamList } from '../../../../../../util/navigation';
-import { type StackNavigationProp } from '@react-navigation/stack';
 
 type OtpCodeProps = StackScreenProps<RootParamList, 'OtpCode'>;
 
@@ -57,8 +55,7 @@ const ResendButton: FC<{
 };
 
 const OtpCode = ({ route }: OtpCodeProps) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
   const { email, stateToken, redirectToRootAfterAuth } = route.params;

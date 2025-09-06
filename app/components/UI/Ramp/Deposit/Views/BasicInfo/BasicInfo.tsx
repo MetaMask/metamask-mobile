@@ -2,14 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import type {
-  StackNavigationProp,
-  StackScreenProps,
-} from '@react-navigation/stack';
-import type {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -57,8 +51,7 @@ export interface BasicInfoFormData {
 }
 
 const BasicInfo = ({ route }: BasicInfoProps) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList, 'BasicInfo'>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const { quote, previousFormData } = route.params;

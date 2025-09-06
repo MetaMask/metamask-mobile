@@ -37,11 +37,8 @@ import { AccountGroupType } from '@metamask/account-api';
 import { isHDOrFirstPartySnapAccount } from '../../../../util/address';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
-import { StackNavigationProp, StackScreenProps } from '@react-navigation/stack';
-import {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../../util/navigation';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootParamList } from '../../../../util/navigation';
 
 type AccountGroupDetailsProps = StackScreenProps<
   RootParamList,
@@ -49,8 +46,7 @@ type AccountGroupDetailsProps = StackScreenProps<
 >;
 
 export const AccountGroupDetails = ({ route }: AccountGroupDetailsProps) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const {
     accountGroup: { id, metadata, type, accounts },
   } = route.params;

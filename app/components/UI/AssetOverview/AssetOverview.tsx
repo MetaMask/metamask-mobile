@@ -75,8 +75,6 @@ import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
-import type { NavigatableRootParamList } from '../../../util/navigation';
-import type { StackNavigationProp } from '@react-navigation/stack';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -98,8 +96,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedInternalAccountAddress = selectedInternalAccount?.address;

@@ -27,13 +27,10 @@ import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import type { AddressCopyProps } from './AddressCopy.types';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../util/navigation';
 
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { navigate } = useNavigation();
 
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();

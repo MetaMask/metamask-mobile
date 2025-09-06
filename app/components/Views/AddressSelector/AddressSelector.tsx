@@ -32,21 +32,14 @@ import {
 import { useAccountName } from '../../hooks/useAccountName';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
-import type {
-  StackNavigationProp,
-  StackScreenProps,
-} from '@react-navigation/stack';
-import type {
-  NavigatableRootParamList,
-  RootParamList,
-} from '../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation';
 
 type AddressSelectorProps = StackScreenProps<RootParamList, 'AddressSelector'>;
 
 const AddressSelector = ({ route }: AddressSelectorProps) => {
   const dispatch = useDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const { displayOnlyCaipChainIds, isEvmOnly } = route.params;
   const sheetRef = useRef<BottomSheetRef>(null);
 

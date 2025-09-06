@@ -1,6 +1,5 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';

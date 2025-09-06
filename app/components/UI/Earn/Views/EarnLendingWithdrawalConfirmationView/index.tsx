@@ -35,42 +35,30 @@ import InfoSection from '../../../../Views/confirmations/components/UI/info-row/
 import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
-import { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
-import { EarnTokenDetails } from '../../types/lending.types';
-import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
+import type { RootParamList } from '../../../../../util/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-interface EarnWithdrawalConfirmationViewRouteParams {
-  token: TokenI | EarnTokenDetails;
-  amountTokenMinimalUnit: string;
-  amountFiat: string;
-  lendingProtocol: string;
-  lendingContractAddress: string;
-  healthFactorSimulation: SimulatedAaveV3HealthFactorAfterWithdrawal;
-}
+export type EarnLendingWithdrawalConfirmationViewProps = StackScreenProps<
+  RootParamList,
+  'EarnLendingWithdrawalConfirmation'
+>;
 
-export interface EarnWithdrawalConfirmationViewProps {
-  route: RouteProp<
-    { params: EarnWithdrawalConfirmationViewRouteParams },
-    'params'
-  >;
-}
-
-const EarnLendingWithdrawalConfirmationView = () => {
+const EarnLendingWithdrawalConfirmationView = ({
+  route,
+}: EarnLendingWithdrawalConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigation = useNavigation();
-
-  const { params } = useRoute<EarnWithdrawalConfirmationViewProps['route']>();
 
   const {
     token,
@@ -79,7 +67,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
     lendingContractAddress,
     lendingProtocol,
     // healthFactorSimulation,
-  } = params;
+  } = route.params;
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 

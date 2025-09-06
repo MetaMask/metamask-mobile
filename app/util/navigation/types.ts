@@ -27,6 +27,8 @@ import { OptionsSheetParams } from '../../components/UI/SelectOptionSheet/types'
 import { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RampIntent } from '../../components/UI/Ramp/Aggregator/types';
+import { EarnWithdrawalConfirmationViewRouteParams } from '../../components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/types';
+import { UnstakeConfirmationParams } from '../../components/UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -44,11 +46,13 @@ export type RootParamList = {
   OnboardingSuccessFlow: undefined;
   OnboardingNav: undefined;
   HomeNav: undefined;
-  Login: {
-    locked: boolean;
-    oauthLoginSuccess?: boolean;
-    onboardingTraceCtx?: unknown;
-  };
+  Login:
+    | {
+        locked: boolean;
+        oauthLoginSuccess?: boolean;
+        onboardingTraceCtx?: unknown;
+      }
+    | undefined;
   OnboardingRootNav: undefined;
   ImportFromSecretRecoveryPhrase: undefined;
   OptinMetrics: undefined;
@@ -95,10 +99,12 @@ export type RootParamList = {
   // Modal Screens
   WalletActions: undefined;
   FundActionMenu: undefined;
-  DeleteWalletModal: {
-    oauthLoginSuccess?: boolean;
-    isResetWallet?: boolean;
-  };
+  DeleteWalletModal:
+    | {
+        oauthLoginSuccess?: boolean;
+        isResetWallet?: boolean;
+      }
+    | undefined;
   ModalConfirmation: {
     title: string;
     description: string;
@@ -591,10 +597,7 @@ export type RootParamList = {
   Unstake: {
     token: TokenI;
   };
-  UnstakeConfirmation: {
-    amountWei: string;
-    amountFiat: string;
-  };
+  UnstakeConfirmation: UnstakeConfirmationParams;
   EarningsHistory: undefined;
   Claim: undefined;
   LearnMore: undefined;
@@ -618,7 +621,7 @@ export type RootParamList = {
   Recipient: undefined;
 
   // Full Screen Confirmations
-  RedesignedConfirmations: undefined;
+  RedesignedConfirmations: UnstakeConfirmationParams | undefined;
   Confirm: undefined;
 
   // Main Navigator Screens
@@ -727,14 +730,21 @@ export type RootParamList = {
     timestamp?: number;
   };
   AssetView: undefined;
-  AssetLoader: undefined;
+  AssetLoader: {
+    chainId: string;
+    address: string;
+  };
 
   // Payment Flow Screens
   PaymentRequest: undefined;
   PaymentRequestSuccess: undefined;
 
   // Bookmarks
-  AddBookmark: undefined;
+  AddBookmark: {
+    title: string;
+    url: string;
+    onAddBookmark: (bookmark: { name: string; url: string }) => void;
+  };
 
   // Offline
   OfflineMode: undefined;
@@ -751,7 +761,7 @@ export type RootParamList = {
   EarnScreens: undefined;
   EarnModals: undefined;
   EarnLendingDepositConfirmation: undefined;
-  EarnLendingWithdrawalConfirmation: undefined;
+  EarnLendingWithdrawalConfirmation: EarnWithdrawalConfirmationViewRouteParams;
   EarnLendingMaxWithdrawalModal: undefined;
   EarnLendingLearnMoreModal: undefined;
 

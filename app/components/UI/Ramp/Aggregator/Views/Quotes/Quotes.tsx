@@ -58,9 +58,6 @@ import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/Quotes.selectors';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import { endTrace, TraceName } from '../../../../../../util/trace';
-import { type StackNavigationProp } from '@react-navigation/stack';
-import { type NavigatableRootParamList } from '../../../../../../util/navigation/types';
-
 export interface QuotesParams {
   amount: number | string;
   asset: CryptoCurrency;
@@ -68,8 +65,7 @@ export interface QuotesParams {
 }
 
 function Quotes() {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
 

@@ -31,8 +31,6 @@ const RestoreWallet = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { replace } = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);

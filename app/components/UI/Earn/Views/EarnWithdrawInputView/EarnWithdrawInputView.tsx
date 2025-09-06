@@ -4,7 +4,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   useCallback,
   useEffect,
@@ -36,7 +35,6 @@ import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import { StakeNavigationParamsList } from '../../../Stake/types';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -71,8 +69,7 @@ const EarnWithdrawInputView = () => {
   const { getPairedEarnTokens } = useEarnTokens();
   const { outputToken: receiptToken } = getPairedEarnTokens(token);
 
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(

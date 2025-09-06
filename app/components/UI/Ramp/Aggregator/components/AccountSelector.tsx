@@ -20,8 +20,6 @@ import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Build
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
-import type { NavigatableRootParamList } from '../../../../../util/navigation';
-import type { StackNavigationProp } from '@react-navigation/stack';
 
 const styles = StyleSheet.create({
   selector: {
@@ -35,8 +33,7 @@ const styles = StyleSheet.create({
 });
 
 const AccountSelector = ({ isEvmOnly }: { isEvmOnly?: boolean }) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );

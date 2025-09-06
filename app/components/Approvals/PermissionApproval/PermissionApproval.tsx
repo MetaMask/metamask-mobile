@@ -12,12 +12,9 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../util/navigation';
 
 const PermissionApproval = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);

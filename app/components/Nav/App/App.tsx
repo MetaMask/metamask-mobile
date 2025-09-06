@@ -4,10 +4,7 @@ import {
   useRoute,
   useNavigationState,
 } from '@react-navigation/native';
-import {
-  createStackNavigator,
-  StackNavigationProp,
-} from '@react-navigation/stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
@@ -400,11 +397,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen name="NftOptions" component={NftOptions} />
     <Stack.Screen name="UpdateNeededModal" component={UpdateNeeded} />
     {<Stack.Screen name="SelectSRP" component={SelectSRPBottomSheet} />}
-    <Stack.Screen
-      name="SRPRevealQuiz"
-      component={SRPQuiz}
-      initialParams={{ ...props.route.params }}
-    />
+    <Stack.Screen name="SRPRevealQuiz" component={SRPQuiz} />
     <Stack.Screen name="AccountActions" component={AccountActions} />
     <Stack.Screen
       name="SettingsAdvancedFiatOnTestnetsFriction"
@@ -876,7 +869,7 @@ const AppFlow = () => {
 };
 
 const App: React.FC = () => {
-  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const navigation = useNavigation();
   const routes = useNavigationState((state) => state.routes);
   const { toastRef } = useContext(ToastContext);
   const isFirstRender = useRef(true);

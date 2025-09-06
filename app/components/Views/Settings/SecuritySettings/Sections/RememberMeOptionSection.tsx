@@ -8,12 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import { TURN_ON_REMEMBER_ME } from '../SecuritySettings.constants';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../util/navigation';
 
 const RememberMeOptionSection = () => {
-  const { navigate } =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { navigate } = useNavigation();
   const allowLoginWithRememberMe = useSelector(
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -31,12 +31,9 @@ import ListItemColumn, {
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import { type NavigatableRootParamList } from '../../../../../../util/navigation';
-import { type StackNavigationProp } from '@react-navigation/stack';
 
 const RegionsView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const {

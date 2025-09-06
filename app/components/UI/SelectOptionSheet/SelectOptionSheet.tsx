@@ -7,8 +7,6 @@ import createStyles from './styles';
 import { ISelectOptionSheet } from './types';
 import { useNavigation } from '@react-navigation/native';
 import { SELECT_DROP_DOWN } from './constants';
-import type { NavigatableRootParamList } from '../../../util/navigation';
-import type { StackNavigationProp } from '@react-navigation/stack';
 
 const SelectOptionSheet = ({
   defaultValue,
@@ -19,8 +17,7 @@ const SelectOptionSheet = ({
 }: ISelectOptionSheet) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
 
   const renderDisplayValue = () => {
     const selectedOptions = options?.filter((o) => o.value === selectedValue);

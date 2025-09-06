@@ -29,8 +29,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
-import { type NavigatableRootParamList } from '../../../../../util/navigation';
-import { type StackNavigationProp } from '@react-navigation/stack';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -43,8 +41,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const { navigate } =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { navigate } = useNavigation();
 
   const { trackEvent, createEventBuilder } = useMetrics();
 

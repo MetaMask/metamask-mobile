@@ -1,9 +1,6 @@
 import React, { useCallback, forwardRef } from 'react';
 import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../util/navigation/types';
-
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -44,8 +41,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
   ({ label, value = '', onChangeText, error, onSubmitEditing }, ref) => {
     const { styles } = useStyles(styleSheet, {});
     const { selectedRegion, setSelectedRegion } = useDepositSDK();
-    const navigation =
-      useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+    const navigation = useNavigation();
     const template = selectedRegion?.phone?.template ?? '(XXX) XXX-XXXX';
 
     const rawDigits = selectedRegion?.phone?.prefix

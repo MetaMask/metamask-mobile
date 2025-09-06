@@ -25,7 +25,6 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Logger from '../../../../../util/Logger';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { SessionENSNames } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,6 +33,8 @@ import Share from 'react-native-share';
 
 import { addBookmark } from '../../../../../actions/bookmarks';
 import { RootState } from '../../../../../reducers';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NavigatableRootParamList } from '../../../../../util/navigation';
 
 interface OptionsProps {
   toggleOptions: () => void;
@@ -63,9 +64,7 @@ const Options = ({
   favicon,
   icon,
 }: OptionsProps) => {
-  // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
@@ -106,7 +105,7 @@ const Options = ({
    */
   const navigateToAddBookmark = () => {
     toggleOptionsIfNeeded();
-    navigation.push('AddBookmarkView', {
+    navigation.navigate('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',

@@ -14,13 +14,10 @@ import stylesheet from './SnapElement.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import SNAP_ElEMENT from './SnapElement.constants';
 import { useNavigation } from '@react-navigation/native';
-import type { NavigatableRootParamList } from '../../../../../util/navigation';
-import type { StackNavigationProp } from '@react-navigation/stack';
 
 const SnapElement = (snap: Snap) => {
   const { styles } = useStyles(stylesheet, {});
-  const { navigate } =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const { navigate } = useNavigation();
 
   const onPress = () => {
     navigate('SnapSettings', { snap });

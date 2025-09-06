@@ -1,17 +1,13 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
-
 import { useNavigation } from '@react-navigation/native';
-
 import { strings } from '../../../../../../../locales/i18n';
 import { showAlert } from '../../../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../../../constants/error';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import { AddressTo } from '../../../../../UI/AddressInputs';
 import { SFAddressToProps } from './AddressTo.types';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 
 const SendFlowAddressTo = ({
   addressToReady,
@@ -26,8 +22,7 @@ const SendFlowAddressTo = ({
   toSelectedAddressName,
   updateParentState,
 }: SFAddressToProps) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const dispatch = useDispatch();
 
   // TODO: Replace "any" with type

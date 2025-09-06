@@ -1,7 +1,5 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../util/navigation/types';
 import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
@@ -36,8 +34,7 @@ export const useDepositRouting = ({
   cryptoCurrencyChainId,
   paymentMethodId,
 }: UseDepositRoutingParams) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const handleNewOrder = useHandleNewOrder();
   const { selectedRegion, logoutFromProvider, selectedWalletAddress } =
     useDepositSDK();

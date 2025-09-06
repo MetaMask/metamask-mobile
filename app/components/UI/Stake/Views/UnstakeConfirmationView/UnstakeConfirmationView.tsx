@@ -6,7 +6,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
-import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
 import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
@@ -16,8 +15,15 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import type { RootParamList } from '../../../../../util/navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
+
+type UnstakeConfirmationViewProps = StackScreenProps<
+  RootParamList,
+  'UnstakeConfirmation'
+>;
 
 const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});

@@ -20,8 +20,6 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from '../../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 import stylesheet from './AccountSelector.styles';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../util/navigation';
 
 interface AccountSelectorProps {
   isEvmOnly?: boolean;
@@ -30,8 +28,7 @@ interface AccountSelectorProps {
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   isEvmOnly = true,
 }) => {
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );

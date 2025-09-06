@@ -1,8 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import type { NavigatableRootParamList } from '../../../../../../../util/navigation/types';
 
 import Text, {
   TextVariant,
@@ -28,8 +26,7 @@ import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils'
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
   const { selectedRegion } = useDepositSDK();
 
   const { styles } = useStyles(styleSheet, {});

@@ -32,8 +32,6 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
-import { NavigatableRootParamList } from '../../../../util/navigation';
-import { StackNavigationProp } from '@react-navigation/stack';
 
 export interface BaseControlBarProps {
   /**
@@ -76,8 +74,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   customWrapper = 'outer',
 }) => {
   const { styles } = useStyles(createControlBarStyles, undefined);
-  const navigation =
-    useNavigation<StackNavigationProp<NavigatableRootParamList>>();
+  const navigation = useNavigation();
 
   // Shared selectors
   const isAllNetworks = useSelector(selectIsAllNetworks);
