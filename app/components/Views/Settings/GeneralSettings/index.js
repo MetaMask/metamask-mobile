@@ -145,8 +145,6 @@ const createStyles = (colors) =>
       borderRadius: diameter / 2,
     },
     selectedAvatar: {
-      alignItems: 'center',
-      justifyContent: 'center',
       borderWidth: 2,
       borderColor: colors.primary.default,
     },
