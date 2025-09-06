@@ -160,6 +160,22 @@ describe('PerpsTutorialCarousel', () => {
     setParams: jest.fn(),
   };
 
+  // Helper function to navigate through screens
+  const navigateToScreen = async (screenIndex: number) => {
+    for (let i = 0; i < screenIndex; i++) {
+      const continueButton = screen.getByText(
+        strings('perps.tutorial.continue'),
+      );
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+      // Advance timers to clear the debounce
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+    }
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -212,14 +228,7 @@ describe('PerpsTutorialCarousel', () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate through all screens by pressing Continue 5 times (6 screens total)
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
-      }
+      await navigateToScreen(5);
 
       // Verify we're on the last screen
       expect(
@@ -244,28 +253,28 @@ describe('PerpsTutorialCarousel', () => {
       expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
-    it('should go back when pressing Skip on first screen', () => {
+    it('should navigate to markets list when pressing Skip on first screen', () => {
       render(<PerpsTutorialCarousel />);
 
       act(() => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
       });
 
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.MARKETS,
+        },
+      );
       expect(mockMarkTutorialCompleted).not.toHaveBeenCalled();
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
-    it('should mark tutorial as completed and go back when pressing Skip on last screen', async () => {
+    it('should mark tutorial as completed and navigate to markets list when pressing Skip on last screen', async () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate to the last screen
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        fireEvent.press(continueButton);
-      }
+      await navigateToScreen(5);
 
       // Verify we're on the last screen
       expect(
@@ -282,9 +291,14 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.got_it')));
       });
 
-      // Should mark tutorial as completed and go back, but NOT initialize deposit
+      // Should mark tutorial as completed and navigate to markets list, but NOT initialize deposit
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.MARKETS,
+        },
+      );
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
@@ -292,14 +306,7 @@ describe('PerpsTutorialCarousel', () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate through all screens by pressing Continue 5 times to get to last screen
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
-      }
+      await navigateToScreen(5);
 
       // Press Add funds button on last screen
       await act(async () => {
@@ -315,14 +322,7 @@ describe('PerpsTutorialCarousel', () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate through all screens by pressing Continue 5 times
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
-      }
+      await navigateToScreen(5);
 
       // Press Add funds button on last screen
       await act(async () => {
@@ -380,12 +380,7 @@ describe('PerpsTutorialCarousel', () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate to the last screen
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        fireEvent.press(continueButton);
-      }
+      await navigateToScreen(5);
 
       // Press "Got it" button on last screen
       act(() => {
@@ -442,7 +437,7 @@ describe('PerpsTutorialCarousel', () => {
       });
     });
 
-    it('should use goBack when not from deeplink', () => {
+    it('should navigate to markets list when not from deeplink', () => {
       // Default params (not from deeplink)
       (useRoute as jest.Mock).mockReturnValue({
         params: {},
@@ -455,8 +450,13 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
       });
 
-      // Should use goBack instead of navigate
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      // Should navigate to markets list
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.MARKETS,
+        },
+      );
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -473,8 +473,13 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
       });
 
-      // Should default to goBack behavior
-      expect(mockNavigation.goBack).toHaveBeenCalled();
+      // Should default to navigating to markets list
+      expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        {
+          screen: Routes.PERPS.MARKETS,
+        },
+      );
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -488,14 +493,7 @@ describe('PerpsTutorialCarousel', () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate to last screen and press Add funds
-      for (let i = 0; i < 5; i++) {
-        const continueButton = screen.getByText(
-          strings('perps.tutorial.continue'),
-        );
-        await act(async () => {
-          fireEvent.press(continueButton);
-        });
-      }
+      await navigateToScreen(5);
 
       // Press Add funds button
       await act(async () => {
@@ -555,6 +553,10 @@ describe('PerpsTutorialCarousel', () => {
           await act(async () => {
             fireEvent.press(continueButton);
           });
+          // Advance timers to clear the debounce
+          act(() => {
+            jest.advanceTimersByTime(100);
+          });
 
           // Check that the correct artboard is rendered for current screen
           expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
@@ -568,14 +570,7 @@ describe('PerpsTutorialCarousel', () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens to get to last screen
-        for (let i = 0; i < 5; i++) {
-          const continueButton = screen.getByText(
-            strings('perps.tutorial.continue'),
-          );
-          await act(async () => {
-            fireEvent.press(continueButton);
-          });
-        }
+        await navigateToScreen(5);
 
         // Verify we're on the ready_to_trade screen
         expect(
@@ -592,14 +587,7 @@ describe('PerpsTutorialCarousel', () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens by pressing Continue 5 times
-        for (let i = 0; i < 5; i++) {
-          const continueButton = screen.getByText(
-            strings('perps.tutorial.continue'),
-          );
-          await act(async () => {
-            fireEvent.press(continueButton);
-          });
-        }
+        await navigateToScreen(5);
 
         // Press the "Add funds" button
         await act(async () => {
@@ -660,6 +648,10 @@ describe('PerpsTutorialCarousel', () => {
           await act(async () => {
             fireEvent.press(continueButton);
           });
+          // Advance timers to clear the debounce
+          act(() => {
+            jest.advanceTimersByTime(100);
+          });
 
           // Check that the correct artboard is rendered for current screen
           expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
@@ -683,14 +675,7 @@ describe('PerpsTutorialCarousel', () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens to get to last screen (4 clicks for 5 screens)
-        for (let i = 0; i < 4; i++) {
-          const continueButton = screen.getByText(
-            strings('perps.tutorial.continue'),
-          );
-          await act(async () => {
-            fireEvent.press(continueButton);
-          });
-        }
+        await navigateToScreen(4);
 
         // Verify we're on the close_anytime screen (last for non-eligible)
         expect(
@@ -713,14 +698,7 @@ describe('PerpsTutorialCarousel', () => {
         render(<PerpsTutorialCarousel />);
 
         // Navigate through all screens by pressing Continue 4 times (5 screens total)
-        for (let i = 0; i < 4; i++) {
-          const continueButton = screen.getByText(
-            strings('perps.tutorial.continue'),
-          );
-          await act(async () => {
-            fireEvent.press(continueButton);
-          });
-        }
+        await navigateToScreen(4);
 
         // Press the main "Got it" button (first one found, which is the main button)
         await act(async () => {
@@ -730,9 +708,14 @@ describe('PerpsTutorialCarousel', () => {
           fireEvent.press(gotItButtons[0]); // Main button is first
         });
 
-        // Should mark tutorial as completed and go back
+        // Should mark tutorial as completed and navigate to markets list
         expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-        expect(mockNavigation.goBack).toHaveBeenCalled();
+        expect(mockNavigationServiceMethods.navigate).toHaveBeenCalledWith(
+          Routes.PERPS.ROOT,
+          {
+            screen: Routes.PERPS.MARKETS,
+          },
+        );
         // Should NOT navigate to deposit screen or call deposit
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
         expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
