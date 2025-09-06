@@ -62,6 +62,13 @@ const TradingViewChart = React.forwardRef<
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
+    const [ohlcData, setOhlcData] = useState<{
+      open: string;
+      high: string;
+      low: string;
+      close: string;
+      time: number;
+    } | null>(null);
 
     // Platform-specific WebView props
     const platformSpecificProps = useMemo(() => {
@@ -146,7 +153,8 @@ const TradingViewChart = React.forwardRef<
             case 'WEBVIEW_TEST':
               break;
             case 'OHLC_DATA':
-              // Log OHLC data to console
+              // Set OHLC data to state
+              setOhlcData(message.data);
               console.log('OHLC Data received from WebView:', message.data);
               break;
             default:
@@ -333,6 +341,28 @@ const TradingViewChart = React.forwardRef<
             {...platformSpecificProps}
           />
         </Box>
+
+        {/* OHLC Legend */}
+        {ohlcData && (
+          <Box
+            // twClassName="absolute top-2 left-2 bg-black/80 rounded px-2 py-1"
+            style={{
+              zIndex: 1000,
+              position: 'absolute',
+              backgroundColor: theme.colors.background.default,
+              borderRadius: 4,
+              padding: 4,
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 10,
+            }}
+          >
+            <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
+            <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
+            <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+            <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+          </Box>
+        )}
       </Box>
     );
   },
