@@ -1,4 +1,4 @@
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
@@ -63,6 +63,31 @@ export function getMultichainAccountName(
         default:
           accountNameToUse = `${strings(
             'accounts.labels.solana_account_name',
+          )} ${accountNumber}`;
+          break;
+      }
+      break;
+    }
+    case WalletClientType.Tron: {
+      switch (scope) {
+        case TrxScope.Mainnet:
+          accountNameToUse = `${strings(
+            'accounts.labels.tron_account_name',
+          )} ${accountNumber}`;
+          break;
+        case TrxScope.Nile:
+          accountNameToUse = `${strings(
+            'accounts.labels.tron_nile_account_name',
+          )} ${accountNumber}`;
+          break;
+        case TrxScope.Shasta:
+          accountNameToUse = `${strings(
+            'accounts.labels.tron_shasta_account_name',
+          )} ${accountNumber}`;
+          break;
+        default:
+          accountNameToUse = `${strings(
+            'accounts.labels.tron_account_name',
           )} ${accountNumber}`;
           break;
       }
