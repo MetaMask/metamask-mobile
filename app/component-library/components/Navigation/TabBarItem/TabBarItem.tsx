@@ -52,7 +52,9 @@ const TabBarItemInner = ({
     </ButtonAnimated>
   ) : (
     <ButtonAnimated
-      style={tw.style('items-center justify-center bg-transparent px-2 py-1')}
+      style={tw.style(
+        'items-center justify-center bg-transparent w-full px-2 py-1',
+      )}
       testID={props.testID}
       accessibilityLabel={label}
       accessible
@@ -64,7 +66,7 @@ const TabBarItemInner = ({
         <MMText
           variant={TextVariant.BodyXSMedium}
           color={isActive ? TextColor.Default : TextColor.Alternative}
-          style={tw.style('mt-1')}
+          style={tw.style('mt-1 flex-shrink-0')}
           numberOfLines={1}
         >
           {label}

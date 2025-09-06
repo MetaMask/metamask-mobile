@@ -16,6 +16,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -104,6 +105,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -123,6 +125,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -211,6 +214,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -230,6 +234,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -318,6 +323,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -337,6 +343,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -425,6 +432,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
@@ -444,6 +452,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     style={
       {
         "flex": 1,
+        "overflow": "hidden",
       }
     }
   >
@@ -532,6 +541,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
+                "flexShrink": 0,
                 "fontFamily": "Geist Medium",
                 "fontSize": 14,
                 "letterSpacing": 0,
