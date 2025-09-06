@@ -20,6 +20,9 @@ const EXPECTED_CONFIRMATION = '0.002 SOL was successfully sent';
 const RECIPIENT_SHORT_ADDRESS = 'EjiyBUW...GgtXt';
 const RECENT_TRANSACTION_INDEX = 0;
 
+// Quarantining for GNS feature
+// Original path e2e/specs/solana/solana-send-flow.spec.ts
+// Failing on IOS, Passes on Android
 describe(SmokeNetworkExpansion('Solana Token Transfer Functionality'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);

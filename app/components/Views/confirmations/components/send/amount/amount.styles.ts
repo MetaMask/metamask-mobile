@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -62,9 +62,16 @@ export const styleSheet = (params: {
       color: inputError
         ? theme.colors.error.default
         : theme.colors.text.default,
-      height: 50,
       fontSize: getFontSizeForInputLength(inputLength + symbolLength),
       minWidth: '30%',
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      paddingTop: Platform.OS === 'ios' ? 0 : 2,
+      // Dynamic height for large fonts:
+      height: Math.max(
+        50,
+        getFontSizeForInputLength(inputLength + symbolLength) + 10,
+      ),
     },
     inputSection: {
       flexDirection: FlexDirection.Row,

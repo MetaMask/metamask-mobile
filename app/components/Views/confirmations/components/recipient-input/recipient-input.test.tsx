@@ -69,6 +69,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -126,6 +127,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -147,6 +149,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -168,6 +171,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -302,6 +306,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -328,6 +333,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
@@ -358,6 +364,7 @@ describe('RecipientInput', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fromAccount: {} as any,
       from: '',
+      maxValueMode: false,
       updateAsset: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,

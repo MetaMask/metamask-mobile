@@ -51,7 +51,7 @@ export async function processFiatOrder(
     const state = getState();
     const existingOrder = getOrderById(state, updatedOrder.id);
     if (existingOrder?.state !== updatedOrder.state) {
-      const [event, params] = getOrderAnalyticsPayload(updatedOrder);
+      const [event, params] = getOrderAnalyticsPayload(updatedOrder, state);
       if (event && params) {
         trackEvent(event, params);
       }

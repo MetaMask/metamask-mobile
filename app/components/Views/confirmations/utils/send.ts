@@ -2,15 +2,20 @@ import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
-import { TransactionParams } from '@metamask/transaction-controller';
+import {
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { addHexPrefix } from 'ethereumjs-util';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import { generateTransferData } from '../../../../util/transactions';
-import { toTokenMinimalUnit, toWei } from '../../../../util/number';
+import { hexToBN, toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
@@ -109,9 +114,22 @@ export const submitEvmTransaction = async ({
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
   const trxnParams = prepareEVMTransaction(asset, { from, to, value });
+
+  let transactionType;
+  if (asset.isNative) {
+    transactionType = TransactionType.simpleSend;
+  } else if (asset.standard === TokenStandard.ERC20) {
+    transactionType = TransactionType.tokenMethodTransfer;
+  } else if (asset.standard === TokenStandard.ERC721) {
+    transactionType = TransactionType.tokenMethodTransferFrom;
+  } else if (asset.standard === TokenStandard.ERC1155) {
+    transactionType = TransactionType.tokenMethodSafeTransferFrom;
+  }
+
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
     networkClientId,
+    type: transactionType,
   });
 };
 
@@ -165,4 +183,40 @@ export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
   const fracPart = bnValue.mod(base).toString().padStart(decimals, '0');
   const trimmedFrac = fracPart.replace(/0+$/, '');
   return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart;
+};
+
+export const fromHexWithDecimals = (value: Hex, decimals: number) => {
+  const bnValue = hexToBN(value);
+  return fromBNWithDecimals(bnValue, decimals);
+};
+
+export const fromTokenMinUnits = (
+  value: string,
+  decimals?: number | string,
+) => {
+  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
+  const multiplier = new BN(10).pow(new BN(decimalValue));
+  return addHexPrefix(new BN(value).mul(multiplier).toString(16));
+};
+
+export const getLayer1GasFeeForSend = async ({
+  asset,
+  chainId,
+  from,
+  value,
+}: {
+  asset: AssetType;
+  chainId: Hex;
+  from: Hex;
+  value: string;
+}): Promise<Hex | undefined> => {
+  const txParams = {
+    chainId,
+    from,
+    value: fromTokenMinUnits(value, asset.decimals),
+  };
+  return (await fetchEstimatedMultiLayerL1Fee(undefined, {
+    txParams,
+    chainId,
+  })) as Hex | undefined;
 };

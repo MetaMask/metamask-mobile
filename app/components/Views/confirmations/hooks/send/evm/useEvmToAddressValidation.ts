@@ -22,6 +22,11 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useSendContext } from '../../../context/send-context';
 
+const LOWER_CASED_BURN_ADDRESSES = [
+  '0x0000000000000000000000000000000000000000',
+  '0x000000000000000000000000000000000000dead',
+];
+
 export const shouldSkipValidation = ({
   toAddress,
   chainId,
@@ -66,6 +71,12 @@ const validateHexAddress = async (
   error?: string;
   warning?: string;
 }> => {
+  if (LOWER_CASED_BURN_ADDRESSES.includes(toAddress?.toLowerCase())) {
+    return {
+      error: strings('transaction.invalid_address'),
+    };
+  }
+
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
     const { AssetsContractController, NetworkController } = Engine.context;
@@ -79,10 +90,8 @@ const validateHexAddress = async (
         networkClientId,
       );
       if (symbol) {
-        // todo: i18n to be implemented depending on the designs
         return {
-          warning:
-            'This address is a token contract address. If you send tokens to this address, you will lose them.',
+          warning: strings('send.token_contract_warning'),
         };
       }
     } catch (e) {
@@ -107,18 +116,24 @@ const validateENSAddress = async (
   // ENS resolved but has, confusing character in it
   const confusableCollection = collectConfusables(toAddress);
   if (confusableCollection.length) {
-    // todo: message may need to be improved depending on the designs
-    const message = `${strings(
+    const invalidAddressMessage = strings('transaction.invalid_address');
+    const confusableCharacterWarningMessage = `${strings(
       'transaction.confusable_msg',
     )} - ${getConfusablesExplanations(confusableCollection)}`;
+    const invisibleCharacterWarningMessage = strings(
+      'send.invisible_character_error',
+    );
     const isError = confusableCollection.some(hasZeroWidthPoints);
     if (isError) {
+      // Show ERROR for zero-width characters (more important than warning)
       return {
-        error: message,
+        error: invalidAddressMessage,
+        warning: invisibleCharacterWarningMessage,
       };
     }
+    // Show WARNING for confusable characters
     return {
-      warning: message,
+      warning: confusableCharacterWarningMessage,
     };
   }
   return {};

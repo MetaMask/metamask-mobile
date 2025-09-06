@@ -2069,7 +2069,7 @@ export function getDepositNavbarOptions(
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title = 'Buy', showBack = true, showCancel = true } = {},
+  { title, showBack = true, showCancel = true, showNetwork = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -2098,9 +2098,17 @@ export function getFiatOnRampAggNavbar(
 
   const navigationCancelText = strings('navigation.cancel');
 
+  const disableNetwork = !showNetwork;
+  const showSelectedNetwork = showNetwork;
+
   return {
     headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
+      <NavbarTitle
+        title={title}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={showSelectedNetwork}
+        translate={false}
+      />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;

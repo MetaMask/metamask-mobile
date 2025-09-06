@@ -782,3 +782,300 @@ describe('getDefaultSelectedChainIds', () => {
     });
   });
 });
+
+describe('getDefaultSelectedChainIds', () => {
+  const mockAllNetworksList: CaipChainId[] = [
+    'eip155:1',
+    'eip155:10',
+    'eip155:137',
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('EVM-only requests (EIP-1193, WalletConnect, MMSDK)', () => {
+    it('returns all EVM chains for new EVM request without existing permissions', () => {
+      // Given an EIP-1193 request without existing permissions
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: true,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Eip155],
+      });
+
+      // Then it should return all EVM chains
+      expect(result).toEqual(['eip155:1', 'eip155:10', 'eip155:137']);
+      expect(mockGetCaip25Caveat).toHaveBeenCalledWith('test.com');
+    });
+
+    it('returns requested EVM chains for EVM request with specific chains', () => {
+      // Given an EIP-1193 request with specific chains requested
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs with specific chains
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: true,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: ['eip155:1'],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Eip155],
+      });
+
+      // Then it should return only the requested chains
+      expect(result).toEqual(['eip155:1']);
+    });
+
+    it('merges EVM chains with existing Solana permissions for EVM request', () => {
+      // Given an EIP-1193 request with existing Solana permissions
+      const mockExistingCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              accounts: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:0x456'],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaip25Caveat.mockReturnValue(mockExistingCaveat);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: true,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Eip155],
+      });
+
+      // Then it should merge all EVM chains with existing Solana permissions
+      expect(result).toEqual(
+        expect.arrayContaining([
+          'eip155:1',
+          'eip155:10',
+          'eip155:137',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ]),
+      );
+      expect(mockGetCaip25Caveat).toHaveBeenCalledWith('test.com');
+    });
+
+    it('merges requested EVM chains with existing EVM permissions', () => {
+      // Given an EIP-1193 request with existing EVM permissions and specific chains requested
+      const mockExistingCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:10': { accounts: ['eip155:10:0x123'] },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaip25Caveat.mockReturnValue(mockExistingCaveat);
+
+      // When getting default selected chain IDs with specific chains
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: true,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: ['eip155:1'],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Eip155],
+      });
+
+      // Then it should merge requested chains with existing permissions
+      expect(result).toEqual(expect.arrayContaining(['eip155:1', 'eip155:10']));
+      expect(mockGetCaip25Caveat).toHaveBeenCalledWith('test.com');
+    });
+  });
+
+  describe('Multi-chain requests (non-EVM or mixed)', () => {
+    it('returns all EVM chains plus Solana for EIP-1193 multi-chain request with Eip155 namespace but no specific EVM chains', () => {
+      // Given an EIP-1193 multi-chain request with Eip155 namespace but no specific EVM chains
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: true,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ],
+        origin: 'test.com',
+        requestedNamespaces: [
+          KnownCaipNamespace.Solana,
+          KnownCaipNamespace.Eip155,
+        ],
+      });
+
+      // Then it should return all EVM chains plus the requested Solana chain
+      expect(result).toEqual(
+        expect.arrayContaining([
+          'eip155:1',
+          'eip155:10',
+          'eip155:137',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ]),
+      );
+      expect(result).toHaveLength(4);
+    });
+
+    it('returns all available chains for multi-chain request without specific chains', () => {
+      // Given a multi-chain request without specific chains
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: false,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [],
+        origin: 'test.com',
+        requestedNamespaces: [
+          KnownCaipNamespace.Eip155,
+          KnownCaipNamespace.Solana,
+        ],
+      });
+
+      // Then it should return chains for all requested namespaces
+      expect(result).toEqual(
+        expect.arrayContaining([
+          'eip155:1',
+          'eip155:10',
+          'eip155:137',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ]),
+      );
+    });
+
+    it('returns requested chains for multi-chain request with specific chains', () => {
+      // Given a multi-chain request with specific chains
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs with specific chains
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: false,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [
+          'eip155:1',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ],
+        origin: 'test.com',
+        requestedNamespaces: [
+          KnownCaipNamespace.Eip155,
+          KnownCaipNamespace.Solana,
+        ],
+      });
+
+      // Then it should return only the requested chains
+      expect(result).toEqual([
+        'eip155:1',
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]);
+    });
+
+    it('merges requested chains with existing permissions for multi-chain request', () => {
+      // Given a multi-chain request with existing permissions
+      const mockExistingCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:137': { accounts: ['eip155:137:0x123'] },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      mockGetCaip25Caveat.mockReturnValue(mockExistingCaveat);
+
+      // When getting default selected chain IDs with specific chains
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: false,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Solana],
+      });
+
+      // Then it should merge requested chains with existing permissions
+      expect(result).toEqual(
+        expect.arrayContaining([
+          'eip155:137',
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        ]),
+      );
+      expect(mockGetCaip25Caveat).toHaveBeenCalledWith('test.com');
+    });
+  });
+
+  describe('Default namespace handling', () => {
+    it('returns Solana mainnet for Solana namespace requests', () => {
+      // Given a request for Solana namespace without specific chains
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: false,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [],
+        origin: 'test.com',
+        requestedNamespaces: [KnownCaipNamespace.Solana],
+      });
+
+      // Then it should return Solana mainnet
+      expect(result).toEqual(['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']);
+    });
+
+    it('returns all available chains when no specific namespaces requested', () => {
+      // Given a request without specific namespaces
+      mockGetCaip25Caveat.mockReturnValue(null);
+
+      // When getting default selected chain IDs
+      const result = getDefaultSelectedChainIds({
+        isEip1193Request: false,
+        allNetworksList: mockAllNetworksList,
+        isOriginWalletConnect: false,
+        isOriginMMSDKRemoteConn: false,
+        supportedRequestedCaipChainIds: [],
+        origin: 'test.com',
+        requestedNamespaces: [],
+      });
+
+      // Then it should return all available chains
+      expect(result).toEqual(mockAllNetworksList);
+    });
+  });
+});

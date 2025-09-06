@@ -12,7 +12,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { createAccountSelectorNavDetails } from '../../../../../Views/AccountSelector';
+import { createAddressSelectorNavDetails } from '../../../../../Views/AddressSelector/AddressSelector';
 import { type RootState } from '../../../../../../reducers';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import Icon, {
@@ -49,7 +49,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   const openAccountSelector = useCallback(
     () =>
       navigation.navigate(
-        ...createAccountSelectorNavDetails({
+        ...createAddressSelectorNavDetails({
           disablePrivacyMode: true,
           isEvmOnly,
         }),

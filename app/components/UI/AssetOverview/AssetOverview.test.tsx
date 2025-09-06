@@ -20,7 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import {
   BALANCE_TEST_ID,
-  TOKEN_AMOUNT_BALANCE_TEST_ID,
+  SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
 import { SolScope, SolAccountType } from '@metamask/keyring-api';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
@@ -704,7 +704,7 @@ describe('AssetOverview', () => {
       );
 
       const mainBalance = getByTestId(BALANCE_TEST_ID);
-      const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(mainBalance.props.children).toBe('1500');
       expect(secondaryBalance.props.children).toBe('0 ETH');
@@ -942,7 +942,7 @@ describe('AssetOverview', () => {
         { state: solanaAccountState },
       );
 
-      const secondaryBalance = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+      const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       // Should display formatted Solana balance
       expect(secondaryBalance.props.children).toBe('123.45679 SOL');

@@ -173,6 +173,10 @@ const QuoteDetailsCard = () => {
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
 
+  const hasFee = activeQuote
+    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
+    : false;
+
   // Check if price impact warning should be shown
   const gasIncluded = !!activeQuote?.quote.gasIncluded;
   const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
@@ -185,10 +189,6 @@ const QuoteDetailsCard = () => {
       (!gasIncluded &&
         Number(rawPriceImpact) >=
           bridgeFeatureFlags.priceImpactThreshold.normal));
-
-  const hasFee = activeQuote
-    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
-    : false;
 
   return (
     <Box>

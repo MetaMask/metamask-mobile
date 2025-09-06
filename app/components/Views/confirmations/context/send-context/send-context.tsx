@@ -8,24 +8,25 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { AssetType, Nft } from '../../types/token';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 
 export interface SendContextType {
   asset?: AssetType | Nft;
   chainId?: string;
   fromAccount?: InternalAccount;
   from?: string;
+  maxValueMode: boolean;
   to?: string;
   updateAsset: (asset?: AssetType | Nft) => void;
   updateTo: (to: string) => void;
-  updateValue: (value: string) => void;
+  updateValue: (value: string, maxMode?: boolean) => void;
   value?: string;
 }
 
@@ -34,6 +35,7 @@ export const SendContext = createContext<SendContextType>({
   chainId: undefined,
   fromAccount: {} as InternalAccount,
   from: '',
+  maxValueMode: false,
   to: undefined,
   updateAsset: () => undefined,
   updateTo: () => undefined,
@@ -46,7 +48,8 @@ export const SendContextProvider: React.FC<{
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType | Nft>();
   const [to, updateTo] = useState<string>();
-  const [value, updateValue] = useState<string>();
+  const [maxValueMode, setMaxValueMode] = useState(false);
+  const [value, setValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
   const accounts = useSelector(selectInternalAccountsById);
   const selectedGroup = useSelector(selectSelectedAccountGroup);
@@ -95,6 +98,14 @@ export const SendContextProvider: React.FC<{
     ],
   );
 
+  const updateValue = useCallback(
+    (val: string, maxMode?: boolean) => {
+      setMaxValueMode(maxMode ?? false);
+      setValue(val);
+    },
+    [setMaxValueMode, setValue],
+  );
+
   const chainId =
     asset && isEvmAddress(asset.address) && asset.chainId
       ? toHex(asset.chainId)
@@ -107,6 +118,7 @@ export const SendContextProvider: React.FC<{
         chainId: chainId as string | undefined,
         fromAccount,
         from: fromAccount?.address as string,
+        maxValueMode,
         to,
         updateAsset: handleUpdateAsset,
         updateTo,

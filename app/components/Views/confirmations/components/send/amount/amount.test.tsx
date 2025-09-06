@@ -333,18 +333,18 @@ describe('Amount', () => {
     expect(queryByText('Max')).toBeNull();
   });
 
-  it('does not show error in case of insufficient balance for ERC1155 token', () => {
+  it('show error in case of insufficient balance for ERC1155 token', () => {
     mockUseRoute.mockReturnValue({
       params: {
         asset: MOCK_NFT1155,
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { queryByText, getByTestId } = renderComponent();
+    const { getByText, getByTestId } = renderComponent();
     act(() => {
       fireEvent.changeText(getByTestId('send_amount'), '100');
     });
-    expect(queryByText('Insufficient funds')).toBeNull();
+    expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
   // it('pressing percentage buttons uses correct value of ERC20 token', () => {

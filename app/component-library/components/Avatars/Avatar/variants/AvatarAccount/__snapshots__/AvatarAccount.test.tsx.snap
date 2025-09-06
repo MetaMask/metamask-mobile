@@ -45,12 +45,12 @@ exports[`AvatarAccount Border Radius Handling applies border radius directly to 
   }
 >
   <JazzIcon
-    address="0x1234567890123456789012345678901234567890"
     containerStyle={
       {
         "borderRadius": 8,
       }
     }
+    seed={305419896}
     size={32}
   />
 </View>
@@ -93,11 +93,82 @@ exports[`AvatarAccount Integration - Component Snapshot maintains expected visua
   }
 >
   <JazzIcon
-    address="0x1234567890123456789012345678901234567890"
     containerStyle={
       {
         "borderRadius": 8,
       }
+    }
+    seed={305419896}
+    size={32}
+  />
+</View>
+`;
+
+exports[`AvatarAccount Integration - Component Snapshot maintains expected visual structure for non-EVM 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 8,
+      "height": 32,
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
+>
+  <JazzIcon
+    containerStyle={
+      {
+        "borderRadius": 8,
+      }
+    }
+    seed={
+      [
+        99,
+        121,
+        119,
+        115,
+        113,
+        113,
+        50,
+        105,
+        105,
+        102,
+        108,
+        54,
+        101,
+        122,
+        122,
+        117,
+        113,
+        118,
+        109,
+        109,
+        57,
+        111,
+        50,
+        50,
+        99,
+        122,
+        120,
+        51,
+        110,
+        56,
+        112,
+        111,
+        119,
+        118,
+        118,
+        107,
+        112,
+        98,
+        120,
+        113,
+        108,
+        107,
+        52,
+        101,
+      ]
     }
     size={32}
   />

@@ -6,7 +6,7 @@ import {
   type AccountGroupObject,
 } from '@metamask/account-tree-controller';
 
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectWallets } from '../../../../../selectors/multichainAccounts/wallets';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
@@ -14,7 +14,7 @@ import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 
 export const useAccounts = (): RecipientType[] => {
-  const multichainWallets = useSelector(selectMultichainWallets);
+  const multichainWallets = useSelector(selectWallets);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const { from } = useSendContext();
   const { isEvmSendType, isSolanaSendType } = useSendType();

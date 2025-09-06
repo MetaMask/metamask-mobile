@@ -19,7 +19,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 #v1
+      - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
         with:
           ruby-version: '3.1.6'
         env:
@@ -128,6 +128,12 @@ jobs:
           else
             echo "No changes detected"
           fi
+  e2e-tests:
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/run-e2e.yml
+    secrets: inherit
   merge-unit-tests:
     runs-on: ubuntu-latest
     needs: unit-tests

@@ -47,6 +47,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
+import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
@@ -393,6 +394,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ADDRESS_SELECTOR}
+      component={AddressSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.ADD_ACCOUNT}
@@ -1116,6 +1121,13 @@ const App: React.FC = () => {
           errorMessage,
           `Unlock attempts: 1`,
         );
+        if (locked) {
+          Logger.error(
+            new Error(errorMessage),
+            'Nav/App: Error in appTriggeredAuth:',
+          );
+        }
+        // We are not logging when it's a keychain error
       }
     };
     appTriggeredAuth().catch((error) => {

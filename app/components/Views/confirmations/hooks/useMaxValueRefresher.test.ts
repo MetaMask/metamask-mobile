@@ -5,15 +5,25 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
+import { useParams } from '../../../../util/navigation/navUtils';
 import { useMaxValueRefresher } from './useMaxValueRefresher';
 import { transferConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { useFeeCalculations } from './gas/useFeeCalculations';
 import { updateEditableParams } from '../../../../util/transaction-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    params: {
+      maxValueMode: false,
+    },
+  }),
+}));
+
 jest.mock('../../../../util/transaction-controller', () => ({
   updateEditableParams: jest.fn(),
 }));
+
 jest.mock('./useAccountNativeBalance', () => ({
   useAccountNativeBalance: jest.fn().mockReturnValue({
     balanceWeiInHex: '0x10', // 16 wei
@@ -27,6 +37,8 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+
+const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 
 describe('useMaxValueRefresher', () => {
   const mockUseFeeCalculations = jest.mocked(useFeeCalculations);
@@ -70,8 +82,25 @@ describe('useMaxValueRefresher', () => {
     });
   });
 
+  it('updates transaction value when calculated value if maxValueMode in params is true', () => {
+    mockUseParams.mockReturnValue({
+      params: { maxValueMode: true },
+    });
+    renderHookWithProvider(() => useMaxValueRefresher(), {
+      state: normalSendState,
+    });
+
+    expect(mockUpdateEditableParams).toHaveBeenCalledWith(transactionId, {
+      value: '0xb', // 16 - 11 = 5
+    });
+  });
+
   describe('does not update transaction value', () => {
     it('max mode is off', () => {
+      mockUseParams.mockReturnValue({
+        params: { maxValueMode: false },
+      });
+
       mockUseSelector.mockImplementationOnce(
         (fn: (state: DeepPartial<RootState>) => unknown) => fn(normalSendState),
       );
