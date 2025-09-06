@@ -37,6 +37,22 @@ const styleSheet = ({
       fontSize: Device.isAndroid() ? 16 : 14,
       color: colors.text.default,
     },
+    displayedUrlWrapper: {
+      flex: 1,
+      height: 44,
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+    },
+    displayedUrlText: {
+      lineHeight: 44,
+      textAlignVertical: 'center',
+      paddingVertical: 0,
+      margin: 0,
+      paddingLeft: isUrlBarFocused ? 16 : 0,
+      ...fontStyles.normal,
+      fontSize: Device.isAndroid() ? 16 : 14,
+      color: colors.text.default,
+    },
     browserUrlBarWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
