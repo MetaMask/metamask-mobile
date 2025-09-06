@@ -138,6 +138,7 @@ const NonEvmAggregatedPercentage = ({
         color={percentageTextColor}
         variant={TextVariant.BodyMDMedium}
         testID={FORMATTED_PERCENTAGE_TEST_ID}
+        style={{ paddingLeft: 1 }}
       >
         {formattedPercentage}
       </SensitiveText>
