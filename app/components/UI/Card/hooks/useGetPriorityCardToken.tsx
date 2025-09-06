@@ -16,6 +16,7 @@ import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 import { CardSDK } from '../sdk/CardSDK';
 import { ARBITRARY_ALLOWANCE } from '../constants';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   selectCardPriorityToken,
   selectCardPriorityTokenLastFetched,
@@ -106,8 +107,6 @@ const fetchAllowances = async (
  * This hook implements a caching strategy where if the priority token was fetched less than 5 minutes ago,
  * it returns the cached value. Otherwise, it fetches a new priority token from the Card SDK.
  *
- * @param {string} [address] - Ethereum address of the user whose card token priority is to be fetched.
- * @param {boolean} [shouldFetch=true] - Whether the hook should attempt to fetch if cache is stale.
  * @returns {{
  * fetchPriorityToken: () => Promise<CardTokenAllowance | null>,
  * isLoading: boolean,
@@ -120,10 +119,7 @@ const fetchAllowances = async (
  * - error: any error encountered while fetching
  * - priorityToken: the cached or newly fetched priority token
  */
-export const useGetPriorityCardToken = (
-  selectedAddress?: string,
-  shouldFetch: boolean = true,
-) => {
+export const useGetPriorityCardToken = () => {
   const dispatch = useDispatch();
   const { TokensController, NetworkController } = Engine.context;
   const { sdk } = useCardSDK();
@@ -133,6 +129,9 @@ export const useGetPriorityCardToken = (
 
   // Extract controller state
   const allTokenBalances = useSelector(selectAllTokenBalances);
+  const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:0',
+  )?.address;
   const priorityToken = useSelector(selectCardPriorityToken(selectedAddress));
   const lastFetched = useSelector(
     selectCardPriorityTokenLastFetched(selectedAddress),
@@ -343,7 +342,7 @@ export const useGetPriorityCardToken = (
     }, [sdk, selectedAddress, getBalancesForChain, dispatch]);
 
   useEffect(() => {
-    if (!selectedAddress || !shouldFetch) {
+    if (!selectedAddress) {
       return;
     }
 
@@ -356,7 +355,6 @@ export const useGetPriorityCardToken = (
     fetchPriorityToken();
   }, [
     selectedAddress,
-    shouldFetch,
     cacheIsValid,
     priorityToken,
     fetchPriorityToken,

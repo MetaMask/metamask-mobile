@@ -2,8 +2,9 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
 import { getCardholder } from '../../../../components/UI/Card/util/getCardholder';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Logger from '../../../../util/Logger';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { isEthAccount } from '../../../Multichain/utils';
 import { CardTokenAllowance } from '../../../../components/UI/Card/types';
 
 export interface CardSliceState {
@@ -83,6 +84,9 @@ export const selectCardholderAccounts = createSelector(
   (card) => card.cardholderAccounts,
 );
 
+const selectedAccount = (rootState: RootState) =>
+  selectSelectedInternalAccountByScope(rootState)('eip155:0');
+
 export const selectCardPriorityToken = (address?: string) =>
   createSelector(selectCardState, (card) =>
     address
@@ -105,17 +109,17 @@ export const selectIsCardCacheValid = (address?: string) =>
     return lastFetchedDate > fiveMinutesAgo;
   });
 
-const selectSelectedInternalAccount = (state: RootState) =>
-  selectSelectedInternalAccountFormattedAddress(state);
-
 export const selectIsCardholder = createSelector(
   selectCardholderAccounts,
-  selectSelectedInternalAccount,
-  (cardholderAccounts, selectedInternalAccountAddress) => {
-    if (!selectedInternalAccountAddress) {
+  selectedAccount,
+  (cardholderAccounts, selectedInternalAccount) => {
+    if (!selectedInternalAccount || !isEthAccount(selectedInternalAccount)) {
       return false;
     }
-    return cardholderAccounts.includes(selectedInternalAccountAddress);
+
+    return cardholderAccounts.includes(
+      selectedInternalAccount.address?.toLowerCase(),
+    );
   },
 );
 
