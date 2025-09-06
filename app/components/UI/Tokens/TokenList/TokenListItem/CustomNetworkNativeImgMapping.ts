@@ -11,6 +11,7 @@ import KaiaImg from '../../../../../images/kaia.png';
 import XrpLevmImg from '../../../../../images/xrp-logo.png';
 import SophonImg from '../../../../../images/sophon.png';
 import SophonTestnetImg from '../../../../../images/sophon-testnet.png';
+import CreditcoinImg from '../../../../../images/creditcoin.png';
 
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
@@ -25,4 +26,5 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: XrpLevmImg,
   [NETWORK_CHAIN_ID.SOPHON]: SophonImg,
   [NETWORK_CHAIN_ID.SOPHON_TESTNET]: SophonTestnetImg,
+  [NETWORK_CHAIN_ID.CREDITCOIN]: CreditcoinImg,
 };

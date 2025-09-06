@@ -293,6 +293,7 @@ export const NETWORK_CHAIN_ID: {
   readonly OMNI: '0xa6';
   readonly XRPLEVM: '0x15f900';
   readonly FRAXTAL: '0xfc';
+  readonly CREDITCOIN: '0x18e8e';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -319,6 +320,7 @@ export const NETWORK_CHAIN_ID: {
   OMNI: '0xa6',
   XRPLEVM: '0x15f900',
   FRAXTAL: '0xfc',
+  CREDITCOIN: '0x18e8e',
   ...CHAIN_IDS,
 };
 
@@ -350,4 +352,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
   [NETWORK_CHAIN_ID.FRAXTAL]: require('../../images/fraxtal.png'),
+  [NETWORK_CHAIN_ID.CREDITCOIN]: require('../../images/creditcoin.png'),
 };
