@@ -222,57 +222,6 @@ export const createTradingViewChartTemplate = (
                     }
                 });
 
-                // Simple range tracking without complex panning detection
-                window.chart.timeScale().subscribeVisibleLogicalRangeChange((logicalRange) => {
-                    if (!logicalRange) return;
-                    
-                    // Simply track the current range without restrictions
-                    window.lastLogicalRange = logicalRange;
-                    const visibleCandleCount = Math.ceil(logicalRange.to - logicalRange.from);
-                    window.visibleCandleCount = visibleCandleCount;
-                });
-
-                // Touch event optimization for better performance
-                const container = document.getElementById('container');
-                let touchStartTime = 0;
-                let touchMoveTimeout = null;
-                
-                // Debounced touch move handler with requestAnimationFrame
-                const debouncedTouchMove = (e) => {
-                    if (touchMoveTimeout) {
-                        clearTimeout(touchMoveTimeout);
-                    }
-                    
-                    // Use requestAnimationFrame for smoother updates
-                    touchMoveTimeout = requestAnimationFrame(() => {
-                        // Minimal processing during touch move
-                        // Let TradingView handle the actual panning
-                    });
-                };
-                
-                // Add passive event listeners for better performance
-                container.addEventListener('touchstart', (e) => {
-                    touchStartTime = performance.now();
-                }, { passive: true });
-                
-                container.addEventListener('touchmove', debouncedTouchMove, { passive: true });
-                
-                container.addEventListener('touchend', (e) => {
-                    const touchDuration = performance.now() - touchStartTime;
-                    // Clear any pending touch move animations
-                    if (touchMoveTimeout) {
-                        cancelAnimationFrame(touchMoveTimeout);
-                        touchMoveTimeout = null;
-                    }
-                }, { passive: true });
-                
-                container.addEventListener('touchcancel', (e) => {
-                    if (touchMoveTimeout) {
-                        cancelAnimationFrame(touchMoveTimeout);
-                        touchMoveTimeout = null;
-                    }
-                }, { passive: true });
-
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
