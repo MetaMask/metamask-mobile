@@ -117,8 +117,8 @@ export const createTradingViewChartTemplate = (
                             visible: true,
                             labelVisible: true,
                             width: 1,
-                            style: 2, // Dotted line
-                            color: '${theme.colors.text.default}',
+                            style: 3, // Dotted line
+                            color: '${theme.colors.text.muted}',
                         },
                         horzLine: {
                             visible: false, // Hide horizontal line

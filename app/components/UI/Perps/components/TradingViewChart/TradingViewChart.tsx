@@ -17,6 +17,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -153,9 +154,18 @@ const TradingViewChart = React.forwardRef<
             case 'WEBVIEW_TEST':
               break;
             case 'OHLC_DATA':
-              // Set OHLC data to state
+              // Trigger haptic feedback only when OHLC data changes (not on every update)
+              if (
+                message.data &&
+                (!ohlcData ||
+                  message.data.open !== ohlcData.open ||
+                  message.data.high !== ohlcData.high ||
+                  message.data.low !== ohlcData.low ||
+                  message.data.close !== ohlcData.close)
+              ) {
+                impactAsync(ImpactFeedbackStyle.Light);
+              }
               setOhlcData(message.data);
-              console.log('OHLC Data received from WebView:', message.data);
               break;
             default:
               break;
@@ -167,7 +177,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady],
+      [onChartReady, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -319,7 +329,7 @@ const TradingViewChart = React.forwardRef<
             <Skeleton
               height={height}
               width="100%"
-              style={{ position: 'absolute', zIndex: 10 }}
+              style={{ position: 'absolute', zIndex: 10 }} // eslint-disable-line react-native/no-inline-styles
               testID={`${
                 testID || TradingViewChartSelectorsIDs.CONTAINER
               }-skeleton`}
@@ -344,23 +354,15 @@ const TradingViewChart = React.forwardRef<
 
         {/* OHLC Legend */}
         {ohlcData && (
-          <Box
-            // twClassName="absolute top-2 left-2 bg-black/80 rounded px-2 py-1"
-            style={{
-              zIndex: 1000,
-              position: 'absolute',
-              backgroundColor: theme.colors.background.default,
-              borderRadius: 4,
-              padding: 4,
-              display: 'flex',
-              flexDirection: 'row',
-              gap: 10,
-            }}
-          >
-            <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
-            <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
-            <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
-            <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+          <Box style={styles.ohlcLegend}>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
+              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
+            </Box>
+            <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
+              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
+            </Box>
           </Box>
         )}
       </Box>
