@@ -177,6 +177,13 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
 
+import Intercom, { ContentType, Content, Visibility, IntercomContent } from '@intercom/intercom-react-native'
+
+import Button, {
+  ButtonVariants as ButtonVariantsLibrary,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
+
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
@@ -234,6 +241,17 @@ interface WalletTokensTabViewProps {
 }
 
 const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
+
+  useEffect(() => {
+    Intercom.loginUnidentifiedUser();
+    Intercom.setLauncherVisibility(Visibility.VISIBLE);
+  }, []);
+
+  const showSurvey = useCallback(() => {
+    let surveyContent = IntercomContent.surveyWithSurveyId("survey_id")
+    Intercom.presentContent(surveyContent)
+  }, []);
+
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useMemo(
@@ -372,6 +390,12 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
 
   return (
     <View style={styles.tabContainer}>
+      <Button
+        variant={ButtonVariantsLibrary.Primary}
+        label={"Show Survey"}
+        onPress={showSurvey}
+        size={ButtonSize.Lg}
+      />
       <ScrollableTabView
         ref={scrollableTabViewRef}
         renderTabBar={renderTabBar}
