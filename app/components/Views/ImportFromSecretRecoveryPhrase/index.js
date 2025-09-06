@@ -600,6 +600,18 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        trace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext: onboardingTraceCtx,
+          tags: {
+            is_social_login: oauthLoginSuccess,
+            account_type: oauthLoginSuccess ? 'social_import' : 'srp_import',
+            biometrics_enabled: Boolean(biometryType),
+          },
+        });
         const authData = await Authentication.componentAuthenticationType(
           biometryChoice,
           rememberMe,
@@ -642,6 +654,7 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
+        endTrace({ name: TraceName.OnboardingSRPAccountImportTime });
         endTrace({ name: TraceName.OnboardingExistingSrpImport });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
