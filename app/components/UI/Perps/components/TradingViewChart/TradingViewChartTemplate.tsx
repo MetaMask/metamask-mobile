@@ -111,20 +111,23 @@ export const createTradingViewChartTemplate = (
                             sensitivity: 1.0, // Default sensitivity
                         }
                     },
-                    // crosshair: {
-                    //     mode: 3, // Normal mode - crosshair appears on touch/hover
-                    //     vertLine: {
-                    //         visible: true,
-                    //         labelVisible: true,
-                    //         width: 1,
-                    //         style: 2, // Dotted line
-                    //         color: '${theme.colors.text.default}',
-                    //     },
-                    //     horzLine: {
-                    //         visible: false, // Hide horizontal line
-                    //         labelVisible: false,
-                    //     },
-                    // },
+                    crosshair: {
+                        mode: 3, // Normal mode - crosshair appears on touch/hover
+                        vertLine: {
+                            visible: true,
+                            labelVisible: true,
+                            width: 1,
+                            style: 2, // Dotted line
+                            color: '${theme.colors.text.default}',
+                        },
+                        horzLine: {
+                            visible: true, // Hide horizontal line
+                            labelVisible: true,
+                            width: 1,
+                            style: 2, // Dotted line
+                            color: '${theme.colors.text.default}',
+                        },
+                    },
                     localization: {
                         priceFormatter: (price) => {
                             // Smart decimal precision based on price value and range
