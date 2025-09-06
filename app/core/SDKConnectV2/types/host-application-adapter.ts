@@ -1,4 +1,5 @@
-import { Connection } from './connection';
+import { Connection } from '../services/connection';
+import { Metadata } from './metadata';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.
@@ -17,7 +18,7 @@ export interface IHostApplicationAdapter {
    */
   showConnectionApproval(
     connectionId: string,
-    dappMetadata: Connection['dappMetadata'],
+    dappMetadata: Metadata['dapp'],
   ): Promise<void>;
 
   /**
@@ -30,6 +31,13 @@ export interface IHostApplicationAdapter {
    * Hides the global loading modal.
    */
   hideLoading(): void;
+
+  /**
+   * Displays a global, non-interactive alert.
+   * @param title The title of the alert.
+   * @param message The message to display in the alert.
+   */
+  showAlert(title: string, message: string): void;
 
   /**
    * Displays a modal for the user to enter a One-Time Password (OTP).

@@ -1,7 +1,7 @@
 import { Session } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 import { BackgroundBridge } from '../../BackgroundBridge/BackgroundBridge';
-import { DappMetadata } from './dapp-metadata';
+import { Metadata } from './metadata';
 
 /**
  * Represents a fully established, user-approved, and persisted connection.
@@ -28,7 +28,7 @@ export interface Connection {
    * Metadata about the connected dApp. This data is persisted alongside
    * the session.
    */
-  dappMetadata: DappMetadata;
+  dappMetadata: Metadata['dapp'];
 
   /**
    * The live, in-memory client instance for this connection, provided by the
