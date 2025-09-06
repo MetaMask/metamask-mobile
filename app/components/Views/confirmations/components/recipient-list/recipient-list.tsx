@@ -19,6 +19,7 @@ interface RecipientListProps {
   emptyMessage?: string;
   onRecipientSelected: (recipient: RecipientType) => void;
   isContactList?: boolean;
+  disabled?: boolean;
 }
 
 export function RecipientList({
@@ -26,6 +27,7 @@ export function RecipientList({
   onRecipientSelected,
   emptyMessage,
   isContactList = false,
+  disabled = false,
 }: RecipientListProps) {
   const accountAvatarType = useAccountAvatarType();
   const { to } = useSendContext();
@@ -56,6 +58,7 @@ export function RecipientList({
           accountAvatarType={accountAvatarType}
           to={to}
           isBIP44={isBIP44}
+          disabled={disabled}
         />
       </Box>
     );
@@ -80,12 +83,14 @@ function FlatRecipientList({
   accountAvatarType,
   to,
   isBIP44,
+  disabled,
 }: {
   data: RecipientType[];
   onRecipientSelected: (recipient: RecipientType) => void;
   accountAvatarType: AvatarAccountType;
   to?: string;
   isBIP44?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <Box twClassName="flex-1">
@@ -96,7 +101,7 @@ function FlatRecipientList({
           accountAvatarType={accountAvatarType}
           isSelected={to === recipient.address}
           isBIP44={isBIP44}
-          onPress={onRecipientSelected}
+          onPress={disabled ? undefined : onRecipientSelected}
         />
       ))}
     </Box>
