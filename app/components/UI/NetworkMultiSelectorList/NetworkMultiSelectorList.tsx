@@ -11,7 +11,11 @@ import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { debounce } from 'lodash';
@@ -28,7 +32,7 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import Device from '../../../util/device/index.js';
-import { selectEvmChainId } from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 // Internal dependencies.
 import {
@@ -48,6 +52,7 @@ import {
   ITEM_TYPE_NETWORK,
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -76,8 +81,12 @@ const NetworkMultiSelectList = ({
   const networkListRef = useRef<any>(null);
   const networksLengthRef = useRef<number>(0);
   const safeAreaInsets = useSafeAreaInsets();
-  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainId = useSelector(selectChainId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedChainIdCaip = formatChainIdToCaip(selectedChainId);
+  const isBip122Selected = selectedChainIdCaip.includes(
+    KnownCaipNamespace.Bip122,
+  );
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -85,20 +94,23 @@ const NetworkMultiSelectList = ({
     (): ProcessedNetwork[] =>
       networks.map((network) => {
         const parsedCaipChainId = parseCaipChainId(network.caipChainId);
-        const chainId =
-          parsedCaipChainId.namespace !== 'solana'
-            ? toHex(parsedCaipChainId.reference)
-            : '';
+        const chainId = isEvmSelected
+          ? toHex(parsedCaipChainId.reference)
+          : parsedCaipChainId.reference;
+
         return {
           ...network,
           chainId,
           namespace: parsedCaipChainId.namespace,
           isMainChain: MAIN_CHAIN_IDS.has(chainId),
           isTestNetwork: Boolean(chainId && isTestNet(chainId)),
-          isSelected: areAllNetworksSelected ? false : network.isSelected,
+          isSelected:
+            areAllNetworksSelected && !isBip122Selected
+              ? false
+              : network.isSelected,
         };
       }),
-    [areAllNetworksSelected, networks],
+    [areAllNetworksSelected, networks, isEvmSelected, isBip122Selected],
   );
 
   const combinedData: NetworkListItem[] = useMemo(() => {
@@ -133,6 +145,7 @@ const NetworkMultiSelectList = ({
     additionalNetworksComponent,
     selectAllNetworksComponent,
   ]);
+
   const contentContainerStyle = useMemo(
     () => ({
       paddingBottom:
@@ -233,6 +246,9 @@ const NetworkMultiSelectList = ({
       }
 
       if (isSelectAllNetworksSection(item)) {
+        if (isBip122Selected) {
+          return null;
+        }
         return <View>{item.component}</View>;
       }
 
@@ -241,7 +257,6 @@ const NetworkMultiSelectList = ({
 
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
-
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
@@ -269,6 +284,7 @@ const NetworkMultiSelectList = ({
       createAvatarProps,
       createButtonProps,
       isSelectAllNetworksSection,
+      isBip122Selected,
     ],
   );
 
