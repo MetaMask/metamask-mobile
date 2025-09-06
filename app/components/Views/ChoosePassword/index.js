@@ -42,6 +42,7 @@ import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
+  USE_TERMS,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
@@ -55,7 +56,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -160,6 +160,9 @@ const createStyles = (colors) =>
       gap: 8,
       marginTop: 8,
       marginBottom: 16,
+      backgroundColor: colors.background.section,
+      borderRadius: 8,
+      padding: 16,
     },
     learnMoreTextContainer: {
       flexDirection: 'row',
@@ -168,6 +171,7 @@ const createStyles = (colors) =>
       gap: 1,
       flexWrap: 'wrap',
       width: '90%',
+      marginTop: -6,
     },
     headerLeft: {
       marginLeft: 16,
@@ -305,12 +309,6 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  termsOfUse = async () => {
-    if (this.props.navigation) {
-      await navigateTermsOfUse(this.props.navigation.navigate);
-    }
-  };
-
   async componentDidMount() {
     const { route } = this.props;
     const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -348,7 +346,6 @@ class ChoosePassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-    this.termsOfUse();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -480,32 +477,17 @@ class ChoosePassword extends PureComponent {
       if (authType.oauth2Login) {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
+        await StorageWrapper.setItem(USE_TERMS, TRUE);
 
-        if (this.props.metrics.isEnabled()) {
-          this.props.navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true },
-              },
-            ],
-          });
-        } else {
-          this.props.navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              this.props.navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: Routes.ONBOARDING.SUCCESS,
-                    params: { showPasswordHint: true },
-                  },
-                ],
-              });
+        this.props.navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS,
+              params: { showPasswordHint: true },
             },
-          });
-        }
+          ],
+        });
       } else {
         const seedPhrase = await this.tryExportSeedPhrase(password);
         this.props.navigation.replace('AccountBackupStep1', {
@@ -704,13 +686,8 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
-    let learnMoreUrl =
+    const learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
-
-    if (this.getOauth2LoginSuccess()) {
-      learnMoreUrl =
-        'https://support.metamask.io/configure/wallet/passwords-and-metamask/';
-    }
 
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
@@ -825,9 +802,27 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {this.getOauth2LoginSuccess()
-                      ? strings('choose_password.description_social_login')
-                      : strings('choose_password.description')}
+                    {this.getOauth2LoginSuccess() ? (
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings(
+                          'choose_password.description_social_login_update',
+                        )}
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Warning}
+                        >
+                          {' '}
+                          {strings(
+                            'choose_password.description_social_login_update_bold',
+                          )}
+                        </Text>
+                      </Text>
+                    ) : (
+                      strings('choose_password.description')
+                    )}
                   </Text>
                 </View>
 
@@ -969,17 +964,31 @@ class ChoosePassword extends PureComponent {
                         variant={TextVariant.BodyMD}
                         color={TextColor.Default}
                       >
-                        {this.getOauth2LoginSuccess()
-                          ? strings('import_from_seed.learn_more_social_login')
-                          : strings('import_from_seed.learn_more')}
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                          onPress={this.learnMore}
-                          testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                        >
-                          {' ' + strings('reset_password.learn_more')}
-                        </Text>
+                        {this.getOauth2LoginSuccess() ? (
+                          strings(
+                            'choose_password.marketing_opt_in_description',
+                          )
+                        ) : (
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Alternative}
+                          >
+                            {strings(
+                              'choose_password.loose_password_description',
+                            )}
+                            <Text
+                              variant={TextVariant.BodyMD}
+                              color={TextColor.Warning}
+                              onPress={this.learnMore}
+                              testID={
+                                ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID
+                              }
+                            >
+                              {' '}
+                              {strings('reset_password.learn_more')}
+                            </Text>
+                          </Text>
+                        )}
                       </Text>
                     }
                   />
