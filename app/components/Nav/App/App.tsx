@@ -318,12 +318,7 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-interface RootModalFlowProps {
-  route: {
-    params: Record<string, unknown>;
-  };
-}
-const RootModalFlow = (props: RootModalFlowProps) => (
+const RootModalFlow = () => (
   <Stack.Navigator
     screenOptions={{ presentation: 'modal', ...clearStackNavigatorOptions }}
   >

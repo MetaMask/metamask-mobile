@@ -29,6 +29,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RampIntent } from '../../components/UI/Ramp/Aggregator/types';
 import { EarnWithdrawalConfirmationViewRouteParams } from '../../components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/types';
 import { UnstakeConfirmationParams } from '../../components/UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { SRPQuizParams } from '../../components/Views/Quiz/SRPQuiz';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -139,11 +140,7 @@ export type RootParamList = {
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   OptionsSheet: OptionsSheetParams;
-  SRPRevealQuiz:
-    | {
-        keyringId: Json;
-      }
-    | undefined;
+  SRPRevealQuiz: SRPQuizParams | undefined;
   NFTAutoDetectionModal: undefined;
   MultiRPcMigrationModal: undefined;
   MaxBrowserTabsModal: undefined;
@@ -275,9 +272,7 @@ export type RootParamList = {
   DeleteAccount: {
     account: InternalAccount;
   };
-  SRPRevealQuizInMultichainAccountDetails: {
-    keyringId?: string;
-  };
+  SRPRevealQuizInMultichainAccountDetails: SRPQuizParams | undefined;
   RevealPrivateCredential: {
     account: InternalAccount;
   };

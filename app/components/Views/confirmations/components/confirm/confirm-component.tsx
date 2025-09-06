@@ -27,7 +27,10 @@ import styleSheet from './confirm-component.styles';
 import type { RootParamList } from '../../../../../util/navigation/types';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-type ConfirmProps = StackScreenProps<RootParamList, 'RedesignedConfirmations'>;
+type ConfirmProps = StackScreenProps<
+  RootParamList,
+  'RedesignedConfirmations' | 'ConfirmationRequestModal'
+>;
 
 const ConfirmWrapped = ({
   styles,

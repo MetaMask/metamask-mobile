@@ -34,7 +34,10 @@ import type { RootParamList } from '../../../../util/navigation/types';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
-type SRPQuizProps = StackScreenProps<RootParamList, 'SRPRevealQuiz'>;
+type SRPQuizProps = StackScreenProps<
+  RootParamList,
+  'SRPRevealQuiz' | 'SRPRevealQuizInMultichainAccountDetails'
+>;
 
 const SRPQuiz = ({ route }: SRPQuizProps) => {
   const keyringId = route.params?.keyringId;
