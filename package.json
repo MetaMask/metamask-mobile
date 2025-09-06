@@ -381,6 +381,7 @@
     "expo-dev-client": "~5.0.18",
     "expo-file-system": "~18.0.7",
     "expo-haptics": "~14.0.1",
+    "expo-image": "~2.0.7",
     "expo-sensors": "~14.0.2",
     "fast-equals": "^5.2.2",
     "fuse.js": "3.4.4",

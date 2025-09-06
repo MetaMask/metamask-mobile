@@ -1,15 +1,16 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import { TransactionDetailStyles } from '../../utils/transactionDetailStyles';
 
 interface PerpsTransactionDetailAssetHeroProps {
   transaction: PerpsTransaction;
-  styles: ReturnType<typeof StyleSheet.create>;
+  styles: TransactionDetailStyles;
 }
 
 const PerpsTransactionDetailAssetHero: React.FC<

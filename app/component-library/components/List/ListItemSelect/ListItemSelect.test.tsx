@@ -275,7 +275,12 @@ describe('ListItemSelect', () => {
       const originalIsTest = process.env.IS_TEST;
       const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
 
-      process.env.NODE_ENV = 'development';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'development',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       delete process.env.IS_TEST;
       delete process.env.METAMASK_ENVIRONMENT;
 
@@ -292,7 +297,12 @@ describe('ListItemSelect', () => {
 
         expect(mockOnPress).toHaveBeenCalledTimes(1);
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+          value: originalEnv,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
         if (originalIsTest) process.env.IS_TEST = originalIsTest;
         if (originalMetaMaskEnv)
           process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
@@ -377,7 +387,12 @@ describe('ListItemSelect', () => {
     });
 
     it('should use RNTouchableOpacity in unit test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByTestId } = render(
         <ListItemSelect onPress={mockOnPress} testID="list-item-select">
@@ -407,7 +422,12 @@ describe('ListItemSelect', () => {
     });
 
     it('should set onPress to undefined when disabled in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const mockOnPress = jest.fn();
       const { getByTestId } = render(
         <ListItemSelect
@@ -426,7 +446,12 @@ describe('ListItemSelect', () => {
     });
 
     it('should expose disabled prop in test environment', () => {
-      process.env.NODE_ENV = 'test';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'test',
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       const { getByTestId } = render(
         <ListItemSelect
           onPress={() => null}

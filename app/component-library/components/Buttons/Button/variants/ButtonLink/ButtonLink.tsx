@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 // Third party dependencies.
 import React, { useState, useCallback } from 'react';
-import { GestureResponderEvent } from 'react-native';
+import { GestureResponderEvent, StyleProp, TextStyle } from 'react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -75,7 +75,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
     <>
       {size === ButtonSize.Auto ? (
         <Text
-          style={styles.base}
+          style={styles.base as StyleProp<TextStyle>}
           suppressHighlighting
           onPressIn={triggerOnPressedIn}
           onPressOut={triggerOnPressedOut}
