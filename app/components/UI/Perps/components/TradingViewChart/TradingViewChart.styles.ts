@@ -34,5 +34,18 @@ export const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.error.muted,
       padding: 16,
     },
+    ohlcLegend: {
+      zIndex: 1,
+      position: 'absolute',
+      backgroundColor: theme.colors.background.default,
+      borderRadius: 4,
+      padding: 4,
+      flexDirection: 'column',
+      gap: 2,
+    },
+    ohlcRow: {
+      flexDirection: 'row',
+      gap: 10,
+    },
   });
 };
