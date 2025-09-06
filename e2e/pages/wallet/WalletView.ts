@@ -169,6 +169,14 @@ class WalletView {
     );
   }
 
+  getToken(id: string): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_ASSET(id));
+  }
+
+  getTokenCtaText(id: string): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_CTA_ASSET(id));
+  }
+
   async tapCurrentMainWalletAccountActions(): Promise<void> {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions, {
       elemDescription: 'Current Main Wallet Account Actions',
@@ -185,10 +193,20 @@ class WalletView {
     });
   }
 
+  async tapTokenById(tokenId: string): Promise<void> {
+    await Gestures.waitAndTap(this.getToken(tokenId), {
+      elemDescription: 'Token By Id',
+    });
+  }
+
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
     });
+  }
+
+  async tapTokenCtaAprText(id: string): Promise<void> {
+    await Gestures.waitAndTap(this.getTokenCtaText(id));
   }
 
   async tapBellIcon(): Promise<void> {

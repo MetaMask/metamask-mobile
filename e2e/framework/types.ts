@@ -190,12 +190,20 @@ export interface MockEventsObject {
   [key: string]: MockApiEndpoint[] | undefined;
 }
 
+/**
+ * The options for the mock api endpoint.
+ * @param {string} urlEndpoint - The URL to fetch from
+ * @param {unknown} response - The response to return
+ * @param {number} responseCode - The response code to return
+ * @param {string} [proxyUrl] - Optional proxy URL to forward the request to
+ */
 export interface MockApiEndpoint {
   urlEndpoint: string | RegExp;
   requestBody?: unknown;
   ignoreFields?: string[];
   response: unknown;
   responseCode: number;
+  proxyUrl?: string;
 }
 
 export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
