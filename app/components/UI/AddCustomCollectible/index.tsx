@@ -297,7 +297,7 @@ const AddCustomCollectible = ({
         confirmText={strings('add_asset.collectibles.add_collectible')}
         onCancelPress={cancelAddCollectible}
         onConfirmPress={addNft}
-        confirmDisabled={!address || !tokenId}
+        confirmDisabled={!address || !tokenId || !selectedNetwork}
         loading={loading}
         confirmTestID={'add-collectible-button'}
       >
