@@ -23,7 +23,7 @@ export interface CurrentNetworkInfo {
  * Hook that provides current network information for the active namespace
  */
 export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
-  const { enabledNetworksByNamespace } = useNetworkEnablement();
+  const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -34,17 +34,28 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
-    const networksForNamespace = {
-      ...Object.values(enabledNetworksByNamespace).reduce(
-        (acc, obj) => ({ ...acc, ...obj }),
-        {},
-      ),
-    };
+    if (isMultichainAccountsState2Enabled) {
+      const networksForNamespace = {
+        ...Object.values(enabledNetworksByNamespace).reduce(
+          (acc, obj) => ({ ...acc, ...obj }),
+          {},
+        ),
+      };
 
+      return Object.entries(networksForNamespace)
+        .filter(([_key, value]) => value)
+        .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
+    }
+
+    const networksForNamespace = enabledNetworksByNamespace[namespace] || {};
     return Object.entries(networksForNamespace)
       .filter(([_key, value]) => value)
       .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-  }, [enabledNetworksByNamespace]);
+  }, [
+    enabledNetworksByNamespace,
+    isMultichainAccountsState2Enabled,
+    namespace,
+  ]);
 
   // Generic function to get network info by index
   const getNetworkInfo = useCallback(
