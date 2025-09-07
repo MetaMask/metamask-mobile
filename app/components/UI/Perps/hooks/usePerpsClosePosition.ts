@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { Position, OrderResult } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -13,12 +13,7 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import usePerpsToasts from './usePerpsToasts';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -32,69 +27,7 @@ export const usePerpsClosePosition = (
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { track } = usePerpsEventTracking();
-  const { toastRef } = useContext(ToastContext);
-  const theme = useAppThemeFromContext();
-
-  const showPositionCloseInProgressToast = useCallback(
-    (direction: 'long' | 'short', amount: string, assetSymbol: string) => {
-      let subtext = strings(
-        'perps.close_position.your_funds_will_be_available_momentarily',
-      );
-
-      if (direction && amount && assetSymbol) {
-        subtext = strings('perps.close_position.closing_position_subtitle', {
-          direction,
-          amount: Math.abs(parseFloat(amount)),
-          assetSymbol,
-        });
-      }
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Coin,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.primary.default,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.close_position.closing_position'),
-            isBold: true,
-          },
-          {
-            label: '\n',
-          },
-          {
-            label: subtext,
-            isBold: false,
-          },
-        ],
-      });
-    },
-    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
-  );
-
-  const showPositionClosedToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: theme.colors.icon.default,
-      backgroundColor: theme.colors.primary.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.close_position.position_closed'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: strings('perps.close_position.funds_are_available_to_trade'),
-          isBold: false,
-        },
-      ],
-    });
-  }, [theme.colors.icon.default, theme.colors.primary.default, toastRef]);
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleClosePosition = useCallback(
     async (
@@ -121,11 +54,50 @@ export const usePerpsClosePosition = (
           ? strings('perps.market.long')
           : strings('perps.market.short');
 
-        showPositionCloseInProgressToast(
-          direction,
-          size || position.size,
-          position.coin,
-        );
+        if (orderType === 'market') {
+          // Market closing full position
+          if (size === undefined || size === '') {
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress(
+                direction,
+                position.size,
+                position.coin,
+              ),
+            );
+          } else {
+            // Market closing partial position
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress(
+                direction,
+                size,
+                position.coin,
+              ),
+            );
+          }
+        }
+
+        if (orderType === 'limit') {
+          // Limit closing full position
+          if (size === undefined || size === '') {
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted(
+                direction,
+                position.size,
+                position.coin,
+              ),
+            );
+          }
+          // Limit closing partial position
+          else {
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose.partial.partialPositionCloseSubmitted(
+                direction,
+                size,
+                position.coin,
+              ),
+            );
+          }
+        }
 
         // Close position
         const result = await closePosition({
@@ -192,7 +164,14 @@ export const usePerpsClosePosition = (
               performance.now() - closeStartTime,
           });
 
-          showPositionClosedToast();
+          // Market order immediately fills or fails
+          // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
+          if (orderType === 'market') {
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.marketClose
+                .full.closeFullPositionSuccess,
+            );
+          }
 
           // Call success callback
           options?.onSuccess?.(result);
@@ -238,10 +217,10 @@ export const usePerpsClosePosition = (
       }
     },
     [
+      PerpsToastOptions.positionManagement,
       closePosition,
       options,
-      showPositionCloseInProgressToast,
-      showPositionClosedToast,
+      showToast,
       track,
     ],
   );

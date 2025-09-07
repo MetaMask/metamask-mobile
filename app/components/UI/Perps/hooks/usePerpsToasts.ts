@@ -260,8 +260,23 @@ const usePerpsToasts = () => {
               ...perpsBaseToastOptions.error,
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.failed_to_cancel_order'),
-                strings('perps.order.funds_have_been_returned_to_you'),
               ),
+            },
+            reduceOnlyClose: {
+              cancellationSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.order.order_cancelled'),
+                  strings('perps.close_position.limit_close_order_cancelled'),
+                ),
+              },
+              cancellationFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.order.failed_to_cancel_order'),
+                  strings('perps.order.close_order_still_active'),
+                ),
+              },
             },
           },
         },
@@ -273,6 +288,115 @@ const usePerpsToasts = () => {
               error,
             ),
           }),
+        },
+      },
+      positionManagement: {
+        closePosition: {
+          marketClose: {
+            full: {
+              closeFullPositionInProgress: (
+                direction: OrderDirection,
+                amount: string,
+                assetSymbol: string,
+              ) => {
+                let subtext = strings(
+                  'perps.close_position.your_funds_will_be_available_momentarily',
+                );
+
+                if (direction && amount && assetSymbol) {
+                  subtext = strings(
+                    'perps.close_position.closing_position_subtitle',
+                    {
+                      direction,
+                      amount: Math.abs(parseFloat(amount)),
+                      assetSymbol,
+                    },
+                  );
+                }
+
+                return {
+                  ...perpsBaseToastOptions.inProgress,
+                  labelOptions: getPerpsToastLabels(
+                    strings('perps.close_position.closing_position'),
+                    subtext,
+                  ),
+                };
+              },
+              closeFullPositionSuccess: {
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_closed'),
+                  strings('perps.close_position.funds_are_available_to_trade'),
+                ),
+              },
+            },
+            partial: {
+              closePartialPositionInProgress: (
+                direction: OrderDirection,
+                amount: string,
+                assetSymbol: string,
+              ) => {
+                let subtext = strings(
+                  'perps.close_position.your_funds_will_be_available_momentarily',
+                );
+
+                if (direction && amount && assetSymbol) {
+                  subtext = strings(
+                    'perps.close_position.closing_position_subtitle',
+                    {
+                      direction,
+                      amount: Math.abs(parseFloat(amount)),
+                      assetSymbol,
+                    },
+                  );
+                }
+
+                return {
+                  ...perpsBaseToastOptions.inProgress,
+                  labelOptions: getPerpsToastLabels(
+                    strings('perps.close_position.partially_closing_position'),
+                    subtext,
+                  ),
+                };
+              },
+            },
+          },
+          limitClose: {
+            full: {
+              fullPositionCloseSubmitted: (
+                direction: OrderDirection,
+                amount: string,
+                assetSymbol: string,
+              ) => ({
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.position_close_order_placed'),
+                  strings('perps.close_position.closing_position_subtitle', {
+                    direction,
+                    amount: Math.abs(parseFloat(amount)),
+                    assetSymbol,
+                  }),
+                ),
+              }),
+            },
+            partial: {
+              partialPositionCloseSubmitted: (
+                direction: OrderDirection,
+                amount: string,
+                assetSymbol: string,
+              ) => ({
+                ...perpsBaseToastOptions.success,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.partial_close_submitted'),
+                  strings('perps.close_position.closing_position_subtitle', {
+                    direction,
+                    amount: Math.abs(parseFloat(amount)),
+                    assetSymbol,
+                  }),
+                ),
+              }),
+            },
+          },
         },
       },
       market: {
