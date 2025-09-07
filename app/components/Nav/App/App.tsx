@@ -98,6 +98,7 @@ import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctional
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
+import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -508,6 +509,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
     />
+    <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
