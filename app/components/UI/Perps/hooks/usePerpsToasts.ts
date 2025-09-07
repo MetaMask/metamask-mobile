@@ -184,7 +184,7 @@ const usePerpsToasts = () => {
                 }),
               ),
             }),
-            error: {
+            creationFailed: {
               ...perpsBaseToastOptions.error,
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.order_failed'),
@@ -227,6 +227,13 @@ const usePerpsToasts = () => {
                 }),
               ),
             }),
+            creationFailed: {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_failed'),
+                strings('perps.order.your_funds_have_been_returned_to_you'),
+              ),
+            },
             cancellationInProgress: (
               direction: OrderDirection,
               amount: string,
@@ -254,14 +261,6 @@ const usePerpsToasts = () => {
               labelOptions: getPerpsToastLabels(
                 strings('perps.order.failed_to_cancel_order'),
                 strings('perps.order.funds_have_been_returned_to_you'),
-              ),
-            },
-            // TODO: Rename to placeOrderFailed (update market and limit types)
-            error: {
-              ...perpsBaseToastOptions.error,
-              labelOptions: getPerpsToastLabels(
-                strings('perps.order.order_failed'),
-                strings('perps.order.your_funds_have_been_returned_to_you'),
               ),
             },
           },

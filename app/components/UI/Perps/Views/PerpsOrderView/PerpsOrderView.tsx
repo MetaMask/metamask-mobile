@@ -368,7 +368,8 @@ const PerpsOrderViewContentBase: React.FC = () => {
       },
       onError: (_error) => {
         showToast(
-          PerpsToastOptions.order.orderManagement[orderForm.type].error,
+          PerpsToastOptions.order.orderManagement[orderForm.type]
+            .creationFailed,
         );
       },
     });
