@@ -389,7 +389,7 @@ const RootModalFlow = () => (
     <Stack.Screen name="AssetOptions" component={AssetOptions} />
     <Stack.Screen name="NftOptions" component={NftOptions} />
     <Stack.Screen name="UpdateNeededModal" component={UpdateNeeded} />
-    {<Stack.Screen name="SelectSRP" component={SelectSRPBottomSheet} />}
+    <Stack.Screen name="SelectSRP" component={SelectSRPBottomSheet} />
     <Stack.Screen name="SRPRevealQuiz" component={SRPQuiz} />
     <Stack.Screen name="AccountActions" component={AccountActions} />
     <Stack.Screen
@@ -517,7 +517,7 @@ const MultichainAccountGroupDetails = () => {
       <Stack.Screen
         name="MultichainAccountGroupDetails"
         component={AccountGroupDetails}
-        // initialParams={route?.params}
+        initialParams={route?.params}
       />
       <Stack.Screen
         name="SmartAccountDetails"
