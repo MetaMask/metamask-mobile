@@ -10,6 +10,7 @@ import {
   BridgeQuoteRequest,
   TransactionBridgeQuote,
   getBridgeQuotes,
+  refreshQuote,
 } from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -127,7 +128,10 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([QUOTE_1_MOCK, QUOTE_2_MOCK]);
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTE_1_MOCK),
+        expect.objectContaining(QUOTE_2_MOCK),
+      ]);
     });
 
     it('requests quotes', async () => {
@@ -220,7 +224,7 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
-      expect(quotes).toStrictEqual([QUOTES[2]]);
+      expect(quotes).toStrictEqual([expect.objectContaining(QUOTES[2])]);
     });
 
     it('ignores quote if token amount if less than minimum', async () => {
@@ -267,7 +271,7 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await getBridgeQuotes([QUOTE_REQUEST_1_MOCK]);
 
-      expect(quotes).toStrictEqual([QUOTES[1]]);
+      expect(quotes).toStrictEqual([expect.objectContaining(QUOTES[1])]);
     });
 
     it('returns undefined if all fastest quotes have token amount less than minimum', async () => {
@@ -346,7 +350,9 @@ describe('Confirmations Bridge Utils', () => {
         { ...QUOTE_REQUEST_1_MOCK, attemptsMax: 2 },
       ]);
 
-      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0]]);
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+      ]);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
@@ -480,7 +486,9 @@ describe('Confirmations Bridge Utils', () => {
         },
       ]);
 
-      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0]]);
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+      ]);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(2);
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
@@ -605,7 +613,10 @@ describe('Confirmations Bridge Utils', () => {
         },
       ]);
 
-      expect(quotes).toStrictEqual([QUOTES_ATTEMPT_2[0], QUOTES_ATTEMPT_3[0]]);
+      expect(quotes).toStrictEqual([
+        expect.objectContaining(QUOTES_ATTEMPT_2[0]),
+        expect.objectContaining(QUOTES_ATTEMPT_3[0]),
+      ]);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(3);
 
@@ -638,6 +649,29 @@ describe('Confirmations Bridge Utils', () => {
         expect.any(Object),
         expect.any(String),
       );
+    });
+  });
+
+  describe('refreshQuote', () => {
+    it('returns new quote', async () => {
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue([QUOTE_2_MOCK]);
+
+      const result = await refreshQuote({
+        ...QUOTE_1_MOCK,
+        request: QUOTE_REQUEST_1_MOCK,
+      } as TransactionBridgeQuote);
+
+      expect(result).toStrictEqual(expect.objectContaining(QUOTE_2_MOCK));
+    });
+
+    it('requests new quote', async () => {
+      await refreshQuote({
+        ...QUOTE_1_MOCK,
+        request: QUOTE_REQUEST_1_MOCK,
+      } as TransactionBridgeQuote);
+
+      expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(1);
     });
   });
 });
