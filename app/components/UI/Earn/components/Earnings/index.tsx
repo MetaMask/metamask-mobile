@@ -71,7 +71,8 @@ const EarningsContent = ({ asset }: EarningsProps) => {
     if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
       navigate('EarnModals', {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        params: { asset: outputToken },
+        // TODO: Why is outputToken possibly undefined?
+        params: { asset: outputToken! },
       });
     } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
       navigate('StakeModals', {

@@ -41,14 +41,12 @@ import { Hex } from 'viem/_types/types/misc';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { RootParamList } from '../../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
-interface PoolStakingLearnMoreModalRouteParams {
-  chainId: Hex;
-}
-
-type PoolStakingLearnMoreModalRouteProp = RouteProp<
-  { params: PoolStakingLearnMoreModalRouteParams },
-  'params'
+type PoolStakingLearnMoreModalProps = StackScreenProps<
+  RootParamList,
+  'LearnMore'
 >;
 
 const BodyText = () => {
@@ -85,14 +83,15 @@ const BodyText = () => {
   );
 };
 
-const PoolStakingLearnMoreModal = () => {
+const PoolStakingLearnMoreModal = ({
+  route,
+}: PoolStakingLearnMoreModalProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const { navigate } = useNavigation();
 
-  const route = useRoute<PoolStakingLearnMoreModalRouteProp>();
   const { chainId: routeChainId } = route.params;
 
   const sheetRef = useRef<BottomSheetRef>(null);

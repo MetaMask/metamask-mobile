@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -11,21 +11,20 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PriceImpactWarningModal.styles';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../util/navigation/types';
 
-interface PriceImpactWarningModalRouteParams {
-  isGasIncluded: boolean;
-}
+type PriceImpactWarningModalProps = StackScreenProps<
+  RootParamList,
+  'PriceImpactWarningModal'
+>;
 
-const PriceImpactWarningModal = () => {
+const PriceImpactWarningModal = ({ route }: PriceImpactWarningModalProps) => {
   const navigation = useNavigation();
-  const route = useRoute();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
 
-  const { isGasIncluded } =
-    (route.params as PriceImpactWarningModalRouteParams) || {
-      isGasIncluded: false,
-    };
+  const { isGasIncluded } = route.params;
 
   const handleClose = () => {
     navigation.goBack();

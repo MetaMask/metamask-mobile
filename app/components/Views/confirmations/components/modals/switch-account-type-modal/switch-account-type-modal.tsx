@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import Avatar, {
   AvatarSize,
@@ -24,10 +24,16 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../../../../util/navigation/types';
 
-const SwitchAccountTypeModal = () => {
+type SwitchAccountTypeModalProps = StackScreenProps<
+  RootParamList,
+  'ConfirmationSwitchAccountType'
+>;
+
+const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const route = useRoute();
   const navigation = useNavigation();
   const address =
     (route?.params as { address: Hex })?.address ??

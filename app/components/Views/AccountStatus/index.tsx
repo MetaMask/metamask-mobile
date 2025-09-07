@@ -6,18 +6,13 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-import { Dispatch } from 'redux';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Text from '../../../component-library/components/Texts/Text';
 import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import {
-  StackActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import styles from './index.styles';
 import Button, {
@@ -41,35 +36,23 @@ import {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
-import {
-  OnboardingActionTypes,
-  saveOnboardingEvent as saveEvent,
-} from '../../../actions/onboarding';
+import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import AccountStatusImg from '../../../images/account_status.png';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { RootParamList } from '../../../util/navigation/types';
 
-interface AccountStatusProps {
-  type?: 'found' | 'not_exist';
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) => void;
-}
+type AccountStatusProps = StackScreenProps<
+  RootParamList,
+  'AccountAlreadyExists' | 'AccountNotFound' | 'AccountStatus'
+>;
 
-interface AccountRouteParams {
-  accountName?: string;
-  oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: string;
-}
-
-const AccountStatus = ({
-  type = 'not_exist',
-  saveOnboardingEvent,
-}: AccountStatusProps) => {
+const AccountStatus = ({ route }: AccountStatusProps) => {
   const navigation = useNavigation();
-  const route = useRoute();
-
-  const accountName = (route.params as AccountRouteParams)?.accountName;
-  const oauthLoginSuccess = (route.params as AccountRouteParams)
-    ?.oauthLoginSuccess;
-  const onboardingTraceCtx = (route.params as AccountRouteParams)
-    ?.onboardingTraceCtx;
+  const { accountName, oauthLoginSuccess, onboardingTraceCtx, type } =
+    route.params;
+  const dispatch = useDispatch();
+  const saveOnboardingEvent = (...eventArgs: [ITrackingEvent]) =>
+    dispatch(saveEvent(eventArgs));
 
   // check for small screen size
   const isSmallScreen = Dimensions.get('window').width < 375;
@@ -194,9 +177,4 @@ const AccountStatus = ({
   );
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<OnboardingActionTypes>) => ({
-  saveOnboardingEvent: (...eventArgs: [ITrackingEvent]) =>
-    dispatch(saveEvent(eventArgs)),
-});
-
-export default connect(null, mapDispatchToProps)(AccountStatus);
+export default AccountStatus;

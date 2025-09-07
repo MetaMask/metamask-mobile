@@ -170,10 +170,6 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator<RootParamList>();
 
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
-
 const OnboardingSuccessFlow = () => (
   <Stack.Navigator initialRouteName="OnboardingSuccess">
     <Stack.Screen
@@ -243,12 +239,14 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
+      component={AccountStatus}
+      initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountNotFound}
+      component={AccountStatus}
+      initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen

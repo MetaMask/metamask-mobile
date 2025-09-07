@@ -193,7 +193,8 @@ const EarnInputView = () => {
       trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
-        params: { asset: earnToken },
+        // TODO: Why is earnToken possibly undefined?
+        params: { asset: earnToken! },
       });
     }
   };

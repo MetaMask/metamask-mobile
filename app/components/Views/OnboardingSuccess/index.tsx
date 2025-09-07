@@ -37,21 +37,22 @@ import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedl
 import { useSelector } from 'react-redux';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
+import { RootParamList } from '../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
   routes: [{ name: 'HomeNav' }],
 });
 
-interface OnboardingSuccessProps {
+interface OnboardingSuccessComponentProps {
   onDone: () => void;
   successFlow: ONBOARDING_SUCCESS_FLOW;
 }
 
-export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
-  onDone,
-  successFlow,
-}) => {
+export const OnboardingSuccessComponent: React.FC<
+  OnboardingSuccessComponentProps
+> = ({ onDone, successFlow }) => {
   const navigation = useNavigation();
 
   const { colors } = useTheme();
@@ -264,10 +265,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   );
 };
 
-export const OnboardingSuccess = () => {
+type OnboardingSuccessProps = StackScreenProps<
+  RootParamList,
+  'OnboardingSuccess'
+>;
+
+export const OnboardingSuccess = ({ route }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
+  const params = route.params;
 
   const successFlow = params?.successFlow;
 

@@ -30,6 +30,10 @@ import { RampIntent } from '../../components/UI/Ramp/Aggregator/types';
 import { EarnWithdrawalConfirmationViewRouteParams } from '../../components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/types';
 import { UnstakeConfirmationParams } from '../../components/UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { SRPQuizParams } from '../../components/Views/Quiz/SRPQuiz';
+import { AccountStatusParams } from '../../components/Views/AccountStatus/types';
+import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
+import { EarnTokenDetails } from '../../components/UI/Earn/types/lending.types';
+import { NetworkSelectorRouteParams } from '../../components/Views/NetworkSelector/types';
 
 export type RootParamList = {
   // Detected Tokens Flow
@@ -38,7 +42,7 @@ export type RootParamList = {
 
   // Onboarding Screens
   OnboardingSuccess: {
-    successFlow: string; // ONBOARDING_SUCCESS_FLOW type
+    successFlow: ONBOARDING_SUCCESS_FLOW;
   };
   DefaultSettings: undefined;
   GeneralSettings: undefined;
@@ -67,9 +71,9 @@ export type RootParamList = {
   };
   ManualBackupStep2: undefined;
   ManualBackupStep3: undefined;
-  AccountStatus: { type?: 'found' | 'not_exist'; onboardingTraceCtx?: string };
-  AccountAlreadyExists: undefined;
-  AccountNotFound: undefined;
+  AccountStatus: AccountStatusParams;
+  AccountAlreadyExists: AccountStatusParams;
+  AccountNotFound: AccountStatusParams;
   Rehydrate: undefined;
 
   Webview: undefined;
@@ -88,7 +92,10 @@ export type RootParamList = {
   // Network Management
   AddNetwork:
     | {
+        shouldNetworkSwitchPopToWallet?: boolean;
+        shouldShowPopularNetworks?: boolean;
         network?: string;
+        isCustomMainnet?: boolean;
       }
     | undefined;
   EditNetwork:
@@ -228,11 +235,7 @@ export type RootParamList = {
     connectionDateTime?: number;
   };
   PermittedNetworksInfoSheet: undefined;
-  NetworkSelector: {
-    onSelectNetwork?: (chainId: string) => void;
-    isPickerScreen?: boolean;
-    source?: any;
-  };
+  NetworkSelector: NetworkSelectorRouteParams | undefined;
   TokenSort: undefined;
   TokenFilter: undefined;
   NetworkManager: undefined;
@@ -388,7 +391,9 @@ export type RootParamList = {
     errorMessage: string;
     errorType: 'validation' | 'simulation';
   };
-  PriceImpactWarningModal: undefined;
+  PriceImpactWarningModal: {
+    isGasIncluded: boolean;
+  };
   BridgeTransactionDetails: undefined;
 
   // Perps Routes
@@ -595,7 +600,9 @@ export type RootParamList = {
   UnstakeConfirmation: UnstakeConfirmationParams;
   EarningsHistory: undefined;
   Claim: undefined;
-  LearnMore: undefined;
+  LearnMore: {
+    chainId?: string | Hex;
+  };
   MaxInput: undefined;
   GasImpact: {
     amountWei: string;
@@ -758,7 +765,9 @@ export type RootParamList = {
   EarnLendingDepositConfirmation: undefined;
   EarnLendingWithdrawalConfirmation: EarnWithdrawalConfirmationViewRouteParams;
   EarnLendingMaxWithdrawalModal: undefined;
-  EarnLendingLearnMoreModal: undefined;
+  EarnLendingLearnMoreModal: {
+    asset: EarnTokenDetails;
+  };
 
   // Card Flow Screens
   CardScreens: undefined;

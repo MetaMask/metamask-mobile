@@ -21,9 +21,8 @@ import {
 } from '../../../../component-library/components/Buttons/Button/Button.types';
 import { EARN_URLS } from '../constants/urls';
 import InteractiveTimespanChart from '../../Stake/components/PoolStakingLearnMoreModal/InteractiveTimespanChart';
-import { EarnTokenDetails, LendingProtocol } from '../types/lending.types';
+import { LendingProtocol } from '../types/lending.types';
 import { HistoricLendingMarketApyAverages } from '@metamask/stake-sdk';
-import { RouteProp, useRoute } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
   formatChartDate,
@@ -50,6 +49,8 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import useEarnToken from '../hooks/useEarnToken';
 import { Hex } from 'viem';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
+import { RootParamList } from '../../../../util/navigation/types';
+import { StackScreenProps } from '@react-navigation/stack';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -124,21 +125,18 @@ const parseMarketLendingApyAverages = (
   }, {});
 };
 
-interface EarnLendingLearnMoreModalRouteParams {
-  asset: EarnTokenDetails;
-}
-
-type EarnLendingLearnMoreModalRouteProp = RouteProp<
-  { params: EarnLendingLearnMoreModalRouteParams },
-  'params'
+type LendingLearnMoreModalProps = StackScreenProps<
+  RootParamList,
+  'EarnLendingLearnMoreModal'
 >;
 
 const CHART_HEIGHT = 300; // Adjust to your chart's height
 
-export const LendingLearnMoreModal = () => {
+export const LendingLearnMoreModal = ({
+  route,
+}: LendingLearnMoreModalProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
-  const route = useRoute<EarnLendingLearnMoreModalRouteProp>();
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
