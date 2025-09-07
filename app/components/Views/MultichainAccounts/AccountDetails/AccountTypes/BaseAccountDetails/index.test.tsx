@@ -6,13 +6,29 @@ import { strings } from '../../../../../../../locales/i18n';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { formatAddress } from '../../../../../../util/address';
 import { RootState } from '../../../../../../reducers';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+
+// Mock multichain state 2 selector so we can control behavior per test
+jest.mock(
+  '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => {
+    const actual = jest.requireActual(
+      '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+    );
+    return {
+      ...actual,
+      selectMultichainAccountsState2Enabled: jest.fn(() => false),
+    };
+  },
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -35,6 +51,27 @@ const mockAccount = createMockInternalAccount(
 const mockInitialState = {
   settings: {
     useBlockieIcon: false,
+  },
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            enabled: false,
+            featureVersion: null,
+            minimumVersion: null,
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {},
+        },
+        accountGroupsMetadata: {},
+        accountWalletsMetadata: {},
+      },
+    },
   },
 };
 
@@ -112,10 +149,32 @@ describe('BaseAccountDetails', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to edit account name when account name is pressed', () => {
+  it('navigates to edit account name when account name is pressed (legacy mode)', () => {
+    // Mock feature flag as disabled (legacy mode)
+    const mockState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...mockInitialState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: false,
+                featureVersion: null,
+                minimumVersion: null,
+              },
+            },
+          },
+        },
+      },
+    };
+
     const { getByTestId } = renderWithProvider(
       <BaseAccountDetails account={mockAccount} />,
-      { state: mockInitialState },
+      { state: mockState },
     );
 
     const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
@@ -124,8 +183,78 @@ describe('BaseAccountDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
       {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+        screen:
+          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
         params: { account: mockAccount },
+      },
+    );
+  });
+
+  it('navigates to multichain edit account name when account name is pressed (state 2 enabled)', () => {
+    // Mock feature flag as enabled (state 2 mode)
+    const { selectMultichainAccountsState2Enabled } = jest.requireMock(
+      '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+    );
+    (selectMultichainAccountsState2Enabled as jest.Mock).mockReturnValue(true);
+    const mockState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...mockInitialState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'keyring:test-wallet': {
+                  id: 'keyring:test-wallet',
+                  metadata: { name: 'Test Wallet' },
+                  type: AccountWalletType.Keyring,
+                  groups: {
+                    'keyring:test-wallet/ethereum': {
+                      id: 'keyring:test-wallet/ethereum',
+                      accounts: [mockAccount.id],
+                      metadata: { name: 'Test Account Group' },
+                      type: AccountGroupType.SingleAccount,
+                    },
+                  },
+                },
+              },
+            },
+            accountGroupsMetadata: {},
+            accountWalletsMetadata: {},
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <BaseAccountDetails account={mockAccount} />,
+      { state: mockState as unknown as RootState },
+    );
+
+    const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
+    fireEvent.press(accountNameLink);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      {
+        accountGroup: {
+          id: 'keyring:test-wallet/ethereum',
+          accounts: [mockAccount.id],
+          metadata: { name: 'Test Account Group' },
+          type: AccountGroupType.SingleAccount,
+        },
       },
     );
   });
