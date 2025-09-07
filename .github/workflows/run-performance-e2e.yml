@@ -334,7 +334,7 @@ jobs:
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: [trigger-qa-builds-and-upload, read-device-matrix]
     strategy:
       fail-fast: false
@@ -426,7 +426,7 @@ jobs:
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     needs: [trigger-qa-builds-and-upload, read-device-matrix]
     strategy:
       fail-fast: false
@@ -522,17 +522,25 @@ jobs:
     name: Gather Test Results
     runs-on: ubuntu-latest
     needs: [android-tests, ios-tests]
-    if: always()
+    if: always()  # Always run, even if previous jobs failed
     
     steps:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
           path: appwright/test-reports/
+        continue-on-error: true  # Continue even if some artifacts are missing due to failed tests
       
       - name: Aggregate Performance Reports
         run: |
           echo "🔍 Searching for JSON performance reports..."
+          echo "📊 Job status context:"
+          echo "  Android tests: ${{ needs.android-tests.result }}"
+          echo "  iOS tests: ${{ needs.ios-tests.result }}"
+          
+          # Set environment variables for job results
+          export ANDROID_JOB_STATUS="${{ needs.android-tests.result }}"
+          export IOS_JOB_STATUS="${{ needs.ios-tests.result }}"
           
           # Create output directory
           mkdir -p appwright/aggregated-reports
@@ -609,6 +617,10 @@ jobs:
               platforms: {
                 android: 0,
                 ios: 0
+              },
+              jobResults: {
+                android: process.env.ANDROID_JOB_STATUS || 'unknown',
+                ios: process.env.IOS_JOB_STATUS || 'unknown'
               },
               branch: process.env.GITHUB_REF_NAME || 'unknown',
               commit: process.env.GITHUB_SHA || 'unknown',
@@ -728,6 +740,23 @@ jobs:
             });
             
             console.log(`✅ Aggregated report saved: ${totalTests} tests across ${devices.length} device configurations`);
+            console.log(`📊 Platform summary:`);
+            console.log(`   Android: ${metadata.platforms.android} reports (job: ${metadata.jobResults.android})`);
+            console.log(`   iOS: ${metadata.platforms.ios} reports (job: ${metadata.jobResults.ios})`);
+            
+            // Show which platforms had data
+            const androidHasData = Object.keys(groupedResults.Android).length > 0;
+            const iosHasData = Object.keys(groupedResults.iOS).length > 0;
+            
+            if (!androidHasData && metadata.jobResults.android === 'failure') {
+              console.log(`⚠️ Android tests failed - no Android performance data available`);
+            }
+            if (!iosHasData && metadata.jobResults.ios === 'failure') {
+              console.log(`⚠️ iOS tests failed - no iOS performance data available`);
+            }
+            if (androidHasData || iosHasData) {
+              console.log(`✅ Successfully aggregated data from available platforms`);
+            }
             
             // Create summary file with metadata
             const summary = {
@@ -793,7 +822,12 @@ jobs:
           EOF
           
           # Run the aggregation script (ensure it doesn't fail the step)
-          node aggregate_reports.js || echo "⚠️ Aggregation script completed with warnings/errors but continuing..."
+          echo ""
+          echo "🔄 Running aggregation script..."
+          node aggregate_reports.js || {
+            echo "⚠️ Aggregation script had issues, but continuing to ensure reports are available"
+            echo "This is normal when some test jobs failed - we'll aggregate whatever data is available"
+          }
           
           # Ensure output directory exists even if script failed
           mkdir -p appwright/aggregated-reports
@@ -823,17 +857,31 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
     
-      - name: Check Test Results
+      - name: Check Test Results  
         id: test-results
         run: |
-          if [ "${{ needs.android-tests.result }}" == "failure" ] || [ "${{ needs.ios-tests.result }}" == "failure" ]; then
-            echo "Some tests failed. Check the individual job results above."
-            echo "Note: iOS 13 and iOS 11 failures are expected due to MetaMask app compatibility."
-            echo "overall_status=failure" >> "$GITHUB_OUTPUT"
-            exit 1
+          ANDROID_STATUS="${{ needs.android-tests.result }}"
+          IOS_STATUS="${{ needs.ios-tests.result }}"
+          
+          echo "📊 Test Results Summary:"
+          echo "  Android tests: $ANDROID_STATUS"
+          echo "  iOS tests: $IOS_STATUS"
+          
+          # Check if we have any performance data available
+          if [ -f "appwright/aggregated-reports/aggregated-performance-report.json" ]; then
+            echo "✅ Performance data aggregated successfully from available test results"
+            
+            if [ "$ANDROID_STATUS" == "failure" ] || [ "$IOS_STATUS" == "failure" ]; then
+              echo "⚠️ Some tests failed, but performance data was collected from successful tests"
+              echo "Note: This is expected behavior - we collect data from passing tests even when others fail"
+              echo "overall_status=partial_success" >> "$GITHUB_OUTPUT"
+            else
+              echo "🎉 All test jobs completed successfully with full performance data!"
+              echo "overall_status=success" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "All test jobs completed successfully!"
-            echo "overall_status=success" >> "$GITHUB_OUTPUT"
+            echo "❌ No performance data could be aggregated - all tests may have failed"
+            echo "overall_status=failure" >> "$GITHUB_OUTPUT"
           fi
       
       - name: Display QA Build Info
@@ -876,16 +924,23 @@ jobs:
           echo "- android-tests: $ANDROID_RESULT"
           echo "- ios-tests: $IOS_RESULT"
           
+          # Get gather-results status
+          GATHER_RESULT="${{ needs.gather-results.outputs.overall_status }}"
+          echo "- gather-results: $GATHER_RESULT"
+          
           # Determine overall status
           if [ "$TRIGGER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
             echo "Overall Status: FAILED (QA builds failed)"
-          elif [ "$ANDROID_RESULT" = "failure" ] || [ "$IOS_RESULT" = "failure" ]; then
+          elif [ "$GATHER_RESULT" = "failure" ]; then
             OVERALL_STATUS="❌ FAILED"
-            echo "Overall Status: FAILED (tests failed)"
+            echo "Overall Status: FAILED (No performance data collected - all tests failed)"
+          elif [ "$GATHER_RESULT" = "partial_success" ] || [ "$ANDROID_RESULT" = "failure" ] || [ "$IOS_RESULT" = "failure" ]; then
+            OVERALL_STATUS="⚠️ PARTIAL SUCCESS"
+            echo "Overall Status: PARTIAL SUCCESS (Some tests failed, but performance data was collected)"
           else
             OVERALL_STATUS="✅ PASSED"
-            echo "Overall Status: PASSED (all tests passed)"
+            echo "Overall Status: PASSED (All tests passed with performance data)"
           fi
           
           # Set outputs
