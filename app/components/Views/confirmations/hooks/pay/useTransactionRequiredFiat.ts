@@ -25,8 +25,10 @@ export interface TransactionRequiredFiat {
  */
 export function useTransactionRequiredFiat({
   amountOverrides,
+  log: isLoggingEnabled,
 }: {
   amountOverrides?: Record<Hex, string>;
+  log?: boolean;
 } = {}): {
   values: TransactionRequiredFiat[];
   totalFiat: number;
@@ -88,10 +90,12 @@ export function useTransactionRequiredFiat({
   );
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
+
     log('Required fiat', values, {
       totalFiat,
     });
-  }, [values, totalFiat]);
+  }, [isLoggingEnabled, totalFiat, values]);
 
   return {
     values,

@@ -5,19 +5,23 @@ import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
+import { noop } from 'lodash';
 
-const log = createProjectLogger('transaction-pay');
+const logger = createProjectLogger('transaction-pay');
 
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
 export function useTransactionPayTokenAmounts({
   amountOverrides,
+  log: isLoggingEnabled,
 }: {
   amountOverrides?: Record<Hex, string>;
+  log?: boolean;
 } = {}) {
   const { payToken } = useTransactionPayToken();
   const { address, chainId, decimals } = payToken ?? {};
+  const log = isLoggingEnabled ? logger : noop;
 
   const fiatRequests = useMemo(() => {
     if (!address || !chainId) {
@@ -121,7 +125,7 @@ export function useTransactionPayTokenAmounts({
       totalHuman,
       totalRaw,
     });
-  }, [amounts, totalHuman, totalRaw]);
+  }, [amounts, log, totalHuman, totalRaw]);
 
   return {
     amounts,

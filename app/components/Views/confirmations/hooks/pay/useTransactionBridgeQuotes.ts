@@ -1,7 +1,7 @@
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -14,6 +14,11 @@ import { useDeepMemo } from '../useDeepMemo';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  getQuoteRefreshRate,
+  isQuoteExpired,
+} from '../../../../UI/Bridge/utils/quoteUtils';
+import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
 
 const EXCLUDED_ALERTS = [
   AlertKeys.NoPayTokenQuotes,
@@ -26,6 +31,40 @@ export function useTransactionBridgeQuotes() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataOrThrow();
   const { alerts } = useAlerts();
+  const { payToken } = useTransactionPayToken() ?? {};
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts({
+    log: true,
+  });
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags);
+  const [lastFetched, setLastFetched] = useState(0);
+  const interval = useRef<NodeJS.Timer>();
+  const isExpired = useRef(false);
+  const [refreshIndex, setRefreshIndex] = useState(0);
+
+  useEffect(() => {
+    if (interval.current) {
+      clearInterval(interval.current as unknown as number);
+    }
+
+    interval.current = setInterval(() => {
+      if (
+        !isExpired.current &&
+        lastFetched &&
+        isQuoteExpired(false, refreshRate, lastFetched)
+      ) {
+        log('Quote expired', { refreshRate, lastFetched });
+        isExpired.current = true;
+        setRefreshIndex((index) => index + 1);
+      }
+    }, 1000);
+
+    return () => {
+      if (interval.current) {
+        clearInterval(interval.current as unknown as number);
+      }
+    };
+  }, [isExpired, lastFetched, refreshRate]);
 
   const {
     attemptsMax,
@@ -44,9 +83,6 @@ export function useTransactionBridgeQuotes() {
     id: transactionId,
     txParams: { from },
   } = transactionMeta;
-
-  const { payToken } = useTransactionPayToken() ?? {};
-  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
   const {
     address: sourceTokenAddress,
@@ -110,7 +146,7 @@ export function useTransactionBridgeQuotes() {
     }
 
     return getBridgeQuotes(requests);
-  }, [requests]);
+  }, [requests, refreshIndex]);
 
   useEffect(() => {
     dispatch(
@@ -120,6 +156,11 @@ export function useTransactionBridgeQuotes() {
 
   useEffect(() => {
     dispatch(setTransactionBridgeQuotes({ transactionId, quotes }));
+
+    if (quotes?.length) {
+      isExpired.current = false;
+      setLastFetched(Date.now());
+    }
 
     log(
       'Bridge quotes',
