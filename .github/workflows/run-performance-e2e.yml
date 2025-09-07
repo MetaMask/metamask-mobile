@@ -345,8 +345,8 @@ jobs:
     name: Android Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix]
-    # Always run after device matrix is ready, regardless of trigger job
+    needs: [read-device-matrix, trigger-qa-builds-and-upload]
+    # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
@@ -402,10 +402,13 @@ jobs:
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
-          # Use BrowserStack URL from input if provided, otherwise from trigger job
-          ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
+          # Use BrowserStack URL from trigger job if it ran, otherwise from input
+          ANDROID_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
           if [ -z "$ANDROID_APP_URL" ]; then
-            ANDROID_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+            ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
+            echo "ℹ️ Using Android URL from input (trigger job was skipped)"
+          else
+            echo "ℹ️ Using Android URL from trigger job"
           fi
           
           # Validate that we have a BrowserStack URL
@@ -459,8 +462,8 @@ jobs:
     name: iOS Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [read-device-matrix]
-    # Always run after device matrix is ready, regardless of trigger job
+    needs: [read-device-matrix, trigger-qa-builds-and-upload]
+    # Always run after device matrix is ready, regardless of trigger job status
     if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
@@ -516,10 +519,13 @@ jobs:
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
           
-          # Use BrowserStack URL from input if provided, otherwise from trigger job
-          IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
+          # Use BrowserStack URL from trigger job if it ran, otherwise from input
+          IOS_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
           if [ -z "$IOS_APP_URL" ]; then
-            IOS_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+            IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
+            echo "ℹ️ Using iOS URL from input (trigger job was skipped)"
+          else
+            echo "ℹ️ Using iOS URL from trigger job"
           fi
           
           # Validate that we have a BrowserStack URL
@@ -956,7 +962,7 @@ jobs:
   all-status:
     name: Check All Job Statuses
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, android-tests, ios-tests, gather-results]
+    needs: [read-device-matrix, trigger-qa-builds-and-upload, android-tests, ios-tests, gather-results]
     if: always()
     outputs:
       overall_status: ${{ steps.status-check.outputs.overall_status }}
@@ -970,17 +976,7 @@ jobs:
         run: |
           echo "Checking status of all jobs..."
           
-          # Check if trigger job ran or was skipped due to provided URLs
-          ANDROID_URL="${{ inputs.browserstack_app_url_android }}"
-          IOS_URL="${{ inputs.browserstack_app_url_ios }}"
-          
-          if [ -n "$ANDROID_URL" ] && [ -n "$IOS_URL" ]; then
-            TRIGGER_RESULT="skipped (URLs provided)"
-            echo "ℹ️ Trigger job skipped - BrowserStack URLs were provided as input"
-          else
-            TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
-          fi
-          
+          TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
           ANDROID_RESULT="${{ needs.android-tests.result }}"
           IOS_RESULT="${{ needs.ios-tests.result }}"
           
@@ -1005,7 +1001,11 @@ jobs:
             echo "Overall Status: PARTIAL SUCCESS (Some tests failed, but performance data was collected)"
           else
             OVERALL_STATUS="✅ PASSED"
-            echo "Overall Status: PASSED (All tests passed with performance data)"
+            if [ "$TRIGGER_RESULT" = "skipped" ]; then
+              echo "Overall Status: PASSED (All tests passed with performance data - used provided BrowserStack URLs)"
+            else
+              echo "Overall Status: PASSED (All tests passed with performance data)"
+            fi
           fi
           
           # Set outputs
