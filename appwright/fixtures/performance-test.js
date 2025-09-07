@@ -1,5 +1,6 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
+import TimerHelper from '../utils/TimersHelper.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -35,9 +36,6 @@ export const test = base.extend({
           console.log(`🔄 Recovering orphaned timer: "${globalTimer.id}"`);
 
           try {
-            const { default: TimerHelper } = await import(
-              '../utils/TimersHelper.js'
-            );
             const recoveredTimer = new TimerHelper(globalTimer.id);
 
             if (globalTimer.start !== null && globalTimer.duration === null) {
