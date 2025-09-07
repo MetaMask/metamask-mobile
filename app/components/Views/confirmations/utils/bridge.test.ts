@@ -148,7 +148,7 @@ describe('Confirmations Bridge Utils', () => {
           slippage: QUOTE_REQUEST_1_MOCK.slippageInitial,
           insufficientBal: false,
         }),
-        expect.any(Object),
+        undefined,
         FeatureId.PERPS,
       );
 
@@ -163,7 +163,7 @@ describe('Confirmations Bridge Utils', () => {
           slippage: QUOTE_REQUEST_2_MOCK.slippageSubsequent,
           insufficientBal: false,
         }),
-        expect.any(Object),
+        undefined,
         FeatureId.PERPS,
       );
     });
@@ -359,14 +359,14 @@ describe('Confirmations Bridge Utils', () => {
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           srcTokenAmount: '1500000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
     });
@@ -495,14 +495,14 @@ describe('Confirmations Bridge Utils', () => {
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           srcTokenAmount: '1400000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
     });
@@ -552,7 +552,7 @@ describe('Confirmations Bridge Utils', () => {
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
 
@@ -561,7 +561,7 @@ describe('Confirmations Bridge Utils', () => {
         expect.objectContaining({
           srcTokenAmount: '1000000000000000000',
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
     });
@@ -626,7 +626,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: '1000000000000000000',
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
 
@@ -636,7 +636,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: '1000000000000000000',
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
 
@@ -646,7 +646,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: '1400000000000000000',
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
         }),
-        expect.any(Object),
+        undefined,
         expect.any(String),
       );
     });
