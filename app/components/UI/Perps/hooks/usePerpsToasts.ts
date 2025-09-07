@@ -68,7 +68,7 @@ const usePerpsToasts = () => {
       inProgress: {
         ...(PERPS_TOASTS_DEFAULT_OPTIONS as ToastOptions),
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
+        iconName: IconName.Loading,
         iconColor: theme.colors.icon.default,
         backgroundColor: theme.colors.primary.default,
       },
@@ -148,6 +148,7 @@ const usePerpsToasts = () => {
       },
       order: {
         // Intentional duplication of some options between market and limit to avoid coupling.
+        // TODO: Rename to orderManagement
         orderPlacement: {
           market: {
             submitted: (
@@ -227,12 +228,36 @@ const usePerpsToasts = () => {
                 }),
               ),
             }),
-            validationError: (error: string) => ({
+            cancellationInProgress: (
+              direction: OrderDirection,
+              amount: string,
+              assetSymbol: string,
+            ) => ({
+              ...perpsBaseToastOptions.inProgress,
               labelOptions: getPerpsToastLabels(
-                strings('perps.order.validation.failed'),
-                error,
+                strings('perps.order.cancelling_order'),
+                strings('perps.order.cancelling_order_subtitle', {
+                  direction,
+                  amount,
+                  assetSymbol,
+                }),
               ),
             }),
+            cancellationSuccess: {
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_cancelled'),
+                strings('perps.order.funds_are_available_to_trade'),
+              ),
+            },
+            cancellationFailed: {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.failed_to_cancel_order'),
+                strings('perps.order.funds_have_been_returned_to_you'),
+              ),
+            },
+            // TODO: Rename to placeOrderFailed (update market and limit types)
             error: {
               ...perpsBaseToastOptions.error,
               labelOptions: getPerpsToastLabels(

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-  useContext,
-} from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import Text, {
   TextVariant,
   TextColor,
@@ -31,12 +25,8 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { useAppThemeFromContext } from '../../../../../util/theme';
 import { getOrderDirection } from '../../utils/orderUtils';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   symbol,
@@ -51,8 +41,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const hasUserInteracted = useRef(false);
-  const { toastRef } = useContext(ToastContext);
-  const theme = useAppThemeFromContext();
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -177,82 +167,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     setSelectedTooltip(null);
   }, []);
 
-  const showOrderCancelInProgressToast = useCallback(
-    (direction: 'long' | 'short', amount: string, assetSymbol: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Coin,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.primary.default,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.order.cancelling_order'),
-            isBold: true,
-          },
-          {
-            label: '\n',
-          },
-          {
-            label: strings('perps.order.cancelling_order_subtitle', {
-              direction,
-              amount,
-              assetSymbol,
-            }),
-            isBold: false,
-          },
-        ],
-      });
-    },
-    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
-  );
-
-  const showOrderCancelledToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: theme.colors.icon.default,
-      backgroundColor: theme.colors.primary.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.order.order_cancelled'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: strings('perps.order.funds_are_available_to_trade'),
-          isBold: false,
-        },
-      ],
-    });
-  }, [theme.colors.icon.default, theme.colors.primary.default, toastRef]);
-
-  const showOrderCancelFailedToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Warning,
-      iconColor: theme.colors.icon.default,
-      backgroundColor: theme.colors.error.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.order.failed_to_cancel_order'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: strings('perps.order.funds_have_been_returned_to_you'),
-          isBold: false,
-        },
-      ],
-    });
-  }, [theme.colors.error.default, theme.colors.icon.default, toastRef]);
-
   const handleOrderCancel = useCallback(
     async (orderToCancel: Order) => {
       try {
@@ -264,10 +178,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           position?.size,
         );
 
-        showOrderCancelInProgressToast(
-          orderDirection,
-          orderToCancel.remainingSize,
-          orderToCancel.symbol,
+        showToast(
+          PerpsToastOptions.order.orderPlacement.limit.cancellationInProgress(
+            orderDirection,
+            orderToCancel.remainingSize,
+            orderToCancel.symbol,
+          ),
         );
 
         const result = await controller.cancelOrder({
@@ -280,14 +196,18 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         if (result.success) {
           // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
           timeout = setTimeout(() => {
-            showOrderCancelledToast();
+            showToast(
+              PerpsToastOptions.order.orderPlacement.limit.cancellationSuccess,
+            );
           }, 1500);
 
           return;
         }
 
         timeout = setTimeout(() => {
-          showOrderCancelFailedToast();
+          showToast(
+            PerpsToastOptions.order.orderPlacement.limit.cancellationFailed,
+          );
         }, 1500);
 
         return () => {
@@ -299,12 +219,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         DevLogger.log('Failed to cancel order:', error);
       }
     },
-    [
-      position?.size,
-      showOrderCancelFailedToast,
-      showOrderCancelInProgressToast,
-      showOrderCancelledToast,
-    ],
+    [PerpsToastOptions.order.orderPlacement.limit, position?.size, showToast],
   );
 
   const renderTooltipModal = useCallback(() => {
