@@ -712,6 +712,7 @@ jobs:
               } catch (error) {
                 console.error(`❌ Error processing ${filePath}: ${error.message}`);
                 return;
+              }
             });
             
             // Create final report in the exact format requested (just Android and iOS at root level)

@@ -116,7 +116,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   SolanaConfirmationScreen.device = device;
   NetworksScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
   // await importSRPFlow(device, process.env.TEST_SRP_2);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 

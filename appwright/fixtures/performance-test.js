@@ -133,14 +133,6 @@ export const test = base.extend({
     } else {
       console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
-
-    // Clean up global timers to prevent interference between tests
-    try {
-      const Timers = await import('../utils/Timers.js').then((m) => m.default);
-      Timers.resetTimers();
-    } catch (error) {
-      console.log(`⚠️ Failed to clean up global timers: ${error.message}`);
-    }
   },
 });
 
