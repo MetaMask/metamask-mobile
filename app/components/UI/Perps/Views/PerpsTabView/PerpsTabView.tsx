@@ -1,11 +1,5 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -53,24 +47,20 @@ import {
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Engine from '../../../../../core/Engine';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { formatPerpsFiat } from '../../utils/formatUtils';
-import { toHumanDuration } from '../../../../Views/confirmations/utils/time';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
@@ -99,7 +89,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     throttleMs: 1000, // Update orders every second
   });
 
-  const { toastRef } = useContext(ToastContext);
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get the internal transaction ID from the controller. Needed to get bridge quotes.
   const lastDepositTransactionId = useSelector(
@@ -111,78 +101,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   // For Perps deposits this array typically contains only one element.
   const bridgeQuotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, lastDepositTransactionId ?? ''),
-  );
-
-  const showDepositInProgressToast = useCallback(() => {
-    const processingTimeSeconds =
-      bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
-
-    let processingMessage = strings(
-      'perps.deposit.funds_available_momentarily',
-    );
-
-    if (processingTimeSeconds && processingTimeSeconds > 0) {
-      const formattedProcessingTime = toHumanDuration(processingTimeSeconds);
-      processingMessage = strings('perps.deposit.estimated_processing_time', {
-        time: formattedProcessingTime,
-      });
-    }
-
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: theme.colors.icon.default,
-      backgroundColor: theme.colors.primary.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.deposit.in_progress'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: processingMessage,
-          isBold: false,
-        },
-      ],
-    });
-  }, [
-    bridgeQuotes,
-    theme.colors.icon.default,
-    theme.colors.primary.default,
-    toastRef,
-  ]);
-
-  const showDepositSuccessToast = useCallback(
-    (amount: string) => {
-      const amountFormatted = formatPerpsFiat(amount);
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        iconColor: theme.colors.icon.default,
-        backgroundColor: theme.colors.primary.default,
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('perps.deposit.success_toast'),
-            isBold: true,
-          },
-          {
-            label: '\n',
-          },
-          {
-            label: strings('perps.deposit.success_message', {
-              amount: amountFormatted,
-            }),
-            isBold: false,
-          },
-        ],
-      });
-    },
-    [theme.colors.icon.default, theme.colors.primary.default, toastRef],
   );
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -203,7 +121,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       transactionMeta: TransactionMeta;
     }) => {
       if (transactionMeta.type === TransactionType.perpsDeposit) {
-        showDepositInProgressToast();
+        const processingTimeSeconds =
+          bridgeQuotes?.[0]?.estimatedProcessingTimeInSeconds;
+
+        showToast(PerpsToastOptions.deposit.inProgress(processingTimeSeconds));
       }
     };
 
@@ -218,7 +139,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
         handleTransactionSubmitted,
       );
     };
-  }, [showDepositInProgressToast]);
+  }, [PerpsToastOptions.deposit, bridgeQuotes, showToast]);
 
   // Listen for deposit transaction confirmations
   useEffect(() => {
@@ -257,7 +178,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       parseFloat(liveAccount.availableBalance) >
         parseFloat(previousBalanceRef.current)
     ) {
-      showDepositSuccessToast(liveAccount.availableBalance);
+      showToast(
+        PerpsToastOptions.deposit.success(
+          formatPerpsFiat(liveAccount.availableBalance),
+        ),
+      );
       setIsExpectingDeposit(false);
     }
 
@@ -266,9 +191,10 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       previousBalanceRef.current = liveAccount.availableBalance;
     }
   }, [
+    PerpsToastOptions.deposit,
     isExpectingDeposit,
     liveAccount?.availableBalance,
-    showDepositSuccessToast,
+    showToast,
   ]);
 
   // Start measuring position data load time on mount

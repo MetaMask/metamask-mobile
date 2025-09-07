@@ -1,15 +1,9 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
 import type { RootState } from '../../../../reducers';
 import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import usePerpsToasts from './usePerpsToasts';
 
 /**
  * Hook to monitor deposit status and show appropriate toasts
@@ -21,9 +15,9 @@ import { useAppThemeFromContext } from '../../../../util/theme';
  * - Automatically clears the result after showing the toast
  */
 export const usePerpsDepositStatus = () => {
-  const theme = useAppThemeFromContext();
-  const { toastRef } = useContext(ToastContext);
   const { clearDepositResult } = usePerpsTrading();
+
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Track which results we've already shown toasts for
   const hasProcessedResultRef = useRef<string | null>(null);
@@ -39,29 +33,6 @@ export const usePerpsDepositStatus = () => {
       state.engine.backgroundState.PerpsController?.lastDepositResult ?? null,
   );
 
-  const showDepositErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Warning,
-      iconColor: theme.colors.icon.default,
-      backgroundColor: theme.colors.error.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('perps.deposit.error_toast'),
-          isBold: true,
-        },
-        {
-          label: '\n',
-        },
-        {
-          label: strings('perps.deposit.error_generic'),
-          isBold: false,
-        },
-      ],
-    });
-  }, [theme.colors.error.default, theme.colors.icon.default, toastRef]);
-
   // Clear stale results on mount
   useEffect(() => {
     // If there's a result on mount, it's stale from a previous session
@@ -74,15 +45,6 @@ export const usePerpsDepositStatus = () => {
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - intentionally omitting dependencies
-
-  // Log state changes for debugging
-  useEffect(() => {
-    DevLogger.log('usePerpsDepositStatus: State changed', {
-      depositInProgress,
-      lastDepositResult,
-      hasToastContext: !!toastRef?.current,
-    });
-  }, [depositInProgress, lastDepositResult, toastRef]);
 
   // Update toast when deposit state changes
   useEffect(() => {
@@ -97,20 +59,11 @@ export const usePerpsDepositStatus = () => {
     if (lastDepositResult && resultId !== hasProcessedResultRef.current) {
       hasProcessedResultRef.current = resultId;
 
-      DevLogger.log('usePerpsDepositStatus: Attempting to show deposit toast', {
-        success: lastDepositResult.success,
-        txHash: lastDepositResult.txHash,
-        error: lastDepositResult.error,
-        hasToastContext: !!toastRef?.current,
-        toastRefPresent: !!toastRef,
-        showToastPresent: !!toastRef?.current?.showToast,
-      });
-
       let timeoutId: NodeJS.Timeout | null = null;
 
       if (!lastDepositResult.success) {
         // Show error toast
-        showDepositErrorToast();
+        showToast(PerpsToastOptions.deposit.error);
 
         // Clear the result after showing toast
         timeoutId = setTimeout(() => {
@@ -126,7 +79,12 @@ export const usePerpsDepositStatus = () => {
         }
       };
     }
-  }, [lastDepositResult, toastRef, clearDepositResult, showDepositErrorToast]);
+  }, [
+    lastDepositResult,
+    clearDepositResult,
+    showToast,
+    PerpsToastOptions.deposit.error,
+  ]);
 
   return { depositInProgress };
 };
