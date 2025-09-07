@@ -16,7 +16,8 @@ import { BigNumber } from 'bignumber.js';
 const ERROR_MESSAGE_NO_QUOTES = 'No quotes found';
 const ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM = 'All quotes under minimum';
 
-export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
+export type TransactionBridgeQuote = QuoteResponse &
+  QuoteMetadata & { request: BridgeQuoteRequest };
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
@@ -68,6 +69,25 @@ export async function getBridgeQuotes(
     log('Error fetching bridge quotes', error);
     return undefined;
   }
+}
+
+export async function refreshQuote(
+  quote: TransactionBridgeQuote,
+): Promise<TransactionBridgeQuote> {
+  abort?.abort();
+  abort = new AbortController();
+
+  const gasFeeEstimates = await getGasFeeEstimates(quote.request.sourceChainId);
+
+  const newQuote = await getSingleBridgeQuote(
+    quote.request,
+    gasFeeEstimates,
+    0,
+  );
+
+  log('Refreshed bridge quote', { old: quote, new: newQuote });
+
+  return newQuote;
 }
 
 async function getSufficientSingleBridgeQuote(
@@ -251,7 +271,7 @@ async function getGasFeeEstimates(chainId: Hex) {
 }
 
 function getBestQuote(
-  quotes: TransactionBridgeQuote[],
+  quotes: (QuoteResponse & QuoteMetadata)[],
   request: BridgeQuoteRequest,
 ): TransactionBridgeQuote {
   const fastestQuotes = orderBy(
@@ -270,11 +290,16 @@ function getBestQuote(
     throw new Error(ERROR_MESSAGE_ALL_QUOTES_UNDER_MINIMUM);
   }
 
-  return orderBy(
+  const match = orderBy(
     quotesOverMinimumTarget,
     (quote) => BigNumber(quote.cost?.valueInCurrency ?? 0).toNumber(),
     'asc',
   )[0];
+
+  return {
+    ...match,
+    request,
+  };
 }
 
 function getFinalRequests(
