@@ -21,8 +21,6 @@ export type TransactionBridgeQuote = QuoteResponse &
 
 const log = createProjectLogger('confirmation-bridge-utils');
 
-let abort: AbortController;
-
 export interface BridgeQuoteRequest {
   attemptsMax: number;
   bufferInitial: number;
@@ -43,9 +41,6 @@ export async function getBridgeQuotes(
   requests: BridgeQuoteRequest[],
 ): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
-
-  abort?.abort();
-  abort = new AbortController();
 
   if (!requests?.length) {
     return [];
@@ -74,9 +69,6 @@ export async function getBridgeQuotes(
 export async function refreshQuote(
   quote: TransactionBridgeQuote,
 ): Promise<TransactionBridgeQuote> {
-  abort?.abort();
-  abort = new AbortController();
-
   const gasFeeEstimates = await getGasFeeEstimates(quote.request.sourceChainId);
 
   const newQuote = await getSingleBridgeQuote(
@@ -210,7 +202,7 @@ async function getSingleBridgeQuote(
 
   const quotes = await BridgeController.fetchQuotes(
     quoteRequest,
-    abort.signal,
+    undefined,
     FeatureId.PERPS,
   );
 
