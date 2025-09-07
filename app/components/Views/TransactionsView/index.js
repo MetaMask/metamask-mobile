@@ -182,6 +182,7 @@ const TransactionsView = ({
           const alreadyConfirmed = confirmedTxs.find(
             (tx) =>
               areAddressesEqual(tx.txParams.from, selectedAddress) &&
+              tx.chainId === chainId &&
               tx.txParams.nonce === nonce,
           );
 
