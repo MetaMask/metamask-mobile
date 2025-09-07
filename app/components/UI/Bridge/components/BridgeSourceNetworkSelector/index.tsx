@@ -111,29 +111,35 @@ export const BridgeSourceNetworkSelector: React.FC<
   });
 
   const handleApply = useCallback(async () => {
+    const newSelectedSourceChainids = candidateSourceChainIds.filter((id) =>
+      enabledSourceChainIds.includes(id as CaipChainId),
+    );
+
     if (onApply) {
-      onApply(candidateSourceChainIds as Hex[]);
+      onApply(newSelectedSourceChainids as Hex[]);
       return;
     }
 
     // Update the Redux state with the candidate selections
     dispatch(
       setSelectedSourceChainIds(
-        candidateSourceChainIds as (Hex | CaipChainId)[],
+        newSelectedSourceChainids as (Hex | CaipChainId)[],
       ),
     );
 
     // If there's only 1 network selected, set the source token to native token of that chain and switch chains
-    if (candidateSourceChainIds.length === 1) {
+    if (newSelectedSourceChainids.length === 1) {
       const evmNetworkConfiguration =
-        evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
+        evmNetworkConfigurations[newSelectedSourceChainids[0] as Hex];
       if (evmNetworkConfiguration) {
         await onSetRpcTarget(evmNetworkConfiguration);
       }
 
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (!evmNetworkConfiguration) {
-        await onNonEvmNetworkChange(candidateSourceChainIds[0] as CaipChainId);
+        await onNonEvmNetworkChange(
+          newSelectedSourceChainids[0] as CaipChainId,
+        );
       }
       ///: END:ONLY_INCLUDE_IF
 
@@ -147,6 +153,7 @@ export const BridgeSourceNetworkSelector: React.FC<
     navigation,
     dispatch,
     candidateSourceChainIds,
+    enabledSourceChainIds,
     evmNetworkConfigurations,
     onSetRpcTarget,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
