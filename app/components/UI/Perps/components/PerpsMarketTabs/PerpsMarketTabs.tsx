@@ -179,7 +179,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         );
 
         showToast(
-          PerpsToastOptions.order.orderPlacement.limit.cancellationInProgress(
+          PerpsToastOptions.order.orderManagement.limit.cancellationInProgress(
             orderDirection,
             orderToCancel.remainingSize,
             orderToCancel.symbol,
@@ -197,7 +197,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
           timeout = setTimeout(() => {
             showToast(
-              PerpsToastOptions.order.orderPlacement.limit.cancellationSuccess,
+              PerpsToastOptions.order.orderManagement.limit.cancellationSuccess,
             );
           }, 1500);
 
@@ -206,7 +206,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
         timeout = setTimeout(() => {
           showToast(
-            PerpsToastOptions.order.orderPlacement.limit.cancellationFailed,
+            PerpsToastOptions.order.orderManagement.limit.cancellationFailed,
           );
         }, 1500);
 
@@ -219,7 +219,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         DevLogger.log('Failed to cancel order:', error);
       }
     },
-    [PerpsToastOptions.order.orderPlacement.limit, position?.size, showToast],
+    [PerpsToastOptions.order.orderManagement.limit, position?.size, showToast],
   );
 
   const renderTooltipModal = useCallback(() => {

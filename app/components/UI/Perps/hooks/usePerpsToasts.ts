@@ -148,8 +148,7 @@ const usePerpsToasts = () => {
       },
       order: {
         // Intentional duplication of some options between market and limit to avoid coupling.
-        // TODO: Rename to orderManagement
-        orderPlacement: {
+        orderManagement: {
           market: {
             submitted: (
               direction: OrderDirection,
