@@ -8,6 +8,14 @@ on:
         description: 'Optional description for this test run'
         required: false
         type: string
+      browserstack_app_url_android:
+        description: 'BrowserStack Android App URL (bs://...)'
+        required: false
+        type: string
+      browserstack_app_url_ios:
+        description: 'BrowserStack iOS App URL (bs://...)'
+        required: false
+        type: string
 permissions:
   contents: read
   id-token: write
@@ -66,6 +74,8 @@ jobs:
     name: Trigger QA Builds and Extract BrowserStack URLs
     runs-on: ubuntu-latest
     needs: read-device-matrix
+    # Only run if BrowserStack URLs are not provided
+    if: ${{ !inputs.browserstack_app_url_android || !inputs.browserstack_app_url_ios }}
     env:
       BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
       BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
@@ -335,7 +345,9 @@ jobs:
     name: Android Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [trigger-qa-builds-and-upload, read-device-matrix]
+    needs: [read-device-matrix]
+    # Always run after device matrix is ready, regardless of trigger job
+    if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
       matrix:
@@ -389,12 +401,32 @@ jobs:
       - name: Set Android Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
+          
+          # Use BrowserStack URL from input if provided, otherwise from trigger job
+          ANDROID_APP_URL="${{ inputs.browserstack_app_url_android }}"
+          if [ -z "$ANDROID_APP_URL" ]; then
+            ANDROID_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+          fi
+          
+          # Validate that we have a BrowserStack URL
+          if [ -z "$ANDROID_APP_URL" ]; then
+            echo "❌ Error: No Android BrowserStack URL available"
+            echo "Either provide browserstack_app_url_android as input or ensure trigger-qa-builds-and-upload job runs successfully"
+            exit 1
+          fi
+          
+          # Use app version from trigger job if available, otherwise default
+          APP_VERSION="${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
+          if [ -z "$APP_VERSION" ]; then
+            APP_VERSION="Manual-Input"
+          fi
+          
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+            echo "BROWSERSTACK_ANDROID_APP_URL=$ANDROID_APP_URL"
             echo "TEST_PLATFORM=android"
-            echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
+            echo "QA_APP_VERSION=$APP_VERSION"
             echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
@@ -407,8 +439,8 @@ jobs:
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "QA App Version: ${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
-          echo "BrowserStack Android App URL: ${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+          echo "QA App Version: $QA_APP_VERSION"
+          echo "BrowserStack Android App URL: $BROWSERSTACK_ANDROID_APP_URL"
           
           yarn run-appwright:android-bs
       
@@ -427,7 +459,9 @@ jobs:
     name: iOS Tests
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    needs: [trigger-qa-builds-and-upload, read-device-matrix]
+    needs: [read-device-matrix]
+    # Always run after device matrix is ready, regardless of trigger job
+    if: always() && !failure() && !cancelled()
     strategy:
       fail-fast: false
       matrix:
@@ -481,11 +515,31 @@ jobs:
       - name: Set iOS Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
+          
+          # Use BrowserStack URL from input if provided, otherwise from trigger job
+          IOS_APP_URL="${{ inputs.browserstack_app_url_ios }}"
+          if [ -z "$IOS_APP_URL" ]; then
+            IOS_APP_URL="${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+          fi
+          
+          # Validate that we have a BrowserStack URL
+          if [ -z "$IOS_APP_URL" ]; then
+            echo "❌ Error: No iOS BrowserStack URL available"
+            echo "Either provide browserstack_app_url_ios as input or ensure trigger-qa-builds-and-upload job runs successfully"
+            exit 1
+          fi
+          
+          # Use app version from trigger job if available, otherwise default
+          APP_VERSION="${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
+          if [ -z "$APP_VERSION" ]; then
+            APP_VERSION="Manual-Input"
+          fi
+          
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
-            echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
+            echo "BROWSERSTACK_IOS_APP_URL=$IOS_APP_URL"
+            echo "QA_APP_VERSION=$APP_VERSION"
             echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
           } >> "$GITHUB_ENV"
       
@@ -498,8 +552,8 @@ jobs:
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"
-          echo "QA App Version: ${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
-          echo "BrowserStack iOS App URL: ${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+          echo "QA App Version: $QA_APP_VERSION"
+          echo "BrowserStack iOS App URL: $BROWSERSTACK_IOS_APP_URL"
           if [ "${{ matrix.device.os_version }}" == "13" ] || [ "${{ matrix.device.os_version }}" == "11" ]; then
             echo "Warning: iOS ${{ matrix.device.os_version }} may not be supported by MetaMask app"
           fi
@@ -902,7 +956,7 @@ jobs:
   all-status:
     name: Check All Job Statuses
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, trigger-qa-builds-and-upload, android-tests, ios-tests, gather-results]
+    needs: [read-device-matrix, android-tests, ios-tests, gather-results]
     if: always()
     outputs:
       overall_status: ${{ steps.status-check.outputs.overall_status }}
@@ -916,7 +970,17 @@ jobs:
         run: |
           echo "Checking status of all jobs..."
           
-          TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
+          # Check if trigger job ran or was skipped due to provided URLs
+          ANDROID_URL="${{ inputs.browserstack_app_url_android }}"
+          IOS_URL="${{ inputs.browserstack_app_url_ios }}"
+          
+          if [ -n "$ANDROID_URL" ] && [ -n "$IOS_URL" ]; then
+            TRIGGER_RESULT="skipped (URLs provided)"
+            echo "ℹ️ Trigger job skipped - BrowserStack URLs were provided as input"
+          else
+            TRIGGER_RESULT="${{ needs.trigger-qa-builds-and-upload.result }}"
+          fi
+          
           ANDROID_RESULT="${{ needs.android-tests.result }}"
           IOS_RESULT="${{ needs.ios-tests.result }}"
           
