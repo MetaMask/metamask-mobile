@@ -40,6 +40,7 @@ import createControlBarStyles from '../ControlBarStyles';
 import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { selectEnabledNetworksByNamespace } from '../../../../selectors/networkEnablementController';
 
 export interface BaseControlBarProps {
   /**
@@ -92,6 +93,9 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
+  const enabledNetworksByNamespace = useSelector(
+    selectEnabledNetworksByNamespace,
+  );
 
   // Shared hooks
   const {
@@ -109,6 +113,14 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
 
   // Determine if disabled (use custom logic if provided, otherwise use hook logic)
   const isDisabled = customIsDisabled ?? hookIsDisabled;
+
+  const evmEnabledNetworksCount = Object.values(
+    enabledNetworksByNamespace[KnownCaipNamespace.Eip155],
+  ).filter(Boolean).length;
+
+  const displayAllNetworks = isMultichainAccountsState2Enabled
+    ? totalEnabledNetworksCount > 1
+    : evmEnabledNetworksCount > 1;
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
@@ -153,7 +165,7 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
             style={styles.controlButtonText}
             numberOfLines={1}
           >
-            {totalEnabledNetworksCount > 1
+            {displayAllNetworks
               ? strings('wallet.all_networks')
               : currentNetworkName ?? strings('wallet.current_network')}
           </TextComponent>
