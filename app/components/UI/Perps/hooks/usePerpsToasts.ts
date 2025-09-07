@@ -8,6 +8,10 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { toHumanDuration } from '../../../Views/confirmations/utils/time';
+import { capitalize } from '../../../../util/general';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 export interface PerpsToastOptions {
   deposit: {
@@ -15,6 +19,8 @@ export interface PerpsToastOptions {
     error: ToastOptions;
   };
 }
+
+type OrderDirection = 'long' | 'short';
 
 const getPerpsToastLabels = (primary: string, secondary?: string) => {
   const labels = [
@@ -47,6 +53,7 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<ToastOptions> = {
 const usePerpsToasts = () => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
+  const navigation = useNavigation();
 
   const perpsBaseToastOptions: Record<string, ToastOptions> = useMemo(
     () => ({
@@ -81,6 +88,16 @@ const usePerpsToasts = () => {
       toastRef?.current?.showToast(config);
     },
     [toastRef],
+  );
+
+  const navigationHandlers = useMemo(
+    () => ({
+      goToPerpsTab: () => {
+        toastRef?.current?.closeToast();
+        navigation.navigate(Routes.PERPS.ROOT);
+      },
+    }),
+    [navigation, toastRef],
   );
 
   // Centralized toast options for Perps
@@ -129,11 +146,140 @@ const usePerpsToasts = () => {
           ),
         },
       },
+      order: {
+        // Intentional duplication of some options between market and limit to avoid coupling.
+        orderPlacement: {
+          market: {
+            submitted: (
+              direction: OrderDirection,
+              amount: string,
+              assetSymbol: string,
+            ) => ({
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_submitted'),
+                strings('perps.order.order_placement_subtitle', {
+                  direction: capitalize(direction),
+                  amount,
+                  assetSymbol,
+                }),
+              ),
+            }),
+            // Displays "Order Filled" since market orders are filled immediately or fail.
+            confirmed: (
+              direction: OrderDirection,
+              amount: string,
+              assetSymbol: string,
+            ) => ({
+              ...perpsBaseToastOptions.success,
+              iconName: IconName.Check,
+              iconColor: theme.colors.primary.default,
+              backgroundColor: theme.colors.background.default,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_filled'),
+                strings('perps.order.order_placement_subtitle', {
+                  direction: capitalize(direction),
+                  amount,
+                  assetSymbol,
+                }),
+              ),
+            }),
+            error: {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_failed'),
+                strings('perps.order.your_funds_have_been_returned_to_you'),
+              ),
+            },
+          },
+          limit: {
+            submitted: (
+              direction: OrderDirection,
+              amount: string,
+              assetSymbol: string,
+            ) => ({
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_submitted'),
+                strings('perps.order.order_placement_subtitle', {
+                  direction: capitalize(direction),
+                  amount,
+                  assetSymbol,
+                }),
+              ),
+            }),
+            // Displays "Order Placed" since limit orders aren't typically filled immediately.
+            confirmed: (
+              direction: OrderDirection,
+              amount: string,
+              assetSymbol: string,
+            ) => ({
+              ...perpsBaseToastOptions.success,
+              iconName: IconName.Check,
+              iconColor: theme.colors.primary.default,
+              backgroundColor: theme.colors.background.default,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_placed'),
+                strings('perps.order.order_placement_subtitle', {
+                  direction: capitalize(direction),
+                  amount,
+                  assetSymbol,
+                }),
+              ),
+            }),
+            validationError: (error: string) => ({
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.validation.failed'),
+                error,
+              ),
+            }),
+            error: {
+              ...perpsBaseToastOptions.error,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.order.order_failed'),
+                strings('perps.order.your_funds_have_been_returned_to_you'),
+              ),
+            },
+          },
+        },
+        orderForm: {
+          validationError: (error: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.validation.failed'),
+              error,
+            ),
+          }),
+        },
+      },
+      market: {
+        error: {
+          marketDataUnavailable: (assetSymbol: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.error.invalid_asset'),
+              strings('perps.order.error.asset_not_tradable', {
+                asset: assetSymbol,
+              }),
+            ),
+            closeButtonOptions: {
+              label: strings('perps.order.error.go_back'),
+              variant: ButtonVariants.Secondary,
+              onPress: () => {
+                navigationHandlers.goToPerpsTab();
+              },
+            },
+          }),
+        },
+      },
     }),
     [
+      navigationHandlers,
       perpsBaseToastOptions.error,
       perpsBaseToastOptions.inProgress,
       perpsBaseToastOptions.success,
+      theme.colors.background.default,
+      theme.colors.primary.default,
     ],
   );
 
