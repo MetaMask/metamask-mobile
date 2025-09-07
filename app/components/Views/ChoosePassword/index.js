@@ -961,7 +961,7 @@ class ChoosePassword extends PureComponent {
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     label={
                       <Text
-                        variant={TextVariant.BodyMD}
+                        variant={TextVariant.BodySM}
                         color={TextColor.Default}
                       >
                         {this.getOauth2LoginSuccess() ? (
@@ -970,15 +970,15 @@ class ChoosePassword extends PureComponent {
                           )
                         ) : (
                           <Text
-                            variant={TextVariant.BodyMD}
+                            variant={TextVariant.BodySM}
                             color={TextColor.Alternative}
                           >
                             {strings(
                               'choose_password.loose_password_description',
                             )}
                             <Text
-                              variant={TextVariant.BodyMD}
-                              color={TextColor.Warning}
+                              variant={TextVariant.BodySM}
+                              color={TextColor.Primary}
                               onPress={this.learnMore}
                               testID={
                                 ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID

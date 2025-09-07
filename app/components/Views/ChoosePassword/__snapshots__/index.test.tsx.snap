@@ -469,9 +469,9 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "Geist Regular",
-                    "fontSize": 16,
+                    "fontSize": 14,
                     "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "lineHeight": 22,
                   }
                 }
               >
@@ -481,9 +481,9 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     {
                       "color": "#686e7d",
                       "fontFamily": "Geist Regular",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -493,11 +493,11 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                     onPress={[Function]}
                     style={
                       {
-                        "color": "#9a6300",
+                        "color": "#4459ff",
                         "fontFamily": "Geist Regular",
-                        "fontSize": 16,
+                        "fontSize": 14,
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                       }
                     }
                     testID="learn-more-link"
