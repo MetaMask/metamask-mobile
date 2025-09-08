@@ -26,6 +26,7 @@ enum SUPPORTED_ACTIONS {
   BUY_CRYPTO = ACTIONS.BUY_CRYPTO,
   SELL = ACTIONS.SELL,
   SELL_CRYPTO = ACTIONS.SELL_CRYPTO,
+  DEPOSIT = ACTIONS.DEPOSIT,
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
@@ -150,6 +151,9 @@ async function handleUniversalLink({
   ) {
     const rampPath = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleSellCrypto(rampPath);
+  } else if (action === SUPPORTED_ACTIONS.DEPOSIT) {
+    const depositCashPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleDepositCash(depositCashPath);
   } else if (action === SUPPORTED_ACTIONS.HOME) {
     instance._handleOpenHome();
     return;

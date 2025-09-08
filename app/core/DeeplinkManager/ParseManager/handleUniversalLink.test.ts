@@ -40,6 +40,7 @@ describe('handleUniversalLinks', () => {
   const mockParse = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
+  const mockHandleDepositCash = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
   const mockHandleOpenHome = jest.fn();
   const mockHandleSwap = jest.fn();
@@ -61,6 +62,7 @@ describe('handleUniversalLinks', () => {
     parse: mockParse,
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
+    _handleDepositCash: mockHandleDepositCash,
     _handleBrowserUrl: mockHandleBrowserUrl,
     _handleOpenHome: mockHandleOpenHome,
     _handleSwap: mockHandleSwap,
@@ -155,6 +157,28 @@ describe('handleUniversalLinks', () => {
 
       expect(handled).toHaveBeenCalled();
       expect(mockHandleSellCrypto).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('ACTIONS.DEPOSIT', () => {
+    it('calls instance._handleDepositCash if action is ACTIONS.DEPOSIT', async () => {
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.DEPOSIT}/additional/path`,
+        href: 'test-href',
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.DEPOSIT}/additional/path/additional/path`;
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+      expect(handled).toHaveBeenCalled();
+      expect(mockHandleDepositCash).toHaveBeenCalledTimes(1);
     });
   });
 
