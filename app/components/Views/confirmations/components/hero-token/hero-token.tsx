@@ -27,9 +27,16 @@ const AssetAmount = ({
   const isUnknownToken = displayName === strings('token.unknown');
 
   return (
-    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+    <Text
+      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+      // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
+      style={styles.assetAmountText}
+      variant={TextVariant.HeadingLG}
+    >
       {amount}{' '}
       <Text
+        // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
+        // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
         style={isUnknownToken && styles.assetTextUnknown}
         variant={TextVariant.HeadingLG}
       >

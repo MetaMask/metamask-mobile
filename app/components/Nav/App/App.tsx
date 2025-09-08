@@ -75,7 +75,8 @@ import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
-import MultichainEditAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
+import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -210,7 +211,7 @@ const OnboardingNav = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
     <Stack.Screen
@@ -670,8 +671,20 @@ const MultichainAccountDetailsActions = () => {
       }}
     >
       <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS}
+        component={MultichainAccountActions}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME}
-        component={MultichainEditAccountName}
+        component={EditMultichainAccountName}
+        initialParams={route?.params}
+        options={commonScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME}
+        component={LegacyEditMultichainAccountName}
         initialParams={route?.params}
         options={commonScreenOptions}
       />
@@ -1097,6 +1110,13 @@ const App: React.FC = () => {
           errorMessage,
           `Unlock attempts: 1`,
         );
+        if (locked) {
+          Logger.error(
+            new Error(errorMessage),
+            'Nav/App: Error in appTriggeredAuth:',
+          );
+        }
+        // We are not logging when it's a keychain error
       }
     };
     appTriggeredAuth().catch((error) => {
