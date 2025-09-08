@@ -34,7 +34,7 @@ Notes:
 Chrome's tracing UI expects a JSON trace. Convert the `.cpuprofile` first:
 
 ```bash
-npx react-native-release-profiler --local /path/to/profile.cpuprofile
+yarn react-native-release-profiler --local /path/to/profile.cpuprofile
 ```
 
 Then open Chrome and load the generated JSON:
