@@ -23,6 +23,7 @@ jest.mock('@metamask/controller-utils', () => ({
 
 jest.mock('@metamask/utils', () => ({
   parseCaipChainId: jest.fn(),
+  isCaipChainId: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({

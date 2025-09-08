@@ -47,17 +47,15 @@ export const useNetworksToUse = ({
     selectMultichainAccountsState2Enabled,
   );
 
-  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
-    EVM_SCOPE,
-  );
+  const selectedEvmAccount =
+    useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE) || null;
 
-  const selectedSolanaAccount = useSelector(
-    selectSelectedInternalAccountByScope,
-  )(SolScope.Mainnet);
+  const selectedSolanaAccount =
+    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
 
   const {
     networks: evmNetworks,
-    areAllNetworksSelected: areAllEvmNetworksSelected,
+    areAllNetworksSelected: areAllEvmNetworksSelected = false,
   } = useNetworksByCustomNamespace({
     networkType,
     namespace: KnownCaipNamespace.Eip155,
@@ -65,7 +63,7 @@ export const useNetworksToUse = ({
 
   const {
     networks: solanaNetworks,
-    areAllNetworksSelected: areAllSolanaNetworksSelected,
+    areAllNetworksSelected: areAllSolanaNetworksSelected = false,
   } = useNetworksByCustomNamespace({
     networkType,
     namespace: KnownCaipNamespace.Solana,
@@ -108,9 +106,9 @@ export const useNetworksToUse = ({
       } else if (selectedSolanaAccount) {
         return areAllSolanaNetworksSelected;
       }
-      return areAllNetworksSelected;
+      return areAllNetworksSelected || false;
     }
-    return areAllNetworksSelected;
+    return areAllNetworksSelected || false;
   }, [
     isMultichainAccountsState2Enabled,
     selectedEvmAccount,

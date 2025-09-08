@@ -1,6 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
@@ -195,7 +200,7 @@ export const useNetworkSelection = ({
 
       try {
         // Handle different input formats
-        if (inputString.includes(':')) {
+        if (isCaipChainId(hexOrCaipChainId)) {
           // Already in CAIP format
           caipChainId = inputString as CaipChainId;
 
