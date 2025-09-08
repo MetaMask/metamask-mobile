@@ -57,13 +57,12 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
     try {
       const result = await signInWithGoogle({
         serverClientId: this.clientId,
-        nonce: this.nonce + this.retries,
+        nonce: this.nonce,
         autoSelectEnabled: true,
         filterByAuthorizedAccounts: false,
       });
 
       if (result?.type === 'google-signin') {
-        this.retries = 0;
         return {
           authConnection: this.authConnection,
           idToken: result.idToken,
@@ -90,11 +89,10 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             this.retries++;
             return await this.login();
           }
-            throw new OAuthError(
-              'handleGoogleLogin: Google login has no credential',
-              OAuthErrorType.GoogleLoginNoCredential,
-            );
-
+          throw new OAuthError(
+            'handleGoogleLogin: Google login has no credential',
+            OAuthErrorType.GoogleLoginNoCredential,
+          );
         } else if (
           ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
@@ -102,11 +100,10 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
             this.retries++;
             return await this.login();
           }
-            throw new OAuthError(
-              'handleGoogleLogin: Google login has no matching credential',
-              OAuthErrorType.GoogleLoginNoMatchingCredential,
-            );
-
+          throw new OAuthError(
+            'handleGoogleLogin: Google login has no matching credential',
+            OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
         } else {
           throw new OAuthError(error, OAuthErrorType.UnknownError);
         }

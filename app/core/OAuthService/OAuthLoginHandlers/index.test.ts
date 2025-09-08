@@ -482,7 +482,7 @@ describe('OAuth login handlers', () => {
       });
 
       // retry successfy when there is only once no credentials
-      it('should throw GoogleLoginNoCredential when no credentials are found on the first attempt', async () => {
+      it('verify successful login after a retry when no credentials are found on the first attempt', async () => {
         const message = 'e1 error Mo.m: No credential available';
         mockSignInWithGoogle.mockClear();
         mockSignInWithGoogle.mockResolvedValue({
@@ -518,7 +518,7 @@ describe('OAuth login handlers', () => {
       });
 
       // retry successfy when there is only once no credentials
-      it('should throw GoogleLoginNoCredential when no matching credential is found on the first attempt', async () => {
+      it('verify successful login after a retry when no matching credential is found on the first attempt', async () => {
         const message =
           'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
         mockSignInWithGoogle.mockClear();
