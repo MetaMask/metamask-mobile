@@ -117,73 +117,71 @@ export const Amount = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.topSection}>
-        <View>
-          {isNFT && (
-            <View style={styles.nftImageWrapper}>
-              <CollectibleMedia
-                style={styles.nftImage}
-                collectible={asset as Nft}
-                isTokenImage
-              />
-              <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+        {isNFT && (
+          <View style={styles.nftImageWrapper}>
+            <CollectibleMedia
+              style={styles.nftImage}
+              collectible={asset as Nft}
+              isTokenImage
+            />
+            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+            <Text
+              color={TextColor.Alternative}
+              variant={TextVariant.BodyMDBold}
+            >
+              {asset?.tokenId}
+            </Text>
+          </View>
+        )}
+        <View style={styles.inputSection}>
+          {fiatMode && (
+            <View style={styles.tokenSymbolWrapper}>
               <Text
-                color={TextColor.Alternative}
-                variant={TextVariant.BodyMDBold}
+                color={amountError ? TextColor.Error : TextColor.Alternative}
+                numberOfLines={1}
+                style={styles.tokenSymbol}
+                variant={TextVariant.DisplayLG}
               >
-                {asset?.tokenId}
+                {fiatCurrencySymbol}
               </Text>
             </View>
           )}
-          <View style={styles.inputSection}>
-            {fiatMode && (
-              <View style={styles.tokenSymbolWrapper}>
-                <Text
-                  color={amountError ? TextColor.Error : TextColor.Alternative}
-                  numberOfLines={1}
-                  style={styles.tokenSymbol}
-                  variant={TextVariant.DisplayLG}
-                >
-                  {fiatCurrencySymbol}
-                </Text>
-              </View>
-            )}
-            <View style={styles.inputWrapper}>
-              <Input
-                cursorColor={theme.colors.primary.default}
-                onChangeText={updateToNewAmount}
-                style={styles.input}
-                testID="send_amount"
-                textAlign={fiatMode ? 'left' : 'right'}
-                textVariant={TextVariant.DisplayLG}
-                value={amount}
-                showSoftInputOnFocus={false}
-              />
-            </View>
-            {!fiatMode && (
-              <View style={styles.tokenSymbolWrapper}>
-                <Text
-                  color={amountError ? TextColor.Error : TextColor.Alternative}
-                  numberOfLines={1}
-                  style={styles.tokenSymbol}
-                  variant={TextVariant.DisplayLG}
-                >
-                  {assetDisplaySymbol}
-                </Text>
-              </View>
-            )}
+          <View style={styles.inputWrapper}>
+            <Input
+              cursorColor={theme.colors.primary.default}
+              onChangeText={updateToNewAmount}
+              style={styles.input}
+              testID="send_amount"
+              textAlign={fiatMode ? 'left' : 'right'}
+              textVariant={TextVariant.DisplayLG}
+              value={amount}
+              showSoftInputOnFocus={false}
+            />
           </View>
-          {!isNFT && (
-            <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
-              <ButtonIcon
-                iconColor={IconColor.Alternative}
-                iconName={IconName.SwapVertical}
-                onPress={toggleFiatMode}
-                testID="fiat_toggle"
-              />
-            </TagBase>
+          {!fiatMode && (
+            <View style={styles.tokenSymbolWrapper}>
+              <Text
+                color={amountError ? TextColor.Error : TextColor.Alternative}
+                numberOfLines={1}
+                style={styles.tokenSymbol}
+                variant={TextVariant.DisplayLG}
+              >
+                {assetDisplaySymbol}
+              </Text>
+            </View>
           )}
         </View>
+        {!isNFT && (
+          <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
+            <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+            <ButtonIcon
+              iconColor={IconColor.Alternative}
+              iconName={IconName.SwapVertical}
+              onPress={toggleFiatMode}
+              testID="fiat_toggle"
+            />
+          </TagBase>
+        )}
       </View>
       <View>
         <View style={styles.balanceSection}>

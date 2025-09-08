@@ -113,8 +113,6 @@ export const styleSheet = (params: {
       paddingLeft: 2,
     },
     topSection: {
-      flexDirection: FlexDirection.Column,
-      justifyContent: JustifyContent.spaceBetween,
       paddingHorizontal: 8,
       paddingVertical: 32,
     },
