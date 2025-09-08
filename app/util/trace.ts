@@ -120,10 +120,11 @@ export enum TraceName {
   EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
   EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
   // Accounts
-  ShowAccountList = 'Show Account List',
-  ShowAccountAddressList = 'Show Account Address List',
-  ShowAccountPrivateKeyList = 'Show Account Private Key List',
   CreateMultichainAccount = 'Create Multichain Account',
+  DiscoverAccounts = 'Discover Accounts',
+  ShowAccountAddressList = 'Show Account Address List',
+  ShowAccountList = 'Show Account List',
+  ShowAccountPrivateKeyList = 'Show Account Private Key List',
   // Perps
   PerpsOpenPosition = 'Perps Open Position',
   PerpsClosePosition = 'Perps Close Position',
@@ -169,6 +170,7 @@ export enum TraceOperation {
   OnboardingError = 'onboarding.error',
   // Accounts
   AccountCreate = 'account.create',
+  AccountDiscover = 'account.discover',
   AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',

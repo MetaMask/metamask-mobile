@@ -2,8 +2,9 @@ import { Bip44Account } from '@metamask/account-api';
 import { EntropySourceId, KeyringAccount } from '@metamask/keyring-api';
 import { MultichainAccountWallet } from '@metamask/multichain-account-service';
 import Engine from '../core/Engine';
+import { trace, TraceOperation, TraceName } from '../util/trace';
 
-export async function discoverAndCreateAccounts(
+async function _discoverAndCreateAccounts(
   entropySource: EntropySourceId,
 ): Promise<number> {
   // HACK: Force Snap keyring instantiation.
@@ -22,4 +23,16 @@ export async function discoverAndCreateAccounts(
 
   // Compute the number of discovered accounts across all account providers.
   return Object.values(result).reduce((acc, discovered) => acc + discovered, 0);
+}
+
+export async function discoverAndCreateAccounts(
+  entropySource: EntropySourceId,
+): Promise<number> {
+  return trace(
+    {
+      name: TraceName.DiscoverAccounts,
+      op: TraceOperation.AccountDiscover,
+    },
+    () => _discoverAndCreateAccounts(entropySource),
+  );
 }
