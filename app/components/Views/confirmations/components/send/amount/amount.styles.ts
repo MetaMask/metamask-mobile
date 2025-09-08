@@ -52,7 +52,7 @@ export const styleSheet = (params: {
       backgroundColor: theme.colors.background.default,
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
-      height: '100%',
+      minHeight: '100%',
     },
     currencyTag: {
       alignSelf: 'center',
