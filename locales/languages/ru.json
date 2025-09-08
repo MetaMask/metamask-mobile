@@ -2311,6 +2311,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Назад в приложение",
+    "postNetworkSwitchTitle": "Сеть успешно переключена",
     "description": "Вернитесь в приложение, чтобы продолжить пользоваться его услугами."
   },
   "sdk_feedback_modal": {
