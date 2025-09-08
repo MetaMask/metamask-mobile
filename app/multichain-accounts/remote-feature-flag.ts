@@ -66,10 +66,6 @@ export const isMultichainAccountsRemoteFeatureEnabled = (
     return false;
   }
 
-  if (!enableMultichainAccounts) {
-    return false;
-  }
-
   const { enabled, featureVersion, minimumVersion } = enableMultichainAccounts;
 
   if (!enabled || !minimumVersion || !featureVersion) {
