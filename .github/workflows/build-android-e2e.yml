@@ -20,6 +20,8 @@ jobs:
   build-android-apks:
     name: Build Android E2E APKs
     runs-on: gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl
+    env:
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
     outputs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
@@ -41,8 +43,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+            /home/runner/_work/.gradle/caches
+            /home/runner/_work/.gradle/wrapper
             android/.gradle
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |

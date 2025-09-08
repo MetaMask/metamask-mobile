@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -8,6 +9,7 @@ import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
+  MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 
@@ -78,6 +80,29 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// Mock BottomSheetHeader
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      onClose,
+    }: {
+      children: React.ReactNode;
+      onClose?: () => void;
+    }) => (
+      <View testID="header">
+        <TouchableOpacity testID="header-close-button" onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+        <Text>{children}</Text>
+      </View>
+    );
+  },
+);
+
 describe('MultichainAccountActions', () => {
   const mockEngine = jest.mocked(Engine);
 
@@ -91,8 +116,9 @@ describe('MultichainAccountActions', () => {
   it('renders account actions menu with correct options', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
+    expect(getByText('Test Account Group')).toBeTruthy();
     expect(getByText('Account Details')).toBeTruthy();
-    // expect(getByText('Rename account')).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
+    expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
   });
 
@@ -102,7 +128,7 @@ describe('MultichainAccountActions', () => {
     expect(
       getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS),
     ).toBeTruthy();
-    // expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME)).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
+    expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME)).toBeTruthy();
     expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES)).toBeTruthy();
   });
 
@@ -114,6 +140,7 @@ describe('MultichainAccountActions', () => {
     );
     accountDetailsButton.props.onPress();
 
+    expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS,
       {
@@ -128,6 +155,7 @@ describe('MultichainAccountActions', () => {
     const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
     addressesButton.props.onPress();
 
+    expect(mockGoBack).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
       {
@@ -135,5 +163,30 @@ describe('MultichainAccountActions', () => {
         title: `Addresses / ${mockAccountGroup.metadata.name}`,
       },
     );
+  });
+
+  it('navigates to edit account name when rename account button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const renameAccountButton = getByTestId(
+      MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
+    );
+    renameAccountButton.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.EDIT_ACCOUNT_NAME,
+      {
+        accountGroup: mockAccountGroup,
+      },
+    );
+  });
+
+  it('closes modal when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const closeButton = getByTestId('header-close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
