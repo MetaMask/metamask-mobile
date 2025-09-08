@@ -11,8 +11,6 @@ import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAs
 import Tenderly from '../../tenderly';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import TestHelpers from '../../helpers';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
@@ -133,13 +131,6 @@ describe(RegressionAssets('Import Tokens'), () => {
         await loginToApp();
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
-        // Relaunching the app since the tree is not re-rendered with FlashList v2.
-        await device.terminateApp();
-        await TestHelpers.launchApp({
-          launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-        });
-        await loginToApp();
-
         const tokens =
           (await WalletView.getTokensInWallet()) as IndexableNativeElement;
         const tokensAttributes = await tokens.getAttributes();
