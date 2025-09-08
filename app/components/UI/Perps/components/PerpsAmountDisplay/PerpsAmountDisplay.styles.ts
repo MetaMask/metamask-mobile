@@ -5,7 +5,6 @@ const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
-      paddingTop: 24,
       paddingHorizontal: 24,
     },
     label: {
@@ -21,7 +20,7 @@ const createStyles = (colors: Theme['colors']) =>
       fontSize: 48,
       fontWeight: '600',
       color: colors.text.default,
-      lineHeight: 56,
+      lineHeight: 54,
       letterSpacing: -0.5,
     },
     amountValueActive: {
@@ -29,13 +28,15 @@ const createStyles = (colors: Theme['colors']) =>
     },
     cursor: {
       width: 2,
-      height: 64,
-      backgroundColor: colors.primary.default,
+      height: 54,
+      backgroundColor: colors.text.default,
       marginLeft: 4,
     },
     amountRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      // borderWidth: 1,
+      // borderColor: 'blue',
     },
     maxAmount: {
       marginTop: 4,

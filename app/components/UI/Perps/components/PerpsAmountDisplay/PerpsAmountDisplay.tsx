@@ -79,21 +79,27 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         </Text>
       )}
       <View style={styles.amountRow}>
-        <RNText
+        <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          style={[
-            showTokenAmount && tokenAmount && tokenSymbol
-              ? styles.amountValueToken
-              : styles.amountValue,
-            isActive && styles.amountValueActive,
-          ]}
+          // style={[
+          //   showTokenAmount && tokenAmount && tokenSymbol
+          //     ? styles.amountValueToken
+          //     : styles.amountValue,
+          //   isActive && styles.amountValueActive,
+          // ]}
+          variant={TextVariant.DisplayLG}
+          color={TextColor.Default}
+          style={{
+            fontSize: 54,
+            lineHeight: 74,
+          }}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
             : amount
             ? formatPrice(amount, { minimumDecimals: 0, maximumDecimals: 2 })
             : '$0'}
-        </RNText>
+        </Text>
         {isActive && (
           <Animated.View
             testID="cursor"

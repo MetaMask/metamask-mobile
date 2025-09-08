@@ -14,6 +14,8 @@ const createStyles = (colors: Colors) =>
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
       paddingTop: 32,
+      // borderWidth: 1,
+      // borderColor: 'red',
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -82,16 +84,14 @@ const createStyles = (colors: Colors) =>
     percentageButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: 12,
       gap: 8,
     },
     percentageButton: {
       flex: 1,
-      minWidth: 0, // Ensures buttons can shrink properly
+      minWidth: 0,
     },
     keypad: {
-      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
   });
