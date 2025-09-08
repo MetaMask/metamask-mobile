@@ -67,6 +67,10 @@ export const createTradingViewChartTemplate = (
         window.panVelocity = 0;
         window.panningDisableTime = 300; // ms to disable zoom restrictions after panning stops
         
+        // Crosshair state management
+        window.isCrosshairEnabled = true;
+        window.crosshairDisabledDuringPan = true;
+        
         // Reset prevention variables
         window.hasUserInteracted = false; // Track if user has ever interacted with the chart
         window.lastDataLength = 0; // Track actual data changes vs rerenders
@@ -305,6 +309,44 @@ export const createTradingViewChartTemplate = (
                     }
                 }, { passive: true                 });
 
+                // Add panning detection for crosshair optimization
+                window.chart.subscribeVisibleTimeRangeChange((timeRange) => {
+                    const now = Date.now();
+                    const timeSinceLastRangeChange = now - window.lastRangeChangeTime;
+                    
+                    // Detect if this is user-initiated panning (not programmatic)
+                    if (timeSinceLastRangeChange < 50) { // Rapid range changes indicate panning
+                        window.isUserPanning = true;
+                        window.panStartTime = now;
+                        
+                        // Disable crosshair during panning for performance
+                        if (window.crosshairDisabledDuringPan && window.isCrosshairEnabled) {
+                            window.isCrosshairEnabled = false;
+                            window.chart.applyOptions({
+                                crosshair: { mode: 2 } // Hidden mode
+                            });
+                        }
+                        
+                        // Clear any existing timeout
+                        if (window.panEndTimeout) {
+                            clearTimeout(window.panEndTimeout);
+                        }
+                        
+                        // Set timeout to re-enable crosshair after panning stops
+                        window.panEndTimeout = setTimeout(() => {
+                            window.isUserPanning = false;
+                            if (window.crosshairDisabledDuringPan) {
+                                window.isCrosshairEnabled = true;
+                                window.chart.applyOptions({
+                                    crosshair: { mode: 3 } // MagnetOHLC mode
+                                });
+                            }
+                        }, window.panningDisableTime);
+                    }
+                    
+                    window.lastRangeChangeTime = now;
+                });
+
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -357,6 +399,11 @@ export const createTradingViewChartTemplate = (
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
+                // Skip crosshair updates during panning for performance
+                if (window.isUserPanning || !window.isCrosshairEnabled) {
+                    return;
+                }
+                
                 if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
                     // Crosshair is outside the chart area - hide legend
                     if (window.ReactNativeWebView) {
@@ -444,6 +491,127 @@ export const createTradingViewChartTemplate = (
             takeProfitPrice: null,
             stopLossPrice: null,
             currentPrice: null
+        };
+        
+        // Store original price line data for restoration
+        window.originalPriceLineData = null;
+        
+        // Helper functions to hide/show all price lines during panning
+        window.hideAllPriceLines = function() {
+            if (!window.candlestickSeries) return;
+            
+            // Store current price line data for restoration
+            window.originalPriceLineData = {
+                entryPrice: window.priceLines.entryPrice,
+                liquidationPrice: window.priceLines.liquidationPrice,
+                takeProfitPrice: window.priceLines.takeProfitPrice,
+                stopLossPrice: window.priceLines.stopLossPrice
+            };
+            
+            // Remove all price lines
+            Object.keys(window.priceLines).forEach(key => {
+                if (window.priceLines[key]) {
+                    try {
+                        window.candlestickSeries.removePriceLine(window.priceLines[key]);
+                        window.priceLines[key] = null;
+                    } catch (error) {
+                        // Silent error handling
+                    }
+                }
+            });
+        };
+        
+        // Store original price line data for restoration
+        window.originalPriceLineData = null;
+        
+        // Helper functions to hide/show all price lines during panning
+        window.hideAllPriceLines = function() {
+            if (!window.candlestickSeries) return;
+            
+            // Store current price line data for restoration
+            window.originalPriceLineData = {
+                entryPrice: window.priceLines.entryPrice,
+                liquidationPrice: window.priceLines.liquidationPrice,
+                takeProfitPrice: window.priceLines.takeProfitPrice,
+                stopLossPrice: window.priceLines.stopLossPrice
+            };
+            
+            // Remove all price lines
+            Object.keys(window.priceLines).forEach(key => {
+                if (window.priceLines[key]) {
+                    try {
+                        window.candlestickSeries.removePriceLine(window.priceLines[key]);
+                        window.priceLines[key] = null;
+                    } catch (error) {
+                        // Silent error handling
+                    }
+                }
+            });
+        };
+        
+        window.showAllPriceLines = function() {
+            if (!window.candlestickSeries || !window.originalPriceLineData) return;
+            
+            // Recreate all price lines from stored data
+            if (window.originalPriceLineData.entryPrice) {
+                try {
+                    window.priceLines.entryPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.entryPrice.price,
+                        color: '#CCC',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'Entry'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.liquidationPrice) {
+                try {
+                    window.priceLines.liquidationPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.liquidationPrice.price,
+                        color: '#FF7584',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'Liq'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.takeProfitPrice) {
+                try {
+                    window.priceLines.takeProfitPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.takeProfitPrice.price,
+                        color: '#BAF24A',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'TP'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            if (window.originalPriceLineData.stopLossPrice) {
+                try {
+                    window.priceLines.stopLossPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.stopLossPrice.price,
+                        color: '#484848',
+                        lineWidth: 1,
+                        lineStyle: 2,
+                        axisLabelVisible: true,
+                        title: 'SL'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Clear stored data
+            window.originalPriceLineData = null;
         };
         // Simple zoom function without complex interaction tracking
         window.applyZoom = function(candleCount, forceReset = false) {
