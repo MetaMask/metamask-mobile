@@ -16,6 +16,7 @@ import { PointsEventDto } from '../../../../../core/Engine/controllers/rewards-c
 import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { useSeasonStatus } from '../../hooks/useSeasonStatus';
 import { formatRewardsDate, getEventDetails } from '../../utils/formatUtils';
+import { strings } from '../../../../../../locales/i18n';
 
 const ActivityEventRow: React.FC<{ event: PointsEventDto }> = ({ event }) => {
   const eventDetails = getEventDetails(event);
@@ -122,15 +123,16 @@ export const ActivityTab: React.FC = () => {
   };
 
   if (isLoading && !isRefreshing) {
-    return <EmptyState message="Loading activity..." />;
+    return <EmptyState message={strings('rewards.loading_activity')} />;
   }
 
   if (error) {
-    return <EmptyState message={`Error loading activity: ${error}`} isError />;
-  }
-
-  if (pointsEvents.length === 0) {
-    return <EmptyState message="No activity found" />;
+    return (
+      <EmptyState
+        message={`${strings('rewards.error_loading_activity')}: ${error}`}
+        isError
+      />
+    );
   }
 
   return (

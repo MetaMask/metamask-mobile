@@ -5602,6 +5602,18 @@
 
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
+    "loading_activity": "Loading activity...",
+    "error_loading_activity": "Error loading activity",
+
+    "events": {
+      "swap": "Swap",
+      "perps": "Perps",
+      "referral": "Referral",
+      "sign_up_bonus": "Sign up bonus",
+      "loyalty_bonus": "Loyalty bonus",
+      "one_time_bonus": "One-time bonus",
+      "uncategorized_event": "Uncategorized event"
+    },
 
     "onboarding": {
       "not_supported_region_title": "Region not supported",
