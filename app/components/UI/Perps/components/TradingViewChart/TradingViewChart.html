@@ -369,6 +369,57 @@ PERFORMANCE OPTIMIZATIONS:
                         timestamp: new Date().toISOString()
                     }));
                 } 
+
+                // Panning detection and crosshair management
+                window.isUserPanning = false;
+                window.panStartTime = 0;
+                window.lastRangeChangeTime = Date.now();
+                window.isCrosshairEnabled = true;
+                window.crosshairDisabledDuringPan = true;
+                window.panningDisableTime = null;
+
+                // Listen for visible time range changes to detect panning
+                window.chart.subscribeVisibleTimeRangeChange((timeRange) => {
+                    const now = Date.now();
+                    const timeSinceLastRangeChange = now - window.lastRangeChangeTime;
+                    
+                    // Detect if this is user-initiated panning (not programmatic)
+                    if (timeSinceLastRangeChange < 1000) { // Less sensitive detection for smoother direction changes
+                        window.isUserPanning = true;
+                        window.panStartTime = now;
+                        
+                        // Disable crosshair during panning for performance
+                        if (window.crosshairDisabledDuringPan && window.isCrosshairEnabled) {
+                            window.isCrosshairEnabled = false;
+                            window.chart.applyOptions({
+                                crosshair: { mode: 2 } // Hidden mode
+                            });
+                        }
+                    }
+                    
+                    window.lastRangeChangeTime = now;
+                    
+                    // Re-enable crosshair after panning stops
+                    if (window.isUserPanning) {
+                        // Clear any existing timeout
+                        if (window.panningDisableTime) {
+                            clearTimeout(window.panningDisableTime);
+                        }
+                        
+                        // Set timeout to re-enable crosshair
+                        window.panningDisableTime = setTimeout(() => {
+                            window.isUserPanning = false;
+                            if (window.crosshairDisabledDuringPan && !window.isCrosshairEnabled) {
+                                window.isCrosshairEnabled = true;
+                                window.chart.applyOptions({
+                                    crosshair: { mode: 3 } // MagnetOHLC mode
+                                });
+                            }
+                            window.panningDisableTime = null;
+                        }, 300); // 300ms delay after panning stops
+                    }
+                });
+
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
             }
@@ -414,6 +465,11 @@ PERFORMANCE OPTIMIZATIONS:
 
             // Subscribe to crosshair events to send OHLC data to React Native
             window.chart.subscribeCrosshairMove((param) => {
+                // Skip if user is panning or crosshair is disabled
+                if (window.isUserPanning || !window.isCrosshairEnabled) {
+                    return;
+                }
+                
                 if (param.point === undefined || !param.time || param.point.x < 0 || param.point.x > container.clientWidth || param.point.y < 0 || param.point.y > container.clientHeight) {
                     // Crosshair is outside the chart area - hide legend
                     if (window.ReactNativeWebView) {
