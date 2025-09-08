@@ -1,6 +1,6 @@
-name: Performance E2E Test Manual WorkFlow
+# name: Performance E2E Test Manual WorkFlow
 
-# name: Performance E2E Tests - Android Only
+name: Performance E2E Tests - Android Only
 on:
   schedule:
     - cron: '0 3 * * 1-6'
