@@ -130,6 +130,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
+  const hasShownSubmittedToastRef = useRef(false);
 
   const cachedAccountState = usePerpsAccount();
 
@@ -373,7 +374,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
     });
 
   useEffect(() => {
-    if (isPlacingOrder) {
+    if (isPlacingOrder && !hasShownSubmittedToastRef.current) {
       showToast(
         PerpsToastOptions.orderManagement[orderForm.type].submitted(
           orderForm.direction,
@@ -381,6 +382,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
           orderForm.asset,
         ),
       );
+      hasShownSubmittedToastRef.current = true;
+    } else if (!isPlacingOrder && hasShownSubmittedToastRef.current) {
+      // Reset the flag when order placement is complete
+      hasShownSubmittedToastRef.current = false;
     }
   }, [
     PerpsToastOptions.orderManagement,
