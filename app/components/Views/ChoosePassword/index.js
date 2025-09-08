@@ -82,7 +82,9 @@ import {
   endTrace,
   trace,
   TraceOperation,
- flushBufferedTraces, updateCachedConsent } from '../../../util/trace';
+  flushBufferedTraces,
+  updateCachedConsent,
+} from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { setupSentry } from '../../../util/sentry/utils';
@@ -486,8 +488,13 @@ class ChoosePassword extends PureComponent {
         await flushBufferedTraces();
         updateCachedConsent(true);
 
-        await metrics.enable();
-        setDataCollectionForMarketing(this.state.isCheckboxChecked);
+        if (metrics?.enable) {
+          await metrics.enable();
+        }
+
+        if (setDataCollectionForMarketing) {
+          setDataCollectionForMarketing(this.state.isSelected);
+        }
 
         this.props.navigation.reset({
           index: 0,
@@ -1060,6 +1067,8 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
   setExistingUser: (value) => dispatch(setExistingUser(value)),
+  setDataCollectionForMarketing: (enabled) =>
+    dispatch(setDataCollectionForMarketing(enabled)),
 });
 
 const mapStateToProps = (state) => ({});

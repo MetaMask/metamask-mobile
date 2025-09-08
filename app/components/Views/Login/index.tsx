@@ -131,7 +131,7 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [disabledInput, setDisabledInput] = useState(false);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled, enable } = useMetrics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -555,6 +555,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       if (oauthLoginSuccess) {
+        if (!isMetricsEnabled) {
+          await enable();
+        }
         await setupSentry();
         await navigateToHome();
       } else {

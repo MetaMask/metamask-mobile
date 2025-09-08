@@ -34,6 +34,7 @@ const mockEngine = jest.mocked(Engine);
 
 // Mock useMetrics with a dynamic isEnabled function
 const mockIsEnabled = jest.fn().mockReturnValue(true);
+const mockEnable = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../hooks/useMetrics', () => {
   const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
   return {
@@ -41,6 +42,7 @@ jest.mock('../../hooks/useMetrics', () => {
     useMetrics: jest.fn().mockReturnValue({
       ...actualUseMetrics.useMetrics,
       isEnabled: () => mockIsEnabled(),
+      enable: mockEnable,
     }),
   };
 });
