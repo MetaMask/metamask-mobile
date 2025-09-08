@@ -85,8 +85,8 @@ jobs:
 
       - name: Build Android E2E APK - ${{ matrix.build_type }}
         run: |
-          # echo "🚀 Setting up project for ${{ matrix.build_type }} build..."
-          # yarn setup:github-ci --no-build-ios
+          echo "🚀 Setting up project for ${{ matrix.build_type }} build..."
+          yarn setup:github-ci --no-build-ios
           
           echo "🏗 Building Android E2E APK (${{ matrix.build_type }})..."
           export NODE_OPTIONS="--max-old-space-size=8192"
