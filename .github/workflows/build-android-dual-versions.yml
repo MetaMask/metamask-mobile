@@ -97,7 +97,7 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
-          IS_TEST: true
+          IS_TEST: false
           E2E: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
