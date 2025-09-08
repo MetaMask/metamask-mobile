@@ -34,8 +34,9 @@ const AccountCell = ({
   const { navigate } = useNavigation();
 
   const handleMenuPress = useCallback(() => {
-    navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS, {
-      accountGroup,
+    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.ACCOUNT_ACTIONS,
+      params: { accountGroup },
     });
   }, [navigate, accountGroup]);
 

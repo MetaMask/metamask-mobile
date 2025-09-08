@@ -114,6 +114,8 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import RewardsView from '../../UI/Rewards/Views/RewardsView';
+import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 
 const Stack = createStackNavigator();
@@ -251,8 +253,20 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  // TODO: Return RewardsNavigator
-  return null;
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REFERRAL_REWARDS_VIEW}
+        component={ReferralRewardsView}
+        options={{ headerShown: true }}
+      />
+    </Stack.Navigator>
+  );
 };
 
 /* eslint-disable react/prop-types */
@@ -479,6 +493,10 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
+const UnmountOnBlurComponent = (children) => (
+  <UnmountOnBlur>{children}</UnmountOnBlur>
+);
+
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -626,14 +644,14 @@ const HomeTabs = () => {
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
           component={RewardsHome}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       ) : (
         <Tab.Screen
           name={Routes.SETTINGS_VIEW}
           options={options.settings}
           component={SettingsFlow}
-          layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
+          layout={({ children }) => UnmountOnBlurComponent(children)}
         />
       )}
     </Tab.Navigator>
@@ -803,7 +821,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false }}
+      options={{ headerShown: false, gestureEnabled: false }}
     />
     <Stack.Screen
       name="AccountBackupStep1B"
@@ -944,7 +962,13 @@ const MainNavigator = () => {
       />
       {isPerpsEnabled && (
         <>
-          <Stack.Screen name={Routes.PERPS.ROOT} component={PerpsScreenStack} />
+          <Stack.Screen
+            name={Routes.PERPS.ROOT}
+            component={PerpsScreenStack}
+            options={{
+              animationEnabled: false,
+            }}
+          />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
             component={PerpsModalStack}

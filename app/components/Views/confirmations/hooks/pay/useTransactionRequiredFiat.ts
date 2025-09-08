@@ -4,11 +4,20 @@ import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMet
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { Hex, createProjectLogger } from '@metamask/utils';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { useSelector } from 'react-redux';
 
 const log = createProjectLogger('transaction-pay');
 
-export const PAY_BRIDGE_SLIPPAGE = 0.02;
-export const PAY_BRIDGE_FEE = 0.005;
+export interface TransactionRequiredFiat {
+  address: Hex;
+  amountFiat: number;
+  amountRaw: string;
+  balanceFiat: number;
+  feeFiat: number;
+  totalFiat: number;
+  skipIfBalance: boolean;
+}
 
 /**
  * Calculate the fiat value of any tokens required by the transaction.
@@ -18,10 +27,14 @@ export function useTransactionRequiredFiat({
   amountOverrides,
 }: {
   amountOverrides?: Record<Hex, string>;
-} = {}) {
+} = {}): {
+  values: TransactionRequiredFiat[];
+  totalFiat: number;
+} {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
+  const { bufferInitial } = useSelector(selectMetaMaskPayFlags);
 
   const fiatRequests = useMemo(
     () =>
@@ -48,9 +61,7 @@ export function useTransactionRequiredFiat({
           targetFiatRate,
         );
 
-        const feeFiat = amountFiat.multipliedBy(
-          PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE,
-        );
+        const feeFiat = amountFiat.multipliedBy(bufferInitial);
 
         const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
           targetFiatRate,
@@ -61,13 +72,14 @@ export function useTransactionRequiredFiat({
         return {
           address: target.address,
           amountFiat: amountFiat.toNumber(),
+          amountRaw: target.amountRaw,
           balanceFiat: balanceFiat.toNumber(),
           feeFiat: feeFiat.toNumber(),
           totalFiat: totalFiat.toNumber(),
           skipIfBalance: target.skipIfBalance,
         };
       }),
-    [amountOverrides, requiredTokens, tokenFiatRates],
+    [amountOverrides, bufferInitial, requiredTokens, tokenFiatRates],
   );
 
   const totalFiat = values.reduce<number>(
