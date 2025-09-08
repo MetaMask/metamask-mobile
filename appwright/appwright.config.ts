@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
-  testMatch: '**/tests/performance/*.spec.js',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   expect: {
     timeout: 30 * 1000, //30 seconds
@@ -21,6 +20,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
+      testMatch: '**/tests/performance/*.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -33,6 +33,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
+      testMatch: '**/tests/performance/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -44,6 +45,8 @@ export default defineConfig({
     },
     {
       name: 'browserstack-android',
+      testMatch: '**/tests/performance/*.spec.js',
+      testIgnore: '**/tests/performance/scenario{2,3}.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -56,6 +59,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
+      testMatch: '**/tests/performance/*.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -68,6 +72,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding',
+      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -75,11 +80,12 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
         },
-        buildPath: 'bs://0f3108cc51bd0b0a2da442481ce7cd4b83d7f75a',
+        buildPath: process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
       },
     },
     {
       name: 'ios-onboarding',
+      testMatch: '**/tests/performance/scenario{2,3}.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
