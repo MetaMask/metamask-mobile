@@ -18,8 +18,11 @@ export function useCryptoCurrencies(): UseCryptoCurrenciesResult {
     selectedRegion?.isoCode,
   );
 
+  console.log('cryptoCurrencies', cryptoCurrencies);
+
   useEffect(() => {
     if (cryptoCurrencies && !selectedCryptoCurrency) {
+      console.log('SETTING CRYPTO CURRENCY', cryptoCurrencies[0]);
       setSelectedCryptoCurrency(cryptoCurrencies[0]);
     }
   }, [cryptoCurrencies, selectedCryptoCurrency, setSelectedCryptoCurrency]);

@@ -8,6 +8,7 @@ import { getAllDepositOrders } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { useRegions } from '../../hooks/useRegions';
 
 const Root = () => {
   const navigation = useNavigation();
@@ -15,6 +16,8 @@ const Root = () => {
   const { checkExistingToken, getStarted } = useDepositSDK();
   const hasCheckedToken = useRef(false);
   const orders = useSelector(getAllDepositOrders);
+
+  useRegions();
 
   useEffect(() => {
     const initializeFlow = async () => {

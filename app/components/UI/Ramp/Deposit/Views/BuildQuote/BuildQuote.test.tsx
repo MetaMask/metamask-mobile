@@ -120,19 +120,23 @@ const mockUsePaymentMethods = jest
   .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
 jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 
-const mockUseSupportedTokens = jest.fn().mockReturnValue([
-  {
-    assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    chainId: 'eip155:1',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    decimals: 6,
-    iconUrl: 'https://example.com/usdc.png',
-  },
-]);
+const mockUseCryptoCurrencies = jest.fn().mockReturnValue({
+  cryptoCurrencies: [
+    {
+      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      chainId: 'eip155:1',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      decimals: 6,
+      iconUrl: 'https://example.com/usdc.png',
+    },
+  ],
+  isFetching: false,
+  error: null,
+});
 jest.mock(
-  '../../hooks/useSupportedTokens',
-  () => () => mockUseSupportedTokens(),
+  '../../hooks/useCryptoCurrencies',
+  () => () => mockUseCryptoCurrencies(),
 );
 
 // Mock the analytics hook like in the aggregator test

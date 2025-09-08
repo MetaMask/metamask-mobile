@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelectorModal from './TokenSelectorModal';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
-import useSupportedTokens from '../../../hooks/useSupportedTokens';
+import { useCryptoCurrencies } from '../../../hooks/useCryptoCurrencies';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
@@ -37,7 +37,7 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useSupportedTokens', () => jest.fn());
+jest.mock('../../../hooks/useCryptoCurrencies', () => jest.fn());
 jest.mock('../../../hooks/useSearchTokenResults', () => jest.fn());
 
 const mockTokens = [
@@ -68,7 +68,7 @@ describe('TokenSelectorModal Component', () => {
       selectedAssetId:
         'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     });
-    (useSupportedTokens as jest.Mock).mockReturnValue(mockTokens);
+    (useCryptoCurrencies as jest.Mock).mockReturnValue({ cryptoCurrencies: mockTokens });
     (useSearchTokenResults as jest.Mock).mockReturnValue(mockTokens);
 
     // Mock the context with the required values

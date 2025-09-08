@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { handleFetch } from '@metamask/controller-utils';
-import {
-  DepositCryptoCurrency,
-  DepositFiatCurrency,
-} from '@consensys/native-ramps-sdk/dist/Deposit';
+import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk/dist/Deposit';
 
 interface UseFetchTokenRatesMultiResult {
   rates: Record<string, number | null>;
@@ -17,8 +14,8 @@ export const useFetchTokenRatesMulti = ({
   tokens,
   fiatCurrency,
 }: {
-  tokens: DepositCryptoCurrency[];
-  fiatCurrency: DepositFiatCurrency;
+  tokens: DepositCryptoCurrency[] | null;
+  fiatCurrency: string;
 }): UseFetchTokenRatesMultiResult => {
   const [rates, setRates] = useState<Record<string, number | null>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -28,11 +25,15 @@ export const useFetchTokenRatesMulti = ({
     const fetchTokenRates = async () => {
       setIsLoading(true);
       try {
-        const assetIds = tokens.map((token) => token.assetId).join(',');
+        if (!tokens) {
+          return;
+        }
+
+        const assetIds = tokens?.map((token) => token.assetId).join(',');
         const url = new URL(PRICE_API_URL);
         const params = new URLSearchParams({
           assetIds,
-          vsCurrency: fiatCurrency.id,
+          vsCurrency: fiatCurrency,
         });
         url.search = params.toString();
 
@@ -44,12 +45,12 @@ export const useFetchTokenRatesMulti = ({
         const newRates: Record<string, number | null> = {};
         const responseKeys = Object.keys(response);
 
-        tokens.forEach((token) => {
+        tokens?.forEach((token) => {
           const responseKey = responseKeys.find(
             (key) => key.toLowerCase() === token.assetId.toLowerCase(),
           );
           newRates[token.assetId] = responseKey
-            ? response[responseKey][fiatCurrency.id.toLowerCase()]
+            ? response[responseKey][fiatCurrency.toLowerCase()]
             : null;
         });
 
@@ -64,7 +65,7 @@ export const useFetchTokenRatesMulti = ({
     };
 
     fetchTokenRates();
-  }, [tokens, fiatCurrency.id]);
+  }, [tokens, fiatCurrency]);
 
   return { rates, isLoading, error };
 };

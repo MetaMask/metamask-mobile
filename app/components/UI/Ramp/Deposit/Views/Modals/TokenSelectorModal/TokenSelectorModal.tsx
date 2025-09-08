@@ -28,7 +28,7 @@ import TextFieldSearch from '../../../../../../../component-library/components/F
 
 import styleSheet from './TokenSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import useSupportedTokens from '../../../hooks/useSupportedTokens';
+import { useCryptoCurrencies } from '../../../hooks/useCryptoCurrencies';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { useDepositSDK } from '../../../sdk';
 
@@ -72,7 +72,7 @@ function TokenSelectorModal() {
     cryptoCurrency,
   } = useDepositSDK();
 
-  const supportedTokens = useSupportedTokens();
+  const { cryptoCurrencies: supportedTokens } = useCryptoCurrencies();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
     networkFilter,

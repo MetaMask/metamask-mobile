@@ -34,7 +34,6 @@ import {
   DepositPaymentMethod,
   DepositRegion,
   DepositCryptoCurrency,
-  DepositFiatCurrency,
 } from '@consensys/native-ramps-sdk/dist/Deposit';
 
 export interface DepositSDK {
@@ -51,12 +50,10 @@ export interface DepositSDK {
   selectedWalletAddress?: string;
   selectedRegion: DepositRegion | null;
   setSelectedRegion: (region: DepositRegion | null) => void;
-  selectedPaymentMethod: DepositPaymentMethod;
+  selectedPaymentMethod: DepositPaymentMethod | null;
   setSelectedPaymentMethod: (paymentMethod: DepositPaymentMethod) => void;
-  selectedCryptoCurrency: DepositCryptoCurrency;
+  selectedCryptoCurrency: DepositCryptoCurrency | null;
   setSelectedCryptoCurrency: (cryptoCurrency: DepositCryptoCurrency) => void;
-  selectedFiatCurrency: DepositFiatCurrency;
-  setSelectedFiatCurrency: (fiatCurrency: DepositFiatCurrency) => void;
 }
 
 const isDevelopment =
@@ -112,8 +109,6 @@ export const DepositSDKProvider = ({
     useState<DepositPaymentMethod | null>(null);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] =
     useState<DepositCryptoCurrency | null>(null);
-  const [selectedFiatCurrency, setSelectedFiatCurrency] =
-    useState<DepositFiatCurrency | null>(null);
 
   const setGetStartedCallback = useCallback(
     (getStartedFlag: boolean) => {
@@ -239,8 +234,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency,
-      selectedFiatCurrency,
-      setSelectedFiatCurrency,
     }),
     [
       sdk,
@@ -260,8 +253,6 @@ export const DepositSDKProvider = ({
       setSelectedPaymentMethod,
       selectedCryptoCurrency,
       setSelectedCryptoCurrency,
-      selectedFiatCurrency,
-      setSelectedFiatCurrency,
     ],
   );
 

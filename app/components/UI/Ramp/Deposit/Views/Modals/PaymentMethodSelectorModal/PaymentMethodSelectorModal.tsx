@@ -78,7 +78,7 @@ function PaymentMethodSelectorModal() {
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
       <ListItemSelect
-        isSelected={selectedPaymentMethod.id === paymentMethod.id}
+        isSelected={selectedPaymentMethod?.id === paymentMethod.id}
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
         accessibilityRole="button"
         accessible
@@ -107,7 +107,7 @@ function PaymentMethodSelectorModal() {
     ),
     [
       handleSelectPaymentMethodIdCallback,
-      selectedPaymentMethod.id,
+      selectedPaymentMethod?.id,
       styles.iconContainer,
       themeAppearance,
     ],
@@ -126,7 +126,7 @@ function PaymentMethodSelectorModal() {
         ref={listRef}
         data={paymentMethods}
         renderItem={renderPaymentMethod}
-        extraData={selectedPaymentMethod.id}
+        extraData={selectedPaymentMethod?.id}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
