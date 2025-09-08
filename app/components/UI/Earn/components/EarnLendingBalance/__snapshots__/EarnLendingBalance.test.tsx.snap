@@ -459,8 +459,9 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "Geist Medium",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
+            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "paddingHorizontal": 0,

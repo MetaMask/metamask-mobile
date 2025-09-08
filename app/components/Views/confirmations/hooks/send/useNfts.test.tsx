@@ -354,7 +354,7 @@ describe('useEVMNfts', () => {
     });
   });
 
-  it('fetches balance for ERC1155 NFTs', async () => {
+  it('filters out ERC1155 NFTs', async () => {
     const erc1155Nft = {
       ...mockNft,
       standard: 'ERC1155',
@@ -379,48 +379,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(
-        mockAssetsContractController.getERC1155BalanceOf,
-      ).toHaveBeenCalledWith(
-        mockAccount.address,
-        erc1155Nft.address,
-        erc1155Nft.tokenId,
-        'network-client-id',
-      );
-      expect(result.current[0].balance).toBe('1');
-    });
-  });
-
-  it('sets balance to 0 when ERC1155 balance fetch fails', async () => {
-    const erc1155Nft = {
-      ...mockNft,
-      standard: 'ERC1155',
-    };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [erc1155Nft],
-        },
-      }),
-    );
-
-    mockAssetsContractController.getERC1155BalanceOf.mockRejectedValue(
-      new Error('Balance fetch failed'),
-    );
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(result.current[0].balance).toBe('0');
+      expect(result.current).toHaveLength(0);
     });
   });
 
@@ -675,38 +634,6 @@ describe('useEVMNfts', () => {
     await waitFor(() => {
       expect(result.current).toHaveLength(1);
       expect(result.current[0].name).toBe('Test NFT');
-    });
-  });
-
-  it('uses imageOriginal field for ERC1155 NFTs', async () => {
-    const erc1155WithOriginal = {
-      ...mockNft,
-      standard: 'ERC1155',
-      image: undefined,
-      imageOriginal: 'https://example.com/original.png',
-    };
-
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [erc1155WithOriginal],
-        },
-      }),
-    );
-
-    const { result } = renderHookWithStore(() => useEVMNfts());
-
-    await waitFor(() => {
-      expect(result.current[0].image).toBe('https://example.com/original.png');
-      expect(result.current[0].standard).toBe('ERC1155');
     });
   });
 

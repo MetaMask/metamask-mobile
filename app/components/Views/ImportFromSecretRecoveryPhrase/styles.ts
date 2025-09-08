@@ -163,21 +163,20 @@ const createStyles = (colors: any) =>
       paddingLeft: 8,
       overflow: 'hidden', // Ensure content doesn't overflow
     },
-    seedPhraseInputItem: {
-      width: '31.33%', // 100% / 3 = 33.33%, minus some space
-      marginRight: '3%', // Space between columns
-      marginBottom: 8,
-      flex: 0, // Prevent flex growth
-      minWidth: 0, // Allow flex shrinking below content size
-    },
-    seedPhraseInputItemLast: {
-      marginRight: 0, // Remove right margin for last item in row
-    },
     inputItem: {
       flex: 1,
       minWidth: 0, // Allow flex shrinking below content size
       maxWidth: '100%', // Ensure text doesn't overflow container
       paddingRight: 8, // Add some padding to prevent text from touching edges
+    },
+    seedPhraseInputItem: {
+      width: '31.33%', // 100% / 3 = 33.33%, minus some space
+      marginRight: '3%', // Space between columns
+      marginBottom: 8,
+      flex: 0, // Prevent flex growth
+    },
+    seedPhraseInputItemLast: {
+      marginRight: 0, // Remove right margin for last item in row
     },
     passwordContainer: {
       flexDirection: 'column',

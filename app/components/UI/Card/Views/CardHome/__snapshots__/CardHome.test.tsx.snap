@@ -900,8 +900,9 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                       "paddingHorizontal": 0,
@@ -1977,8 +1978,9 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "Geist Medium",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                       "paddingHorizontal": 0,
