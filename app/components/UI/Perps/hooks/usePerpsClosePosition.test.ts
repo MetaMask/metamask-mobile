@@ -23,6 +23,40 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
+// Create stable mock references for usePerpsToasts
+const mockShowToast = jest.fn();
+const mockPerpsToastOptions = {
+  positionManagement: {
+    closePosition: {
+      marketClose: {
+        full: {
+          closeFullPositionInProgress: jest.fn(),
+          closeFullPositionSuccess: {},
+        },
+        partial: {
+          closePartialPositionInProgress: jest.fn(),
+        },
+      },
+      limitClose: {
+        full: {
+          fullPositionCloseSubmitted: jest.fn(),
+        },
+        partial: {
+          partialPositionCloseSubmitted: jest.fn(),
+        },
+      },
+    },
+  },
+};
+
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    PerpsToastOptions: mockPerpsToastOptions,
+  }),
+}));
+
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {
@@ -48,6 +82,12 @@ describe('usePerpsClosePosition', () => {
     (usePerpsTrading as jest.Mock).mockReturnValue({
       closePosition: mockClosePosition,
     });
+    // Reset toast mocks
+    mockShowToast.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.marketClose.full.closeFullPositionInProgress.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.marketClose.partial.closePartialPositionInProgress.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted.mockClear();
+    mockPerpsToastOptions.positionManagement.closePosition.limitClose.partial.partialPositionCloseSubmitted.mockClear();
   });
 
   describe('handleClosePosition', () => {
@@ -78,6 +118,13 @@ describe('usePerpsClosePosition', () => {
       expect(onSuccess).toHaveBeenCalledWith(successResult);
       expect(result.current.isClosing).toBe(false);
       expect(result.current.error).toBeNull();
+
+      // Verify toast was shown
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(
+        mockPerpsToastOptions.positionManagement.closePosition.marketClose.full
+          .closeFullPositionInProgress,
+      ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
     });
 
     it('should successfully close a partial position with limit order', async () => {
