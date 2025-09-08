@@ -105,9 +105,8 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={32}
-            testID={getPerpsMarketRowItemSelector.tokenLogo(
-              displayMarket.symbol,
-            )}
+            recyclingKey={displayMarket.symbol}
+            testID={getPerpsMarketRowItemSelector.rowItem(displayMarket.symbol)}
           />
         </View>
 
