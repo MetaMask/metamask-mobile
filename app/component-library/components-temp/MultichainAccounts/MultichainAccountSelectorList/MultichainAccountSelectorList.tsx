@@ -156,7 +156,7 @@ const MultichainAccountSelectorList = ({
     if (listRefToUse.current) {
       // Use requestAnimationFrame to ensure the list has finished re-rendering
       const animationFrameId = requestAnimationFrame(() => {
-        listRefToUse.current?.scrollToOffset({ offset: 0, animated: true });
+        listRefToUse.current?.scrollToOffset({ offset: 0, animated: false });
       });
 
       return () => {
