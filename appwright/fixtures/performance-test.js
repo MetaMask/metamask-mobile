@@ -1,5 +1,6 @@
 import { test as base } from 'appwright';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
+import TimerHelper from '../utils/TimersHelper.js';
 
 // Create a custom test fixture that handles performance tracking and cleanup
 export const test = base.extend({
@@ -10,7 +11,99 @@ export const test = base.extend({
     // Provide the tracker to the test
     await use(performanceTracker);
 
-    // After test completes, handle session cleanup
+    // After test completes, handle performance metrics and session cleanup
+    console.log('🔍 Post-test cleanup: attaching performance metrics...');
+    console.log(
+      `📊 Found ${performanceTracker.timers.length} timers in tracker`,
+    );
+
+    if (performanceTracker.timers.length === 0) {
+      console.log('⚠️ No timers found in performance tracker');
+    }
+
+    // Enhanced timer recovery: capture any timers that weren't added to the tracker
+    try {
+      const Timers = await import('../utils/Timers.js').then((m) => m.default);
+      const allGlobalTimers = Timers.getAllTimers();
+
+      // Check for timers that exist globally but weren't added to the tracker
+      for (const globalTimer of allGlobalTimers) {
+        const existsInTracker = performanceTracker.timers.some(
+          (t) => t.id === globalTimer.id,
+        );
+
+        if (!existsInTracker) {
+          console.log(`🔄 Recovering orphaned timer: "${globalTimer.id}"`);
+
+          try {
+            const recoveredTimer = new TimerHelper(globalTimer.id);
+
+            if (globalTimer.start !== null && globalTimer.duration === null) {
+              recoveredTimer.stop();
+            }
+
+            performanceTracker.addTimer(recoveredTimer);
+          } catch (error) {
+            console.log(`⚠️ Failed to recover timer ${globalTimer.id}`);
+          }
+        }
+      }
+    } catch (importError) {
+      console.log(`⚠️ Timer recovery failed: ${importError.message}`);
+    }
+
+    // Stop any running timers in the tracker
+    for (const timer of performanceTracker.timers) {
+      try {
+        const isRunning = timer.isRunning ? timer.isRunning() : false;
+        const isCompleted = timer.isCompleted ? timer.isCompleted() : false;
+
+        if (isRunning && !isCompleted) {
+          timer.stop();
+        }
+      } catch (error) {
+        console.log(`⚠️ Error checking timer ${timer.id}`);
+      }
+    }
+
+    // Always try to attach performance metrics, even if test failed
+    try {
+      const metrics = await performanceTracker.attachToTest(testInfo);
+      console.log(
+        `✅ Performance metrics attached: ${
+          metrics.steps.length
+        } steps, ${metrics.total.toFixed(2)}s total`,
+      );
+    } catch (error) {
+      console.error('❌ Failed to attach performance metrics:', error.message);
+
+      // Create fallback metrics for failed tests
+      try {
+        const fallbackMetrics = {
+          testFailed: true,
+          failureReason: testInfo?.status || 'unknown',
+          testDuration: testInfo?.duration || 0,
+          message: 'Performance metrics could not be properly attached',
+          timersFound: performanceTracker.timers.length,
+          device: testInfo?.project?.use?.device || {
+            name: 'Unknown',
+            osVersion: 'Unknown',
+          },
+        };
+
+        await testInfo.attach(
+          `performance-metrics-fallback-${testInfo.title}`,
+          {
+            body: JSON.stringify(fallbackMetrics),
+            contentType: 'application/json',
+          },
+        );
+        console.log(`✅ Fallback metrics attached`);
+      } catch (fallbackError) {
+        console.error('❌ Fallback metrics attachment failed');
+      }
+    }
+
     console.log('🔍 Looking for session ID...');
 
     let sessionId = null;
@@ -19,7 +112,6 @@ export const test = base.extend({
       sessionId = testInfo.annotations.find(
         (annotation) => annotation.type === 'sessionId',
       )?.description;
-      console.log(`📊 Session ID from annotations: ${sessionId}`);
     }
 
     if (sessionId) {
@@ -34,24 +126,10 @@ export const test = base.extend({
         contentType: 'application/json',
       });
 
-      console.log('testInfo.project.name', testInfo.project.name);
       await performanceTracker.storeSessionData(sessionId, testInfo.title);
-      console.log(`✅ Session data stored successfully: ${sessionId}`);
+      console.log(`✅ Session data stored: ${sessionId}`);
     } else {
-      console.log('❌ No session ID found - video URL cannot be retrieved');
-      console.log(
-        'Available testInfo properties:',
-        Object.keys(testInfo || {}),
-      );
-      if (testInfo?.annotations) {
-        console.log(
-          'Available annotations:',
-          testInfo.annotations.map((a) => ({
-            type: a.type,
-            description: a.description?.substring(0, 50),
-          })),
-        );
-      }
+      console.log('⚠️ No session ID found - video URL cannot be retrieved');
     }
   },
 });

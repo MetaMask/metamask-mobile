@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountGroupType } from '@metamask/account-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -79,6 +80,29 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// Mock BottomSheetHeader
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+
+    return ({
+      children,
+      onClose,
+    }: {
+      children: React.ReactNode;
+      onClose?: () => void;
+    }) => (
+      <View testID="header">
+        <TouchableOpacity testID="header-close-button" onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+        <Text>{children}</Text>
+      </View>
+    );
+  },
+);
+
 describe('MultichainAccountActions', () => {
   const mockEngine = jest.mocked(Engine);
 
@@ -92,6 +116,7 @@ describe('MultichainAccountActions', () => {
   it('renders account actions menu with correct options', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
+    expect(getByText('Test Account Group')).toBeTruthy();
     expect(getByText('Account Details')).toBeTruthy();
     expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
@@ -154,5 +179,14 @@ describe('MultichainAccountActions', () => {
         accountGroup: mockAccountGroup,
       },
     );
+  });
+
+  it('closes modal when close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const closeButton = getByTestId('header-close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
