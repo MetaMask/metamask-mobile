@@ -63,7 +63,31 @@ export default defineConfig({
           name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: process.env.BROWSERSTACK_IOS_APP_URL, // Path to Browserstack url
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+      },
+    },
+    {
+      name: 'android-onboarding',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+        },
+        buildPath: 'bs://0f3108cc51bd0b0a2da442481ce7cd4b83d7f75a',
+      },
+    },
+    {
+      name: 'ios-onboarding',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        buildPath: 'bs://796439164674583',
       },
     },
   ],
