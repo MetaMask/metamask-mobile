@@ -107,7 +107,7 @@ export const styleSheet = (params: {
     },
     tokenSymbol: {
       alignItems: AlignItems.center,
-      alignSelf: fiatMode ? JustifyContent.flexEnd : JustifyContent.flexStart,
+      alignSelf: fiatMode ? AlignItems.flexEnd : AlignItems.flexStart,
       fontSize: getFontSizeForInputLength(inputLength, symbolLength),
       lineHeight: 75,
       paddingLeft: 2,
