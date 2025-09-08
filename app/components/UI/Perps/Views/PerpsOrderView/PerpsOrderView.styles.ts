@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
@@ -14,8 +14,6 @@ const createStyles = (colors: Colors) =>
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
       paddingTop: 32,
-      // borderWidth: 1,
-      // borderColor: 'red',
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -27,7 +25,7 @@ const createStyles = (colors: Colors) =>
       borderTopColor: colors.border.muted,
       paddingHorizontal: 24,
       paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     },
     sliderSection: {
       paddingHorizontal: 32,
@@ -38,7 +36,10 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       flex: 1,
       flexGrow: 1,
-      gap: 2,
+      gap: 1,
+    },
+    detailItemWrapper: {
+      paddingVertical: 12,
     },
     detailItem: {
       backgroundColor: colors.background.section,
