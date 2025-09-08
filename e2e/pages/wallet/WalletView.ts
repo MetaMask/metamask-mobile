@@ -561,6 +561,16 @@ class WalletView {
     });
   }
 
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
+    });
+  }
+
   async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
     await Assertions.expectElementToHaveLabel(
       this.tokenNetworkFilter,
