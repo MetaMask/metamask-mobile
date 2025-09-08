@@ -9,12 +9,12 @@ jest.mock('../core/Engine', () => ({
   context: {
     MultichainAccountService: {
       getMultichainAccountWallet: () => ({
-          discoverAndCreateAccounts: jest
-            .fn()
-            .mockImplementation((...args) =>
-              mockDiscoverAndCreateAccounts(...args),
-            ),
-        }),
+        discoverAndCreateAccounts: jest
+          .fn()
+          .mockImplementation((...args) =>
+            mockDiscoverAndCreateAccounts(...args),
+          ),
+      }),
     },
   },
 }));
