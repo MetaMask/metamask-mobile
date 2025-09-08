@@ -289,6 +289,6 @@ describe('convertCurrency', () => {
   it('apply conversion rate to passed value', () => {
     expect(convertCurrency('120.75', 0.5, 4, 2)).toEqual('60.37');
     expect(convertCurrency('120.75', 0.25, 4, 4)).toEqual('30.1875');
-    expect(convertCurrency('0.01', 10, 4, 0)).toEqual('60.37');
+    expect(convertCurrency('0.01', 10, 4, 0)).toEqual('0');
   });
 });
