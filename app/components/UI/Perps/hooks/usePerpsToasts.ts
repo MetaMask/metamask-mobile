@@ -15,11 +15,119 @@ import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
 
-type PerpsToastOptions = ToastOptions & {
+export type PerpsToastOptions = ToastOptions & {
   hapticsType: NotificationFeedbackType;
 };
 
 type OrderDirection = 'long' | 'short';
+
+export interface PerpsToastOptionsConfig {
+  accountManagement: {
+    deposit: {
+      success: (amountFormatted: string) => PerpsToastOptions;
+      inProgress: (
+        processingTimeInSeconds: number | undefined,
+      ) => PerpsToastOptions;
+      error: PerpsToastOptions;
+    };
+    withdrawal: {
+      withdrawalInProgress: PerpsToastOptions;
+      withdrawalSuccess: (
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      withdrawalFailed: (error?: string) => PerpsToastOptions;
+    };
+  };
+  orderManagement: {
+    market: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      creationFailed: PerpsToastOptions;
+    };
+    limit: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      creationFailed: PerpsToastOptions;
+      cancellationInProgress: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      cancellationSuccess: PerpsToastOptions;
+      cancellationFailed: PerpsToastOptions;
+      reduceOnlyClose: {
+        cancellationSuccess: PerpsToastOptions;
+        cancellationFailed: PerpsToastOptions;
+      };
+    };
+  };
+  positionManagement: {
+    closePosition: {
+      marketClose: {
+        full: {
+          closeFullPositionInProgress: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => PerpsToastOptions;
+          closeFullPositionSuccess: PerpsToastOptions;
+        };
+        partial: {
+          closePartialPositionInProgress: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => PerpsToastOptions;
+        };
+      };
+      limitClose: {
+        full: {
+          fullPositionCloseSubmitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => PerpsToastOptions;
+        };
+        partial: {
+          partialPositionCloseSubmitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => PerpsToastOptions;
+        };
+      };
+    };
+  };
+  formValidation: {
+    orderForm: {
+      validationError: (error: string) => PerpsToastOptions;
+    };
+  };
+  dataFetching: {
+    market: {
+      error: {
+        marketDataUnavailable: (assetSymbol: string) => PerpsToastOptions;
+      };
+    };
+  };
+}
 
 const getPerpsToastLabels = (primary: string, secondary?: string) => {
   const labels = [
@@ -49,7 +157,10 @@ const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
 };
 
-const usePerpsToasts = () => {
+const usePerpsToasts = (): {
+  showToast: (config: PerpsToastOptions) => void;
+  PerpsToastOptions: PerpsToastOptionsConfig;
+} => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const navigation = useNavigation();
@@ -104,7 +215,7 @@ const usePerpsToasts = () => {
   );
 
   // Centralized toast options for Perps
-  const PerpsToastOptions = useMemo(
+  const PerpsToastOptions: PerpsToastOptionsConfig = useMemo(
     () => ({
       accountManagement: {
         deposit: {
