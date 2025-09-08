@@ -69,6 +69,8 @@ interface PerpsLeverageBottomSheetProps {
   currentPrice: number;
   direction: 'long' | 'short';
   asset?: string;
+  limitPrice?: string;
+  orderType?: 'market' | 'limit';
 }
 
 /**
@@ -306,6 +308,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice,
   direction,
   asset = '',
+  limitPrice,
+  orderType = 'market',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -316,9 +320,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const hasTrackedLeverageView = useRef(false);
 
   // Dynamically calculate liquidation price based on tempLeverage
+  // Use limit price for limit orders, market price for market orders
+  const entryPrice = useMemo(
+    () =>
+      orderType === 'limit' && limitPrice
+        ? parseFloat(limitPrice)
+        : currentPrice,
+    [orderType, limitPrice, currentPrice],
+  );
+
   const { liquidationPrice: calculatedLiquidationPrice } =
     usePerpsLiquidationPrice({
-      entryPrice: currentPrice,
+      entryPrice,
       leverage: tempLeverage,
       direction,
       asset,
