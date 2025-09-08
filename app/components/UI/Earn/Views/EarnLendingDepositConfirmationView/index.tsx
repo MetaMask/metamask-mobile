@@ -689,9 +689,6 @@ const EarnLendingDepositConfirmationView = () => {
     } catch (error: Error | unknown) {
       Logger.error(error as Error, '[depositTokens] Lending deposit failed');
       return;
-    } finally {
-      setIsDepositLoading(false);
-      setIsConfirmButtonDisabled(false);
     }
   };
 
@@ -758,15 +755,14 @@ const EarnLendingDepositConfirmationView = () => {
       const txType = txResult?.transactionMeta?.type;
 
       if (!transactionId || !txType) {
-        setIsConfirmButtonDisabled(false);
+        unsetDepositLoadingState();
         return;
       }
 
       createTransactionEventListeners(transactionId, txType);
     } catch (error) {
       // allow user to try again
-      setIsDepositLoading(false);
-      setIsConfirmButtonDisabled(false);
+      unsetDepositLoadingState();
     }
   };
 

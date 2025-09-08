@@ -1555,7 +1555,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockExecuteLendingDeposit).toHaveBeenCalled();
   });
 
-  it('calls depositTokens and handles error with catch and finally', async () => {
+  it('calls depositTokens and handles error with catch', async () => {
     const errorMocked = new Error('Deposit Failed');
     mockExecuteLendingDeposit.mockRejectedValue(errorMocked);
     const errorSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
@@ -1582,33 +1582,6 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(confirmButton.props.disabled).toBe(false);
 
     errorSpy.mockRestore();
-  });
-
-  it('confirm button is re-enabled after depositTokens runs (finally block)', async () => {
-    mockExecuteLendingDeposit.mockResolvedValue({
-      transactionMeta: { id: '123', type: TransactionType.lendingDeposit },
-    } as Result);
-
-    const { getByTestId } = renderWithProvider(
-      <EarnLendingDepositConfirmationView />,
-      { state: mockInitialState },
-    );
-    const confirmButton = getByTestId(
-      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(confirmButton);
-    });
-
-    expect(confirmButton.props.disabled).toBe(false);
-
-    mockExecuteLendingDeposit.mockRejectedValue(new Error('Deposit Failed'));
-    await act(async () => {
-      fireEvent.press(confirmButton);
-    });
-
-    expect(confirmButton.props.disabled).toBe(false);
   });
 
   describe('Tracing', () => {
