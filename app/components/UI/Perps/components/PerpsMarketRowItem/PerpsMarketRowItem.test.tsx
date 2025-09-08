@@ -90,7 +90,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       const tokenLogo = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('BTC'),
+        getPerpsMarketRowItemSelector.tokenLogo('BTC'),
       );
       expect(tokenLogo).toBeOnTheScreen();
       expect(tokenLogo.props['data-symbol']).toBe('BTC');
@@ -255,9 +255,15 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={customMarket} />);
 
       const avatar = screen.getByTestId(
-        getPerpsMarketRowItemSelector.rowItem('ETH'),
+        getPerpsMarketRowItemSelector.tokenLogo('ETH'),
       );
       expect(avatar).toBeOnTheScreen();
+
+      // Also assert the row container keeps its own testID
+      const rowItem = screen.getByTestId(
+        getPerpsMarketRowItemSelector.rowItem('ETH'),
+      );
+      expect(rowItem).toBeOnTheScreen();
     });
   });
 

@@ -95,14 +95,20 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
+    >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={32}
             recyclingKey={displayMarket.symbol}
-            testID={getPerpsMarketRowItemSelector.rowItem(displayMarket.symbol)}
+            testID={getPerpsMarketRowItemSelector.tokenLogo(
+              displayMarket.symbol,
+            )}
           />
         </View>
 
