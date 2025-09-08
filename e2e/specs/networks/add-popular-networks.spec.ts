@@ -31,7 +31,6 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
           restartDevice: true,
         },
         async () => {
-          console.log('running for true', isRemoveGlobalNetworkSelectorEnabled);
           await loginToApp();
 
           await WalletView.tapTokenNetworkFilter();
@@ -67,10 +66,6 @@ describe(
             restartDevice: true,
           },
           async () => {
-            console.log(
-              'running for false',
-              isRemoveGlobalNetworkSelectorEnabled,
-            );
             await loginToApp();
 
             await WalletView.tapNetworksButtonOnNavBar();
