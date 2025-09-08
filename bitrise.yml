@@ -386,7 +386,6 @@ stages:
       # - run_tag_smoke_performance_android: {}
       - run_tag_smoke_card_ios: {}
       # - run_tag_smoke_card_android: {}
-      # - run_tag_smoke_perps_ios: {}
   # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
   # run_smoke_e2e_performance_ios_android_stage:
     # workflows:
@@ -411,7 +410,6 @@ stages:
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
-      - ios_run_regression_perps_tests: {}
       - android_run_regression_confirmations_tests: {}
       - android_run_regression_wallet_platform_tests: {}
       - android_run_regression_trade_tests: {}
@@ -433,7 +431,6 @@ stages:
       - ios_run_regression_accounts_tests: {}
       - ios_run_regression_ux_tests: {}
       - ios_run_regression_assets_tests: {}
-      - ios_run_regression_perps_tests: {}
       - android_run_regression_confirmations_tests: {}
       - android_run_regression_wallet_platform_tests: {}
       - android_run_regression_trade_tests: {}
@@ -944,11 +941,6 @@ workflows:
       - TEST_SUITE_TAG: 'RegressionWalletUX'
     after_run:
       - ios_e2e_test
-  ios_run_regression_perps_tests:
-    envs:
-      - TEST_SUITE_TAG: 'RegressionPerps'
-    after_run:
-      - ios_e2e_test
   android_build_regression_tests:
     meta:
       bitrise.io:
@@ -1337,11 +1329,6 @@ workflows:
   run_tag_smoke_card_ios:
     envs:
       - TEST_SUITE_TAG: 'SmokeCard'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_perps_ios:
-    envs:
-      - TEST_SUITE_TAG: 'SmokePerps'
     after_run:
       - ios_e2e_test
   run_tag_smoke_card_android:
