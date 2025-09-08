@@ -1,6 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
 
-// TODO: Add tests
 /**
  * Get the order direction based on the side and position size
  * @param side - The side of the order
@@ -10,8 +9,8 @@ import { strings } from '../../../../../locales/i18n';
 export const getOrderDirection = (
   side: 'buy' | 'sell',
   positionSize: string | undefined,
-): 'long' | 'short' => {
-  const hasPosition = !!positionSize; // false if 0, undefined, or null
+): string => {
+  const hasPosition = !!positionSize;
 
   // No existing position → direction depends only on side
   if (!hasPosition) {
