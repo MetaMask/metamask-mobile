@@ -173,6 +173,9 @@ jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
     selectAccountGroups: jest.fn(() => [
       {
         id: 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0',
@@ -235,7 +238,6 @@ jest.mock(
   }),
 );
 
-// Mock accounts controller selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../selectors/accountsController'),
   selectInternalAccountsById: jest.fn(() => ({
@@ -248,8 +250,8 @@ jest.mock('../../../../selectors/accountsController', () => ({
   })),
 }));
 
-// Mock balance selectors
 jest.mock('../../../../selectors/assets/balances', () => ({
+  ...jest.requireActual('../../../../selectors/assets/balances'),
   selectBalanceByAccountGroup: jest.fn(() => () => ({
     totalBalanceInUserCurrency: 100.5,
     userCurrency: 'usd',
