@@ -18,6 +18,7 @@ import {
 } from '../../utils/formatUtils';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -100,6 +101,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
           <PerpsTokenLogo
             symbol={displayMarket.symbol}
             size={32}
+            recyclingKey={displayMarket.symbol}
             testID={getPerpsMarketRowItemSelector.rowItem(displayMarket.symbol)}
           />
         </View>
@@ -109,15 +111,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {displayMarket.symbol}
             </Text>
-            <View style={styles.leverageContainer}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {displayMarket.maxLeverage}
-              </Text>
-            </View>
+            <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </View>
           <Text
             variant={TextVariant.BodySM}
-            color={TextColor.Muted}
+            color={TextColor.Alternative}
             style={styles.tokenVolume}
           >
             {displayMarket.volume}

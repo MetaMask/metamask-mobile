@@ -5,7 +5,7 @@ export const PERPS_CONSTANTS = {
   FEATURE_FLAG_KEY: 'perpsEnabled',
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
-  BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded
+  BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded or when user exits perps UX
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
   FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
@@ -68,7 +68,7 @@ export const PERFORMANCE_CONFIG = {
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs
-  NAVIGATION_PARAMS_DELAY_MS: 100,
+  NAVIGATION_PARAMS_DELAY_MS: 200,
 
   // Market data cache duration (milliseconds)
   // How long to cache market list data before fetching fresh data
