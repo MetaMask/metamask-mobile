@@ -139,7 +139,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     stack: error instanceof Error ? error.stack : undefined,
   });
 
-  // Check if it's a PerpsController error code
+  // Check if it's a Core PerpsController or Perps Provider error code
   if (
     errorString &&
     Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
@@ -168,10 +168,11 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     });
   }
 
-  // For non-PerpsController errors, return as-is or use fallback
+  // For any other error/error string that was not matched, use fallback if provided
   if (errorString) {
-    return errorString;
+    return fallbackMessage || errorString;
   }
 
+  // if we ever get here, return fallback or unknown error
   return fallbackMessage || strings('perps.errors.unknownError');
 }

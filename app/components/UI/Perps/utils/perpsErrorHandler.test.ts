@@ -457,13 +457,13 @@ describe('handlePerpsError', () => {
       expect(result).toBe('Fallback message');
     });
 
-    it('should prefer error string over fallback', () => {
+    it('should use fallback message when provided for non-error-code strings', () => {
       const result = handlePerpsError({
         error: 'Some error',
         fallbackMessage: 'Fallback message',
       });
 
-      expect(result).toBe('Some error');
+      expect(result).toBe('Fallback message');
     });
   });
 
