@@ -28,7 +28,9 @@ export interface TransactionToken {
  * Determine what tokens are required by the transaction.
  * Necessary for MetaMask Pay to generate suitable bridge or swap transactions.
  */
-export function useTransactionRequiredTokens() {
+export function useTransactionRequiredTokens({
+  log: isLoggingEnabled,
+}: { log?: boolean } = {}): TransactionToken[] {
   const transactionMeta = useTransactionMetadataOrThrow();
   const { chainId } = transactionMeta;
 
@@ -41,8 +43,9 @@ export function useTransactionRequiredTokens() {
   );
 
   useEffect(() => {
+    if (!isLoggingEnabled) return;
     log('Required tokens', result);
-  }, [result]);
+  }, [isLoggingEnabled, result]);
 
   return result;
 }
