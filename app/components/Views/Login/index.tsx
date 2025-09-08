@@ -280,7 +280,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     } catch (e: unknown) {
       Logger.error(e as Error);
       setLoading(false);
-      setError(strings('login.invalid_password'));
+      setError(strings('login.clean_vault_error'));
     }
   };
 
