@@ -51,7 +51,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
     };
     limit: {
       submitted: (
@@ -64,7 +64,7 @@ export interface PerpsToastOptionsConfig {
         amount: string,
         assetSymbol: string,
       ) => PerpsToastOptions;
-      creationFailed: PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
       cancellationInProgress: (
         direction: OrderDirection,
         amount: string,
@@ -214,7 +214,7 @@ const usePerpsToasts = (): {
     [navigation, toastRef],
   );
 
-  // Centralized toast options for Perps
+  // Centralized toast options for Perp
   const PerpsToastOptions: PerpsToastOptionsConfig = useMemo(
     () => ({
       accountManagement: {
