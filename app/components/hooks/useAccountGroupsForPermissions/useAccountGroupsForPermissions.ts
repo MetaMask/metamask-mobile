@@ -20,8 +20,13 @@ import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multi
 const hasConnectedAccounts = (
   accountGroup: AccountGroupWithInternalAccounts,
   connectedAddresses: CaipAccountId[],
-): boolean =>
-  accountGroup.accounts.some((account) => {
+): boolean => {
+  // Early return if no connected addresses or no accounts to check
+  if (connectedAddresses.length === 0 || accountGroup.accounts.length === 0) {
+    return false;
+  }
+
+  return accountGroup.accounts.some((account) => {
     try {
       return isInternalAccountInPermittedAccountIds(
         account,
@@ -31,6 +36,7 @@ const hasConnectedAccounts = (
       return false;
     }
   });
+};
 
 /**
  * Checks if an account group supports the requested chain IDs
