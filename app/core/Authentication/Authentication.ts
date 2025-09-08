@@ -800,6 +800,7 @@ class AuthenticationService {
 
           // discover multichain accounts from imported srp
           if (isMultichainAccountsState2Enabled()) {
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
             this.attemptMultichainAccountWalletDiscovery(keyringMetadata.id);
           } else {
             this.addMultichainAccounts([keyringMetadata]);
@@ -1029,7 +1030,10 @@ class AuthenticationService {
         await this.syncKeyringEncryptionKey();
 
         if (isMultichainAccountsState2Enabled()) {
-          await this.attemptMultichainAccountWalletDiscovery();
+          for (const { id } of keyringMetadataList) {
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(id);
+          }
         } else {
           this.addMultichainAccounts(keyringMetadataList);
         }
