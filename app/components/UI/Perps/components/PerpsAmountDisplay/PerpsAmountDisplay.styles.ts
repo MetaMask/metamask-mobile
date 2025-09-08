@@ -11,17 +11,8 @@ const createStyles = (colors: Theme['colors']) =>
       marginBottom: 8,
     },
     amountValue: {
-      fontSize: 64,
-      fontWeight: '600',
-      color: colors.text.default,
-      lineHeight: 72,
-    },
-    amountValueToken: {
-      fontSize: 48,
-      fontWeight: '600',
-      color: colors.text.default,
-      lineHeight: 54,
-      letterSpacing: -0.5,
+      fontSize: 54,
+      lineHeight: 74,
     },
     amountValueActive: {
       color: colors.primary.default,

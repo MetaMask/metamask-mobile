@@ -81,18 +81,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       <View style={styles.amountRow}>
         <Text
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          // style={[
-          //   showTokenAmount && tokenAmount && tokenSymbol
-          //     ? styles.amountValueToken
-          //     : styles.amountValue,
-          //   isActive && styles.amountValueActive,
-          // ]}
           variant={TextVariant.DisplayLG}
           color={TextColor.Default}
-          style={{
-            fontSize: 54,
-            lineHeight: 74,
-          }}
+          style={styles.amountValue}
         >
           {showTokenAmount && tokenAmount && tokenSymbol
             ? `${formatPositionSize(tokenAmount)} ${tokenSymbol}`
