@@ -46,7 +46,7 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: isNFT ? 100 : 132,
+      marginBottom: 40,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -113,6 +113,8 @@ export const styleSheet = (params: {
       paddingLeft: 2,
     },
     topSection: {
+      flexDirection: FlexDirection.Column,
+      justifyContent: JustifyContent.spaceBetween,
       paddingHorizontal: 8,
       paddingVertical: 32,
     },
