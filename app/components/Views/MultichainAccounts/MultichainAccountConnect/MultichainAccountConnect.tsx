@@ -172,7 +172,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         isOriginMMSDKRemoteConn: Boolean(isOriginMMSDKRemoteConn),
         origin: channelIdOrHostname,
         allNetworksList,
-        supportedRequestedCaipChainIds: requestedCaipChainIds,
+        supportedRequestedCaipChainIds: allNetworksList,
         requestedNamespaces,
       }),
     [
@@ -181,9 +181,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       isOriginMMSDKRemoteConn,
       channelIdOrHostname,
       allNetworksList,
-      requestedCaipChainIds,
       requestedNamespaces,
     ],
+  );
+
+  const requestedCaipChainIdsWithDefaultSelectedChainIds = useMemo(
+    () =>
+      Array.from(
+        new Set([...requestedCaipChainIds, ...defaultSelectedChainIds]),
+      ),
+    [requestedCaipChainIds, defaultSelectedChainIds],
   );
 
   const {
@@ -193,16 +200,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   } = useAccountGroupsForPermissions(
     existingPermissionsCaip25CaveatValue,
     requestedCaipAccountIds,
-    requestedCaipChainIds.length > 0
-      ? requestedCaipChainIds
-      : defaultSelectedChainIds,
+    requestedCaipChainIdsWithDefaultSelectedChainIds,
     requestedNamespaces,
   );
 
   const [selectedChainIds, setSelectedChainIds] = useState<CaipChainId[]>(
-    requestedCaipChainIds.length > 0
-      ? requestedCaipChainIds
-      : defaultSelectedChainIds,
+    requestedCaipChainIdsWithDefaultSelectedChainIds,
   );
 
   const selectedNetworkAvatars = useMemo(
@@ -243,17 +246,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       suggestedAccountGroups: [firstSupportedAccountGroup],
       suggestedCaipAccountIds: getCaip25AccountFromAccountGroupAndScope(
         [firstSupportedAccountGroup],
-        requestedCaipChainIds.length > 0
-          ? requestedCaipChainIds
-          : defaultSelectedChainIds,
+        requestedCaipChainIdsWithDefaultSelectedChainIds,
       ),
     };
   }, [
     connectedAccountGroups,
-    existingConnectedCaipAccountIds,
-    requestedCaipChainIds,
-    defaultSelectedChainIds,
     supportedAccountGroups,
+    requestedCaipChainIdsWithDefaultSelectedChainIds,
+    existingConnectedCaipAccountIds,
   ]);
 
   const [selectedAccountGroupIds, setSelectedAccountGroupIds] = useState<
