@@ -9,8 +9,8 @@ import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { PERPS_CURRENCY } from '../../constants/perps';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -32,6 +32,7 @@ const PERCENTAGE_BUTTONS = [
 ];
 
 export interface DepositKeyboardProps {
+  alertMessage?: string;
   hasInput: boolean;
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
@@ -41,13 +42,14 @@ export interface DepositKeyboardProps {
 
 export const DepositKeyboard = memo(
   ({
+    alertMessage,
     hasInput,
     onChange,
     onDonePress,
     onPercentagePress,
     value,
   }: DepositKeyboardProps) => {
-    const currentCurrency = useSelector(selectCurrentCurrency);
+    const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
 
     const valueString = value.toString();
@@ -75,6 +77,7 @@ export const DepositKeyboard = memo(
           gap={10}
         >
           {!hasInput &&
+            !alertMessage &&
             PERCENTAGE_BUTTONS.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
@@ -84,7 +87,7 @@ export const DepositKeyboard = memo(
                 variant={ButtonVariants.Secondary}
               />
             ))}
-          {hasInput && (
+          {hasInput && !alertMessage && (
             <Button
               testID="deposit-keyboard-done-button"
               label={strings('confirm.deposit_edit_amount_done')}
@@ -92,6 +95,11 @@ export const DepositKeyboard = memo(
               onPress={onDonePress}
               variant={ButtonVariants.Primary}
             />
+          )}
+          {alertMessage && (
+            <Box style={styles.alertContainer}>
+              <Text style={styles.alertText}>{alertMessage}</Text>
+            </Box>
           )}
         </Box>
         <KeypadComponent
