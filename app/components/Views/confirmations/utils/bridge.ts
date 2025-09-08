@@ -25,9 +25,9 @@ export interface BridgeQuoteRequest {
   attemptsMax: number;
   bufferInitial: number;
   bufferStep: number;
+  bufferSubsequent: number;
   from: Hex;
-  slippageInitial: number;
-  slippageSubsequent: number;
+  slippage: number;
   sourceBalanceRaw: string;
   sourceChainId: Hex;
   sourceTokenAddress: Hex;
@@ -70,12 +70,7 @@ export async function refreshQuote(
   quote: TransactionBridgeQuote,
 ): Promise<TransactionBridgeQuote> {
   const gasFeeEstimates = await getGasFeeEstimates(quote.request.sourceChainId);
-
-  const newQuote = await getSingleBridgeQuote(
-    quote.request,
-    gasFeeEstimates,
-    0,
-  );
+  const newQuote = await getSingleBridgeQuote(quote.request, gasFeeEstimates);
 
   log('Refreshed bridge quote', { old: quote, new: newQuote });
 
@@ -91,13 +86,15 @@ async function getSufficientSingleBridgeQuote(
     attemptsMax,
     bufferInitial,
     bufferStep,
+    bufferSubsequent,
     sourceBalanceRaw,
     sourceTokenAmount,
     targetTokenAddress,
   } = request;
 
   const sourceAmountValue = new BigNumber(sourceTokenAmount);
-  const originalSourceAmount = sourceAmountValue.div(1 + bufferInitial);
+  const buffer = index === 0 ? bufferInitial : bufferSubsequent;
+  const originalSourceAmount = sourceAmountValue.div(1 + buffer);
 
   let currentSourceAmount = sourceTokenAmount;
 
@@ -120,7 +117,6 @@ async function getSufficientSingleBridgeQuote(
       const result = await getSingleBridgeQuote(
         currentRequest,
         gasFeeEstimates,
-        index,
       );
 
       const dust = new BigNumber(result.quote.minDestTokenAmount)
@@ -155,7 +151,7 @@ async function getSufficientSingleBridgeQuote(
     }
 
     const newSourceAmount = originalSourceAmount.multipliedBy(
-      1 + bufferInitial + bufferStep * (i + 1),
+      1 + buffer + bufferStep * (i + 1),
     );
 
     currentSourceAmount = newSourceAmount.isLessThan(sourceBalanceRaw)
@@ -171,12 +167,10 @@ async function getSufficientSingleBridgeQuote(
 async function getSingleBridgeQuote(
   request: BridgeQuoteRequest,
   gasFeeEstimates: GasFeeEstimates,
-  index: number,
 ): Promise<TransactionBridgeQuote> {
   const {
     from,
-    slippageInitial,
-    slippageSubsequent,
+    slippage,
     sourceChainId,
     sourceTokenAddress,
     sourceTokenAmount,
@@ -193,7 +187,7 @@ async function getSingleBridgeQuote(
     gasIncluded: false,
     gasless7702: false,
     insufficientBal: false,
-    slippage: index === 0 ? slippageInitial : slippageSubsequent,
+    slippage: slippage * 100,
     srcChainId: sourceChainId,
     srcTokenAddress: toChecksumAddress(sourceTokenAddress),
     srcTokenAmount: sourceTokenAmount,

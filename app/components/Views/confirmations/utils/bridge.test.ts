@@ -15,6 +15,7 @@ import {
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { GasFeeController } from '@metamask/gas-fee-controller';
+import { cloneDeep } from 'lodash';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
@@ -26,9 +27,9 @@ const QUOTE_REQUEST_1_MOCK: BridgeQuoteRequest = {
   attemptsMax: 1,
   bufferInitial: 1,
   bufferStep: 1,
+  bufferSubsequent: 2,
   from: '0x123',
-  slippageInitial: 0.005,
-  slippageSubsequent: 0.02,
+  slippage: 0.005,
   sourceBalanceRaw: '10000000000000000000',
   sourceChainId: '0x1',
   sourceTokenAddress: '0xabc',
@@ -145,7 +146,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_1_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_1_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_1_MOCK.targetTokenAddress,
-          slippage: QUOTE_REQUEST_1_MOCK.slippageInitial,
+          slippage: 0.5,
           insufficientBal: false,
         }),
         undefined,
@@ -160,7 +161,7 @@ describe('Confirmations Bridge Utils', () => {
           srcTokenAmount: QUOTE_REQUEST_2_MOCK.sourceTokenAmount,
           destChainId: QUOTE_REQUEST_2_MOCK.targetChainId,
           destTokenAddress: QUOTE_REQUEST_2_MOCK.targetTokenAddress,
-          slippage: QUOTE_REQUEST_2_MOCK.slippageSubsequent,
+          slippage: 0.5,
           insufficientBal: false,
         }),
         undefined,
@@ -672,6 +673,21 @@ describe('Confirmations Bridge Utils', () => {
       } as TransactionBridgeQuote);
 
       expect(bridgeControllerMock.fetchQuotes).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws if new quote under minimum', async () => {
+      const quote = cloneDeep(QUOTE_1_MOCK);
+      quote.quote.minDestTokenAmount = '122';
+
+      bridgeControllerMock.fetchQuotes.mockReset();
+      bridgeControllerMock.fetchQuotes.mockResolvedValue([quote]);
+
+      await expect(
+        refreshQuote({
+          ...QUOTE_1_MOCK,
+          request: QUOTE_REQUEST_1_MOCK,
+        } as TransactionBridgeQuote),
+      ).rejects.toThrow('All quotes under minimum');
     });
   });
 });
