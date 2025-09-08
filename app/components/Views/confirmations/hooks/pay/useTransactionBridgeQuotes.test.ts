@@ -11,6 +11,13 @@ import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMet
 import { Hex } from '@metamask/utils';
 import { useAlerts } from '../../context/alert-system-context';
 import { AlertKeys } from '../../constants/alerts';
+import {
+  ATTEMPTS_MAX_DEFAULT,
+  BUFFER_INITIAL_DEFAULT,
+  BUFFER_STEP_DEFAULT,
+  SLIPPAGE_INITIAL_DEFAULT,
+  SLIPPAGE_SUBSEQUENT_DEFAULT,
+} from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
@@ -27,8 +34,9 @@ const TOKEN_ADDRESS_TARGET_2_MOCK = '0x789' as Hex;
 const ACCOUNT_ADDRESS_MOCK = '0xabc';
 const SOURCE_AMOUNT_1_MOCK = '1234';
 const SOURCE_AMOUNT_2_MOCK = '5678';
-const MINIMUM_TOKEN_AMOUNT_1_MOCK = '1.23';
-const MINIMUM_TOKEN_AMOUNT_2_MOCK = '2.34';
+const MINIMUM_TOKEN_AMOUNT_1_MOCK = '123';
+const MINIMUM_TOKEN_AMOUNT_2_MOCK = '234';
+const SOURCE_BALANCE_RAW_MOCK = '1234560';
 
 const QUOTE_MOCK = {
   quote: {},
@@ -68,6 +76,7 @@ describe('useTransactionBridgeQuotes', () => {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
         balance: '123.456',
         balanceFiat: '123.456',
+        balanceRaw: SOURCE_BALANCE_RAW_MOCK,
         chainId: CHAIN_ID_SOURCE_MOCK,
         decimals: 4,
         symbol: 'TST',
@@ -81,12 +90,12 @@ describe('useTransactionBridgeQuotes', () => {
         {
           address: TOKEN_ADDRESS_TARGET_1_MOCK,
           amountRaw: SOURCE_AMOUNT_1_MOCK,
-          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_1_MOCK,
+          targetAmountRaw: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         },
         {
           address: TOKEN_ADDRESS_TARGET_2_MOCK,
           amountRaw: SOURCE_AMOUNT_2_MOCK,
-          targetAmountHuman: MINIMUM_TOKEN_AMOUNT_2_MOCK,
+          targetAmountRaw: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         },
       ],
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
@@ -103,20 +112,32 @@ describe('useTransactionBridgeQuotes', () => {
 
     expect(getBridgeQuotesMock).toHaveBeenCalledWith([
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
+        bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_1_MOCK,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_1_MOCK,
+        targetAmountMinimum: MINIMUM_TOKEN_AMOUNT_1_MOCK,
         targetChainId: CHAIN_ID_TARGET_MOCK,
         targetTokenAddress: TOKEN_ADDRESS_TARGET_1_MOCK,
       },
       {
+        attemptsMax: ATTEMPTS_MAX_DEFAULT,
+        bufferInitial: BUFFER_INITIAL_DEFAULT,
+        bufferStep: BUFFER_STEP_DEFAULT,
         from: ACCOUNT_ADDRESS_MOCK,
-        minimumTargetAmount: MINIMUM_TOKEN_AMOUNT_2_MOCK,
+        slippageInitial: SLIPPAGE_INITIAL_DEFAULT,
+        slippageSubsequent: SLIPPAGE_SUBSEQUENT_DEFAULT,
+        sourceBalanceRaw: SOURCE_BALANCE_RAW_MOCK,
         sourceChainId: CHAIN_ID_SOURCE_MOCK,
         sourceTokenAddress: TOKEN_ADDRESS_SOURCE_MOCK,
         sourceTokenAmount: SOURCE_AMOUNT_2_MOCK,
+        targetAmountMinimum: MINIMUM_TOKEN_AMOUNT_2_MOCK,
         targetChainId: CHAIN_ID_TARGET_MOCK,
         targetTokenAddress: TOKEN_ADDRESS_TARGET_2_MOCK,
       },

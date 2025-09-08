@@ -202,15 +202,18 @@ export const importWalletWithRecoveryPhrase = async ({
       await MetaMetricsOptIn.tapNoThanksButton();
     }
   }
+  // Dealing with flakiness
+  await device.disableSynchronization();
+
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-  //'Should dismiss Enable device Notifications checks alert'
-  // await skipNotificationsDeviceSettings();
-
-  // dealing with flakiness on bitrise.
+  // Dealing with flakiness
+  // Workaround for token list hanging
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -282,14 +285,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
     await MetaMetricsOptIn.tapNoThanksButton();
   }
 
+  await device.disableSynchronization(); // Detox is hanging after wallet creation
+
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
   });
   await OnboardingSuccessView.tapDone();
-
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
+  await WalletView.pullToRefreshTokensList();
+  await device.enableSynchronization();
 };
 
 /**
@@ -379,7 +385,6 @@ export const switchToSepoliaNetwork = async () => {
  * @throws {Error} Throws an error if the login view container or password input is not visible.
  */
 export const loginToApp = async (password?: string) => {
-  await device.disableSynchronization(); // Workaround for tokens list hanging after login
   const PASSWORD = password ?? '123123123';
   await Assertions.expectElementToBeVisible(LoginView.container, {
     description: 'Login View container should be visible',
@@ -393,6 +398,8 @@ export const loginToApp = async (password?: string) => {
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description: 'Wallet container should be visible after login',
   });
+
+  await device.disableSynchronization(); // Workaround for tokens list hanging after login
   try {
     await WalletView.pullToRefreshTokensList();
     logger.debug('Pull-to-refresh completed after login');
