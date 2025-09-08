@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
@@ -12,22 +12,14 @@ import AnimatedSpinner, {
 } from '../../../../../UI/AnimatedSpinner';
 import { View } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
-import { createProjectLogger } from '@metamask/utils';
-
-const log = createProjectLogger('transaction-pay');
 
 export function TotalRow() {
   const { id: transactionId, type } = useTransactionMetadataOrThrow();
-  const totals = useTransactionTotalFiat();
-  const { totalFormatted } = totals;
+  const { totalFormatted } = useTransactionTotalFiat({ log: true });
 
   const isQuotesLoading = useSelector((state: RootState) =>
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
   );
-
-  useEffect(() => {
-    log('Total fiat', totals);
-  }, [totals]);
 
   return (
     <View testID="total-row">
