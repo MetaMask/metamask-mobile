@@ -235,21 +235,24 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           {positions.map((position, index) => {
             const sizeValue = parseFloat(position.size);
             const directionSegment = Number.isFinite(sizeValue)
-            ? sizeValue > 0
-              ? 'long'
-              : sizeValue < 0
-              ? 'short'
-              : 'unknown'
-            : 'unknown';
+              ? sizeValue > 0
+                ? 'long'
+                : sizeValue < 0
+                ? 'short'
+                : 'unknown'
+              : 'unknown';
             return (
-            <View
-              key={`${position.coin}-${index}`}
-              testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
-            >
-              <PerpsCard key={`${position.coin}-${index}`} position={position} />
-            </View>
-          );
-        })}
+              <View
+                key={`${position.coin}-${index}`}
+                testID={`${PerpsPositionsViewSelectorsIDs.POSITION_ITEM}-${position.coin}-${position.leverage.value}x-${directionSegment}-${index}`}
+              >
+                <PerpsCard
+                  key={`${position.coin}-${index}`}
+                  position={position}
+                />
+              </View>
+            );
+          })}
           {renderStartTradeCTA()}
         </View>
       </>
