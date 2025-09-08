@@ -146,7 +146,7 @@ describe('Amount', () => {
     act(() => {
       fireEvent.changeText(getByTestId('send_amount'), '1');
     });
-    expect(getByText('$ 3890.00')).toBeTruthy();
+    expect(getByText('$ 3890')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
@@ -160,7 +160,7 @@ describe('Amount', () => {
     act(() => {
       fireEvent.changeText(getByTestId('send_amount'), '1');
     });
-    expect(getByText('$ 175.00')).toBeTruthy();
+    expect(getByText('$ 175')).toBeTruthy();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -212,11 +212,11 @@ describe('Amount', () => {
     act(() => {
       fireEvent.press(getByTestId('fiat_toggle'));
     });
-    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
+    expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
     act(() => {
       fireEvent.press(getByTestId('fiat_toggle'));
     });
-    expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
+    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
   });
 
   it('fiatmode is not avaialble for NFT', () => {
