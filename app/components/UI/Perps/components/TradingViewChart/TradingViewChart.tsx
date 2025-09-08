@@ -357,11 +357,11 @@ const TradingViewChart = React.forwardRef<
           <Box style={styles.ohlcLegend}>
             <Box style={styles.ohlcRow}>
               <Text variant={TextVariant.BodyXs}>O: {ohlcData.open}</Text>
-              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
+              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
             </Box>
             <Box style={styles.ohlcRow}>
+              <Text variant={TextVariant.BodyXs}>H: {ohlcData.high}</Text>
               <Text variant={TextVariant.BodyXs}>L: {ohlcData.low}</Text>
-              <Text variant={TextVariant.BodyXs}>C: {ohlcData.close}</Text>
             </Box>
           </Box>
         )}
