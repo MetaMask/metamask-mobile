@@ -806,25 +806,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
       }
 
-      // Continue request loading it the protocol is whitelisted
       const { protocol } = new URLParse(urlToLoad);
-      if (protocolAllowList.includes(protocol)) return true;
-      Logger.log(`Protocol not allowed ${protocol}`);
 
-      // If it is a trusted deeplink protocol, do not show the
-      // warning alert. Allow the OS to deeplink the URL
-      // and stop the webview from loading it.
+      // trusted deeplink protocols do not require alert to be shown to the user
       if (trustedProtocolToDeeplink.includes(protocol)) {
+        // Delegate to the OS handler
         allowLinkOpen(urlToLoad);
+
+        // Stop webview from loading it
         return false;
       }
 
-      // TODO: add logging for untrusted protocol being used
-      // Sentry
-      const alertMsg = getAlertMessage(protocol, strings);
+      // Continue webview request loading if the protocol is whitelisted
+      if (protocolAllowList.includes(protocol)) return true;
+
+      // protocol not on the allowList or trusted to deeplink list.
+      // Add it to Sentry Breadcrumbs
+      Logger.log(`Protocol not allowed ${protocol}`);
 
       // Pop up an alert dialog box to prompt the user for permission
       // to execute the request
+      const alertMsg = getAlertMessage(protocol, strings);
       Alert.alert(strings('onboarding.warning_title'), alertMsg, [
         {
           text: strings('browser.protocol_alert_options.ignore'),
