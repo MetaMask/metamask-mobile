@@ -952,8 +952,8 @@ jobs:
           echo "iOS Version: 7.56.0"
           echo ""
           echo "=== BrowserStack App URLs ==="
-          echo "Android App URL: bs://15e63ab44547a33cd4faa7e038d56e87cefc19a3"
-          echo "iOS App URL: bs://88c080092aeceddf3da7e358be41d69372333eaf"
+          echo "Android App URL: $BROWSERSTACK_ANDROID_APP_URL"
+          echo "iOS App URL: $BROWSERSTACK_IOS_APP_URL"
     
     outputs:
       overall_status: ${{ steps.test-results.outputs.overall_status }}
