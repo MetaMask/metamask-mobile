@@ -352,6 +352,13 @@ const createMockState = (): DeepPartial<RootState> => ({
         },
         selectedNetworkClientId: '1',
       },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+          },
+        },
+      },
       KeyringController: {
         keyrings: [
           {
