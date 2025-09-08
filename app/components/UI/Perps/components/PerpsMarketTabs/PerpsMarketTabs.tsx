@@ -191,48 +191,34 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           coin: orderToCancel.symbol,
         });
 
-        let timeout: NodeJS.Timeout | null = null;
-
         if (result.success) {
-          // Adding delay to prevent order cancelled toast from appearing immediately above the in-progress toast
-          timeout = setTimeout(() => {
-            if (orderToCancel.reduceOnly) {
-              // Distinction is important since reduce-only orders don't require margin.
-              // So we shouldn't display "Your funds are available to trade" in the toast.
-              showToast(
-                PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-                  .cancellationSuccess,
-              );
-            } else {
-              // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
-              showToast(
-                PerpsToastOptions.orderManagement.limit.cancellationSuccess,
-              );
-            }
-          }, 1500);
-        }
-        // Open order cancellation failed
-        else {
-          timeout = setTimeout(() => {
-            // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
-            if (orderToCancel.reduceOnly) {
-              showToast(
-                PerpsToastOptions.orderManagement.limit.reduceOnlyClose
-                  .cancellationFailed,
-              );
-            } else {
-              // Display "Funds have been returned to you" toast
-              showToast(
-                PerpsToastOptions.orderManagement.limit.cancellationFailed,
-              );
-            }
-          }, 1500);
-        }
-        return () => {
-          if (timeout) {
-            clearTimeout(timeout);
+          if (orderToCancel.reduceOnly) {
+            // Distinction is important since reduce-only orders don't require margin.
+            // So we shouldn't display "Your funds are available to trade" in the toast.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+                .cancellationSuccess,
+            );
+          } else {
+            // In regular limit order, funds are "locked up" and the "funds are available to trade" text in toast makes sense.
+            showToast(
+              PerpsToastOptions.orderManagement.limit.cancellationSuccess,
+            );
           }
-        };
+          return;
+        }
+
+        // Open order cancellation failed
+        // Funds aren't "locked up" for reduce-only orders, so we don't display "Funds have been returned to you" toast.
+        if (orderToCancel.reduceOnly) {
+          showToast(
+            PerpsToastOptions.orderManagement.limit.reduceOnlyClose
+              .cancellationFailed,
+          );
+        } else {
+          // Display "Funds have been returned to you" toast
+          showToast(PerpsToastOptions.orderManagement.limit.cancellationFailed);
+        }
       } catch (error) {
         DevLogger.log('Failed to cancel order:', error);
       }
