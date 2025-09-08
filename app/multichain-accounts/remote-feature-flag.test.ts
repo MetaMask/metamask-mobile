@@ -66,7 +66,7 @@ describe('Multichain Accounts Feature Flag', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when the minimum version is met', () => {
+    it('returns true when the minimum version is met', () => {
       const result = isMultichainAccountsRemoteFeatureEnabled(
         {
           enableMultichainAccounts: {
