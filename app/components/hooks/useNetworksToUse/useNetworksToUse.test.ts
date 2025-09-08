@@ -384,9 +384,7 @@ describe('useNetworksToUse', () => {
     });
 
     it('returns EVM networks when both accounts are selected but only EVM networks are available', () => {
-      // Arrange - Clear mocks and set up specific scenario
-      jest.clearAllMocks();
-
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -405,6 +403,8 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks, // EVM networks available
@@ -416,7 +416,7 @@ describe('useNetworksToUse', () => {
           totalEnabledNetworksCount: 2,
         })
         .mockReturnValueOnce({
-          networks: null as unknown as ProcessedNetwork[], // No Solana networks (falsy)
+          networks: undefined as unknown as ProcessedNetwork[], // No Solana networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -443,9 +443,7 @@ describe('useNetworksToUse', () => {
     });
 
     it('returns Solana networks when both accounts are selected but only Solana networks are available', () => {
-      // Arrange - Clear mocks and set up specific scenario
-      jest.clearAllMocks();
-
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -464,9 +462,11 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
-          networks: null as unknown as ProcessedNetwork[], // No EVM networks (falsy)
+          networks: undefined as unknown as ProcessedNetwork[], // No EVM networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -502,9 +502,7 @@ describe('useNetworksToUse', () => {
     });
 
     it('falls back to default networks when both accounts are selected but no networks are available', () => {
-      // Arrange - Clear mocks and set up specific scenario
-      jest.clearAllMocks();
-
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -523,9 +521,11 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
-          networks: null as unknown as ProcessedNetwork[], // No EVM networks
+          networks: undefined as unknown as ProcessedNetwork[], // No EVM networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -534,7 +534,7 @@ describe('useNetworksToUse', () => {
           totalEnabledNetworksCount: 0,
         })
         .mockReturnValueOnce({
-          networks: null as unknown as ProcessedNetwork[], // No Solana networks
+          networks: undefined as unknown as ProcessedNetwork[], // No Solana networks
           selectedNetworks: [],
           selectedCount: 0,
           areAllNetworksSelected: false,
@@ -562,10 +562,8 @@ describe('useNetworksToUse', () => {
   });
 
   describe('areAllNetworksSelectedCombined logic', () => {
-    it('returns false when both EVM and Solana networks are all selected', () => {
-      // Arrange - Clear all mocks first
-      jest.clearAllMocks();
-
+    it('returns true when both EVM and Solana networks are all selected', () => {
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -584,7 +582,8 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
-      // Mock calls in order: first EVM, then Solana
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -615,12 +614,11 @@ describe('useNetworksToUse', () => {
       const { result } = renderHook(() => useNetworksToUse(props));
 
       // Assert
-      expect(result.current.areAllNetworksSelectedCombined).toBe(false);
+      expect(result.current.areAllNetworksSelectedCombined).toBe(true);
     });
 
     it('returns false when EVM networks are selected but Solana networks are not', () => {
-      // Arrange - Clear all mocks first
-      jest.clearAllMocks();
+      // Arrange
 
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
@@ -640,7 +638,8 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
-      // Mock calls in order: first EVM, then Solana
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -677,9 +676,7 @@ describe('useNetworksToUse', () => {
     });
 
     it('returns EVM selection state when only EVM account is selected', () => {
-      // Arrange - Clear all mocks first
-      jest.clearAllMocks();
-
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -695,6 +692,8 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -730,9 +729,7 @@ describe('useNetworksToUse', () => {
     });
 
     it('returns Solana selection state when only Solana account is selected', () => {
-      // Arrange - Clear all mocks first
-      jest.clearAllMocks();
-
+      // Arrange
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectMultichainAccountsState2Enabled) {
           return true;
@@ -748,6 +745,8 @@ describe('useNetworksToUse', () => {
         return undefined;
       });
 
+      // Reset and setup new mocks for this specific test
+      mockUseNetworksByCustomNamespace.mockReset();
       mockUseNetworksByCustomNamespace
         .mockReturnValueOnce({
           networks: mockEvmNetworks,
@@ -811,6 +810,16 @@ describe('useNetworksToUse', () => {
   describe('network type variations', () => {
     it('works with Custom network type', () => {
       // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false; // Multichain disabled for this test
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => null;
+        }
+        return undefined;
+      });
+
       const props = {
         networks: mockDefaultNetworks,
         networkType: NetworkType.Custom,
@@ -836,6 +845,16 @@ describe('useNetworksToUse', () => {
   describe('edge cases', () => {
     it('handles empty networks arrays gracefully', () => {
       // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectMultichainAccountsState2Enabled) {
+          return false; // Multichain disabled for this test
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => null;
+        }
+        return undefined;
+      });
+
       const props = {
         networks: [],
         networkType: NetworkType.Popular,
@@ -879,15 +898,25 @@ describe('useNetworksToUse', () => {
 
     it('handles undefined return values from useNetworksByCustomNamespace', () => {
       // Arrange
-      mockUseNetworksByCustomNamespace.mockReturnValue({
-        networks: undefined as unknown as ProcessedNetwork[],
-        selectedNetworks: [],
-        selectedCount: 0,
-        areAllNetworksSelected: undefined as unknown as boolean,
-        areAnyNetworksSelected: false,
-        networkCount: 0,
-        totalEnabledNetworksCount: 0,
-      });
+      mockUseNetworksByCustomNamespace
+        .mockReturnValueOnce({
+          networks: undefined as unknown as ProcessedNetwork[],
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: undefined as unknown as boolean,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        })
+        .mockReturnValueOnce({
+          networks: undefined as unknown as ProcessedNetwork[],
+          selectedNetworks: [],
+          selectedCount: 0,
+          areAllNetworksSelected: undefined as unknown as boolean,
+          areAnyNetworksSelected: false,
+          networkCount: 0,
+          totalEnabledNetworksCount: 0,
+        });
 
       const props = {
         networks: mockDefaultNetworks,
