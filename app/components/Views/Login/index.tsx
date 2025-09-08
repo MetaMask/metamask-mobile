@@ -555,7 +555,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       fieldRef.current?.clear();
     } catch (loginErr: unknown) {
       await handleLoginError(loginErr);
-      Logger.error(loginErr as Error, 'Failed to unlock');
     }
   };
 
