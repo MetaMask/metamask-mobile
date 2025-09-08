@@ -133,7 +133,11 @@ export const submitEvmTransaction = async ({
   });
 };
 
-export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
+export function formatToFixedDecimals(
+  value: string,
+  decimalsToShow = 5,
+  formatSmallValue = true,
+) {
   if (value) {
     const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
     const result = String(value).replace(/^-/, '').split('.');
@@ -150,7 +154,7 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
       fracPart = fracPart.padEnd(decimals, '0');
     }
 
-    if (new BN(`${intPart}${fracPart}`).lt(new BN(1))) {
+    if (formatSmallValue && new BN(`${intPart}${fracPart}`).lt(new BN(1))) {
       return `< ${1 / Math.pow(10, decimals)}`;
     }
 
@@ -219,4 +223,33 @@ export const getLayer1GasFeeForSend = async ({
     txParams,
     chainId,
   })) as Hex | undefined;
+};
+
+export const convertCurrency = (
+  value: string,
+  conversionRate: number,
+  decimals?: number,
+  targetDecimals?: number,
+) => {
+  let sourceDecimalValue = parseInt(decimals?.toString() ?? '0', 10);
+  const targetDecimalValue = parseInt(targetDecimals?.toString() ?? '0', 10);
+
+  const conversionRateDecimals = (
+    conversionRate?.toString().replace(/^-/, '').split('.')[1] ?? ''
+  ).length;
+
+  const convertedValueBN = toBNWithDecimals(value, sourceDecimalValue);
+  const conversionRateBN = toBNWithDecimals(
+    conversionRate.toString(),
+    conversionRateDecimals,
+  );
+  sourceDecimalValue += conversionRateDecimals;
+
+  const convertedValue = convertedValueBN.mul(conversionRateBN);
+
+  return formatToFixedDecimals(
+    fromBNWithDecimals(convertedValue, sourceDecimalValue),
+    targetDecimalValue,
+    false,
+  );
 };
