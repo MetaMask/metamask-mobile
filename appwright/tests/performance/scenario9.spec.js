@@ -16,7 +16,7 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
 import TokenOverviewScreen from '../../../wdio/screen-objects/TokenOverviewScreen.js';
-import { onboardingFlowImportSRP } from '../../utils/Flows.js';
+import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 import SendScreen from '../../../wdio/screen-objects/SendScreen.js';
 import ConfirmationScreen from '../../../wdio/screen-objects/ConfirmationScreen.js';
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
@@ -59,6 +59,8 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
+  performanceTracker.addTimer(timer1);
+
   await SendScreen.typeAddressInSendAddressField(
     '0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf',
   );
@@ -69,6 +71,8 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await SendScreen.tapOnNextButton();
   await SendScreen.isAmountScreenDisplayed();
   timer2.stop();
+  performanceTracker.addTimer(timer2);
+
   const timer3 = new TimerHelper(
     'Time since the user clicks on Next after entering the amount, until the user gets the confirmation screen',
   );
@@ -81,8 +85,6 @@ test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
   await ConfirmationScreen.isAdvancedSettingsDisplayed();
   timer3.stop();
 
-  performanceTracker.addTimer(timer1);
-  performanceTracker.addTimer(timer2);
   performanceTracker.addTimer(timer3);
   await performanceTracker.attachToTest(testInfo);
 });
@@ -114,8 +116,8 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   SolanaConfirmationScreen.device = device;
   NetworksScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
+  await importSRPFlow(device, process.env.TEST_SRP_1);
   // await importSRPFlow(device, process.env.TEST_SRP_3);
 
   await WalletMainScreen.tapIdenticon();
@@ -131,6 +133,7 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await WalletActionModal.tapSendButton();
   await SendSolanaScreen.isAddressFieldVisible();
   timer1.stop();
+  performanceTracker.addTimer(timer1);
 
   await SendSolanaScreen.fillAddressField(
     '3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c',
@@ -141,7 +144,6 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();
 
   timer2.stop();
-  performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
   await performanceTracker.attachToTest(testInfo);
 });

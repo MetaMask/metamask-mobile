@@ -108,6 +108,7 @@ export const AmountKeyboard = ({
           />
         ) : undefined
       }
+      enableEmptyValueString
       hideDoneButton
       onChange={updateToNewAmount}
       onPercentagePress={updateToPercentageAmount}
