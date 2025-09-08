@@ -271,10 +271,9 @@ export const createTradingViewChartTemplate = (
                 wickDownColor: '#FF7584',
                 priceLineColor: '#FFF',
                 priceLineWidth: 1,
-                lastValueVisible: true,
-                title: 'Current',
+                lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
-                priceLineSource: window.LightweightCharts.PriceLineSource.LastVisible,
+                priceLineSource: window.LightweightCharts.PriceLineSource.LastBar,
                 // Configure price format with smart precision
                 priceFormat: {
                     type: 'price',
@@ -355,6 +354,46 @@ export const createTradingViewChartTemplate = (
             
             return window.candlestickSeries;
         };
+        
+        // Function to create/update current price line
+        window.updateCurrentPriceLine = function(currentPrice) {
+            if (!window.candlestickSeries) {
+                return;
+            }
+            
+            // Remove existing current price line if it exists
+            if (window.priceLines.currentPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.currentPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.currentPrice = null;
+            }
+            
+            // Create new current price line if price is valid
+            if (currentPrice && !isNaN(parseFloat(currentPrice))) {
+                console.log('📊 TradingView: Creating current price line at:', currentPrice);
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(currentPrice),
+                        color: '#FFF', // White
+                        lineWidth: 1,
+                        lineStyle: 0, // Solid line
+                        axisLabelVisible: true,
+                        title: 'Current'
+                    });
+                    // Store reference for future removal
+                    window.priceLines.currentPrice = priceLine;
+                    console.log('📊 TradingView: Current price line created successfully');
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error creating current price line:', error);
+                }
+            } else {
+                console.log('📊 TradingView: No valid current price provided:', currentPrice);
+            }
+        };
 
         // Optimized resize handler with throttling
         let resizeTimeout;
@@ -397,35 +436,8 @@ export const createTradingViewChartTemplate = (
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
-            };
-            
-            // Remove all price lines
-            Object.keys(window.priceLines).forEach(key => {
-                if (window.priceLines[key]) {
-                    try {
-                        window.candlestickSeries.removePriceLine(window.priceLines[key]);
-                        window.priceLines[key] = null;
-                    } catch (error) {
-                        // Silent error handling
-                    }
-                }
-            });
-        };
-        
-        // Store original price line data for restoration
-        window.originalPriceLineData = null;
-        
-        // Helper functions to hide/show all price lines during panning
-        window.hideAllPriceLines = function() {
-            if (!window.candlestickSeries) return;
-            
-            // Store current price line data for restoration
-            window.originalPriceLineData = {
-                entryPrice: window.priceLines.entryPrice,
-                liquidationPrice: window.priceLines.liquidationPrice,
-                takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                currentPrice: window.priceLines.currentPrice
             };
             
             // Remove all price lines
@@ -502,6 +514,38 @@ export const createTradingViewChartTemplate = (
                 }
             }
             
+            // Recreate current price line from stored data
+            if (window.originalPriceLineData.currentPrice) {
+                try {
+                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.currentPrice.price,
+                        color: '#FFF',
+                        lineWidth: 1,
+                        lineStyle: 0,
+                        axisLabelVisible: true,
+                        title: 'Current'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Recreate current price line from stored data
+            if (window.originalPriceLineData.currentPrice) {
+                try {
+                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.currentPrice.price,
+                        color: '#FFF',
+                        lineWidth: 1,
+                        lineStyle: 0,
+                        axisLabelVisible: true,
+                        title: 'Current'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
             // Clear stored data
             window.originalPriceLineData = null;
         };
@@ -544,6 +588,15 @@ export const createTradingViewChartTemplate = (
             if (!window.candlestickSeries) {
                 return;
             }
+            
+            // Debug: Log the received lines data
+            console.log('📊 TradingView: updatePriceLines called with:', lines);
+            
+            // Update current price line if provided
+            if (lines.currentPrice) {
+                window.updateCurrentPriceLine(lines.currentPrice);
+            }
+            
             // Remove existing entry line if it exists
             if (window.priceLines.entryPrice) {
                 try {
@@ -702,6 +755,14 @@ export const createTradingViewChartTemplate = (
                                 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
+                                
+                                // Update current price line with the latest candle's close price
+                                if (message.data && message.data.length > 0) {
+                                    const latestCandle = message.data[message.data.length - 1];
+                                    if (latestCandle && latestCandle.close) {
+                                        window.updateCurrentPriceLine(latestCandle.close.toString());
+                                    }
+                                }
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }

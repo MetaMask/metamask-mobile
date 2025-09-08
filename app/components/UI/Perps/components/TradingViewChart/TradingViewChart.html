@@ -329,10 +329,9 @@ PERFORMANCE OPTIMIZATIONS:
                 wickDownColor: '#FF7584',
                 priceLineColor: '#FFF',
                 priceLineWidth: 1,
-                lastValueVisible: true,
-                title: 'Current',
+                lastValueVisible: false,
                 // Use native PriceLineSource for better price line handling
-                priceLineSource: window.LightweightCharts.PriceLineSource.LastVisible,
+                priceLineSource: window.LightweightCharts.PriceLineSource.LastBar,
                 // Configure price format with smart precision
                 priceFormat: {
                     type: 'price',
@@ -413,6 +412,46 @@ PERFORMANCE OPTIMIZATIONS:
             
             return window.candlestickSeries;
         };
+        
+        // Function to create/update current price line
+        window.updateCurrentPriceLine = function(currentPrice) {
+            if (!window.candlestickSeries) {
+                return;
+            }
+            
+            // Remove existing current price line if it exists
+            if (window.priceLines.currentPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.currentPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.currentPrice = null;
+            }
+            
+            // Create new current price line if price is valid
+            if (currentPrice && !isNaN(parseFloat(currentPrice))) {
+                console.log('📊 TradingView: Creating current price line at:', currentPrice);
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(currentPrice),
+                        color: '#FFF', // White
+                        lineWidth: 1,
+                        lineStyle: 0, // Solid line
+                        axisLabelVisible: true,
+                        title: 'Current'
+                    });
+                    // Store reference for future removal
+                    window.priceLines.currentPrice = priceLine;
+                    console.log('📊 TradingView: Current price line created successfully');
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error creating current price line:', error);
+                }
+            } else {
+                console.log('📊 TradingView: No valid current price provided:', currentPrice);
+            }
+        };
 
         // Optimized resize handler with throttling
         let resizeTimeout;
@@ -455,7 +494,8 @@ PERFORMANCE OPTIMIZATIONS:
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                currentPrice: window.priceLines.currentPrice
             };
             
             // Remove all price lines
@@ -532,6 +572,22 @@ PERFORMANCE OPTIMIZATIONS:
                 }
             }
             
+            // Recreate current price line from stored data
+            if (window.originalPriceLineData.currentPrice) {
+                try {
+                    window.priceLines.currentPrice = window.candlestickSeries.createPriceLine({
+                        price: window.originalPriceLineData.currentPrice.price,
+                        color: '#FFF',
+                        lineWidth: 1,
+                        lineStyle: 0,
+                        axisLabelVisible: true,
+                        title: 'Current'
+                    });
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
             // Clear stored data
             window.originalPriceLineData = null;
         };
@@ -574,6 +630,130 @@ PERFORMANCE OPTIMIZATIONS:
             if (!window.candlestickSeries) {
                 return;
             }
+            // Remove existing entry line if it exists
+            if (window.priceLines.entryPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.entryPrice);
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error removing entry line:', error);
+                }
+                window.priceLines.entryPrice = null;
+            }
+            // Create new entry line if price is valid
+            if (lines.entryPrice && !isNaN(parseFloat(lines.entryPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.entryPrice),
+                        color: '#CCC', // Light Gray
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Entry'
+                    });
+                    // Store reference for future removal
+                    window.priceLines.entryPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            // Remove existing take profit line if it exists
+            if (window.priceLines.takeProfitPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.takeProfitPrice);
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error removing take profit line:', error);
+                }
+                window.priceLines.takeProfitPrice = null;
+            }
+            // Create new take profit line if price is valid
+            if (lines.takeProfitPrice && !isNaN(parseFloat(lines.takeProfitPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.takeProfitPrice),
+                        color: '#BAF24A', // Light Green
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'TP'
+                    });
+                    window.priceLines.takeProfitPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error creating take profit line:', error);
+                }
+            }
+            // Remove existing stop loss line if it exists
+            if (window.priceLines.stopLossPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.stopLossPrice);
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error removing stop loss line:', error);
+                }
+                window.priceLines.stopLossPrice = null;
+            }
+            // Create new stop loss line if price is valid
+            if (lines.stopLossPrice && !isNaN(parseFloat(lines.stopLossPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.stopLossPrice),
+                        color: '#484848', // Dark Gray
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'SL'
+                    });
+                    // Store reference for future removal
+                    window.priceLines.stopLossPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error creating stop loss line:', error);
+                }
+            }
+            // Remove existing liquidation line if it exists
+            if (window.priceLines.liquidationPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.liquidationPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.liquidationPrice = null;
+            }
+            // Create new liquidation line if price is valid
+            if (lines.liquidationPrice && !isNaN(parseFloat(lines.liquidationPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.liquidationPrice),
+                        color: '#FF7584', // Red
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Liq'
+                    });
+                    // Store reference for future removal
+                    window.priceLines.liquidationPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                    console.error('TradingView: Error creating liquidation line:', error);
+                }
+            }
+            
+        // Update TPSL price lines
+        window.updatePriceLines = function(lines) {
+            if (!window.candlestickSeries) {
+                return;
+            }
+            
+            // Debug: Log the received lines data
+            console.log('📊 TradingView: updatePriceLines called with:', lines);
+            
+            // Update current price line if provided
+            if (lines.currentPrice) {
+                window.updateCurrentPriceLine(lines.currentPrice);
+            }
+            
             // Remove existing entry line if it exists
             if (window.priceLines.entryPrice) {
                 try {
@@ -732,6 +912,14 @@ PERFORMANCE OPTIMIZATIONS:
                                 
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
+                                
+                                // Update current price line with the latest candle's close price
+                                if (message.data && message.data.length > 0) {
+                                    const latestCandle = message.data[message.data.length - 1];
+                                    if (latestCandle && latestCandle.close) {
+                                        window.updateCurrentPriceLine(latestCandle.close.toString());
+                                    }
+                                }
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }
