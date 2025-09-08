@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Zur App zurückkehren",
+    "postNetworkSwitchTitle": "Netzwerk erfolgreich gewechselt",
     "description": "Bitte kehren Sie zur App zurück, um ihre Dienste weiter zu nutzen."
   },
   "sdk_feedback_modal": {

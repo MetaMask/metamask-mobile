@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "앱으로 돌아가기",
+    "postNetworkSwitchTitle": "네트워크가 성공적으로 전환되었습니다",
     "description": "서비스를 계속 이용하려면 앱으로 돌아가세요."
   },
   "sdk_feedback_modal": {

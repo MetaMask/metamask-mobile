@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Bumalik sa app",
+    "postNetworkSwitchTitle": "Matagumpay na na-switch ang network",
     "description": "Bumalik sa app para magpatuloy sa paggamit ng kanilang mga serbisyo."
   },
   "sdk_feedback_modal": {

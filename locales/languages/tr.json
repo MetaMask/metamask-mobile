@@ -2312,6 +2312,7 @@
   },
   "sdk_return_to_app_modal": {
     "title": "Uygulamaya geri dön",
+    "postNetworkSwitchTitle": "Ağ başarıyla değiştirildi",
     "description": "Hizmetlerini kullanmaya devam etmek için lütfen uygulamaya geri dönün."
   },
   "sdk_feedback_modal": {
