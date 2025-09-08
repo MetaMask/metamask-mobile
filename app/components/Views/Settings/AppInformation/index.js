@@ -23,7 +23,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 import { useSupportConsent } from '../../../hooks/useSupportConsent';
-import SupportConsentModal from '../../../UI/SupportConsentModal';
+import SupportConsentSheet from '../../../UI/SupportConsentSheet';
 import getSupportUrl from '../../../../util/support';
 import { isQa } from '../../../../util/test/utils';
 
@@ -103,7 +103,7 @@ export default class AppInformation extends PureComponent {
   state = {
     appInfo: '',
     appVersion: '',
-    showConsentModal: false,
+    showConsentSheet: false,
   };
 
   updateNavBar = () => {
@@ -185,19 +185,19 @@ export default class AppInformation extends PureComponent {
     }
 
     // Default behavior for non-beta builds
-    this.setState({ showConsentModal: true });
+    this.setState({ showConsentSheet: true });
   };
 
   handleConsent = async () => {
     try {
       const supportUrl = await getSupportUrl(true);
-      this.setState({ showConsentModal: false });
+      this.setState({ showConsentSheet: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     } catch (error) {
       console.warn('Error getting support URL with consent:', error);
       // Fallback to base URL
       const supportUrl = await getSupportUrl(false);
-      this.setState({ showConsentModal: false });
+      this.setState({ showConsentSheet: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     }
   };
@@ -205,13 +205,13 @@ export default class AppInformation extends PureComponent {
   handleDecline = async () => {
     try {
       const supportUrl = await getSupportUrl(false);
-      this.setState({ showConsentModal: false });
+      this.setState({ showConsentSheet: false });
       this.goTo(supportUrl, strings('drawer.metamask_support'));
     } catch (error) {
       console.warn('Error getting support URL without consent:', error);
       // Fallback to base URL
       const fallbackUrl = 'https://support.metamask.io';
-      this.setState({ showConsentModal: false });
+      this.setState({ showConsentSheet: false });
       this.goTo(fallbackUrl, strings('drawer.metamask_support'));
     }
   };
@@ -279,8 +279,8 @@ export default class AppInformation extends PureComponent {
           </ScrollView>
         </SafeAreaView>
 
-        <SupportConsentModal
-          isVisible={this.state.showConsentModal}
+        <SupportConsentSheet
+          isVisible={this.state.showConsentSheet}
           onConsent={this.handleConsent}
           onDecline={this.handleDecline}
         />

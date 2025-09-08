@@ -2358,10 +2358,11 @@
     "contact_us": "Contact Us"
   },
   "support_consent": {
-    "title": "Share information with support?",
-    "description": "You're about to be redirected to the support center. Do you consent to sharing your MetaMask Identifier and the version of the app you're using? This is optional but can facilitate debugging on our side.",
-    "consent": "Yes, share",
-    "decline": "No, thanks"
+    "title": "Share device details with support",
+    "description": "Do you want to share your MetaMask Identifier and app version with our Support Center? This can help us better solve your problem, but is optional.",
+    "consent": "Confirm",
+    "decline": "Don't share",
+    "save_preference": "Save my preference"
   },
   "reveal_credential": {
     "seed_phrase_title": "Reveal Secret Recovery Phrase",

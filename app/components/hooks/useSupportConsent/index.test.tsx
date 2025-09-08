@@ -30,7 +30,7 @@ describe('useSupportConsent', () => {
       useSupportConsent(mockOnNavigate, mockTitle),
     );
 
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('shows modal when openSupportWebPage is called in non-beta environment', () => {
@@ -42,7 +42,7 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
 
-    expect(result.current.showConsentModal).toBe(true);
+    expect(result.current.showConsentSheet).toBe(true);
   });
 
   it('navigates with consent parameters when user consents', async () => {
@@ -63,7 +63,7 @@ describe('useSupportConsent', () => {
       'https://support.metamask.io',
       mockTitle,
     );
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('navigates without consent parameters when user declines', async () => {
@@ -84,7 +84,7 @@ describe('useSupportConsent', () => {
       'https://support.metamask.io',
       mockTitle,
     );
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('falls back to base URL when consent request fails', async () => {
@@ -152,25 +152,25 @@ describe('useSupportConsent', () => {
     );
   });
 
-  it('toggles modal visibility when opening and consenting', async () => {
+  it('toggles sheet visibility when opening and consenting', async () => {
     const { result } = renderHook(() =>
       useSupportConsent(mockOnNavigate, mockTitle),
     );
 
     // Initially hidden
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
 
     // Show modal
     act(() => {
       result.current.openSupportWebPage();
     });
-    expect(result.current.showConsentModal).toBe(true);
+    expect(result.current.showConsentSheet).toBe(true);
 
-    // Hide modal after consent
+    // Hide sheet after consent
     await act(async () => {
       await result.current.handleConsent();
     });
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
   });
 
   it('bypasses modal and navigates to beta support in beta environment', () => {
@@ -182,7 +182,7 @@ describe('useSupportConsent', () => {
       result.current.openSupportWebPage();
     });
 
-    expect(result.current.showConsentModal).toBe(false);
+    expect(result.current.showConsentSheet).toBe(false);
     expect(mockOnNavigate).toHaveBeenCalledWith(
       'https://intercom.help/internal-beta-testing/en/',
       mockTitle,

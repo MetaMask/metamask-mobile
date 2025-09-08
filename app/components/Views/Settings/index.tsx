@@ -17,7 +17,7 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useSupportConsent } from '../../../components/hooks/useSupportConsent';
-import SupportConsentModal from '../../../components/UI/SupportConsentModal';
+import SupportConsentSheet from '../../../components/UI/SupportConsentSheet';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
@@ -144,7 +144,7 @@ const Settings = () => {
     });
   };
 
-  const { showConsentModal, openSupportWebPage, handleConsent, handleDecline } =
+  const { showConsentSheet, openSupportWebPage, handleConsent, handleDecline } =
     useSupportConsent(goToBrowserUrl, strings('app_settings.contact_support'));
 
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
@@ -347,8 +347,8 @@ const Settings = () => {
         />
       </ScrollView>
 
-      <SupportConsentModal
-        isVisible={showConsentModal}
+      <SupportConsentSheet
+        isVisible={showConsentSheet}
         onConsent={handleConsent}
         onDecline={handleDecline}
       />

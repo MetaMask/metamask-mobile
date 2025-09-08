@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import getSupportUrl from '../../../util/support';
 
 interface UseSupportConsentReturn {
-  showConsentModal: boolean;
+  showConsentSheet: boolean;
   openSupportWebPage: () => void;
   handleConsent: () => Promise<void>;
   handleDecline: () => Promise<void>;
@@ -13,14 +13,14 @@ interface UseSupportConsentReturn {
  * @param onNavigate - Callback to navigate to the support URL with title
  * @param title - Title for the support page
  * @param buildType - (optional) Build type, for testability. Defaults to process.env.METAMASK_BUILD_TYPE
- * @returns Object with consent modal state and handlers
+ * @returns Object with consent sheet state and handlers
  */
 export const useSupportConsent = (
   onNavigate: (url: string, title: string) => void,
   title: string,
   buildType?: string,
 ): UseSupportConsentReturn => {
-  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showConsentSheet, setShowConsentSheet] = useState(false);
 
   // Use refs to store the latest values to avoid dependency array issues
   const onNavigateRef = useRef(onNavigate);
@@ -44,19 +44,19 @@ export const useSupportConsent = (
     }
 
     // Default behavior for non-beta builds
-    setShowConsentModal(true);
+    setShowConsentSheet(true);
   }, [buildType]);
 
   const handleConsent = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(true);
-      setShowConsentModal(false);
+      setShowConsentSheet(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     } catch (error) {
       console.warn('Error getting support URL with consent:', error);
       // Fallback to base URL
       const supportUrl = await getSupportUrl(false);
-      setShowConsentModal(false);
+      setShowConsentSheet(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     }
   }, []);
@@ -64,19 +64,19 @@ export const useSupportConsent = (
   const handleDecline = useCallback(async () => {
     try {
       const supportUrl = await getSupportUrl(false);
-      setShowConsentModal(false);
+      setShowConsentSheet(false);
       onNavigateRef.current(supportUrl, titleRef.current);
     } catch (error) {
       console.warn('Error getting support URL without consent:', error);
       // Fallback to base URL
       const fallbackUrl = 'https://support.metamask.io';
-      setShowConsentModal(false);
+      setShowConsentSheet(false);
       onNavigateRef.current(fallbackUrl, titleRef.current);
     }
   }, []);
 
   return {
-    showConsentModal,
+    showConsentSheet,
     openSupportWebPage,
     handleConsent,
     handleDecline,

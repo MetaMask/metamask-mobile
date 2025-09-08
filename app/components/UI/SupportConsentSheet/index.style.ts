@@ -43,4 +43,4 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-export { createStyles }; 
+export { createStyles };

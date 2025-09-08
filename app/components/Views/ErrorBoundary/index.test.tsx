@@ -369,8 +369,8 @@ describe('ErrorBoundary', () => {
     });
   });
 
-  describe('Support Consent Modal', () => {
-    it('shows support consent modal when contact support is pressed', () => {
+  describe('Support Consent Sheet', () => {
+    it('shows support consent sheet when contact support is pressed', () => {
       const { getByText } = renderWithProvider(
         <ErrorBoundary view={'Root'}>
           <MockThrowComponent />
